@@ -3,8 +3,8 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:trocado/modules/core/core.dart';
 
-import 'package:trocado/modules/transaction/main/type_transaction_location.dart';
-import 'package:trocado/modules/transaction/presentation/widgets/bottom-sheet/menu/bottom_bar_menu_item_widget.dart';
+import 'package:trocado/modules/transactions/main/type_transaction_location.dart';
+import 'package:trocado/modules/transactions/presentation/widgets/bottom-sheet/menu/bottom_bar_menu_item_widget.dart';
 
 class BottomBarMenuWidget extends StatelessWidget {
   const BottomBarMenuWidget({super.key});

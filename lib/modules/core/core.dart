@@ -21,7 +21,6 @@ export 'domain/repositories/interface_storage_repository.dart';
 
 export 'infrastructure/resources/loggers/logger.dart';
 export 'infrastructure/clients/storage/storage_client.dart';
-export 'infrastructure/clients/external/external_client.dart';
 export 'infrastructure/clients/database/database_client.dart';
 
 export 'infrastructure/resources/observers/logger_navigation_observer.dart';
@@ -42,16 +41,18 @@ export 'presentation/themes/notifiers/theme_notifier.dart';
 
 export 'presentation/notifiers/notifier.dart';
 export 'presentation/notifiers/bottom_bar_notifier.dart';
+export 'presentation/notifiers/fingerprint_notifier.dart';
 export 'presentation/notifiers/notification_notifier.dart';
+
+export 'presentation/widgets/load_widget.dart';
+export 'presentation/widgets/icon_widget.dart';
+export 'presentation/widgets/switch_widget.dart';
+export 'presentation/widgets/bounce_widget.dart';
+export 'presentation/widgets/app_bar_widget.dart';
+export 'presentation/widgets/indicator_widget.dart';
 
 export 'presentation/widgets/bottom/bottom_bar_widget.dart';
 export 'presentation/widgets/bottom/bottom_bar_item_widget.dart';
 
 export 'presentation/widgets/bottom-sheet/bottom_sheet_widget.dart';
 export 'presentation/widgets/bottom-sheet/bottom_sheet_scaffold_widget.dart';
-
-export 'presentation/widgets/load_widget.dart';
-export 'presentation/widgets/icon_widget.dart';
-export 'presentation/widgets/bounce_widget.dart';
-export 'presentation/widgets/app_bar_widget.dart';
-export 'presentation/widgets/indicator_widget.dart';

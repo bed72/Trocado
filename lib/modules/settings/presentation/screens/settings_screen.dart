@@ -1,25 +1,16 @@
 import 'package:flutter/material.dart';
 
 import 'package:trocado/modules/core/core.dart';
+import 'package:trocado/modules/settings/presentation/dtos/settings_dto.dart';
 
 import 'package:trocado/modules/settings/presentation/widgets/profile_widget.dart';
 import 'package:trocado/modules/settings/presentation/widgets/sessions/finances_session_widget.dart';
 import 'package:trocado/modules/settings/presentation/widgets/sessions/application_settings_session_widget.dart';
 
 class SettingsScreen extends StatelessWidget {
-  final bool isDark;
-  final void Function(bool) onToggleThemes;
+  final SettingsDto dto;
 
-  final bool notificationsEnabled;
-  final void Function(bool) onToggleNotifications;
-
-  const SettingsScreen({
-    super.key,
-    required this.isDark,
-    required this.onToggleThemes,
-    required this.notificationsEnabled,
-    required this.onToggleNotifications,
-  });
+  const SettingsScreen({super.key, required this.dto});
 
   @override
   Widget build(BuildContext context) {
@@ -34,17 +25,13 @@ class SettingsScreen extends StatelessWidget {
               ProfileWidget(
                 name: 'Bed',
                 email: 'bed@gmail.com',
-                onEdit: () {},
+                onEdit: dto.onUserTap,
                 url:
                     'https://avatars.githubusercontent.com/u/30250307?s=96&v=4',
               ),
-              FinancesSessionWidget(),
-              ApplicationSettingsSessionWidget(
-                isDark: isDark,
-                onToggleThemes: onToggleThemes,
-                notificationsEnabled: notificationsEnabled,
-                onToggleNotifications: onToggleNotifications,
-              ),
+              FinancesSessionWidget(dto: dto),
+              ApplicationSettingsSessionWidget(dto: dto),
+              const SizedBox(height: 32.0),
             ],
           ),
         ),

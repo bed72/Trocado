@@ -1,5 +1,6 @@
 import 'package:provider/provider.dart';
 import 'package:trocado/modules/core/presentation/notifiers/bottom_bar_notifier.dart';
+import 'package:trocado/modules/core/presentation/notifiers/fingerprint_notifier.dart';
 
 import 'package:trocado/modules/core/presentation/themes/notifiers/theme_notifier.dart';
 import 'package:trocado/modules/core/presentation/notifiers/notification_notifier.dart';
@@ -23,6 +24,18 @@ final notifierProvider = [
   ChangeNotifierProvider<NotificationNotifier>(
     create: (context) {
       final notifier = NotificationNotifier(
+        repository: context.read<IStorageRepository>(),
+      );
+
+      notifier.ensureInitialized();
+
+      return notifier;
+    },
+  ),
+
+  ChangeNotifierProvider<FingerprintNotifier>(
+    create: (context) {
+      final notifier = FingerprintNotifier(
         repository: context.read<IStorageRepository>(),
       );
 

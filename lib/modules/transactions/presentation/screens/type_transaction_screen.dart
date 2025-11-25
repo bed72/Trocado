@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:trocado/modules/core/core.dart';
+
 class TypeTransactionScreen extends StatelessWidget {
   final String title;
 
@@ -8,7 +10,7 @@ class TypeTransactionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBarWidget(),
       body: SafeArea(child: Center(child: Text(title))),
     );
   }

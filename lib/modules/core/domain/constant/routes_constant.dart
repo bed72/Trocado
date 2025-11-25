@@ -36,18 +36,39 @@ final class RoutesConstant {
     regex: RegExp(r'^/$'),
   );
 
-  static final other = RoutesConstant._(
+  static final user = RoutesConstant._(
     auth: true,
-    path: '/other',
-    name: 'other-route',
-    regex: RegExp(r'^/other$'),
+    path: '/user',
+    name: 'user-route',
+    regex: RegExp(r'^/user$'),
   );
 
-  static final report = RoutesConstant._(
+  static final wallets = RoutesConstant._(
     auth: true,
-    path: '/report',
-    name: 'report-route',
-    regex: RegExp(r'^/report$'),
+    path: '/wallets',
+    name: 'wallets-route',
+    regex: RegExp(r'^/wallets$'),
+  );
+
+  static final debts = RoutesConstant._(
+    auth: true,
+    path: '/debts',
+    name: 'debts-route',
+    regex: RegExp(r'^/debts$'),
+  );
+
+  static final goals = RoutesConstant._(
+    auth: true,
+    path: '/goals',
+    name: 'goals-route',
+    regex: RegExp(r'^/goals$'),
+  );
+
+  static final reports = RoutesConstant._(
+    auth: true,
+    path: '/reports',
+    name: 'reports-route',
+    regex: RegExp(r'^/reports$'),
   );
 
   static final settings = RoutesConstant._(
@@ -57,11 +78,18 @@ final class RoutesConstant {
     regex: RegExp(r'^/settings$'),
   );
 
-  static final transaction = RoutesConstant._(
+  static final categories = RoutesConstant._(
     auth: true,
-    path: '/transaction',
-    name: 'transaction-route',
-    regex: RegExp(r'^/transaction$'),
+    path: '/categories',
+    name: 'categories-route',
+    regex: RegExp(r'^/categories$'),
+  );
+
+  static final transactions = RoutesConstant._(
+    auth: true,
+    path: '/transactions',
+    name: 'transactions-route',
+    regex: RegExp(r'^/transactions$'),
   );
 
   static final allTransaction = RoutesConstant._(
@@ -78,15 +106,28 @@ final class RoutesConstant {
     regex: RegExp(r'^/type/transaction/*$'),
   );
 
+  static final recurringTransactions = RoutesConstant._(
+    auth: true,
+    path: '/recurring/transactions',
+    name: 'recurring-transactions-route',
+    regex: RegExp(r'^/recurring/transactions$'),
+  );
+
   static final _all = [
     core,
     home,
-    report,
+    user,
+    debts,
+    goals,
     splash,
+    reports,
+    wallets,
     settings,
-    transaction,
+    categories,
+    transactions,
     allTransaction,
     typeTransaction,
+    recurringTransactions,
   ];
 
   static RoutesConstant? match(String location) =>

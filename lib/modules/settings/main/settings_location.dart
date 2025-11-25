@@ -1,6 +1,7 @@
 import 'package:duck_router/duck_router.dart';
 
 import 'package:trocado/modules/core/core.dart';
+import 'package:trocado/modules/settings/presentation/dtos/settings_dto.dart';
 
 import 'package:trocado/modules/settings/presentation/screens/settings_screen.dart';
 
@@ -10,12 +11,23 @@ final class SettingsLocation extends Location {
 
   @override
   LocationBuilder? get builder =>
-      (context) => ConsumersBuilder<ThemeNotifier, NotificationNotifier>(
-        builder: (_, theme, notification) => SettingsScreen(
-          isDark: theme.isDark,
-          onToggleThemes: theme.toggle,
-          onToggleNotifications: notification.toggle,
-          notificationsEnabled: notification.enabled,
-        ),
-      );
+      (_) =>
+          ConsumerManyBuilder<
+            ThemeNotifier,
+            NotificationNotifier,
+            FingerprintNotifier
+          >(
+            builder: (context, theme, notification, fingerprint) =>
+                SettingsScreen(
+                  dto: SettingsDto.build(
+                    context: context,
+                    isDark: theme.isDark,
+                    onToggleThemes: theme.toggle,
+                    fingerprintEnabled: fingerprint.enabled,
+                    onToggleFingerprint: fingerprint.toggle,
+                    notificationsEnabled: notification.enabled,
+                    onToggleNotifications: notification.toggle,
+                  ),
+                ),
+          );
 }

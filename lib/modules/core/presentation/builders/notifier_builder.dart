@@ -14,6 +14,19 @@ class ConsumersBuilder<A, B> extends StatelessWidget {
   }
 }
 
+class ConsumerManyBuilder<A, B, C> extends StatelessWidget {
+  final Widget Function(BuildContext context, A a, B b, C c) builder;
+
+  const ConsumerManyBuilder({super.key, required this.builder});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer3<A, B, C>(
+      builder: (context, a, b, c, _) => builder(context, a, b, c),
+    );
+  }
+}
+
 class ConsumerBuilder<T extends ChangeNotifier> extends StatelessWidget {
   final T notifier;
 

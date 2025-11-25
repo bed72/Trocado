@@ -1,23 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import 'package:trocado/modules/settings/presentation/dtos/settings_dto.dart';
+
 import 'package:trocado/modules/settings/presentation/widgets/setting_item_widget.dart';
 import 'package:trocado/modules/settings/presentation/widgets/sessions/session_widget.dart';
 
 class ApplicationSettingsSessionWidget extends StatelessWidget {
-  final bool isDark;
-  final void Function(bool) onToggleThemes;
+  final SettingsDto dto;
 
-  final bool notificationsEnabled;
-  final void Function(bool) onToggleNotifications;
-
-  const ApplicationSettingsSessionWidget({
-    super.key,
-    required this.isDark,
-    required this.onToggleThemes,
-    required this.notificationsEnabled,
-    required this.onToggleNotifications,
-  });
+  const ApplicationSettingsSessionWidget({super.key, required this.dto});
 
   @override
   Widget build(BuildContext context) {
@@ -25,19 +17,27 @@ class ApplicationSettingsSessionWidget extends StatelessWidget {
       title: 'Configurações do Aplicativo',
       children: [
         SettingItemWidget.switchTile(
-          value: isDark,
-          onChanged: onToggleThemes,
-          title: isDark ? 'Modo Escuro' : 'Modo Claro',
-          icon: isDark ? LucideIcons.moon : LucideIcons.sun,
+          value: dto.isDark,
+          icon: dto.darkIcon,
+          title: dto.darkTitle,
+          onChanged: dto.onToggleThemes,
         ),
-
         SettingItemWidget.switchTile(
-          value: notificationsEnabled,
-          onChanged: onToggleNotifications,
-          icon: notificationsEnabled ? LucideIcons.bell : LucideIcons.bellOff,
-          title: notificationsEnabled
-              ? 'Notificações Ativadas'
-              : 'Notificações Desativadas',
+          value: dto.notificationsEnabled,
+          icon: dto.notificationsIcon,
+          title: dto.notificationsTitle,
+          onChanged: dto.onToggleNotifications,
+        ),
+        SettingItemWidget.switchTile(
+          icon: dto.fingerprintIcon,
+          title: dto.fingerprintTitle,
+          value: dto.fingerprintEnabled,
+          onChanged: dto.onToggleFingerprint,
+        ),
+        SettingItemWidget.arrowTile(
+          title: 'Dados pessoais',
+          onTap: dto.onUserTap,
+          icon: LucideIcons.userRound,
         ),
       ],
     );

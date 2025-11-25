@@ -77,7 +77,7 @@ class SettingItemWidget extends StatelessWidget {
   }
 
   Container _buildContent(BuildContext context) => Container(
-    height: 68.0,
+    height: 58.0,
     padding: const .symmetric(horizontal: 16.0, vertical: 12.0),
     decoration: BoxDecoration(
       borderRadius: context.radius.cornerRadius300,
@@ -109,14 +109,7 @@ class SettingItemWidget extends StatelessWidget {
         ),
 
         if (switchValue != null)
-          Switch(
-            value: switchValue!,
-            onChanged: onChanged,
-            activeTrackColor: context.colors.surfaceTint,
-            activeThumbColor: context.colors.inversePrimary,
-            inactiveTrackColor: context.colors.outline,
-            inactiveThumbColor: context.colors.outlineVariant,
-          ),
+          SwitchWidget(value: switchValue!, onChanged: onChanged!),
 
         if (value != null)
           Text(

@@ -5,7 +5,7 @@ import 'package:duck_router/duck_router.dart';
 import 'package:trocado/modules/home/home.dart';
 import 'package:trocado/modules/report/report.dart';
 import 'package:trocado/modules/settings/settings.dart';
-import 'package:trocado/modules/transaction/transaction.dart';
+import 'package:trocado/modules/transactions/transactions.dart';
 
 import 'package:trocado/modules/core/domain/constant/routes_constant.dart';
 import 'package:trocado/modules/core/domain/constant/bottom_bar_constant.dart';

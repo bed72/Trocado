@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flex_color_scheme/flex_color_scheme.dart';
+
 import 'package:trocado/modules/core/presentation/themes/colors/color_theme.dart';
 import 'package:trocado/modules/core/presentation/themes/radius/radius_theme.dart';
 
@@ -21,9 +22,9 @@ abstract final class Themes {
     ),
     visualDensity: FlexColorScheme.comfortablePlatformDensity,
     cupertinoOverrideTheme: const CupertinoThemeData(applyThemeToAll: true),
-
     appBarElevation: 0.0,
     bottomAppBarElevation: 0.0,
+    surfaceTint: Colors.transparent,
     appBarBackground: lightColorScheme.surfaceContainerLowest,
     scaffoldBackground: lightColorScheme.surfaceContainerLowest,
   );
@@ -44,9 +45,9 @@ abstract final class Themes {
     ),
     visualDensity: FlexColorScheme.comfortablePlatformDensity,
     cupertinoOverrideTheme: const CupertinoThemeData(applyThemeToAll: true),
-
     appBarElevation: 0.0,
     bottomAppBarElevation: 0.0,
+    surfaceTint: Colors.transparent,
     appBarBackground: darkColorScheme.surfaceContainerLowest,
     scaffoldBackground: darkColorScheme.surfaceContainerLowest,
   );

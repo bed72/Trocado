@@ -5,7 +5,7 @@ import 'package:trocado/modules/core/core.dart';
 
 final class TransactionLocation extends Location {
   @override
-  String get path => RoutesConstant.transaction.path;
+  String get path => RoutesConstant.transactions.path;
 
   @override
   LocationBuilder? get builder =>

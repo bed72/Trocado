@@ -1,7 +1,6 @@
 import 'package:duck_router/duck_router.dart';
 
 import 'package:trocado/modules/core/core.dart';
-
 import 'package:trocado/modules/splash/splash.dart';
 
 final routerConfig = DuckRouter(

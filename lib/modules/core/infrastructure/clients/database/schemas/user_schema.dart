@@ -26,12 +26,12 @@ final userSchema = TableSchema(
       comment: 'User e-mail',
     ),
     FieldSchema(
+      name: 'photo',
       unique: false,
-      maxLength: 16,
+      maxLength: 254,
       nullable: false,
-      name: 'password',
       type: DataType.text,
-      comment: 'User password',
+      comment: 'Path user photo',
     ),
   ],
 );
