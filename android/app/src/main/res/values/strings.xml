@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+    <string name="app_scheme">trocado</string>
+    <string name="app_web_scheme">https</string>
+    <string name="app_unsecure_web_scheme">http</string>
+
+    <string name="app_host">trocado.com.br</string>
+    <string name="app_www_host">www.trocado.com.br</string>
+</resources>

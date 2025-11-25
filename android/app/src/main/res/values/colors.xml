@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+    <color name="dark_foreground">#93D5A9</color>
+    <color name="dark_background">#0A0F0C</color>
+
+    <color name="light_foreground">#2B6A46</color>
+    <color name="light_background">#F6FBF4</color>
+
+    <color name="transparent">@android:color/transparent</color>
+</resources>

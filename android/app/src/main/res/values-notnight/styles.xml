@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+    <!-- Light Theme -->
+    <style
+        name="Theme.Trocado"
+        parent="android:Theme.Material.Light.NoActionBar" >
+
+        <item name="android:windowBackground">@color/light_background</item>
+
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:statusBarColor">@color/transparent</item>
+        <item name="android:navigationBarColor">@color/transparent</item>
+    </style>
+
+    <!-- Splash -->
+    <style name="Theme.Trocado.SplashScreen" parent="Theme.SplashScreen">
+        <item name="postSplashScreenTheme">@style/Theme.Trocado</item>
+        <item name="windowSplashScreenBackground">@color/light_background</item>
+<!--        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>-->
+    </style>
+
+</resources>

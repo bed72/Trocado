@@ -1,0 +1,66 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
+    <application
+        android:label="Trocado"
+        android:name="${applicationName}"
+        android:icon="@mipmap/ic_launcher"
+        android:theme="@style/Theme.Trocado"
+        android:roundIcon="@mipmap/ic_launcher_round" >
+
+        <activity
+            android:taskAffinity=""
+            android:exported="true"
+            android:name=".MainActivity"
+            android:launchMode="singleTop"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@style/Theme.Trocado.SplashScreen"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode">
+
+            <meta-data
+              android:resource="@style/Theme.Trocado"
+              android:name="io.flutter.embedding.android.NormalTheme" />
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="app"
+                    android:scheme="trocado" />
+
+                <data android:host="@string/app_host" />
+                <data android:host="@string/app_www_host" />
+
+                <data android:scheme="@string/app_web_scheme" />
+                <data android:scheme="@string/app_unsecure_web_scheme" />
+            </intent-filter>
+
+        </activity>
+
+        <meta-data
+            android:value="2"
+            android:name="flutterEmbedding" />
+
+        <meta-data
+            android:resource="@drawable/ic_notification"
+            android:name="com.google.firebase.messaging.default_notification_icon" />
+
+    </application>
+
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.PROCESS_TEXT"/>
+            <data android:mimeType="text/plain"/>
+        </intent>
+    </queries>
+</manifest>
