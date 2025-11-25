@@ -41,6 +41,7 @@ export 'presentation/themes/notifiers/theme_notifier.dart';
 
 export 'presentation/notifiers/notifier.dart';
 export 'presentation/notifiers/bottom_bar_notifier.dart';
+export 'presentation/notifiers/onboarding_notifier.dart';
 export 'presentation/notifiers/fingerprint_notifier.dart';
 export 'presentation/notifiers/notification_notifier.dart';
 

@@ -85,6 +85,13 @@ final class RoutesConstant {
     regex: RegExp(r'^/categories$'),
   );
 
+  static final onboarding = RoutesConstant._(
+    auth: false,
+    path: '/onboarding',
+    name: 'onboarding-route',
+    regex: RegExp(r'^/onboarding$'),
+  );
+
   static final transactions = RoutesConstant._(
     auth: true,
     path: '/transactions',
@@ -124,6 +131,7 @@ final class RoutesConstant {
     wallets,
     settings,
     categories,
+    onboarding,
     transactions,
     allTransaction,
     typeTransaction,
