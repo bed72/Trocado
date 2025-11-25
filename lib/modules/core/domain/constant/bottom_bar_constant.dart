@@ -1,7 +1,9 @@
 enum BottomBarConstant {
   home(position: 0),
-  profile(position: 2),
-  transaction(position: 1);
+  allTransactions(position: 1),
+  transaction(position: 2),
+  report(position: 3),
+  profile(position: 4);
 
   final int position;
 

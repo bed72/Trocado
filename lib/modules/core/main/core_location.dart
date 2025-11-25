@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:duck_router/duck_router.dart';
 
 import 'package:trocado/modules/home/home.dart';
+import 'package:trocado/modules/report/report.dart';
 import 'package:trocado/modules/settings/settings.dart';
 import 'package:trocado/modules/transaction/transaction.dart';
 
@@ -23,7 +24,9 @@ final class CoreLocation extends StatefulLocation {
   @override
   List<Location> get children => [
     HomeLocation(),
+    AllTransactionsLocation(),
     TransactionLocation(),
+    ReportLocation(),
     SettingsLocation(),
   ];
 

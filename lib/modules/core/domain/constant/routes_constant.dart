@@ -7,28 +7,24 @@ final class RoutesConstant {
   final String path;
   final String name;
   final RegExp regex;
-  final bool hideBottomBar;
 
   const RoutesConstant._({
     required this.auth,
     required this.path,
     required this.name,
     required this.regex,
-    required this.hideBottomBar,
   });
 
   static final core = RoutesConstant._(
     auth: false,
     path: '/core',
-    hideBottomBar: true,
     name: 'core-route',
-    regex: RegExp(r'/core'),
+    regex: RegExp(r'/core$'),
   );
 
   static final splash = RoutesConstant._(
     auth: false,
     path: '/splash',
-    hideBottomBar: true,
     name: 'splash-route',
     regex: RegExp(r'/splash'),
   );
@@ -37,7 +33,6 @@ final class RoutesConstant {
     auth: true,
     path: '/home',
     name: 'home-route',
-    hideBottomBar: false,
     regex: RegExp(r'^/$'),
   );
 
@@ -45,29 +40,39 @@ final class RoutesConstant {
     auth: true,
     path: '/other',
     name: 'other-route',
-    hideBottomBar: true,
     regex: RegExp(r'^/other$'),
+  );
+
+  static final report = RoutesConstant._(
+    auth: true,
+    path: '/report',
+    name: 'report-route',
+    regex: RegExp(r'^/report$'),
   );
 
   static final settings = RoutesConstant._(
     auth: true,
     path: '/settings',
-    hideBottomBar: false,
     name: 'settings-route',
-    regex: RegExp(r'^/settings'),
+    regex: RegExp(r'^/settings$'),
   );
 
   static final transaction = RoutesConstant._(
     auth: true,
     path: '/transaction',
-    hideBottomBar: false,
     name: 'transaction-route',
-    regex: RegExp(r'^/transaction'),
+    regex: RegExp(r'^/transaction$'),
+  );
+
+  static final allTransaction = RoutesConstant._(
+    auth: true,
+    path: '/all/transaction',
+    name: 'all-transaction-route',
+    regex: RegExp(r'^/all/transaction$'),
   );
 
   static final typeTransaction = RoutesConstant._(
     auth: true,
-    hideBottomBar: true,
     name: 'type-transaction-route',
     path: '/type/transaction/:type',
     regex: RegExp(r'^/type/transaction/*$'),
@@ -76,14 +81,13 @@ final class RoutesConstant {
   static final _all = [
     core,
     home,
+    report,
     splash,
     settings,
     transaction,
+    allTransaction,
     typeTransaction,
   ];
-
-  static List<RoutesConstant> get hideBottomBarTo =>
-      _all.where((route) => route.hideBottomBar == true).toList();
 
   static RoutesConstant? match(String location) =>
       _all.firstWhereOrNull((route) => route.regex.hasMatch(location));

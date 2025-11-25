@@ -31,7 +31,7 @@ class _BottomBarWidgetState extends State<BottomBarWidget>
   void initState() {
     super.initState();
 
-    _controller = TabController(vsync: this, length: 3);
+    _controller = TabController(vsync: this, length: 5);
     _controller.index = widget.index;
   }
 
@@ -83,8 +83,14 @@ class _BottomBarWidgetState extends State<BottomBarWidget>
 
     final items = [
       ('Ínicio', LucideIcons.layoutPanelLeft, LucideIcons.layoutPanelTop),
-      ('Transações', LucideIcons.badgePlus, LucideIcons.badgePlus),
-      ('Configurações', LucideIcons.settings, LucideIcons.settings),
+      ('Todas as Transações', LucideIcons.scrollText, LucideIcons.scroll),
+      ('Novas Transações', LucideIcons.badgePlus, LucideIcons.badgePlus),
+      (
+        'Relatórios',
+        LucideIcons.chartColumn,
+        LucideIcons.chartColumnIncreasing,
+      ),
+      ('Configurações', LucideIcons.bolt, LucideIcons.hexagon),
     ];
 
     return List.generate(items.length, (index) {
