@@ -13,6 +13,7 @@ final class SplashLocation extends Location {
   @override
   LocationBuilder? get builder => (context) {
     final notifier = context.read<OnboardingNotifier>();
+
     return SplashScreen(
       navigateTo: () {
         context.navigate(

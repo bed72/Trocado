@@ -10,5 +10,5 @@ final class OnboardingLocation extends Location {
 
   @override
   LocationBuilder? get builder =>
-      (_) => OnboardingScreen();
+      (_) => OnboardingScreen(onTap: () {});
 }

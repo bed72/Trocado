@@ -15,7 +15,7 @@ class BottomBarMenuWidget extends StatelessWidget {
       height: 200.0,
       width: double.infinity,
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisAlignment: .spaceEvenly,
         children: [
           Expanded(
             child: Padding(

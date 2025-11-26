@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 final _upScale = 1.0;
-final _downScale = 0.8;
+final _downScale = 0.96;
 
 abstract base class BounceWidget extends StatefulWidget {
   final Widget child;
