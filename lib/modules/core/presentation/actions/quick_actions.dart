@@ -1,8 +1,10 @@
+import 'package:flutter/material.dart';
+
 import 'package:quick_actions/quick_actions.dart';
 
 import 'package:trocado/modules/core/domain/constant/quick_actions_constant.dart';
 
-void quickAction({required void Function(String) action}) {
+void quickAction({required ValueChanged<String> action}) {
   QuickActions()
     ..initialize(action)
     ..setShortcutItems(_items);

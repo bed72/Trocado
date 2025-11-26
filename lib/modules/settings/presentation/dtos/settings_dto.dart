@@ -19,13 +19,13 @@ final class SettingsDto {
   final VoidCallback onRecurringTransactionsTap;
 
   final bool isDark;
-  final void Function(bool) onToggleThemes;
+  final ValueChanged<bool> onToggleThemes;
 
   final bool fingerprintEnabled;
-  final void Function(bool) onToggleFingerprint;
+  final ValueChanged<bool> onToggleFingerprint;
 
   final bool notificationsEnabled;
-  final void Function(bool) onToggleNotifications;
+  final ValueChanged<bool> onToggleNotifications;
 
   SettingsDto({
     required this.isDark,
@@ -45,11 +45,11 @@ final class SettingsDto {
   factory SettingsDto.build({
     required BuildContext context,
     required bool isDark,
-    required void Function(bool) onToggleThemes,
+    required ValueChanged<bool> onToggleThemes,
     required bool fingerprintEnabled,
-    required void Function(bool) onToggleFingerprint,
+    required ValueChanged<bool> onToggleFingerprint,
     required bool notificationsEnabled,
-    required void Function(bool) onToggleNotifications,
+    required ValueChanged<bool> onToggleNotifications,
   }) => SettingsDto(
     isDark: isDark,
     onToggleThemes: onToggleThemes,

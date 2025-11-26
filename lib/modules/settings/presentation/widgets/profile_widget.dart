@@ -7,7 +7,7 @@ class ProfileWidget extends StatelessWidget {
   final String url;
   final String name;
   final String email;
-  final void Function() onEdit;
+  final VoidCallback onEdit;
 
   const ProfileWidget({
     super.key,

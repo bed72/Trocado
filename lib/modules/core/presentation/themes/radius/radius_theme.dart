@@ -46,10 +46,10 @@ class CornerRadiusToken extends ThemeExtension<CornerRadiusToken> {
 
 const radius = CornerRadiusToken(
   cornerRadius100: .only(
-    bottomLeft: Radius.circular(12),
-    topLeft: Radius.circular(12),
-    topRight: Radius.circular(12),
-    bottomRight: Radius.circular(12),
+    bottomLeft: Radius.circular(16),
+    topLeft: Radius.circular(16),
+    topRight: Radius.circular(16),
+    bottomRight: Radius.circular(16),
   ),
   cornerRadius300: .only(
     bottomLeft: Radius.circular(20),

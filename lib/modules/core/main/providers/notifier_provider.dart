@@ -1,5 +1,7 @@
 import 'package:provider/provider.dart';
 
+import 'package:trocado/modules/core/presentation/extensions/context_extension.dart';
+
 import 'package:trocado/modules/core/presentation/notifiers/bottom_bar_notifier.dart';
 import 'package:trocado/modules/core/presentation/notifiers/onboarding_notifier.dart';
 import 'package:trocado/modules/core/presentation/notifiers/fingerprint_notifier.dart';
@@ -13,7 +15,7 @@ final notifierProvider = [
   ChangeNotifierProvider<ThemeNotifier>(
     create: (context) {
       final notifier = ThemeNotifier(
-        repository: context.read<IStorageRepository>(),
+        repository: context.get<IStorageRepository>(),
       );
 
       notifier.ensureInitialized();
@@ -25,7 +27,7 @@ final notifierProvider = [
   ChangeNotifierProvider<OnboardingNotifier>(
     create: (context) {
       final notifier = OnboardingNotifier(
-        repository: context.read<IStorageRepository>(),
+        repository: context.get<IStorageRepository>(),
       );
 
       notifier.ensureInitialized();
@@ -37,7 +39,7 @@ final notifierProvider = [
   ChangeNotifierProvider<FingerprintNotifier>(
     create: (context) {
       final notifier = FingerprintNotifier(
-        repository: context.read<IStorageRepository>(),
+        repository: context.get<IStorageRepository>(),
       );
 
       notifier.ensureInitialized();
@@ -49,7 +51,7 @@ final notifierProvider = [
   ChangeNotifierProvider<NotificationNotifier>(
     create: (context) {
       final notifier = NotificationNotifier(
-        repository: context.read<IStorageRepository>(),
+        repository: context.get<IStorageRepository>(),
       );
 
       notifier.ensureInitialized();

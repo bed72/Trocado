@@ -4,7 +4,7 @@ import 'package:trocado/modules/core/core.dart';
 
 class SwitchWidget extends StatelessWidget {
   final bool value;
-  final void Function(bool) onChanged;
+  final ValueChanged<bool> onChanged;
 
   const SwitchWidget({super.key, required this.value, required this.onChanged});
 

@@ -34,8 +34,8 @@ class ConsumerBuilder<T extends ChangeNotifier> extends StatelessWidget {
 
   const ConsumerBuilder({
     super.key,
-    required this.builder,
     required this.notifier,
+    required this.builder,
   });
 
   @override

@@ -6,7 +6,7 @@ import 'package:trocado/modules/core/presentation/widgets/circular_progress_indi
 enum ButtonWidgetType { elevated, outlined }
 
 class ButtonWidget extends StatelessWidget {
-  final String label;
+  final String? label;
   final bool loading;
   final bool enabled;
   final Widget? icon;
@@ -15,20 +15,20 @@ class ButtonWidget extends StatelessWidget {
 
   const ButtonWidget.elevated({
     super.key,
-    required this.label,
     required this.onTap,
     this.icon,
+    this.label,
     this.enabled = true,
     this.loading = false,
   }) : type = ButtonWidgetType.elevated;
 
   const ButtonWidget.outlined({
     super.key,
-    this.icon,
-    required this.label,
     required this.onTap,
-    this.loading = false,
+    this.icon,
+    this.label,
     this.enabled = true,
+    this.loading = false,
   }) : type = ButtonWidgetType.outlined;
 
   @override
@@ -36,14 +36,11 @@ class ButtonWidget extends StatelessWidget {
     final bool isDisabled = !enabled || loading;
 
     return BounceWidget.withTap(
-      onTap: isDisabled ? () {} : onTap!,
-      child: AbsorbPointer(
-        absorbing: isDisabled,
-        child: _buildButton(
-          context: context,
-          isDisabled: isDisabled,
-          child: _buildContent(context: context),
-        ),
+      onTap: isDisabled ? () {} : (onTap ?? () {}),
+      child: _buildButton(
+        context: context,
+        isDisabled: isDisabled,
+        child: _buildContent(context: context),
       ),
     );
   }
@@ -59,8 +56,8 @@ class ButtonWidget extends StatelessWidget {
 
     return Row(
       mainAxisSize: .min,
-      spacing: icon != null ? 8.0 : 0.0,
-      children: [if (icon != null) icon!, Text(label)],
+      spacing: (icon != null && label != null) ? 8.0 : 0.0,
+      children: [if (icon != null) icon!, Text(label ?? '')],
     );
   }
 
@@ -68,8 +65,18 @@ class ButtonWidget extends StatelessWidget {
     required BuildContext context,
     required bool isDisabled,
     required Widget child,
-  }) => switch (type) {
-    ButtonWidgetType.elevated => ElevatedButton(onPressed: () {}, child: child),
-    ButtonWidgetType.outlined => OutlinedButton(onPressed: () {}, child: child),
-  };
+  }) {
+    final onPressed = isDisabled ? null : onTap;
+
+    return switch (type) {
+      ButtonWidgetType.elevated => ElevatedButton(
+        onPressed: onPressed,
+        child: child,
+      ),
+      ButtonWidgetType.outlined => OutlinedButton(
+        onPressed: onPressed,
+        child: child,
+      ),
+    };
+  }
 }

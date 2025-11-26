@@ -1,4 +1,3 @@
-import 'package:provider/provider.dart';
 import 'package:duck_router/duck_router.dart';
 
 import 'package:trocado/modules/core/core.dart';
@@ -12,7 +11,7 @@ final class SplashLocation extends Location {
 
   @override
   LocationBuilder? get builder => (context) {
-    final notifier = context.read<OnboardingNotifier>();
+    final notifier = context.get<OnboardingNotifier>();
 
     return SplashScreen(
       navigateTo: () {

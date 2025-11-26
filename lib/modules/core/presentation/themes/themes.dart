@@ -20,7 +20,7 @@ abstract final class Themes {
       inputDecoratorIsFilled: true,
       navigationRailUseIndicator: true,
 
-      buttonMinSize: Size(double.infinity, 48),
+      buttonMinSize: Size(48.0, 48.0),
 
       elevatedButtonRadius: 16.0,
       elevatedButtonElevation: 0.0,
@@ -71,7 +71,7 @@ abstract final class Themes {
       tintedDisabledControls: true,
       navigationRailUseIndicator: true,
 
-      buttonMinSize: Size(double.infinity, 48),
+      buttonMinSize: Size(48.0, 48.0),
 
       elevatedButtonRadius: 16.0,
       elevatedButtonElevation: 0.0,

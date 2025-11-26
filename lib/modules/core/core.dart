@@ -29,9 +29,6 @@ export 'infrastructure/resources/observers/logger_navigation_observer.dart';
 export 'infrastructure/datasources/local/storage_datasource.dart';
 export 'infrastructure/datasources/local/database_datasource.dart';
 
-export 'presentation/animation/loop_animation.dart';
-export 'presentation/animation/shimmer_animation.dart';
-
 export 'presentation/screens/failure_screen.dart';
 export 'presentation/mixins/after_layout_mixin.dart';
 export 'presentation/builders/notifier_builder.dart';
@@ -39,6 +36,11 @@ export 'presentation/extensions/context_extension.dart';
 
 export 'presentation/themes/themes.dart';
 export 'presentation/themes/notifiers/theme_notifier.dart';
+
+export 'presentation/animation/loop_animation.dart';
+export 'presentation/animation/shimmer_animation.dart';
+export 'presentation/animation/fade_size_animation.dart';
+export 'presentation/animation/fade_switch_animation.dart';
 
 export 'presentation/notifiers/notifier.dart';
 export 'presentation/notifiers/bottom_bar_notifier.dart';

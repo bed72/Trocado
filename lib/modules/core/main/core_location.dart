@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:duck_router/duck_router.dart';
 
 import 'package:trocado/modules/home/home.dart';
@@ -32,7 +31,7 @@ final class CoreLocation extends StatefulLocation {
 
   @override
   StatefulLocationBuilder get childBuilder => (context, shell) {
-    final notifier = context.read<BottomBarNotifier>();
+    final notifier = context.get<BottomBarNotifier>();
 
     return ConsumerBuilder<BottomBarNotifier>(
       notifier: notifier,

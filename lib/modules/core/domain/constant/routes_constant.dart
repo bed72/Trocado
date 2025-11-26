@@ -106,6 +106,13 @@ final class RoutesConstant {
     regex: RegExp(r'^/all/transaction$'),
   );
 
+  static final onboardingSteps = RoutesConstant._(
+    auth: false,
+    path: '/onboarding/steps',
+    name: 'onboarding-steps-route',
+    regex: RegExp(r'^/onboarding/steps$'),
+  );
+
   static final typeTransaction = RoutesConstant._(
     auth: true,
     name: 'type-transaction-route',
@@ -134,6 +141,7 @@ final class RoutesConstant {
     onboarding,
     transactions,
     allTransaction,
+    onboardingSteps,
     typeTransaction,
     recurringTransactions,
   ];
