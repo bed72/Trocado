@@ -1,0 +1,1 @@
+enum ImagesConstant { camera, gallery }

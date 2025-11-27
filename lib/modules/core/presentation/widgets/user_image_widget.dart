@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -7,17 +9,17 @@ import 'package:trocado/modules/core/presentation/animation/shimmer_animation.da
 import 'package:trocado/modules/core/presentation/extensions/context_extension.dart';
 
 class UserImageWidget extends StatelessWidget {
-  final String? url;
-  final IconData iconEmpty;
-  final IconData iconOnEdit;
   final VoidCallback onEdit;
+  final String? source;
+  final IconData? iconEmpty;
+  final IconData? iconOnEdit;
 
   const UserImageWidget({
     super.key,
     required this.onEdit,
-    required this.iconEmpty,
-    required this.iconOnEdit,
-    this.url,
+    this.source,
+    this.iconEmpty,
+    this.iconOnEdit,
   });
 
   factory UserImageWidget.empty({required VoidCallback onEdit}) =>
@@ -32,7 +34,7 @@ class UserImageWidget extends StatelessWidget {
     return Stack(
       alignment: Alignment.bottomRight,
       children: [
-        url == null ? _buildEmptyUser(context) : _buildNotEmptyUser(),
+        source == null ? _buildEmptyUser(context) : _buildNotEmptyUser(),
         Positioned(
           right: 2,
           bottom: 0,
@@ -47,13 +49,15 @@ class UserImageWidget extends StatelessWidget {
                     ? context.colors.onPrimary
                     : context.colors.primary,
               ),
-              child: IconWidget(
-                size: 16.0,
-                name: iconOnEdit,
-                color: context.isDark
-                    ? context.colors.onSurface
-                    : context.colors.onInverseSurface,
-              ),
+              child: iconOnEdit == null
+                  ? null
+                  : IconWidget(
+                      size: 16.0,
+                      name: iconOnEdit!,
+                      color: context.isDark
+                          ? context.colors.onSurface
+                          : context.colors.onInverseSurface,
+                    ),
             ),
           ),
         ),
@@ -62,7 +66,7 @@ class UserImageWidget extends StatelessWidget {
   }
 
   CircleAvatar _buildNotEmptyUser() =>
-      CircleAvatar(radius: 48.0, backgroundImage: NetworkImage(url!));
+      CircleAvatar(radius: 48.0, backgroundImage: FileImage(File(source!)));
 
   ShimmerAnimation _buildEmptyUser(BuildContext context) => ShimmerAnimation(
     pause: Duration(seconds: 6),

@@ -11,6 +11,16 @@ final class ImagesLocation extends Location {
   @override
   LocationPageBuilder get pageBuilder =>
       (_) => BottomSheetPage(
-        builder: (_) => ImagesScreen(onCameraTap: () {}, onGalleryTap: () {}),
+        builder: (context) => ConsumerBuilder<ImageNotifier>(
+          notifier: context.get<ImageNotifier>(),
+          builder: (_, image) => ImagesScreen(
+            onCameraTap: () async {
+              image(type: ImagesConstant.camera).whenComplete(context.pop);
+            },
+            onGalleryTap: () async {
+              image(type: ImagesConstant.gallery).whenComplete(context.pop);
+            },
+          ),
+        ),
       );
 }

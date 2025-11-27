@@ -52,12 +52,12 @@ class ImagesScreen extends StatelessWidget {
     required VoidCallback onTap,
   }) => BounceWidget.withoutTap(
     child: ListTile(
+      leading: Icon(icon),
+      contentPadding: EdgeInsets.zero,
       onTap: () {
         hideKeyboard;
         onTap();
       },
-      contentPadding: EdgeInsets.zero,
-      leading: Icon(icon),
       title: Text(
         title,
         style: context.typography.bodyLarge?.copyWith(

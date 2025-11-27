@@ -24,10 +24,13 @@ final class OnboardingStepsLocation extends Location {
             ),
           ),
 
-          OnboardingStepNicknameWidget(
-            onChanged: (value) {},
-            initialValue: '',
-            onEdit: () => context.navigate(ImagesLocation()),
+          ConsumerBuilder<ImageNotifier>(
+            notifier: context.get<ImageNotifier>(),
+            builder: (_, image) => OnboardingStepNicknameWidget(
+              onChanged: (value) {},
+              source: image.state?.path,
+              onEdit: () => context.navigate(ImagesLocation()),
+            ),
           ),
           SizedBox(),
         ],

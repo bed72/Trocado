@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:trocado/modules/core/core.dart';
 
@@ -7,15 +8,15 @@ import 'package:trocado/modules/onboarding/presentation/widgets/step_button_widg
 import 'package:trocado/modules/onboarding/presentation/widgets/step_description_widget.dart';
 
 class OnboardingStepNicknameWidget extends StatefulWidget {
-  final String? initialValue;
+  final String? source;
   final VoidCallback onEdit;
   final ValueChanged<String> onChanged;
 
   const OnboardingStepNicknameWidget({
     super.key,
-    this.initialValue,
-    required this.onChanged,
     required this.onEdit,
+    required this.onChanged,
+    this.source,
   });
 
   @override
@@ -30,7 +31,7 @@ class _OnboardingStepNicknameWidgetState
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController(text: widget.initialValue ?? '');
+    _controller = TextEditingController(text: '');
   }
 
   @override
@@ -55,7 +56,13 @@ class _OnboardingStepNicknameWidgetState
               spacing: 16.0,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                UserImageWidget.empty(onEdit: _onEdit),
+                widget.source == null
+                    ? UserImageWidget.empty(onEdit: _onEdit)
+                    : UserImageWidget(
+                        onEdit: _onEdit,
+                        source: widget.source,
+                        iconOnEdit: LucideIcons.pencil,
+                      ),
 
                 const StepTitleWidget(value: 'Como podemos te chamar?'),
 
