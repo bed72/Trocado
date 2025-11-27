@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:trocado/modules/core/core.dart';
 
-import 'package:trocado/modules/onboarding/widgets/step_title_widget.dart';
-import 'package:trocado/modules/onboarding/widgets/step_button_widget.dart';
-import 'package:trocado/modules/onboarding/widgets/step_description_widget.dart';
-import 'package:trocado/modules/onboarding/widgets/step_box_decoration_widget.dart';
+import 'package:trocado/modules/onboarding/presentation/widgets/step_title_widget.dart';
+import 'package:trocado/modules/onboarding/presentation/widgets/step_button_widget.dart';
+import 'package:trocado/modules/onboarding/presentation/widgets/step_description_widget.dart';
 
 class OnboardingStepNicknameWidget extends StatefulWidget {
   final String? initialValue;
@@ -27,7 +25,6 @@ class OnboardingStepNicknameWidget extends StatefulWidget {
 
 class _OnboardingStepNicknameWidgetState
     extends State<OnboardingStepNicknameWidget> {
-  ImageProvider? _avatar;
   late TextEditingController _controller;
 
   @override
@@ -42,7 +39,7 @@ class _OnboardingStepNicknameWidgetState
     super.dispose();
   }
 
-  Future<void> _handlePickImage() async {
+  Future<void> _onEdit() async {
     widget.onPickImage();
   }
 
@@ -58,34 +55,33 @@ class _OnboardingStepNicknameWidgetState
               spacing: 16.0,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                BounceWidget.withTap(
-                  onTap: _handlePickImage,
-                  child: StepBoxDecorationWidget(
-                    width: 100,
-                    height: 100,
-                    child: _avatar != null
-                        ? ClipOval(
-                            child: Image(image: _avatar!, fit: BoxFit.cover),
-                          )
-                        : Icon(LucideIcons.user, size: 50.0),
-                  ),
-                ),
+                UserImageWidget.empty(onEdit: _onEdit),
 
                 const StepTitleWidget(value: 'Como podemos te chamar?'),
 
-                const StepDescriptionWidget(
+                StepDescriptionWidget(
                   value:
                       'Escolha um nome ou apelido. Ele será usado para identificar você '
                       'nas suas interações e histórico dentro do Trocado.',
+                  highlight: 'Trocado.',
+                  highlightStyle: context.typography.bodyLarge?.copyWith(
+                    height: 1.4,
+                    fontWeight: .w600,
+                    color: context.colors.inverseSurface.withValues(
+                      alpha: 0.82,
+                    ),
+                  ),
                 ),
+
+                const SizedBox(height: 16.0),
 
                 _buildTextField(),
 
                 StepButtonWidget(
+                  label: 'Salvar apelido',
                   onTap: () {
                     widget.onChanged(_controller.text);
                   },
-                  label: 'Salvar apelido',
                 ),
               ],
             ),
@@ -101,8 +97,8 @@ class _OnboardingStepNicknameWidgetState
     textAlign: TextAlign.center,
     style: context.typography.bodyLarge,
     decoration: InputDecoration(
-      hintText: 'Seu nome ou apelido',
       alignLabelWithHint: true,
+      hintText: 'Seu nome ou apelido',
       contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
       border: OutlineInputBorder(borderRadius: context.radius.cornerRadius100),
     ),

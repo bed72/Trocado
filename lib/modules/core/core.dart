@@ -55,6 +55,7 @@ export 'presentation/widgets/switch_widget.dart';
 export 'presentation/widgets/bounce_widget.dart';
 export 'presentation/widgets/app_bar_widget.dart';
 export 'presentation/widgets/indicator_widget.dart';
+export 'presentation/widgets/user_image_widget.dart';
 export 'presentation/widgets/image/image_widget.dart';
 export 'presentation/widgets/circular_progress_indicator_widget.dart';
 

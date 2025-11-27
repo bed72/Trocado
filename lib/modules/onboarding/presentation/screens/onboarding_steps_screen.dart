@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 
 import 'package:trocado/modules/core/core.dart';
-import 'package:trocado/modules/onboarding/widgets/onboarding_step_nickname_widget.dart';
-
-import 'package:trocado/modules/onboarding/widgets/onboarding_step_theme_widget.dart';
 
 class OnboardingStepsScreen extends StatefulWidget {
-  const OnboardingStepsScreen({super.key});
+  final List<Widget> children;
+
+  const OnboardingStepsScreen({super.key, required this.children});
 
   @override
   State<OnboardingStepsScreen> createState() => _OnboardingStepsScreenState();
@@ -14,7 +13,6 @@ class OnboardingStepsScreen extends StatefulWidget {
 
 class _OnboardingStepsScreenState extends State<OnboardingStepsScreen> {
   late int _index;
-  late List<Widget> _children;
   late final PageController _controller;
 
   @override
@@ -23,19 +21,6 @@ class _OnboardingStepsScreenState extends State<OnboardingStepsScreen> {
 
     _index = 0;
     _controller = PageController();
-
-    _children = [
-      OnboardingStepThemeWidget(),
-      OnboardingStepNicknameWidget(
-        onChanged: (value) {},
-        initialValue: '',
-        onPickImage: () {},
-      ),
-      SizedBox(),
-      // OnboardingStepTheme(),
-      // OnboardingStepNickname(),
-      // OnboardingStepWallet(),
-    ];
   }
 
   @override
@@ -46,7 +31,7 @@ class _OnboardingStepsScreenState extends State<OnboardingStepsScreen> {
   }
 
   void _next() {
-    if (_index < _children.length - 1) {
+    if (_index < widget.children.length - 1) {
       _controller.nextPage(
         curve: Curves.easeOut,
         duration: const Duration(milliseconds: 300),
@@ -81,7 +66,7 @@ class _OnboardingStepsScreenState extends State<OnboardingStepsScreen> {
     child: PageView(
       controller: _controller,
       onPageChanged: (index) => setState(() => _index = index),
-      children: _children,
+      children: widget.children,
     ),
   );
 
@@ -95,8 +80,10 @@ class _OnboardingStepsScreenState extends State<OnboardingStepsScreen> {
         icon: FadeSizeSwitcher(
           curve: Curves.linear,
           child: Text(
-            _index == _children.length - 1 ? 'Salvar & Finalizar' : 'Próximo',
-            key: ValueKey(_index == _children.length - 1),
+            _index == widget.children.length - 1
+                ? 'Salvar & Finalizar'
+                : 'Próximo',
+            key: ValueKey(_index == widget.children.length - 1),
           ),
         ),
       ),

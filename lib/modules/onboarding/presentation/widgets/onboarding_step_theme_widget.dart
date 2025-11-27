@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import 'package:trocado/modules/core/core.dart';
-
-import 'package:trocado/modules/onboarding/widgets/step_title_widget.dart';
-import 'package:trocado/modules/onboarding/widgets/step_button_widget.dart';
-import 'package:trocado/modules/onboarding/widgets/step_description_widget.dart';
-import 'package:trocado/modules/onboarding/widgets/step_box_decoration_widget.dart';
+import 'package:trocado/modules/onboarding/presentation/widgets/step_title_widget.dart';
+import 'package:trocado/modules/onboarding/presentation/widgets/step_button_widget.dart';
+import 'package:trocado/modules/onboarding/presentation/widgets/step_description_widget.dart';
+import 'package:trocado/modules/onboarding/presentation/widgets/step_box_decoration_widget.dart';
 
 class OnboardingStepThemeWidget extends StatelessWidget {
-  const OnboardingStepThemeWidget({super.key});
+  final bool isDark;
+  final VoidCallback onToggleThemes;
+
+  const OnboardingStepThemeWidget({
+    super.key,
+    required this.isDark,
+    required this.onToggleThemes,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -31,14 +36,9 @@ class OnboardingStepThemeWidget extends StatelessWidget {
 
         const SizedBox(height: 16.0),
 
-        ConsumerBuilder<ThemeNotifier>(
-          notifier: context.get<ThemeNotifier>(),
-          builder: (_, theme) => StepButtonWidget(
-            onTap: () => theme.toggle(!theme.isDark),
-            label: theme.isDark
-                ? 'Mudar para tema claro'
-                : 'Mudar para tema escuro',
-          ),
+        StepButtonWidget(
+          onTap: onToggleThemes,
+          label: isDark ? 'Mudar para tema claro' : 'Mudar para tema escuro',
         ),
       ],
     );

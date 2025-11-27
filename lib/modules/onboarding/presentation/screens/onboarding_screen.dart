@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 
 import 'package:trocado/modules/core/core.dart';
 
-import 'package:trocado/modules/onboarding/widgets/step_title_widget.dart';
-import 'package:trocado/modules/onboarding/widgets/step_button_widget.dart';
-import 'package:trocado/modules/onboarding/widgets/step_description_widget.dart';
-import 'package:trocado/modules/onboarding/widgets/step_box_decoration_widget.dart';
+import 'package:trocado/modules/onboarding/presentation/widgets/step_title_widget.dart';
+import 'package:trocado/modules/onboarding/presentation/widgets/step_button_widget.dart';
+import 'package:trocado/modules/onboarding/presentation/widgets/step_description_widget.dart';
+import 'package:trocado/modules/onboarding/presentation/widgets/step_box_decoration_widget.dart';
 
 class OnboardingScreen extends StatelessWidget {
   final VoidCallback onTap;

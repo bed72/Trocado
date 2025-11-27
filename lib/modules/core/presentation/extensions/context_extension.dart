@@ -9,6 +9,8 @@ extension BuildContextExtension on BuildContext {
   double get height => MediaQuery.of(this).size.height;
   double get bottom => MediaQuery.of(this).viewInsets.bottom;
 
+  bool get isDark => Theme.of(this).brightness == Brightness.dark;
+
   ColorScheme get colors => Theme.of(this).colorScheme;
   TextTheme get typography => Theme.of(this).textTheme;
   CornerRadiusToken get radius =>
