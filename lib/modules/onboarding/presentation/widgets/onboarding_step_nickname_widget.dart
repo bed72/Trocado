@@ -8,14 +8,14 @@ import 'package:trocado/modules/onboarding/presentation/widgets/step_description
 
 class OnboardingStepNicknameWidget extends StatefulWidget {
   final String? initialValue;
-  final VoidCallback onPickImage;
+  final VoidCallback onEdit;
   final ValueChanged<String> onChanged;
 
   const OnboardingStepNicknameWidget({
     super.key,
     this.initialValue,
     required this.onChanged,
-    required this.onPickImage,
+    required this.onEdit,
   });
 
   @override
@@ -40,7 +40,7 @@ class _OnboardingStepNicknameWidgetState
   }
 
   Future<void> _onEdit() async {
-    widget.onPickImage();
+    widget.onEdit();
   }
 
   @override

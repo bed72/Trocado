@@ -64,6 +64,13 @@ final class RoutesConstant {
     regex: RegExp(r'^/goals$'),
   );
 
+  static final images = RoutesConstant._(
+    auth: true,
+    path: '/images',
+    name: 'images-route',
+    regex: RegExp(r'^/images$'),
+  );
+
   static final reports = RoutesConstant._(
     auth: true,
     path: '/reports',
@@ -133,6 +140,7 @@ final class RoutesConstant {
     user,
     debts,
     goals,
+    images,
     splash,
     reports,
     wallets,

@@ -30,6 +30,7 @@ export 'infrastructure/datasources/local/storage_datasource.dart';
 export 'infrastructure/datasources/local/database_datasource.dart';
 
 export 'presentation/screens/failure_screen.dart';
+export 'presentation/pages/bottom_sheet_page.dart';
 export 'presentation/mixins/after_layout_mixin.dart';
 export 'presentation/builders/notifier_builder.dart';
 

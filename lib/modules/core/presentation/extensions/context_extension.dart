@@ -18,6 +18,8 @@ extension BuildContextExtension on BuildContext {
 
   T get<T>() => read<T>();
 
+  bool canPop() => Navigator.canPop(this);
+
   void root() => DuckRouter.of(this).root();
 
   void exit<T extends Object?>([T? result]) =>
