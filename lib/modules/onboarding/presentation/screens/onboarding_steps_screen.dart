@@ -31,6 +31,8 @@ class _OnboardingStepsScreenState extends State<OnboardingStepsScreen> {
   }
 
   void _next() {
+    hideKeyboard;
+
     if (_index < widget.children.length - 1) {
       _controller.nextPage(
         curve: Curves.easeOut,
@@ -40,6 +42,8 @@ class _OnboardingStepsScreenState extends State<OnboardingStepsScreen> {
   }
 
   void _back() {
+    hideKeyboard;
+
     if (_index == 0) context.pop();
 
     if (_index > 0) {
@@ -55,8 +59,16 @@ class _OnboardingStepsScreenState extends State<OnboardingStepsScreen> {
     return Scaffold(
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(children: [_buildContent(), _buildButtons(context)]),
+          padding: const EdgeInsets.only(
+            left: 24.0,
+            top: 24.0,
+            right: 24.0,
+            bottom: 8.0,
+          ),
+          child: Column(
+            spacing: 8.0,
+            children: [_buildContent(), _buildButtons(context)],
+          ),
         ),
       ),
     );

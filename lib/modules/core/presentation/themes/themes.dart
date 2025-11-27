@@ -45,7 +45,12 @@ abstract final class Themes {
         ),
       ),
 
-      inputDecoratorBorderType: FlexInputBorderType.outline,
+      inputDecoratorRadius: 16.0,
+      inputDecoratorBorderType: .outline,
+      inputDecoratorContentPadding: const .symmetric(
+        vertical: 14.0,
+        horizontal: 16.0,
+      ),
     ),
     visualDensity: FlexColorScheme.comfortablePlatformDensity,
     cupertinoOverrideTheme: const CupertinoThemeData(applyThemeToAll: true),
@@ -96,7 +101,12 @@ abstract final class Themes {
         ),
       ),
 
+      inputDecoratorRadius: 16.0,
       inputDecoratorBorderType: .outline,
+      inputDecoratorContentPadding: const .symmetric(
+        vertical: 14.0,
+        horizontal: 16.0,
+      ),
     ),
 
     visualDensity: FlexColorScheme.comfortablePlatformDensity,

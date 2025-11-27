@@ -99,8 +99,6 @@ class _OnboardingStepNicknameWidgetState
     decoration: InputDecoration(
       alignLabelWithHint: true,
       hintText: 'Seu nome ou apelido',
-      contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-      border: OutlineInputBorder(borderRadius: context.radius.cornerRadius100),
     ),
   );
 }

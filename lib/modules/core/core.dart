@@ -32,6 +32,8 @@ export 'infrastructure/datasources/local/database_datasource.dart';
 export 'presentation/screens/failure_screen.dart';
 export 'presentation/mixins/after_layout_mixin.dart';
 export 'presentation/builders/notifier_builder.dart';
+
+export 'presentation/extensions/widget_extension.dart';
 export 'presentation/extensions/context_extension.dart';
 
 export 'presentation/themes/themes.dart';
