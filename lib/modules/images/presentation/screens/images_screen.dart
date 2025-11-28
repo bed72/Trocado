@@ -28,41 +28,47 @@ class ImagesScreen extends StatelessWidget {
     padding: EdgeInsets.zero,
     separatorBuilder: (_, _) => const Divider(height: 1),
     itemBuilder: (context, index) => index == 0
-        ? Padding(
-            padding: EdgeInsetsGeometry.only(top: 16.0),
-            child: _buildItemOption(
-              context: context,
-              title: 'Galeria',
-              onTap: onGalleryTap,
-              icon: LucideIcons.image,
-            ),
+        ? _buildItemOption(
+            context: context,
+            title: 'Galeria',
+            onTap: onGalleryTap,
+            isFirst: index == 0,
+            icon: LucideIcons.image,
           )
         : _buildItemOption(
             context: context,
             title: 'Câmera',
             onTap: onCameraTap,
+            isFirst: index == 0,
             icon: LucideIcons.camera,
           ),
   );
 
-  BounceWidget _buildItemOption({
+  Padding _buildItemOption({
     required BuildContext context,
     required String title,
+    required bool isFirst,
     required IconData icon,
     required VoidCallback onTap,
-  }) => BounceWidget.withoutTap(
-    child: ListTile(
-      leading: Icon(icon),
-      contentPadding: EdgeInsets.zero,
-      onTap: () {
-        hideKeyboard;
-        onTap();
-      },
-      title: Text(
-        title,
-        style: context.typography.bodyLarge?.copyWith(
-          fontWeight: .w600,
-          color: context.colors.onSurface.withValues(alpha: .60),
+  }) => Padding(
+    padding: EdgeInsets.only(
+      top: isFirst ? 16.0 : 0.0,
+      bottom: !isFirst ? 32.0 : 0.0,
+    ),
+    child: BounceWidget.withoutTap(
+      child: ListTile(
+        leading: Icon(icon),
+        contentPadding: EdgeInsets.zero,
+        onTap: () {
+          hideKeyboard;
+          onTap();
+        },
+        title: Text(
+          title,
+          style: context.typography.bodyLarge?.copyWith(
+            fontWeight: .w600,
+            color: context.colors.onSurface.withValues(alpha: .60),
+          ),
         ),
       ),
     ),
