@@ -27,7 +27,7 @@ void main() {
 
   group('ImageNotifier', () {
     test('initial state should be null', () {
-      expect(notifier.state, isNull);
+      expect(notifier.success, isNull);
       expect(notifier.hasImage, isFalse);
     });
 
@@ -38,7 +38,7 @@ void main() {
 
       await notifier.call(type: ImagesConstant.camera);
 
-      expect(notifier.state, isNull);
+      expect(notifier.success, isNull);
       verifyNever(
         () => storageRepository.save(
           key: any(named: 'key'),
@@ -64,7 +64,7 @@ void main() {
       await notifier.call(type: ImagesConstant.camera);
 
       expect(notifier.hasImage, isTrue);
-      expect(notifier.state, equals(file));
+      expect(notifier.success, equals(file));
 
       verify(
         () => storageRepository.save(
@@ -83,7 +83,7 @@ void main() {
 
         await notifier.ensureInitialized();
 
-        expect(notifier.state, isNull);
+        expect(notifier.success, isNull);
       },
     );
 
@@ -96,7 +96,7 @@ void main() {
 
         await notifier.ensureInitialized();
 
-        expect(notifier.state, isNull);
+        expect(notifier.success, isNull);
       },
     );
 
@@ -112,7 +112,7 @@ void main() {
 
         await notifier.ensureInitialized();
 
-        expect(notifier.state, isNull);
+        expect(notifier.success, isNull);
       },
     );
 
@@ -130,7 +130,7 @@ void main() {
         await notifier.ensureInitialized();
 
         expect(notifier.hasImage, isTrue);
-        expect(notifier.state?.path, equals(file.path));
+        expect(notifier.success?.path, equals(file.path));
       },
     );
   });

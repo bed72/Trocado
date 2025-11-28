@@ -18,7 +18,7 @@ void main() {
     test('should start with initial state false', () {
       final notifier = OnboardingNotifier(repository: repository);
 
-      expect(notifier.state, false);
+      expect(notifier.success, false);
       expect(notifier.enabled, false);
     });
 

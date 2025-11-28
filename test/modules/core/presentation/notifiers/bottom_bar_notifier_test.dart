@@ -6,7 +6,7 @@ void main() {
   group('BottomBarNotifier', () {
     test('should start with initial state 0', () {
       final notifier = BottomBarNotifier();
-      expect(notifier.state, 0);
+      expect(notifier.success, 0);
       expect(notifier.current, 0);
     });
 

@@ -19,25 +19,29 @@ final class ImageNotifier extends Notifier<File?> {
        _storageRepository = storageRepository,
        super(null);
 
-  bool get hasImage => state != null;
+  bool get hasImage => success != null;
 
   Future<void> call({required ImagesConstant type}) async {
-    final file = await _imageRepository(type: type);
+    await guard(() async {
+      final file = await _imageRepository(type: type);
 
-    if (file == null) return;
+      if (file == null) return null;
 
-    state = file;
-    await _save(file.path);
+      success = file;
+      await _save(file.path);
+    });
   }
 
   Future<void> ensureInitialized() async {
-    final data = await _storageRepository.get(key: StorageConstant.image.key);
-    if (data == null || data.isEmpty) return;
+    await guard(() async {
+      final data = await _storageRepository.get(key: StorageConstant.image.key);
+      if (data == null || data.isEmpty) return;
 
-    final file = File(data);
-    if (!await file.exists()) return;
+      final file = File(data);
+      if (!await file.exists()) return;
 
-    state = file;
+      success = file;
+    });
   }
 
   Future<void> _save(String path) async {

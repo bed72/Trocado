@@ -17,7 +17,7 @@ final class AppWidget extends StatelessWidget {
           title: 'Trocado',
           theme: Themes.light,
           darkTheme: Themes.dark,
-          themeMode: notifier.state,
+          themeMode: notifier.success,
           routerConfig: routerConfig,
           debugShowCheckedModeBanner: kDebugMode,
           builder: (_, child) => LoadWidget(child: child),

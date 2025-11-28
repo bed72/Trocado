@@ -17,7 +17,7 @@ void main() {
     test('should start with initial state ThemeMode.system', () {
       final notifier = ThemeNotifier(repository: repository);
 
-      expect(notifier.state, ThemeMode.system);
+      expect(notifier.success, ThemeMode.system);
       expect(notifier.isDark, false);
     });
 
@@ -33,7 +33,7 @@ void main() {
 
       notifier.toggle(true);
 
-      expect(notifier.state, ThemeMode.dark);
+      expect(notifier.success, ThemeMode.dark);
       expect(notifier.isDark, true);
 
       verify(
@@ -56,7 +56,7 @@ void main() {
 
       notifier.toggle(false);
 
-      expect(notifier.state, ThemeMode.light);
+      expect(notifier.success, ThemeMode.light);
       expect(notifier.isDark, false);
 
       verify(
@@ -96,7 +96,7 @@ void main() {
 
         await notifier.ensureInitialized();
 
-        expect(notifier.state, ThemeMode.system);
+        expect(notifier.success, ThemeMode.system);
       },
     );
 
@@ -111,7 +111,7 @@ void main() {
 
         await notifier.ensureInitialized();
 
-        expect(notifier.state, ThemeMode.system);
+        expect(notifier.success, ThemeMode.system);
       },
     );
 
@@ -129,7 +129,7 @@ void main() {
         await notifier.ensureInitialized();
 
         expect(called, 1);
-        expect(notifier.state, ThemeMode.dark);
+        expect(notifier.success, ThemeMode.dark);
         expect(notifier.isDark, true);
       },
     );
@@ -145,7 +145,7 @@ void main() {
 
         await notifier.ensureInitialized();
 
-        expect(notifier.state, ThemeMode.light);
+        expect(notifier.success, ThemeMode.light);
         expect(notifier.isDark, false);
       },
     );

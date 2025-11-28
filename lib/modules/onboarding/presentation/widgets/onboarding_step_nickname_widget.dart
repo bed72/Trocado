@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 import 'package:trocado/modules/core/core.dart';
 
@@ -9,14 +10,16 @@ import 'package:trocado/modules/onboarding/presentation/widgets/step_description
 
 class OnboardingStepNicknameWidget extends StatefulWidget {
   final String? source;
-  final VoidCallback onEdit;
-  final ValueChanged<String> onChanged;
+  final bool? isLoading;
+  final VoidCallback? onEdit;
+  final ValueChanged<String>? onChanged;
 
   const OnboardingStepNicknameWidget({
     super.key,
-    required this.onEdit,
-    required this.onChanged,
     this.source,
+    this.onEdit,
+    this.onChanged,
+    this.isLoading,
   });
 
   @override
@@ -41,7 +44,7 @@ class _OnboardingStepNicknameWidgetState
   }
 
   Future<void> _onEdit() async {
-    widget.onEdit();
+    widget.onEdit?.call();
   }
 
   @override
@@ -56,13 +59,7 @@ class _OnboardingStepNicknameWidgetState
               spacing: 16.0,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                widget.source == null
-                    ? UserImageWidget.empty(onEdit: _onEdit)
-                    : UserImageWidget(
-                        onEdit: _onEdit,
-                        source: widget.source,
-                        iconOnEdit: LucideIcons.pencil,
-                      ),
+                _buildAvatar(),
 
                 const StepTitleWidget(value: 'Como podemos te chamar?'),
 
@@ -87,7 +84,7 @@ class _OnboardingStepNicknameWidgetState
                 StepButtonWidget(
                   label: 'Salvar apelido',
                   onTap: () {
-                    widget.onChanged(_controller.text);
+                    widget.onChanged?.call(_controller.text);
                   },
                 ),
               ],
@@ -107,5 +104,23 @@ class _OnboardingStepNicknameWidgetState
       alignLabelWithHint: true,
       hintText: 'Seu nome ou apelido',
     ),
+  );
+
+  Column _buildAvatar() => Column(
+    children: [
+      switch ((widget.isLoading, widget.source)) {
+        (true, _) => Skeletonizer(
+          // TODO
+          enabled: true,
+          child: UserImageWidget.empty(onEdit: _onEdit),
+        ),
+        (_, null) => UserImageWidget.empty(onEdit: _onEdit),
+        (_, final path) => UserImageWidget(
+          source: path,
+          onEdit: _onEdit,
+          iconOnEdit: LucideIcons.pencil,
+        ),
+      },
+    ],
   );
 }

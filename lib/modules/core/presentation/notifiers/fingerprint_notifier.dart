@@ -10,10 +10,10 @@ final class FingerprintNotifier extends Notifier<bool> {
     : _repository = repository,
       super(false);
 
-  bool get enabled => state;
+  bool get enabled => success;
 
   void toggle(bool data) {
-    state = data;
+    success = data;
     _save(data);
   }
 
@@ -24,7 +24,7 @@ final class FingerprintNotifier extends Notifier<bool> {
     final enabled = bool.tryParse(data);
     if (enabled == null) return;
 
-    state = enabled;
+    success = enabled;
   }
 
   Future<void> _save(bool data) => _repository.save(

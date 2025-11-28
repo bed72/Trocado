@@ -54,7 +54,7 @@ final class CoreLocation extends StatefulLocation {
           bottomNavigationBar: SafeArea(
             top: false,
             child: BottomBarWidget(
-              index: bottom.state,
+              index: bottom.success,
               onExit: context.exit,
               onTap: ({required context, required index}) {
                 if (index == BottomBarConstant.transaction.position) {

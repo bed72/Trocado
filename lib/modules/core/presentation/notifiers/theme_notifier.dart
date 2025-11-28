@@ -11,11 +11,11 @@ final class ThemeNotifier extends Notifier<ThemeMode> {
     : _repository = repository,
       super(ThemeMode.system);
 
-  bool get isDark => state == ThemeMode.dark;
+  bool get isDark => success == ThemeMode.dark;
 
   void toggle(bool data) async {
-    state = data ? ThemeMode.dark : ThemeMode.light;
-    _save(state == ThemeMode.dark);
+    success = data ? ThemeMode.dark : ThemeMode.light;
+    _save(success == ThemeMode.dark);
   }
 
   Future<void> ensureInitialized() async {
@@ -25,7 +25,7 @@ final class ThemeNotifier extends Notifier<ThemeMode> {
     final isDark = bool.tryParse(data);
     if (isDark == null) return;
 
-    state = isDark ? ThemeMode.dark : ThemeMode.light;
+    success = isDark ? ThemeMode.dark : ThemeMode.light;
   }
 
   Future<void> _save(bool data) =>
