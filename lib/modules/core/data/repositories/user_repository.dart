@@ -1,8 +1,7 @@
 import 'package:trocado/modules/core/core.dart';
 
-import 'package:trocado/modules/user/data/dtos/user_dto.dart';
-import 'package:trocado/modules/user/data/mappers/user_mapper.dart';
-import 'package:trocado/modules/user/domain/repositories/interface_user_repository.dart';
+import 'package:trocado/modules/core/data/dtos/user_dto.dart';
+import 'package:trocado/modules/core/data/mapper/user_mapper.dart';
 
 final class UserRepository implements IUserRepository {
   final UserMapper _mapper;

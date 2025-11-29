@@ -43,7 +43,7 @@ void main() {
     test('should update state using update reducer', () {
       final notifier = BottomBarNotifier();
 
-      notifier.update((value) => value + 3);
+      notifier.replace((value) => value + 3);
 
       expect(notifier.current, 3);
     });
@@ -54,7 +54,7 @@ void main() {
 
       notifier.addListener(() => called++);
 
-      notifier.update((value) => value + 1);
+      notifier.replace((value) => value + 1);
 
       expect(called, 1);
       expect(notifier.current, 1);
@@ -63,7 +63,7 @@ void main() {
     test('should update state using updateAsync reducer', () async {
       final notifier = BottomBarNotifier();
 
-      await notifier.updateAsync((value) async {
+      await notifier.replaceAsync((value) async {
         await Future.delayed(Duration(milliseconds: 10));
         return value + 5;
       });
@@ -77,9 +77,9 @@ void main() {
 
       notifier.addListener(() => called++);
 
-      await notifier.updateAsync((value) async => value + 2);
+      await notifier.replaceAsync((value) async => value + 2);
 
-      expect(called, 1);
+      expect(called, 3);
       expect(notifier.current, 2);
     });
   });

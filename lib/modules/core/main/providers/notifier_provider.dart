@@ -2,18 +2,24 @@ import 'package:provider/provider.dart';
 
 import 'package:trocado/modules/core/presentation/extensions/context_extension.dart';
 
-import 'package:trocado/modules/core/presentation/notifiers/bottom_bar_notifier.dart';
+import 'package:trocado/modules/core/presentation/notifiers/user_notifier.dart';
+import 'package:trocado/modules/core/presentation/notifiers/theme_notifier.dart';
 import 'package:trocado/modules/core/presentation/notifiers/image_notifier.dart';
+import 'package:trocado/modules/core/presentation/notifiers/bottom_bar_notifier.dart';
 import 'package:trocado/modules/core/presentation/notifiers/onboarding_notifier.dart';
 import 'package:trocado/modules/core/presentation/notifiers/fingerprint_notifier.dart';
 import 'package:trocado/modules/core/presentation/notifiers/notification_notifier.dart';
-import 'package:trocado/modules/core/presentation/notifiers/theme_notifier.dart';
 
+import 'package:trocado/modules/core/domain/repositories/interface_user_repository.dart';
 import 'package:trocado/modules/core/domain/repositories/interface_image_repository.dart';
 import 'package:trocado/modules/core/domain/repositories/interface_storage_repository.dart';
 
 final notifierProvider = [
   ChangeNotifierProvider<BottomBarNotifier>(create: (_) => BottomBarNotifier()),
+  ChangeNotifierProvider(
+    create: (context) =>
+        UserNotifier(repository: context.get<IUserRepository>()),
+  ),
 
   ChangeNotifierProvider<ThemeNotifier>(
     create: (context) {

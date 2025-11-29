@@ -1,6 +1,6 @@
 import 'package:trocado/modules/core/core.dart';
 
-import 'package:trocado/modules/user/data/dtos/user_dto.dart';
+import 'package:trocado/modules/core/data/dtos/user_dto.dart';
 
 typedef FindUserRepository = Either<String, UserDto>;
 

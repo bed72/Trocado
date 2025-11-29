@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:skeletonizer/skeletonizer.dart';
 
 import 'package:trocado/modules/core/core.dart';
 
@@ -109,9 +108,7 @@ class _OnboardingStepNicknameWidgetState
   Column _buildAvatar() => Column(
     children: [
       switch ((widget.isLoading, widget.source)) {
-        (true, _) => Skeletonizer(
-          // TODO
-          enabled: true,
+        (true, _) => SkeletonWidget(
           child: UserImageWidget.empty(onEdit: _onEdit),
         ),
         (_, null) => UserImageWidget.empty(onEdit: _onEdit),

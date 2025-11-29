@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+
 import 'package:trocado/modules/core/domain/constant/bottom_bar_constant.dart';
 
 import 'package:trocado/modules/core/presentation/widgets/indicator_widget.dart';

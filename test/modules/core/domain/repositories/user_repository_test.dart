@@ -1,14 +1,11 @@
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:trocado/modules/core/domain/either.dart';
-import 'package:trocado/modules/core/domain/constant/database_constant.dart';
-import 'package:trocado/modules/core/data/datasources/interface_database_datasource.dart';
+import 'package:trocado/modules/core/core.dart';
 
-import 'package:trocado/modules/user/data/dtos/user_dto.dart';
-import 'package:trocado/modules/user/data/mappers/user_mapper.dart';
-import 'package:trocado/modules/user/data/repositories/user_repository.dart';
-import 'package:trocado/modules/user/domain/repositories/interface_user_repository.dart';
+import 'package:trocado/modules/core/data/dtos/user_dto.dart';
+import 'package:trocado/modules/core/data/mapper/user_mapper.dart';
+import 'package:trocado/modules/core/data/repositories/user_repository.dart';
 
 final class MockDatabaseDatasource extends Mock
     implements IDatabaseDatasource {}
@@ -26,12 +23,7 @@ void main() {
 
   group('LocalUserRepository', () {
     final table = DatabaseConstant.userTableName;
-    final dto = UserDto(
-      id: '1',
-      name: 'Gabriel',
-      password: '123456',
-      email: 'gabriel@test.com',
-    );
+    final dto = UserDto(id: '1', name: 'Gabriel', image: 'image.webp');
 
     group('all', () {
       test('should return first user on success', () async {
