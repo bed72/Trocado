@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:trocado/modules/core/core.dart';
 
 import 'package:trocado/modules/core/data/dtos/user_dto.dart';
-import 'package:trocado/modules/core/presentation/notifiers/user_notifier.dart';
 
 import '../../../../fakes/fakes.dart';
 import '../../../../mocks/mocks.dart';

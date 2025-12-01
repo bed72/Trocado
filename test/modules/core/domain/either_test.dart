@@ -24,50 +24,50 @@ void main() {
 
     test('map should transform Right value', () {
       final either = Right<String, int>(2);
-      final result = either.mapRight((n) => n * 2);
+      final data = either.mapRight((n) => n * 2);
 
-      expect(result.isRight, isTrue);
-      expect(result.right, equals(4));
+      expect(data.isRight, isTrue);
+      expect(data.right, equals(4));
     });
 
     test('map should not affect Left', () {
       final either = Left<String, int>('fail');
-      final result = either.mapRight((n) => n * 2);
+      final data = either.mapRight((n) => n * 2);
 
-      expect(result.isLeft, isTrue);
-      expect(result.left, equals('fail'));
+      expect(data.isLeft, isTrue);
+      expect(data.left, equals('fail'));
     });
 
     test('mapLeft should transform Left value', () {
       final either = Left<String, int>('fail');
-      final result = either.mapLeft((msg) => msg.toUpperCase());
+      final data = either.mapLeft((msg) => msg.toUpperCase());
 
-      expect(result.isLeft, isTrue);
-      expect(result.left, equals('FAIL'));
+      expect(data.isLeft, isTrue);
+      expect(data.left, equals('FAIL'));
     });
 
     test('mapLeft should not affect Right', () {
       final either = Right<String, int>(10);
-      final result = either.mapLeft((msg) => msg.toUpperCase());
+      final data = either.mapLeft((msg) => msg.toUpperCase());
 
-      expect(result.isRight, isTrue);
-      expect(result.right, equals(10));
+      expect(data.isRight, isTrue);
+      expect(data.right, equals(10));
     });
 
     test('flatMap should chain Right values', () {
       final either = Right<String, int>(2);
-      final result = either.flatMap((n) => Right<String, String>('value: $n'));
+      final data = either.flatMap((n) => Right<String, String>('value: $n'));
 
-      expect(result.isRight, isTrue);
-      expect(result.right, equals('value: 2'));
+      expect(data.isRight, isTrue);
+      expect(data.right, equals('value: 2'));
     });
 
     test('flatMap should propagate Left', () {
       final either = Left<String, int>('error');
-      final result = either.flatMap((n) => Right<String, String>('ok'));
+      final data = either.flatMap((n) => Right<String, String>('ok'));
 
-      expect(result.isLeft, isTrue);
-      expect(result.left, equals('error'));
+      expect(data.isLeft, isTrue);
+      expect(data.left, equals('error'));
     });
 
     test('either should transform both sides', () {
@@ -92,67 +92,67 @@ void main() {
     });
 
     test('tryCatch should return Right on success', () {
-      final result = Either.tryCatch<String, int, FormatException>(
+      final data = Either.tryCatch<String, int, FormatException>(
         (e) => e.toString(),
         () => int.parse('123'),
       );
 
-      expect(result.isRight, isTrue);
-      expect(result.right, equals(123));
+      expect(data.isRight, isTrue);
+      expect(data.right, equals(123));
     });
 
     test('tryCatch should return Left on exception', () {
-      final result = Either.tryCatch<String, int, FormatException>(
+      final data = Either.tryCatch<String, int, FormatException>(
         (e) => 'bad format',
         () => int.parse('abc'),
       );
 
-      expect(result.isLeft, isTrue);
-      expect(result.left, equals('bad format'));
+      expect(data.isLeft, isTrue);
+      expect(data.left, equals('bad format'));
     });
 
     test('tryExcept should return Right on success', () {
-      final result = Either.tryExcept<FormatException, int>(
+      final data = Either.tryExcept<FormatException, int>(
         () => int.parse('42'),
       );
 
-      expect(result.isRight, isTrue);
-      expect(result.right, equals(42));
+      expect(data.isRight, isTrue);
+      expect(data.right, equals(42));
     });
 
     test('tryExcept should return Left on exception', () {
-      final result = Either.tryExcept<FormatException, int>(
+      final data = Either.tryExcept<FormatException, int>(
         () => int.parse('abc'),
       );
 
-      expect(result.isLeft, isTrue);
-      expect(result.left, isA<FormatException>());
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<FormatException>());
     });
 
     test('cond should return Right when condition is true', () {
-      final result = Either.cond(true, 'fail', 42);
+      final data = Either.cond(true, 'fail', 42);
 
-      expect(result.isRight, isTrue);
-      expect(result.right, equals(42));
+      expect(data.isRight, isTrue);
+      expect(data.right, equals(42));
     });
 
     test('cond should return Left when condition is false', () {
-      final result = Either.cond(false, 'fail', 42);
+      final data = Either.cond(false, 'fail', 42);
 
-      expect(result.isLeft, isTrue);
-      expect(result.left, equals('fail'));
+      expect(data.isLeft, isTrue);
+      expect(data.left, equals('fail'));
     });
 
     test('condLazy should lazily evaluate values', () {
       var called = false;
 
-      final result = Either.condLazy(true, () {
+      final data = Either.condLazy(true, () {
         called = true;
         return 'fail';
       }, () => 99);
 
-      expect(result.isRight, isTrue);
-      expect(result.right, equals(99));
+      expect(data.isRight, isTrue);
+      expect(data.right, equals(99));
       expect(called, isFalse); // left not evaluated
     });
 

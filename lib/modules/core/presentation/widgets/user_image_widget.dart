@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -7,6 +8,7 @@ import 'package:trocado/modules/core/presentation/widgets/icon_widget.dart';
 import 'package:trocado/modules/core/presentation/widgets/bounce_widget.dart';
 import 'package:trocado/modules/core/presentation/animation/shimmer_animation.dart';
 import 'package:trocado/modules/core/presentation/extensions/context_extension.dart';
+import 'package:trocado/modules/core/presentation/widgets/skeletons/skeleton_widget.dart';
 
 class UserImageWidget extends StatelessWidget {
   final VoidCallback onEdit;
@@ -65,8 +67,18 @@ class UserImageWidget extends StatelessWidget {
     );
   }
 
-  CircleAvatar _buildNotEmptyUser() =>
-      CircleAvatar(radius: 48.0, backgroundImage: FileImage(File(source!)));
+  SkeletonWidget _buildLoading() =>
+      SkeletonWidget(child: UserImageWidget.empty(onEdit: onEdit));
+
+  FutureBuilder _buildNotEmptyUser() => FutureBuilder<Uint8List>(
+    future: File(source!).readAsBytes(),
+    builder: (_, snapshot) => !snapshot.hasData
+        ? _buildLoading()
+        : CircleAvatar(
+            radius: 48,
+            backgroundImage: MemoryImage(snapshot.data!),
+          ),
+  );
 
   ShimmerAnimation _buildEmptyUser(BuildContext context) => ShimmerAnimation(
     pause: Duration(seconds: 6),

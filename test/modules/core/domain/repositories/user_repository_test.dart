@@ -5,10 +5,8 @@ import 'package:trocado/modules/core/core.dart';
 
 import 'package:trocado/modules/core/data/dtos/user_dto.dart';
 import 'package:trocado/modules/core/data/mapper/user_mapper.dart';
-import 'package:trocado/modules/core/data/repositories/user_repository.dart';
 
-final class MockDatabaseDatasource extends Mock
-    implements IDatabaseDatasource {}
+import '../../../../mocks/mocks.dart';
 
 void main() {
   late UserMapper mapper;
