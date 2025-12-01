@@ -11,11 +11,11 @@ final class UserNotifier extends Notifier<UserDto?> {
 
   bool get hasUser => success != null;
 
-  Future<void> find(UserDto data) async {
+  Future<void> find() async {
     await flow(() async {
-      final result = await _repository.find(data: data);
+      final data = await _repository.find();
 
-      return result.fold((_) => null, (success) => this.success = success);
+      return data.fold((_) => null, (success) => this.success = success);
     });
   }
 

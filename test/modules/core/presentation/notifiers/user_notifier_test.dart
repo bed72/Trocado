@@ -25,22 +25,18 @@ void main() {
 
   group('UserNotifier - find', () {
     test('It should load the user when `find` returns `Right`.', () async {
-      when(
-        () => repository.find(data: any(named: 'data')),
-      ).thenAnswer((_) async => Right(user));
+      when(() => repository.find()).thenAnswer((_) async => Right(user));
 
-      await notifier.find(user);
+      await notifier.find();
 
       expect(notifier.hasUser, isTrue);
       expect(notifier.success, equals(user));
     });
 
     test('You should ignore the error when `find` returns `Left`.', () async {
-      when(
-        () => repository.find(data: any(named: 'data')),
-      ).thenAnswer((_) async => const Left('erro'));
+      when(() => repository.find()).thenAnswer((_) async => const Left('erro'));
 
-      await notifier.find(user);
+      await notifier.find();
 
       expect(notifier.success, isNull);
       expect(notifier.hasUser, isFalse);

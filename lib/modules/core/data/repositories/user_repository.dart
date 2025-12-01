@@ -35,11 +35,8 @@ final class UserRepository implements IUserRepository {
   }
 
   @override
-  Future<FindUserRepository> find({required UserDto data}) async {
-    final user = await _datasource.all(
-      DatabaseConstant.userTableName.name,
-      data.id,
-    );
+  Future<FindUserRepository> find() async {
+    final user = await _datasource.all(DatabaseConstant.userTableName.name);
 
     return user
         .mapLeft((_) => 'Opss, não encontramos seus dados, tente mais tarde!')

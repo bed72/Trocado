@@ -29,7 +29,7 @@ void main() {
           () => datasource.all(table.name, any()),
         ).thenAnswer((_) async => Right([mapper.toJson(dto)]));
 
-        final response = await repository.find(data: dto);
+        final response = await repository.find();
 
         expect(response.isRight, isTrue);
         expect(response.right.id, equals('1'));
@@ -42,7 +42,7 @@ void main() {
           () => datasource.all(table.name, any()),
         ).thenAnswer((_) async => Left(null));
 
-        final result = await repository.find(data: dto);
+        final result = await repository.find();
 
         expect(result.isLeft, isTrue);
         expect(
