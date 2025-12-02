@@ -1,5 +1,5 @@
-import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:trocado/main.dart';
 
 import 'package:trocado/modules/core/presentation/extensions/context_extension.dart';
 
@@ -14,18 +14,15 @@ import 'package:trocado/modules/core/infrastructure/datasources/local/image_data
 import 'package:trocado/modules/core/infrastructure/datasources/local/storage_datasource.dart';
 import 'package:trocado/modules/core/infrastructure/datasources/local/database_datasource.dart';
 
-final datasourceProvider = [
-  Provider<IImageDatasource>(
-    create: (_) => ImageDatasource(client: ImagePicker()),
-  ),
-
-  Provider<IStorageDatasource>(
-    create: (context) =>
-        StorageDatasource(client: context.get<IStorageClient>()),
-  ),
-
-  Provider<IDatabaseDatasource>(
-    create: (context) =>
-        DatabaseDatasource(client: context.get<IDatabaseClient>()),
-  ),
-];
+void provideDatasources() {
+  provider
+    ..registerLazySingleton<IImageDatasource>(
+      () => ImageDatasource(client: ImagePicker()),
+    )
+    ..registerLazySingleton<IStorageDatasource>(
+      () => StorageDatasource(client: provider<IStorageClient>()),
+    )
+    ..registerLazySingleton<IDatabaseDatasource>(
+      () => DatabaseDatasource(client: provider<IDatabaseClient>()),
+    );
+}

@@ -5,11 +5,11 @@ import 'package:trocado/modules/core/main/providers/resource_provider.dart';
 import 'package:trocado/modules/core/main/providers/repository_provider.dart';
 import 'package:trocado/modules/core/main/providers/datasource_provider.dart';
 
-final providers = [
-  ...resourceProvider,
-  ...externalProviders,
-  ...clientProvider,
-  ...datasourceProvider,
-  ...repositoryProvider,
-  ...notifierProvider,
-];
+void providers() {
+  provideClients();
+  provideExternals();
+  provideNotifiers();
+  provideResources();
+  provideDatasources();
+  provideRepositories();
+}
