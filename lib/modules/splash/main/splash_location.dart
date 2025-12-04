@@ -11,12 +11,12 @@ final class SplashLocation extends Location {
 
   @override
   LocationBuilder? get builder => (context) {
-    final notifier = context.get<OnboardingNotifier>();
+    final command = context.get<OnboardingCommand>();
 
     return SplashScreen(
       navigateTo: () {
         context.navigate(
-          notifier.enabled ? CoreLocation() : OnboardingLocation(),
+          command.enabled ? CoreLocation() : OnboardingLocation(),
           clearStack: true,
         );
       },

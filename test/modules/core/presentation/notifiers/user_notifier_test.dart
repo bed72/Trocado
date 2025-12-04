@@ -10,7 +10,7 @@ import '../../../../mocks/mocks.dart';
 
 void main() {
   late UserDto user;
-  late UserNotifier notifier;
+  late UserCommand notifier;
   late IUserRepository repository;
 
   setUpAll(() {
@@ -19,7 +19,7 @@ void main() {
 
   setUp(() {
     repository = MockUserRepository();
-    notifier = UserNotifier(repository: repository);
+    notifier = UserCommand(repository: repository);
     user = UserDto(id: '1', name: 'Gabriel', image: 'image.webp');
   });
 

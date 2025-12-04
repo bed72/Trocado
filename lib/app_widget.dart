@@ -10,19 +10,17 @@ final class AppWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ConsumerBuilder(
-      notifier: context.get<ThemeNotifier>(),
-      builder: (_, notifier) {
-        return MaterialApp.router(
-          title: 'Trocado',
-          theme: Themes.light,
-          darkTheme: Themes.dark,
-          themeMode: notifier.success,
-          routerConfig: routerConfig,
-          debugShowCheckedModeBanner: kDebugMode,
-          builder: (_, child) => LoadWidget(child: child),
-        );
-      },
+    return ConsumerBuilder<bool, ThemeMode>(
+      command: context.commandOf<ThemeCommand, bool, ThemeMode>(),
+      data: (_, themeMode, _) => MaterialApp.router(
+        title: 'Trocado',
+        theme: Themes.light,
+        themeMode: themeMode,
+        darkTheme: Themes.dark,
+        routerConfig: routerConfig,
+        debugShowCheckedModeBanner: kDebugMode,
+        builder: (_, child) => LoadWidget(child: child),
+      ),
     );
   }
 }

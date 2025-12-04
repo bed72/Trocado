@@ -34,8 +34,10 @@ dependencies:
   collection: ^1.19.1
 
   get_it: ^9.1.1
-  tostore: ^2.2.2
+  watch_it: ^2.4.1
   command_it: ^9.5.0
+  
+  tostore: ^2.2.2
   duck_router: ^7.2.1
   skeletonizer: ^2.1.1
   image_picker: ^1.2.1

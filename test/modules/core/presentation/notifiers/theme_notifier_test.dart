@@ -15,14 +15,14 @@ void main() {
 
   group('ThemeNotifier', () {
     test('should start with initial state ThemeMode.system', () {
-      final notifier = ThemeNotifier(repository: repository);
+      final notifier = ThemeCommand(repository: repository);
 
       expect(notifier.success, ThemeMode.system);
       expect(notifier.isDark, false);
     });
 
     test('should toggle to dark mode and call save', () async {
-      final notifier = ThemeNotifier(repository: repository);
+      final notifier = ThemeCommand(repository: repository);
 
       when(
         () => repository.save(
@@ -45,7 +45,7 @@ void main() {
     });
 
     test('should toggle to light mode and call save', () async {
-      final notifier = ThemeNotifier(repository: repository);
+      final notifier = ThemeCommand(repository: repository);
 
       when(
         () => repository.save(
@@ -69,7 +69,7 @@ void main() {
 
     test('should notify listeners when toggle is called', () {
       int called = 0;
-      final notifier = ThemeNotifier(repository: repository);
+      final notifier = ThemeCommand(repository: repository);
 
       notifier.addListener(() => called++);
 
@@ -92,7 +92,7 @@ void main() {
           () => repository.get(key: StorageConstant.theme.key),
         ).thenAnswer((_) async => null);
 
-        final notifier = ThemeNotifier(repository: repository);
+        final notifier = ThemeCommand(repository: repository);
 
         await notifier.ensureInitialized();
 
@@ -107,7 +107,7 @@ void main() {
           () => repository.get(key: StorageConstant.theme.key),
         ).thenAnswer((_) async => 'invalid');
 
-        final notifier = ThemeNotifier(repository: repository);
+        final notifier = ThemeCommand(repository: repository);
 
         await notifier.ensureInitialized();
 
@@ -123,7 +123,7 @@ void main() {
         ).thenAnswer((_) async => 'true');
 
         int called = 0;
-        final notifier = ThemeNotifier(repository: repository);
+        final notifier = ThemeCommand(repository: repository);
         notifier.addListener(() => called++);
 
         await notifier.ensureInitialized();
@@ -141,7 +141,7 @@ void main() {
           () => repository.get(key: StorageConstant.theme.key),
         ).thenAnswer((_) async => 'false');
 
-        final notifier = ThemeNotifier(repository: repository);
+        final notifier = ThemeCommand(repository: repository);
 
         await notifier.ensureInitialized();
 

@@ -1,5 +1,4 @@
 import 'package:trocado/main.dart';
-import 'package:trocado/modules/core/presentation/extensions/context_extension.dart';
 
 import 'package:trocado/modules/core/data/mapper/user_mapper.dart';
 

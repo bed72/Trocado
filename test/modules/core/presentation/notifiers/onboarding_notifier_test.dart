@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:trocado/modules/core/domain/constant/storage_contant.dart';
-import 'package:trocado/modules/core/presentation/notifiers/onboarding_notifier.dart';
+import 'package:trocado/modules/core/presentation/commands/onboarding_command.dart';
 import 'package:trocado/modules/core/domain/repositories/interface_storage_repository.dart';
 
 import '../../../../mocks/mocks.dart';
@@ -16,14 +16,14 @@ void main() {
 
   group('OnboardingNotifier', () {
     test('should start with initial state false', () {
-      final notifier = OnboardingNotifier(repository: repository);
+      final notifier = OnboardingCommand(repository: repository);
 
       expect(notifier.success, false);
       expect(notifier.enabled, false);
     });
 
     test('should toggle state and call save', () async {
-      final notifier = OnboardingNotifier(repository: repository);
+      final notifier = OnboardingCommand(repository: repository);
 
       when(
         () => repository.save(
@@ -45,7 +45,7 @@ void main() {
 
     test('should notify listeners when toggle is called', () {
       int called = 0;
-      final notifier = OnboardingNotifier(repository: repository);
+      final notifier = OnboardingCommand(repository: repository);
 
       notifier.addListener(() => called++);
 
@@ -68,7 +68,7 @@ void main() {
           () => repository.get(key: StorageConstant.onboarding.key),
         ).thenAnswer((_) async => null);
 
-        final notifier = OnboardingNotifier(repository: repository);
+        final notifier = OnboardingCommand(repository: repository);
 
         await notifier.ensureInitialized();
 
@@ -83,7 +83,7 @@ void main() {
           () => repository.get(key: StorageConstant.onboarding.key),
         ).thenAnswer((_) async => 'invalid');
 
-        final notifier = OnboardingNotifier(repository: repository);
+        final notifier = OnboardingCommand(repository: repository);
 
         await notifier.ensureInitialized();
 
@@ -99,7 +99,7 @@ void main() {
         ).thenAnswer((_) async => 'true');
 
         int called = 0;
-        final notifier = OnboardingNotifier(repository: repository);
+        final notifier = OnboardingCommand(repository: repository);
         notifier.addListener(() => called++);
 
         await notifier.ensureInitialized();
@@ -116,7 +116,7 @@ void main() {
           () => repository.get(key: StorageConstant.onboarding.key),
         ).thenAnswer((_) async => 'false');
 
-        final notifier = OnboardingNotifier(repository: repository);
+        final notifier = OnboardingCommand(repository: repository);
 
         await notifier.ensureInitialized();
 

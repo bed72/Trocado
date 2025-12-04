@@ -11,7 +11,8 @@ import 'package:trocado/modules/core/domain/constant/bottom_bar_constant.dart';
 import 'package:trocado/modules/core/domain/constant/quick_actions_constant.dart';
 
 import 'package:trocado/modules/core/presentation/actions/quick_actions.dart';
-import 'package:trocado/modules/core/presentation/builders/notifier_builder.dart';
+import 'package:trocado/modules/core/presentation/commands/bottom_bar_command.dart';
+import 'package:trocado/modules/core/presentation/builders/listenables_builder.dart';
 import 'package:trocado/modules/core/presentation/extensions/context_extension.dart';
 import 'package:trocado/modules/core/presentation/notifiers/bottom_bar_notifier.dart';
 import 'package:trocado/modules/core/presentation/widgets/bottons/bottom_bar_widget.dart';
@@ -31,11 +32,11 @@ final class CoreLocation extends StatefulLocation {
 
   @override
   StatefulLocationBuilder get childBuilder => (context, shell) {
-    final notifier = context.get<BottomBarNotifier>();
+    final bottom = context.get<BottomBarCommand>();
 
-    return ConsumerBuilder<BottomBarNotifier>(
-      notifier: notifier,
-      builder: (_, bottom) {
+    return ConsumerBuilder<int, int>(
+      command: bottom.command,
+      data: (_, index, _) {
         quickAction(
           action: (type) {
             context.navigate(
@@ -54,7 +55,7 @@ final class CoreLocation extends StatefulLocation {
           bottomNavigationBar: SafeArea(
             top: false,
             child: BottomBarWidget(
-              index: bottom.success,
+              index: index,
               onExit: context.exit,
               onTap: ({required context, required index}) {
                 if (index == BottomBarConstant.transaction.position) {
@@ -62,7 +63,7 @@ final class CoreLocation extends StatefulLocation {
                 }
 
                 shell.switchChild(index);
-                notifier.switchChild(index);
+                bottom.command(index);
               },
             ),
           ),

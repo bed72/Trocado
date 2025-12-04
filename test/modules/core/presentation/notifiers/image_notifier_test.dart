@@ -8,7 +8,7 @@ import 'package:trocado/modules/core/core.dart';
 import '../../../../mocks/mocks.dart';
 
 void main() {
-  late ImageNotifier notifier;
+  late ImageCommand notifier;
   late IImageRepository imageRepository;
   late IStorageRepository storageRepository;
 
@@ -19,7 +19,7 @@ void main() {
   setUp(() {
     imageRepository = MockImageRepository();
     storageRepository = MockStorageRepository();
-    notifier = ImageNotifier(
+    notifier = ImageCommand(
       imageRepository: imageRepository,
       storageRepository: storageRepository,
     );

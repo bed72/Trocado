@@ -1,5 +1,6 @@
+import 'package:command_it/command_it.dart';
+import 'package:get_it/get_it.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:duck_router/duck_router.dart';
 
 import 'package:trocado/modules/core/presentation/themes/radius/radius_theme.dart';
@@ -16,7 +17,31 @@ extension BuildContextExtension on BuildContext {
   CornerRadiusToken get radius =>
       Theme.of(this).extension<CornerRadiusToken>()!;
 
-  T get<T>() => read<T>();
+  T get<T extends Object>({
+    dynamic param1,
+    dynamic param2,
+    Type? type,
+    String? instanceName,
+  }) => GetIt.instance.get(
+    type: type,
+    param1: param1,
+    param2: param2,
+    instanceName: instanceName,
+  );
+
+  Command<TParam, TResult>
+  commandOf<TWrapper extends Object, TParam, TResult>() {
+    final wrapper = get<TWrapper>();
+
+    final command = (wrapper as dynamic).command;
+
+    if (command is Command<TParam, TResult>) return command;
+
+    throw FlutterError(
+      'The $TWrapper object found in GetIt does not contain a '
+      '"command" field as the expected type is Command<$TParam, $TResult>.',
+    );
+  }
 
   bool canPop() => Navigator.canPop(this);
 

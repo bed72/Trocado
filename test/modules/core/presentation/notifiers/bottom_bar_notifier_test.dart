@@ -3,15 +3,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:trocado/modules/core/core.dart';
 
 void main() {
-  group('BottomBarNotifier', () {
+  group('BottomBarCommand', () {
     test('should start with initial state 0', () {
-      final notifier = BottomBarNotifier();
+      final notifier = BottomBarCommand();
       expect(notifier.success, 0);
       expect(notifier.current, 0);
     });
 
     test('should update state when switchChild is called', () {
-      final notifier = BottomBarNotifier();
+      final notifier = BottomBarCommand();
 
       notifier.switchChild(2);
 
@@ -19,7 +19,7 @@ void main() {
     });
 
     test('should notify listeners on state change', () {
-      final notifier = BottomBarNotifier();
+      final notifier = BottomBarCommand();
 
       var called = 0;
       notifier.addListener(() => called++);
@@ -31,7 +31,7 @@ void main() {
 
     test('should not notify listeners when setting same state', () {
       int called = 0;
-      final notifier = BottomBarNotifier();
+      final notifier = BottomBarCommand();
 
       notifier.addListener(() => called++);
 
@@ -41,7 +41,7 @@ void main() {
     });
 
     test('should update state using update reducer', () {
-      final notifier = BottomBarNotifier();
+      final notifier = BottomBarCommand();
 
       notifier.replace((value) => value + 3);
 
@@ -50,7 +50,7 @@ void main() {
 
     test('should notify listeners when using update reducer', () {
       int called = 0;
-      final notifier = BottomBarNotifier();
+      final notifier = BottomBarCommand();
 
       notifier.addListener(() => called++);
 
@@ -61,7 +61,7 @@ void main() {
     });
 
     test('should update state using updateAsync reducer', () async {
-      final notifier = BottomBarNotifier();
+      final notifier = BottomBarCommand();
 
       await notifier.replaceAsync((value) async {
         await Future.delayed(Duration(milliseconds: 10));
@@ -73,7 +73,7 @@ void main() {
 
     test('should notify listeners when using updateAsync reducer', () async {
       int called = 0;
-      final notifier = BottomBarNotifier();
+      final notifier = BottomBarCommand();
 
       notifier.addListener(() => called++);
 

@@ -6,7 +6,6 @@ import 'package:trocado/modules/core/infrastructure/clients/storage/storage_clie
 import 'package:trocado/modules/core/infrastructure/clients/database/database_client.dart';
 
 void provideClients() {
-  // client.ensureInitialized();
   provider
     ..registerLazySingleton<IDatabaseClient>(DatabaseClient.new)
     ..registerLazySingleton<IStorageClient>(
