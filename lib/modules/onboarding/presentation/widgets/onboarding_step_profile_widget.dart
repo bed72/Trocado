@@ -1,27 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:trocado/modules/core/core.dart';
 import 'package:trocado/modules/onboarding/presentation/widgets/profile/footer_profile_widget.dart';
+import 'package:trocado/modules/onboarding/presentation/widgets/profile/header_profile_widget.dart';
 
 import 'package:trocado/modules/onboarding/presentation/widgets/step_title_widget.dart';
 import 'package:trocado/modules/onboarding/presentation/widgets/step_description_widget.dart';
 
 class OnboardingStepProfileWidget extends StatelessWidget {
-  final String? source;
-  final VoidCallback? onEdit;
-  final bool? avatarIsLoading;
-  final bool? nicknameIsLoading;
-  final ValueChanged<String>? onSaved;
+  final VoidCallback onEdit;
 
-  const OnboardingStepProfileWidget({
-    super.key,
-    this.source,
-    this.onEdit,
-    this.onSaved,
-    this.avatarIsLoading,
-    this.nicknameIsLoading,
-  });
+  const OnboardingStepProfileWidget({super.key, required this.onEdit});
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +22,7 @@ class OnboardingStepProfileWidget extends StatelessWidget {
             spacing: 16.0,
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildAvatar(),
+              HeaderProfileWidget(onEdit: onEdit),
 
               const StepTitleWidget(value: 'Como podemos te chamar?'),
 
@@ -48,27 +37,11 @@ class OnboardingStepProfileWidget extends StatelessWidget {
                 ),
               ),
 
-              FooterProfileWidget(onSaved: onSaved, isLoading: avatarIsLoading),
+              FooterProfileWidget(),
             ],
           ),
         ),
       ),
     );
-  }
-
-  void _onEdit() => onEdit?.call();
-
-  Widget _buildAvatar() {
-    return switch ((avatarIsLoading, source)) {
-      (true, _) => SkeletonWidget(
-        child: UserImageWidget.empty(onEdit: _onEdit),
-      ),
-      (_, null) => UserImageWidget.empty(onEdit: _onEdit),
-      (_, final path) => UserImageWidget(
-        source: path,
-        onEdit: _onEdit,
-        iconOnEdit: LucideIcons.pencil,
-      ),
-    };
   }
 }

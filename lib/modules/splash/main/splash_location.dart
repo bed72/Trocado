@@ -1,4 +1,5 @@
 import 'package:duck_router/duck_router.dart';
+import 'package:flutter_solidart/flutter_solidart.dart';
 
 import 'package:trocado/modules/core/core.dart';
 import 'package:trocado/modules/onboarding/onboarding.dart';
@@ -11,13 +12,17 @@ final class SplashLocation extends Location {
 
   @override
   LocationBuilder? get builder => (context) {
-    final command = context.get<OnboardingCommand>();
+    final store = context.get<OnboardingStore>();
 
-    return SplashScreen(
-      navigateTo: () {
-        context.navigate(
-          command.enabled ? CoreLocation() : OnboardingLocation(),
-          clearStack: true,
+    return SignalBuilder(
+      builder: (_, _) {
+        return SplashScreen(
+          navigateTo: () {
+            context.navigate(
+              store.onboarding() ? CoreLocation() : OnboardingLocation(),
+              clearStack: true,
+            );
+          },
         );
       },
     );

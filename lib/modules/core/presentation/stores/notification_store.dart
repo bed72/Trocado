@@ -1,17 +1,14 @@
-import 'package:command_it/command_it.dart';
+import 'package:flutter_solidart/flutter_solidart.dart';
 
 import 'package:trocado/modules/core/domain/constant/storage_contant.dart';
 import 'package:trocado/modules/core/domain/repositories/interface_storage_repository.dart';
 
-final class NotificationCommand {
+final class NotificationStore {
   final IStorageRepository _repository;
 
-  late final command = Command.createAsync<bool, bool>(
-    _call,
-    initialValue: false,
-  );
+  final notification = Signal(false);
 
-  NotificationCommand({required IStorageRepository repository})
+  NotificationStore({required IStorageRepository repository})
     : _repository = repository;
 
   Future<void> ensureInitialized() async {
@@ -22,12 +19,13 @@ final class NotificationCommand {
     final enabled = bool.tryParse(data);
     if (enabled == null) return;
 
-    command.value = enabled;
+    notification.value = enabled;
   }
 
-  Future<bool> _call(bool value) async {
+  Future<void> toggle(bool value) async {
     await _save(value);
-    return value;
+
+    notification.value = value;
   }
 
   Future<void> _save(bool data) => _repository.save(

@@ -1,17 +1,14 @@
-import 'package:command_it/command_it.dart';
+import 'package:flutter_solidart/flutter_solidart.dart';
 
 import 'package:trocado/modules/core/domain/constant/storage_contant.dart';
 import 'package:trocado/modules/core/domain/repositories/interface_storage_repository.dart';
 
-final class FingerprintCommand {
+final class FingerprintStore {
   final IStorageRepository _repository;
 
-  late final command = Command.createAsync<bool, bool>(
-    _call,
-    initialValue: false,
-  );
+  final fingerprint = Signal<bool>(false);
 
-  FingerprintCommand({required IStorageRepository repository})
+  FingerprintStore({required IStorageRepository repository})
     : _repository = repository;
 
   Future<void> ensureInitialized() async {
@@ -22,13 +19,13 @@ final class FingerprintCommand {
     final enabled = bool.tryParse(data);
     if (enabled == null) return;
 
-    command.value = enabled;
+    fingerprint.value = enabled;
   }
 
-  Future<bool> _call(bool value) async {
+  Future<void> toggle(bool value) async {
     await _save(value);
 
-    return value;
+    fingerprint.value = value;
   }
 
   Future<void> _save(bool data) => _repository.save(

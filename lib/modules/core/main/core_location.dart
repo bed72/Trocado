@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:duck_router/duck_router.dart';
+import 'package:flutter_solidart/flutter_solidart.dart';
 
 import 'package:trocado/modules/home/home.dart';
 import 'package:trocado/modules/report/report.dart';
@@ -11,8 +12,7 @@ import 'package:trocado/modules/core/domain/constant/bottom_bar_constant.dart';
 import 'package:trocado/modules/core/domain/constant/quick_actions_constant.dart';
 
 import 'package:trocado/modules/core/presentation/actions/quick_actions.dart';
-import 'package:trocado/modules/core/presentation/commands/bottom_bar_command.dart';
-import 'package:trocado/modules/core/presentation/builders/listenables_builder.dart';
+import 'package:trocado/modules/core/presentation/stores/bottom_bar_store.dart';
 import 'package:trocado/modules/core/presentation/extensions/context_extension.dart';
 import 'package:trocado/modules/core/presentation/widgets/bottons/bottom_bar_widget.dart';
 
@@ -31,11 +31,10 @@ final class CoreLocation extends StatefulLocation {
 
   @override
   StatefulLocationBuilder get childBuilder => (context, shell) {
-    final bottom = context.get<BottomBarCommand>();
+    final store = context.get<BottomBarStore>();
 
-    return ConsumerBuilder<int, int>(
-      command: bottom.command,
-      data: (_, index, _) {
+    return SignalBuilder(
+      builder: (_, _) {
         quickAction(
           action: (type) {
             context.navigate(
@@ -54,15 +53,15 @@ final class CoreLocation extends StatefulLocation {
           bottomNavigationBar: SafeArea(
             top: false,
             child: BottomBarWidget(
-              index: index,
               onExit: context.exit,
+              index: store.index.value,
               onTap: ({required context, required index}) {
                 if (index == BottomBarConstant.transaction.position) {
                   return transactionBottomSheetFactoryWidget(context);
                 }
 
+                store.index = index;
                 shell.switchChild(index);
-                bottom.command(index);
               },
             ),
           ),

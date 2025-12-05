@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_solidart/flutter_solidart.dart';
 
 import 'package:trocado/app_route.dart';
 
@@ -10,13 +11,14 @@ final class AppWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ConsumerBuilder<bool, ThemeMode>(
-      command: context.commandOf<ThemeCommand, bool, ThemeMode>(),
-      data: (_, themeMode, _) => MaterialApp.router(
+    final store = context.get<ThemeStore>();
+
+    return SignalBuilder(
+      builder: (_, _) => MaterialApp.router(
         title: 'Trocado',
         theme: Themes.light,
-        themeMode: themeMode,
         darkTheme: Themes.dark,
+        themeMode: store.theme(),
         routerConfig: routerConfig,
         debugShowCheckedModeBanner: kDebugMode,
         builder: (_, child) => LoadWidget(child: child),

@@ -1,6 +1,5 @@
-import 'dart:io';
-
 import 'package:duck_router/duck_router.dart';
+import 'package:flutter_solidart/flutter_solidart.dart';
 
 import 'package:trocado/modules/core/core.dart';
 
@@ -12,18 +11,17 @@ final class ImagesLocation extends Location {
 
   @override
   LocationPageBuilder get pageBuilder => (context) {
-    final image = context.get<ImageCommand>();
+    final store = context.get<ImageStore>();
 
     return BottomSheetPage(
-      builder: (_) => ConsumerBuilder<ImagesConstant, File?>(
-        command: image.command,
-        data: (_, _, _) => ImagesScreen(
-          onCameraTap: () async {
-            image.command(ImagesConstant.camera);
+      builder: (_) => SignalBuilder(
+        builder: (_, _) => ImagesScreen(
+          onCameraTap: () {
+            store.type.value = ImagesConstant.camera;
             context.pop();
           },
-          onGalleryTap: () async {
-            image.command(ImagesConstant.gallery);
+          onGalleryTap: () {
+            store.type.value = ImagesConstant.gallery;
             context.pop();
           },
         ),

@@ -1,19 +1,14 @@
-import 'package:command_it/command_it.dart';
+import 'package:flutter_solidart/flutter_solidart.dart';
 
 import 'package:trocado/modules/core/domain/constant/storage_contant.dart';
 import 'package:trocado/modules/core/domain/repositories/interface_storage_repository.dart';
 
-final class OnboardingCommand {
+final class OnboardingStore {
   final IStorageRepository _repository;
 
-  bool get enabled => command.value;
+  final onboarding = Signal(false);
 
-  late final command = Command.createAsync<bool, bool>(
-    _call,
-    initialValue: false,
-  );
-
-  OnboardingCommand({required IStorageRepository repository})
+  OnboardingStore({required IStorageRepository repository})
     : _repository = repository;
 
   Future<void> ensureInitialized() async {
@@ -24,12 +19,13 @@ final class OnboardingCommand {
     final enabled = bool.tryParse(data);
     if (enabled == null) return;
 
-    command.value = enabled;
+    onboarding.value = enabled;
   }
 
-  Future<bool> _call(bool value) async {
+  Future<void> toggle(bool value) async {
     await _save(value);
-    return value;
+
+    onboarding.value = value;
   }
 
   Future<void> _save(bool data) {

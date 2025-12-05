@@ -2,7 +2,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:trocado/modules/core/domain/constant/storage_contant.dart';
-import 'package:trocado/modules/core/presentation/commands/notification_command.dart';
+import 'package:trocado/modules/core/presentation/stores/notification_store.dart';
 import 'package:trocado/modules/core/domain/repositories/interface_storage_repository.dart';
 
 import '../../../../mocks/mocks.dart';

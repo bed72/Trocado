@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_solidart/flutter_solidart.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:trocado/modules/core/core.dart';
@@ -6,10 +7,7 @@ import 'package:trocado/modules/core/core.dart';
 import 'package:trocado/modules/onboarding/presentation/widgets/step_button_widget.dart';
 
 class FooterProfileWidget extends StatefulWidget {
-  final bool? isLoading;
-  final ValueChanged<String>? onSaved;
-
-  const FooterProfileWidget({super.key, this.onSaved, this.isLoading});
+  const FooterProfileWidget({super.key});
 
   @override
   State<FooterProfileWidget> createState() => _FooterProfileWidgetState();
@@ -58,27 +56,20 @@ class _FooterProfileWidgetState extends State<FooterProfileWidget> {
           inputAction: .send,
           keyboardType: .name,
           controller: _controller,
-          onSubmitted: widget.onSaved,
           label: 'Seu nome ou apelido',
+          onSubmitted: (_) => _update(),
           helperWidget: FadeSwitchAnimation(
             type: .size,
-            child: _mustShowHelper
-                ? _buildHelper(context)
-                : const SizedBox.shrink(),
+            child: _mustShowHelper ? _buildHelper() : const SizedBox.shrink(),
           ),
         ),
 
-        StepButtonWidget(
-          enabled: _enabled,
-          label: 'Salvar apelido',
-          loading: widget.isLoading,
-          onTap: () => widget.onSaved?.call(_controller.text),
-        ),
+        _buildButton(),
       ],
     );
   }
 
-  Row _buildHelper(BuildContext context) {
+  Row _buildHelper() {
     final color = context.colors.inverseSurface.withValues(alpha: 0.72);
 
     return Row(
@@ -94,5 +85,31 @@ class _FooterProfileWidgetState extends State<FooterProfileWidget> {
         ),
       ],
     );
+  }
+
+  SignalBuilder _buildButton() {
+    final store = context.get<UserStore>();
+
+    return SignalBuilder(
+      builder: (_, _) => store.insert.state.when(
+        ready: (data) => StepButtonWidget(
+          onTap: _update,
+          enabled: _enabled,
+          label: 'Salvar apelido',
+        ),
+        error: (_, _) => StepButtonWidget(
+          onTap: _update,
+          enabled: _enabled,
+          label: 'Salvar apelido',
+        ),
+        loading: () => StepButtonWidget(loading: true),
+      ),
+    );
+  }
+
+  void _update() {
+    final store = context.get<UserStore>();
+
+    store.resource.value = UserDto(name: _controller.text);
   }
 }
