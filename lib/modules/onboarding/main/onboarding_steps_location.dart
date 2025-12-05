@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:duck_router/duck_router.dart';
-import 'package:flutter_solidart/flutter_solidart.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 
 import 'package:trocado/modules/core/core.dart';
 import 'package:trocado/modules/images/images.dart';
@@ -15,14 +15,14 @@ final class OnboardingStepsLocation extends Location {
 
   @override
   LocationBuilder? get builder => (context) {
-    final themeStore = context.get<ThemeStore>();
+    final store = context.get<ThemeStore>();
 
     return OnboardingStepsScreen(
       children: [
-        SignalBuilder(
-          builder: (_, _) => OnboardingStepThemeWidget(
-            isDark: themeStore.isDark(),
-            onToggleThemes: () => themeStore.toggle(!themeStore.isDark()),
+        Observer(
+          builder: (_) => OnboardingStepThemeWidget(
+            isDark: store.isDark,
+            onToggleThemes: () => store.toggle(!store.isDark),
           ),
         ),
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:duck_router/duck_router.dart';
-import 'package:flutter_solidart/flutter_solidart.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 
 import 'package:trocado/modules/home/home.dart';
 import 'package:trocado/modules/report/report.dart';
@@ -33,8 +33,8 @@ final class CoreLocation extends StatefulLocation {
   StatefulLocationBuilder get childBuilder => (context, shell) {
     final store = context.get<BottomBarStore>();
 
-    return SignalBuilder(
-      builder: (_, _) {
+    return Observer(
+      builder: (_) {
         quickAction(
           action: (type) {
             context.navigate(
@@ -53,8 +53,8 @@ final class CoreLocation extends StatefulLocation {
           bottomNavigationBar: SafeArea(
             top: false,
             child: BottomBarWidget(
+              index: store.index,
               onExit: context.exit,
-              index: store.index.value,
               onTap: ({required context, required index}) {
                 if (index == BottomBarConstant.transaction.position) {
                   return transactionBottomSheetFactoryWidget(context);

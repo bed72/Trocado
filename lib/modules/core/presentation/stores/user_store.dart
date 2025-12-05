@@ -1,35 +1,44 @@
-import 'package:flutter_solidart/flutter_solidart.dart';
+import 'package:mobx/mobx.dart';
 
 import 'package:trocado/modules/core/data/dtos/user_dto.dart';
 import 'package:trocado/modules/core/domain/repositories/interface_user_repository.dart';
 
-final class UserStore {
-  final IUserRepository _repository;
+part 'user_store.g.dart';
 
-  final resource = Signal<UserDto?>(null);
+class UserStore = UserStoreBase with _$UserStore;
 
-  late final insert = Resource(_find, source: resource);
+abstract class UserStoreBase with Store {
+  final IUserRepository repository;
 
-  UserStore({required IUserRepository repository}) : _repository = repository;
+  @observable
+  UserDto? user;
 
-  Future<UserDto?> _find() async {
-    final data = await _repository.find();
+  UserStoreBase({required this.repository});
 
-    return data.fold((_) => null, (success) => success);
+  @action
+  Future<void> ensureInitialized() => find();
+
+  @action
+  Future<void> find() async {
+    final result = await repository.find();
+    result.fold((_) => user = null, (user) => this.user = user);
   }
 
-  // Future<void> _insert(UserDto data) async {
-  //   await _repository.insert(data: data);
-  //   resource.value = data;
-  // }
+  @action
+  Future<void> insert(UserDto data) async {
+    await repository.insert(data: data);
+    user = data;
+  }
 
-  // Future<void> _update(UserDto data) async {
-  //   await _repository.update(data: data);
-  //   resource.value = data;
-  // }
+  @action
+  Future<void> update(UserDto data) async {
+    await repository.update(data: data);
+    user = data;
+  }
 
-  // Future<void> _delete(UserDto filter) async {
-  //   resource.value = UserDto.empty();
-  //   await _repository.delete(data: filter);
-  // }
+  @action
+  Future<void> delete(UserDto filter) async {
+    await repository.delete(data: filter);
+    user = null;
+  }
 }

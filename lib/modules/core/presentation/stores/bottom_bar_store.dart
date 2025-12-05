@@ -1,9 +1,15 @@
-import 'package:flutter_solidart/flutter_solidart.dart';
+import 'package:mobx/mobx.dart';
 
-final class BottomBarStore {
-  final index = Signal(0);
+part 'bottom_bar_store.g.dart';
 
-  set index(int value) {
-    index.value = value;
+class BottomBarStore = BottomBarStoreBase with _$BottomBarStore;
+
+abstract class BottomBarStoreBase with Store {
+  @observable
+  int index = 0;
+
+  @action
+  void setIndex(int value) {
+    index = value;
   }
 }

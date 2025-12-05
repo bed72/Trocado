@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_solidart/flutter_solidart.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:trocado/modules/core/core.dart';
@@ -57,7 +57,7 @@ class _FooterProfileWidgetState extends State<FooterProfileWidget> {
           keyboardType: .name,
           controller: _controller,
           label: 'Seu nome ou apelido',
-          onSubmitted: (_) => _update(),
+          onSubmitted: (_) {},
           helperWidget: FadeSwitchAnimation(
             type: .size,
             child: _mustShowHelper ? _buildHelper() : const SizedBox.shrink(),
@@ -87,29 +87,26 @@ class _FooterProfileWidgetState extends State<FooterProfileWidget> {
     );
   }
 
-  SignalBuilder _buildButton() {
-    final store = context.get<UserStore>();
-
-    return SignalBuilder(
-      builder: (_, _) => store.insert.state.when(
-        ready: (data) => StepButtonWidget(
-          onTap: _update,
-          enabled: _enabled,
-          label: 'Salvar apelido',
-        ),
-        error: (_, _) => StepButtonWidget(
-          onTap: _update,
-          enabled: _enabled,
-          label: 'Salvar apelido',
-        ),
-        loading: () => StepButtonWidget(loading: true),
+  Observer _buildButton() {
+    return Observer(
+      builder: (_) => StepButtonWidget(
+        onTap: () {},
+        enabled: _enabled,
+        label: 'Salvar apelido',
       ),
+      // store.insert.state.when(
+      // ready: (data) => StepButtonWidget(
+      //   onTap: _update,
+      //   enabled: _enabled,
+      //   label: 'Salvar apelido',
+      // ),
+      //   error: (_, _) => StepButtonWidget(
+      //     onTap: _update,
+      //     enabled: _enabled,
+      //     label: 'Salvar apelido',
+      //   ),
+      //   loading: () => StepButtonWidget(loading: true),
+      // ),
     );
-  }
-
-  void _update() {
-    final store = context.get<UserStore>();
-
-    store.resource.value = UserDto(name: _controller.text);
   }
 }

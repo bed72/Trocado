@@ -1,35 +1,33 @@
-import 'package:flutter_solidart/flutter_solidart.dart';
+import 'package:mobx/mobx.dart';
 
 import 'package:trocado/modules/core/domain/constant/storage_contant.dart';
 import 'package:trocado/modules/core/domain/repositories/interface_storage_repository.dart';
 
-final class FingerprintStore {
-  final IStorageRepository _repository;
+part 'fingerprint_store.g.dart';
 
-  final fingerprint = Signal<bool>(false);
+class FingerprintStore = FingerprintStoreBase with _$FingerprintStore;
 
-  FingerprintStore({required IStorageRepository repository})
-    : _repository = repository;
+abstract class FingerprintStoreBase with Store {
+  final IStorageRepository repository;
 
+  @observable
+  bool fingerprint = false;
+
+  FingerprintStoreBase({required this.repository});
+
+  @action
   Future<void> ensureInitialized() async {
-    final data = await _repository.get(key: StorageConstant.fingerprint.key);
-
+    final data = await repository.get(key: StorageConstant.fingerprint.key);
     if (data == null) return;
-
-    final enabled = bool.tryParse(data);
-    if (enabled == null) return;
-
-    fingerprint.value = enabled;
+    fingerprint = bool.tryParse(data) ?? false;
   }
 
+  @action
   Future<void> toggle(bool value) async {
-    await _save(value);
-
-    fingerprint.value = value;
+    fingerprint = value;
+    await repository.save(
+      value: value.toString(),
+      key: StorageConstant.fingerprint.key,
+    );
   }
-
-  Future<void> _save(bool data) => _repository.save(
-    value: data.toString(),
-    key: StorageConstant.fingerprint.key,
-  );
 }

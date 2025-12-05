@@ -1,35 +1,33 @@
-import 'package:flutter_solidart/flutter_solidart.dart';
+import 'package:mobx/mobx.dart';
 
 import 'package:trocado/modules/core/domain/constant/storage_contant.dart';
 import 'package:trocado/modules/core/domain/repositories/interface_storage_repository.dart';
 
-final class NotificationStore {
-  final IStorageRepository _repository;
+part 'notification_store.g.dart';
 
-  final notification = Signal(false);
+class NotificationStore = NotificationStoreBase with _$NotificationStore;
 
-  NotificationStore({required IStorageRepository repository})
-    : _repository = repository;
+abstract class NotificationStoreBase with Store {
+  final IStorageRepository repository;
 
+  @observable
+  bool notification = false;
+
+  NotificationStoreBase({required this.repository});
+
+  @action
   Future<void> ensureInitialized() async {
-    final data = await _repository.get(key: StorageConstant.notifications.key);
-
+    final data = await repository.get(key: StorageConstant.notifications.key);
     if (data == null) return;
-
-    final enabled = bool.tryParse(data);
-    if (enabled == null) return;
-
-    notification.value = enabled;
+    notification = bool.tryParse(data) ?? false;
   }
 
+  @action
   Future<void> toggle(bool value) async {
-    await _save(value);
-
-    notification.value = value;
+    notification = value;
+    await repository.save(
+      value: value.toString(),
+      key: StorageConstant.notifications.key,
+    );
   }
-
-  Future<void> _save(bool data) => _repository.save(
-    value: data.toString(),
-    key: StorageConstant.notifications.key,
-  );
 }
