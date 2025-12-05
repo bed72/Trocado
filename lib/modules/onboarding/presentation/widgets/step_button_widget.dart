@@ -13,6 +13,7 @@ class StepButtonWidget extends StatelessWidget {
     super.key,
     required this.label,
     this.icon,
+    this.onTap,
     this.enabled,
     this.loading,
   });

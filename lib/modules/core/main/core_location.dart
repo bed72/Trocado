@@ -14,7 +14,6 @@ import 'package:trocado/modules/core/presentation/actions/quick_actions.dart';
 import 'package:trocado/modules/core/presentation/commands/bottom_bar_command.dart';
 import 'package:trocado/modules/core/presentation/builders/listenables_builder.dart';
 import 'package:trocado/modules/core/presentation/extensions/context_extension.dart';
-import 'package:trocado/modules/core/presentation/notifiers/bottom_bar_notifier.dart';
 import 'package:trocado/modules/core/presentation/widgets/bottons/bottom_bar_widget.dart';
 
 final class CoreLocation extends StatefulLocation {
