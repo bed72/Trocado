@@ -5,7 +5,7 @@ import 'package:trocado/modules/core/domain/constant/bottom_bar_constant.dart';
 
 import 'package:trocado/modules/core/presentation/widgets/indicator_widget.dart';
 import 'package:trocado/modules/core/presentation/extensions/context_extension.dart';
-import 'package:trocado/modules/core/presentation/widgets/bottom/bottom_bar_item_widget.dart';
+import 'package:trocado/modules/core/presentation/widgets/bottons/bottom_bar_item_widget.dart';
 
 class BottomBarWidget extends StatefulWidget {
   final int index;

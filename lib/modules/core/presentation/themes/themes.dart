@@ -20,7 +20,7 @@ abstract final class Themes {
       inputDecoratorIsFilled: true,
       navigationRailUseIndicator: true,
 
-      buttonMinSize: Size(48.0, 48.0),
+      buttonMinSize: Size(54.0, 54.0),
 
       elevatedButtonRadius: 16.0,
       elevatedButtonElevation: 0.0,
@@ -46,10 +46,13 @@ abstract final class Themes {
       ),
 
       inputDecoratorRadius: 16.0,
+      inputDecoratorIsDense: true,
       inputDecoratorBorderType: .outline,
+      inputDecoratorBorderSchemeColor: .primary,
+
       inputDecoratorContentPadding: const .symmetric(
         vertical: 14.0,
-        horizontal: 16.0,
+        horizontal: 0.0,
       ),
     ),
     visualDensity: FlexColorScheme.comfortablePlatformDensity,
@@ -76,7 +79,7 @@ abstract final class Themes {
       tintedDisabledControls: true,
       navigationRailUseIndicator: true,
 
-      buttonMinSize: Size(48.0, 48.0),
+      buttonMinSize: Size(54.0, 54.0),
 
       elevatedButtonRadius: 16.0,
       elevatedButtonElevation: 0.0,
@@ -102,10 +105,12 @@ abstract final class Themes {
       ),
 
       inputDecoratorRadius: 16.0,
+      inputDecoratorIsDense: true,
       inputDecoratorBorderType: .outline,
+      inputDecoratorBorderSchemeColor: .primary,
       inputDecoratorContentPadding: const .symmetric(
         vertical: 14.0,
-        horizontal: 16.0,
+        horizontal: 0.0,
       ),
     ),
 

@@ -28,7 +28,7 @@ final class NotificationNotifier extends Notifier<bool> {
   }
 
   Future<void> _save(bool data) => _repository.save(
-    key: StorageConstant.notifications.key,
     value: data.toString(),
+    key: StorageConstant.notifications.key,
   );
 }

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import 'package:trocado/modules/core/presentation/widgets/image/strategy/asset_image_strategy.dart';
-import 'package:trocado/modules/core/presentation/widgets/image/strategy/empty_image_strategy.dart';
-import 'package:trocado/modules/core/presentation/widgets/image/strategy/image_strategy.dart';
-import 'package:trocado/modules/core/presentation/widgets/image/strategy/network_image_strategy.dart';
+import 'package:trocado/modules/core/presentation/widgets/images/strategy/asset_image_strategy.dart';
+import 'package:trocado/modules/core/presentation/widgets/images/strategy/empty_image_strategy.dart';
+import 'package:trocado/modules/core/presentation/widgets/images/strategy/image_strategy.dart';
+import 'package:trocado/modules/core/presentation/widgets/images/strategy/network_image_strategy.dart';
 
 class ImageWidget extends StatelessWidget {
   final BoxFit? fit;

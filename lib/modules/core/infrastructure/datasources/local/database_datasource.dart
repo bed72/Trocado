@@ -19,6 +19,8 @@ final class DatabaseDatasource implements IDatabaseDatasource {
         ? await _client.database.query(table)
         : await _client.database.query(table).where('id', '=', id);
 
+    if (response.data.isEmpty) return Left(null);
+
     return response.isSuccess ? Right(response.data) : Left(null);
   }
 

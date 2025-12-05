@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:trocado/modules/core/presentation/widgets/image/strategy/image_strategy.dart';
+import 'package:trocado/modules/core/presentation/widgets/images/strategy/image_strategy.dart';
 import 'package:trocado/modules/core/presentation/widgets/circular_progress_indicator_widget.dart';
 
 final class NetworkImageStrategy implements ImageStrategy {

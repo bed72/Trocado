@@ -1,0 +1,1 @@
+enum AnimationConstant { size, scale }

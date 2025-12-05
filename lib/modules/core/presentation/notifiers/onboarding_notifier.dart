@@ -1,4 +1,6 @@
-import 'package:trocado/modules/core/core.dart';
+import 'package:trocado/modules/core/presentation/notifiers/notifier.dart';
+import 'package:trocado/modules/core/domain/constant/storage_contant.dart';
+import 'package:trocado/modules/core/domain/repositories/interface_storage_repository.dart';
 
 final class OnboardingNotifier extends Notifier<bool> {
   final IStorageRepository _repository;
@@ -25,7 +27,7 @@ final class OnboardingNotifier extends Notifier<bool> {
   }
 
   Future<void> _save(bool data) => _repository.save(
-    key: StorageConstant.onboarding.key,
     value: data.toString(),
+    key: StorageConstant.onboarding.key,
   );
 }

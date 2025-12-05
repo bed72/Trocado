@@ -17,6 +17,7 @@ export 'domain/constant/images_constant.dart';
 export 'domain/constant/storage_contant.dart';
 export 'domain/constant/routes_constant.dart';
 export 'domain/constant/database_constant.dart';
+export 'domain/constant/animation_constant.dart';
 export 'domain/constant/bottom_bar_constant.dart';
 export 'domain/constant/logger_level_constant.dart';
 export 'domain/constant/quick_actions_constant.dart';
@@ -66,12 +67,14 @@ export 'presentation/widgets/bounce_widget.dart';
 export 'presentation/widgets/app_bar_widget.dart';
 export 'presentation/widgets/indicator_widget.dart';
 export 'presentation/widgets/user_image_widget.dart';
-export 'presentation/widgets/image/image_widget.dart';
+export 'presentation/widgets/images/image_widget.dart';
+export 'presentation/widgets/fields/text_field_widget.dart';
 export 'presentation/widgets/skeletons/skeleton_widget.dart';
+export 'presentation/widgets/fields/text_form_field_widget.dart';
 export 'presentation/widgets/circular_progress_indicator_widget.dart';
 
-export 'presentation/widgets/bottom/bottom_bar_widget.dart';
-export 'presentation/widgets/bottom/bottom_bar_item_widget.dart';
+export 'presentation/widgets/bottons/bottom_bar_widget.dart';
+export 'presentation/widgets/bottons/bottom_bar_item_widget.dart';
 
-export 'presentation/widgets/bottom-sheet/bottom_sheet_widget.dart';
-export 'presentation/widgets/bottom-sheet/bottom_sheet_scaffold_widget.dart';
+export 'presentation/widgets/bottom-sheets/bottom_sheet_widget.dart';
+export 'presentation/widgets/bottom-sheets/bottom_sheet_scaffold_widget.dart';

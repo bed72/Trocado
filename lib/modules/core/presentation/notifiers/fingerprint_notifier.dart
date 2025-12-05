@@ -28,7 +28,7 @@ final class FingerprintNotifier extends Notifier<bool> {
   }
 
   Future<void> _save(bool data) => _repository.save(
-    key: StorageConstant.fingerprint.key,
     value: data.toString(),
+    key: StorageConstant.fingerprint.key,
   );
 }

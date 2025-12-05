@@ -16,9 +16,14 @@ import 'package:trocado/modules/core/domain/repositories/interface_storage_repos
 
 final notifierProvider = [
   ChangeNotifierProvider<BottomBarNotifier>(create: (_) => BottomBarNotifier()),
-  ChangeNotifierProvider(
-    create: (context) =>
-        UserNotifier(repository: context.get<IUserRepository>()),
+  ChangeNotifierProvider<UserNotifier>(
+    create: (context) {
+      final notifier = UserNotifier(repository: context.get<IUserRepository>());
+
+      notifier.ensureInitialized();
+
+      return notifier;
+    },
   ),
 
   ChangeNotifierProvider<ThemeNotifier>(

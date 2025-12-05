@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:trocado/modules/core/presentation/extensions/context_extension.dart';
 
-import 'package:trocado/modules/core/presentation/widgets/bottom-sheet/bottom_sheet_scaffold_widget.dart';
+import 'package:trocado/modules/core/presentation/widgets/bottom-sheets/bottom_sheet_scaffold_widget.dart';
 
 Future<T?> bottomSheetScaffoldWidget<T>({
   required BuildContext context,

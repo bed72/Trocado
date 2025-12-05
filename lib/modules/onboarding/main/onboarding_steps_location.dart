@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:duck_router/duck_router.dart';
 
 import 'package:trocado/modules/core/core.dart';
+import 'package:trocado/modules/core/data/dtos/user_dto.dart';
 import 'package:trocado/modules/images/images.dart';
 
 import 'package:trocado/modules/onboarding/presentation/screens/onboarding_steps_screen.dart';
 import 'package:trocado/modules/onboarding/presentation/widgets/onboarding_step_theme_widget.dart';
-import 'package:trocado/modules/onboarding/presentation/widgets/onboarding_step_nickname_widget.dart';
+import 'package:trocado/modules/onboarding/presentation/widgets/onboarding_step_profile_widget.dart';
 
 final class OnboardingStepsLocation extends Location {
   @override
@@ -24,27 +25,22 @@ final class OnboardingStepsLocation extends Location {
             ),
           ),
 
-          ConsumerBuilder<ImageNotifier>(
-            notifier: context.get<ImageNotifier>(),
-            builder: (_, image) => switch (image) {
+          ConsumersBuilder<UserNotifier, ImageNotifier>(
+            builder: (_, user, image) => switch (image) {
               ImageNotifier() when image.isLoading =>
-                OnboardingStepNicknameWidget(
-                  isLoading: true,
-                  onChanged: (_) {},
+                OnboardingStepProfileWidget(
+                  avatarIsLoading: true,
+                  onSaved: (_) {},
                   onEdit: () => context.navigate(ImagesLocation()),
                 ),
 
-              ImageNotifier() when image.hasImage =>
-                OnboardingStepNicknameWidget(
-                  onChanged: (_) {},
-                  source: image.success?.path,
-                  onEdit: () => context.navigate(ImagesLocation()),
-                ),
-
-              _ => OnboardingStepNicknameWidget(
-                source: null,
-                onChanged: (_) {},
+              _ => OnboardingStepProfileWidget(
+                source: image.success?.path,
+                nicknameIsLoading: user.isLoading,
                 onEdit: () => context.navigate(ImagesLocation()),
+                onSaved: (name) => user.insert(
+                  UserDto(name: name, image: image.success?.path),
+                ),
               ),
             },
           ),
