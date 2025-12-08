@@ -2,7 +2,6 @@ import 'package:trocado/main.dart';
 
 import 'package:trocado/modules/core/presentation/stores/user_store.dart';
 import 'package:trocado/modules/core/presentation/stores/theme_store.dart';
-import 'package:trocado/modules/core/presentation/stores/image_store.dart';
 import 'package:trocado/modules/core/presentation/stores/bottom_bar_store.dart';
 import 'package:trocado/modules/core/presentation/stores/onboarding_store.dart';
 import 'package:trocado/modules/core/presentation/stores/fingerprint_store.dart';
@@ -15,9 +14,6 @@ import 'package:trocado/modules/core/domain/repositories/interface_storage_repos
 void provideStores() {
   provider
     ..registerLazySingleton<BottomBarStore>(BottomBarStore.new)
-    ..registerLazySingleton<UserStore>(
-      () => UserStore(repository: provider<IUserRepository>()),
-    )
     ..registerLazySingleton<ThemeStore>(
       () => ThemeStore(repository: provider<IStorageRepository>()),
     )
@@ -30,10 +26,10 @@ void provideStores() {
     ..registerLazySingleton<NotificationStore>(
       () => NotificationStore(repository: provider<IStorageRepository>()),
     )
-    ..registerLazySingleton<ImageStore>(
-      () => ImageStore(
+    ..registerLazySingleton<UserStore>(
+      () => UserStore(
+        userRepository: provider<IUserRepository>(),
         imageRepository: provider<IImageRepository>(),
-        storageRepository: provider<IStorageRepository>(),
       ),
     );
 }

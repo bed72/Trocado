@@ -1,29 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:trocado/modules/core/domain/constant/animation_constant.dart';
 
-class FadeSwitchAnimation extends StatelessWidget {
+class SwitchAnimation extends StatelessWidget {
   final Curve curve;
   final Widget child;
-  final Duration duration;
+  final int milliseconds;
   final AnimationConstant type;
 
-  const FadeSwitchAnimation({
+  const SwitchAnimation({
     super.key,
     required this.child,
+    this.milliseconds = 300,
     this.curve = Curves.easeOutCubic,
     this.type = AnimationConstant.scale,
-    this.duration = const Duration(milliseconds: 260),
   });
 
   @override
   Widget build(BuildContext context) {
     return AnimatedSwitcher(
-      duration: duration,
       switchInCurve: curve,
       switchOutCurve: curve,
+      duration: Duration(milliseconds: milliseconds),
       transitionBuilder: (child, animation) => FadeTransition(
         opacity: animation,
         child: switch (type) {
+          .fade => FadeTransition(opacity: animation, child: child),
           .size => SizeTransition(
             axisAlignment: -1.0,
             sizeFactor: animation,

@@ -8,16 +8,17 @@ part 'notification_store.g.dart';
 class NotificationStore = NotificationStoreBase with _$NotificationStore;
 
 abstract class NotificationStoreBase with Store {
-  final IStorageRepository repository;
+  final IStorageRepository _repository;
 
   @observable
   bool notification = false;
 
-  NotificationStoreBase({required this.repository});
+  NotificationStoreBase({required IStorageRepository repository})
+    : _repository = repository;
 
   @action
   Future<void> ensureInitialized() async {
-    final data = await repository.get(key: StorageConstant.notifications.key);
+    final data = await _repository.get(key: StorageConstant.notifications.key);
     if (data == null) return;
     notification = bool.tryParse(data) ?? false;
   }
@@ -25,7 +26,7 @@ abstract class NotificationStoreBase with Store {
   @action
   Future<void> toggle(bool value) async {
     notification = value;
-    await repository.save(
+    await _repository.save(
       value: value.toString(),
       key: StorageConstant.notifications.key,
     );

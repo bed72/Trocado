@@ -16,6 +16,7 @@ abstract final class Themes {
       alignedDropdown: true,
       interactionEffects: true,
       useM2StyleDividerInM3: false,
+      useMaterial3Typography: true,
       tintedDisabledControls: true,
       inputDecoratorIsFilled: true,
       navigationRailUseIndicator: true,
@@ -29,8 +30,8 @@ abstract final class Themes {
       elevatedButtonTextStyle: WidgetStatePropertyAll(
         TextStyle(
           fontSize: 14.0,
-          fontWeight: .w600,
-          color: darkColorScheme.inverseSurface,
+          fontWeight: .w500,
+          color: lightColorScheme.inverseSurface,
         ),
       ),
 
@@ -40,8 +41,8 @@ abstract final class Themes {
       outlinedButtonTextStyle: WidgetStatePropertyAll(
         TextStyle(
           fontSize: 14.0,
-          fontWeight: .w600,
-          color: darkColorScheme.inverseSurface,
+          fontWeight: .w500,
+          color: lightColorScheme.inverseSurface,
         ),
       ),
 
@@ -75,6 +76,7 @@ abstract final class Themes {
       alignedDropdown: true,
       interactionEffects: true,
       useM2StyleDividerInM3: false,
+      useMaterial3Typography: true,
       inputDecoratorIsFilled: true,
       tintedDisabledControls: true,
       navigationRailUseIndicator: true,
@@ -88,7 +90,7 @@ abstract final class Themes {
       elevatedButtonTextStyle: WidgetStatePropertyAll(
         TextStyle(
           fontSize: 14.0,
-          fontWeight: .w600,
+          fontWeight: .w500,
           color: darkColorScheme.inverseSurface,
         ),
       ),
@@ -99,7 +101,7 @@ abstract final class Themes {
       outlinedButtonTextStyle: WidgetStatePropertyAll(
         TextStyle(
           fontSize: 14.0,
-          fontWeight: .w600,
+          fontWeight: .w500,
           color: darkColorScheme.inverseSurface,
         ),
       ),

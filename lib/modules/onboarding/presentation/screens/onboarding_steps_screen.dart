@@ -89,7 +89,7 @@ class _OnboardingStepsScreenState extends State<OnboardingStepsScreen> {
       ButtonWidget.outlined(onTap: _back, label: 'Anterior'),
       ButtonWidget.elevated(
         onTap: _next,
-        icon: FadeSizeSwitcher(
+        icon: SizeAnimation(
           curve: Curves.linear,
           child: Text(
             _index == widget.children.length - 1

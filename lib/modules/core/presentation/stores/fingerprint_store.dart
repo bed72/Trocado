@@ -8,16 +8,17 @@ part 'fingerprint_store.g.dart';
 class FingerprintStore = FingerprintStoreBase with _$FingerprintStore;
 
 abstract class FingerprintStoreBase with Store {
-  final IStorageRepository repository;
+  final IStorageRepository _repository;
 
   @observable
   bool fingerprint = false;
 
-  FingerprintStoreBase({required this.repository});
+  FingerprintStoreBase({required IStorageRepository repository})
+    : _repository = repository;
 
   @action
   Future<void> ensureInitialized() async {
-    final data = await repository.get(key: StorageConstant.fingerprint.key);
+    final data = await _repository.get(key: StorageConstant.fingerprint.key);
     if (data == null) return;
     fingerprint = bool.tryParse(data) ?? false;
   }
@@ -25,7 +26,7 @@ abstract class FingerprintStoreBase with Store {
   @action
   Future<void> toggle(bool value) async {
     fingerprint = value;
-    await repository.save(
+    await _repository.save(
       value: value.toString(),
       key: StorageConstant.fingerprint.key,
     );

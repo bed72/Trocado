@@ -8,16 +8,17 @@ part 'onboarding_store.g.dart';
 class OnboardingStore = OnboardingStoreBase with _$OnboardingStore;
 
 abstract class OnboardingStoreBase with Store {
-  final IStorageRepository repository;
+  final IStorageRepository _repository;
 
   @observable
   bool onboarding = false;
 
-  OnboardingStoreBase({required this.repository});
+  OnboardingStoreBase({required IStorageRepository repository})
+    : _repository = repository;
 
   @action
   Future<void> ensureInitialized() async {
-    final data = await repository.get(key: StorageConstant.onboarding.key);
+    final data = await _repository.get(key: StorageConstant.onboarding.key);
 
     if (data == null) return;
 
@@ -34,7 +35,7 @@ abstract class OnboardingStoreBase with Store {
   }
 
   Future<void> _save(bool data) {
-    return repository.save(
+    return _repository.save(
       value: data.toString(),
       key: StorageConstant.onboarding.key,
     );

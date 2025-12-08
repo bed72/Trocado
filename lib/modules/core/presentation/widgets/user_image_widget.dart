@@ -12,14 +12,14 @@ import 'package:trocado/modules/core/presentation/widgets/skeletons/skeleton_wid
 
 class UserImageWidget extends StatelessWidget {
   final VoidCallback onEdit;
-  final String? source;
+  final String? resource;
   final IconData? iconEmpty;
   final IconData? iconOnEdit;
 
   const UserImageWidget({
     super.key,
     required this.onEdit,
-    this.source,
+    this.resource,
     this.iconEmpty,
     this.iconOnEdit,
   });
@@ -36,7 +36,7 @@ class UserImageWidget extends StatelessWidget {
     return Stack(
       alignment: Alignment.bottomRight,
       children: [
-        source == null ? _buildEmptyUser(context) : _buildNotEmptyUser(),
+        resource == null ? _buildEmptyUser(context) : _buildNotEmptyUser(),
         Positioned(
           right: 2,
           bottom: 0,
@@ -71,7 +71,7 @@ class UserImageWidget extends StatelessWidget {
       SkeletonWidget(child: UserImageWidget.empty(onEdit: onEdit));
 
   FutureBuilder _buildNotEmptyUser() => FutureBuilder<Uint8List>(
-    future: File(source!).readAsBytes(),
+    future: File(resource!).readAsBytes(),
     builder: (_, snapshot) => !snapshot.hasData
         ? _buildLoading()
         : CircleAvatar(

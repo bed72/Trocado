@@ -2,9 +2,9 @@ import 'package:trocado/main.dart';
 
 import 'package:trocado/modules/core/core.dart';
 
+import 'package:trocado/modules/core/main/providers/store_provider.dart';
 import 'package:trocado/modules/core/main/providers/client_provider.dart';
 import 'package:trocado/modules/core/main/providers/external_provider.dart';
-import 'package:trocado/modules/core/main/providers/store_provider.dart';
 import 'package:trocado/modules/core/main/providers/resource_provider.dart';
 import 'package:trocado/modules/core/main/providers/repository_provider.dart';
 import 'package:trocado/modules/core/main/providers/datasource_provider.dart';
@@ -21,6 +21,7 @@ Future<void> ensureInitialized() async {
 }
 
 Future<void> _ensureInitialized() async {
+  final user = provider.get<UserStore>();
   final theme = provider.get<ThemeStore>();
   final database = provider.get<IDatabaseClient>();
   final onboarding = provider.get<OnboardingStore>();
@@ -28,6 +29,7 @@ Future<void> _ensureInitialized() async {
   final notification = provider.get<NotificationStore>();
 
   await Future.wait([
+    user.ensureInitialized(),
     theme.ensureInitialized(),
     database.ensureInitialized(),
     onboarding.ensureInitialized(),

@@ -15,20 +15,25 @@ final class OnboardingStepsLocation extends Location {
 
   @override
   LocationBuilder? get builder => (context) {
-    final store = context.get<ThemeStore>();
+    final userStore = context.get<UserStore>();
+    final themeStore = context.get<ThemeStore>();
 
     return OnboardingStepsScreen(
       children: [
+        OnboardingStepThemeWidget(
+          onToggleThemes: () => themeStore.toggle(!themeStore.isDark),
+        ),
+
         Observer(
-          builder: (_) => OnboardingStepThemeWidget(
-            isDark: store.isDark,
-            onToggleThemes: () => store.toggle(!store.isDark),
+          builder: (_) => OnboardingStepProfileWidget(
+            resource: userStore.user.image,
+            onEdit: () => context.navigate(ImagesLocation()),
+            onSaved: (name) => userStore.insert(
+              UserDto(name: name, image: userStore.user.image),
+            ),
           ),
         ),
 
-        OnboardingStepProfileWidget(
-          onEdit: () => context.navigate(ImagesLocation()),
-        ),
         SizedBox(),
       ],
     );

@@ -5,6 +5,6 @@ typedef AllDatabaseDatasource = Either<Null, List<Map<String, dynamic>>>;
 abstract interface class IDatabaseDatasource {
   Future<void> drop();
   Future<void> delete(String table, [String? id]);
-  Future<void> upsert(String table, Map<String, dynamic> data);
+  Future<bool> upsert(String table, Map<String, dynamic> data);
   Future<AllDatabaseDatasource> all(String table, [String? id]);
 }

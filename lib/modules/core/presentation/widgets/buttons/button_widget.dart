@@ -69,14 +69,8 @@ class ButtonWidget extends StatelessWidget {
     final onPressed = isDisabled ? null : onTap;
 
     return switch (type) {
-      ButtonWidgetType.elevated => ElevatedButton(
-        onPressed: onPressed,
-        child: child,
-      ),
-      ButtonWidgetType.outlined => OutlinedButton(
-        onPressed: onPressed,
-        child: child,
-      ),
+      .elevated => ElevatedButton(onPressed: onPressed, child: child),
+      .outlined => OutlinedButton(onPressed: onPressed, child: child),
     };
   }
 }

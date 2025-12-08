@@ -47,7 +47,6 @@ export 'presentation/extensions/widget_extension.dart';
 export 'presentation/extensions/context_extension.dart';
 
 export 'presentation/stores/user_store.dart';
-export 'presentation/stores/image_store.dart';
 export 'presentation/stores/theme_store.dart';
 export 'presentation/stores/bottom_bar_store.dart';
 export 'presentation/stores/onboarding_store.dart';
@@ -55,13 +54,12 @@ export 'presentation/stores/fingerprint_store.dart';
 export 'presentation/stores/notification_store.dart';
 
 export 'presentation/animation/loop_animation.dart';
+export 'presentation/animation/size_animation.dart';
+export 'presentation/animation/switch_animation.dart';
 export 'presentation/animation/shimmer_animation.dart';
-export 'presentation/animation/fade_size_animation.dart';
-export 'presentation/animation/fade_switch_animation.dart';
 
 export 'presentation/widgets/load_widget.dart';
 export 'presentation/widgets/icon_widget.dart';
-export 'presentation/widgets/button_widget.dart';
 export 'presentation/widgets/switch_widget.dart';
 export 'presentation/widgets/bounce_widget.dart';
 export 'presentation/widgets/app_bar_widget.dart';
@@ -73,8 +71,18 @@ export 'presentation/widgets/skeletons/skeleton_widget.dart';
 export 'presentation/widgets/fields/text_form_field_widget.dart';
 export 'presentation/widgets/circular_progress_indicator_widget.dart';
 
-export 'presentation/widgets/bottons/bottom_bar_widget.dart';
-export 'presentation/widgets/bottons/bottom_bar_item_widget.dart';
+export 'presentation/widgets/bottom-bars/bottom_bar_widget.dart';
+export 'presentation/widgets/bottom-bars/bottom_bar_item_widget.dart';
 
 export 'presentation/widgets/bottom-sheets/bottom_sheet_widget.dart';
 export 'presentation/widgets/bottom-sheets/bottom_sheet_scaffold_widget.dart';
+
+export 'presentation/widgets/buttons/button_widget.dart';
+
+export 'presentation/widgets/buttons/dtos/button_default_animated_dto.dart';
+
+export 'presentation/widgets/buttons/animated/button_animated_state.dart';
+export 'presentation/widgets/buttons/animated/button_animated_widget.dart';
+export 'presentation/widgets/buttons/animated/button_animated_controller.dart';
+export 'presentation/widgets/buttons/animated/button_animated_properties.dart';
+export 'presentation/widgets/buttons/animated/button_default_animated_widget.dart';

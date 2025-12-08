@@ -12,16 +12,26 @@ mixin _$UserStore on UserStoreBase, Store {
   late final _$userAtom = Atom(name: 'UserStoreBase.user', context: context);
 
   @override
-  UserDto? get user {
+  UserDto get user {
     _$userAtom.reportRead();
     return super.user;
   }
 
   @override
-  set user(UserDto? value) {
+  set user(UserDto value) {
     _$userAtom.reportWrite(value, super.user, () {
       super.user = value;
     });
+  }
+
+  late final _$toggleAsyncAction = AsyncAction(
+    'UserStoreBase.toggle',
+    context: context,
+  );
+
+  @override
+  Future<void> toggle(ImagesConstant type) {
+    return _$toggleAsyncAction.run(() => super.toggle(type));
   }
 
   late final _$findAsyncAction = AsyncAction(
@@ -60,8 +70,8 @@ mixin _$UserStore on UserStoreBase, Store {
   );
 
   @override
-  Future<void> delete(UserDto filter) {
-    return _$deleteAsyncAction.run(() => super.delete(filter));
+  Future<void> delete(UserDto data) {
+    return _$deleteAsyncAction.run(() => super.delete(data));
   }
 
   late final _$UserStoreBaseActionController = ActionController(

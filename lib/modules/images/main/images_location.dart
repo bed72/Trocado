@@ -11,19 +11,13 @@ final class ImagesLocation extends Location {
 
   @override
   LocationPageBuilder get pageBuilder => (context) {
-    final store = context.get<ImageStore>();
+    final store = context.get<UserStore>();
 
     return BottomSheetPage(
       builder: (_) => Observer(
         builder: (_) => ImagesScreen(
-          onCameraTap: () {
-            store.toggle(.camera);
-            context.pop();
-          },
-          onGalleryTap: () {
-            store.toggle(.gallery);
-            context.pop();
-          },
+          onCameraTap: () => store.toggle(.camera).whenComplete(context.pop),
+          onGalleryTap: () => store.toggle(.gallery).whenComplete(context.pop),
         ),
       ),
     );

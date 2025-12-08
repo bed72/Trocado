@@ -7,14 +7,9 @@ import 'package:trocado/modules/onboarding/presentation/widgets/step_description
 import 'package:trocado/modules/onboarding/presentation/widgets/step_box_decoration_widget.dart';
 
 class OnboardingStepThemeWidget extends StatelessWidget {
-  final bool isDark;
   final VoidCallback onToggleThemes;
 
-  const OnboardingStepThemeWidget({
-    super.key,
-    required this.isDark,
-    required this.onToggleThemes,
-  });
+  const OnboardingStepThemeWidget({super.key, required this.onToggleThemes});
 
   @override
   Widget build(BuildContext context) {
@@ -36,10 +31,7 @@ class OnboardingStepThemeWidget extends StatelessWidget {
 
         const SizedBox(height: 16.0),
 
-        StepButtonWidget(
-          onTap: onToggleThemes,
-          label: isDark ? 'Mudar para tema claro' : 'Mudar para tema escuro',
-        ),
+        StepButtonWidget(onTap: onToggleThemes, label: 'Alterar  tema'),
       ],
     );
   }

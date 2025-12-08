@@ -32,7 +32,11 @@ final class DatabaseDatasource implements IDatabaseDatasource {
   }
 
   @override
-  Future<void> upsert(String table, Map<String, dynamic> data) async {
-    await _client.database.upsert(table, data).where('id', '=', data['id']);
+  Future<bool> upsert(String table, Map<String, dynamic> data) async {
+    final response = await _client.database
+        .upsert(table, data)
+        .where('id', '=', data['id']);
+
+    return response.isSuccess;
   }
 }

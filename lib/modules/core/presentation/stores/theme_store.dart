@@ -9,7 +9,7 @@ part 'theme_store.g.dart';
 class ThemeStore = ThemeStoreBase with _$ThemeStore;
 
 abstract class ThemeStoreBase with Store {
-  final IStorageRepository repository;
+  final IStorageRepository _repository;
 
   @observable
   ThemeMode theme = ThemeMode.system;
@@ -17,11 +17,12 @@ abstract class ThemeStoreBase with Store {
   @computed
   bool get isDark => theme == ThemeMode.dark;
 
-  ThemeStoreBase({required this.repository});
+  ThemeStoreBase({required IStorageRepository repository})
+    : _repository = repository;
 
   @action
   Future<void> ensureInitialized() async {
-    final data = await repository.get(key: StorageConstant.theme.key);
+    final data = await _repository.get(key: StorageConstant.theme.key);
     if (data == null) return;
     final parsed = bool.tryParse(data);
     if (parsed == null) return;
@@ -32,7 +33,7 @@ abstract class ThemeStoreBase with Store {
   @action
   Future<void> toggle(bool dark) async {
     theme = dark ? ThemeMode.dark : ThemeMode.light;
-    await repository.save(
+    await _repository.save(
       value: dark.toString(),
       key: StorageConstant.theme.key,
     );

@@ -1,1 +1,1 @@
-enum AnimationConstant { size, scale }
+enum AnimationConstant { size, fade, scale }
