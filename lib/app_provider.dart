@@ -2,13 +2,6 @@ import 'package:trocado/main.dart';
 
 import 'package:trocado/modules/core/core.dart';
 
-import 'package:trocado/modules/core/main/providers/store_provider.dart';
-import 'package:trocado/modules/core/main/providers/client_provider.dart';
-import 'package:trocado/modules/core/main/providers/external_provider.dart';
-import 'package:trocado/modules/core/main/providers/resource_provider.dart';
-import 'package:trocado/modules/core/main/providers/repository_provider.dart';
-import 'package:trocado/modules/core/main/providers/datasource_provider.dart';
-
 Future<void> ensureInitialized() async {
   provideStores();
   provideClients();

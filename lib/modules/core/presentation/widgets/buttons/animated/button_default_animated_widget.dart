@@ -21,8 +21,8 @@ class ButtonDefaultAnimatednWidget extends StatelessWidget {
           context: context,
           state: 'Initial',
           width: dto.initialWidth,
-          child: dto.initialWidget,
           onTap: dto.initialOnTap,
+          child: dto.initialWidget,
         ),
 
         LoadingState: _buildProperties(
@@ -38,15 +38,16 @@ class ButtonDefaultAnimatednWidget extends StatelessWidget {
           state: 'Success',
           onTap: dto.successOnTap,
           child: dto.successWidget,
+          onAnimationEnd: dto.onAnimationSuccessEnd,
         ),
 
         FailureState: _buildProperties(
           context: context,
           width: 54.0,
-          isFailure: true,
           state: 'Failure',
           onTap: dto.failureOnTap,
           child: dto.failureWidget,
+          onAnimationEnd: dto.onAnimationFailureEnd,
         ),
       },
     );
@@ -57,23 +58,19 @@ class ButtonDefaultAnimatednWidget extends StatelessWidget {
     required String state,
     required double width,
     required Widget child,
-    bool? isFailure,
     VoidCallback? onTap,
-  }) {
-    Color color = context.colors.primary;
-
-    if (context.isDark) color = context.colors.onPrimary;
-    if (isFailure ?? false) color = context.colors.errorContainer;
-
-    return ButtonAnimatedProperties(
-      state: state,
-      child: child,
-      onTap: onTap ?? () {},
-      size: Size(width, 54.0),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.all(Radius.circular(16.0)),
-      ),
-    );
-  }
+    VoidCallback? onAnimationEnd,
+  }) => ButtonAnimatedProperties(
+    state: state,
+    child: child,
+    onTap: onTap ?? () {},
+    size: Size(width, 54.0),
+    onAnimationEnd: onAnimationEnd,
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.all(Radius.circular(16.0)),
+      color: context.isDark
+          ? context.colors.surfaceContainer.withValues(alpha: .98)
+          : context.colors.primary,
+    ),
+  );
 }

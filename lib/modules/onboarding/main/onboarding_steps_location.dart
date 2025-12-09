@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'dart:developer';
+
 import 'package:duck_router/duck_router.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 
@@ -27,14 +28,14 @@ final class OnboardingStepsLocation extends Location {
         Observer(
           builder: (_) => OnboardingStepProfileWidget(
             resource: userStore.user.image,
+            didSaveData: userStore.didChangeUser,
             onEdit: () => context.navigate(ImagesLocation()),
+            onFinish: () => log('oiiiiii'),
             onSaved: (name) => userStore.insert(
               UserDto(name: name, image: userStore.user.image),
             ),
           ),
         ),
-
-        SizedBox(),
       ],
     );
   };

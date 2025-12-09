@@ -29,6 +29,7 @@ class OnboardingScreen extends StatelessWidget {
                   height: 100.0,
                   child: ImageWidget(
                     source: AssetsConstant.logo.source,
+                    color: context.colors.primary,
                     alt:
                         'Logo do Trocado, aplicativo de finanças compartilhadas.',
                   ),

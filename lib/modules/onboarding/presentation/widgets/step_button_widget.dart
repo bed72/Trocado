@@ -5,7 +5,6 @@ import 'package:trocado/modules/core/core.dart';
 class StepButtonWidget extends StatelessWidget {
   final String? label;
   final Widget? icon;
-  final bool? enabled;
   final bool? loading;
   final VoidCallback? onTap;
 
@@ -14,7 +13,6 @@ class StepButtonWidget extends StatelessWidget {
     this.label,
     this.icon,
     this.onTap,
-    this.enabled,
     this.loading,
   });
 
@@ -26,7 +24,6 @@ class StepButtonWidget extends StatelessWidget {
         icon: icon,
         onTap: onTap,
         label: label,
-        enabled: enabled ?? true,
         loading: loading ?? false,
       ),
     );

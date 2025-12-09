@@ -1,9 +1,12 @@
 import 'package:image_picker/image_picker.dart';
+
 import 'package:trocado/main.dart';
 
 import 'package:trocado/modules/core/data/datasources/interface_image_datasource.dart';
 import 'package:trocado/modules/core/data/datasources/interface_storage_datasource.dart';
 import 'package:trocado/modules/core/data/datasources/interface_database_datasource.dart';
+
+import 'package:trocado/modules/core/infrastructure/resources/loggers/logger.dart';
 
 import 'package:trocado/modules/core/infrastructure/clients/storage/storage_client.dart';
 import 'package:trocado/modules/core/infrastructure/clients/database/database_client.dart';
@@ -21,6 +24,9 @@ void provideDatasources() {
       () => StorageDatasource(client: provider<IStorageClient>()),
     )
     ..registerLazySingleton<IDatabaseDatasource>(
-      () => DatabaseDatasource(client: provider<IDatabaseClient>()),
+      () => DatabaseDatasource(
+        logger: provider.get<ILogger>(),
+        client: provider<IDatabaseClient>(),
+      ),
     );
 }

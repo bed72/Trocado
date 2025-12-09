@@ -1,7 +1,6 @@
 import 'package:mobx/mobx.dart';
 
-import 'package:trocado/modules/core/domain/constant/storage_contant.dart';
-import 'package:trocado/modules/core/domain/repositories/interface_storage_repository.dart';
+import 'package:trocado/modules/core/core.dart';
 
 part 'onboarding_store.g.dart';
 
@@ -11,7 +10,7 @@ abstract class OnboardingStoreBase with Store {
   final IStorageRepository _repository;
 
   @observable
-  bool onboarding = false;
+  bool alreadyDoneOnboarding = false;
 
   OnboardingStoreBase({required IStorageRepository repository})
     : _repository = repository;
@@ -25,13 +24,13 @@ abstract class OnboardingStoreBase with Store {
     final enabled = bool.tryParse(data);
     if (enabled == null) return;
 
-    onboarding = enabled;
+    alreadyDoneOnboarding = enabled;
   }
 
   @action
   Future<void> toggle(bool value) async {
-    onboarding = value;
     await _save(value);
+    alreadyDoneOnboarding = value;
   }
 
   Future<void> _save(bool data) {

@@ -1,6 +1,8 @@
-import 'package:trocado/modules/core/core.dart';
-
 import 'package:trocado/modules/core/data/dtos/user_dto.dart';
+import 'package:trocado/modules/core/data/mapper/mapper.dart';
+
+import 'package:trocado/modules/core/domain/either.dart';
+import 'package:trocado/modules/core/domain/models/user_model.dart';
 
 final class UserMapper extends Mapper<UserDto, UserModel> {
   @override

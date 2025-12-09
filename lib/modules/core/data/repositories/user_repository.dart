@@ -17,17 +17,17 @@ final class UserRepository implements IUserRepository {
 
   @override
   Future<void> delete({required UserDto data}) async {
-    _datasource.delete(DatabaseConstant.userTableName.name, data.id);
+    _datasource.delete(DatabaseConstant.userTableName.name, data.id!);
   }
 
   @override
-  Future<bool> insert({required UserDto data}) async => _datasource.upsert(
+  Future<bool> insert({required UserDto data}) async => _datasource.insert(
     DatabaseConstant.userTableName.name,
     _mapper.toJson(data),
   );
 
   @override
-  Future<bool> update({required UserDto data}) async => _datasource.upsert(
+  Future<bool> update({required UserDto data}) async => _datasource.update(
     DatabaseConstant.userTableName.name,
     _mapper.toJson(data),
   );

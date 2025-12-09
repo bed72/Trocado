@@ -8,13 +8,18 @@ import 'package:trocado/modules/onboarding/presentation/widgets/step_description
 import 'package:trocado/modules/onboarding/presentation/widgets/profile/footer_profile_widget.dart';
 
 class OnboardingStepProfileWidget extends StatelessWidget {
+  final bool didSaveData;
   final VoidCallback onEdit;
+  final VoidCallback onFinish;
+
   final String? resource;
   final ValueChanged<String>? onSaved;
 
   const OnboardingStepProfileWidget({
     super.key,
     required this.onEdit,
+    required this.onFinish,
+    required this.didSaveData,
     this.onSaved,
     this.resource,
   });
@@ -49,7 +54,11 @@ class OnboardingStepProfileWidget extends StatelessWidget {
                 ),
               ),
 
-              FooterProfileWidget(onSaved: onSaved),
+              FooterProfileWidget(
+                onSaved: onSaved,
+                onFinish: onFinish,
+                didSaveData: didSaveData,
+              ),
             ],
           ),
         ),

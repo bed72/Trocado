@@ -3,7 +3,12 @@ export 'main/core_location.dart';
 export 'data/mapper/mapper.dart';
 export 'data/dtos/user_dto.dart';
 
-export 'main/providers/provider.dart';
+export 'main/providers/store_provider.dart';
+export 'main/providers/client_provider.dart';
+export 'main/providers/external_provider.dart';
+export 'main/providers/resource_provider.dart';
+export 'main/providers/datasource_provider.dart';
+export 'main/providers/repository_provider.dart';
 
 export 'data/repositories/user_repository.dart';
 export 'data/repositories/storage_repository.dart';
@@ -55,6 +60,7 @@ export 'presentation/stores/notification_store.dart';
 
 export 'presentation/animation/loop_animation.dart';
 export 'presentation/animation/size_animation.dart';
+export 'presentation/animation/shake_animation.dart';
 export 'presentation/animation/switch_animation.dart';
 export 'presentation/animation/shimmer_animation.dart';
 

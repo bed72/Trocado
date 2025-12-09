@@ -5,7 +5,7 @@ class UserDto {
   final String? name;
   final String? image;
 
-  UserDto({this.name, this.image, this.id});
+  UserDto({this.id, this.name, this.image});
 
   factory UserDto.empty({String? name, File? image}) =>
       UserDto(name: 'Troqueiro', image: null);

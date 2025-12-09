@@ -4,7 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter/services.dart';
 
 import 'package:trocado/app_widget.dart';
-import 'package:trocado/modules/core/core.dart';
+import 'package:trocado/app_provider.dart';
 
 final provider = GetIt.instance;
 

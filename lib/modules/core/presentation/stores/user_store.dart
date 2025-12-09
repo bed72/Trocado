@@ -15,6 +15,12 @@ abstract class UserStoreBase with Store {
   final IImageRepository _imageRepository;
 
   @observable
+  bool isLoading = false;
+
+  @observable
+  bool didChangeUser = false;
+
+  @observable
   UserDto user = UserDto.empty();
 
   UserStoreBase({
@@ -28,35 +34,56 @@ abstract class UserStoreBase with Store {
 
   @action
   Future<void> toggle(ImagesConstant type) async {
+    isLoading = true;
+
     final file = await _imageRepository(type: type);
 
-    if (file == null) return;
+    if (file == null) {
+      isLoading = false;
+      return;
+    }
 
     user = user.copyWith(image: file.path);
+    isLoading = false;
   }
 
   @action
   Future<void> find() async {
+    isLoading = true;
     final result = await _userRepository.find();
 
     result.fold((_) => user = UserDto.empty(), (user) => this.user = user);
+    isLoading = false;
   }
 
   @action
   Future<void> insert(UserDto data) async {
-    final isSuccess = await _userRepository.insert(data: data);
+    isLoading = true;
+
+    final didChangeUser = await _userRepository.insert(data: data);
+
     user = data;
+    this.didChangeUser = didChangeUser;
+    isLoading = false;
   }
 
   @action
   Future<void> update(UserDto data) async {
-    await _userRepository.update(data: data);
+    isLoading = true;
+    final didChangeUser = await _userRepository.update(data: data);
+
     user = data;
+    this.didChangeUser = didChangeUser;
+    isLoading = false;
   }
 
   @action
   Future<void> delete(UserDto data) async {
+    isLoading = true;
+
     await _userRepository.delete(data: data);
+
     user = UserDto.empty();
+    isLoading = false;
   }
 }

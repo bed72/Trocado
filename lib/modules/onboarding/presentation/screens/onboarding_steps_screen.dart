@@ -59,12 +59,7 @@ class _OnboardingStepsScreenState extends State<OnboardingStepsScreen> {
     return Scaffold(
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.only(
-            left: 24.0,
-            top: 24.0,
-            right: 24.0,
-            bottom: 8.0,
-          ),
+          padding: const .only(left: 24.0, top: 24.0, right: 24.0, bottom: 8.0),
           child: Column(
             spacing: 8.0,
             children: [_buildContent(), _buildButtons(context)],
@@ -77,6 +72,7 @@ class _OnboardingStepsScreenState extends State<OnboardingStepsScreen> {
   Expanded _buildContent() => Expanded(
     child: PageView(
       controller: _controller,
+      physics: const NeverScrollableScrollPhysics(),
       onPageChanged: (index) => setState(() => _index = index),
       children: widget.children,
     ),
@@ -92,9 +88,7 @@ class _OnboardingStepsScreenState extends State<OnboardingStepsScreen> {
         icon: SizeAnimation(
           curve: Curves.linear,
           child: Text(
-            _index == widget.children.length - 1
-                ? 'Salvar & Finalizar'
-                : 'Próximo',
+            _index == widget.children.length - 1 ? 'Finalizar' : 'Próximo',
             key: ValueKey(_index == widget.children.length - 1),
           ),
         ),

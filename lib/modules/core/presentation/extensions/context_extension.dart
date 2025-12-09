@@ -4,18 +4,23 @@ import 'package:duck_router/duck_router.dart';
 
 import 'package:trocado/modules/core/presentation/themes/radius/radius_theme.dart';
 
-extension BuildContextExtension on BuildContext {
+extension BuildContextColorExtension on BuildContext {
+  bool get isDark => Theme.of(this).brightness == Brightness.dark;
+
+  ColorScheme get colors => Theme.of(this).colorScheme;
+}
+
+extension BuildContextCommonExtension on BuildContext {
   double get width => MediaQuery.of(this).size.width;
   double get height => MediaQuery.of(this).size.height;
   double get bottom => MediaQuery.of(this).viewInsets.bottom;
 
-  bool get isDark => Theme.of(this).brightness == Brightness.dark;
-
-  ColorScheme get colors => Theme.of(this).colorScheme;
   TextTheme get typography => Theme.of(this).textTheme;
   CornerRadiusToken get radius =>
       Theme.of(this).extension<CornerRadiusToken>()!;
+}
 
+extension BuildContextProvideExtension on BuildContext {
   T get<T extends Object>({
     dynamic param1,
     dynamic param2,
@@ -27,7 +32,9 @@ extension BuildContextExtension on BuildContext {
     param2: param2,
     instanceName: instanceName,
   );
+}
 
+extension BuildContextNavigatinExtension on BuildContext {
   bool canPop() => Navigator.canPop(this);
 
   void root() => DuckRouter.of(this).root();

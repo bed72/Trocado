@@ -28,28 +28,17 @@ abstract final class Themes {
       elevatedButtonSchemeColor: .onPrimary,
       elevatedButtonSecondarySchemeColor: .primary,
       elevatedButtonTextStyle: WidgetStatePropertyAll(
-        TextStyle(
-          fontSize: 14.0,
-          fontWeight: .w500,
-          color: lightColorScheme.inverseSurface,
-        ),
+        TextStyle(fontSize: 14.0, fontWeight: .w500),
       ),
 
       outlinedButtonRadius: 16.0,
-      outlinedButtonSchemeColor: .primary,
-      outlinedButtonOutlineSchemeColor: .primary,
       outlinedButtonTextStyle: WidgetStatePropertyAll(
-        TextStyle(
-          fontSize: 14.0,
-          fontWeight: .w500,
-          color: lightColorScheme.inverseSurface,
-        ),
+        TextStyle(fontSize: 14.0, fontWeight: .w500),
       ),
 
       inputDecoratorRadius: 16.0,
       inputDecoratorIsDense: true,
       inputDecoratorBorderType: .outline,
-      inputDecoratorBorderSchemeColor: .primary,
 
       inputDecoratorContentPadding: const .symmetric(
         vertical: 14.0,
@@ -85,31 +74,18 @@ abstract final class Themes {
 
       elevatedButtonRadius: 16.0,
       elevatedButtonElevation: 0.0,
-      elevatedButtonSchemeColor: .primary,
-      elevatedButtonSecondarySchemeColor: .onPrimary,
       elevatedButtonTextStyle: WidgetStatePropertyAll(
-        TextStyle(
-          fontSize: 14.0,
-          fontWeight: .w500,
-          color: darkColorScheme.inverseSurface,
-        ),
+        TextStyle(fontSize: 14.0, fontWeight: .w500),
       ),
 
       outlinedButtonRadius: 16.0,
-      outlinedButtonSchemeColor: .primary,
-      outlinedButtonOutlineSchemeColor: .primary,
       outlinedButtonTextStyle: WidgetStatePropertyAll(
-        TextStyle(
-          fontSize: 14.0,
-          fontWeight: .w500,
-          color: darkColorScheme.inverseSurface,
-        ),
+        TextStyle(fontSize: 14.0, fontWeight: .w500),
       ),
 
       inputDecoratorRadius: 16.0,
       inputDecoratorIsDense: true,
       inputDecoratorBorderType: .outline,
-      inputDecoratorBorderSchemeColor: .primary,
       inputDecoratorContentPadding: const .symmetric(
         vertical: 14.0,
         horizontal: 0.0,

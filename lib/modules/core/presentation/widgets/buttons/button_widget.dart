@@ -8,7 +8,6 @@ enum ButtonWidgetType { elevated, outlined }
 class ButtonWidget extends StatelessWidget {
   final String? label;
   final bool loading;
-  final bool enabled;
   final Widget? icon;
   final VoidCallback? onTap;
   final ButtonWidgetType type;
@@ -18,7 +17,6 @@ class ButtonWidget extends StatelessWidget {
     required this.onTap,
     this.icon,
     this.label,
-    this.enabled = true,
     this.loading = false,
   }) : type = ButtonWidgetType.elevated;
 
@@ -27,19 +25,15 @@ class ButtonWidget extends StatelessWidget {
     required this.onTap,
     this.icon,
     this.label,
-    this.enabled = true,
     this.loading = false,
   }) : type = ButtonWidgetType.outlined;
 
   @override
   Widget build(BuildContext context) {
-    final bool isDisabled = !enabled || loading;
-
     return BounceWidget.withTap(
-      onTap: isDisabled ? () {} : (onTap ?? () {}),
+      onTap: onTap == null ? null : () => onTap!(),
       child: _buildButton(
         context: context,
-        isDisabled: isDisabled,
         child: _buildContent(context: context),
       ),
     );
@@ -61,16 +55,9 @@ class ButtonWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildButton({
-    required BuildContext context,
-    required bool isDisabled,
-    required Widget child,
-  }) {
-    final onPressed = isDisabled ? null : onTap;
-
-    return switch (type) {
-      .elevated => ElevatedButton(onPressed: onPressed, child: child),
-      .outlined => OutlinedButton(onPressed: onPressed, child: child),
-    };
-  }
+  Widget _buildButton({required BuildContext context, required Widget child}) =>
+      switch (type) {
+        .elevated => ElevatedButton(onPressed: onTap, child: child),
+        .outlined => OutlinedButton(onPressed: onTap, child: child),
+      };
 }
