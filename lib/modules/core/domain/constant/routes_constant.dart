@@ -92,13 +92,6 @@ final class RoutesConstant {
     regex: RegExp(r'^/categories$'),
   );
 
-  static final onboarding = RoutesConstant._(
-    auth: false,
-    path: '/onboarding',
-    name: 'onboarding-route',
-    regex: RegExp(r'^/onboarding$'),
-  );
-
   static final transactions = RoutesConstant._(
     auth: true,
     path: '/transactions',
@@ -113,11 +106,25 @@ final class RoutesConstant {
     regex: RegExp(r'^/all/transaction$'),
   );
 
-  static final onboardingSteps = RoutesConstant._(
+  static final onboarding = RoutesConstant._(
     auth: false,
-    path: '/onboarding/steps',
-    name: 'onboarding-steps-route',
-    regex: RegExp(r'^/onboarding/steps$'),
+    path: '/onboarding',
+    name: 'onboarding-route',
+    regex: RegExp(r'^/onboarding$'),
+  );
+
+  static final onboardingStepTheme = RoutesConstant._(
+    auth: false,
+    path: '/onboarding/step/theme',
+    name: 'onboarding-step-theme-route',
+    regex: RegExp(r'^/onboarding/step/theme$'),
+  );
+
+  static final onboardingStepProfile = RoutesConstant._(
+    auth: false,
+    path: '/onboarding/step/profile',
+    name: 'onboarding-step-profile-route',
+    regex: RegExp(r'^/onboarding/step/profile$'),
   );
 
   static final typeTransaction = RoutesConstant._(
@@ -149,8 +156,9 @@ final class RoutesConstant {
     onboarding,
     transactions,
     allTransaction,
-    onboardingSteps,
     typeTransaction,
+    onboardingStepTheme,
+    onboardingStepProfile,
     recurringTransactions,
   ];
 

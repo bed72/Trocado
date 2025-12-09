@@ -26,7 +26,7 @@ void main() {
     group('all', () {
       test('should return first user on success', () async {
         when(
-          () => datasource.all(table.name, any()),
+          () => datasource.all(table.name),
         ).thenAnswer((_) async => Right([mapper.toJson(dto)]));
 
         final response = await repository.find();
@@ -34,13 +34,13 @@ void main() {
         expect(response.isRight, isTrue);
         expect(response.right.id, equals('1'));
         expect(response.right.name, equals('Gabriel'));
-        verify(() => datasource.all(table.name, any())).called(1);
+        verify(() => datasource.all(table.name)).called(1);
       });
 
       test('should return error message on failure', () async {
         when(
-          () => datasource.all(table.name, any()),
-        ).thenAnswer((_) async => Left(null));
+          () => datasource.all(table.name),
+        ).thenAnswer((_) async => Left(''));
 
         final result = await repository.find();
 
@@ -49,20 +49,20 @@ void main() {
           result.left,
           'Opss, não encontramos seus dados, tente mais tarde!',
         );
-        verify(() => datasource.all(table.name, any())).called(1);
+        verify(() => datasource.all(table.name)).called(1);
       });
     });
 
     group('insert', () {
       test('should call upsert with correct parameters', () async {
         when(
-          () => datasource.upsert(table.name, any()),
-        ).thenAnswer((_) async {});
+          () => datasource.update(table.name, any()),
+        ).thenAnswer((_) async => false);
 
         await repository.insert(data: dto);
 
         verify(
-          () => datasource.upsert(table.name, mapper.toJson(dto)),
+          () => datasource.update(table.name, mapper.toJson(dto)),
         ).called(1);
       });
     });
@@ -70,7 +70,7 @@ void main() {
     group('update', () {
       test('should call upsert with correct parameters', () async {
         when(
-          () => datasource.upsert(table.name, any()),
+          () => datasource.update(table.name, any()),
         ).thenAnswer((_) async {});
 
         await repository.update(data: dto);
