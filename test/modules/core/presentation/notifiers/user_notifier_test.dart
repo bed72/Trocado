@@ -1,98 +1,223 @@
+import 'dart:io';
+
 import 'package:mocktail/mocktail.dart';
+import 'package:mobx/mobx.dart' hide when;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:trocado/modules/core/core.dart';
 
-import 'package:trocado/modules/core/data/dtos/user_dto.dart';
-
-import '../../../../fakes/fakes.dart';
 import '../../../../mocks/mocks.dart';
+import '../../../../fakes/fakes.dart';
 
 void main() {
   late UserDto user;
-  late UserCommand notifier;
-  late IUserRepository repository;
+  late UserStore store;
+  late IUserRepository userRepository;
+  late IImageRepository imageRepository;
 
   setUpAll(() {
     registerFallbackValue(FakeUserDto());
+    registerFallbackValue(ImagesConstant.gallery);
   });
 
   setUp(() {
-    repository = MockUserRepository();
-    notifier = UserCommand(repository: repository);
+    userRepository = MockUserRepository();
+    imageRepository = MockImageRepository();
+    store = UserStore(
+      userRepository: userRepository,
+      imageRepository: imageRepository,
+    );
     user = UserDto(id: '1', name: 'Gabriel', image: 'image.webp');
   });
 
-  group('UserNotifier - find', () {
-    test('It should load the user when `find` returns `Right`.', () async {
-      when(() => repository.find()).thenAnswer((_) async => Right(user));
+  group('UserStore - find', () {
+    test('should load user when repository returns Right(user)', () async {
+      when(() => userRepository.find()).thenAnswer((_) async => Right(user));
 
-      await notifier.find();
+      await store.find();
 
-      expect(notifier.hasUser, isTrue);
-      expect(notifier.success, equals(user));
+      expect(store.user, equals(user));
     });
 
-    test('You should ignore the error when `find` returns `Left`.', () async {
-      when(() => repository.find()).thenAnswer((_) async => const Left('erro'));
+    test(
+      'should set user = empty when repository returns Left(error)',
+      () async {
+        when(
+          () => userRepository.find(),
+        ).thenAnswer((_) async => const Left('erro'));
 
-      await notifier.find();
+        await store.find();
 
-      expect(notifier.success, isNull);
-      expect(notifier.hasUser, isFalse);
+        expect(store.user.name, 'Troqueiro');
+      },
+    );
+
+    test('find should toggle loading flag', () async {
+      when(() => userRepository.find()).thenAnswer((_) async => Right(user));
+
+      final loadingStates = <bool>[];
+
+      final dispose = reaction<bool>(
+        (_) => store.isLoading,
+        (value) => loadingStates.add(value),
+      );
+
+      await store.find();
+
+      expect(loadingStates.length, 2);
+      expect(loadingStates.first, true);
+      expect(loadingStates.last, false);
+
+      dispose();
     });
   });
 
-  group('UserNotifier - insert', () {
-    test(
-      'You must call `insert` on the repository and update it successfully.',
-      () async {
-        when(
-          () => repository.insert(data: any(named: 'data')),
-        ).thenAnswer((_) async => Future.value());
+  group('UserStore - insert', () {
+    test('should call repository.insert and update user', () async {
+      when(
+        () => userRepository.insert(data: any(named: 'data')),
+      ).thenAnswer((_) async => true);
 
-        await notifier.insert(user);
+      await store.insert(user);
 
-        expect(notifier.hasUser, isTrue);
-        expect(notifier.success, equals(user));
-        verify(() => repository.insert(data: user)).called(1);
-      },
-    );
+      expect(store.user, equals(user));
+      verify(() => userRepository.insert(data: user)).called(1);
+    });
+
+    test('insert should toggle loading', () async {
+      when(
+        () => userRepository.insert(data: any(named: 'data')),
+      ).thenAnswer((_) async => true);
+
+      final states = <bool>[];
+
+      final dispose = reaction<bool>(
+        (_) => store.isLoading,
+        (value) => states.add(value),
+      );
+
+      await store.insert(user);
+
+      expect(states.first, true);
+      expect(states.last, false);
+
+      dispose();
+    });
   });
 
-  group('UserNotifier - update', () {
-    test(
-      'You should call `update` on the repository and update the success event.',
-      () async {
-        when(
-          () => repository.update(data: any(named: 'data')),
-        ).thenAnswer((_) async => Future.value());
+  group('UserStore - update', () {
+    test('should call repository.update and update user', () async {
+      when(
+        () => userRepository.update(data: any(named: 'data')),
+      ).thenAnswer((_) async => true);
 
-        await notifier.update(user);
+      await store.update(user);
 
-        expect(notifier.hasUser, isTrue);
-        expect(notifier.success, equals(user));
-        verify(() => repository.update(data: user)).called(1);
-      },
-    );
+      expect(store.user, equals(user));
+      verify(() => userRepository.update(data: user)).called(1);
+    });
+
+    test('update should toggle loading', () async {
+      when(
+        () => userRepository.update(data: any(named: 'data')),
+      ).thenAnswer((_) async => true);
+
+      final states = <bool>[];
+
+      final dispose = reaction<bool>(
+        (_) => store.isLoading,
+        (v) => states.add(v),
+      );
+
+      await store.update(user);
+
+      expect(states.first, true);
+      expect(states.last, false);
+
+      dispose();
+    });
   });
 
-  group('UserNotifier - delete', () {
-    test(
-      'You should call delete on the repository and clear success.',
-      () async {
-        when(
-          () => repository.delete(data: any(named: 'data')),
-        ).thenAnswer((_) async => Future.value());
+  group('UserStore - delete', () {
+    test('should call repository.delete and reset user', () async {
+      when(
+        () => userRepository.delete(data: any(named: 'data')),
+      ).thenAnswer((_) async => true);
 
-        notifier.success = user;
+      store.user = user;
 
-        await notifier.delete(user);
+      await store.delete(user);
 
-        expect(notifier.success, isNull);
-        expect(notifier.hasUser, isFalse);
-        verify(() => repository.delete(data: user)).called(1);
-      },
-    );
+      expect(store.user.name, 'Troqueiro');
+      verify(() => userRepository.delete(data: user)).called(1);
+    });
+
+    test('delete should toggle loading', () async {
+      when(
+        () => userRepository.delete(data: any(named: 'data')),
+      ).thenAnswer((_) async => true);
+
+      final states = <bool>[];
+
+      final dispose = reaction<bool>(
+        (_) => store.isLoading,
+        (v) => states.add(v),
+      );
+
+      await store.delete(user);
+
+      expect(states.first, true);
+      expect(states.last, false);
+
+      dispose();
+    });
+  });
+
+  group('UserStore - toggle (image)', () {
+    test('should update user image when repository returns file', () async {
+      final fakeFile = File('path/to/image.png');
+
+      when(
+        () => imageRepository(type: any(named: 'type')),
+      ).thenAnswer((_) async => fakeFile);
+
+      await store.toggle(ImagesConstant.gallery);
+
+      expect(store.user.image, equals(fakeFile.path));
+    });
+
+    test('should NOT update image when repository returns null', () async {
+      when(
+        () => imageRepository(type: any(named: 'type')),
+      ).thenAnswer((_) async => null);
+
+      final initial = store.user;
+
+      await store.toggle(ImagesConstant.gallery);
+
+      expect(store.user, equals(initial));
+    });
+
+    test('toggle should toggle loading state', () async {
+      final fakeFile = File('image.png');
+
+      when(
+        () => imageRepository(type: any(named: 'type')),
+      ).thenAnswer((_) async => fakeFile);
+
+      final calls = <bool>[];
+
+      final dispose = reaction<bool>(
+        (_) => store.isLoading,
+        (v) => calls.add(v),
+      );
+
+      await store.toggle(ImagesConstant.camera);
+
+      expect(calls.first, true);
+      expect(calls.last, false);
+
+      dispose();
+    });
   });
 }

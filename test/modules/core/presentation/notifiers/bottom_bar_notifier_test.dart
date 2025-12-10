@@ -1,86 +1,48 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mobx/mobx.dart';
 
 import 'package:trocado/modules/core/core.dart';
 
 void main() {
-  group('BottomBarCommand', () {
-    test('should start with initial state 0', () {
-      final notifier = BottomBarCommand();
-      expect(notifier.success, 0);
-      expect(notifier.current, 0);
+  group('BottomBarStore', () {
+    test('should start with index = 0', () {
+      final store = BottomBarStore();
+
+      expect(store.index, equals(0));
     });
 
-    test('should update state when switchChild is called', () {
-      final notifier = BottomBarCommand();
+    test('should update index when setIndex is called', () {
+      final store = BottomBarStore();
 
-      notifier.switchChild(2);
+      store.setIndex(2);
 
-      expect(notifier.current, 2);
+      expect(store.index, equals(2));
     });
 
-    test('should notify listeners on state change', () {
-      final notifier = BottomBarCommand();
+    test('should trigger reaction when index changes', () {
+      int called = 0;
+      final store = BottomBarStore();
 
-      var called = 0;
-      notifier.addListener(() => called++);
+      final dispose = reaction<int>((_) => store.index, (_) => called++);
 
-      notifier.switchChild(1);
+      store.setIndex(1);
 
       expect(called, 1);
+
+      dispose();
     });
 
-    test('should not notify listeners when setting same state', () {
+    test('should NOT trigger reaction when setting same value', () {
       int called = 0;
-      final notifier = BottomBarCommand();
+      final store = BottomBarStore();
 
-      notifier.addListener(() => called++);
+      final dispose = reaction<int>((_) => store.index, (_) => called++);
 
-      notifier.switchChild(0);
+      store.setIndex(0);
 
       expect(called, 0);
-    });
 
-    test('should update state using update reducer', () {
-      final notifier = BottomBarCommand();
-
-      notifier.replace((value) => value + 3);
-
-      expect(notifier.current, 3);
-    });
-
-    test('should notify listeners when using update reducer', () {
-      int called = 0;
-      final notifier = BottomBarCommand();
-
-      notifier.addListener(() => called++);
-
-      notifier.replace((value) => value + 1);
-
-      expect(called, 1);
-      expect(notifier.current, 1);
-    });
-
-    test('should update state using updateAsync reducer', () async {
-      final notifier = BottomBarCommand();
-
-      await notifier.replaceAsync((value) async {
-        await Future.delayed(Duration(milliseconds: 10));
-        return value + 5;
-      });
-
-      expect(notifier.current, 5);
-    });
-
-    test('should notify listeners when using updateAsync reducer', () async {
-      int called = 0;
-      final notifier = BottomBarCommand();
-
-      notifier.addListener(() => called++);
-
-      await notifier.replaceAsync((value) async => value + 2);
-
-      expect(called, 3);
-      expect(notifier.current, 2);
+      dispose();
     });
   });
 }

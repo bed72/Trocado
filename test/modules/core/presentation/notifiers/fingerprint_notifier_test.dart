@@ -1,4 +1,5 @@
 import 'package:mocktail/mocktail.dart';
+import 'package:mobx/mobx.dart' hide when;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:trocado/modules/core/domain/constant/storage_contant.dart';
@@ -14,113 +15,119 @@ void main() {
     repository = MockStorageRepository();
   });
 
-  group('FingerprintNotifier', () {
-    test('should start with initial state false', () {
-      final notifier = FingerprintNotifier(repository: repository);
+  group('FingerprintStore', () {
+    test('should start with fingerprint = false', () {
+      final store = FingerprintStore(repository: repository);
 
-      expect(notifier.success, false);
-      expect(notifier.enabled, false);
+      expect(store.fingerprint, false);
     });
 
-    test('should toggle state and call save', () async {
-      final notifier = FingerprintNotifier(repository: repository);
+    test('toggle should update fingerprint and call save', () async {
+      final store = FingerprintStore(repository: repository);
 
       when(
         () => repository.save(
-          key: StorageConstant.fingerprint.key,
           value: any(named: 'value'),
+          key: StorageConstant.fingerprint.key,
         ),
       ).thenAnswer((_) async {});
 
-      notifier.toggle(true);
+      await store.toggle(true);
 
-      expect(notifier.enabled, true);
+      expect(store.fingerprint, true);
+
       verify(
         () => repository.save(
+          value: 'true',
           key: StorageConstant.fingerprint.key,
-          value: any(named: 'value'),
         ),
       ).called(1);
     });
 
-    test('should notify listeners when toggle is called', () {
+    test('toggle should trigger reaction', () async {
       int called = 0;
-      final notifier = FingerprintNotifier(repository: repository);
+      final store = FingerprintStore(repository: repository);
 
-      notifier.addListener(() => called++);
+      final dispose = reaction<bool>((_) => store.fingerprint, (_) => called++);
 
       when(
         () => repository.save(
-          key: StorageConstant.fingerprint.key,
           value: any(named: 'value'),
+          key: StorageConstant.fingerprint.key,
         ),
       ).thenAnswer((_) async {});
 
-      notifier.toggle(true);
+      await store.toggle(true);
 
       expect(called, 1);
+
+      dispose();
     });
 
     test(
-      'ensureInitialized should do nothing when repository returns null',
+      'ensureInitialized should do nothing if repository returns null',
       () async {
         when(
           () => repository.get(key: StorageConstant.fingerprint.key),
         ).thenAnswer((_) async => null);
 
-        final notifier = FingerprintNotifier(repository: repository);
+        final store = FingerprintStore(repository: repository);
 
-        await notifier.ensureInitialized();
+        await store.ensureInitialized();
 
-        expect(notifier.enabled, false);
+        expect(store.fingerprint, false);
       },
     );
 
-    test(
-      'ensureInitialized should do nothing when repository returns invalid bool',
-      () async {
-        when(
-          () => repository.get(key: StorageConstant.fingerprint.key),
-        ).thenAnswer((_) async => 'invalid');
+    test('ensureInitialized should ignore invalid bool string', () async {
+      when(
+        () => repository.get(key: StorageConstant.fingerprint.key),
+      ).thenAnswer((_) async => 'invalid');
 
-        final notifier = FingerprintNotifier(repository: repository);
+      final store = FingerprintStore(repository: repository);
 
-        await notifier.ensureInitialized();
+      await store.ensureInitialized();
 
-        expect(notifier.enabled, false);
-      },
-    );
+      expect(store.fingerprint, false);
+    });
 
     test(
-      'ensureInitialized should update state when repository returns "true"',
+      'ensureInitialized should set fingerprint = true when repository returns "true"',
       () async {
+        int called = 0;
+
         when(
           () => repository.get(key: StorageConstant.fingerprint.key),
         ).thenAnswer((_) async => 'true');
 
-        int called = 0;
-        final notifier = FingerprintNotifier(repository: repository);
-        notifier.addListener(() => called++);
+        final store = FingerprintStore(repository: repository);
 
-        await notifier.ensureInitialized();
+        final dispose = reaction<bool>(
+          (_) => store.fingerprint,
+          (_) => called++,
+        );
+
+        await store.ensureInitialized();
 
         expect(called, 1);
-        expect(notifier.enabled, true);
+        expect(store.fingerprint, true);
+
+        dispose();
       },
     );
 
     test(
-      'ensureInitialized should update state when repository returns "false"',
+      'ensureInitialized should set fingerprint = false when repository returns "false"',
       () async {
         when(
           () => repository.get(key: StorageConstant.fingerprint.key),
         ).thenAnswer((_) async => 'false');
 
-        final notifier = FingerprintNotifier(repository: repository);
+        final store = FingerprintStore(repository: repository);
 
-        await notifier.ensureInitialized();
+        await store.ensureInitialized();
 
-        expect(notifier.enabled, false);
+        expect(store.fingerprint, false);
       },
     );
   });

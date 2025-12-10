@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:mobx/mobx.dart' hide when;
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:trocado/modules/core/core.dart';
+import 'package:trocado/modules/core/domain/constant/storage_contant.dart';
+import 'package:trocado/modules/core/presentation/stores/theme_store.dart';
+import 'package:trocado/modules/core/domain/repositories/interface_storage_repository.dart';
 
 import '../../../../mocks/mocks.dart';
 
@@ -13,65 +16,59 @@ void main() {
     repository = MockStorageRepository();
   });
 
-  group('ThemeNotifier', () {
-    test('should start with initial state ThemeMode.system', () {
-      final notifier = ThemeStore(repository: repository);
+  group('ThemeStore', () {
+    test('should start with theme = ThemeMode.system', () {
+      final store = ThemeStore(repository: repository);
 
-      expect(notifier.success, ThemeMode.system);
-      expect(notifier.isDark, false);
+      expect(store.isDark, false);
+      expect(store.theme, ThemeMode.system);
     });
 
-    test('should toggle to dark mode and call save', () async {
-      final notifier = ThemeStore(repository: repository);
+    test('toggle should set dark mode and call save', () async {
+      final store = ThemeStore(repository: repository);
 
       when(
         () => repository.save(
-          key: StorageConstant.theme.key,
           value: any(named: 'value'),
+          key: StorageConstant.theme.key,
         ),
       ).thenAnswer((_) async {});
 
-      notifier.toggle(true);
+      await store.toggle(true);
 
-      expect(notifier.success, ThemeMode.dark);
-      expect(notifier.isDark, true);
+      expect(store.theme, ThemeMode.dark);
+      expect(store.isDark, true);
 
       verify(
-        () => repository.save(
-          key: StorageConstant.theme.key,
-          value: any(named: 'value'),
-        ),
+        () => repository.save(key: StorageConstant.theme.key, value: 'true'),
       ).called(1);
     });
 
-    test('should toggle to light mode and call save', () async {
-      final notifier = ThemeStore(repository: repository);
+    test('toggle should set light mode and call save', () async {
+      final store = ThemeStore(repository: repository);
 
       when(
         () => repository.save(
-          key: StorageConstant.theme.key,
           value: any(named: 'value'),
+          key: StorageConstant.theme.key,
         ),
       ).thenAnswer((_) async {});
 
-      notifier.toggle(false);
+      await store.toggle(false);
 
-      expect(notifier.success, ThemeMode.light);
-      expect(notifier.isDark, false);
+      expect(store.theme, ThemeMode.light);
+      expect(store.isDark, false);
 
       verify(
-        () => repository.save(
-          key: StorageConstant.theme.key,
-          value: any(named: 'value'),
-        ),
+        () => repository.save(key: StorageConstant.theme.key, value: 'false'),
       ).called(1);
     });
 
-    test('should notify listeners when toggle is called', () {
+    test('toggle should trigger reaction', () async {
       int called = 0;
-      final notifier = ThemeStore(repository: repository);
+      final store = ThemeStore(repository: repository);
 
-      notifier.addListener(() => called++);
+      final dispose = reaction<ThemeMode>((_) => store.theme, (_) => called++);
 
       when(
         () => repository.save(
@@ -80,9 +77,11 @@ void main() {
         ),
       ).thenAnswer((_) async {});
 
-      notifier.toggle(true);
+      await store.toggle(true);
 
       expect(called, 1);
+
+      dispose();
     });
 
     test(
@@ -92,11 +91,11 @@ void main() {
           () => repository.get(key: StorageConstant.theme.key),
         ).thenAnswer((_) async => null);
 
-        final notifier = ThemeStore(repository: repository);
+        final store = ThemeStore(repository: repository);
 
-        await notifier.ensureInitialized();
+        await store.ensureInitialized();
 
-        expect(notifier.success, ThemeMode.system);
+        expect(store.theme, ThemeMode.system);
       },
     );
 
@@ -107,11 +106,11 @@ void main() {
           () => repository.get(key: StorageConstant.theme.key),
         ).thenAnswer((_) async => 'invalid');
 
-        final notifier = ThemeStore(repository: repository);
+        final store = ThemeStore(repository: repository);
 
-        await notifier.ensureInitialized();
+        await store.ensureInitialized();
 
-        expect(notifier.success, ThemeMode.system);
+        expect(store.theme, ThemeMode.system);
       },
     );
 
@@ -123,14 +122,20 @@ void main() {
         ).thenAnswer((_) async => 'true');
 
         int called = 0;
-        final notifier = ThemeStore(repository: repository);
-        notifier.addListener(() => called++);
+        final store = ThemeStore(repository: repository);
 
-        await notifier.ensureInitialized();
+        final dispose = reaction<ThemeMode>(
+          (_) => store.theme,
+          (_) => called++,
+        );
+
+        await store.ensureInitialized();
 
         expect(called, 1);
-        expect(notifier.success, ThemeMode.dark);
-        expect(notifier.isDark, true);
+        expect(store.isDark, true);
+        expect(store.theme, ThemeMode.dark);
+
+        dispose();
       },
     );
 
@@ -141,12 +146,12 @@ void main() {
           () => repository.get(key: StorageConstant.theme.key),
         ).thenAnswer((_) async => 'false');
 
-        final notifier = ThemeStore(repository: repository);
+        final store = ThemeStore(repository: repository);
 
-        await notifier.ensureInitialized();
+        await store.ensureInitialized();
 
-        expect(notifier.success, ThemeMode.light);
-        expect(notifier.isDark, false);
+        expect(store.isDark, false);
+        expect(store.theme, ThemeMode.light);
       },
     );
   });

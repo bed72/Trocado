@@ -1,4 +1,5 @@
 import 'package:mocktail/mocktail.dart';
+import 'package:mobx/mobx.dart' hide when;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:trocado/modules/core/domain/constant/storage_contant.dart';
@@ -14,16 +15,15 @@ void main() {
     repository = MockStorageRepository();
   });
 
-  group('NotificationNotifier', () {
-    test('should start with initial state false', () {
-      final notifier = NotificationCommand(repository: repository);
+  group('NotificationStore', () {
+    test('should start with notification = false', () {
+      final store = NotificationStore(repository: repository);
 
-      expect(notifier.success, false);
-      expect(notifier.enabled, false);
+      expect(store.notification, false);
     });
 
-    test('should toggle state and call save', () async {
-      final notifier = NotificationCommand(repository: repository);
+    test('toggle should update notification and call save', () async {
+      final store = NotificationStore(repository: repository);
 
       when(
         () => repository.save(
@@ -32,33 +32,39 @@ void main() {
         ),
       ).thenAnswer((_) async {});
 
-      notifier.toggle(true);
+      await store.toggle(true);
 
-      expect(notifier.enabled, true);
+      expect(store.notification, true);
+
       verify(
         () => repository.save(
+          value: 'true',
           key: StorageConstant.notifications.key,
-          value: any(named: 'value'),
         ),
       ).called(1);
     });
 
-    test('should notify listeners when toggle is called', () {
+    test('toggle should trigger reaction', () async {
       int called = 0;
-      final notifier = NotificationCommand(repository: repository);
+      final store = NotificationStore(repository: repository);
 
-      notifier.addListener(() => called++);
+      final dispose = reaction<bool>(
+        (_) => store.notification,
+        (_) => called++,
+      );
 
       when(
         () => repository.save(
-          key: StorageConstant.notifications.key,
           value: any(named: 'value'),
+          key: StorageConstant.notifications.key,
         ),
       ).thenAnswer((_) async {});
 
-      notifier.toggle(true);
+      await store.toggle(true);
 
       expect(called, 1);
+
+      dispose();
     });
 
     test(
@@ -68,60 +74,58 @@ void main() {
           () => repository.get(key: StorageConstant.notifications.key),
         ).thenAnswer((_) async => null);
 
-        final notifier = NotificationCommand(repository: repository);
+        final store = NotificationStore(repository: repository);
 
-        await notifier.ensureInitialized();
+        await store.ensureInitialized();
 
-        expect(notifier.enabled, false);
+        expect(store.notification, false);
       },
     );
 
-    test(
-      'ensureInitialized should do nothing when repository returns invalid bool',
-      () async {
-        when(
-          () => repository.get(key: StorageConstant.notifications.key),
-        ).thenAnswer((_) async => 'invalid');
+    test('ensureInitialized should ignore invalid boolean', () async {
+      when(
+        () => repository.get(key: StorageConstant.notifications.key),
+      ).thenAnswer((_) async => 'invalid');
 
-        final notifier = NotificationCommand(repository: repository);
+      final store = NotificationStore(repository: repository);
 
-        await notifier.ensureInitialized();
+      await store.ensureInitialized();
 
-        expect(notifier.enabled, false);
-      },
-    );
+      expect(store.notification, false);
+    });
 
-    test(
-      'ensureInitialized should update state when repository returns "true"',
-      () async {
-        when(
-          () => repository.get(key: StorageConstant.notifications.key),
-        ).thenAnswer((_) async => 'true');
+    test('ensureInitialized should update notification = true', () async {
+      int called = 0;
 
-        int called = 0;
-        final notifier = NotificationCommand(repository: repository);
-        notifier.addListener(() => called++);
+      when(
+        () => repository.get(key: StorageConstant.notifications.key),
+      ).thenAnswer((_) async => 'true');
 
-        await notifier.ensureInitialized();
+      final store = NotificationStore(repository: repository);
 
-        expect(called, 1);
-        expect(notifier.enabled, true);
-      },
-    );
+      final dispose = reaction<bool>(
+        (_) => store.notification,
+        (_) => called++,
+      );
 
-    test(
-      'ensureInitialized should update state when repository returns "false"',
-      () async {
-        when(
-          () => repository.get(key: StorageConstant.notifications.key),
-        ).thenAnswer((_) async => 'false');
+      await store.ensureInitialized();
 
-        final notifier = NotificationCommand(repository: repository);
+      expect(called, 1);
+      expect(store.notification, true);
 
-        await notifier.ensureInitialized();
+      dispose();
+    });
 
-        expect(notifier.enabled, false);
-      },
-    );
+    test('ensureInitialized should update notification = false', () async {
+      when(
+        () => repository.get(key: StorageConstant.notifications.key),
+      ).thenAnswer((_) async => 'false');
+
+      final store = NotificationStore(repository: repository);
+
+      await store.ensureInitialized();
+
+      expect(store.notification, false);
+    });
   });
 }

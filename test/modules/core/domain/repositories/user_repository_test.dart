@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:trocado/modules/core/core.dart';
 
-import 'package:trocado/modules/core/data/dtos/user_dto.dart';
 import 'package:trocado/modules/core/data/mapper/user_mapper.dart';
 
 import '../../../../mocks/mocks.dart';
@@ -23,7 +22,7 @@ void main() {
     final table = DatabaseConstant.userTableName;
     final dto = UserDto(id: '1', name: 'Gabriel', image: 'image.webp');
 
-    group('all', () {
+    group('find', () {
       test('should return first user on success', () async {
         when(
           () => datasource.all(table.name),
@@ -47,36 +46,36 @@ void main() {
         expect(result.isLeft, isTrue);
         expect(
           result.left,
-          'Opss, não encontramos seus dados, tente mais tarde!',
+          equals('Opss, não encontramos seus dados, tente mais tarde!'),
         );
         verify(() => datasource.all(table.name)).called(1);
       });
     });
 
     group('insert', () {
-      test('should call upsert with correct parameters', () async {
+      test('should call insert with correct parameters', () async {
         when(
-          () => datasource.update(table.name, any()),
-        ).thenAnswer((_) async => false);
+          () => datasource.insert(table.name, any()),
+        ).thenAnswer((_) async => true);
 
         await repository.insert(data: dto);
 
         verify(
-          () => datasource.update(table.name, mapper.toJson(dto)),
+          () => datasource.insert(table.name, mapper.toJson(dto)),
         ).called(1);
       });
     });
 
     group('update', () {
-      test('should call upsert with correct parameters', () async {
+      test('should call update with correct parameters', () async {
         when(
           () => datasource.update(table.name, any()),
-        ).thenAnswer((_) async {});
+        ).thenAnswer((_) async => true);
 
         await repository.update(data: dto);
 
         verify(
-          () => datasource.upsert(table.name, mapper.toJson(dto)),
+          () => datasource.update(table.name, mapper.toJson(dto)),
         ).called(1);
       });
     });
@@ -89,7 +88,7 @@ void main() {
 
         await repository.delete(data: dto);
 
-        verify(() => datasource.delete(table.name, any())).called(1);
+        verify(() => datasource.delete(table.name, '1')).called(1);
       });
     });
   });
