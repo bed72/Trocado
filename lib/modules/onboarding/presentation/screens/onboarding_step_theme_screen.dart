@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import 'package:trocado/modules/core/core.dart';
+import 'package:trocado/modules/onboarding/presentation/widgets/step_navigation_buttons_widget.dart';
 
 import 'package:trocado/modules/onboarding/presentation/widgets/step_title_widget.dart';
 import 'package:trocado/modules/onboarding/presentation/widgets/step_button_widget.dart';
@@ -30,7 +30,7 @@ class OnboardingStepThemeScreen extends StatelessWidget {
           padding: const .only(left: 24.0, top: 24.0, right: 24.0, bottom: 8.0),
           child: Column(
             spacing: 8.0,
-            children: [_buildContent(), _buildButtons(context)],
+            children: [_buildContent(), _buildButtons()],
           ),
         ),
       ),
@@ -70,12 +70,6 @@ class OnboardingStepThemeScreen extends StatelessWidget {
     ),
   );
 
-  Row _buildButtons(BuildContext context) => Row(
-    spacing: 16.0,
-    mainAxisAlignment: MainAxisAlignment.end,
-    children: [
-      ButtonWidget.outlined(onTap: goBack, label: 'Anterior'),
-      ButtonWidget.elevated(onTap: goNext, icon: Text('Próximo')),
-    ],
-  );
+  StepNavigationButtonsWidget _buildButtons() =>
+      StepNavigationButtonsWidget(goBack: goBack, goNext: goNext);
 }

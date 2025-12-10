@@ -27,24 +27,6 @@ mixin _$UserStore on UserStoreBase, Store {
     });
   }
 
-  late final _$didChangeUserAtom = Atom(
-    name: 'UserStoreBase.didChangeUser',
-    context: context,
-  );
-
-  @override
-  bool get didChangeUser {
-    _$didChangeUserAtom.reportRead();
-    return super.didChangeUser;
-  }
-
-  @override
-  set didChangeUser(bool value) {
-    _$didChangeUserAtom.reportWrite(value, super.didChangeUser, () {
-      super.didChangeUser = value;
-    });
-  }
-
   late final _$userAtom = Atom(name: 'UserStoreBase.user', context: context);
 
   @override
@@ -131,7 +113,6 @@ mixin _$UserStore on UserStoreBase, Store {
   String toString() {
     return '''
 isLoading: ${isLoading},
-didChangeUser: ${didChangeUser},
 user: ${user}
     ''';
   }

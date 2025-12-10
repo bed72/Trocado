@@ -6,15 +6,15 @@ import 'package:trocado/modules/core/core.dart';
 import 'package:trocado/modules/onboarding/presentation/widgets/step_button_widget.dart';
 
 class FooterProfileWidget extends StatefulWidget {
-  final bool didSaveData;
-  final VoidCallback onFinish;
+  final bool isLoading;
   final ValueChanged<String>? onSaved;
+  final ValueChanged<bool>? onFocusChanged;
 
   const FooterProfileWidget({
     super.key,
-    required this.onFinish,
-    required this.didSaveData,
+    required this.isLoading,
     this.onSaved,
+    this.onFocusChanged,
   });
 
   @override
@@ -26,8 +26,8 @@ class _FooterProfileWidgetState extends State<FooterProfileWidget> {
   late bool _shouldShake;
   late bool _mustShowHelper;
 
-  late TextEditingController _textController;
-  late ButtonAnimatedController _buttonController;
+  late final FocusNode _focus;
+  late TextEditingController _controller;
 
   @override
   void initState() {
@@ -36,26 +36,23 @@ class _FooterProfileWidgetState extends State<FooterProfileWidget> {
     _enabled = false;
     _shouldShake = false;
     _mustShowHelper = false;
-    _buttonController = ButtonAnimatedController();
-    _textController = TextEditingController(text: '')
+
+    _focus = FocusNode()..addListener(_handleFocus);
+    _controller = TextEditingController(text: '')
       ..addListener(_handleInteractions);
   }
 
   @override
   void dispose() {
-    _textController
+    _focus
+      ..removeListener(_handleFocus)
+      ..dispose();
+
+    _controller
       ..removeListener(_handleInteractions)
       ..dispose();
 
     super.dispose();
-  }
-
-  void _handleInteractions() {
-    setState(() {
-      _enabled = _textController.text.length > 2;
-      _mustShowHelper =
-          _textController.text.isNotEmpty && _textController.text.length < 3;
-    });
   }
 
   @override
@@ -69,22 +66,14 @@ class _FooterProfileWidgetState extends State<FooterProfileWidget> {
             offset: 2,
             shake: _shouldShake,
             child: TextFieldWidget(
+              focus: _focus,
               textAlign: .center,
               inputAction: .done,
               keyboardType: .name,
-              controller: _textController,
+              controller: _controller,
               onSubmitted: widget.onSaved,
               label: 'Seu nome ou apelido',
-              helperWidget: SwitchAnimation(
-                type: .size,
-                child: _mustShowHelper || _shouldShake
-                    ? _buildHelper(
-                        _shouldShake
-                            ? 'Ops, tente novamente ou deixe para depois'
-                            : 'Seu nome deve conter ao menos 3 letras.',
-                      )
-                    : const SizedBox.shrink(),
-              ),
+              helperWidget: _buildAnimatedHelper(),
             ),
           ),
 
@@ -94,11 +83,32 @@ class _FooterProfileWidgetState extends State<FooterProfileWidget> {
     );
   }
 
+  AnimatedSwitcher _buildAnimatedHelper() => AnimatedSwitcher(
+    switchInCurve: Curves.easeOutCubic,
+    switchOutCurve: Curves.easeInCubic,
+    duration: const Duration(milliseconds: 300),
+    transitionBuilder: (child, animation) => SizeTransition(
+      axisAlignment: -1.0,
+      sizeFactor: animation,
+      child: child,
+    ),
+    child: _mustShowHelper || _shouldShake
+        ? _buildHelper(
+            _shouldShake
+                ? 'Ops, tente novamente ou deixe para depois'
+                : 'Seu nome deve conter ao menos 3 letras.',
+          )
+        : const SizedBox.shrink(key: ValueKey('empty')),
+  );
+
+  StepButtonWidget _buildActivateButton() => StepButtonWidget(
+    label: 'Salvar apelido',
+    loading: widget.isLoading,
+    onTap: () => widget.onSaved?.call(_controller.text),
+  );
+
   StepButtonWidget _buildDeactivateButton() =>
       StepButtonWidget(label: 'Salvar apelido');
-
-  ButtonDefaultAnimatednWidget _buildActivateButton() =>
-      ButtonDefaultAnimatednWidget(dto: _buildDto());
 
   Row _buildHelper(String title) {
     final color = context.colors.inverseSurface.withValues(alpha: .72);
@@ -118,87 +128,15 @@ class _FooterProfileWidgetState extends State<FooterProfileWidget> {
     );
   }
 
-  ButtonDefaultAnimatedDto _buildDto() {
-    final initialWidth =
-        WidgetsBinding
-            .instance
-            .platformDispatcher
-            .views
-            .first
-            .physicalSize
-            .width /
-        WidgetsBinding.instance.platformDispatcher.views.first.devicePixelRatio;
-
-    return ButtonDefaultAnimatedDto(
-      initialWidth: initialWidth,
-      controller: _buttonController,
-      onAnimationSuccessEnd: widget.onFinish,
-      initialWidget: Text(
-        'Salvar apelido',
-        style: context.typography.labelLarge?.copyWith(
-          fontSize: 12.0,
-          letterSpacing: .4,
-          fontWeight: .w700,
-          color: context.isDark
-              ? context.colors.onPrimaryContainer
-              : context.colors.onPrimary,
-        ),
-      ),
-      initialOnTap: _handleInitialStateButton,
-      loadingWidget: SizedBox(
-        width: 20.0,
-        height: 20.0,
-        child: CircularProgressIndicatorWidget(
-          color: context.isDark
-              ? context.colors.onPrimaryContainer
-              : context.colors.onPrimary,
-        ),
-      ),
-      successWidget: IconWidget(
-        name: LucideIcons.check,
-        color: context.isDark
-            ? context.colors.onPrimaryContainer
-            : context.colors.onPrimary,
-      ),
-      failureWidget: IconWidget(
-        name: LucideIcons.octagonX,
-        color: context.isDark
-            ? context.colors.onPrimaryContainer
-            : context.colors.onPrimary,
-      ),
-    );
+  void _handleFocus() async {
+    widget.onFocusChanged?.call(_focus.hasFocus);
   }
 
-  Future<void> _delayed({int milliseconds = 800, VoidCallback? action}) =>
-      Future.delayed(Duration(milliseconds: milliseconds), action);
-
-  Future<void> _handleStateButton() async {
-    await _delayed(
-      milliseconds: 1200,
-      action: () {
-        _textController.clear();
-        _buttonController.state(InitialState());
-      },
-    );
-  }
-
-  Future<void> _handleInitialStateButton() async {
-    hideKeyboard;
-
-    widget.onSaved?.call(_textController.text);
-
-    _buttonController.state(LoadingState());
-
-    await _delayed();
-
-    _buttonController.state(
-      widget.didSaveData ? SuccessState() : FailureState(),
-    );
-
-    setState(() => _shouldShake = !widget.didSaveData);
-
-    await _handleStateButton();
-
-    setState(() => _shouldShake = false);
+  void _handleInteractions() {
+    setState(() {
+      _enabled = _controller.text.length > 2;
+      _mustShowHelper =
+          _controller.text.isNotEmpty && _controller.text.length < 3;
+    });
   }
 }

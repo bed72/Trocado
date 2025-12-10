@@ -18,9 +18,6 @@ abstract class UserStoreBase with Store {
   bool isLoading = false;
 
   @observable
-  bool didChangeUser = false;
-
-  @observable
   UserDto user = UserDto.empty();
 
   UserStoreBase({
@@ -60,20 +57,19 @@ abstract class UserStoreBase with Store {
   Future<void> insert(UserDto data) async {
     isLoading = true;
 
-    final didChangeUser = await _userRepository.insert(data: data);
+    await Future.delayed(Duration(seconds: 4));
+    await _userRepository.insert(data: data);
 
     user = data;
-    this.didChangeUser = didChangeUser;
     isLoading = false;
   }
 
   @action
   Future<void> update(UserDto data) async {
     isLoading = true;
-    final didChangeUser = await _userRepository.update(data: data);
+    await _userRepository.update(data: data);
 
     user = data;
-    this.didChangeUser = didChangeUser;
     isLoading = false;
   }
 

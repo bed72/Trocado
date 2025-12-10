@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:duck_router/duck_router.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 
@@ -19,12 +17,11 @@ final class OnboardingStepProfileLocation extends Location {
       builder: (_) => OnboardingStepProfileScreen(
         goBack: context.pop,
         goNext: () {},
+        isLoading: store.isLoading,
         resource: store.user.image,
-        didSaveData: store.didChangeUser,
         onEdit: () => context.navigate(ImagesLocation()),
-        onFinish: () => log('oiiiiii'),
-        onSaved: (name) =>
-            store.insert(UserDto(name: name, image: store.user.image)),
+        onSaved: (name) async =>
+            await store.insert(UserDto(name: name, image: store.user.image)),
       ),
     );
   };

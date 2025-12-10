@@ -4,14 +4,14 @@ import 'package:trocado/modules/core/core.dart';
 
 class StepButtonWidget extends StatelessWidget {
   final String? label;
-  final Widget? icon;
+  final Widget? child;
   final bool? loading;
   final VoidCallback? onTap;
 
   const StepButtonWidget({
     super.key,
     this.label,
-    this.icon,
+    this.child,
     this.onTap,
     this.loading,
   });
@@ -21,10 +21,10 @@ class StepButtonWidget extends StatelessWidget {
     return SizedBox(
       width: double.infinity,
       child: ButtonWidget.elevated(
-        icon: icon,
         onTap: onTap,
         label: label,
-        loading: loading ?? false,
+        loading: loading,
+        child: child,
       ),
     );
   }
