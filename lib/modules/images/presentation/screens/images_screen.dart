@@ -24,8 +24,8 @@ class ImagesScreen extends StatelessWidget {
 
   ListView _buildOptions() => ListView.separated(
     itemCount: 2,
+    padding: .zero,
     shrinkWrap: true,
-    padding: EdgeInsets.zero,
     separatorBuilder: (_, _) => const Divider(height: 1),
     itemBuilder: (context, index) => index == 0
         ? _buildItemOption(

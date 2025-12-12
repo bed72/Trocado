@@ -5,7 +5,7 @@ import 'package:trocado/modules/core/core.dart';
 
 import 'package:trocado/modules/onboarding/presentation/widgets/step_title_widget.dart';
 import 'package:trocado/modules/onboarding/presentation/widgets/step_description_widget.dart';
-import 'package:trocado/modules/onboarding/presentation/widgets/profile/footer_profile_widget.dart';
+import 'package:trocado/modules/onboarding/presentation/widgets/forms/profile_form_widget.dart';
 import 'package:trocado/modules/onboarding/presentation/widgets/step_navigation_buttons_widget.dart';
 
 class OnboardingStepProfileScreen extends StatefulWidget {
@@ -40,6 +40,7 @@ class _OnboardingStepProfileScreenState
   @override
   void initState() {
     super.initState();
+
     _hideButtons = false;
   }
 
@@ -56,19 +57,22 @@ class _OnboardingStepProfileScreenState
                 child: Center(
                   child: SingleChildScrollView(
                     padding: .only(bottom: context.bottom + 24),
-                    child: _buildContent(context),
+                    child: _buildContent(),
                   ),
                 ),
               ),
 
-              AnimatedSlide(
-                curve: Curves.decelerate,
-                duration: const Duration(milliseconds: 300),
-                offset: _hideButtons ? const Offset(0, 1) : .zero,
-                child: AnimatedOpacity(
-                  opacity: _hideButtons ? 0 : 1,
+              KeyboardVisibilityWidget(
+                onChanged: _handleKeyboardVisibility,
+                child: AnimatedSlide(
+                  curve: Curves.decelerate,
                   duration: const Duration(milliseconds: 300),
-                  child: _buildButtons(),
+                  offset: _hideButtons ? const Offset(0, 1) : .zero,
+                  child: AnimatedOpacity(
+                    opacity: _hideButtons ? 0 : 1,
+                    duration: const Duration(milliseconds: 300),
+                    child: _buildButtons(),
+                  ),
                 ),
               ),
             ],
@@ -78,7 +82,7 @@ class _OnboardingStepProfileScreenState
     );
   }
 
-  Column _buildContent(BuildContext context) => Column(
+  Column _buildContent() => Column(
     spacing: 16.0,
     mainAxisSize: .max,
     children: [
@@ -102,18 +106,14 @@ class _OnboardingStepProfileScreenState
         ),
       ),
 
-      FooterProfileWidget(
-        onSaved: widget.onSaved,
-        isLoading: widget.isLoading,
-        onFocusChanged: _onInputFocusChanged,
-      ),
+      ProfileFormWidget(onSaved: widget.onSaved, isLoading: widget.isLoading),
     ],
   );
 
   StepNavigationButtonsWidget _buildButtons() =>
       StepNavigationButtonsWidget(goBack: widget.goBack, goNext: widget.goNext);
 
-  void _onInputFocusChanged(bool hasFocus) async {
-    setState(() => _hideButtons = hasFocus);
+  void _handleKeyboardVisibility(bool value) {
+    setState(() => _hideButtons = value);
   }
 }

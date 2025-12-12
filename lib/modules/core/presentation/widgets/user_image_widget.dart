@@ -11,25 +11,24 @@ import 'package:trocado/modules/core/presentation/extensions/context_extension.d
 import 'package:trocado/modules/core/presentation/widgets/skeletons/skeleton_widget.dart';
 
 class UserImageWidget extends StatelessWidget {
-  final VoidCallback onEdit;
   final String? resource;
   final IconData? iconEmpty;
   final IconData? iconOnEdit;
+  final VoidCallback? onEdit;
 
   const UserImageWidget({
     super.key,
-    required this.onEdit,
+    this.onEdit,
     this.resource,
     this.iconEmpty,
     this.iconOnEdit,
   });
 
-  factory UserImageWidget.empty({required VoidCallback onEdit}) =>
-      UserImageWidget(
-        onEdit: onEdit,
-        iconOnEdit: LucideIcons.camera,
-        iconEmpty: LucideIcons.userRound,
-      );
+  factory UserImageWidget.empty({VoidCallback? onEdit}) => UserImageWidget(
+    onEdit: onEdit,
+    iconOnEdit: LucideIcons.camera,
+    iconEmpty: LucideIcons.userRound,
+  );
 
   @override
   Widget build(BuildContext context) {

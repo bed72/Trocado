@@ -5,23 +5,25 @@ import 'package:trocado/modules/core/core.dart';
 
 import 'package:trocado/modules/onboarding/presentation/widgets/step_button_widget.dart';
 
-class FooterProfileWidget extends StatefulWidget {
+class WalletFormWidget extends StatefulWidget {
   final bool isLoading;
   final ValueChanged<String>? onSaved;
+  final VoidCallback navigateToCaculator;
   final ValueChanged<bool>? onFocusChanged;
 
-  const FooterProfileWidget({
+  const WalletFormWidget({
     super.key,
     required this.isLoading,
+    required this.navigateToCaculator,
     this.onSaved,
     this.onFocusChanged,
   });
 
   @override
-  State<FooterProfileWidget> createState() => _FooterProfileWidgetState();
+  State<WalletFormWidget> createState() => _WalletFormWidgetState();
 }
 
-class _FooterProfileWidgetState extends State<FooterProfileWidget> {
+class _WalletFormWidgetState extends State<WalletFormWidget> {
   late bool _enabled;
   late bool _shouldShake;
   late bool _mustShowHelper;
@@ -65,15 +67,18 @@ class _FooterProfileWidgetState extends State<FooterProfileWidget> {
           ShakeWidget(
             offset: 2,
             shake: _shouldShake,
-            child: TextFieldWidget(
-              focus: _focus,
-              textAlign: .center,
-              inputAction: .done,
-              keyboardType: .name,
-              controller: _controller,
-              onSubmitted: widget.onSaved,
-              label: 'Seu nome ou apelido',
-              helperWidget: _buildAnimatedHelper(),
+            child: GestureDetector(
+              onTap: widget.navigateToCaculator,
+              child: TextFieldWidget(
+                focus: _focus,
+                absorbing: true,
+                label: 'R\$ 0,0',
+                inputAction: .done,
+                keyboardType: .name,
+                controller: _controller,
+                onSubmitted: widget.onSaved,
+                helperWidget: _buildAnimatedHelper(),
+              ),
             ),
           ),
 

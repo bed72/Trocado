@@ -85,6 +85,13 @@ final class RoutesConstant {
     regex: RegExp(r'^/settings$'),
   );
 
+  static final calculator = RoutesConstant._(
+    auth: true,
+    path: '/calculator',
+    name: 'calculator-route',
+    regex: RegExp(r'^/calculator$'),
+  );
+
   static final categories = RoutesConstant._(
     auth: true,
     path: '/categories',
@@ -120,6 +127,13 @@ final class RoutesConstant {
     regex: RegExp(r'^/onboarding/step/theme$'),
   );
 
+  static final onboardingStepWallet = RoutesConstant._(
+    auth: false,
+    path: '/onboarding/step/wallet',
+    name: 'onboarding-step-wallet-route',
+    regex: RegExp(r'^/onboarding/step/wallet$'),
+  );
+
   static final onboardingStepProfile = RoutesConstant._(
     auth: false,
     path: '/onboarding/step/profile',
@@ -152,12 +166,14 @@ final class RoutesConstant {
     reports,
     wallets,
     settings,
+    calculator,
     categories,
     onboarding,
     transactions,
     allTransaction,
     typeTransaction,
     onboardingStepTheme,
+    onboardingStepWallet,
     onboardingStepProfile,
     recurringTransactions,
   ];

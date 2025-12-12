@@ -1,6 +1,7 @@
 import 'package:trocado/main.dart';
 
 import 'package:trocado/modules/core/core.dart';
+import 'package:trocado/modules/calculator/calculator.dart';
 
 Future<void> ensureInitialized() async {
   provideStores();
@@ -9,6 +10,8 @@ Future<void> ensureInitialized() async {
   provideResources();
   provideDatasources();
   provideRepositories();
+
+  providesCalculator();
 
   await _ensureInitialized();
 }

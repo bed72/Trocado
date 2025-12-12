@@ -62,7 +62,7 @@ class ButtonWidget extends StatelessWidget {
     child: CircularProgressIndicatorWidget(
       color: context.isDark
           ? context.colors.onPrimaryContainer
-          : context.colors.primary,
+          : context.colors.onPrimary,
     ),
   );
 

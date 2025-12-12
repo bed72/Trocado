@@ -73,6 +73,7 @@ export 'presentation/widgets/images/image_widget.dart';
 export 'presentation/widgets/buttons/button_widget.dart';
 export 'presentation/widgets/fields/text_field_widget.dart';
 export 'presentation/widgets/skeletons/skeleton_widget.dart';
+export 'presentation/widgets/keyboard_visibility_widget.dart';
 export 'presentation/widgets/fields/text_form_field_widget.dart';
 export 'presentation/widgets/circular_progress_indicator_widget.dart';
 

@@ -3,6 +3,8 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 
 import 'package:trocado/modules/core/core.dart';
 import 'package:trocado/modules/images/images.dart';
+
+import 'package:trocado/modules/onboarding/main/onboarding_step_wallet_location.dart';
 import 'package:trocado/modules/onboarding/presentation/screens/onboarding_step_profile_screen.dart';
 
 final class OnboardingStepProfileLocation extends Location {
@@ -16,12 +18,17 @@ final class OnboardingStepProfileLocation extends Location {
     return Observer(
       builder: (_) => OnboardingStepProfileScreen(
         goBack: context.pop,
-        goNext: () {},
         isLoading: store.isLoading,
         resource: store.user.image,
         onEdit: () => context.navigate(ImagesLocation()),
-        onSaved: (name) async =>
-            await store.insert(UserDto(name: name, image: store.user.image)),
+        goNext: () => context.navigate(OnboardingStepWalletLocation()),
+        onSaved: (name) async {
+          await store
+              .insert(UserDto(name: name, image: store.user.image))
+              .whenComplete(
+                () => context.navigate(OnboardingStepWalletLocation()),
+              );
+        },
       ),
     );
   };
