@@ -44,7 +44,7 @@ final class CalculatorRepository implements ICalculatorRepository {
       output.add(ops.removeLast());
     }
 
-    return _evalRPN(output);
+    return _eval(output);
   }
 
   List<String> _tokenize(String expr) {
@@ -72,7 +72,7 @@ final class CalculatorRepository implements ICalculatorRepository {
 
   bool _isNumber(String s) => double.tryParse(s) != null;
 
-  double _evalRPN(List<String> rpn) {
+  double _eval(List<String> rpn) {
     final stack = <double>[];
 
     for (final token in rpn) {
