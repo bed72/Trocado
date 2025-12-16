@@ -6,7 +6,7 @@ import 'package:trocado/modules/calculator/data/repositories/calculator_reposito
 
 import 'package:trocado/modules/calculator/domain/repositories/interface_calculator_repository.dart';
 
-void providesCalculator() {
+void calculatorProvider() {
   provider
     ..registerFactory<ICalculatorRepository>(CalculatorRepository.new)
     ..registerFactory<CalculatorStore>(

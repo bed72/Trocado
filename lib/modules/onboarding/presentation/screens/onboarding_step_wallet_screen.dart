@@ -5,19 +5,22 @@ import 'package:trocado/modules/core/core.dart';
 
 import 'package:trocado/modules/onboarding/presentation/widgets/step_title_widget.dart';
 import 'package:trocado/modules/onboarding/presentation/widgets/step_description_widget.dart';
-import 'package:trocado/modules/onboarding/presentation/widgets/step_box_decoration_widget.dart';
 import 'package:trocado/modules/onboarding/presentation/widgets/forms/wallet_form_widget.dart';
+import 'package:trocado/modules/onboarding/presentation/widgets/step_box_decoration_widget.dart';
 import 'package:trocado/modules/onboarding/presentation/widgets/step_navigation_buttons_widget.dart';
 
 class OnboardingStepWalletScreen extends StatefulWidget {
+  final String amount;
+  final VoidCallback navigateToCaculator;
+
   final VoidCallback goBack;
   final VoidCallback goNext;
-  final VoidCallback navigateToCaculator;
 
   const OnboardingStepWalletScreen({
     super.key,
     required this.goBack,
     required this.goNext,
+    required this.amount,
     required this.navigateToCaculator,
   });
 
@@ -35,11 +38,6 @@ class _OnboardingStepWalletScreenState
     super.initState();
 
     _hideButtons = false;
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 
   @override
@@ -97,6 +95,7 @@ class _OnboardingStepWalletScreenState
       WalletFormWidget(
         onSaved: (_) {},
         isLoading: false,
+        amount: widget.amount,
         navigateToCaculator: widget.navigateToCaculator,
       ),
     ],

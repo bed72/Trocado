@@ -2,16 +2,18 @@ import 'package:trocado/main.dart';
 
 import 'package:trocado/modules/core/core.dart';
 import 'package:trocado/modules/calculator/calculator.dart';
+import 'package:trocado/modules/onboarding/onboarding.dart';
 
 Future<void> ensureInitialized() async {
-  provideStores();
-  provideClients();
-  provideExternals();
-  provideResources();
-  provideDatasources();
-  provideRepositories();
+  storeProvider();
+  clientProvider();
+  externalProvider();
+  resourceProvider();
+  datasourceProvider();
+  repositoryProvider();
 
-  providesCalculator();
+  calculatorProvider();
+  onboardingProvider();
 
   await _ensureInitialized();
 }

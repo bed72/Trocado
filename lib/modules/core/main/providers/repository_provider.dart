@@ -14,7 +14,7 @@ import 'package:trocado/modules/core/domain/repositories/interface_user_reposito
 import 'package:trocado/modules/core/domain/repositories/interface_image_repository.dart';
 import 'package:trocado/modules/core/domain/repositories/interface_storage_repository.dart';
 
-void provideRepositories() {
+void repositoryProvider() {
   provider
     ..registerLazySingleton<IUserRepository>(
       () => UserRepository(

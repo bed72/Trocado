@@ -7,14 +7,17 @@ import 'package:trocado/modules/onboarding/presentation/widgets/step_button_widg
 
 class WalletFormWidget extends StatefulWidget {
   final bool isLoading;
-  final ValueChanged<String>? onSaved;
   final VoidCallback navigateToCaculator;
+
+  final String? amount;
+  final ValueChanged<String>? onSaved;
 
   const WalletFormWidget({
     super.key,
     required this.isLoading,
     required this.navigateToCaculator,
     this.onSaved,
+    this.amount,
   });
 
   @override

@@ -12,72 +12,72 @@ abstract class CalculatorStoreBase with Store {
     : _repository = repository;
 
   @observable
-  String preview = '...';
+  String amount = '';
 
   @observable
-  String expression = '';
+  String preview = '...';
 
   @action
   void onKeyTap(String key) => switch (key) {
     '✓' => null,
     'AC' => clear(),
     'DEL' => delete(),
-    '=' => applyResult(),
+    '=' => applyresponse(),
     '()' => toggleParenthesis(),
     _ => append(key),
   };
 
   @action
   void clear() {
-    expression = '';
+    amount = '';
     preview = '...';
   }
 
   @action
   void delete() {
-    if (expression.isEmpty) return;
+    if (amount.isEmpty) return;
 
-    expression = expression.substring(0, expression.length - 1);
+    amount = amount.substring(0, amount.length - 1);
     updatePreview();
   }
 
   @action
   void append(String value) {
-    expression += value;
+    amount += value;
     updatePreview();
   }
 
   @action
   void toggleParenthesis() {
-    final opens = '('.allMatches(expression).length;
-    final closes = ')'.allMatches(expression).length;
+    final opens = '('.allMatches(amount).length;
+    final closes = ')'.allMatches(amount).length;
 
-    expression += opens == closes ? '(' : ')';
+    amount += opens == closes ? '(' : ')';
     updatePreview();
   }
 
   @action
-  void applyResult() {
-    if (expression.isEmpty) return;
+  void applyresponse() {
+    if (amount.isEmpty) return;
 
-    final result = _repository(expression);
+    final response = _repository(amount);
 
-    if (result.isNaN) return;
+    if (response.isNaN) return;
 
-    expression = _format(result);
-    preview = expression;
+    amount = _format(response);
+    preview = amount;
   }
 
   @action
   void updatePreview() {
-    if (expression.isEmpty) {
+    if (amount.isEmpty) {
       preview = '...';
       return;
     }
 
-    final result = _repository(expression);
+    final response = _repository(amount);
 
-    preview = result.isNaN ? expression : _format(result);
+    preview = response.isNaN ? amount : _format(response);
   }
 
   String _format(double value) => value.toString().endsWith('.0')

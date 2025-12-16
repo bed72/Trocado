@@ -1,14 +1,14 @@
 export 'main/core_location.dart';
 
-export 'data/mapper/mapper.dart';
-export 'data/dtos/user_dto.dart';
-
 export 'main/providers/store_provider.dart';
 export 'main/providers/client_provider.dart';
 export 'main/providers/external_provider.dart';
 export 'main/providers/resource_provider.dart';
 export 'main/providers/datasource_provider.dart';
 export 'main/providers/repository_provider.dart';
+
+export 'data/mapper/mapper.dart';
+export 'data/dtos/user_dto.dart';
 
 export 'data/repositories/user_repository.dart';
 export 'data/repositories/storage_repository.dart';

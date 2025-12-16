@@ -15,7 +15,7 @@ import 'package:trocado/modules/core/infrastructure/datasources/local/image_data
 import 'package:trocado/modules/core/infrastructure/datasources/local/storage_datasource.dart';
 import 'package:trocado/modules/core/infrastructure/datasources/local/database_datasource.dart';
 
-void provideDatasources() {
+void datasourceProvider() {
   provider
     ..registerLazySingleton<IImageDatasource>(
       () => ImageDatasource(client: ImagePicker()),

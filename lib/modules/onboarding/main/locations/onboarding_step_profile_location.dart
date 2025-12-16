@@ -4,7 +4,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:trocado/modules/core/core.dart';
 import 'package:trocado/modules/images/images.dart';
 
-import 'package:trocado/modules/onboarding/main/onboarding_step_wallet_location.dart';
+import 'package:trocado/modules/onboarding/main/locations/onboarding_step_wallet_location.dart';
 import 'package:trocado/modules/onboarding/presentation/screens/onboarding_step_profile_screen.dart';
 
 final class OnboardingStepProfileLocation extends Location {

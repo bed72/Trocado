@@ -2,6 +2,6 @@ import 'package:trocado/main.dart';
 
 import 'package:trocado/modules/core/infrastructure/resources/loggers/logger.dart';
 
-void provideResources() {
+void resourceProvider() {
   provider.registerLazySingleton<ILogger>(Logger.new);
 }

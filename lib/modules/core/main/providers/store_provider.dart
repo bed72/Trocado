@@ -11,7 +11,7 @@ import 'package:trocado/modules/core/domain/repositories/interface_user_reposito
 import 'package:trocado/modules/core/domain/repositories/interface_image_repository.dart';
 import 'package:trocado/modules/core/domain/repositories/interface_storage_repository.dart';
 
-void provideStores() {
+void storeProvider() {
   provider
     ..registerLazySingleton<BottomBarStore>(BottomBarStore.new)
     ..registerLazySingleton<ThemeStore>(

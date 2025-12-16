@@ -27,21 +27,21 @@ mixin _$CalculatorStore on CalculatorStoreBase, Store {
     });
   }
 
-  late final _$expressionAtom = Atom(
-    name: 'CalculatorStoreBase.expression',
+  late final _$amountAtom = Atom(
+    name: 'CalculatorStoreBase.amount',
     context: context,
   );
 
   @override
-  String get expression {
-    _$expressionAtom.reportRead();
-    return super.expression;
+  String get amount {
+    _$amountAtom.reportRead();
+    return super.amount;
   }
 
   @override
-  set expression(String value) {
-    _$expressionAtom.reportWrite(value, super.expression, () {
-      super.expression = value;
+  set amount(String value) {
+    _$amountAtom.reportWrite(value, super.amount, () {
+      super.amount = value;
     });
   }
 
@@ -111,12 +111,12 @@ mixin _$CalculatorStore on CalculatorStoreBase, Store {
   }
 
   @override
-  void applyResult() {
+  void applyresponse() {
     final _$actionInfo = _$CalculatorStoreBaseActionController.startAction(
-      name: 'CalculatorStoreBase.applyResult',
+      name: 'CalculatorStoreBase.applyresponse',
     );
     try {
-      return super.applyResult();
+      return super.applyresponse();
     } finally {
       _$CalculatorStoreBaseActionController.endAction(_$actionInfo);
     }
@@ -138,7 +138,7 @@ mixin _$CalculatorStore on CalculatorStoreBase, Store {
   String toString() {
     return '''
 preview: ${preview},
-expression: ${expression}
+amount: ${amount}
     ''';
   }
 }
