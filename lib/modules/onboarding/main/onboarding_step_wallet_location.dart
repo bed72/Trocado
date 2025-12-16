@@ -10,10 +10,14 @@ final class OnboardingStepWalletLocation extends Location {
   String get path => RoutesConstant.onboardingStepWallet.path;
 
   @override
-  LocationBuilder? get builder =>
-      (context) => OnboardingStepWalletScreen(
-        goBack: context.pop,
-        goNext: () => context.navigate(CoreLocation(), clearStack: true),
-        navigateToCaculator: () => context.navigate(CalculatorLocation()),
-      );
+  LocationBuilder? get builder => (context) {
+    final store = context.get<CalculatorStore>();
+
+    return OnboardingStepWalletScreen(
+      store: store,
+      goBack: context.pop,
+      goNext: () => context.navigate(CoreLocation(), clearStack: true),
+      navigateToCaculator: () => context.navigate(CalculatorLocation()),
+    );
+  };
 }

@@ -17,7 +17,6 @@ class CalculatorScreen extends StatefulWidget {
 }
 
 class _CalculatorScreenState extends State<CalculatorScreen> {
-  late final FocusNode _focus;
   late final ReactionDisposer _disposer;
   late final TextEditingController _controller;
 
@@ -25,7 +24,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   void initState() {
     super.initState();
 
-    _focus = FocusNode();
     _controller = TextEditingController();
 
     _disposer = reaction<String>((_) => widget.store.expression, (value) {
@@ -39,7 +37,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   void dispose() {
     _disposer();
 
-    _focus.dispose();
     _controller.dispose();
 
     super.dispose();
@@ -58,7 +55,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           crossAxisAlignment: .start,
           children: [
             TextFieldWidget(
-              focus: _focus,
               label: 'R\$ 0',
               absorbing: true,
               controller: _controller,
@@ -78,7 +74,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
               onKeyTap: (key) {
                 widget.store.onKeyTap(key);
 
-                if (key == '✓') _focus.unfocus();
+                if (key == '✓') context.pop();
               },
             ),
           ],

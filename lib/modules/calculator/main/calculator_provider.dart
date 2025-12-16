@@ -8,8 +8,8 @@ import 'package:trocado/modules/calculator/domain/repositories/interface_calcula
 
 void providesCalculator() {
   provider
-    ..registerLazySingleton<ICalculatorRepository>(CalculatorRepository.new)
-    ..registerLazySingleton<CalculatorStore>(
+    ..registerFactory<ICalculatorRepository>(CalculatorRepository.new)
+    ..registerFactory<CalculatorStore>(
       () => CalculatorStore(repository: provider.get<ICalculatorRepository>()),
     );
 }

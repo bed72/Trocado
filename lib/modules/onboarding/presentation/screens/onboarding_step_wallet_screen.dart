@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:trocado/modules/core/core.dart';
+import 'package:trocado/modules/calculator/calculator.dart';
 
 import 'package:trocado/modules/onboarding/presentation/widgets/step_title_widget.dart';
 import 'package:trocado/modules/onboarding/presentation/widgets/step_description_widget.dart';
@@ -10,12 +11,15 @@ import 'package:trocado/modules/onboarding/presentation/widgets/forms/wallet_for
 import 'package:trocado/modules/onboarding/presentation/widgets/step_navigation_buttons_widget.dart';
 
 class OnboardingStepWalletScreen extends StatefulWidget {
+  final CalculatorStore store;
+
   final VoidCallback goBack;
   final VoidCallback goNext;
   final VoidCallback navigateToCaculator;
 
   const OnboardingStepWalletScreen({
     super.key,
+    required this.store,
     required this.goBack,
     required this.goNext,
     required this.navigateToCaculator,
@@ -33,7 +37,13 @@ class _OnboardingStepWalletScreenState
   @override
   void initState() {
     super.initState();
+
     _hideButtons = false;
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   @override
@@ -91,6 +101,7 @@ class _OnboardingStepWalletScreenState
       WalletFormWidget(
         onSaved: (_) {},
         isLoading: false,
+        store: widget.store,
         onFocusChanged: (_) {},
         navigateToCaculator: widget.navigateToCaculator,
       ),
