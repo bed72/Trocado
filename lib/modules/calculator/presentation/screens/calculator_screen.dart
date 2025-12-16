@@ -62,7 +62,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
             Observer(
               builder: (_) => Text(
-                'Valor: ${widget.store.preview ?? widget.store.expression}',
+                'Valor: ${widget.store.preview}',
                 style: context.typography.bodyLarge?.copyWith(
                   fontWeight: .w600,
                   color: context.colors.outline,

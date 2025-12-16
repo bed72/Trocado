@@ -2,25 +2,19 @@ import 'package:mobx/mobx.dart';
 import 'package:flutter/material.dart';
 
 import 'package:trocado/modules/core/core.dart';
-import 'package:trocado/modules/calculator/calculator.dart';
 
 import 'package:trocado/modules/onboarding/presentation/widgets/step_button_widget.dart';
 
 class WalletFormWidget extends StatefulWidget {
-  final CalculatorStore store;
-
   final bool isLoading;
   final ValueChanged<String>? onSaved;
   final VoidCallback navigateToCaculator;
-  final ValueChanged<bool>? onFocusChanged;
 
   const WalletFormWidget({
     super.key,
-    required this.store,
     required this.isLoading,
     required this.navigateToCaculator,
     this.onSaved,
-    this.onFocusChanged,
   });
 
   @override
@@ -43,24 +37,16 @@ class _WalletFormWidgetState extends State<WalletFormWidget> {
     _enabled = false;
     _shouldShake = false;
 
-    _amountFocus = FocusNode()..addListener(_handleFocus);
+    _amountFocus = FocusNode();
     _amountController = TextEditingController()
       ..addListener(_handleInteractions);
-
-    _disposer = reaction<String>((_) => widget.store.expression, (value) {
-      if (_amountController.text == value) return;
-
-      _amountController.text = value;
-    });
   }
 
   @override
   void dispose() {
     _disposer();
 
-    _amountFocus
-      ..removeListener(_handleFocus)
-      ..dispose();
+    _amountFocus.dispose();
 
     _amountController
       ..removeListener(_handleInteractions)
@@ -91,6 +77,9 @@ class _WalletFormWidgetState extends State<WalletFormWidget> {
     );
   }
 
+  StepButtonWidget _buildDeactivateButton() =>
+      StepButtonWidget(label: 'Salvar carteira');
+
   StepButtonWidget _buildActivateButton() => StepButtonWidget(
     label: 'Salvar carteira',
     loading: widget.isLoading,
@@ -106,13 +95,6 @@ class _WalletFormWidgetState extends State<WalletFormWidget> {
     onSubmitted: widget.onSaved,
     controller: _amountController,
   );
-
-  StepButtonWidget _buildDeactivateButton() =>
-      StepButtonWidget(label: 'Salvar carteira');
-
-  void _handleFocus() async {
-    widget.onFocusChanged?.call(_amountFocus.hasFocus);
-  }
 
   void _handleInteractions() {
     setState(() => _enabled = _amountController.text.length > 2);

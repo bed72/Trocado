@@ -37,7 +37,7 @@ class OnboardingScreen extends StatelessWidget {
                 StepTitleWidget(value: 'Trocado'),
                 StepDescriptionWidget(
                   value:
-                      'Organize sua vida financeira de um jeito simples, inteligente e compartilhado.',
+                      'Organize sua vida financeira de um jeito simples e inteligente.',
                 ),
                 const SizedBox(height: 16.0),
                 StepButtonWidget(

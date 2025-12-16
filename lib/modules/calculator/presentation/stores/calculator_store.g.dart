@@ -15,13 +15,13 @@ mixin _$CalculatorStore on CalculatorStoreBase, Store {
   );
 
   @override
-  String? get preview {
+  String get preview {
     _$previewAtom.reportRead();
     return super.preview;
   }
 
   @override
-  set preview(String? value) {
+  set preview(String value) {
     _$previewAtom.reportWrite(value, super.preview, () {
       super.preview = value;
     });

@@ -12,7 +12,7 @@ abstract class CalculatorStoreBase with Store {
     : _repository = repository;
 
   @observable
-  String? preview;
+  String preview = '...';
 
   @observable
   String expression = '';
@@ -30,7 +30,7 @@ abstract class CalculatorStoreBase with Store {
   @action
   void clear() {
     expression = '';
-    preview = null;
+    preview = '...';
   }
 
   @action
@@ -65,19 +65,19 @@ abstract class CalculatorStoreBase with Store {
     if (result.isNaN) return;
 
     expression = _format(result);
-    preview = null;
+    preview = expression;
   }
 
   @action
   void updatePreview() {
     if (expression.isEmpty) {
-      preview = null;
+      preview = '...';
       return;
     }
 
     final result = _repository(expression);
 
-    preview = result.isNaN ? null : _format(result);
+    preview = result.isNaN ? expression : _format(result);
   }
 
   String _format(double value) => value.toString().endsWith('.0')
