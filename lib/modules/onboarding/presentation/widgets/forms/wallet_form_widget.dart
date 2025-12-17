@@ -52,7 +52,7 @@ class _WalletFormWidgetState extends State<WalletFormWidget> {
       child: Column(
         spacing: 16.0,
         children: [
-          ShakeWidget(
+          ShakeAnimation(
             offset: 2,
             shake: _shouldShake,
             child: GestureDetector(

@@ -55,10 +55,8 @@ class _OnboardingStepWalletScreenState
                 ),
               ),
 
-              AnimatedSlide(
-                curve: Curves.decelerate,
-                duration: const Duration(milliseconds: 300),
-                offset: _hideButtons ? const Offset(0, 1) : .zero,
+              SlideAnimation(
+                condition: _hideButtons,
                 child: AnimatedOpacity(
                   opacity: _hideButtons ? 0 : 1,
                   duration: const Duration(milliseconds: 300),

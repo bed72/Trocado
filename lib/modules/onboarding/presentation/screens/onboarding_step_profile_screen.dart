@@ -11,7 +11,7 @@ import 'package:trocado/modules/onboarding/presentation/widgets/step_description
 import 'package:trocado/modules/onboarding/presentation/widgets/forms/profile_form_widget.dart';
 import 'package:trocado/modules/onboarding/presentation/widgets/step_navigation_buttons_widget.dart';
 
-class OnboardingStepProfileScreen extends StatefulWidget {
+class OnboardingStepProfileScreen extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback goBack;
   final VoidCallback goNext;
@@ -26,22 +26,6 @@ class OnboardingStepProfileScreen extends StatefulWidget {
   });
 
   @override
-  State<OnboardingStepProfileScreen> createState() =>
-      _OnboardingStepProfileScreenState();
-}
-
-class _OnboardingStepProfileScreenState
-    extends State<OnboardingStepProfileScreen> {
-  late bool _hideButtons;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _hideButtons = false;
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
@@ -54,23 +38,20 @@ class _OnboardingStepProfileScreenState
                 child: Center(
                   child: SingleChildScrollView(
                     padding: .only(bottom: context.bottom + 24),
-                    child: _buildContent(),
+                    child: _buildContent(context),
                   ),
                 ),
               ),
 
-              KeyboardVisibilityWidget(
-                onChanged: _handleKeyboardVisibility,
-                child: AnimatedSlide(
-                  curve: Curves.decelerate,
-                  duration: const Duration(milliseconds: 300),
-                  offset: _hideButtons ? const Offset(0, 1) : .zero,
-                  child: AnimatedOpacity(
-                    opacity: _hideButtons ? 0 : 1,
-                    duration: const Duration(milliseconds: 300),
+              Observer(
+                builder: (context) {
+                  final store = context.get<OnboardingStore>();
+
+                  return SlideAnimation(
+                    condition: store.user.isLoading,
                     child: _buildButtons(),
-                  ),
-                ),
+                  );
+                },
               ),
             ],
           ),
@@ -79,7 +60,7 @@ class _OnboardingStepProfileScreenState
     );
   }
 
-  Column _buildContent() => Column(
+  Column _buildContent(BuildContext context) => Column(
     spacing: 16.0,
     mainAxisSize: .max,
     children: [
@@ -88,7 +69,7 @@ class _OnboardingStepProfileScreenState
           final store = context.get<OnboardingStore>();
 
           return UserImageWidget(
-            onEdit: widget.onEdit,
+            onEdit: onEdit,
             iconOnEdit: LucideIcons.pencil,
             resource: store.user.user.image,
             iconEmpty: LucideIcons.userRound,
@@ -109,14 +90,10 @@ class _OnboardingStepProfileScreenState
         ),
       ),
 
-      ProfileFormWidget(navigateToWallet: widget.navigateToWallet),
+      ProfileFormWidget(navigateToWallet: navigateToWallet),
     ],
   );
 
   StepNavigationButtonsWidget _buildButtons() =>
-      StepNavigationButtonsWidget(goBack: widget.goBack, goNext: widget.goNext);
-
-  void _handleKeyboardVisibility(bool value) {
-    setState(() => _hideButtons = value);
-  }
+      StepNavigationButtonsWidget(goBack: goBack, goNext: goNext);
 }

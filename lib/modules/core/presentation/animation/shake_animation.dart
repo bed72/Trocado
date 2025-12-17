@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:trocado/modules/core/domain/constant/animation_constant.dart';
 
-class ShakeWidget extends StatefulWidget {
+class ShakeAnimation extends StatefulWidget {
   final Widget child;
   final bool shake;
   final int seconds;
   final double offset;
   final ShakeAnimationConstant direction;
 
-  const ShakeWidget({
+  const ShakeAnimation({
     super.key,
     required this.child,
     required this.shake,
@@ -18,10 +18,10 @@ class ShakeWidget extends StatefulWidget {
   });
 
   @override
-  State<ShakeWidget> createState() => _ShakeWidgetState();
+  State<ShakeAnimation> createState() => _ShakeAnimationState();
 }
 
-class _ShakeWidgetState extends State<ShakeWidget>
+class _ShakeAnimationState extends State<ShakeAnimation>
     with SingleTickerProviderStateMixin {
   late Animation<double> _animation;
   late AnimationController _controller;
@@ -58,7 +58,7 @@ class _ShakeWidgetState extends State<ShakeWidget>
   }
 
   @override
-  void didUpdateWidget(covariant ShakeWidget oldWidget) {
+  void didUpdateWidget(covariant ShakeAnimation oldWidget) {
     super.didUpdateWidget(oldWidget);
 
     if (widget.shake && !_controller.isAnimating) {

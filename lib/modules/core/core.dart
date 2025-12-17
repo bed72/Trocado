@@ -57,6 +57,7 @@ export 'presentation/stores/bottom_bar_store.dart';
 export 'presentation/stores/fingerprint_store.dart';
 export 'presentation/stores/notification_store.dart';
 
+export 'presentation/animation/animation.dart';
 export 'presentation/animation/loop_animation.dart';
 export 'presentation/animation/shake_animation.dart';
 export 'presentation/animation/shimmer_animation.dart';

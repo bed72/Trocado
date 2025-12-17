@@ -51,7 +51,7 @@ class _ProfileFormWidgetState extends State<ProfileFormWidget> {
       child: Column(
         spacing: 16.0,
         children: [
-          ShakeWidget(
+          ShakeAnimation(
             offset: 2,
             shake: _shouldShake,
             child: TextFieldWidget(
@@ -71,15 +71,7 @@ class _ProfileFormWidgetState extends State<ProfileFormWidget> {
     );
   }
 
-  AnimatedSwitcher _buildAnimatedHelper() => AnimatedSwitcher(
-    switchInCurve: Curves.easeOutCubic,
-    switchOutCurve: Curves.easeInCubic,
-    duration: const Duration(milliseconds: 300),
-    transitionBuilder: (child, animation) => SizeTransition(
-      axisAlignment: -1.0,
-      sizeFactor: animation,
-      child: child,
-    ),
+  SwicherSizeAnimation _buildAnimatedHelper() => SwicherSizeAnimation(
     child: _mustShowHelper || _shouldShake
         ? _buildHelper(
             _shouldShake

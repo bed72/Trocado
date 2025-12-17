@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:trocado/modules/core/presentation/animation/animation.dart';
+
 import 'package:trocado/modules/core/presentation/extensions/context_extension.dart';
 
 import 'package:trocado/modules/core/presentation/widgets/bounce_widget.dart';
@@ -38,14 +40,7 @@ class ButtonWidget extends StatelessWidget {
     );
   }
 
-  AnimatedSwitcher _buildContent(BuildContext context) => AnimatedSwitcher(
-    switchInCurve: Curves.easeOutCubic,
-    switchOutCurve: Curves.easeInCubic,
-    duration: const Duration(milliseconds: 300),
-    transitionBuilder: (child, animation) => FadeTransition(
-      opacity: animation,
-      child: ScaleTransition(scale: animation, child: child),
-    ),
+  SwicherAnimation _buildContent(BuildContext context) => SwicherAnimation(
     child: (isLoading ?? false) ? _buildLoading(context) : _buildTitle(),
   );
 
