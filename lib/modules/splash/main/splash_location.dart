@@ -15,18 +15,12 @@ final class SplashLocation extends Location {
     final store = context.get<OnboardingStore>();
 
     return Observer(
-      builder: (_) {
-        return SplashScreen(
-          navigateTo: () {
-            context.navigate(
-              store.alreadyDoneOnboarding
-                  ? CoreLocation()
-                  : OnboardingLocation(),
-              clearStack: true,
-            );
-          },
-        );
-      },
+      builder: (_) => SplashScreen(
+        navigateTo: () => context.navigate(
+          OnboardingLocation(), //store.alreadyDoneOnboarding ? CoreLocation() :
+          clearStack: true,
+        ),
+      ),
     );
   };
 }

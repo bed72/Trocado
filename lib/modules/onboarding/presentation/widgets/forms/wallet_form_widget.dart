@@ -1,24 +1,15 @@
-import 'package:mobx/mobx.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 
 import 'package:trocado/modules/core/core.dart';
+import 'package:trocado/modules/onboarding/onboarding.dart';
 
 import 'package:trocado/modules/onboarding/presentation/widgets/step_button_widget.dart';
 
 class WalletFormWidget extends StatefulWidget {
-  final bool isLoading;
   final VoidCallback navigateToCaculator;
 
-  final String? amount;
-  final ValueChanged<String>? onSaved;
-
-  const WalletFormWidget({
-    super.key,
-    required this.isLoading,
-    required this.navigateToCaculator,
-    this.onSaved,
-    this.amount,
-  });
+  const WalletFormWidget({super.key, required this.navigateToCaculator});
 
   @override
   State<WalletFormWidget> createState() => _WalletFormWidgetState();
@@ -27,8 +18,6 @@ class WalletFormWidget extends StatefulWidget {
 class _WalletFormWidgetState extends State<WalletFormWidget> {
   late bool _enabled;
   late bool _shouldShake;
-
-  late final ReactionDisposer _disposer;
 
   late final FocusNode _amountFocus;
   late TextEditingController _amountController;
@@ -47,8 +36,6 @@ class _WalletFormWidgetState extends State<WalletFormWidget> {
 
   @override
   void dispose() {
-    _disposer();
-
     _amountFocus.dispose();
 
     _amountController
@@ -83,20 +70,25 @@ class _WalletFormWidgetState extends State<WalletFormWidget> {
   StepButtonWidget _buildDeactivateButton() =>
       StepButtonWidget(label: 'Salvar carteira');
 
-  StepButtonWidget _buildActivateButton() => StepButtonWidget(
-    label: 'Salvar carteira',
-    loading: widget.isLoading,
-    onTap: () => widget.onSaved?.call(_amountController.text),
-  );
+  StepButtonWidget _buildActivateButton() =>
+      StepButtonWidget(label: 'Salvar carteira', onTap: () {});
 
-  TextFieldWidget _buildAmountInput() => TextFieldWidget(
-    absorbing: true,
-    label: 'R\$ 0,0',
-    inputAction: .done,
-    focus: _amountFocus,
-    keyboardType: .name,
-    onSubmitted: widget.onSaved,
-    controller: _amountController,
+  Observer _buildAmountInput() => Observer(
+    builder: (context) {
+      final store = context.get<OnboardingStore>();
+
+      return TextFieldWidget(
+        absorbing: true,
+        inputAction: .done,
+        focus: _amountFocus,
+        keyboardType: .name,
+        onSubmitted: (_) {},
+        controller: _amountController,
+        label: store.wallet.amount.isEmpty
+            ? 'R\$ 0,0'
+            : 'R\$ ${store.wallet.amount}',
+      );
+    },
   );
 
   void _handleInteractions() {

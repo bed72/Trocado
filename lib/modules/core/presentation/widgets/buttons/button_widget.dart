@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:trocado/modules/core/presentation/extensions/context_extension.dart';
 
 import 'package:trocado/modules/core/presentation/widgets/bounce_widget.dart';
@@ -8,8 +9,8 @@ enum ButtonWidgetType { elevated, outlined }
 
 class ButtonWidget extends StatelessWidget {
   final String? label;
-  final bool? loading;
   final Widget? child;
+  final bool? isLoading;
   final VoidCallback? onTap;
   final ButtonWidgetType type;
 
@@ -18,7 +19,7 @@ class ButtonWidget extends StatelessWidget {
     required this.onTap,
     this.child,
     this.label,
-    this.loading,
+    this.isLoading,
   }) : type = ButtonWidgetType.elevated;
 
   const ButtonWidget.outlined({
@@ -26,7 +27,7 @@ class ButtonWidget extends StatelessWidget {
     required this.onTap,
     this.child,
     this.label,
-    this.loading,
+    this.isLoading,
   }) : type = ButtonWidgetType.outlined;
 
   @override
@@ -45,7 +46,7 @@ class ButtonWidget extends StatelessWidget {
       opacity: animation,
       child: ScaleTransition(scale: animation, child: child),
     ),
-    child: (loading ?? false) ? _buildLoading(context) : _buildTitle(),
+    child: (isLoading ?? false) ? _buildLoading(context) : _buildTitle(),
   );
 
   Row _buildTitle() => Row(
@@ -55,16 +56,15 @@ class ButtonWidget extends StatelessWidget {
     children: [if (child != null) child!, Text(label ?? '')],
   );
 
-  SizedBox _buildLoading(BuildContext context) => SizedBox(
-    key: const ValueKey('loading'),
-    width: 20.0,
-    height: 20.0,
-    child: CircularProgressIndicatorWidget(
-      color: context.isDark
-          ? context.colors.onPrimaryContainer
-          : context.colors.onPrimary,
-    ),
-  );
+  CircularProgressIndicatorWidget _buildLoading(BuildContext context) =>
+      CircularProgressIndicatorWidget(
+        key: const ValueKey('loading'),
+        width: 20.0,
+        height: 20.0,
+        color: context.isDark
+            ? context.colors.onPrimaryContainer
+            : context.colors.onPrimary,
+      );
 
   Widget _buildButton({required BuildContext context, required Widget child}) =>
       switch (type) {

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:trocado/modules/core/core.dart';
+
+import 'package:trocado/modules/onboarding/presentation/stores/onboarding_store.dart';
 
 import 'package:trocado/modules/onboarding/presentation/widgets/step_title_widget.dart';
 import 'package:trocado/modules/onboarding/presentation/widgets/step_description_widget.dart';
@@ -9,23 +12,17 @@ import 'package:trocado/modules/onboarding/presentation/widgets/forms/profile_fo
 import 'package:trocado/modules/onboarding/presentation/widgets/step_navigation_buttons_widget.dart';
 
 class OnboardingStepProfileScreen extends StatefulWidget {
-  final bool isLoading;
   final VoidCallback onEdit;
-
   final VoidCallback goBack;
   final VoidCallback goNext;
-
-  final String? resource;
-  final ValueChanged<String>? onSaved;
+  final VoidCallback navigateToWallet;
 
   const OnboardingStepProfileScreen({
     super.key,
     required this.goBack,
     required this.goNext,
     required this.onEdit,
-    required this.isLoading,
-    this.onSaved,
-    this.resource,
+    required this.navigateToWallet,
   });
 
   @override
@@ -86,11 +83,17 @@ class _OnboardingStepProfileScreenState
     spacing: 16.0,
     mainAxisSize: .max,
     children: [
-      UserImageWidget(
-        onEdit: widget.onEdit,
-        resource: widget.resource,
-        iconOnEdit: LucideIcons.pencil,
-        iconEmpty: LucideIcons.userRound,
+      Observer(
+        builder: (context) {
+          final store = context.get<OnboardingStore>();
+
+          return UserImageWidget(
+            onEdit: widget.onEdit,
+            iconOnEdit: LucideIcons.pencil,
+            resource: store.user.user.image,
+            iconEmpty: LucideIcons.userRound,
+          );
+        },
       ),
 
       const StepTitleWidget(value: 'Como podemos te chamar?'),
@@ -106,7 +109,7 @@ class _OnboardingStepProfileScreenState
         ),
       ),
 
-      ProfileFormWidget(onSaved: widget.onSaved, isLoading: widget.isLoading),
+      ProfileFormWidget(navigateToWallet: widget.navigateToWallet),
     ],
   );
 

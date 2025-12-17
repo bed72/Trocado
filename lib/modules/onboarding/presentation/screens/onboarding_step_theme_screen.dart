@@ -4,6 +4,8 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:trocado/modules/core/core.dart';
 
+import 'package:trocado/modules/onboarding/presentation/stores/onboarding_store.dart';
+
 import 'package:trocado/modules/onboarding/presentation/widgets/step_title_widget.dart';
 import 'package:trocado/modules/onboarding/presentation/widgets/step_button_widget.dart';
 import 'package:trocado/modules/onboarding/presentation/widgets/step_description_widget.dart';
@@ -11,13 +13,11 @@ import 'package:trocado/modules/onboarding/presentation/widgets/step_box_decorat
 import 'package:trocado/modules/onboarding/presentation/widgets/step_navigation_buttons_widget.dart';
 
 class OnboardingStepThemeScreen extends StatelessWidget {
-  final ThemeStore store;
   final VoidCallback goBack;
   final VoidCallback goNext;
 
   const OnboardingStepThemeScreen({
     super.key,
-    required this.store,
     required this.goBack,
     required this.goNext,
   });
@@ -57,18 +57,22 @@ class OnboardingStepThemeScreen extends StatelessWidget {
         const SizedBox(height: 16.0),
 
         Observer(
-          builder: (_) => AnimatedSwitcher(
-            switchInCurve: Curves.easeIn,
-            switchOutCurve: Curves.easeInOut,
-            duration: Duration(milliseconds: 800),
-            child: StepButtonWidget(
-              onTap: () => store.toggle(!store.isDark),
-              key: ValueKey(store.isDark),
-              label: store.isDark
-                  ? 'Mudar para tema claro'
-                  : 'Mudar para tema escuro',
-            ),
-          ),
+          builder: (context) {
+            final store = context.get<OnboardingStore>();
+
+            return AnimatedSwitcher(
+              switchInCurve: Curves.easeIn,
+              switchOutCurve: Curves.easeInOut,
+              duration: Duration(milliseconds: 800),
+              child: StepButtonWidget(
+                onTap: () => store.theme.toggle(!store.theme.isDark),
+                key: ValueKey(store.theme.isDark),
+                label: store.theme.isDark
+                    ? 'Mudar para tema claro'
+                    : 'Mudar para tema escuro',
+              ),
+            );
+          },
         ),
       ],
     ),

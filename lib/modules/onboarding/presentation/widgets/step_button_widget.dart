@@ -5,7 +5,7 @@ import 'package:trocado/modules/core/core.dart';
 class StepButtonWidget extends StatelessWidget {
   final String? label;
   final Widget? child;
-  final bool? loading;
+  final bool? isLoading;
   final VoidCallback? onTap;
 
   const StepButtonWidget({
@@ -13,7 +13,7 @@ class StepButtonWidget extends StatelessWidget {
     this.label,
     this.child,
     this.onTap,
-    this.loading,
+    this.isLoading,
   });
 
   @override
@@ -23,7 +23,7 @@ class StepButtonWidget extends StatelessWidget {
       child: ButtonWidget.elevated(
         onTap: onTap,
         label: label,
-        loading: loading,
+        isLoading: isLoading,
         child: child,
       ),
     );

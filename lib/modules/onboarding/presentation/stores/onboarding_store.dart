@@ -2,6 +2,8 @@ import 'package:mobx/mobx.dart';
 
 import 'package:trocado/modules/core/core.dart';
 
+import 'package:trocado/modules/onboarding/presentation/stores/onboarding_step_wallet_store.dart';
+
 part 'onboarding_store.g.dart';
 
 class OnboardingStore = OnboardingStoreBase with _$OnboardingStore;
@@ -9,11 +11,28 @@ class OnboardingStore = OnboardingStoreBase with _$OnboardingStore;
 abstract class OnboardingStoreBase with Store {
   final IStorageRepository _repository;
 
+  final UserStore _user;
+  final ThemeStore _theme;
+  final OnboardingStepWalletStore _wallet;
+
   @observable
   bool alreadyDoneOnboarding = false;
 
-  OnboardingStoreBase({required IStorageRepository repository})
-    : _repository = repository;
+  UserStore get user => _user;
+
+  ThemeStore get theme => _theme;
+
+  OnboardingStepWalletStore get wallet => _wallet;
+
+  OnboardingStoreBase({
+    required UserStore user,
+    required ThemeStore theme,
+    required IStorageRepository repository,
+    required OnboardingStepWalletStore wallet,
+  }) : _user = user,
+       _theme = theme,
+       _wallet = wallet,
+       _repository = repository;
 
   @action
   Future<void> ensureInitialized() async {

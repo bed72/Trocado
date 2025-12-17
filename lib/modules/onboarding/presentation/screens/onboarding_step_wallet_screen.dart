@@ -10,17 +10,14 @@ import 'package:trocado/modules/onboarding/presentation/widgets/step_box_decorat
 import 'package:trocado/modules/onboarding/presentation/widgets/step_navigation_buttons_widget.dart';
 
 class OnboardingStepWalletScreen extends StatefulWidget {
-  final String amount;
-  final VoidCallback navigateToCaculator;
-
   final VoidCallback goBack;
   final VoidCallback goNext;
+  final VoidCallback navigateToCaculator;
 
   const OnboardingStepWalletScreen({
     super.key,
     required this.goBack,
     required this.goNext,
-    required this.amount,
     required this.navigateToCaculator,
   });
 
@@ -92,12 +89,7 @@ class _OnboardingStepWalletScreenState
             'organizado e pronto pra te ajudar a ver pra onde o dinheiro vai.',
       ),
 
-      WalletFormWidget(
-        onSaved: (_) {},
-        isLoading: false,
-        amount: widget.amount,
-        navigateToCaculator: widget.navigateToCaculator,
-      ),
+      WalletFormWidget(navigateToCaculator: widget.navigateToCaculator),
     ],
   );
 

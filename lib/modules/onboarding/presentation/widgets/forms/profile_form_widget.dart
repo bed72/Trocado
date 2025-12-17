@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:trocado/modules/core/core.dart';
 
+import 'package:trocado/modules/onboarding/presentation/stores/onboarding_store.dart';
 import 'package:trocado/modules/onboarding/presentation/widgets/step_button_widget.dart';
 
 class ProfileFormWidget extends StatefulWidget {
-  final bool isLoading;
-  final ValueChanged<String>? onSaved;
+  final VoidCallback navigateToWallet;
 
-  const ProfileFormWidget({super.key, required this.isLoading, this.onSaved});
+  const ProfileFormWidget({super.key, required this.navigateToWallet});
 
   @override
   State<ProfileFormWidget> createState() => _ProfileFormWidgetState();
@@ -58,9 +59,9 @@ class _ProfileFormWidgetState extends State<ProfileFormWidget> {
               inputAction: .done,
               keyboardType: .name,
               controller: _controller,
-              onSubmitted: widget.onSaved,
               label: 'Seu nome ou apelido',
               helperWidget: _buildAnimatedHelper(),
+              onSubmitted: (_) => _handleSubimit(context),
             ),
           ),
 
@@ -88,10 +89,18 @@ class _ProfileFormWidgetState extends State<ProfileFormWidget> {
         : const SizedBox.shrink(key: ValueKey('empty')),
   );
 
-  StepButtonWidget _buildActivateButton() => StepButtonWidget(
-    label: 'Salvar apelido',
-    loading: widget.isLoading,
-    onTap: () => widget.onSaved?.call(_controller.text),
+  Observer _buildActivateButton() => Observer(
+    builder: (context) {
+      final store = context.get<OnboardingStore>();
+
+      return StepButtonWidget(
+        label: 'Salvar apelido',
+        isLoading: store.user.isLoading,
+        onTap: () async {
+          await _handleSubimit(context);
+        },
+      );
+    },
   );
 
   StepButtonWidget _buildDeactivateButton() =>
@@ -121,5 +130,13 @@ class _ProfileFormWidgetState extends State<ProfileFormWidget> {
       _mustShowHelper =
           _controller.text.isNotEmpty && _controller.text.length < 3;
     });
+  }
+
+  Future<void> _handleSubimit(BuildContext context) async {
+    final store = context.get<OnboardingStore>();
+
+    await store.user
+        .insert(UserDto(name: _controller.text, image: store.user.user.image))
+        .whenComplete(widget.navigateToWallet);
   }
 }
