@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import 'package:trocado/modules/onboarding/presentation/widgets/step_navigation_buttons_widget.dart';
+import 'package:trocado/modules/core/core.dart';
 
 import 'package:trocado/modules/onboarding/presentation/widgets/step_title_widget.dart';
 import 'package:trocado/modules/onboarding/presentation/widgets/step_button_widget.dart';
 import 'package:trocado/modules/onboarding/presentation/widgets/step_description_widget.dart';
 import 'package:trocado/modules/onboarding/presentation/widgets/step_box_decoration_widget.dart';
+import 'package:trocado/modules/onboarding/presentation/widgets/step_navigation_buttons_widget.dart';
 
 class OnboardingStepThemeScreen extends StatelessWidget {
-  final bool isDark;
-  final VoidCallback toggle;
+  final ThemeStore store;
   final VoidCallback goBack;
   final VoidCallback goNext;
 
   const OnboardingStepThemeScreen({
     super.key,
-    required this.isDark,
-    required this.toggle,
+    required this.store,
     required this.goBack,
     required this.goNext,
   });
@@ -56,14 +56,18 @@ class OnboardingStepThemeScreen extends StatelessWidget {
 
         const SizedBox(height: 16.0),
 
-        AnimatedSwitcher(
-          switchInCurve: Curves.easeIn,
-          switchOutCurve: Curves.easeInOut,
-          duration: Duration(milliseconds: 800),
-          child: StepButtonWidget(
-            onTap: toggle,
-            key: ValueKey(isDark),
-            label: isDark ? 'Mudar para tema claro' : 'Mudar para tema escuro',
+        Observer(
+          builder: (_) => AnimatedSwitcher(
+            switchInCurve: Curves.easeIn,
+            switchOutCurve: Curves.easeInOut,
+            duration: Duration(milliseconds: 800),
+            child: StepButtonWidget(
+              onTap: () => store.toggle(!store.isDark),
+              key: ValueKey(store.isDark),
+              label: store.isDark
+                  ? 'Mudar para tema claro'
+                  : 'Mudar para tema escuro',
+            ),
           ),
         ),
       ],

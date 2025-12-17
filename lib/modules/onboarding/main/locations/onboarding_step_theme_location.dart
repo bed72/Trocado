@@ -11,16 +11,12 @@ final class OnboardingStepThemeLocation extends Location {
   String get path => RoutesConstant.onboardingStepTheme.path;
 
   @override
-  LocationBuilder? get builder => (context) {
-    final store = context.get<ThemeStore>();
-
-    return Observer(
-      builder: (_) => OnboardingStepThemeScreen(
-        goBack: context.pop,
-        isDark: store.isDark,
-        toggle: () => store.toggle(!store.isDark),
-        goNext: () => context.navigate(OnboardingStepProfileLocation()),
-      ),
-    );
-  };
+  LocationBuilder? get builder =>
+      (context) => Observer(
+        builder: (_) => OnboardingStepThemeScreen(
+          goBack: context.pop,
+          store: context.get<ThemeStore>(),
+          goNext: () => context.navigate(OnboardingStepProfileLocation()),
+        ),
+      );
 }
