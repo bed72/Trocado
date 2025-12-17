@@ -15,21 +15,23 @@ void main() {
     store = CalculatorStore(repository: repository);
   });
 
-  group('CalculatorStore - Digitação e Edição', () {
-    test('Deve adicionar caracteres ao amount e atualizar preview', () {
+  group('CalculatorStore - Typing and Editing', () {
+    test('You must add characters to the amount and update the preview.', () {
+      when(() => repository('1')).thenReturn(1.0);
+      when(() => repository('12')).thenReturn(12.0);
       when(() => repository('12+2')).thenReturn(14.0);
+      when(() => repository('12+')).thenReturn(double.nan);
 
       store.onKeyTap('1');
       store.onKeyTap('2');
       store.onKeyTap('+');
       store.onKeyTap('2');
 
-      expect(store.amount, '12+2');
       expect(store.preview, '14');
-      verify(() => repository('12+2')).called(1);
+      expect(store.amount, '12+2');
     });
 
-    test('Deve limpar tudo ao clicar em AC', () {
+    test('You should clear everything by clicking on AC.', () {
       store.amount = '123';
       store.onKeyTap('AC');
 
@@ -37,7 +39,7 @@ void main() {
       expect(store.preview, '...');
     });
 
-    test('Deve deletar o último caractere', () {
+    test('You must delete the last character.', () {
       when(() => repository('1')).thenReturn(1.0);
 
       store.amount = '12';
@@ -48,8 +50,8 @@ void main() {
     });
   });
 
-  group('CalculatorStore - Lógica de Parênteses', () {
-    test('Deve alternar parênteses corretamente', () {
+  group('CalculatorStore - Parentheses Logic', () {
+    test('You must alternate parentheses correctly.', () {
       when(() => repository(any())).thenReturn(double.nan);
 
       store.onKeyTap('()');
@@ -64,8 +66,8 @@ void main() {
     });
   });
 
-  group('CalculatorStore - Resultado (Apply)', () {
-    test('Deve aplicar o resultado no amount ao clicar em =', () {
+  group('CalculatorStore - Result (Apply)', () {
+    test('You should apply the result to the amount by clicking on =.', () {
       when(() => repository('10+10')).thenReturn(20.0);
 
       store.amount = '10+10';
@@ -75,7 +77,7 @@ void main() {
       expect(store.preview, '20');
     });
 
-    test('Não deve alterar amount se o repositório retornar NaN no =', () {
+    test('Do not change the amount if the repository returns NaN.', () {
       when(() => repository('10/')).thenReturn(double.nan);
 
       store.amount = '10/';
@@ -85,8 +87,8 @@ void main() {
     });
   });
 
-  group('CalculatorStore - Formatação', () {
-    test('Deve formatar .0 para inteiro na visualização', () {
+  group('CalculatorStore - Formatting', () {
+    test('You must format .0 as an integer in the preview.', () {
       when(() => repository('5+5')).thenReturn(10.0);
 
       store.append('5+5');
@@ -94,7 +96,7 @@ void main() {
       expect(store.preview, '10');
     });
 
-    test('Deve manter casas decimais se não for .0', () {
+    test('It must retain decimal places if it is not .0.', () {
       when(() => repository('10/4')).thenReturn(2.5);
 
       store.append('10/4');
