@@ -33,6 +33,7 @@ abstract final class Themes {
       ),
 
       outlinedButtonRadius: 16.0,
+      outlinedButtonOutlineSchemeColor: .primary,
       outlinedButtonTextStyle: WidgetStatePropertyAll(
         TextStyle(fontSize: 14.0, fontWeight: .w500),
       ),
@@ -79,6 +80,7 @@ abstract final class Themes {
       ),
 
       outlinedButtonRadius: 16.0,
+      outlinedButtonOutlineSchemeColor: .primary,
       outlinedButtonTextStyle: WidgetStatePropertyAll(
         TextStyle(fontSize: 14.0, fontWeight: .w500),
       ),

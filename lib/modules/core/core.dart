@@ -64,6 +64,7 @@ export 'presentation/animation/shimmer_animation.dart';
 
 export 'presentation/widgets/load_widget.dart';
 export 'presentation/widgets/icon_widget.dart';
+export 'presentation/widgets/helper_widget.dart';
 export 'presentation/widgets/switch_widget.dart';
 export 'presentation/widgets/bounce_widget.dart';
 export 'presentation/widgets/app_bar_widget.dart';

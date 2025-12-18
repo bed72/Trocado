@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:trocado/modules/core/core.dart';
 
@@ -18,9 +17,7 @@ class ProfileFormWidget extends StatefulWidget {
 
 class _ProfileFormWidgetState extends State<ProfileFormWidget> {
   late bool _enabled;
-  late bool _shouldShake;
   late bool _mustShowHelper;
-
   late TextEditingController _controller;
 
   @override
@@ -28,7 +25,6 @@ class _ProfileFormWidgetState extends State<ProfileFormWidget> {
     super.initState();
 
     _enabled = false;
-    _shouldShake = false;
     _mustShowHelper = false;
 
     _controller = TextEditingController(text: '')
@@ -46,75 +42,40 @@ class _ProfileFormWidgetState extends State<ProfileFormWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const .symmetric(horizontal: 2.0),
-      child: Column(
-        spacing: 16.0,
-        children: [
-          ShakeAnimation(
-            offset: 2,
-            shake: _shouldShake,
-            child: CollapseTextFormField(
-              // textAlign: .center,
-              inputAction: .done,
-              keyboardType: .name,
-              controller: _controller,
-              hint: 'Seu nome ou apelido',
-              // helperWidget: _buildAnimatedHelper(),
-              // onSubmitted: (_) => _handleSubimit(context),
-            ),
-          ),
+    return Column(
+      spacing: 16.0,
+      children: [
+        TextFieldWidget(
+          inputAction: .done,
+          keyboardType: .name,
+          controller: _controller,
+          hint: 'Seu nome ou apelido',
+          helperWidget: _buildHelper(),
+          onSubmitted: (_) => _handleSubimit(),
+        ),
 
-          _enabled ? _buildActivateButton() : _buildDeactivateButton(),
-        ],
-      ),
+        _buildButton(),
+      ],
     );
   }
 
-  SwicherSizeAnimation _buildAnimatedHelper() => SwicherSizeAnimation(
-    child: _mustShowHelper || _shouldShake
-        ? _buildHelper(
-            _shouldShake
-                ? 'Ops, tente novamente ou deixe para depois'
-                : 'Seu nome deve conter ao menos 3 letras.',
-          )
-        : const SizedBox.shrink(key: ValueKey('empty')),
+  SwicherSizeAnimation _buildHelper() => SwicherSizeAnimation(
+    child: !_mustShowHelper
+        ? const SizedBox.shrink(key: ValueKey('empty'))
+        : HelperWidget(title: 'Seu nome deve conter ao menos 3 letras.'),
   );
 
-  Observer _buildActivateButton() => Observer(
+  Observer _buildButton() => Observer(
     builder: (context) {
       final store = context.get<OnboardingStore>();
 
       return StepButtonWidget(
         label: 'Salvar apelido',
         isLoading: store.user.isLoading,
-        onTap: () async {
-          await _handleSubimit(context);
-        },
+        onTap: !_enabled ? null : () async => await _handleSubimit(),
       );
     },
   );
-
-  StepButtonWidget _buildDeactivateButton() =>
-      StepButtonWidget(label: 'Salvar apelido');
-
-  Row _buildHelper(String title) {
-    final color = context.colors.inverseSurface.withValues(alpha: .72);
-
-    return Row(
-      spacing: 8.0,
-      children: [
-        IconWidget(size: 16.0, color: color, name: LucideIcons.info600),
-        Text(
-          title,
-          style: context.typography.bodyMedium?.copyWith(
-            color: color,
-            fontWeight: .w600,
-          ),
-        ),
-      ],
-    );
-  }
 
   void _handleInteractions() {
     setState(() {
@@ -124,7 +85,9 @@ class _ProfileFormWidgetState extends State<ProfileFormWidget> {
     });
   }
 
-  Future<void> _handleSubimit(BuildContext context) async {
+  Future<void> _handleSubimit() async {
+    hideKeyboard;
+
     final store = context.get<OnboardingStore>();
 
     await store.user

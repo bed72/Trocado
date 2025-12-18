@@ -17,8 +17,8 @@ final class SplashLocation extends Location {
     return Observer(
       builder: (_) => SplashScreen(
         navigateTo: () => context.navigate(
-          OnboardingLocation(), //store.alreadyDoneOnboarding ? CoreLocation() :
-          clearStack: true,
+          store.alreadyDoneOnboarding ? CoreLocation() : OnboardingLocation(),
+          replace: true,
         ),
       ),
     );

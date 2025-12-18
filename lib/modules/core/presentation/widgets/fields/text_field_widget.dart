@@ -1,106 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'package:trocado/modules/core/presentation/animation/animation.dart';
 import 'package:trocado/modules/core/presentation/extensions/context_extension.dart';
 
-class TextFieldWidget extends StatelessWidget {
-  final String hint;
-  final bool? absorbing;
-  final FocusNode? focus;
-  final bool? obscureText;
-  final Widget? helperWidget;
-  final TextAlign? textAlign;
-  final TextInputType? keyboardType;
-  final TextInputAction? inputAction;
-  final ValueChanged<String>? onChanged;
-  final ValueChanged<String>? onSubmitted;
-  final TextEditingController? controller;
-  final List<TextInputFormatter>? inputFormatters;
-
-  const TextFieldWidget({
-    super.key,
-    required this.hint,
-    this.focus,
-    this.onChanged,
-    this.textAlign,
-    this.absorbing,
-    this.controller,
-    this.obscureText,
-    this.inputAction,
-    this.onSubmitted,
-    this.helperWidget,
-    this.keyboardType,
-    this.inputFormatters,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return AbsorbPointer(
-      absorbing: absorbing ?? false,
-      child: TextField(
-        maxLines: 1,
-        cursorWidth: 2.0,
-        focusNode: focus,
-        autocorrect: false,
-        onChanged: onChanged,
-        controller: controller,
-        onSubmitted: onSubmitted,
-        textAlign: textAlign ?? .start,
-        inputFormatters: inputFormatters,
-        obscureText: obscureText ?? false,
-        keyboardType: keyboardType ?? .text,
-        textInputAction: inputAction ?? .next,
-        cursorRadius: const Radius.circular(2.0),
-        decoration: InputDecoration(
-          hintText: hint,
-          errorMaxLines: 1,
-          helperMaxLines: 1,
-          helper: helperWidget,
-          suffix: SizedBox(width: 16.0),
-          prefix: SizedBox(width: 16.0),
-        ),
-      ),
-    );
-  }
-}
-
-class CollapseTextFormField extends StatefulWidget {
+class TextFieldWidget extends StatefulWidget {
   final String hint;
   final bool? absorbing;
   final bool obscureText;
   final FocusNode? focus;
   final Widget? suffixIcon;
   final String? initialValue;
+  final Widget? helperWidget;
   final TextInputType? keyboardType;
   final TextInputAction? inputAction;
   final ValueChanged<String>? onChanged;
   final TextEditingController? controller;
-  final String? Function(String?)? validator;
-  final ValueChanged<String>? onFieldSubmitted;
+  final ValueChanged<String>? onSubmitted;
   final List<TextInputFormatter>? inputFormatters;
 
-  const CollapseTextFormField({
+  const TextFieldWidget({
     super.key,
     required this.hint,
     this.focus,
     this.absorbing,
     this.onChanged,
-    this.validator,
     this.controller,
     this.suffixIcon,
-    this.initialValue,
-    this.keyboardType,
     this.inputAction,
+    this.onSubmitted,
+    this.helperWidget,
+    this.keyboardType,
+    this.initialValue,
     this.inputFormatters,
-    this.onFieldSubmitted,
     this.obscureText = false,
   });
 
   @override
-  State<CollapseTextFormField> createState() => _CollapseTextFormFieldState();
+  State<TextFieldWidget> createState() => _TextFieldWidgetState();
 }
 
-class _CollapseTextFormFieldState extends State<CollapseTextFormField> {
+class _TextFieldWidgetState extends State<TextFieldWidget> {
   late FocusNode _focus;
   late TextEditingController _controller;
 
@@ -130,22 +70,28 @@ class _CollapseTextFormFieldState extends State<CollapseTextFormField> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          height: 64.0,
-          child: Stack(
-            children: [
-              Positioned.fill(child: _buildBorder()),
-              _buildLabel(),
-              Positioned.fill(child: _buildFormField()),
-            ],
+    return AbsorbPointer(
+      absorbing: widget.absorbing ?? false,
+      child: Column(
+        spacing: 2,
+        crossAxisAlignment: .start,
+        children: [
+          SizedBox(
+            height: 64.0,
+            child: Stack(
+              children: [
+                Positioned.fill(child: _buildBorder()),
+                _buildLabel(),
+                Positioned.fill(child: _buildFormField()),
+              ],
+            ),
           ),
-        ),
 
-        _buildFailure(),
-      ],
+          _buildFailure(),
+
+          widget.helperWidget ?? const SizedBox.shrink(),
+        ],
+      ),
     );
   }
 
@@ -157,14 +103,13 @@ class _CollapseTextFormFieldState extends State<CollapseTextFormField> {
         color: _hasFailure
             ? context.colors.error
             : _focus.hasFocus
-            ? context.colors.onPrimary
+            ? context.colors.primary
             : context.colors.primary,
       ),
     ),
   );
 
-  AnimatedSwitcher _buildFailure() => AnimatedSwitcher(
-    duration: const Duration(milliseconds: 300),
+  SwitcherAnimation _buildFailure() => SwitcherAnimation(
     child: _failure == null
         ? const SizedBox.shrink()
         : Padding(
@@ -191,8 +136,8 @@ class _CollapseTextFormFieldState extends State<CollapseTextFormField> {
         duration: duration,
         style: context.typography.bodySmall!.copyWith(
           fontSize: _collapsed ? 12.0 : 14.0,
+          height: _collapsed ? 1 : (20.0 / 14.0),
           letterSpacing: _collapsed ? 0.0 : -0.23,
-          height: _collapsed ? (16.0 / 12.0) : (20.0 / 14.0),
           color: _hasFailure ? context.colors.error : context.colors.primary,
         ),
         child: Text(widget.hint),
@@ -200,7 +145,7 @@ class _CollapseTextFormFieldState extends State<CollapseTextFormField> {
     );
   }
 
-  TextFormField _buildFormField() => TextFormField(
+  TextField _buildFormField() => TextField(
     maxLines: 1,
     cursorWidth: 2.0,
     cursorHeight: 16,
@@ -208,21 +153,11 @@ class _CollapseTextFormFieldState extends State<CollapseTextFormField> {
     controller: _controller,
     onChanged: widget.onChanged,
     obscureText: widget.obscureText,
-    autovalidateMode: .onUserInteraction,
+    onSubmitted: widget.onSubmitted,
     inputFormatters: widget.inputFormatters,
     cursorRadius: const Radius.circular(2.0),
-    onFieldSubmitted: widget.onFieldSubmitted,
     keyboardType: widget.keyboardType ?? .text,
     textInputAction: widget.inputAction ?? .next,
-    validator: (value) {
-      final data = widget.validator?.call(value);
-
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_failure != data) setState(() => _failure = data);
-      });
-
-      return data;
-    },
     decoration: InputDecoration(
       filled: false,
       border: .none,
@@ -237,7 +172,7 @@ class _CollapseTextFormFieldState extends State<CollapseTextFormField> {
       contentPadding: .only(
         top: 30.0,
         left: 20.0,
-        bottom: 14.0,
+        bottom: 18.0,
         right: 20.0 + (widget.suffixIcon != null ? 36 : 0),
       ),
     ),

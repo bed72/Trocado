@@ -40,7 +40,7 @@ class ButtonWidget extends StatelessWidget {
     );
   }
 
-  SwicherAnimation _buildContent(BuildContext context) => SwicherAnimation(
+  SwitcherAnimation _buildContent(BuildContext context) => SwitcherAnimation(
     child: (isLoading ?? false) ? _buildLoading(context) : _buildTitle(),
   );
 

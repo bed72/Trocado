@@ -2,10 +2,10 @@ import 'package:flutter/widgets.dart';
 
 const _duration = Duration(milliseconds: 300);
 
-class SwicherAnimation extends StatelessWidget {
+class SwitcherAnimation extends StatelessWidget {
   final Widget child;
 
-  const SwicherAnimation({super.key, required this.child});
+  const SwitcherAnimation({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {
