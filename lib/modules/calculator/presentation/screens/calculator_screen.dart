@@ -64,7 +64,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
             crossAxisAlignment: .start,
             children: [
               TextFieldWidget(
-                label: 'R\$ 0,0',
+                hint: 'R\$ 0,0',
                 absorbing: true,
                 controller: _controller,
               ),

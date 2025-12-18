@@ -8,8 +8,9 @@ import 'package:trocado/modules/core/presentation/themes/radius/radius_theme.dar
 
 abstract final class Themes {
   static ThemeData light = FlexThemeData.light(
+    scheme: .money,
+    useMaterial3: true,
     fontFamily: 'Inter',
-    scheme: FlexScheme.money,
     colorScheme: lightColorScheme,
     extensions: <ThemeExtension<dynamic>>[radius],
     subThemesData: FlexSubThemesData(
@@ -37,9 +38,7 @@ abstract final class Themes {
       ),
 
       inputDecoratorRadius: 16.0,
-      inputDecoratorIsDense: true,
       inputDecoratorBorderType: .outline,
-
       inputDecoratorContentPadding: const .symmetric(
         vertical: 14.0,
         horizontal: 0.0,
@@ -56,8 +55,9 @@ abstract final class Themes {
   );
 
   static ThemeData dark = FlexThemeData.dark(
+    scheme: .money,
+    useMaterial3: true,
     fontFamily: 'Inter',
-    scheme: FlexScheme.money,
     colorScheme: darkColorScheme,
     extensions: <ThemeExtension<dynamic>>[radius],
     subThemesData: FlexSubThemesData(
@@ -84,10 +84,9 @@ abstract final class Themes {
       ),
 
       inputDecoratorRadius: 16.0,
-      inputDecoratorIsDense: true,
       inputDecoratorBorderType: .outline,
       inputDecoratorContentPadding: const .symmetric(
-        vertical: 14.0,
+        vertical: 16.0,
         horizontal: 0.0,
       ),
     ),

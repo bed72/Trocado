@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class TextFormFieldWidget extends StatelessWidget {
-  final String label;
+  final String hint;
   final FocusNode? focus;
   final bool? obscureText;
   final Widget? helperWidget;
@@ -18,7 +18,7 @@ class TextFormFieldWidget extends StatelessWidget {
 
   const TextFormFieldWidget({
     super.key,
-    required this.label,
+    required this.hint,
     this.focus,
     this.onChanged,
     this.validator,
@@ -48,17 +48,15 @@ class TextFormFieldWidget extends StatelessWidget {
       inputFormatters: inputFormatters,
       obscureText: obscureText ?? false,
       onFieldSubmitted: onFieldSubmitted,
+      keyboardType: keyboardType ?? .text,
+      autovalidateMode: .onUserInteraction,
+      textInputAction: inputAction ?? .next,
       cursorRadius: const Radius.circular(2.0),
-      keyboardType: keyboardType ?? TextInputType.text,
-      autovalidateMode: AutovalidateMode.onUserInteraction,
-      textInputAction: inputAction ?? TextInputAction.next,
       decoration: InputDecoration(
-        isDense: true,
-        hintText: label,
+        hintText: hint,
         errorMaxLines: 1,
         helperMaxLines: 1,
         helper: helperWidget,
-        alignLabelWithHint: true,
         suffix: SizedBox(width: 16.0),
         prefix: SizedBox(width: 16.0),
       ),

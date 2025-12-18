@@ -54,14 +54,14 @@ class _ProfileFormWidgetState extends State<ProfileFormWidget> {
           ShakeAnimation(
             offset: 2,
             shake: _shouldShake,
-            child: TextFieldWidget(
-              textAlign: .center,
+            child: CollapseTextFormField(
+              // textAlign: .center,
               inputAction: .done,
               keyboardType: .name,
               controller: _controller,
-              label: 'Seu nome ou apelido',
-              helperWidget: _buildAnimatedHelper(),
-              onSubmitted: (_) => _handleSubimit(context),
+              hint: 'Seu nome ou apelido',
+              // helperWidget: _buildAnimatedHelper(),
+              // onSubmitted: (_) => _handleSubimit(context),
             ),
           ),
 

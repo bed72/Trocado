@@ -84,7 +84,7 @@ class _WalletFormWidgetState extends State<WalletFormWidget> {
         keyboardType: .name,
         onSubmitted: (_) {},
         controller: _amountController,
-        label: store.wallet.amount.isEmpty
+        hint: store.wallet.amount.isEmpty
             ? 'R\$ 0,0'
             : 'R\$ ${store.wallet.amount}',
       );
