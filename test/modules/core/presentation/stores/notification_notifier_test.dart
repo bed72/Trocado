@@ -32,7 +32,7 @@ void main() {
         ),
       ).thenAnswer((_) async {});
 
-      await store.toggle(true);
+      await store.onChanged(true);
 
       expect(store.notification, true);
 
@@ -60,7 +60,7 @@ void main() {
         ),
       ).thenAnswer((_) async {});
 
-      await store.toggle(true);
+      await store.onChanged(true);
 
       expect(called, 1);
 

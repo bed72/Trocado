@@ -34,7 +34,7 @@ void main() {
         ),
       ).thenAnswer((_) async {});
 
-      await store.toggle(true);
+      await store.onChanged(true);
 
       expect(store.theme, ThemeMode.dark);
       expect(store.isDark, true);
@@ -54,7 +54,7 @@ void main() {
         ),
       ).thenAnswer((_) async {});
 
-      await store.toggle(false);
+      await store.onChanged(false);
 
       expect(store.theme, ThemeMode.light);
       expect(store.isDark, false);
@@ -77,7 +77,7 @@ void main() {
         ),
       ).thenAnswer((_) async {});
 
-      await store.toggle(true);
+      await store.onChanged(true);
 
       expect(called, 1);
 

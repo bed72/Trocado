@@ -37,14 +37,14 @@ mixin _$FingerprintStore on FingerprintStoreBase, Store {
     return _$ensureInitializedAsyncAction.run(() => super.ensureInitialized());
   }
 
-  late final _$toggleAsyncAction = AsyncAction(
-    'FingerprintStoreBase.toggle',
+  late final _$onChangedAsyncAction = AsyncAction(
+    'FingerprintStoreBase.onChanged',
     context: context,
   );
 
   @override
-  Future<void> toggle(bool value) {
-    return _$toggleAsyncAction.run(() => super.toggle(value));
+  Future<void> onChanged(bool value) {
+    return _$onChangedAsyncAction.run(() => super.onChanged(value));
   }
 
   @override

@@ -42,14 +42,14 @@ mixin _$ThemeStore on ThemeStoreBase, Store {
     return _$ensureInitializedAsyncAction.run(() => super.ensureInitialized());
   }
 
-  late final _$toggleAsyncAction = AsyncAction(
-    'ThemeStoreBase.toggle',
+  late final _$onChangedAsyncAction = AsyncAction(
+    'ThemeStoreBase.onChanged',
     context: context,
   );
 
   @override
-  Future<void> toggle(bool dark) {
-    return _$toggleAsyncAction.run(() => super.toggle(dark));
+  Future<void> onChanged(bool value) {
+    return _$onChangedAsyncAction.run(() => super.onChanged(value));
   }
 
   @override

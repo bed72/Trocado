@@ -24,7 +24,13 @@ class UserImageWidget extends StatelessWidget {
     this.iconOnEdit,
   });
 
-  factory UserImageWidget.empty({VoidCallback? onEdit}) => UserImageWidget(
+  factory UserImageWidget.pencil({VoidCallback? onEdit}) => UserImageWidget(
+    onEdit: onEdit,
+    iconOnEdit: LucideIcons.pencil,
+    iconEmpty: LucideIcons.userRound,
+  );
+
+  factory UserImageWidget.camera({VoidCallback? onEdit}) => UserImageWidget(
     onEdit: onEdit,
     iconOnEdit: LucideIcons.camera,
     iconEmpty: LucideIcons.userRound,
@@ -67,7 +73,7 @@ class UserImageWidget extends StatelessWidget {
   }
 
   SkeletonWidget _buildLoading() =>
-      SkeletonWidget(child: UserImageWidget.empty(onEdit: onEdit));
+      SkeletonWidget(child: UserImageWidget.camera(onEdit: onEdit));
 
   FutureBuilder _buildNotEmptyUser() => FutureBuilder<Uint8List>(
     future: File(resource!).readAsBytes(),

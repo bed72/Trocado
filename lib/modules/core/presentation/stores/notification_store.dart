@@ -24,7 +24,7 @@ abstract class NotificationStoreBase with Store {
   }
 
   @action
-  Future<void> toggle(bool value) async {
+  Future<void> onChanged(bool value) async {
     notification = value;
     await _repository.save(
       value: value.toString(),

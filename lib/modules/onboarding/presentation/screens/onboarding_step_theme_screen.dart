@@ -62,7 +62,7 @@ class OnboardingStepThemeScreen extends StatelessWidget {
 
             return SwitcherAnimation(
               child: StepButtonWidget(
-                onTap: () => store.theme.toggle(!store.theme.isDark),
+                onTap: () => store.theme.onChanged(!store.theme.isDark),
                 key: ValueKey(store.theme.isDark),
                 label: store.theme.isDark
                     ? 'Mudar para tema claro'

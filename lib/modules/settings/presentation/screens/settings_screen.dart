@@ -24,7 +24,6 @@ class SettingsScreen extends StatelessWidget {
               const SizedBox(height: 32.0),
               ProfileWidget(
                 name: 'Bed',
-                email: 'bed@gmail.com',
                 onEdit: dto.onUserTap,
                 url:
                     'https://avatars.githubusercontent.com/u/30250307?s=96&v=4',

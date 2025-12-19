@@ -24,7 +24,7 @@ abstract class FingerprintStoreBase with Store {
   }
 
   @action
-  Future<void> toggle(bool value) async {
+  Future<void> onChanged(bool value) async {
     fingerprint = value;
     await _repository.save(
       value: value.toString(),
