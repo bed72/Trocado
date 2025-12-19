@@ -31,42 +31,41 @@ final class CoreLocation extends StatefulLocation {
 
   @override
   StatefulLocationBuilder get childBuilder => (context, shell) {
-    final store = context.get<BottomBarStore>();
+    return Scaffold(
+      body: shell,
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Observer(
+          builder: (context) {
+            final store = context.get<BottomBarStore>();
 
-    return Observer(
-      builder: (_) {
-        quickAction(
-          action: (type) {
-            context.navigate(
-              TypeTransactionLocation(
-                title: type == QuickActionsConstant.input.name
-                    ? QuickActionsConstant.input.localizedTitle
-                    : QuickActionsConstant.output.localizedTitle,
-              ),
-              root: true,
+            quickAction(
+              action: (type) async {
+                await transactionBottomSheetFactoryWidget(
+                  context: context,
+                  type: type,
+                );
+              },
             );
-          },
-        );
 
-        return Scaffold(
-          body: shell,
-          bottomNavigationBar: SafeArea(
-            top: false,
-            child: BottomBarWidget(
+            return BottomBarWidget(
               index: store.index,
               onExit: context.exit,
-              onTap: ({required context, required index}) {
+              onTap: ({required context, required index}) async {
                 if (index == BottomBarConstant.transaction.position) {
-                  return transactionBottomSheetFactoryWidget(context);
+                  return await transactionBottomSheetFactoryWidget(
+                    context: context,
+                    type: QuickActionsConstant.output.name,
+                  );
                 }
 
-                store.index = index;
+                store.switchChild(index);
                 shell.switchChild(index);
               },
-            ),
-          ),
-        );
-      },
+            );
+          },
+        ),
+      ),
     );
   };
 }

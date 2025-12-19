@@ -27,12 +27,25 @@ class BottomBarWidget extends StatefulWidget {
 class _BottomBarWidgetState extends State<BottomBarWidget>
     with TickerProviderStateMixin {
   late final TabController _controller;
+  late final List<(String, IconData, IconData)> _items;
 
   @override
   void initState() {
     super.initState();
 
-    _controller = TabController(vsync: this, length: 5);
+    _items = [
+      ('Ínicio', LucideIcons.layoutPanelLeft, LucideIcons.layoutPanelTop),
+      ('Todas as Transações', LucideIcons.scrollText, LucideIcons.scroll),
+      ('Novas Transações', LucideIcons.badgePlus, LucideIcons.badgePlus),
+      (
+        'Relatórios',
+        LucideIcons.chartColumn,
+        LucideIcons.chartColumnIncreasing,
+      ),
+      ('Configurações', LucideIcons.bolt, LucideIcons.hexagon),
+    ];
+
+    _controller = TabController(vsync: this, length: _items.length);
     _controller.index = widget.index;
   }
 
@@ -82,26 +95,16 @@ class _BottomBarWidgetState extends State<BottomBarWidget>
   List<Widget> _buildTabs(BuildContext context) {
     final selectedIndex = _controller.index;
 
-    final items = [
-      ('Ínicio', LucideIcons.layoutPanelLeft, LucideIcons.layoutPanelTop),
-      ('Todas as Transações', LucideIcons.scrollText, LucideIcons.scroll),
-      ('Novas Transações', LucideIcons.badgePlus, LucideIcons.badgePlus),
-      (
-        'Relatórios',
-        LucideIcons.chartColumn,
-        LucideIcons.chartColumnIncreasing,
-      ),
-      ('Configurações', LucideIcons.bolt, LucideIcons.hexagon),
-    ];
-
-    return List.generate(items.length, (index) {
+    return List.generate(_items.length, (index) {
       final isSelected = selectedIndex == index;
-      final (label, unselectedIcon, selectedIcon) = items[index];
+      final (label, unselectedIcon, selectedIcon) = _items[index];
 
       return BottomBarItemWidget(
         semanticLabel: label,
         name: isSelected ? selectedIcon : unselectedIcon,
-        color: isSelected ? context.colors.outline : context.colors.outline,
+        color: isSelected
+            ? context.colors.outline
+            : context.colors.outline.withValues(alpha: .50),
       );
     });
   }

@@ -1,5 +1,5 @@
-import 'package:duck_router/duck_router.dart';
 import 'package:flutter/material.dart';
+import 'package:duck_router/duck_router.dart';
 
 import 'package:trocado/modules/core/core.dart';
 

@@ -88,6 +88,6 @@ final class SettingsDto {
     required BuildContext context,
     required Location location,
   }) {
-    context.navigate(location, root: true);
+    context.navigate(location);
   }
 }

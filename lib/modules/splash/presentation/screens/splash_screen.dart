@@ -1,8 +1,4 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-
-import 'package:trocado/modules/core/core.dart';
 
 class SplashScreen extends StatefulWidget {
   final VoidCallback navigateTo;
@@ -13,10 +9,12 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with AfterLayoutMixin {
+class _SplashScreenState extends State<SplashScreen> {
   @override
-  FutureOr<void> afterFirstLayout(BuildContext context) async {
-    await Future.delayed(Durations.medium4, widget.navigateTo);
+  void initState() {
+    super.initState();
+
+    widget.navigateTo();
   }
 
   @override

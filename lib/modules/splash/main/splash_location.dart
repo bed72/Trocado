@@ -18,6 +18,7 @@ final class SplashLocation extends Location {
       builder: (_) => SplashScreen(
         navigateTo: () => context.navigate(
           store.alreadyDoneOnboarding ? CoreLocation() : OnboardingLocation(),
+          root: true,
           replace: true,
         ),
       ),

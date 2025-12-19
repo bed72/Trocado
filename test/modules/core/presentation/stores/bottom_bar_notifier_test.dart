@@ -14,7 +14,7 @@ void main() {
     test('should update index when setIndex is called', () {
       final store = BottomBarStore();
 
-      store.setIndex(2);
+      store.switchChild(2);
 
       expect(store.index, equals(2));
     });
@@ -25,7 +25,7 @@ void main() {
 
       final dispose = reaction<int>((_) => store.index, (_) => called++);
 
-      store.setIndex(1);
+      store.switchChild(1);
 
       expect(called, 1);
 
@@ -38,7 +38,7 @@ void main() {
 
       final dispose = reaction<int>((_) => store.index, (_) => called++);
 
-      store.setIndex(0);
+      store.switchChild(0);
 
       expect(called, 0);
 

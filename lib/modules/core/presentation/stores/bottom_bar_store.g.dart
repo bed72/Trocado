@@ -33,12 +33,12 @@ mixin _$BottomBarStore on BottomBarStoreBase, Store {
   );
 
   @override
-  void setIndex(int value) {
+  void switchChild(int value) {
     final _$actionInfo = _$BottomBarStoreBaseActionController.startAction(
-      name: 'BottomBarStoreBase.setIndex',
+      name: 'BottomBarStoreBase.switchChild',
     );
     try {
-      return super.setIndex(value);
+      return super.switchChild(value);
     } finally {
       _$BottomBarStoreBaseActionController.endAction(_$actionInfo);
     }

@@ -13,8 +13,9 @@ final class OnboardingStepWalletLocation extends Location {
   LocationBuilder? get builder => (context) {
     return OnboardingStepWalletScreen(
       goBack: context.pop,
-      goNext: () => context.navigate(CoreLocation(), clearStack: true),
       navigateToCaculator: () => context.navigate(CalculatorLocation()),
+      goNext: () =>
+          context.navigate(CoreLocation(), root: true, clearStack: true),
     );
   };
 }

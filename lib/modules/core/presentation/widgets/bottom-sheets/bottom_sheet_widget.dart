@@ -13,6 +13,7 @@ Future<T?> bottomSheetScaffoldWidget<T>({
 }) => showModalBottomSheet<T>(
   context: context,
   useSafeArea: true,
+  useRootNavigator: true,
   isScrollControlled: true,
   builder: (context) => Container(
     constraints: autoResize

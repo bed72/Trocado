@@ -9,7 +9,7 @@ abstract class BottomBarStoreBase with Store {
   int index = 0;
 
   @action
-  void setIndex(int value) {
+  void switchChild(int value) {
     index = value;
   }
 }
