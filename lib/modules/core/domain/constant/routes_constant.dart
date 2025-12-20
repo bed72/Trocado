@@ -39,25 +39,12 @@ final class RoutesConstant {
     path: '/user',
     name: 'user-route',
     regex: RegExp(r'^/user$'),
-    shouldShowBottomNavigation: true,
   );
 
   static final wallets = RoutesConstant._(
     path: '/wallets',
     name: 'wallets-route',
     regex: RegExp(r'^/wallets$'),
-  );
-
-  static final debts = RoutesConstant._(
-    path: '/debts',
-    name: 'debts-route',
-    regex: RegExp(r'^/debts$'),
-  );
-
-  static final goals = RoutesConstant._(
-    path: '/goals',
-    name: 'goals-route',
-    regex: RegExp(r'^/goals$'),
   );
 
   static final images = RoutesConstant._(
@@ -129,18 +116,10 @@ final class RoutesConstant {
     regex: RegExp(r'^/onboarding/step/profile$'),
   );
 
-  static final recurringTransactions = RoutesConstant._(
-    path: '/recurring/transactions',
-    name: 'recurring-transactions-route',
-    regex: RegExp(r'^/recurring/transactions$'),
-  );
-
   static final _all = [
     core,
     home,
     user,
-    debts,
-    goals,
     images,
     splash,
     reports,
@@ -154,7 +133,6 @@ final class RoutesConstant {
     onboardingStepTheme,
     onboardingStepWallet,
     onboardingStepProfile,
-    recurringTransactions,
   ];
 
   static RoutesConstant? match(String location) =>

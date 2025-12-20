@@ -8,6 +8,14 @@ abstract class BottomBarStoreBase with Store {
   @observable
   int index = 0;
 
+  @observable
+  bool visible = false;
+
+  @action
+  void onChanged(bool value) {
+    visible = value;
+  }
+
   @action
   void switchChild(int value) {
     index = value;

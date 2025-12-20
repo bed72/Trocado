@@ -22,7 +22,7 @@ void main() {
       expect(store.notification, false);
     });
 
-    test('toggle should update notification and call save', () async {
+    test('toggle should update notification and call save', () {
       final store = NotificationStore(repository: repository);
 
       when(
@@ -32,7 +32,7 @@ void main() {
         ),
       ).thenAnswer((_) async {});
 
-      await store.onChanged(true);
+      store.onChanged(true);
 
       expect(store.notification, true);
 
@@ -44,7 +44,7 @@ void main() {
       ).called(1);
     });
 
-    test('toggle should trigger reaction', () async {
+    test('toggle should trigger reaction', () {
       int called = 0;
       final store = NotificationStore(repository: repository);
 
@@ -60,7 +60,7 @@ void main() {
         ),
       ).thenAnswer((_) async {});
 
-      await store.onChanged(true);
+      store.onChanged(true);
 
       expect(called, 1);
 

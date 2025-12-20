@@ -24,6 +24,9 @@ abstract final class Themes {
 
       buttonMinSize: Size(54.0, 54.0),
 
+      textButtonRadius: 16.0,
+      textButtonSchemeColor: .primary,
+
       elevatedButtonRadius: 16.0,
       elevatedButtonElevation: 0.0,
       elevatedButtonSchemeColor: .onPrimary,
@@ -72,6 +75,9 @@ abstract final class Themes {
       navigationRailUseIndicator: true,
 
       buttonMinSize: Size(54.0, 54.0),
+
+      textButtonRadius: 16.0,
+      textButtonSchemeColor: .primary,
 
       elevatedButtonRadius: 16.0,
       elevatedButtonElevation: 0.0,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 
 import 'package:trocado/modules/core/core.dart';
 import 'package:trocado/modules/settings/presentation/dtos/settings_dto.dart';
@@ -19,17 +20,42 @@ class SettingsScreen extends StatelessWidget {
       body: SafeArea(
         child: Padding(
           padding: const .symmetric(horizontal: 20.0),
-          child: ListView(
+          child: Column(
             children: [
-              const SizedBox(height: 32.0),
-              ProfileWidget(
-                name: 'Bed',
-                onEdit: dto.onUserTap,
-                url:
-                    'https://avatars.githubusercontent.com/u/30250307?s=96&v=4',
+              Expanded(
+                child: ListView(
+                  children: [
+                    const SizedBox(height: 32.0),
+                    Observer(
+                      builder: (context) {
+                        final store = context.get<UserStore>();
+
+                        return ProfileWidget(
+                          name: store.user.name ?? '',
+                          onEdit: dto.onUserTap,
+                          url:
+                              store.user.image ??
+                              'https://avatars.githubusercontent.com/u/30250307?s=96&v=4',
+                        );
+                      },
+                    ),
+                    FinancesSessionWidget(dto: dto),
+                    ApplicationSettingsSessionWidget(dto: dto),
+                  ],
+                ),
               ),
-              FinancesSessionWidget(dto: dto),
-              ApplicationSettingsSessionWidget(dto: dto),
+              SizedBox(
+                width: double.infinity,
+                child: ButtonWidget.ghost(
+                  child: Text(
+                    'Deletar dados',
+                    style: TextStyle(color: context.colors.error),
+                  ),
+                  onTap: () {
+                    // TODO implementar
+                  },
+                ),
+              ),
               const SizedBox(height: 32.0),
             ],
           ),

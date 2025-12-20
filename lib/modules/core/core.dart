@@ -47,6 +47,7 @@ export 'presentation/themes/themes.dart';
 export 'presentation/screens/failure_screen.dart';
 export 'presentation/pages/bottom_sheet_page.dart';
 export 'presentation/mixins/after_layout_mixin.dart';
+export 'presentation/interceptors/bottom_bar_visibility_intercptor.dart';
 
 export 'presentation/extensions/widget_extension.dart';
 export 'presentation/extensions/context_extension.dart';
@@ -68,6 +69,7 @@ export 'presentation/widgets/helper_widget.dart';
 export 'presentation/widgets/switch_widget.dart';
 export 'presentation/widgets/bounce_widget.dart';
 export 'presentation/widgets/app_bar_widget.dart';
+export 'presentation/widgets/scaffold_widget.dart';
 export 'presentation/widgets/indicator_widget.dart';
 export 'presentation/widgets/user_image_widget.dart';
 export 'presentation/widgets/images/image_widget.dart';

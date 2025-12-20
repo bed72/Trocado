@@ -59,7 +59,7 @@ class _ProfileFormWidgetState extends State<ProfileFormWidget> {
     );
   }
 
-  SwicherSizeAnimation _buildHelper() => SwicherSizeAnimation(
+  SwitcherSizeAnimation _buildHelper() => SwitcherSizeAnimation(
     child: !_mustShowHelper
         ? const SizedBox.shrink(key: ValueKey('empty'))
         : HelperWidget(title: 'Seu nome deve conter ao menos 3 letras.'),

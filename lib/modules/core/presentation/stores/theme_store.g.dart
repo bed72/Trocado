@@ -42,14 +42,21 @@ mixin _$ThemeStore on ThemeStoreBase, Store {
     return _$ensureInitializedAsyncAction.run(() => super.ensureInitialized());
   }
 
-  late final _$onChangedAsyncAction = AsyncAction(
-    'ThemeStoreBase.onChanged',
+  late final _$ThemeStoreBaseActionController = ActionController(
+    name: 'ThemeStoreBase',
     context: context,
   );
 
   @override
-  Future<void> onChanged(bool value) {
-    return _$onChangedAsyncAction.run(() => super.onChanged(value));
+  void onChanged(bool value) {
+    final _$actionInfo = _$ThemeStoreBaseActionController.startAction(
+      name: 'ThemeStoreBase.onChanged',
+    );
+    try {
+      return super.onChanged(value);
+    } finally {
+      _$ThemeStoreBaseActionController.endAction(_$actionInfo);
+    }
   }
 
   @override

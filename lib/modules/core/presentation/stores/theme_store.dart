@@ -31,11 +31,8 @@ abstract class ThemeStoreBase with Store {
   }
 
   @action
-  Future<void> onChanged(bool value) async {
+  void onChanged(bool value) {
     theme = value ? ThemeMode.dark : ThemeMode.light;
-    await _repository.save(
-      value: value.toString(),
-      key: StorageConstant.theme.key,
-    );
+    _repository.save(value: value.toString(), key: StorageConstant.theme.key);
   }
 }

@@ -24,7 +24,7 @@ void main() {
       expect(store.theme, ThemeMode.system);
     });
 
-    test('toggle should set dark mode and call save', () async {
+    test('toggle should set dark mode and call save', () {
       final store = ThemeStore(repository: repository);
 
       when(
@@ -34,7 +34,7 @@ void main() {
         ),
       ).thenAnswer((_) async {});
 
-      await store.onChanged(true);
+      store.onChanged(true);
 
       expect(store.theme, ThemeMode.dark);
       expect(store.isDark, true);
@@ -44,7 +44,7 @@ void main() {
       ).called(1);
     });
 
-    test('toggle should set light mode and call save', () async {
+    test('toggle should set light mode and call save', () {
       final store = ThemeStore(repository: repository);
 
       when(
@@ -54,7 +54,7 @@ void main() {
         ),
       ).thenAnswer((_) async {});
 
-      await store.onChanged(false);
+      store.onChanged(false);
 
       expect(store.theme, ThemeMode.light);
       expect(store.isDark, false);
@@ -64,7 +64,7 @@ void main() {
       ).called(1);
     });
 
-    test('toggle should trigger reaction', () async {
+    test('toggle should trigger reaction', () {
       int called = 0;
       final store = ThemeStore(repository: repository);
 
@@ -77,7 +77,7 @@ void main() {
         ),
       ).thenAnswer((_) async {});
 
-      await store.onChanged(true);
+      store.onChanged(true);
 
       expect(called, 1);
 

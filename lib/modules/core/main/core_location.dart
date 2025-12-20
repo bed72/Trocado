@@ -11,6 +11,7 @@ import 'package:trocado/modules/core/domain/constant/routes_constant.dart';
 import 'package:trocado/modules/core/domain/constant/bottom_bar_constant.dart';
 import 'package:trocado/modules/core/domain/constant/quick_actions_constant.dart';
 
+import 'package:trocado/modules/core/presentation/animation/animation.dart';
 import 'package:trocado/modules/core/presentation/actions/quick_actions.dart';
 import 'package:trocado/modules/core/presentation/stores/bottom_bar_store.dart';
 import 'package:trocado/modules/core/presentation/extensions/context_extension.dart';
@@ -48,20 +49,24 @@ final class CoreLocation extends StatefulLocation {
               },
             );
 
-            return BottomBarWidget(
-              index: store.index,
-              onExit: context.exit,
-              onTap: ({required context, required index}) async {
-                if (index == BottomBarConstant.transaction.position) {
-                  return await transactionBottomSheetFactoryWidget(
-                    context: context,
-                    type: QuickActionsConstant.output.name,
-                  );
-                }
+            return SwitcherSizeAnimation(
+              child: !store.visible
+                  ? const SizedBox.shrink(key: ValueKey('empty'))
+                  : BottomBarWidget(
+                      index: store.index,
+                      onExit: context.exit,
+                      onTap: ({required context, required index}) async {
+                        if (index == BottomBarConstant.transaction.position) {
+                          return await transactionBottomSheetFactoryWidget(
+                            context: context,
+                            type: QuickActionsConstant.output.name,
+                          );
+                        }
 
-                store.switchChild(index);
-                shell.switchChild(index);
-              },
+                        store.switchChild(index);
+                        shell.switchChild(index);
+                      },
+                    ),
             );
           },
         ),

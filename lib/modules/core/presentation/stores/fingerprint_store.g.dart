@@ -37,14 +37,21 @@ mixin _$FingerprintStore on FingerprintStoreBase, Store {
     return _$ensureInitializedAsyncAction.run(() => super.ensureInitialized());
   }
 
-  late final _$onChangedAsyncAction = AsyncAction(
-    'FingerprintStoreBase.onChanged',
+  late final _$FingerprintStoreBaseActionController = ActionController(
+    name: 'FingerprintStoreBase',
     context: context,
   );
 
   @override
-  Future<void> onChanged(bool value) {
-    return _$onChangedAsyncAction.run(() => super.onChanged(value));
+  void onChanged(bool value) {
+    final _$actionInfo = _$FingerprintStoreBaseActionController.startAction(
+      name: 'FingerprintStoreBase.onChanged',
+    );
+    try {
+      return super.onChanged(value);
+    } finally {
+      _$FingerprintStoreBaseActionController.endAction(_$actionInfo);
+    }
   }
 
   @override

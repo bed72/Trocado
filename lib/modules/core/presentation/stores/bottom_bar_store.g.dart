@@ -27,10 +27,40 @@ mixin _$BottomBarStore on BottomBarStoreBase, Store {
     });
   }
 
+  late final _$visibleAtom = Atom(
+    name: 'BottomBarStoreBase.visible',
+    context: context,
+  );
+
+  @override
+  bool get visible {
+    _$visibleAtom.reportRead();
+    return super.visible;
+  }
+
+  @override
+  set visible(bool value) {
+    _$visibleAtom.reportWrite(value, super.visible, () {
+      super.visible = value;
+    });
+  }
+
   late final _$BottomBarStoreBaseActionController = ActionController(
     name: 'BottomBarStoreBase',
     context: context,
   );
+
+  @override
+  void onChanged(bool value) {
+    final _$actionInfo = _$BottomBarStoreBaseActionController.startAction(
+      name: 'BottomBarStoreBase.onChanged',
+    );
+    try {
+      return super.onChanged(value);
+    } finally {
+      _$BottomBarStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
 
   @override
   void switchChild(int value) {
@@ -47,7 +77,8 @@ mixin _$BottomBarStore on BottomBarStoreBase, Store {
   @override
   String toString() {
     return '''
-index: ${index}
+index: ${index},
+visible: ${visible}
     ''';
   }
 }

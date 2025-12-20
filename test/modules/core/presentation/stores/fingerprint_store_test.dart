@@ -22,7 +22,7 @@ void main() {
       expect(store.fingerprint, false);
     });
 
-    test('toggle should update fingerprint and call save', () async {
+    test('toggle should update fingerprint and call save', () {
       final store = FingerprintStore(repository: repository);
 
       when(
@@ -32,7 +32,7 @@ void main() {
         ),
       ).thenAnswer((_) async {});
 
-      await store.onChanged(true);
+      store.onChanged(true);
 
       expect(store.fingerprint, true);
 
@@ -44,7 +44,7 @@ void main() {
       ).called(1);
     });
 
-    test('toggle should trigger reaction', () async {
+    test('toggle should trigger reaction', () {
       int called = 0;
       final store = FingerprintStore(repository: repository);
 
@@ -57,7 +57,7 @@ void main() {
         ),
       ).thenAnswer((_) async {});
 
-      await store.onChanged(true);
+      store.onChanged(true);
 
       expect(called, 1);
 

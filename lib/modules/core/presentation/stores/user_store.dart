@@ -57,7 +57,6 @@ abstract class UserStoreBase with Store {
   Future<void> insert(UserDto data) async {
     isLoading = true;
 
-    await Future.delayed(Duration(seconds: 4));
     await _userRepository.insert(data: data);
 
     user = data;

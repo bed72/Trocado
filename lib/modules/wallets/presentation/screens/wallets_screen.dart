@@ -7,9 +7,9 @@ class WalletsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBarWidget(),
-      body: SafeArea(child: Center(child: Text('Wallets'))),
+    return ScaffoldWidget(
+      title: 'Carteiras',
+      child: Center(child: Text('Carteiras')),
     );
   }
 }

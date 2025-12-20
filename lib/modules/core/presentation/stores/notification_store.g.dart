@@ -37,14 +37,21 @@ mixin _$NotificationStore on NotificationStoreBase, Store {
     return _$ensureInitializedAsyncAction.run(() => super.ensureInitialized());
   }
 
-  late final _$onChangedAsyncAction = AsyncAction(
-    'NotificationStoreBase.onChanged',
+  late final _$NotificationStoreBaseActionController = ActionController(
+    name: 'NotificationStoreBase',
     context: context,
   );
 
   @override
-  Future<void> onChanged(bool value) {
-    return _$onChangedAsyncAction.run(() => super.onChanged(value));
+  void onChanged(bool value) {
+    final _$actionInfo = _$NotificationStoreBaseActionController.startAction(
+      name: 'NotificationStoreBase.onChanged',
+    );
+    try {
+      return super.onChanged(value);
+    } finally {
+      _$NotificationStoreBaseActionController.endAction(_$actionInfo);
+    }
   }
 
   @override

@@ -18,10 +18,10 @@ class SwitcherAnimation extends StatelessWidget {
   }
 }
 
-class SwicherSizeAnimation extends StatelessWidget {
+class SwitcherSizeAnimation extends StatelessWidget {
   final Widget child;
 
-  const SwicherSizeAnimation({super.key, required this.child});
+  const SwitcherSizeAnimation({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {
