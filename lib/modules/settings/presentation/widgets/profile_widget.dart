@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:trocado/modules/core/core.dart';
 
 class ProfileWidget extends StatelessWidget {
-  final String url;
   final String name;
+  final String? resource;
   final VoidCallback onEdit;
 
   const ProfileWidget({
     super.key,
-    required this.url,
     required this.name,
     required this.onEdit,
+    required this.resource,
   });
 
   @override
@@ -23,7 +24,11 @@ class ProfileWidget extends StatelessWidget {
         mainAxisAlignment: .center,
         crossAxisAlignment: .center,
         children: [
-          UserImageWidget.pencil(onEdit: onEdit),
+          UserImageWidget(
+            onEdit: onEdit,
+            resource: resource,
+            iconOnEdit: LucideIcons.pen,
+          ),
           Text(name, style: context.typography.titleMedium),
         ],
       ),

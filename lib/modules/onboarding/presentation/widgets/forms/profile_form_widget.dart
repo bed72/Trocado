@@ -85,13 +85,15 @@ class _ProfileFormWidgetState extends State<ProfileFormWidget> {
     });
   }
 
-  void _handleSubimit() {
+  void _handleSubimit() async {
     hideKeyboard;
 
     final store = context.get<OnboardingStore>();
 
-    store.user
-        .insert(UserDto(name: _controller.text, image: store.user.user.image))
-        .whenComplete(widget.navigateToWallet);
+    await store.user.insert(
+      UserDto(name: _controller.text, image: store.user.user.image),
+    );
+    await Future.delayed(Durations.long2);
+    widget.navigateToWallet();
   }
 }

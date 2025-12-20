@@ -33,7 +33,7 @@ class SettingsScreen extends StatelessWidget {
                         return ProfileWidget(
                           name: store.user.name ?? '',
                           onEdit: dto.onUserTap,
-                          url:
+                          resource:
                               store.user.image ??
                               'https://avatars.githubusercontent.com/u/30250307?s=96&v=4',
                         );
