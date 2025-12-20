@@ -55,8 +55,6 @@ export 'presentation/extensions/context_extension.dart';
 export 'presentation/stores/user_store.dart';
 export 'presentation/stores/theme_store.dart';
 export 'presentation/stores/bottom_bar_store.dart';
-export 'presentation/stores/fingerprint_store.dart';
-export 'presentation/stores/notification_store.dart';
 
 export 'presentation/animation/animation.dart';
 export 'presentation/animation/loop_animation.dart';

@@ -23,16 +23,12 @@ Future<void> _ensureInitialized() async {
   final theme = provider.get<ThemeStore>();
   final database = provider.get<IDatabaseClient>();
   final onboarding = provider.get<OnboardingStore>();
-  final fingerprint = provider.get<FingerprintStore>();
-  final notification = provider.get<NotificationStore>();
 
   await Future.wait([
     user.ensureInitialized(),
     theme.ensureInitialized(),
     database.ensureInitialized(),
     onboarding.ensureInitialized(),
-    fingerprint.ensureInitialized(),
-    notification.ensureInitialized(),
 
     provider.allReady(),
   ]);

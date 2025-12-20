@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:mobx/mobx.dart';
 
 import 'package:trocado/modules/core/data/dtos/user_dto.dart';
@@ -57,6 +58,7 @@ abstract class UserStoreBase with Store {
   Future<void> insert(UserDto data) async {
     isLoading = true;
 
+    await Future.delayed(Durations.long4);
     await _userRepository.insert(data: data);
 
     user = data;

@@ -72,7 +72,7 @@ class _ProfileFormWidgetState extends State<ProfileFormWidget> {
       return StepButtonWidget(
         label: 'Salvar apelido',
         isLoading: store.user.isLoading,
-        onTap: !_enabled ? null : () async => await _handleSubimit(),
+        onTap: !_enabled ? null : _handleSubimit,
       );
     },
   );
@@ -85,12 +85,12 @@ class _ProfileFormWidgetState extends State<ProfileFormWidget> {
     });
   }
 
-  Future<void> _handleSubimit() async {
+  void _handleSubimit() {
     hideKeyboard;
 
     final store = context.get<OnboardingStore>();
 
-    await store.user
+    store.user
         .insert(UserDto(name: _controller.text, image: store.user.user.image))
         .whenComplete(widget.navigateToWallet);
   }
