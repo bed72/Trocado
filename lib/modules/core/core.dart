@@ -7,8 +7,9 @@ export 'main/providers/resource_provider.dart';
 export 'main/providers/datasource_provider.dart';
 export 'main/providers/repository_provider.dart';
 
-export 'data/mapper/mapper.dart';
 export 'data/dtos/user_dto.dart';
+export 'data/mapper/mapper.dart';
+export 'data/mapper/user_mapper.dart';
 
 export 'data/repositories/user_repository.dart';
 export 'data/repositories/storage_repository.dart';

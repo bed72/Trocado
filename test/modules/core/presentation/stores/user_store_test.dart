@@ -27,7 +27,7 @@ void main() {
       userRepository: userRepository,
       imageRepository: imageRepository,
     );
-    user = UserDto(id: '1', name: 'Gabriel', image: 'image.webp');
+    user = UserDto(id: 1, name: 'Gabriel', image: 'image.webp');
   });
 
   group('UserStore - find', () {

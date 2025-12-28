@@ -21,6 +21,7 @@ void main() {
       when(() => repository('12')).thenReturn(12.0);
       when(() => repository('12+2')).thenReturn(14.0);
       when(() => repository('12+')).thenReturn(double.nan);
+      when(() => repository.isInvalidFirstInput(any())).thenReturn(false);
 
       store.onKeyTap('1');
       store.onKeyTap('2');
@@ -53,6 +54,7 @@ void main() {
   group('CalculatorStore - Parentheses Logic', () {
     test('You must alternate parentheses correctly.', () {
       when(() => repository(any())).thenReturn(double.nan);
+      when(() => repository.isInvalidFirstInput(any())).thenReturn(false);
 
       store.onKeyTap('()');
       expect(store.amount, '(');
@@ -90,6 +92,7 @@ void main() {
   group('CalculatorStore - Formatting', () {
     test('You must format .0 as an integer in the preview.', () {
       when(() => repository('5+5')).thenReturn(10.0);
+      when(() => repository.isInvalidFirstInput(any())).thenReturn(false);
 
       store.append('5+5');
 
@@ -98,6 +101,7 @@ void main() {
 
     test('It must retain decimal places if it is not .0.', () {
       when(() => repository('10/4')).thenReturn(2.5);
+      when(() => repository.isInvalidFirstInput(any())).thenReturn(false);
 
       store.append('10/4');
 

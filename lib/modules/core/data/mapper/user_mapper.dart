@@ -21,7 +21,7 @@ final class UserMapper extends Mapper<UserDto, UserModel> {
   };
 
   UserDto _fromJson(Map<String, dynamic> data) => UserDto(
-    id: data['id']! as String,
+    id: data['id']! as int,
     name: data['name']! as String,
     image: data['image']! as String,
   );

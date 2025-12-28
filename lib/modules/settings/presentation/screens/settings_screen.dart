@@ -28,11 +28,11 @@ class SettingsScreen extends StatelessWidget {
                     const SizedBox(height: 32.0),
                     Observer(
                       builder: (context) {
-                        final store = context.get<UserStore>();
+                        final store = context.get<UserStore>()..find();
 
                         return ProfileWidget(
-                          name: store.user.name ?? '',
                           onEdit: dto.onUserTap,
+                          name: store.user.name ?? '',
                           resource:
                               store.user.image ??
                               'https://avatars.githubusercontent.com/u/30250307?s=96&v=4',

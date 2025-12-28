@@ -6,6 +6,7 @@ import 'package:trocado/modules/core/presentation/extensions/context_extension.d
 
 class TextFieldWidget extends StatefulWidget {
   final String hint;
+  final bool? readOnly;
   final bool? absorbing;
   final bool obscureText;
   final FocusNode? focus;
@@ -23,6 +24,7 @@ class TextFieldWidget extends StatefulWidget {
     super.key,
     required this.hint,
     this.focus,
+    this.readOnly,
     this.absorbing,
     this.onChanged,
     this.controller,
@@ -132,8 +134,8 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
       curve: Curves.easeOutCubic,
       top: _collapsed ? 14.0 : 22.0,
       child: AnimatedDefaultTextStyle(
-        curve: Curves.easeOutCubic,
         duration: duration,
+        curve: Curves.easeOutCubic,
         style: context.typography.bodySmall!.copyWith(
           fontSize: _collapsed ? 12.0 : 14.0,
           height: _collapsed ? 1 : (20.0 / 14.0),
@@ -154,6 +156,7 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
     onChanged: widget.onChanged,
     obscureText: widget.obscureText,
     onSubmitted: widget.onSubmitted,
+    readOnly: widget.readOnly ?? false,
     inputFormatters: widget.inputFormatters,
     cursorRadius: const Radius.circular(2.0),
     keyboardType: widget.keyboardType ?? .text,

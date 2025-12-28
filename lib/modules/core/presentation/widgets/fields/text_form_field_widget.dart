@@ -6,6 +6,7 @@ import 'package:trocado/modules/core/presentation/extensions/context_extension.d
 
 class TextFormFieldWidget extends StatefulWidget {
   final String hint;
+  final bool? readOnly;
   final bool? absorbing;
   final bool obscureText;
   final FocusNode? focus;
@@ -24,6 +25,7 @@ class TextFormFieldWidget extends StatefulWidget {
     super.key,
     required this.hint,
     this.focus,
+    this.readOnly,
     this.absorbing,
     this.onChanged,
     this.validator,
@@ -155,6 +157,7 @@ class _TextFormFieldWidgetState extends State<TextFormFieldWidget> {
     controller: _controller,
     onChanged: widget.onChanged,
     obscureText: widget.obscureText,
+    readOnly: widget.readOnly ?? false,
     autovalidateMode: .onUserInteraction,
     inputFormatters: widget.inputFormatters,
     cursorRadius: const Radius.circular(2.0),

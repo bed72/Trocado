@@ -1,11 +1,11 @@
 final class UserModel {
-  final String? id;
+  final int? id;
   final String? name;
   final String? image;
 
   UserModel({required this.id, required this.name, required this.image});
 
-  UserModel copyWith({String? id, String? name, String? image}) => UserModel(
+  UserModel copyWith({int? id, String? name, String? image}) => UserModel(
     id: id ?? this.id,
     name: name ?? this.name,
     image: image ?? this.image,

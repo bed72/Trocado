@@ -14,14 +14,15 @@ final class CalculatorLocation extends Location {
 
   @override
   LocationPageBuilder get pageBuilder => (context) {
+    final store = context.get<CalculatorStore>();
     final onboardingStore = context.get<OnboardingStepWalletStore>();
 
     return BottomSheetPage(
       builder: (_) => CalculatorScreen(
+        store: store,
         amount: (value) {
           onboardingStore.setAmount(value);
         },
-        store: context.get<CalculatorStore>(),
       ),
     );
   };

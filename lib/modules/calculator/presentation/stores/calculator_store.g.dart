@@ -111,12 +111,12 @@ mixin _$CalculatorStore on CalculatorStoreBase, Store {
   }
 
   @override
-  void applyresponse() {
+  void apply() {
     final _$actionInfo = _$CalculatorStoreBaseActionController.startAction(
-      name: 'CalculatorStoreBase.applyresponse',
+      name: 'CalculatorStoreBase.apply',
     );
     try {
-      return super.applyresponse();
+      return super.apply();
     } finally {
       _$CalculatorStoreBaseActionController.endAction(_$actionInfo);
     }

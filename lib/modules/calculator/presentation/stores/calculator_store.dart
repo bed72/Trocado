@@ -8,6 +8,7 @@ class CalculatorStore = CalculatorStoreBase with _$CalculatorStore;
 
 abstract class CalculatorStoreBase with Store {
   final ICalculatorRepository _repository;
+
   CalculatorStoreBase({required ICalculatorRepository repository})
     : _repository = repository;
 
@@ -19,10 +20,10 @@ abstract class CalculatorStoreBase with Store {
 
   @action
   void onKeyTap(String key) => switch (key) {
-    '✓' => null,
+    '✓' => apply(),
+    '=' => apply(),
     'AC' => clear(),
     'DEL' => delete(),
-    '=' => applyresponse(),
     '()' => toggleParenthesis(),
     _ => append(key),
   };
@@ -43,6 +44,10 @@ abstract class CalculatorStoreBase with Store {
 
   @action
   void append(String value) {
+    if (amount.isEmpty && _isOperator(value)) return;
+
+    if (_isOperator(value) && _lastIsOperator()) return;
+
     amount += value;
     updatePreview();
   }
@@ -57,7 +62,7 @@ abstract class CalculatorStoreBase with Store {
   }
 
   @action
-  void applyresponse() {
+  void apply() {
     if (amount.isEmpty) return;
 
     final response = _repository(amount);
@@ -78,6 +83,14 @@ abstract class CalculatorStoreBase with Store {
     final response = _repository(amount);
 
     preview = response.isNaN ? amount : _format(response);
+  }
+
+  bool _isOperator(String value) => ['+', '-', '*', '/'].contains(value);
+
+  bool _lastIsOperator() {
+    if (amount.isEmpty) return false;
+
+    return _isOperator(amount[amount.length - 1]);
   }
 
   String _format(double value) => value.toString().endsWith('.0')

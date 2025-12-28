@@ -35,7 +35,7 @@ final class DatabaseDatasource implements IDatabaseDatasource {
   }
 
   @override
-  Future<AllDatabaseDatasource> find(String table, String id) async {
+  Future<AllDatabaseDatasource> find(String table, int id) async {
     try {
       final response = await _client.database.query(
         table,
@@ -53,7 +53,7 @@ final class DatabaseDatasource implements IDatabaseDatasource {
   }
 
   @override
-  Future<void> delete(String table, String id) async {
+  Future<void> delete(String table, int id) async {
     try {
       await _client.database.delete(table, where: 'id = ?', whereArgs: [id]);
     } catch (exception) {

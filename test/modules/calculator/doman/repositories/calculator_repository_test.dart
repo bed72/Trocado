@@ -46,14 +46,14 @@ void main() {
       'You must solve expressions with multiple levels of parentheses and decimals.',
       () {
         const expression = '10+((2×3)-8)÷(2.9+123.09)';
-        final result = repository(expression);
+        final response = repository(expression);
 
-        expect(result, closeTo(9.984125, 0.000001));
+        expect(response, closeTo(9.984125, 0.000001));
       },
     );
 
     test(
-      'You must deal with negative numbers resulting from subtractions.',
+      'You must deal with negative numbers responseing from subtractions.',
       () {
         expect(repository('5-10×2'), equals(-15.0));
       },
@@ -114,6 +114,97 @@ void main() {
 
     test('Should return NaN for empty string.', () {
       expect(repository('').isNaN, isTrue);
+    });
+  });
+
+  group('NaN', () {
+    test('should return NaN when expression starts with minus operator', () {
+      final response = repository('-3+6');
+
+      expect(response.isNaN, isTrue);
+    });
+
+    test('should return NaN when expression starts with plus operator', () {
+      final response = repository('+3+6');
+
+      expect(response.isNaN, isTrue);
+    });
+
+    test(
+      'should return NaN when expression starts with multiplication operator',
+      () {
+        final response = repository('*3+6');
+
+        expect(response.isNaN, isTrue);
+      },
+    );
+
+    test('should return NaN when expression starts with division operator', () {
+      final response = repository('/3+6');
+
+      expect(response.isNaN, isTrue);
+    });
+
+    test('should calculate expression correctly when expression is valid', () {
+      final response = repository('3+6');
+
+      expect(response, equals(9));
+    });
+
+    test('should calculate expression with precedence correctly', () {
+      final response = repository('3+6*2');
+
+      expect(response, equals(15));
+    });
+
+    test('should calculate expression with parenthesis correctly', () {
+      final response = repository('(3+6)*2');
+
+      expect(response, equals(18));
+    });
+
+    test('should return NaN when expression is invalid', () {
+      final response = repository('3++6');
+
+      expect(response.isNaN, isTrue);
+    });
+  });
+
+  group('isInvalidFirstInput', () {
+    test('should return true when value is plus operator', () {
+      final result = repository.isInvalidFirstInput('+');
+
+      expect(result, isTrue);
+    });
+
+    test('should return true when value is minus operator', () {
+      final result = repository.isInvalidFirstInput('-');
+
+      expect(result, isTrue);
+    });
+
+    test('should return true when value is multiplication operator', () {
+      final result = repository.isInvalidFirstInput('*');
+
+      expect(result, isTrue);
+    });
+
+    test('should return true when value is division operator', () {
+      final result = repository.isInvalidFirstInput('/');
+
+      expect(result, isTrue);
+    });
+
+    test('should return false when value is a number', () {
+      final result = repository.isInvalidFirstInput('3');
+
+      expect(result, isFalse);
+    });
+
+    test('should return false when value is dot', () {
+      final result = repository.isInvalidFirstInput('.');
+
+      expect(result, isFalse);
     });
   });
 }

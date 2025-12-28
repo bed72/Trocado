@@ -3,8 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:trocado/modules/core/core.dart';
 
-import 'package:trocado/modules/core/data/mapper/user_mapper.dart';
-
 import '../../../../mocks/mocks.dart';
 
 void main() {
@@ -20,7 +18,7 @@ void main() {
 
   group('LocalUserRepository', () {
     final table = DatabaseConstant.userTableName;
-    final dto = UserDto(id: '1', name: 'Gabriel', image: 'image.webp');
+    final dto = UserDto(id: 1, name: 'Gabriel', image: 'image.webp');
 
     group('find', () {
       test('should return first user on success', () async {
@@ -31,7 +29,7 @@ void main() {
         final response = await repository.find();
 
         expect(response.isRight, isTrue);
-        expect(response.right.id, equals('1'));
+        expect(response.right.id, equals(1));
         expect(response.right.name, equals('Gabriel'));
         verify(() => datasource.all(table.name)).called(1);
       });
@@ -88,7 +86,7 @@ void main() {
 
         await repository.delete(data: dto);
 
-        verify(() => datasource.delete(table.name, '1')).called(1);
+        verify(() => datasource.delete(table.name, 1)).called(1);
       });
     });
   });
