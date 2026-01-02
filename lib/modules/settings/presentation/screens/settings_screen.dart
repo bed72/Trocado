@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 
@@ -8,10 +10,21 @@ import 'package:trocado/modules/settings/presentation/widgets/profile_widget.dar
 import 'package:trocado/modules/settings/presentation/widgets/sessions/finances_session_widget.dart';
 import 'package:trocado/modules/settings/presentation/widgets/sessions/application_settings_session_widget.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
+  final UserStore store;
   final SettingsDto dto;
 
-  const SettingsScreen({super.key, required this.dto});
+  const SettingsScreen({super.key, required this.dto, required this.store});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> with AfterLayoutMixin {
+  @override
+  FutureOr<void> afterFirstLayout(BuildContext context) async {
+    widget.store.find();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,20 +40,16 @@ class SettingsScreen extends StatelessWidget {
                   children: [
                     const SizedBox(height: 32.0),
                     Observer(
-                      builder: (context) {
-                        final store = context.get<UserStore>()..find();
-
-                        return ProfileWidget(
-                          onEdit: dto.onUserTap,
-                          name: store.user.name ?? '',
-                          resource:
-                              store.user.image ??
-                              'https://avatars.githubusercontent.com/u/30250307?s=96&v=4',
-                        );
-                      },
+                      builder: (_) => ProfileWidget(
+                        onEdit: widget.dto.onUserTap,
+                        name: widget.store.user.name ?? '',
+                        resource:
+                            widget.store.user.image ??
+                            'https://avatars.githubusercontent.com/u/30250307?s=96&v=4',
+                      ),
                     ),
-                    FinancesSessionWidget(dto: dto),
-                    ApplicationSettingsSessionWidget(dto: dto),
+                    FinancesSessionWidget(dto: widget.dto),
+                    ApplicationSettingsSessionWidget(dto: widget.dto),
                   ],
                 ),
               ),

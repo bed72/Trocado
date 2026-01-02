@@ -11,5 +11,8 @@ final class SettingsLocation extends Location {
 
   @override
   LocationBuilder? get builder =>
-      (context) => SettingsScreen(dto: SettingsDto.build(context));
+      (context) => SettingsScreen(
+        store: context.get<UserStore>(),
+        dto: SettingsDto.build(context),
+      );
 }

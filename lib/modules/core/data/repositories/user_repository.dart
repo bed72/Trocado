@@ -39,8 +39,7 @@ final class UserRepository implements IUserRepository {
     return user
         .mapLeft((_) => 'Opss, não encontramos seus dados, tente mais tarde!')
         .flatMap(
-          (values) =>
-              _mapper.fromJsons(values).mapRight((users) => users.first),
+          (values) => _mapper.fromJsons(values).mapRight((users) => users.last),
         );
   }
 }
