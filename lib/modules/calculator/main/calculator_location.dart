@@ -1,7 +1,6 @@
 import 'package:duck_router/duck_router.dart';
 
 import 'package:trocado/modules/core/core.dart';
-import 'package:trocado/modules/onboarding/onboarding.dart';
 
 import 'package:trocado/modules/calculator/presentation/stores/calculator_store.dart';
 import 'package:trocado/modules/calculator/presentation/screens/calculator_screen.dart';
@@ -15,15 +14,9 @@ final class CalculatorLocation extends Location {
   @override
   LocationPageBuilder get pageBuilder => (context) {
     final store = context.get<CalculatorStore>();
-    final onboardingStore = context.get<OnboardingStepWalletStore>();
 
     return BottomSheetPage(
-      builder: (_) => CalculatorScreen(
-        store: store,
-        amount: (value) {
-          onboardingStore.setAmount(value);
-        },
-      ),
+      builder: (_) => CalculatorScreen(store: store, amount: (value) {}),
     );
   };
 }

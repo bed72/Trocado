@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 
 import 'package:trocado/modules/core/core.dart';
 
-class UserScreen extends StatelessWidget {
-  const UserScreen({super.key});
+class TransactionsScreen extends StatelessWidget {
+  const TransactionsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return ScaffoldWidget(
-      title: 'User',
-      child: Center(child: Text('User data')),
+      appBar: AppBarWidget(),
+      child: Center(child: Text('Transactions')),
     );
   }
 }

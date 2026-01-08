@@ -2,7 +2,6 @@ import 'package:trocado/main.dart';
 
 import 'package:trocado/modules/core/core.dart';
 import 'package:trocado/modules/calculator/calculator.dart';
-import 'package:trocado/modules/onboarding/onboarding.dart';
 
 Future<void> ensureInitialized() async {
   storeProvider();
@@ -13,22 +12,17 @@ Future<void> ensureInitialized() async {
   repositoryProvider();
 
   calculatorProvider();
-  onboardingProvider();
 
   await _ensureInitialized();
 }
 
 Future<void> _ensureInitialized() async {
-  final user = provider.get<UserStore>();
   final theme = provider.get<ThemeStore>();
   final database = provider.get<IDatabaseClient>();
-  final onboarding = provider.get<OnboardingStore>();
 
   await Future.wait([
-    user.ensureInitialized(),
     theme.ensureInitialized(),
     database.ensureInitialized(),
-    onboarding.ensureInitialized(),
 
     provider.allReady(),
   ]);

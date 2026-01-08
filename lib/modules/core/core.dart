@@ -1,5 +1,3 @@
-export 'main/core_location.dart';
-
 export 'main/providers/store_provider.dart';
 export 'main/providers/client_provider.dart';
 export 'main/providers/external_provider.dart';
@@ -11,7 +9,6 @@ export 'data/dtos/user_dto.dart';
 export 'data/mapper/mapper.dart';
 export 'data/mapper/user_mapper.dart';
 
-export 'data/repositories/user_repository.dart';
 export 'data/repositories/storage_repository.dart';
 
 export 'data/datasources/interface_storage_datasource.dart';
@@ -30,8 +27,6 @@ export 'domain/constant/bottom_bar_constant.dart';
 export 'domain/constant/logger_level_constant.dart';
 export 'domain/constant/quick_actions_constant.dart';
 
-export 'domain/repositories/interface_user_repository.dart';
-export 'domain/repositories/interface_image_repository.dart';
 export 'domain/repositories/interface_storage_repository.dart';
 
 export 'infrastructure/clients/storage/storage_client.dart';
@@ -48,14 +43,11 @@ export 'presentation/themes/themes.dart';
 export 'presentation/screens/failure_screen.dart';
 export 'presentation/pages/bottom_sheet_page.dart';
 export 'presentation/mixins/after_layout_mixin.dart';
-export 'presentation/interceptors/bottom_bar_visibility_intercptor.dart';
 
 export 'presentation/extensions/widget_extension.dart';
 export 'presentation/extensions/context_extension.dart';
 
-export 'presentation/stores/user_store.dart';
 export 'presentation/stores/theme_store.dart';
-export 'presentation/stores/bottom_bar_store.dart';
 
 export 'presentation/animation/animation.dart';
 export 'presentation/animation/loop_animation.dart';
