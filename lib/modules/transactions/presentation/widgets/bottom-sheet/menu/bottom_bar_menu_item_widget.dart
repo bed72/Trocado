@@ -30,29 +30,24 @@ class BottomBarMenuItemWidget extends StatelessWidget {
         radius: context.radius.cornerRadius500,
         child: Container(
           width: 200.0,
-          height: 160.0,
+          height: 70.0,
           decoration: BoxDecoration(
             color: backgroundColor.withAlpha(60),
             borderRadius: context.radius.cornerRadius500,
             border: .all(color: backgroundColor, width: 1.0),
           ),
-          child: Stack(
+          child: Row(
+            spacing: 8.0,
+            mainAxisAlignment: .center,
+            crossAxisAlignment: .center,
             children: [
-              Positioned(
-                top: 24.0,
-                left: 24.0,
-                child: Icon(icon, size: 26.0, color: iconColor),
-              ),
+              Icon(icon, size: 26.0, color: iconColor),
 
-              Positioned(
-                top: 54.0,
-                left: 24.0,
-                child: Text(
-                  title,
-                  style: context.typography.bodyLarge?.copyWith(
-                    color: iconColor,
-                    fontWeight: .w500,
-                  ),
+              Text(
+                title,
+                style: context.typography.bodyLarge?.copyWith(
+                  color: iconColor,
+                  fontWeight: .w500,
                 ),
               ),
             ],

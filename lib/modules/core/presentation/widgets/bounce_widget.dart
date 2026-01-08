@@ -11,7 +11,7 @@ abstract base class BounceWidget extends StatefulWidget {
   factory BounceWidget.withTap({
     Key? key,
     required Widget child,
-    required VoidCallback onTap,
+    required VoidCallback? onTap,
   }) => _BounceWithOnTapWidget(key: key, onTap: onTap, child: child);
 
   factory BounceWidget.withoutTap({Key? key, required Widget child}) =>

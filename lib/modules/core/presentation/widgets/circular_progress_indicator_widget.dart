@@ -3,14 +3,27 @@ import 'package:flutter/material.dart';
 import 'package:trocado/modules/core/presentation/extensions/context_extension.dart';
 
 class CircularProgressIndicatorWidget extends StatelessWidget {
-  const CircularProgressIndicatorWidget({super.key});
+  final Color? color;
+  final double? width;
+  final double? height;
+
+  const CircularProgressIndicatorWidget({
+    super.key,
+    this.color,
+    this.width,
+    this.height,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: CircularProgressIndicator.adaptive(
-        strokeWidth: 2,
-        valueColor: AlwaysStoppedAnimation(context.colors.onPrimary),
+      child: SizedBox(
+        width: width ?? 20.0,
+        height: height ?? 20.0,
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          valueColor: AlwaysStoppedAnimation(color ?? context.colors.onPrimary),
+        ),
       ),
     );
   }

@@ -1,6 +1,4 @@
-import 'package:provider/provider.dart';
-
-import 'package:trocado/modules/core/presentation/extensions/context_extension.dart';
+import 'package:trocado/main.dart';
 
 import 'package:trocado/modules/core/data/mapper/user_mapper.dart';
 
@@ -16,21 +14,18 @@ import 'package:trocado/modules/core/domain/repositories/interface_user_reposito
 import 'package:trocado/modules/core/domain/repositories/interface_image_repository.dart';
 import 'package:trocado/modules/core/domain/repositories/interface_storage_repository.dart';
 
-final repositoryProvider = [
-  Provider<IUserRepository>(
-    create: (context) => UserRepository(
-      mapper: UserMapper(),
-      datasource: context.get<IDatabaseDatasource>(),
-    ),
-  ),
-
-  Provider<IImageRepository>(
-    create: (context) =>
-        ImageRepository(datasource: context.get<IImageDatasource>()),
-  ),
-
-  Provider<IStorageRepository>(
-    create: (context) =>
-        StorageRepository(datasource: context.get<IStorageDatasource>()),
-  ),
-];
+void repositoryProvider() {
+  provider
+    ..registerLazySingleton<IUserRepository>(
+      () => UserRepository(
+        mapper: UserMapper(),
+        datasource: provider<IDatabaseDatasource>(),
+      ),
+    )
+    ..registerLazySingleton<IImageRepository>(
+      () => ImageRepository(datasource: provider<IImageDatasource>()),
+    )
+    ..registerLazySingleton<IStorageRepository>(
+      () => StorageRepository(datasource: provider<IStorageDatasource>()),
+    );
+}

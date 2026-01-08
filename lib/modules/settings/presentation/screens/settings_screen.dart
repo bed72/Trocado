@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 
 import 'package:trocado/modules/core/core.dart';
 import 'package:trocado/modules/settings/presentation/dtos/settings_dto.dart';
@@ -7,10 +10,21 @@ import 'package:trocado/modules/settings/presentation/widgets/profile_widget.dar
 import 'package:trocado/modules/settings/presentation/widgets/sessions/finances_session_widget.dart';
 import 'package:trocado/modules/settings/presentation/widgets/sessions/application_settings_session_widget.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
+  final UserStore store;
   final SettingsDto dto;
 
-  const SettingsScreen({super.key, required this.dto});
+  const SettingsScreen({super.key, required this.dto, required this.store});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> with AfterLayoutMixin {
+  @override
+  FutureOr<void> afterFirstLayout(BuildContext context) async {
+    widget.store.find();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,18 +33,38 @@ class SettingsScreen extends StatelessWidget {
       body: SafeArea(
         child: Padding(
           padding: const .symmetric(horizontal: 20.0),
-          child: ListView(
+          child: Column(
             children: [
-              const SizedBox(height: 32.0),
-              ProfileWidget(
-                name: 'Bed',
-                email: 'bed@gmail.com',
-                onEdit: dto.onUserTap,
-                url:
-                    'https://avatars.githubusercontent.com/u/30250307?s=96&v=4',
+              Expanded(
+                child: ListView(
+                  children: [
+                    const SizedBox(height: 32.0),
+                    Observer(
+                      builder: (_) => ProfileWidget(
+                        onEdit: widget.dto.onUserTap,
+                        name: widget.store.user.name ?? '',
+                        resource:
+                            widget.store.user.image ??
+                            'https://avatars.githubusercontent.com/u/30250307?s=96&v=4',
+                      ),
+                    ),
+                    FinancesSessionWidget(dto: widget.dto),
+                    ApplicationSettingsSessionWidget(dto: widget.dto),
+                  ],
+                ),
               ),
-              FinancesSessionWidget(dto: dto),
-              ApplicationSettingsSessionWidget(dto: dto),
+              SizedBox(
+                width: double.infinity,
+                child: ButtonWidget.ghost(
+                  child: Text(
+                    'Deletar dados',
+                    style: TextStyle(color: context.colors.error),
+                  ),
+                  onTap: () {
+                    // TODO implementar
+                  },
+                ),
+              ),
               const SizedBox(height: 32.0),
             ],
           ),

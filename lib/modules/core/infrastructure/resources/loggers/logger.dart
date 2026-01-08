@@ -12,15 +12,10 @@ abstract interface class ILogger {
 }
 
 final class Logger implements ILogger {
-  final bool enabled;
   final bool showTimestamp;
   final String defaultTitle;
 
-  Logger({
-    this.enabled = true,
-    this.showTimestamp = true,
-    this.defaultTitle = 'Trocado',
-  });
+  Logger({this.showTimestamp = true, this.defaultTitle = 'Trocado'});
 
   @override
   void debug(String message, {Object? error, StackTrace? stackTrace}) {
@@ -88,7 +83,7 @@ final class Logger implements ILogger {
     Object? error,
     StackTrace? stackTrace,
   }) {
-    if (!enabled) return;
+    if (kReleaseMode) return;
 
     final time = showTimestamp ? '${DateTime.now()}' : '';
     final formatted = _format(message, error, stackTrace);

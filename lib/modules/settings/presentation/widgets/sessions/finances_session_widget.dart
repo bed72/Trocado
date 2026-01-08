@@ -26,21 +26,6 @@ class FinancesSessionWidget extends StatelessWidget {
           icon: LucideIcons.library,
           onTap: dto.onCategoriesTap,
         ),
-        SettingItemWidget.arrowTile(
-          title: 'Metas',
-          onTap: dto.onGoalsTap,
-          icon: LucideIcons.piggyBank,
-        ),
-        SettingItemWidget.arrowTile(
-          title: 'Dívidas',
-          onTap: dto.onDebtsTap,
-          icon: LucideIcons.handshake,
-        ),
-        SettingItemWidget.arrowTile(
-          icon: LucideIcons.receiptText,
-          title: 'Transações recorrentes',
-          onTap: dto.onRecurringTransactionsTap,
-        ),
       ],
     );
   }

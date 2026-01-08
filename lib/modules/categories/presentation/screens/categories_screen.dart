@@ -7,9 +7,9 @@ class CategoriesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBarWidget(title: 'Categories'),
-      body: SafeArea(child: Center(child: Text('Categories'))),
+    return ScaffoldWidget(
+      title: 'Categories',
+      child: Center(child: Text('Categories')),
     );
   }
 }

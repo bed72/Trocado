@@ -29,6 +29,7 @@ class OnboardingScreen extends StatelessWidget {
                   height: 100.0,
                   child: ImageWidget(
                     source: AssetsConstant.logo.source,
+                    color: context.colors.primary,
                     alt:
                         'Logo do Trocado, aplicativo de finanças compartilhadas.',
                   ),
@@ -36,7 +37,7 @@ class OnboardingScreen extends StatelessWidget {
                 StepTitleWidget(value: 'Trocado'),
                 StepDescriptionWidget(
                   value:
-                      'Organize sua vida financeira de um jeito simples, inteligente e compartilhado.',
+                      'Organize sua vida financeira de um jeito simples e inteligente.',
                 ),
                 const SizedBox(height: 16.0),
                 StepButtonWidget(

@@ -8,48 +8,41 @@ import 'package:trocado/modules/core/presentation/themes/radius/radius_theme.dar
 
 abstract final class Themes {
   static ThemeData light = FlexThemeData.light(
+    scheme: .money,
+    useMaterial3: true,
     fontFamily: 'Inter',
-    scheme: FlexScheme.money,
     colorScheme: lightColorScheme,
     extensions: <ThemeExtension<dynamic>>[radius],
     subThemesData: FlexSubThemesData(
       alignedDropdown: true,
       interactionEffects: true,
       useM2StyleDividerInM3: false,
+      useMaterial3Typography: true,
       tintedDisabledControls: true,
       inputDecoratorIsFilled: true,
       navigationRailUseIndicator: true,
 
       buttonMinSize: Size(54.0, 54.0),
 
+      textButtonRadius: 16.0,
+      textButtonSchemeColor: .primary,
+
       elevatedButtonRadius: 16.0,
       elevatedButtonElevation: 0.0,
       elevatedButtonSchemeColor: .onPrimary,
       elevatedButtonSecondarySchemeColor: .primary,
       elevatedButtonTextStyle: WidgetStatePropertyAll(
-        TextStyle(
-          fontSize: 14.0,
-          fontWeight: .w600,
-          color: darkColorScheme.inverseSurface,
-        ),
+        TextStyle(fontSize: 14.0, fontWeight: .w500),
       ),
 
       outlinedButtonRadius: 16.0,
-      outlinedButtonSchemeColor: .primary,
       outlinedButtonOutlineSchemeColor: .primary,
       outlinedButtonTextStyle: WidgetStatePropertyAll(
-        TextStyle(
-          fontSize: 14.0,
-          fontWeight: .w600,
-          color: darkColorScheme.inverseSurface,
-        ),
+        TextStyle(fontSize: 14.0, fontWeight: .w500),
       ),
 
       inputDecoratorRadius: 16.0,
-      inputDecoratorIsDense: true,
       inputDecoratorBorderType: .outline,
-      inputDecoratorBorderSchemeColor: .primary,
-
       inputDecoratorContentPadding: const .symmetric(
         vertical: 14.0,
         horizontal: 0.0,
@@ -66,8 +59,9 @@ abstract final class Themes {
   );
 
   static ThemeData dark = FlexThemeData.dark(
+    scheme: .money,
+    useMaterial3: true,
     fontFamily: 'Inter',
-    scheme: FlexScheme.money,
     colorScheme: darkColorScheme,
     extensions: <ThemeExtension<dynamic>>[radius],
     subThemesData: FlexSubThemesData(
@@ -75,41 +69,32 @@ abstract final class Themes {
       alignedDropdown: true,
       interactionEffects: true,
       useM2StyleDividerInM3: false,
+      useMaterial3Typography: true,
       inputDecoratorIsFilled: true,
       tintedDisabledControls: true,
       navigationRailUseIndicator: true,
 
       buttonMinSize: Size(54.0, 54.0),
 
+      textButtonRadius: 16.0,
+      textButtonSchemeColor: .primary,
+
       elevatedButtonRadius: 16.0,
       elevatedButtonElevation: 0.0,
-      elevatedButtonSchemeColor: .primary,
-      elevatedButtonSecondarySchemeColor: .onPrimary,
       elevatedButtonTextStyle: WidgetStatePropertyAll(
-        TextStyle(
-          fontSize: 14.0,
-          fontWeight: .w600,
-          color: darkColorScheme.inverseSurface,
-        ),
+        TextStyle(fontSize: 14.0, fontWeight: .w500),
       ),
 
       outlinedButtonRadius: 16.0,
-      outlinedButtonSchemeColor: .primary,
       outlinedButtonOutlineSchemeColor: .primary,
       outlinedButtonTextStyle: WidgetStatePropertyAll(
-        TextStyle(
-          fontSize: 14.0,
-          fontWeight: .w600,
-          color: darkColorScheme.inverseSurface,
-        ),
+        TextStyle(fontSize: 14.0, fontWeight: .w500),
       ),
 
       inputDecoratorRadius: 16.0,
-      inputDecoratorIsDense: true,
       inputDecoratorBorderType: .outline,
-      inputDecoratorBorderSchemeColor: .primary,
       inputDecoratorContentPadding: const .symmetric(
-        vertical: 14.0,
+        vertical: 16.0,
         horizontal: 0.0,
       ),
     ),

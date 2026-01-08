@@ -8,7 +8,7 @@ void main() {
 
   group('UserMapper', () {
     test('toModel should convert UserDto into UserModel correctly', () {
-      final dto = UserDto(id: '1', name: 'Gabriel', image: 'image.webp');
+      final dto = UserDto(id: 1, name: 'Gabriel', image: 'image.webp');
 
       final data = mapper.toModel(dto);
 
@@ -17,17 +17,17 @@ void main() {
     });
 
     test('toJson should convert UserDto into Map correctly', () {
-      final dto = UserDto(id: '1', name: 'Gabriel', image: 'image.webp');
+      final dto = UserDto(id: 1, name: 'Gabriel', image: 'image.webp');
 
       final data = mapper.toJson(dto);
 
-      expect(data['id'], equals('1'));
+      expect(data['id'], equals(1));
       expect(data['name'], equals('Gabriel'));
       expect(data['image'], equals('image.webp'));
     });
 
     test('fromJson should return Right(UserDto) for valid JSON', () {
-      final json = {'id': '1', 'name': 'Gabriel', 'image': 'image.webp'};
+      final json = {'id': 1, 'name': 'Gabriel', 'image': 'image.webp'};
 
       final data = mapper.fromJson(json);
 

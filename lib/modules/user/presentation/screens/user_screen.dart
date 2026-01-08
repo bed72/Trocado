@@ -7,9 +7,9 @@ class UserScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBarWidget(),
-      body: SafeArea(child: Center(child: Text('User data'))),
+    return ScaffoldWidget(
+      title: 'User',
+      child: Center(child: Text('User data')),
     );
   }
 }

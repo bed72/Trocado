@@ -3,19 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:trocado/modules/core/core.dart';
 
 class StepButtonWidget extends StatelessWidget {
-  final String label;
-  final Widget? icon;
-  final bool? enabled;
-  final bool? loading;
+  final String? label;
+  final Widget? child;
+  final bool? isLoading;
   final VoidCallback? onTap;
 
   const StepButtonWidget({
     super.key,
-    required this.label,
-    required this.onTap,
-    this.icon,
-    this.enabled,
-    this.loading,
+    this.label,
+    this.child,
+    this.onTap,
+    this.isLoading,
   });
 
   @override
@@ -23,11 +21,10 @@ class StepButtonWidget extends StatelessWidget {
     return SizedBox(
       width: double.infinity,
       child: ButtonWidget.elevated(
-        label: label,
-        icon: icon,
         onTap: onTap,
-        enabled: enabled ?? true,
-        loading: loading ?? false,
+        label: label,
+        isLoading: isLoading,
+        child: child,
       ),
     );
   }

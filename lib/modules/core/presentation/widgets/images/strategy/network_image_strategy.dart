@@ -35,11 +35,8 @@ final class NetworkImageStrategy implements ImageStrategy {
     );
   }
 
-  Widget _loading(double? width, double? height) => SizedBox(
-    width: width,
-    height: height,
-    child: CircularProgressIndicatorWidget(),
-  );
+  CircularProgressIndicatorWidget _loading(double? width, double? height) =>
+      CircularProgressIndicatorWidget(width: width, height: height);
 
   Widget _fallback(
     String? fallback,

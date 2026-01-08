@@ -1,7 +1,15 @@
 export 'main/core_location.dart';
-export 'main/providers/provider.dart';
 
+export 'main/providers/store_provider.dart';
+export 'main/providers/client_provider.dart';
+export 'main/providers/external_provider.dart';
+export 'main/providers/resource_provider.dart';
+export 'main/providers/datasource_provider.dart';
+export 'main/providers/repository_provider.dart';
+
+export 'data/dtos/user_dto.dart';
 export 'data/mapper/mapper.dart';
+export 'data/mapper/user_mapper.dart';
 
 export 'data/repositories/user_repository.dart';
 export 'data/repositories/storage_repository.dart';
@@ -40,41 +48,39 @@ export 'presentation/themes/themes.dart';
 export 'presentation/screens/failure_screen.dart';
 export 'presentation/pages/bottom_sheet_page.dart';
 export 'presentation/mixins/after_layout_mixin.dart';
-export 'presentation/builders/notifier_builder.dart';
+export 'presentation/interceptors/bottom_bar_visibility_intercptor.dart';
 
 export 'presentation/extensions/widget_extension.dart';
 export 'presentation/extensions/context_extension.dart';
 
-export 'presentation/animation/loop_animation.dart';
-export 'presentation/animation/shimmer_animation.dart';
-export 'presentation/animation/fade_size_animation.dart';
-export 'presentation/animation/fade_switch_animation.dart';
+export 'presentation/stores/user_store.dart';
+export 'presentation/stores/theme_store.dart';
+export 'presentation/stores/bottom_bar_store.dart';
 
-export 'presentation/notifiers/notifier.dart';
-export 'presentation/notifiers/user_notifier.dart';
-export 'presentation/notifiers/image_notifier.dart';
-export 'presentation/notifiers/theme_notifier.dart';
-export 'presentation/notifiers/bottom_bar_notifier.dart';
-export 'presentation/notifiers/onboarding_notifier.dart';
-export 'presentation/notifiers/fingerprint_notifier.dart';
-export 'presentation/notifiers/notification_notifier.dart';
+export 'presentation/animation/animation.dart';
+export 'presentation/animation/loop_animation.dart';
+export 'presentation/animation/shake_animation.dart';
+export 'presentation/animation/shimmer_animation.dart';
 
 export 'presentation/widgets/load_widget.dart';
 export 'presentation/widgets/icon_widget.dart';
-export 'presentation/widgets/button_widget.dart';
+export 'presentation/widgets/helper_widget.dart';
 export 'presentation/widgets/switch_widget.dart';
 export 'presentation/widgets/bounce_widget.dart';
 export 'presentation/widgets/app_bar_widget.dart';
+export 'presentation/widgets/scaffold_widget.dart';
 export 'presentation/widgets/indicator_widget.dart';
 export 'presentation/widgets/user_image_widget.dart';
 export 'presentation/widgets/images/image_widget.dart';
+export 'presentation/widgets/buttons/button_widget.dart';
 export 'presentation/widgets/fields/text_field_widget.dart';
 export 'presentation/widgets/skeletons/skeleton_widget.dart';
+export 'presentation/widgets/keyboard_visibility_widget.dart';
 export 'presentation/widgets/fields/text_form_field_widget.dart';
 export 'presentation/widgets/circular_progress_indicator_widget.dart';
 
-export 'presentation/widgets/bottons/bottom_bar_widget.dart';
-export 'presentation/widgets/bottons/bottom_bar_item_widget.dart';
+export 'presentation/widgets/bottom-bars/bottom_bar_widget.dart';
+export 'presentation/widgets/bottom-bars/bottom_bar_item_widget.dart';
 
 export 'presentation/widgets/bottom-sheets/bottom_sheet_widget.dart';
 export 'presentation/widgets/bottom-sheets/bottom_sheet_scaffold_widget.dart';

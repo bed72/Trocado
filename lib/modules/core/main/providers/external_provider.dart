@@ -1,7 +1,9 @@
-import 'package:provider/provider.dart';
-
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-final externalProviders = [
-  Provider<FlutterSecureStorage>(create: (_) => FlutterSecureStorage()),
-];
+import 'package:trocado/main.dart';
+
+void externalProvider() {
+  provider.registerLazySingleton<FlutterSecureStorage>(
+    FlutterSecureStorage.new,
+  );
+}

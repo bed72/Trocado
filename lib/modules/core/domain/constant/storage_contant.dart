@@ -1,5 +1,4 @@
 enum StorageConstant {
-  image(key: 'user_image'),
   theme(key: 'is_dark_theme'),
   onboarding(key: 'is_the_first_time'),
   fingerprint(key: 'is_active_fingerprint'),

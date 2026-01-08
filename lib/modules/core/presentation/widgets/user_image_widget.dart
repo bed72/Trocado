@@ -11,32 +11,37 @@ import 'package:trocado/modules/core/presentation/extensions/context_extension.d
 import 'package:trocado/modules/core/presentation/widgets/skeletons/skeleton_widget.dart';
 
 class UserImageWidget extends StatelessWidget {
-  final VoidCallback onEdit;
-  final String? source;
+  final String? resource;
   final IconData? iconEmpty;
   final IconData? iconOnEdit;
+  final VoidCallback? onEdit;
 
   const UserImageWidget({
     super.key,
-    required this.onEdit,
-    this.source,
+    this.onEdit,
+    this.resource,
     this.iconEmpty,
     this.iconOnEdit,
   });
 
-  factory UserImageWidget.empty({required VoidCallback onEdit}) =>
-      UserImageWidget(
-        onEdit: onEdit,
-        iconOnEdit: LucideIcons.camera,
-        iconEmpty: LucideIcons.userRound,
-      );
+  factory UserImageWidget.pencil({VoidCallback? onEdit}) => UserImageWidget(
+    onEdit: onEdit,
+    iconOnEdit: LucideIcons.pencil,
+    iconEmpty: LucideIcons.userRound,
+  );
+
+  factory UserImageWidget.camera({VoidCallback? onEdit}) => UserImageWidget(
+    onEdit: onEdit,
+    iconOnEdit: LucideIcons.camera,
+    iconEmpty: LucideIcons.userRound,
+  );
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       alignment: Alignment.bottomRight,
       children: [
-        source == null ? _buildEmptyUser(context) : _buildNotEmptyUser(),
+        resource == null ? _buildEmptyUser(context) : _buildNotEmptyUser(),
         Positioned(
           right: 2,
           bottom: 0,
@@ -68,10 +73,10 @@ class UserImageWidget extends StatelessWidget {
   }
 
   SkeletonWidget _buildLoading() =>
-      SkeletonWidget(child: UserImageWidget.empty(onEdit: onEdit));
+      SkeletonWidget(child: UserImageWidget.camera(onEdit: onEdit));
 
   FutureBuilder _buildNotEmptyUser() => FutureBuilder<Uint8List>(
-    future: File(source!).readAsBytes(),
+    future: File(resource!).readAsBytes(),
     builder: (_, snapshot) => !snapshot.hasData
         ? _buildLoading()
         : CircleAvatar(

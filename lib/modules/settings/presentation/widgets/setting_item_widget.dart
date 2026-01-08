@@ -83,7 +83,7 @@ class SettingItemWidget extends StatelessWidget {
       borderRadius: context.radius.cornerRadius300,
       border: .all(
         color: isDanger
-            ? context.colors.errorContainer
+            ? context.colors.error
             : context.colors.onInverseSurface,
       ),
     ),
@@ -93,7 +93,7 @@ class SettingItemWidget extends StatelessWidget {
         IconWidget(
           name: icon,
           color: isDanger
-              ? context.colors.errorContainer
+              ? context.colors.error
               : context.colors.inversePrimary,
         ),
         Expanded(
@@ -101,9 +101,7 @@ class SettingItemWidget extends StatelessWidget {
             title,
             style: context.typography.bodyMedium?.copyWith(
               fontWeight: .w500,
-              color: isDanger
-                  ? context.colors.errorContainer
-                  : context.colors.onSurface,
+              color: isDanger ? context.colors.error : context.colors.onSurface,
             ),
           ),
         ),

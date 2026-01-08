@@ -1,14 +1,20 @@
+import 'package:get_it/get_it.dart';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
 
 import 'package:trocado/app_widget.dart';
-import 'package:trocado/modules/core/core.dart';
+import 'package:trocado/app_provider.dart';
+
+final provider = GetIt.instance;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  await Future.wait([
+    ensureInitialized(),
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]),
+  ]);
 
-  runApp(MultiProvider(providers: providers, child: AppWidget()));
+  runApp(AppWidget());
 }
