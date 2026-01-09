@@ -37,8 +37,9 @@ class TransactionWidget extends StatelessWidget {
         subtitle: Text(
           state.category.label,
           style: context.typography.labelSmall?.copyWith(
+            fontWeight: .w600,
             letterSpacing: 0.5,
-            color: context.colors.onSurfaceVariant,
+            color: context.colors.onSurfaceVariant.withValues(alpha: 0.8),
           ),
         ),
         trailing: Text(

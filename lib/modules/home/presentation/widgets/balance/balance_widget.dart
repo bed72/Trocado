@@ -44,14 +44,14 @@ class BalanceWidget extends StatelessWidget {
                   style: state.isTotal
                       ? context.typography.titleMedium?.copyWith(
                           fontWeight: .w600,
-                          color: context.colors.onSecondaryContainer.withValues(
-                            alpha: 0.6,
+                          color: context.colors.onSurfaceVariant.withValues(
+                            alpha: 0.8,
                           ),
                         )
                       : context.typography.labelMedium?.copyWith(
                           fontWeight: .w600,
-                          color: context.colors.onSecondaryContainer.withValues(
-                            alpha: 0.6,
+                          color: context.colors.onSurfaceVariant.withValues(
+                            alpha: 0.8,
                           ),
                         ),
                 ),
@@ -63,11 +63,11 @@ class BalanceWidget extends StatelessWidget {
               style: state.isTotal
                   ? context.typography.titleLarge?.copyWith(
                       fontWeight: state.isTotal ? .w600 : .bold,
-                      color: context.colors.onSecondaryContainer,
+                      color: context.colors.onSurfaceVariant,
                     )
                   : context.typography.titleMedium?.copyWith(
                       fontWeight: state.isTotal ? .w600 : .bold,
-                      color: context.colors.onSecondaryContainer,
+                      color: context.colors.onSurfaceVariant,
                     ),
             ),
           ],
