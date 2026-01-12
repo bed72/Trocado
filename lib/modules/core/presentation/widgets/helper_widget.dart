@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import 'package:trocado/modules/core/presentation/widgets/icon_widget.dart';
+import 'package:trocado/modules/core/presentation/widgets/icons/icon_widget.dart';
 import 'package:trocado/modules/core/presentation/extensions/context_extension.dart';
 
 class HelperWidget extends StatelessWidget {
@@ -16,7 +15,7 @@ class HelperWidget extends StatelessWidget {
     return Row(
       spacing: 4.0,
       children: [
-        IconWidget(size: 16.0, color: color, name: LucideIcons.info300),
+        IconWidget(size: 16.0, color: color, name: Icons.info),
         Text(
           title,
           style: context.typography.bodySmall?.copyWith(

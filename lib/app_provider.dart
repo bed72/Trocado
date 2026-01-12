@@ -4,7 +4,6 @@ import 'package:trocado/modules/core/core.dart';
 import 'package:trocado/modules/calculator/calculator.dart';
 
 Future<void> ensureInitialized() async {
-  storeProvider();
   clientProvider();
   externalProvider();
   resourceProvider();
@@ -17,13 +16,7 @@ Future<void> ensureInitialized() async {
 }
 
 Future<void> _ensureInitialized() async {
-  final theme = provider.get<ThemeStore>();
   final database = provider.get<IDatabaseClient>();
 
-  await Future.wait([
-    theme.ensureInitialized(),
-    database.ensureInitialized(),
-
-    provider.allReady(),
-  ]);
+  await Future.wait([database.ensureInitialized(), provider.allReady()]);
 }

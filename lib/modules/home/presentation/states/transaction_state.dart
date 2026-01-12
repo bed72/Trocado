@@ -1,4 +1,5 @@
-import 'package:trocado/modules/core/core.dart';
+import 'package:trocado/modules/category/category.dart';
+import 'package:trocado/modules/transaction/transaction.dart';
 
 final class TransactionState {
   final String label;

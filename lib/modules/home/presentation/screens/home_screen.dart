@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:trocado/modules/core/core.dart';
-import 'package:trocado/modules/home/presentation/states/balance_state.dart';
-import 'package:trocado/modules/home/presentation/widgets/balance/balance_widget.dart';
-import 'package:trocado/modules/home/presentation/widgets/transaction/transactions_widget.dart';
-import 'package:trocado/modules/home/presentation/widgets/transaction/transactions_widget_preview.dart';
+
+import 'package:trocado/modules/home/presentation/states/transaction_state.dart';
+import 'package:trocado/modules/home/presentation/widgets/balance/grid_balance_widget.dart';
+import 'package:trocado/modules/home/presentation/widgets/transaction/transaction_header_widget.dart';
+import 'package:trocado/modules/home/presentation/widgets/transaction/transaction_widget.dart';
 
 class HomeScreen extends StatefulWidget {
   final VoidCallback onNavigateToExit;
@@ -49,44 +49,107 @@ class _HomeScreenState extends State<HomeScreen>
 
   FloatingActionButton _buildFloatingActionButton() => FloatingActionButton(
     onPressed: widget.onNavigateToTransaction,
-    child: IconWidget(name: LucideIcons.plus),
+    child: IconWidget(name: Icons.add),
   );
 
-  Padding _buildContent(BuildContext context) => Padding(
-    padding: const .symmetric(vertical: 8.0, horizontal: 16.0),
-    child: Column(
-      spacing: 16.0,
-      children: [
-        BalanceWidget(
-          state: BalanceState(label: 'Total', amount: 'R\$ 1.000,00'),
+  Widget _buildContent(BuildContext context) {
+    return CustomScrollView(
+      slivers: [
+        SliverPadding(
+          padding: const .symmetric(horizontal: 16.0, vertical: 8.0),
+          sliver: SliverToBoxAdapter(child: GridBalanceWidget()),
         ),
 
-        Row(
-          spacing: 16.0,
-          children: [
-            Expanded(
-              child: BalanceWidget(
-                state: BalanceState(
-                  type: .income,
-                  label: 'Receita',
-                  amount: 'R\$ 10.000,00',
-                ),
-              ),
-            ),
-            Expanded(
-              child: BalanceWidget(
-                state: BalanceState(
-                  type: .expense,
-                  label: 'Despesa',
-                  amount: 'R\$ 1.000,00',
-                ),
-              ),
-            ),
-          ],
+        SliverPersistentHeader(
+          pinned: true,
+          delegate: TransactionHeaderWidget(title: 'Transações recentes'),
         ),
 
-        Expanded(child: TransactionsWidget(items: mockTransactions)),
+        SliverPadding(
+          padding: const .symmetric(horizontal: 16.0),
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (_, index) => TransactionWidget(state: mockTransactions[index]),
+              childCount: mockTransactions.length,
+            ),
+          ),
+        ),
       ],
-    ),
-  );
+    );
+  }
 }
+
+final mockTransactions = [
+  TransactionState(
+    label: 'Salário',
+    amount: 'R\$ 7.000,00',
+    type: .income,
+    category: .salary,
+  ),
+  TransactionState(
+    label: 'Freelance',
+    amount: 'R\$ 2.500,00',
+    type: .income,
+    category: .freelance,
+  ),
+  TransactionState(
+    label: 'Bônus',
+    amount: 'R\$ 1.200,00',
+    type: .income,
+    category: .bonus,
+  ),
+  TransactionState(
+    label: 'Mercado',
+    amount: 'R\$ 320,45',
+    type: .expense,
+    category: .food,
+  ),
+  TransactionState(
+    label: 'Café',
+    amount: 'R\$ 18,90',
+    type: .expense,
+    category: .food,
+  ),
+  TransactionState(
+    label: 'Uber',
+    amount: 'R\$ 42,00',
+    type: .expense,
+    category: .transport,
+  ),
+  TransactionState(
+    label: 'Internet',
+    amount: 'R\$ 129,90',
+    type: .expense,
+    category: .bills,
+  ),
+  TransactionState(
+    label: 'Netflix',
+    amount: 'R\$ 39,90',
+    type: .expense,
+    category: .subscription,
+  ),
+  TransactionState(
+    label: 'Academia',
+    amount: 'R\$ 89,90',
+    type: .expense,
+    category: .health,
+  ),
+  TransactionState(
+    label: 'Livro',
+    amount: 'R\$ 75,00',
+    type: .expense,
+    category: .education,
+  ),
+  TransactionState(
+    label: 'Presente',
+    amount: 'R\$ 300,00',
+    type: .income,
+    category: .gift,
+  ),
+  TransactionState(
+    label: 'Investimentos',
+    amount: 'R\$ 210,00',
+    type: .income,
+    category: .investment,
+  ),
+];

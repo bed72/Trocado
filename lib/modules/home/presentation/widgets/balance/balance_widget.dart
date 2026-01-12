@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'package:trocado/modules/core/core.dart';
 
@@ -19,9 +18,9 @@ class BalanceWidget extends StatelessWidget {
     };
 
     final icon = switch (state.type) {
-      .income => LucideIcons.arrowUp,
-      .expense => LucideIcons.arrowDown,
-      null => LucideIcons.bellElectric,
+      .expense => Icons.south_east,
+      .income => Icons.arrow_outward,
+      null => Icons.info,
     };
 
     return Card(

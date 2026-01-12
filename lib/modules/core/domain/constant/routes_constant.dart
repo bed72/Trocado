@@ -13,10 +13,22 @@ final class RoutesConstant {
     required this.regex,
   });
 
+  static final date = RoutesConstant._(
+    path: '/date',
+    name: 'date-route',
+    regex: RegExp(r'/date$'),
+  );
+
   static final exit = RoutesConstant._(
     path: '/exit',
     name: 'exit-route',
     regex: RegExp(r'/exit$'),
+  );
+
+  static final home = RoutesConstant._(
+    path: '/home',
+    name: 'home-route',
+    regex: RegExp(r'^/$'),
   );
 
   static final splash = RoutesConstant._(
@@ -25,10 +37,10 @@ final class RoutesConstant {
     regex: RegExp(r'/splash'),
   );
 
-  static final home = RoutesConstant._(
-    path: '/home',
-    name: 'home-route',
-    regex: RegExp(r'^/$'),
+  static final category = RoutesConstant._(
+    path: '/category',
+    name: 'category-route',
+    regex: RegExp(r'^/category$'),
   );
 
   static final calculator = RoutesConstant._(
@@ -43,7 +55,15 @@ final class RoutesConstant {
     regex: RegExp(r'^/transactions$'),
   );
 
-  static final _all = [exit, home, splash, calculator, transactions];
+  static final _all = [
+    date,
+    exit,
+    home,
+    splash,
+    category,
+    calculator,
+    transactions,
+  ];
 
   static RoutesConstant? match(String location) =>
       _all.firstWhereOrNull((route) => route.regex.hasMatch(location));

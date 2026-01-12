@@ -11,24 +11,18 @@ class TransactionWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isIncome = state.type == TransactionTypeState.income;
+    final isIncome = state.type == .income;
 
     final prefix = isIncome ? '+' : '-';
     final color = isIncome ? context.colors.primary : context.colors.error;
 
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: .circular(16)),
       child: ListTile(
         contentPadding: const .symmetric(vertical: 8.0, horizontal: 12.0),
-        leading: Container(
-          width: 48.0,
-          height: 48.0,
-          alignment: .center,
-          decoration: BoxDecoration(
-            borderRadius: context.radius.cornerRadius100,
-            color: state.category.color.withValues(alpha: 0.2),
-          ),
-          child: Icon(state.category.icon, color: state.category.color),
+        leading: BackgroundIconWidget(
+          name: state.category.icon,
+          color: state.category.color,
         ),
         title: Text(
           state.label,

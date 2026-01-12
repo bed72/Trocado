@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'package:trocado/modules/core/presentation/states/transaction_type_state.dart';
+import 'package:trocado/modules/transaction/transaction.dart';
+
+import 'package:trocado/modules/category/presentation/extensions/category_extension.dart';
 
 enum CategoryState {
   salary(
@@ -101,4 +103,9 @@ enum CategoryState {
     required this.icon,
     required this.color,
   });
+
+  static List<CategoryState> categoriesBy(TransactionTypeState type) =>
+      CategoryState.values
+          .where((category) => category.supports(type))
+          .toList();
 }

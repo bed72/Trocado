@@ -19,7 +19,7 @@ class SelectorWidget extends StatelessWidget {
     final value = options[selected];
 
     return SizedBox(
-      width: double.infinity,
+      width: .infinity,
       child: SegmentedButton<String>(
         selected: {value},
         onSelectionChanged: (values) =>
@@ -30,7 +30,9 @@ class SelectorWidget extends StatelessWidget {
                 value: label,
                 label: Text(
                   label,
+
                   style: context.typography.labelMedium?.copyWith(
+                    height: 1,
                     fontWeight: .w600,
                   ),
                 ),
@@ -38,7 +40,8 @@ class SelectorWidget extends StatelessWidget {
             )
             .toList(),
         style: ButtonStyle(
-          // alignment: .center,
+          padding: .all(.zero),
+          minimumSize: .all(.zero),
           shape: WidgetStateProperty.all(
             RoundedRectangleBorder(borderRadius: .circular(10.0)),
           ),

@@ -15,7 +15,6 @@ class AppBarWidget extends StatelessWidget implements PreferredSizeWidget {
       elevation: 0,
       actions: actions,
       leading: leading,
-      centerTitle: true,
       title: title == null
           ? null
           : Text(

@@ -10,13 +10,14 @@ class TextFormFieldWidget extends StatefulWidget {
   final bool? absorbing;
   final bool obscureText;
   final FocusNode? focus;
-  final Widget? suffixIcon;
   final String? initialValue;
   final Widget? helperWidget;
+  final IconData? suffixIcon;
   final TextInputType? keyboardType;
   final TextInputAction? inputAction;
   final ValueChanged<String>? onChanged;
   final TextEditingController? controller;
+  final VoidCallback? onPressedSuffixIcon;
   final String? Function(String?)? validator;
   final ValueChanged<String>? onFieldSubmitted;
   final List<TextInputFormatter>? inputFormatters;
@@ -37,6 +38,7 @@ class TextFormFieldWidget extends StatefulWidget {
     this.helperWidget,
     this.inputFormatters,
     this.onFieldSubmitted,
+    this.onPressedSuffixIcon,
     this.obscureText = false,
   });
 
@@ -52,6 +54,12 @@ class _TextFormFieldWidgetState extends State<TextFormFieldWidget> {
 
   bool get _hasFailure => _failure != null;
   bool get _collapsed => _focus.hasFocus || _controller.text.isNotEmpty;
+  Color get _color {
+    if (_hasFailure) return context.colors.error;
+    if (_focus.hasFocus) return context.colors.primary;
+
+    return context.colors.onSurfaceVariant.withValues(alpha: 0.8);
+  }
 
   @override
   void initState() {
@@ -102,14 +110,7 @@ class _TextFormFieldWidgetState extends State<TextFormFieldWidget> {
   Container _buildBorder() => Container(
     decoration: BoxDecoration(
       borderRadius: context.radius.cornerRadius100,
-      border: Border.all(
-        width: 1.0,
-        color: _hasFailure
-            ? context.colors.error
-            : _focus.hasFocus
-            ? context.colors.primary
-            : context.colors.primary,
-      ),
+      border: Border.all(width: 1.0, color: _color),
     ),
   );
 
@@ -139,10 +140,10 @@ class _TextFormFieldWidgetState extends State<TextFormFieldWidget> {
         curve: Curves.easeOutCubic,
         duration: duration,
         style: context.typography.bodySmall!.copyWith(
+          color: _color,
           fontSize: _collapsed ? 12.0 : 14.0,
           height: _collapsed ? 1 : (20.0 / 14.0),
           letterSpacing: _collapsed ? 0.0 : -0.23,
-          color: _hasFailure ? context.colors.error : context.colors.primary,
         ),
         child: Text(widget.hint),
       ),
@@ -168,6 +169,7 @@ class _TextFormFieldWidgetState extends State<TextFormFieldWidget> {
       final data = widget.validator?.call(value);
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
         if (_failure != data) setState(() => _failure = data);
       });
 
@@ -182,9 +184,14 @@ class _TextFormFieldWidgetState extends State<TextFormFieldWidget> {
       disabledBorder: .none,
       focusedErrorBorder: .none,
       helper: widget.helperWidget,
-      suffixIcon: widget.suffixIcon,
       errorText: _hasFailure ? '' : null,
       errorStyle: const TextStyle(fontSize: 0, height: 0),
+      suffixIcon: widget.suffixIcon == null
+          ? null
+          : IconButton(
+              onPressed: widget.onPressedSuffixIcon,
+              icon: Icon(widget.suffixIcon, color: _color),
+            ),
       contentPadding: .only(
         top: 30.0,
         left: 20.0,
@@ -194,5 +201,10 @@ class _TextFormFieldWidgetState extends State<TextFormFieldWidget> {
     ),
   );
 
-  void _forceLabelAnimation() => setState(() {});
+  void _forceLabelAnimation() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() {});
+    });
+  }
 }
