@@ -30,32 +30,36 @@ class _CategoryScreenState extends State<CategoryScreen> {
       child: BottomSheetScaffoldWidget(
         title: 'Categorias',
         subtitle: 'Escolha a categoria que melhor representa esta transação.',
-        child: CustomScrollView(
-          shrinkWrap: true,
-          slivers: [
-            CategoriesWidget(
-              type: widget.type,
-              selected: _selected,
-              onSelected: (category) {
-                setState(() => _selected = category);
-              },
+        child: Column(
+          mainAxisSize: .min,
+          children: [
+            Flexible(
+              child: CustomScrollView(
+                shrinkWrap: true,
+                slivers: [
+                  CategoriesWidget(
+                    type: widget.type,
+                    selected: _selected,
+                    onSelected: (category) {
+                      setState(() => _selected = category);
+                    },
+                  ),
+
+                  const SliverToBoxAdapter(child: SizedBox(height: 16.0)),
+                ],
+              ),
             ),
 
-            const SliverToBoxAdapter(child: SizedBox(height: 12.0)),
-
-            SliverToBoxAdapter(
-              child: Container(
-                width: .infinity,
-                padding: .only(bottom: 20.0),
-                child: ButtonWidget.elevated(
-                  label: 'Selecionar',
-                  onTap: _selected == null
-                      ? null
-                      : () {
-                          widget.onSelected(_selected!);
-                          context.pop();
-                        },
-                ),
+            Container(
+              width: .infinity,
+              padding: .symmetric(vertical: 20.0),
+              child: ButtonWidget.elevated(
+                label: 'Selecionar',
+                onTap: _selected == null
+                    ? null
+                    : () {
+                        context.pop(_selected);
+                      },
               ),
             ),
           ],

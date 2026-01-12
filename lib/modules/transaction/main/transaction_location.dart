@@ -15,6 +15,6 @@ final class TransactionLocation extends Location {
       (context) => TransactionsScreen(
         navigateToDate: () => context.navigate(DateLocation()),
         navigateToCategory: () =>
-            context.navigate(CategoryLocation(type: .income)),
+            context.navigate(CategoryLocation(type: .expense)),
       );
 }
