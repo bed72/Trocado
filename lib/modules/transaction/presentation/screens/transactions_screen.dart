@@ -1,16 +1,43 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:trocado/modules/core/core.dart';
 
-class TransactionsScreen extends StatelessWidget {
+class TransactionsScreen extends StatefulWidget {
   final VoidCallback navigateToDate;
   final VoidCallback navigateToCategory;
+  final VoidCallback navigateToCalculator;
 
   const TransactionsScreen({
     super.key,
     required this.navigateToDate,
     required this.navigateToCategory,
+    required this.navigateToCalculator,
   });
+
+  @override
+  State<TransactionsScreen> createState() => _TransactionsScreenState();
+}
+
+class _TransactionsScreenState extends State<TransactionsScreen> {
+  late final StreamSubscription _subscription;
+  late final TextEditingController _amountController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _amountController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    _amountController.dispose();
+
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,10 +55,18 @@ class TransactionsScreen extends StatelessWidget {
                   children: [
                     TextFormFieldWidget(hint: 'Descrição'),
 
-                    TextFormFieldWidget(hint: 'Valor'),
+                    BounceWidget.withTap(
+                      onTap: widget.navigateToCalculator,
+                      child: TextFormFieldWidget(
+                        hint: 'Valor',
+                        readOnly: true,
+                        absorbing: true,
+                        controller: _amountController,
+                      ),
+                    ),
 
                     BounceWidget.withTap(
-                      onTap: navigateToCategory,
+                      onTap: widget.navigateToCategory,
                       child: TextFormFieldWidget(
                         readOnly: true,
                         absorbing: true,
@@ -41,7 +76,7 @@ class TransactionsScreen extends StatelessWidget {
                     ),
 
                     BounceWidget.withTap(
-                      onTap: navigateToDate,
+                      onTap: widget.navigateToDate,
                       child: TextFormFieldWidget(
                         hint: 'Data',
                         readOnly: true,

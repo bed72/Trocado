@@ -22,23 +22,23 @@ class CalculatorKeyboard extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       children: [
         _buildKey(
-          context: context,
           label: 'AC',
+          context: context,
           backgroundColor: backgroundColor,
         ),
         _buildKey(
-          context: context,
           label: '÷',
+          context: context,
           backgroundColor: backgroundColor,
         ),
         _buildKey(
-          context: context,
           label: '×',
+          context: context,
           backgroundColor: backgroundColor,
         ),
         _buildKey(
-          context: context,
           label: 'DEL',
+          context: context,
           backgroundColor: backgroundColor,
         ),
 
@@ -84,8 +84,8 @@ class CalculatorKeyboard extends StatelessWidget {
         child: Text(
           label,
           style: context.typography.bodyLarge?.copyWith(
-            color: context.colors.onSurface,
             fontWeight: .w800,
+            color: context.colors.onSurfaceVariant.withValues(alpha: 0.8),
           ),
         ),
       ),

@@ -54,7 +54,7 @@ class BottomSheetScaffoldWidget extends StatelessWidget {
                 subtitle!,
                 style: context.typography.bodyLarge?.copyWith(
                   fontWeight: .w600,
-                  color: context.colors.onSurface.withValues(alpha: .60),
+                  color: context.colors.onSurfaceVariant.withValues(alpha: 0.8),
                 ),
               ),
               const SizedBox(height: 6.0),
