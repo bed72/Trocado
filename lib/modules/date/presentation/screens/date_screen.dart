@@ -25,52 +25,49 @@ class _DateScreenState extends State<DateScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      onPopInvokedWithResult: (_, _) {},
-      child: BottomSheetScaffoldWidget(
-        title: 'Quando foi?',
-        subtitle: 'Selecione o dia em que essa movimentação foi registrada.',
-        child: Column(
-          mainAxisSize: .min,
-          children: [
-            Container(
-              width: .infinity,
-              height: context.height * 0.5,
-              padding: .only(top: 16.0, bottom: 16.0),
-              child: SfDateRangePicker(
-                view: .month,
-                showNavigationArrow: true,
-                initialDisplayDate: _selectDate,
+    return BottomSheetScaffoldWidget(
+      title: 'Quando foi?',
+      subtitle: 'Selecione o dia em que essa movimentação foi registrada.',
+      child: Column(
+        mainAxisSize: .min,
+        children: [
+          Container(
+            width: .infinity,
+            height: context.height * 0.5,
+            padding: .only(top: 16.0, bottom: 16.0),
+            child: SfDateRangePicker(
+              view: .month,
+              showNavigationArrow: true,
+              initialDisplayDate: _selectDate,
+              backgroundColor: context.colors.surface,
+              onSelectionChanged: (date) {
+                setState(() => _selectDate = date.value as DateTime);
+              },
+              headerStyle: DateRangePickerHeaderStyle(
                 backgroundColor: context.colors.surface,
-                onSelectionChanged: (date) {
-                  setState(() => _selectDate = date.value as DateTime);
-                },
-                headerStyle: DateRangePickerHeaderStyle(
-                  backgroundColor: context.colors.surface,
-                ),
-                monthViewSettings: DateRangePickerMonthViewSettings(
-                  firstDayOfWeek: 1,
-                  showTrailingAndLeadingDates: true,
-                ),
+              ),
+              monthViewSettings: DateRangePickerMonthViewSettings(
+                firstDayOfWeek: 1,
+                showTrailingAndLeadingDates: true,
               ),
             ),
+          ),
 
-            Container(
-              width: .infinity,
-              padding: .only(bottom: 20.0),
-              child: ButtonWidget.elevated(
-                label: 'Selecionar',
-                onTap: _selectDate == null
-                    ? null
-                    : () {
-                        widget.date(_selectDate!);
+          Container(
+            width: .infinity,
+            padding: .only(bottom: 20.0),
+            child: ButtonWidget.elevated(
+              label: 'Selecionar',
+              onTap: _selectDate == null
+                  ? null
+                  : () {
+                      widget.date(_selectDate!);
 
-                        context.pop();
-                      },
-              ),
+                      context.pop();
+                    },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

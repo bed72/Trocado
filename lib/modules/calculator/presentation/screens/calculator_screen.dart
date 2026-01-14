@@ -32,40 +32,37 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      onPopInvokedWithResult: (_, _) {},
-      child: BottomSheetScaffoldWidget(
-        title: 'Continha Rápida',
-        subtitle: 'Use a calculadora pra agilizar seus registros.',
-        child: Padding(
-          padding: const .only(top: 12.0),
-          child: Column(
-            spacing: 16.0,
-            mainAxisSize: .min,
-            crossAxisAlignment: .start,
-            children: [
-              TextFieldWidget(
-                hint: 'R\$',
-                readOnly: true,
-                absorbing: true,
-                controller: _controller,
-              ),
+    return BottomSheetScaffoldWidget(
+      title: 'Continha Rápida',
+      subtitle: 'Use a calculadora pra agilizar seus registros.',
+      child: Padding(
+        padding: const .only(top: 12.0),
+        child: Column(
+          spacing: 16.0,
+          mainAxisSize: .min,
+          crossAxisAlignment: .start,
+          children: [
+            TextFieldWidget(
+              hint: 'R\$',
+              readOnly: true,
+              absorbing: true,
+              controller: _controller,
+            ),
 
-              Text(
-                'Valor: ',
-                style: context.typography.bodyLarge?.copyWith(
-                  fontWeight: .w600,
-                  color: context.colors.outline,
-                ),
+            Text(
+              'Valor: ',
+              style: context.typography.bodyLarge?.copyWith(
+                fontWeight: .w600,
+                color: context.colors.outline,
               ),
+            ),
 
-              CalculatorKeyboard(
-                onKeyTap: (key) {
-                  if (key == '✓') context.pop();
-                },
-              ),
-            ],
-          ),
+            CalculatorKeyboard(
+              onKeyTap: (key) {
+                if (key == '✓') context.pop();
+              },
+            ),
+          ],
         ),
       ),
     );

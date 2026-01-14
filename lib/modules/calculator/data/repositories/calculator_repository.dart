@@ -12,7 +12,7 @@ final class CalculatorRepository implements ICalculatorRepository {
   }
 
   @override
-  double call(String data) {
+  double operation(String data) {
     try {
       final expr = _sanitize(data);
 
