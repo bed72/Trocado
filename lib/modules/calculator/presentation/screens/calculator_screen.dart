@@ -1,23 +1,21 @@
-import 'package:mobx/mobx.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:trocado/modules/core/core.dart';
 
-import 'package:trocado/modules/calculator/presentation/stores/calculator_store.dart';
+import 'package:trocado/modules/calculator/presentation/cubits/calculator_cubit.dart';
 import 'package:trocado/modules/calculator/presentation/widgets/calculator_keyboard_widget.dart';
 
 class CalculatorScreen extends StatefulWidget {
-  final CalculatorStore store;
+  final CalculatorCubit cubit;
 
-  const CalculatorScreen({super.key, required this.store});
+  const CalculatorScreen({super.key, required this.cubit});
 
   @override
   State<CalculatorScreen> createState() => _CalculatorScreenState();
 }
 
 class _CalculatorScreenState extends State<CalculatorScreen> {
-  late final ReactionDisposer _disposer;
   late final TextEditingController _controller;
 
   @override
@@ -25,15 +23,10 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     super.initState();
 
     _controller = TextEditingController();
-
-    _disposer = reaction<String>((_) => widget.store.amount, (value) {
-      _controller.text = value;
-    });
   }
 
   @override
   void dispose() {
-    _disposer();
     _controller.dispose();
 
     super.dispose();
@@ -51,16 +44,28 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           mainAxisSize: .min,
           crossAxisAlignment: .start,
           children: [
-            TextFieldWidget(
-              hint: 'R\$',
-              readOnly: true,
-              absorbing: true,
-              controller: _controller,
+            BlocListener<CalculatorCubit, CalculatorState>(
+              bloc: widget.cubit,
+              listenWhen: (previous, current) =>
+                  previous.preview != current.preview,
+              listener: (_, state) {
+                _controller.text = state.amount;
+              },
+              child: TextFieldWidget(
+                hint: 'R\$',
+                readOnly: true,
+                absorbing: true,
+                placeholder: '100.0',
+                controller: _controller,
+              ),
             ),
 
-            Observer(
-              builder: (_) => Text(
-                'Valor: ${widget.store.preview}',
+            BlocBuilder<CalculatorCubit, CalculatorState>(
+              bloc: widget.cubit,
+              buildWhen: (previous, current) =>
+                  previous.preview != current.preview,
+              builder: (_, state) => Text(
+                'Valor: ${state.preview}',
                 style: context.typography.bodyLarge?.copyWith(
                   fontWeight: .w600,
                   color: context.colors.outline,
@@ -70,7 +75,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
             CalculatorKeyboard(
               onKeyTap: (key) {
-                widget.store.onKeyTap(key);
+                widget.cubit.onKeyTap(key);
 
                 if (key == '✓') context.pop();
               },

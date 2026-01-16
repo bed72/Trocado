@@ -10,6 +10,7 @@ class TextFormFieldWidget extends StatefulWidget {
   final bool? absorbing;
   final bool obscureText;
   final FocusNode? focus;
+  final String? placeholder;
   final String? initialValue;
   final Widget? helperWidget;
   final IconData? suffixIcon;
@@ -32,6 +33,7 @@ class TextFormFieldWidget extends StatefulWidget {
     this.validator,
     this.controller,
     this.suffixIcon,
+    this.placeholder,
     this.inputAction,
     this.initialValue,
     this.keyboardType,
@@ -54,6 +56,11 @@ class _TextFormFieldWidgetState extends State<TextFormFieldWidget> {
 
   bool get _hasFailure => _failure != null;
   bool get _collapsed => _focus.hasFocus || _controller.text.isNotEmpty;
+  bool get _showPlaceholder =>
+      _collapsed &&
+      _controller.text.isEmpty &&
+      !_hasFailure &&
+      widget.placeholder != null;
   Color get _color {
     if (_hasFailure) return context.colors.error;
     if (_focus.hasFocus) return context.colors.primary;
@@ -106,6 +113,13 @@ class _TextFormFieldWidgetState extends State<TextFormFieldWidget> {
       ),
     );
   }
+
+  Text _buildPlaceholder() => Text(
+    widget.placeholder!,
+    style: context.typography.bodySmall?.copyWith(
+      color: _color.withValues(alpha: .6),
+    ),
+  );
 
   Container _buildBorder() => Container(
     decoration: BoxDecoration(
@@ -186,6 +200,7 @@ class _TextFormFieldWidgetState extends State<TextFormFieldWidget> {
       helper: widget.helperWidget,
       errorText: _hasFailure ? '' : null,
       errorStyle: const TextStyle(fontSize: 0, height: 0),
+      hint: _showPlaceholder ? _buildPlaceholder() : null,
       suffixIcon: widget.suffixIcon == null
           ? null
           : IconButton(
@@ -202,9 +217,7 @@ class _TextFormFieldWidgetState extends State<TextFormFieldWidget> {
   );
 
   void _forceLabelAnimation() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      setState(() {});
-    });
+    if (!mounted) return;
+    setState(() {});
   }
 }

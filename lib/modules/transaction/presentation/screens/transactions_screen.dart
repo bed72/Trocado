@@ -1,16 +1,18 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:trocado/modules/calculator/presentation/cubits/calculator_cubit.dart';
 
 import 'package:trocado/modules/core/core.dart';
 
 class TransactionsScreen extends StatefulWidget {
+  final CalculatorCubit cubit;
   final VoidCallback navigateToDate;
   final VoidCallback navigateToCategory;
   final VoidCallback navigateToCalculator;
 
   const TransactionsScreen({
     super.key,
+    required this.cubit,
     required this.navigateToDate,
     required this.navigateToCategory,
     required this.navigateToCalculator,
@@ -21,7 +23,6 @@ class TransactionsScreen extends StatefulWidget {
 }
 
 class _TransactionsScreenState extends State<TransactionsScreen> {
-  late final StreamSubscription _subscription;
   late final TextEditingController _amountController;
 
   @override
@@ -33,7 +34,6 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
 
   @override
   void dispose() {
-    _subscription.cancel();
     _amountController.dispose();
 
     super.dispose();
@@ -53,15 +53,23 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                   spacing: 16.0,
                   crossAxisAlignment: .start,
                   children: [
-                    TextFormFieldWidget(hint: 'Descrição'),
+                    TextFormFieldWidget(hint: 'Descrição', placeholder: 'Café'),
 
                     BounceWidget.withTap(
                       onTap: widget.navigateToCalculator,
-                      child: TextFormFieldWidget(
-                        hint: 'Valor',
-                        readOnly: true,
-                        absorbing: true,
-                        controller: _amountController,
+                      child: BlocListener<CalculatorCubit, CalculatorState>(
+                        bloc: widget.cubit,
+                        listenWhen: (previous, current) =>
+                            previous.preview != current.preview,
+                        listener: (_, state) {
+                          _amountController.text = state.amount;
+                        },
+                        child: TextFieldWidget(
+                          hint: 'R\$',
+                          readOnly: true,
+                          absorbing: true,
+                          controller: _amountController,
+                        ),
                       ),
                     ),
 
@@ -85,7 +93,10 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                       ),
                     ),
 
-                    TextFormFieldWidget(hint: 'Observações'),
+                    TextFormFieldWidget(
+                      hint: 'Observações',
+                      placeholder: 'Meio quilo em grão',
+                    ),
 
                     SelectorWidget(
                       options: ['Receita', 'Despesa'],

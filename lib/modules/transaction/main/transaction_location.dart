@@ -1,4 +1,5 @@
 import 'package:duck_router/duck_router.dart';
+import 'package:trocado/modules/calculator/presentation/cubits/calculator_cubit.dart';
 
 import 'package:trocado/modules/core/core.dart';
 import 'package:trocado/modules/date/date.dart';
@@ -13,7 +14,10 @@ final class TransactionLocation extends Location {
 
   @override
   LocationBuilder? get builder => (context) {
+    final cubit = context.get<CalculatorCubit>();
+
     return TransactionsScreen(
+      cubit: cubit,
       navigateToDate: () => context.navigate(DateLocation()),
       navigateToCalculator: () => context.navigate(CalculatorLocation()),
       navigateToCategory: () =>
