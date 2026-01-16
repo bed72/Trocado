@@ -1,28 +1,23 @@
 import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:trocado/modules/core/core.dart';
 import 'package:trocado/modules/transaction/transaction.dart';
 
-import 'package:trocado/modules/category/presentation/states/category_state.dart';
+import 'package:trocado/modules/category/presentation/cubits/category_cubit.dart';
 import 'package:trocado/modules/category/presentation/widgets/categories_widget.dart';
 
 class CategoryScreen extends StatefulWidget {
-  final TransactionTypeState type;
-  final ValueChanged<CategoryState> onSelected;
+  final CategoryCubit cubit;
+  final TransactionTypeData type;
 
-  const CategoryScreen({
-    super.key,
-    required this.type,
-    required this.onSelected,
-  });
+  const CategoryScreen({super.key, required this.type, required this.cubit});
 
   @override
   State<CategoryScreen> createState() => _CategoryScreenState();
 }
 
 class _CategoryScreenState extends State<CategoryScreen> {
-  CategoryState? _selected;
-
   @override
   Widget build(BuildContext context) {
     return BottomSheetScaffoldWidget(
@@ -35,12 +30,13 @@ class _CategoryScreenState extends State<CategoryScreen> {
             child: CustomScrollView(
               shrinkWrap: true,
               slivers: [
-                CategoriesWidget(
-                  type: widget.type,
-                  selected: _selected,
-                  onSelected: (category) {
-                    setState(() => _selected = category);
-                  },
+                BlocBuilder<CategoryCubit, CategoryState>(
+                  bloc: widget.cubit,
+                  builder: (_, state) => CategoriesWidget(
+                    type: widget.type,
+                    selected: state.category,
+                    onSelected: widget.cubit.select,
+                  ),
                 ),
 
                 const SliverToBoxAdapter(child: SizedBox(height: 16.0)),
@@ -52,13 +48,8 @@ class _CategoryScreenState extends State<CategoryScreen> {
             width: .infinity,
             padding: .symmetric(vertical: 20.0),
             child: ButtonWidget.elevated(
+              onTap: context.pop,
               label: 'Selecionar',
-              onTap: _selected == null
-                  ? null
-                  : () {
-                      widget.onSelected(_selected!);
-                      context.pop();
-                    },
             ),
           ),
         ],

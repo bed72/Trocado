@@ -1,8 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:trocado/modules/core/core.dart';
 
-import 'package:trocado/modules/core/presentation/extensions/context_extension.dart';
-
 class BackgroundIconWidget extends StatelessWidget {
   final Color color;
   final IconData name;

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'package:trocado/app_route.dart';
 
@@ -17,7 +18,13 @@ final class AppWidget extends StatelessWidget {
       routerConfig: routerConfig,
       themeMode: ThemeMode.system,
       debugShowCheckedModeBanner: kDebugMode,
+      supportedLocales: const [Locale('pt', 'BR')],
       builder: (_, child) => LoadWidget(child: child),
+      localizationsDelegates: const [
+        GlobalWidgetsLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
     );
   }
 }

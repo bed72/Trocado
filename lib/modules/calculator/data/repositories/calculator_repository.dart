@@ -1,4 +1,4 @@
-import 'package:trocado/modules/calculator/calculator.dart';
+import 'package:trocado/modules/calculator/domain/repositories/interface_calculator_repository.dart';
 
 final class CalculatorRepository implements ICalculatorRepository {
   final _operators = {'+', '-', '*', '/'};
