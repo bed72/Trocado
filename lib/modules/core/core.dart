@@ -52,6 +52,7 @@ export 'presentation/animation/shimmer_animation.dart';
 
 export 'presentation/extensions/widget_extension.dart';
 export 'presentation/extensions/context_extension.dart';
+export 'presentation/extensions/date_time_extension.dart';
 
 export 'presentation/widgets/load_widget.dart';
 export 'presentation/widgets/helper_widget.dart';

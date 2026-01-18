@@ -197,7 +197,6 @@ class _TextFormFieldWidgetState extends State<TextFormFieldWidget> {
       focusedBorder: .none,
       disabledBorder: .none,
       focusedErrorBorder: .none,
-      helper: widget.helperWidget,
       errorText: _hasFailure ? '' : null,
       errorStyle: const TextStyle(fontSize: 0, height: 0),
       hint: _showPlaceholder ? _buildPlaceholder() : null,

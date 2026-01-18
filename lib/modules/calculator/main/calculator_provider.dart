@@ -9,5 +9,6 @@ void calculatorProvider() {
     ..registerFactory<ICalculatorRepository>(CalculatorRepository.new)
     ..registerLazySingleton<CalculatorCubit>(
       () => CalculatorCubit(repository: provider.get<ICalculatorRepository>()),
+      dispose: (cubit) => cubit.close(),
     );
 }

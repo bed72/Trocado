@@ -1,7 +1,7 @@
-import 'package:intl/intl.dart';
 import 'package:flutter/widgets.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:trocado/modules/core/core.dart';
 
 part 'date_state.dart';
 
@@ -13,9 +13,6 @@ final class DateCubit extends Cubit<DateState> {
   }
 
   void select(DateTime date) {
-    emit(DateState(date: date, formatted: _format(date)));
+    emit(DateState(date: date, formatted: date.format()));
   }
-
-  String _format(DateTime date) =>
-      DateFormat('dd/MM/yyyy', 'pt_BR').format(date);
 }
