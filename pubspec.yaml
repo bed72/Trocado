@@ -33,20 +33,19 @@ dependencies:
   flutter_localizations:
     sdk: flutter
 
-  path: ^1.9.1
   intl: ^0.20.2
   collection: ^1.19.1
 
+  objectbox: ^5.1.0
+  objectbox_flutter_libs: ^5.1.0
+
   get_it: ^9.2.0
-  sqflite: ^2.4.2
   equatable: ^2.0.8
   duck_router: ^7.2.3
   flutter_bloc: ^9.1.1
   skeletonizer: ^2.1.2
-  image_picker: ^1.2.1
   quick_actions: ^1.1.0
   flex_color_scheme: ^8.4.0
-  flutter_secure_storage: ^10.0.0
   back_button_interceptor: ^8.0.4
   syncfusion_flutter_datepicker: ^32.1.22
 
@@ -62,7 +61,9 @@ dev_dependencies:
 
   mocktail: ^1.0.4
   bloc_test: ^10.0.0
+  build_runner: ^2.10.5
   flutter_lints: ^6.0.0
+  objectbox_generator: ^5.1.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

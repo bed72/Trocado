@@ -3,11 +3,13 @@ import 'package:trocado/modules/transaction/transaction.dart';
 import 'package:trocado/modules/category/category.dart';
 
 final class TransactionDto {
-  final String amount;
+  final double amount;
   final DateTime date;
   final String description;
   final CategoryDto category;
   final TransactionTypeDto type;
+
+  final int? id;
   final String? observation;
 
   const TransactionDto({
@@ -16,11 +18,13 @@ final class TransactionDto {
     required this.amount,
     required this.category,
     required this.description,
+    this.id,
     this.observation,
   });
 
   factory TransactionDto.empty() => TransactionDto(
-    amount: '',
+    id: 0,
+    amount: 0,
     description: '',
     type: .expense,
     category: .other,
@@ -29,13 +33,15 @@ final class TransactionDto {
   );
 
   TransactionDto copyWith({
-    String? amount,
+    int? id,
+    double? amount,
     DateTime? date,
     String? description,
     String? observation,
     CategoryDto? category,
     TransactionTypeDto? type,
   }) => TransactionDto(
+    id: id ?? this.id,
     date: date ?? this.date,
     type: type ?? this.type,
     amount: amount ?? this.amount,

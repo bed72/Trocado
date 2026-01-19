@@ -8,7 +8,6 @@ import 'package:trocado/modules/transaction/transaction.dart';
 
 Future<void> ensureInitialized() async {
   clientProvider();
-  externalProvider();
   resourceProvider();
   datasourceProvider();
   repositoryProvider();
@@ -22,7 +21,5 @@ Future<void> ensureInitialized() async {
 }
 
 Future<void> _ensureInitialized() async {
-  final database = provider.get<IDatabaseClient>();
-
-  await Future.wait([database.ensureInitialized(), provider.allReady()]);
+  await Future.wait([provider.allReady()]);
 }

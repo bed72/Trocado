@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:trocado/modules/calculator/presentation/cubits/calculator_cubit.dart';
 import 'package:trocado/modules/calculator/domain/repositories/interface_calculator_repository.dart';
 
-import '../../../../mocks/mocks.dart';
+import '../../mocks/mocks.dart';
 
 void main() {
   late ICalculatorRepository repository;

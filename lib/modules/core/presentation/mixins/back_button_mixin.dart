@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:back_button_interceptor/back_button_interceptor.dart';
 
-import 'package:trocado/modules/core/domain/constant/routes_constant.dart';
+import 'package:trocado/modules/core/domain/constants/routes_constant.dart';
 
 mixin BackButtonMixin<T extends StatefulWidget> on State<T> {
   void execute();

@@ -101,7 +101,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
       _dto = _dto.copyWith(date: value);
     },
     onAmountSelected: (String value) {
-      _dto = _dto.copyWith(amount: value);
+      _dto = _dto.copyWith(amount: double.tryParse(value));
     },
     onCategorySelected: (String value) {
       _dto = _dto.copyWith(category: .categoryBy(value));
