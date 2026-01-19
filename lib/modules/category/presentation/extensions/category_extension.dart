@@ -1,9 +1,9 @@
 import 'package:trocado/modules/transaction/transaction.dart';
 
-import 'package:trocado/modules/category/presentation/data/category_data.dart';
+import 'package:trocado/modules/category/data/dtos/category_dto.dart';
 
-extension CategoryStateExtension on CategoryData {
-  bool supports(TransactionTypeData type) => types.contains(type);
+extension CategoryStateExtension on CategoryDto {
+  bool supports(TransactionTypeDto type) => types.contains(type);
 
   bool get isIncome => supports(.income);
   bool get isExpense => supports(.expense);

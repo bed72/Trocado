@@ -9,7 +9,7 @@ import 'package:trocado/modules/category/presentation/widgets/categories_widget.
 
 class CategoryScreen extends StatefulWidget {
   final CategoryCubit cubit;
-  final TransactionTypeData type;
+  final TransactionTypeDto type;
 
   const CategoryScreen({super.key, required this.type, required this.cubit});
 

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 
 import 'package:trocado/modules/core/core.dart';
@@ -5,6 +7,8 @@ import 'package:trocado/modules/date/date.dart';
 import 'package:trocado/modules/category/category.dart';
 import 'package:trocado/modules/calculator/calculator.dart';
 
+import 'package:trocado/modules/transaction/data/dtos/transaction_dto.dart';
+import 'package:trocado/modules/transaction/data/dtos/transaction_parameter_dto.dart';
 import 'package:trocado/modules/transaction/presentation/widgets/transactions_form_widget.dart';
 
 class TransactionsScreen extends StatefulWidget {
@@ -31,12 +35,14 @@ class TransactionsScreen extends StatefulWidget {
 }
 
 class _TransactionsScreenState extends State<TransactionsScreen> {
+  late TransactionDto _dto;
   late final GlobalKey<FormState> _formKey;
 
   @override
   void initState() {
     super.initState();
 
+    _dto = TransactionDto.empty();
     _formKey = GlobalKey<FormState>();
   }
 
@@ -50,16 +56,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
           children: [
             Expanded(
               child: SingleChildScrollView(
-                child: TransactionsFormWidget(
-                  formKey: _formKey,
-                  dateCubit: widget.dateCubit,
-                  categoryCubit: widget.categoryCubit,
-                  caculatorCubit: widget.caculatorCubit,
-                  navigateToDate: widget.navigateToDate,
-                  navigateToCategory: widget.navigateToCategory,
-                  navigateToCalculator: widget.navigateToCalculator,
-                  onTypeSelected: (value) {},
-                ),
+                child: TransactionsFormWidget(dto: _buildParameterDto()),
               ),
             ),
 
@@ -79,5 +76,41 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
 
   void _handleSubmit() {
     hideKeyboard;
+
+    final isValid = _formKey.currentState?.validate() ?? false;
+
+    if (!isValid) return;
+
+    log(_dto.toString(), name: 'BED');
   }
+
+  TransactionParameterDto _buildParameterDto() => TransactionParameterDto(
+    formKey: _formKey,
+    dateCubit: widget.dateCubit,
+    categoryCubit: widget.categoryCubit,
+    calculatorCubit: widget.caculatorCubit,
+    amountValidator: _dto.validateAmount,
+    descriptionValidator: _dto.validateDescription,
+    navigateToDate: widget.navigateToDate,
+    navigateToCategory: widget.navigateToCategory,
+    navigateToCalculator: widget.navigateToCalculator,
+    onTypeSelected: (int value) {
+      _dto = _dto.copyWith(type: .from(value));
+    },
+    onDateSelected: (DateTime value) {
+      _dto = _dto.copyWith(date: value);
+    },
+    onAmountSelected: (String value) {
+      _dto = _dto.copyWith(amount: value);
+    },
+    onCategorySelected: (String value) {
+      _dto = _dto.copyWith(category: .categoryBy(value));
+    },
+    onDescriptionSelected: (String value) {
+      _dto = _dto.copyWith(description: value);
+    },
+    onObservationSelected: (String value) {
+      _dto = _dto.copyWith(observation: value);
+    },
+  );
 }

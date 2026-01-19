@@ -1,7 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:trocado/modules/category/presentation/data/category_data.dart';
+import 'package:trocado/modules/category/data/dtos/category_dto.dart';
 import 'package:trocado/modules/category/presentation/cubits/category_cubit.dart';
 
 void main() {
@@ -9,7 +9,7 @@ void main() {
     test('initial state should be empty', () {
       final cubit = CategoryCubit();
 
-      expect(cubit.state.category, CategoryData.other);
+      expect(cubit.state.category, CategoryDto.other);
 
       cubit.close();
     });

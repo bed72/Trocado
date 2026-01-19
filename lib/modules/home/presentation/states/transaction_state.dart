@@ -4,8 +4,8 @@ import 'package:trocado/modules/transaction/transaction.dart';
 final class TransactionState {
   final String label;
   final String amount;
-  final CategoryData category;
-  final TransactionTypeData type;
+  final CategoryDto category;
+  final TransactionTypeDto type;
 
   const TransactionState({
     required this.type,

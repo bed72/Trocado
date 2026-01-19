@@ -1,3 +1,4 @@
 export 'main/transaction_location.dart';
+export 'main/transaction_provider.dart';
 
-export 'presentation/data/transaction_type_data.dart';
+export 'data/dtos/transaction_type_dto.dart';

@@ -12,7 +12,7 @@ final class CategoryCubit extends Cubit<CategoryState> {
     emit(CategoryState.empty());
   }
 
-  void select(CategoryData date) {
+  void select(CategoryDto date) {
     emit(CategoryState(category: date));
   }
 }

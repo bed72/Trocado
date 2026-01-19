@@ -5,41 +5,26 @@ import 'package:trocado/modules/core/core.dart';
 import 'package:trocado/modules/date/date.dart';
 import 'package:trocado/modules/category/category.dart';
 import 'package:trocado/modules/calculator/calculator.dart';
-import 'package:trocado/modules/transaction/transaction.dart';
+
+import 'package:trocado/modules/transaction/data/dtos/transaction_type_dto.dart';
+import 'package:trocado/modules/transaction/data/dtos/transaction_parameter_dto.dart';
 
 class TransactionsFormWidget extends StatefulWidget {
-  final GlobalKey<FormState> formKey;
-  final ValueChanged<int> onTypeSelected;
+  final TransactionParameterDto dto;
 
-  final DateCubit dateCubit;
-  final CategoryCubit categoryCubit;
-  final CalculatorCubit caculatorCubit;
-
-  final VoidCallback navigateToDate;
-  final VoidCallback navigateToCategory;
-  final VoidCallback navigateToCalculator;
-
-  const TransactionsFormWidget({
-    super.key,
-    required this.formKey,
-    required this.dateCubit,
-    required this.categoryCubit,
-    required this.caculatorCubit,
-    required this.onTypeSelected,
-    required this.navigateToDate,
-    required this.navigateToCategory,
-    required this.navigateToCalculator,
-  });
+  const TransactionsFormWidget({super.key, required this.dto});
 
   @override
   State<TransactionsFormWidget> createState() => _TransactionsFormWidgetState();
 }
 
 class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
-  late TransactionTypeData _type;
+  late TransactionTypeDto _type;
 
   late bool _mustShowDescriptionHelper;
   late bool _mustShowObservationHelper;
+
+  late final DebounceAction _debounce;
 
   late final TextEditingController _dateController;
   late final TextEditingController _amountController;
@@ -51,10 +36,12 @@ class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
   void initState() {
     super.initState();
 
+    _debounce = DebounceAction();
+
     _mustShowDescriptionHelper = false;
     _mustShowObservationHelper = false;
 
-    _type = TransactionTypeData.expense;
+    _type = TransactionTypeDto.expense;
 
     _dateController = TextEditingController();
     _amountController = TextEditingController();
@@ -83,7 +70,7 @@ class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
   @override
   Widget build(BuildContext context) {
     return Form(
-      key: widget.formKey,
+      key: widget.dto.formKey,
       child: Column(
         spacing: 16.0,
         crossAxisAlignment: .start,
@@ -94,35 +81,41 @@ class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
             keyboardType: .name,
             placeholder: 'Ex: Café',
             controller: _descriptionController,
+            validator: widget.dto.descriptionValidator,
             helperWidget: _buildDescriptionHelper(),
+            onChanged: (value) =>
+                _debounce(() => widget.dto.onDescriptionSelected(value)),
           ),
 
           BounceWidget.withTap(
-            onTap: widget.navigateToCalculator,
+            onTap: widget.dto.navigateToCalculator,
             child: BlocListener<CalculatorCubit, CalculatorState>(
-              bloc: widget.caculatorCubit,
+              bloc: widget.dto.calculatorCubit,
               listenWhen: (previous, current) =>
                   previous.preview != current.preview,
               listener: (_, state) {
+                widget.dto.onAmountSelected(state.amount);
                 _amountController.text = state.amount;
               },
-              child: TextFieldWidget(
+              child: TextFormFieldWidget(
                 hint: 'R\$',
                 readOnly: true,
                 absorbing: true,
                 placeholder: 'Ex: 72.00',
                 controller: _amountController,
+                validator: widget.dto.amountValidator,
               ),
             ),
           ),
 
           BounceWidget.withTap(
-            onTap: widget.navigateToCategory,
+            onTap: widget.dto.navigateToCategory,
             child: BlocListener<CategoryCubit, CategoryState>(
-              bloc: widget.categoryCubit,
+              bloc: widget.dto.categoryCubit,
               listenWhen: (previous, current) =>
                   previous.category.label != current.category.label,
               listener: (_, state) {
+                widget.dto.onCategorySelected(state.category.label);
                 _categoryController.text = state.category.label;
               },
               child: TextFormFieldWidget(
@@ -130,18 +123,19 @@ class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
                 absorbing: true,
                 hint: 'Categoria',
                 controller: _categoryController,
-                placeholder: 'Ex: ${CategoryData.other.label}',
+                placeholder: 'Ex: ${CategoryDto.other.label}',
               ),
             ),
           ),
 
           BounceWidget.withTap(
-            onTap: widget.navigateToDate,
+            onTap: widget.dto.navigateToDate,
             child: BlocListener<DateCubit, DateState>(
-              bloc: widget.dateCubit,
+              bloc: widget.dto.dateCubit,
               listenWhen: (previous, current) =>
                   previous.formatted != current.formatted,
               listener: (_, state) {
+                widget.dto.onDateSelected(state.date);
                 _dateController.text = state.formatted;
               },
               child: TextFormFieldWidget(
@@ -161,6 +155,8 @@ class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
             controller: _observationController,
             placeholder: 'Ex: Meio quilo em grão',
             helperWidget: _buildObservationHelper(),
+            onChanged: (value) =>
+                _debounce(() => widget.dto.onObservationSelected(value)),
           ),
 
           SelectorWidget(
@@ -168,8 +164,8 @@ class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
             selected: _type == .income ? 0 : 1,
             onSelected: (value) {
               setState(() {
-                widget.onTypeSelected(value);
-                _type = TransactionTypeData.from(value);
+                widget.dto.onTypeSelected(value);
+                _type = TransactionTypeDto.from(value);
               });
             },
           ),

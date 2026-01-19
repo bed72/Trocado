@@ -4,7 +4,7 @@ import 'package:trocado/modules/transaction/transaction.dart';
 
 import 'package:trocado/modules/category/presentation/extensions/category_extension.dart';
 
-enum CategoryData {
+enum CategoryDto {
   salary(
     types: {.income},
     label: 'Salário',
@@ -95,15 +95,20 @@ enum CategoryData {
   final Color color;
   final String label;
   final IconData icon;
-  final Set<TransactionTypeData> types;
+  final Set<TransactionTypeDto> types;
 
-  const CategoryData({
+  const CategoryDto({
     required this.label,
     required this.types,
     required this.icon,
     required this.color,
   });
 
-  static List<CategoryData> categoriesBy(TransactionTypeData type) =>
-      CategoryData.values.where((category) => category.supports(type)).toList();
+  static List<CategoryDto> categoriesBy(TransactionTypeDto type) =>
+      CategoryDto.values.where((category) => category.supports(type)).toList();
+
+  static CategoryDto categoryBy(String label) => CategoryDto.values.firstWhere(
+    (category) => category.label == label,
+    orElse: () => CategoryDto.other,
+  );
 }

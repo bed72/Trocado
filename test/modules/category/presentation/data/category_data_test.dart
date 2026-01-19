@@ -6,36 +6,36 @@ import 'package:trocado/modules/transaction/transaction.dart';
 void main() {
   group('CategoryData', () {
     test('categoriesBy returns only income categories', () {
-      final data = CategoryData.categoriesBy(TransactionTypeData.income);
+      final data = CategoryDto.categoriesBy(TransactionTypeDto.income);
 
       expect(data, isNotEmpty);
       expect(
         data.every(
-          (category) => category.types.contains(TransactionTypeData.income),
+          (category) => category.types.contains(TransactionTypeDto.income),
         ),
         isTrue,
       );
     });
 
     test('categoriesBy returns only expense categories', () {
-      final data = CategoryData.categoriesBy(TransactionTypeData.expense);
+      final data = CategoryDto.categoriesBy(TransactionTypeDto.expense);
 
       expect(data, isNotEmpty);
       expect(
         data.every(
-          (category) => category.types.contains(TransactionTypeData.expense),
+          (category) => category.types.contains(TransactionTypeDto.expense),
         ),
         isTrue,
       );
     });
 
     test('other category supports both income and expense', () {
-      final other = CategoryData.other;
+      final other = CategoryDto.other;
 
       expect(
         other.types.containsAll({
-          TransactionTypeData.income,
-          TransactionTypeData.expense,
+          TransactionTypeDto.income,
+          TransactionTypeDto.expense,
         }),
         isTrue,
       );

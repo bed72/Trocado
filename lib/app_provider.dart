@@ -4,6 +4,7 @@ import 'package:trocado/modules/core/core.dart';
 import 'package:trocado/modules/date/date.dart';
 import 'package:trocado/modules/category/category.dart';
 import 'package:trocado/modules/calculator/calculator.dart';
+import 'package:trocado/modules/transaction/transaction.dart';
 
 Future<void> ensureInitialized() async {
   clientProvider();
@@ -15,6 +16,7 @@ Future<void> ensureInitialized() async {
   dateProvider();
   categoryProvider();
   calculatorProvider();
+  transactionProvider();
 
   await _ensureInitialized();
 }

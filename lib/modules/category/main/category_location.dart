@@ -7,7 +7,7 @@ import 'package:trocado/modules/category/presentation/cubits/category_cubit.dart
 import 'package:trocado/modules/category/presentation/screens/category_screen.dart';
 
 final class CategoryLocation extends Location {
-  final TransactionTypeData type;
+  final TransactionTypeDto type;
 
   const CategoryLocation({required this.type});
 
