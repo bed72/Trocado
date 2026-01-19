@@ -80,8 +80,16 @@ android {
     }
 }
 
+configurations {
+    debugImplementation {
+        exclude(group = "io.objectbox", module = "objectbox-android")
+    }
+}
+
 dependencies {
     implementation("androidx.core:core-splashscreen:1.2.0")
+
+    debugImplementation("io.objectbox:objectbox-android-objectbrowser:5.0.1")
 }
 
 flutter {
