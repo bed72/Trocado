@@ -1,6 +1,5 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:trocado/modules/core/core.dart';
 import 'package:trocado/modules/date/date.dart';
@@ -9,12 +8,16 @@ import 'package:trocado/modules/calculator/calculator.dart';
 
 import 'package:trocado/modules/transaction/data/dtos/transaction_dto.dart';
 import 'package:trocado/modules/transaction/data/dtos/transaction_parameter_dto.dart';
+import 'package:trocado/modules/transaction/presentation/cubits/transaction_cubit.dart';
 import 'package:trocado/modules/transaction/presentation/widgets/transactions_form_widget.dart';
 
 class TransactionsScreen extends StatefulWidget {
+  final TransactionDto? dto;
+
   final DateCubit dateCubit;
   final CategoryCubit categoryCubit;
   final CalculatorCubit caculatorCubit;
+  final TransactionCubit transactionCubit;
 
   final VoidCallback navigateToDate;
   final VoidCallback navigateToCategory;
@@ -25,9 +28,11 @@ class TransactionsScreen extends StatefulWidget {
     required this.dateCubit,
     required this.categoryCubit,
     required this.caculatorCubit,
+    required this.transactionCubit,
     required this.navigateToDate,
     required this.navigateToCategory,
     required this.navigateToCalculator,
+    this.dto,
   });
 
   @override
@@ -42,36 +47,76 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   void initState() {
     super.initState();
 
-    _dto = TransactionDto.empty();
+    widget.transactionCubit.clear();
+
     _formKey = GlobalKey<FormState>();
+    _dto = widget.dto ?? TransactionDto.empty();
   }
 
   @override
   Widget build(BuildContext context) {
-    return ScaffoldWidget(
-      appBar: AppBarWidget(title: 'Transações'),
-      child: Padding(
-        padding: const .all(16.0),
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: TransactionsFormWidget(dto: _buildParameterDto()),
-              ),
-            ),
+    return BlocListener<TransactionCubit, TransactionState>(
+      bloc: widget.transactionCubit,
+      listener: (_, state) {
+        switch (state) {
+          case TransactionSuccess():
+            _showSuccessSnackBar();
+            // Navigator.of(context).maybePop(); // opcional
+            break;
 
-            Container(
-              width: .infinity,
-              padding: .only(top: 16.0),
-              child: ButtonWidget.elevated(
-                label: 'Salvar',
-                onTap: _handleSubmit,
+          case TransactionFailure(:final failure):
+            _showFailureSnackBar(failure);
+            break;
+
+          default:
+            break;
+        }
+      },
+      child: ScaffoldWidget(
+        appBar: AppBarWidget(title: 'Transações'),
+        child: Padding(
+          padding: const .all(16.0),
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: TransactionsFormWidget(dto: _buildParameterDto()),
+                ),
               ),
-            ),
-          ],
+
+              _buildSaveButton(),
+              _buildDeleteButton(),
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  Container _buildSaveButton() => Container(
+    width: .infinity,
+    padding: .only(top: 16.0),
+    child: ButtonWidget.elevated(label: 'Salvar', onTap: _handleSubmit),
+  );
+
+  Widget _buildDeleteButton() => _dto.id == null
+      ? const SizedBox.shrink()
+      : Container(
+          width: .infinity,
+          padding: .only(top: 16.0),
+          child: ButtonWidget.outlined(label: 'Deletar', onTap: _handleSubmit),
+        );
+
+  void _showSuccessSnackBar() {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Transação salva.')));
+  }
+
+  void _showFailureSnackBar(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _handleSubmit() {
@@ -81,7 +126,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
 
     if (!isValid) return;
 
-    log(_dto.toString(), name: 'BED');
+    widget.transactionCubit.save(_dto);
   }
 
   TransactionParameterDto _buildParameterDto() => TransactionParameterDto(

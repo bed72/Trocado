@@ -23,7 +23,7 @@ final class TransactionDto {
   });
 
   factory TransactionDto.empty() => TransactionDto(
-    id: 0,
+    id: null,
     amount: 0,
     description: '',
     type: .expense,

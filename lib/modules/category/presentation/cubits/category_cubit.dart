@@ -8,7 +8,7 @@ part 'category_state.dart';
 final class CategoryCubit extends Cubit<CategoryState> {
   CategoryCubit() : super(CategoryState.empty());
 
-  void reset() {
+  void clear() {
     emit(CategoryState.empty());
   }
 

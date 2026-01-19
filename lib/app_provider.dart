@@ -21,5 +21,7 @@ Future<void> ensureInitialized() async {
 }
 
 Future<void> _ensureInitialized() async {
-  await Future.wait([provider.allReady()]);
+  final database = provider.get<IDatabaseClient>();
+
+  await Future.wait([database.ensureInitialized(), provider.allReady()]);
 }

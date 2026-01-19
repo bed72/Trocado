@@ -26,7 +26,7 @@ void main() {
       build: () => CategoryCubit(),
       act: (cubit) {
         cubit.select(.food);
-        cubit.reset();
+        cubit.clear();
       },
       expect: () => [
         const CategoryState(category: .food),
