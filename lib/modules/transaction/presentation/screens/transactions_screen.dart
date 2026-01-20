@@ -57,69 +57,65 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   Widget build(BuildContext context) {
     return BlocListener<TransactionCubit, TransactionState>(
       bloc: widget.transactionCubit,
-      listener: (_, state) {
-        switch (state) {
-          case TransactionSuccess():
-            _showSuccessSnackBar();
-            // Navigator.of(context).maybePop(); // opcional
-            break;
-
-          case TransactionFailure(:final failure):
-            _showFailureSnackBar(failure);
-            break;
-
-          default:
-            break;
-        }
+      listener: (_, state) => switch (state) {
+        TransactionSuccess() => _showSuccessToast(),
+        TransactionFailure() => _showFailureToast(state.failure),
+        _ => {},
       },
       child: ScaffoldWidget(
         appBar: AppBarWidget(title: 'Transações'),
         child: Padding(
           padding: const .all(16.0),
-          child: Column(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  child: TransactionsFormWidget(dto: _buildParameterDto()),
-                ),
-              ),
-
-              _buildSaveButton(),
-              _buildDeleteButton(),
-            ],
+          child: BlocBuilder<TransactionCubit, TransactionState>(
+            bloc: widget.transactionCubit,
+            builder: (_, state) =>
+                _buildContent(isLoading: state is TransactionLoading),
           ),
         ),
       ),
     );
   }
 
-  Container _buildSaveButton() => Container(
-    width: .infinity,
-    padding: .only(top: 16.0),
-    child: ButtonWidget.elevated(label: 'Salvar', onTap: _handleSubmit),
+  Column _buildContent({bool isLoading = false}) => Column(
+    children: [
+      Expanded(
+        child: SingleChildScrollView(
+          child: TransactionsFormWidget(dto: _buildParameterDto()),
+        ),
+      ),
+
+      _buildSaveButton(isLoading),
+      _buildDeleteButton(isLoading),
+    ],
   );
 
-  Widget _buildDeleteButton() => _dto.id == null
+  Container _buildSaveButton(bool isLoading) => Container(
+    width: .infinity,
+    padding: .only(top: 16.0),
+    child: ButtonWidget.elevated(
+      label: 'Salvar',
+      isLoading: isLoading,
+      onTap: _handleSaveSubmit,
+    ),
+  );
+
+  Widget _buildDeleteButton(bool isLoading) => _dto.id == null
       ? const SizedBox.shrink()
       : Container(
           width: .infinity,
           padding: .only(top: 16.0),
-          child: ButtonWidget.outlined(label: 'Deletar', onTap: _handleSubmit),
+          child: ButtonWidget.outlined(
+            label: 'Deletar',
+            isLoading: isLoading,
+            onTap: _handleDeleteSubmit,
+          ),
         );
 
-  void _showSuccessSnackBar() {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Transação salva.')));
+  void _handleDeleteSubmit() {
+    hideKeyboard;
   }
 
-  void _showFailureSnackBar(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
-  }
-
-  void _handleSubmit() {
+  void _handleSaveSubmit() {
     hideKeyboard;
 
     final isValid = _formKey.currentState?.validate() ?? false;
@@ -127,6 +123,24 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     if (!isValid) return;
 
     widget.transactionCubit.save(_dto);
+  }
+
+  void _showFailureToast(String description) {
+    showToastWidget(
+      context: context,
+      type: .failure,
+      description: description,
+      title: 'Opps algo aconteceu.',
+    );
+  }
+
+  void _showSuccessToast() {
+    showToastWidget(
+      context: context,
+      onClose: context.pop,
+      title: 'Transação salva.',
+      description: 'Já já atualizamos suas finanças.',
+    );
   }
 
   TransactionParameterDto _buildParameterDto() => TransactionParameterDto(
