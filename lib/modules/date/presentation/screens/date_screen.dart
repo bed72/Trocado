@@ -27,7 +27,7 @@ class _DateScreenState extends State<DateScreen> {
     return BottomSheetScaffoldWidget(
       withoutPadding: true,
       title: 'Quando foi?',
-      subtitle: 'Selecione o dia em que essa movimentação foi registrada.',
+      subtitle: 'Selecione o dia desta movimentação.',
       child: Column(
         mainAxisSize: .min,
         children: [
@@ -58,7 +58,7 @@ class _DateScreenState extends State<DateScreen> {
 
           Container(
             width: .infinity,
-            padding: .all(16.0),
+            padding: .only(right: 16.0, top: 20.0, left: 16.0),
             child: ButtonWidget.elevated(
               label: 'Selecionar',
               onTap: context.pop,

@@ -18,7 +18,8 @@ class CategoryWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: .circular(16)),
+      margin: .symmetric(horizontal: 0.0, vertical: 4.0),
+      shape: RoundedRectangleBorder(borderRadius: .circular(16.0)),
       child: ListTile(
         onTap: onTap,
         contentPadding: const .symmetric(vertical: 8.0, horizontal: 12.0),

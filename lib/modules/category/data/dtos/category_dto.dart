@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'package:trocado/modules/transaction/transaction.dart';
 
-import 'package:trocado/modules/category/presentation/extensions/category_extension.dart';
-
 enum CategoryDto {
   salary(
     types: {.income},
@@ -104,10 +102,7 @@ enum CategoryDto {
     required this.color,
   });
 
-  static List<CategoryDto> categoriesBy(TransactionTypeDto type) =>
-      CategoryDto.values.where((category) => category.supports(type)).toList();
-
-  static CategoryDto categoryBy(String label) => CategoryDto.values.firstWhere(
+  static CategoryDto from(String label) => CategoryDto.values.firstWhere(
     (category) => category.label == label,
     orElse: () => CategoryDto.other,
   );

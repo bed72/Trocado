@@ -54,6 +54,8 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
 
   bool get _hasFailure => _failure != null;
   bool get _collapsed => _focus.hasFocus || _controller.text.isNotEmpty;
+  bool get _showHelperWidget =>
+      widget.helperWidget != null && !_hasFailure && widget.placeholder != null;
   bool get _showPlaceholder =>
       _collapsed &&
       _controller.text.isEmpty &&
@@ -94,7 +96,7 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
         crossAxisAlignment: .start,
         children: [
           SizedBox(
-            height: 64.0,
+            height: 72.0,
             child: Stack(
               children: [
                 Positioned.fill(child: _buildBorder()),
@@ -106,7 +108,7 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
 
           _buildFailure(),
 
-          widget.helperWidget ?? const SizedBox.shrink(),
+          _showHelperWidget ? widget.helperWidget! : const SizedBox.shrink(),
         ],
       ),
     );
@@ -130,7 +132,7 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
     child: _failure == null
         ? const SizedBox.shrink()
         : Padding(
-            padding: const EdgeInsets.only(left: 4.0, top: 4.0),
+            padding: const .only(left: 4.0, top: 4.0),
             child: Text(
               _failure!,
               style: context.typography.bodySmall?.copyWith(
@@ -147,7 +149,7 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
       left: 20.0,
       duration: duration,
       curve: Curves.easeOutCubic,
-      top: _collapsed ? 14.0 : 22.0,
+      top: _collapsed ? 14.0 : 25.0,
       child: AnimatedDefaultTextStyle(
         duration: duration,
         curve: Curves.easeOutCubic,
@@ -179,12 +181,12 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
     decoration: InputDecoration(
       filled: false,
       border: .none,
+      errorText: null,
       errorBorder: .none,
       enabledBorder: .none,
       focusedBorder: .none,
       disabledBorder: .none,
       focusedErrorBorder: .none,
-      errorText: _hasFailure ? '' : null,
       errorStyle: const TextStyle(fontSize: 0, height: 0),
       hint: _showPlaceholder ? _buildPlaceholder() : null,
       suffixIcon: widget.suffixIcon == null

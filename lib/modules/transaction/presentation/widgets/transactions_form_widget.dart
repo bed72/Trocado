@@ -36,16 +36,16 @@ class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
   void initState() {
     super.initState();
 
+    _type = widget.dto.type;
+
     _debounce = DebounceAction();
 
     _mustShowDescriptionHelper = false;
     _mustShowObservationHelper = false;
 
-    _type = TransactionTypeDto.expense;
-
-    _dateController = TextEditingController();
     _amountController = TextEditingController();
-    _categoryController = TextEditingController();
+    _dateController = TextEditingController(text: DateTime.now().format());
+    _categoryController = TextEditingController(text: CategoryDto.other.label);
     _descriptionController = TextEditingController()
       ..addListener(_handleDescriptionInteractions);
     _observationController = TextEditingController()
@@ -77,12 +77,11 @@ class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
         children: [
           TextFormFieldWidget(
             hint: 'Descrição',
-            inputAction: .done,
             keyboardType: .name,
             placeholder: 'Ex: Café',
             controller: _descriptionController,
-            validator: widget.dto.descriptionValidator,
             helperWidget: _buildDescriptionHelper(),
+            validator: widget.dto.descriptionValidator,
             onChanged: (value) =>
                 _debounce(() => widget.dto.onDescriptionSelected(value)),
           ),
@@ -123,7 +122,6 @@ class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
                 absorbing: true,
                 hint: 'Categoria',
                 controller: _categoryController,
-                placeholder: 'Ex: ${CategoryDto.other.label}',
               ),
             ),
           ),
@@ -143,7 +141,6 @@ class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
                 readOnly: true,
                 absorbing: true,
                 controller: _dateController,
-                placeholder: 'Ex: ${DateTime.now().format()}',
               ),
             ),
           ),
@@ -164,8 +161,8 @@ class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
             selected: _type == .income ? 0 : 1,
             onSelected: (value) {
               setState(() {
+                _type = .from(value);
                 widget.dto.onTypeSelected(value);
-                _type = TransactionTypeDto.from(value);
               });
             },
           ),

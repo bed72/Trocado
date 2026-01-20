@@ -7,6 +7,7 @@ import 'package:trocado/modules/category/category.dart';
 import 'package:trocado/modules/calculator/calculator.dart';
 
 import 'package:trocado/modules/transaction/data/dtos/transaction_dto.dart';
+import 'package:trocado/modules/transaction/data/dtos/transaction_type_dto.dart';
 import 'package:trocado/modules/transaction/data/dtos/transaction_parameter_dto.dart';
 import 'package:trocado/modules/transaction/presentation/cubits/transaction_cubit.dart';
 import 'package:trocado/modules/transaction/presentation/widgets/transactions_form_widget.dart';
@@ -130,7 +131,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
       context: context,
       type: .failure,
       description: description,
-      title: 'Opps algo aconteceu.',
+      title: 'Ops algo aconteceu.',
     );
   }
 
@@ -144,6 +145,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   }
 
   TransactionParameterDto _buildParameterDto() => TransactionParameterDto(
+    type: .expense,
     formKey: _formKey,
     dateCubit: widget.dateCubit,
     categoryCubit: widget.categoryCubit,
@@ -159,17 +161,17 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     onDateSelected: (DateTime value) {
       _dto = _dto.copyWith(date: value);
     },
-    onAmountSelected: (String value) {
-      _dto = _dto.copyWith(amount: double.tryParse(value));
-    },
-    onCategorySelected: (String value) {
-      _dto = _dto.copyWith(category: .categoryBy(value));
-    },
     onDescriptionSelected: (String value) {
       _dto = _dto.copyWith(description: value);
     },
     onObservationSelected: (String value) {
       _dto = _dto.copyWith(observation: value);
+    },
+    onCategorySelected: (String value) {
+      _dto = _dto.copyWith(category: .from(value));
+    },
+    onAmountSelected: (String value) {
+      _dto = _dto.copyWith(amount: double.tryParse(value));
     },
   );
 }

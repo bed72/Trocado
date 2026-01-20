@@ -12,18 +12,21 @@ class HelperWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = context.colors.inverseSurface.withValues(alpha: .72);
 
-    return Row(
-      spacing: 4.0,
-      children: [
-        IconWidget(size: 16.0, color: color, name: Icons.info),
-        Text(
-          title,
-          style: context.typography.bodySmall?.copyWith(
-            color: color,
-            fontWeight: .w500,
+    return Padding(
+      padding: const .only(left: 4.0, top: 4.0),
+      child: Row(
+        spacing: 4.0,
+        children: [
+          IconWidget(size: 16.0, color: color, name: Icons.info),
+          Text(
+            title,
+            style: context.typography.bodySmall?.copyWith(
+              color: color,
+              fontWeight: .w500,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

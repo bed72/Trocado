@@ -20,8 +20,7 @@ final class TransactionLocation extends Location {
         caculatorCubit: context.get<CalculatorCubit>(),
         transactionCubit: context.get<TransactionCubit>(),
         navigateToDate: () => context.navigate(DateLocation()),
+        navigateToCategory: () => context.navigate(CategoryLocation()),
         navigateToCalculator: () => context.navigate(CalculatorLocation()),
-        navigateToCategory: () =>
-            context.navigate(CategoryLocation(type: .expense)),
       );
 }

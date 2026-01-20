@@ -2,16 +2,14 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:trocado/modules/core/core.dart';
-import 'package:trocado/modules/transaction/transaction.dart';
 
 import 'package:trocado/modules/category/presentation/cubits/category_cubit.dart';
 import 'package:trocado/modules/category/presentation/widgets/categories_widget.dart';
 
 class CategoryScreen extends StatefulWidget {
   final CategoryCubit cubit;
-  final TransactionTypeDto type;
 
-  const CategoryScreen({super.key, required this.type, required this.cubit});
+  const CategoryScreen({super.key, required this.cubit});
 
   @override
   State<CategoryScreen> createState() => _CategoryScreenState();
@@ -33,7 +31,6 @@ class _CategoryScreenState extends State<CategoryScreen> {
                 BlocBuilder<CategoryCubit, CategoryState>(
                   bloc: widget.cubit,
                   builder: (_, state) => CategoriesWidget(
-                    type: widget.type,
                     selected: state.category,
                     onSelected: widget.cubit.select,
                   ),
@@ -46,7 +43,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
           Container(
             width: .infinity,
-            padding: .symmetric(vertical: 20.0),
+            padding: .only(top: 20.0),
             child: ButtonWidget.elevated(
               onTap: context.pop,
               label: 'Selecionar',
