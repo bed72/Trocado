@@ -96,7 +96,7 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
         crossAxisAlignment: .start,
         children: [
           SizedBox(
-            height: 72.0,
+            height: 64.0,
             child: Stack(
               children: [
                 Positioned.fill(child: _buildBorder()),
@@ -149,15 +149,13 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
       left: 20.0,
       duration: duration,
       curve: Curves.easeOutCubic,
-      top: _collapsed ? 14.0 : 25.0,
+      top: _collapsed ? 14.0 : 23.0,
       child: AnimatedDefaultTextStyle(
         duration: duration,
         curve: Curves.easeOutCubic,
         style: context.typography.bodySmall!.copyWith(
           color: _color,
           fontSize: _collapsed ? 12.0 : 14.0,
-          height: _collapsed ? 1 : (20.0 / 14.0),
-          letterSpacing: _collapsed ? 0.0 : -0.23,
         ),
         child: Text(widget.hint),
       ),

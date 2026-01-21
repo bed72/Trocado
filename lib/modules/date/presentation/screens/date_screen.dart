@@ -15,56 +15,68 @@ class DateScreen extends StatefulWidget {
 }
 
 class _DateScreenState extends State<DateScreen> {
+  late DateTime _date;
+
   @override
   void initState() {
     super.initState();
 
     widget.cubit.reset();
+    _date = widget.cubit.state.date;
   }
 
   @override
   Widget build(BuildContext context) {
-    return BottomSheetScaffoldWidget(
-      withoutPadding: true,
-      title: 'Quando foi?',
-      subtitle: 'Selecione o dia desta movimentação.',
-      child: Column(
-        mainAxisSize: .min,
-        children: [
-          Container(
-            width: .infinity,
-            height: context.height * 0.5,
-            padding: .symmetric(vertical: 16.0, horizontal: 8.0),
-            child: BlocBuilder<DateCubit, DateState>(
-              bloc: widget.cubit,
-              builder: (_, state) => SfDateRangePicker(
-                view: .month,
-                showNavigationArrow: true,
-                initialDisplayDate: state.date,
-                backgroundColor: context.colors.surface,
-                onSelectionChanged: (date) {
-                  widget.cubit.select(date.value as DateTime);
-                },
-                headerStyle: DateRangePickerHeaderStyle(
+    return PopScope(
+      onPopInvokedWithResult: (_, _) {
+        widget.cubit.select(_date);
+      },
+      child: BottomSheetScaffoldWidget(
+        withoutPadding: true,
+        title: 'Quando foi?',
+        subtitle: 'Selecione o dia desta movimentação.',
+        child: Column(
+          mainAxisSize: .min,
+          children: [
+            Container(
+              width: .infinity,
+              height: context.height * 0.5,
+              padding: .symmetric(vertical: 16.0, horizontal: 8.0),
+              child: BlocBuilder<DateCubit, DateState>(
+                bloc: widget.cubit,
+                builder: (_, state) => SfDateRangePicker(
+                  view: .month,
+                  showNavigationArrow: true,
+                  initialSelectedDate: _date,
+                  initialDisplayDate: state.date,
                   backgroundColor: context.colors.surface,
-                ),
-                monthViewSettings: DateRangePickerMonthViewSettings(
-                  firstDayOfWeek: 1,
-                  showTrailingAndLeadingDates: true,
+                  onSelectionChanged: (date) {
+                    setState(() => _date = date.value as DateTime);
+                  },
+                  headerStyle: DateRangePickerHeaderStyle(
+                    backgroundColor: context.colors.surface,
+                  ),
+                  monthViewSettings: DateRangePickerMonthViewSettings(
+                    firstDayOfWeek: 1,
+                    showTrailingAndLeadingDates: true,
+                  ),
                 ),
               ),
             ),
-          ),
 
-          Container(
-            width: .infinity,
-            padding: .only(right: 16.0, top: 20.0, left: 16.0),
-            child: ButtonWidget.elevated(
-              label: 'Selecionar',
-              onTap: context.pop,
+            Container(
+              width: .infinity,
+              padding: .only(left: 16.0, right: 16.0, bottom: 20.0),
+              child: ButtonWidget.elevated(
+                label: 'Selecionar',
+                onTap: () {
+                  widget.cubit.select(_date);
+                  context.pop();
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

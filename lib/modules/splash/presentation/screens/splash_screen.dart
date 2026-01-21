@@ -25,7 +25,7 @@ class _SplashScreenState extends State<SplashScreen> with AfterLayoutMixin {
     return Scaffold(
       body: SafeArea(
         child: Center(
-          child: ImageWidget(height: 200.0, source: AssetsConstant.logo.source),
+          child: ImageWidget(height: 180.0, source: AssetsConstant.logo.source),
         ),
       ),
     );

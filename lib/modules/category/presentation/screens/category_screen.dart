@@ -43,7 +43,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
           Container(
             width: .infinity,
-            padding: .only(top: 20.0),
+            padding: .symmetric(vertical: 20.0),
             child: ButtonWidget.elevated(
               onTap: context.pop,
               label: 'Selecionar',

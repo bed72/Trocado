@@ -7,7 +7,6 @@ import 'package:trocado/modules/category/category.dart';
 import 'package:trocado/modules/calculator/calculator.dart';
 
 import 'package:trocado/modules/transaction/data/dtos/transaction_dto.dart';
-import 'package:trocado/modules/transaction/data/dtos/transaction_type_dto.dart';
 import 'package:trocado/modules/transaction/data/dtos/transaction_parameter_dto.dart';
 import 'package:trocado/modules/transaction/presentation/cubits/transaction_cubit.dart';
 import 'package:trocado/modules/transaction/presentation/widgets/transactions_form_widget.dart';
@@ -114,6 +113,12 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
 
   void _handleDeleteSubmit() {
     hideKeyboard;
+
+    if (_dto.id == null) {
+      return _showFailureToast('Não foi possivel deletar a transação');
+    }
+
+    widget.transactionCubit.delete(_dto.id!);
   }
 
   void _handleSaveSubmit() {
