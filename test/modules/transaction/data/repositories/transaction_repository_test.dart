@@ -6,12 +6,12 @@ import 'package:trocado/modules/core/domain/either/either.dart';
 import 'package:trocado/modules/transaction/data/dtos/transaction_dto.dart';
 import 'package:trocado/modules/transaction/data/mappers/transaction_mapper.dart';
 import 'package:trocado/modules/transaction/data/repositories/transaction_repository.dart';
-import 'package:trocado/modules/transaction/data/datasources/interface_transaction_datasource.dart';
-
-import 'package:trocado/modules/transaction/infrastructure/database/entities/transaction_entity.dart';
 
 import 'package:trocado/modules/transaction/domain/models/transaction_model.dart';
 import 'package:trocado/modules/transaction/domain/repositories/interface_transaction_repository.dart';
+
+import 'package:trocado/modules/transaction/infrastructure/database/entities/transaction_entity.dart';
+import 'package:trocado/modules/transaction/infrastructure/datasources/local/transaction_local_datasource.dart';
 
 import '../../mocks/mocks.dart';
 
@@ -24,7 +24,7 @@ void main() {
   setUp(() {
     inMapper = MockTransactionInMapper();
     outMapper = MockTransactionOutMapper();
-    datasource = MockITransactionLocalDatasource();
+    datasource = MockTransactionLocalDatasource();
 
     repository = TransactionRepository(
       datasource: datasource,

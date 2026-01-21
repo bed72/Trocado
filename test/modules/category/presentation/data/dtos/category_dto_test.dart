@@ -4,7 +4,7 @@ import 'package:trocado/modules/category/category.dart';
 import 'package:trocado/modules/transaction/transaction.dart';
 
 void main() {
-  group('CategoryData', () {
+  group('CategoryDto', () {
     test('returns correct category when label exists', () {
       final category = CategoryDto.from('Salário');
 

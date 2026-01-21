@@ -5,7 +5,6 @@ import 'package:trocado/modules/core/core.dart';
 import 'package:trocado/modules/transaction/presentation/cubits/transaction_cubit.dart';
 
 import 'package:trocado/modules/transaction/data/mappers/transaction_mapper.dart';
-import 'package:trocado/modules/transaction/data/datasources/interface_transaction_datasource.dart';
 
 import 'package:trocado/modules/transaction/data/repositories/transaction_repository.dart';
 import 'package:trocado/modules/transaction/domain/repositories/interface_transaction_repository.dart';
