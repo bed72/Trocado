@@ -136,7 +136,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
       context: context,
       type: .failure,
       description: description,
-      title: 'Ops algo aconteceu.',
+      title: 'Ops, algo aconteceu.',
     );
   }
 
@@ -145,13 +145,13 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
       context: context,
       onClose: context.pop,
       title: 'Transação salva.',
-      description: 'Já já atualizamos suas finanças.',
+      description: 'Já já atualizamos sua home.',
     );
   }
 
   TransactionParameterDto _buildParameterDto() => TransactionParameterDto(
-    type: .expense,
     formKey: _formKey,
+    type: .expense,
     dateCubit: widget.dateCubit,
     categoryCubit: widget.categoryCubit,
     calculatorCubit: widget.caculatorCubit,

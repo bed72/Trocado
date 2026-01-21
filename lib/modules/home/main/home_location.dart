@@ -11,9 +11,12 @@ final class HomeLocation extends Location {
   String get path => RoutesConstant.home.path;
 
   @override
-  LocationBuilder? get builder =>
-      (context) => HomeScreen(
-        onNavigateToExit: () => context.navigate(ExitLocation()),
-        onNavigateToTransaction: () => context.navigate(TransactionLocation()),
-      );
+  LocationBuilder? get builder => (context) {
+    quickAction(action: (_) => context.navigate(TransactionLocation()));
+
+    return HomeScreen(
+      onNavigateToExit: () => context.navigate(ExitLocation()),
+      onNavigateToTransaction: () => context.navigate(TransactionLocation()),
+    );
+  };
 }

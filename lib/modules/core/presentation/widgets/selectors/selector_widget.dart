@@ -30,7 +30,6 @@ class SelectorWidget extends StatelessWidget {
                 value: label,
                 label: Text(
                   label,
-
                   style: context.typography.labelMedium?.copyWith(
                     height: 1,
                     fontWeight: .w600,

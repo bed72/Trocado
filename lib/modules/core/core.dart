@@ -21,8 +21,10 @@ export 'infrastructure/resources/observers/logger_navigation_observer.dart';
 
 export 'presentation/themes/themes.dart';
 export 'presentation/screens/failure_screen.dart';
-export 'presentation/actions/debounce_action.dart';
 export 'presentation/pages/bottom_sheet_page.dart';
+
+export 'presentation/actions/quick_actions.dart';
+export 'presentation/actions/debounce_action.dart';
 
 export 'presentation/mixins/back_button_mixin.dart';
 export 'presentation/mixins/after_layout_mixin.dart';

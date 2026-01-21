@@ -12,12 +12,6 @@ void quickAction({required ValueChanged<String> action}) {
 
 List<ShortcutItem> get _items => <ShortcutItem>[
   ShortcutItem(
-    icon: QuickActionsConstant.output.icon,
-    type: QuickActionsConstant.output.name,
-    localizedTitle: QuickActionsConstant.output.localizedTitle,
-    localizedSubtitle: QuickActionsConstant.output.localizedSubtitle,
-  ),
-  ShortcutItem(
     icon: QuickActionsConstant.input.icon,
     type: QuickActionsConstant.input.name,
     localizedTitle: QuickActionsConstant.input.localizedTitle,

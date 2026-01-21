@@ -1,13 +1,8 @@
 enum QuickActionsConstant {
   input(
     icon: 'ic_bank_arrow_up',
-    localizedTitle: 'Nova entrada',
-    localizedSubtitle: 'Cadastrar nova entrada',
-  ),
-  output(
-    icon: 'ic_bank_arrow_down',
-    localizedTitle: 'Nova saída',
-    localizedSubtitle: 'Cadastrar nova saída',
+    localizedTitle: 'Nova transação',
+    localizedSubtitle: 'Cadastrar uma nova transação',
   );
 
   final String icon;

@@ -10,10 +10,9 @@ final class SplashLocation extends Location {
   String get path => RoutesConstant.splash.path;
 
   @override
-  LocationBuilder? get builder => (context) {
-    return SplashScreen(
-      navigateTo: () =>
-          context.navigate(HomeLocation(), root: true, replace: true),
-    );
-  };
+  LocationBuilder? get builder =>
+      (context) => SplashScreen(
+        navigateTo: () =>
+            context.navigate(HomeLocation(), root: true, replace: true),
+      );
 }
