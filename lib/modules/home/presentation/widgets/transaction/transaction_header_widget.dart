@@ -8,10 +8,10 @@ class TransactionHeaderWidget extends SliverPersistentHeaderDelegate {
   const TransactionHeaderWidget({required this.title});
 
   @override
-  double get minExtent => 56.0;
+  double get minExtent => 48.0;
 
   @override
-  double get maxExtent => 56.0;
+  double get maxExtent => 48.0;
 
   @override
   bool shouldRebuild(covariant TransactionHeaderWidget oldDelegate) =>

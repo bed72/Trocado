@@ -4,6 +4,7 @@ import 'package:trocado/modules/core/core.dart';
 import 'package:trocado/modules/exit/exit.dart';
 import 'package:trocado/modules/transaction/transaction.dart';
 
+import 'package:trocado/modules/home/presentation/cubits/home_cubit.dart';
 import 'package:trocado/modules/home/presentation/screens/home_screen.dart';
 
 final class HomeLocation extends Location {
@@ -15,6 +16,8 @@ final class HomeLocation extends Location {
     quickAction(action: (_) => context.navigate(TransactionLocation()));
 
     return HomeScreen(
+      homeCubit: context.get<HomeCubit>(),
+      transactionCubit: context.get<TransactionCubit>(),
       onNavigateToExit: () => context.navigate(ExitLocation()),
       onNavigateToTransaction: () => context.navigate(TransactionLocation()),
     );

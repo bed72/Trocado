@@ -102,8 +102,8 @@ enum CategoryDto {
     required this.color,
   });
 
-  static CategoryDto from(String label) => CategoryDto.values.firstWhere(
-    (category) => category.label == label,
-    orElse: () => CategoryDto.other,
+  static CategoryDto fromByString(String value) => .values.firstWhere(
+    (category) => category.label == value,
+    orElse: () => .other,
   );
 }

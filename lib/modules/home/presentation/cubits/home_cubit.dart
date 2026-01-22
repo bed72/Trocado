@@ -20,6 +20,8 @@ final class HomeCubit extends Cubit<HomeState> {
     emit(HomeIdle());
   }
 
+  TransactionDto toDto(TransactionModel model) => _repository.toDto(model);
+
   void delete(int id) {
     final currentState = state;
     if (currentState is! HomeSuccess) return;

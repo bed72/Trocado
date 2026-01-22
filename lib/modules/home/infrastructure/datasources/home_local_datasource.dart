@@ -48,7 +48,7 @@ final class HomeLocalDatasource implements IHomeLocalDatasource {
     try {
       final (start, end) = (startAt != null && endAt != null)
           ? (startAt, endAt)
-          : _currentMonthRange();
+          : currentMonthRange();
 
       final condition = (type == null)
           ? TransactionEntity_.date.between(start, end)
@@ -71,14 +71,5 @@ final class HomeLocalDatasource implements IHomeLocalDatasource {
     } catch (_) {
       return const Left('Ops, a operação falhou.');
     }
-  }
-
-  (int start, int end) _currentMonthRange() {
-    final now = DateTime.now();
-
-    final start = DateTime(now.year, now.month);
-    final end = DateTime(now.year, now.month + 1);
-
-    return (start.millisecondsSinceEpoch, end.millisecondsSinceEpoch);
   }
 }

@@ -15,7 +15,8 @@ void homeProvider() {
     )
     ..registerFactory<IHomeRepository>(
       () => HomeRepository(
-        mapper: provider.get<TransactionOutMapper>(),
+        dtoMapper: provider.get<TransactionDtoMapper>(),
+        outMapper: provider.get<TransactionOutMapper>(),
         datasource: provider.get<IHomeLocalDatasource>(),
       ),
     )

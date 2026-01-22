@@ -4,6 +4,18 @@ import 'package:trocado/modules/transaction/data/dtos/transaction_dto.dart';
 import 'package:trocado/modules/transaction/domain/models/transaction_model.dart';
 import 'package:trocado/modules/transaction/infrastructure/database/entities/transaction_entity.dart';
 
+class TransactionDtoMapper implements Mapper<TransactionModel, TransactionDto> {
+  @override
+  TransactionDto call(TransactionModel parameter) => TransactionDto(
+    amount: parameter.amount,
+    description: parameter.description,
+    observation: parameter.observation,
+    type: .fromByString(parameter.type),
+    category: .fromByString(parameter.category),
+    date: dateTimeFromMilliseconds(parameter.date),
+  );
+}
+
 class TransactionInMapper implements Mapper<TransactionDto, TransactionEntity> {
   @override
   TransactionEntity call(TransactionDto parameter) => TransactionEntity(

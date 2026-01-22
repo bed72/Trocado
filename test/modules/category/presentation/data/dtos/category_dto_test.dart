@@ -6,31 +6,31 @@ import 'package:trocado/modules/transaction/transaction.dart';
 void main() {
   group('CategoryDto', () {
     test('returns correct category when label exists', () {
-      final category = CategoryDto.from('Salário');
+      final category = CategoryDto.fromByString('Salário');
 
       expect(category, CategoryDto.salary);
     });
 
     test('returns correct category for expense label', () {
-      final category = CategoryDto.from('Alimentação');
+      final category = CategoryDto.fromByString('Alimentação');
 
       expect(category, CategoryDto.food);
     });
 
     test('returns CategoryDto.other when label does not exist', () {
-      final category = CategoryDto.from('Categoria inexistente');
+      final category = CategoryDto.fromByString('Categoria inexistente');
 
       expect(category, CategoryDto.other);
     });
 
     test('returns CategoryDto.other when label is empty', () {
-      final category = CategoryDto.from('');
+      final category = CategoryDto.fromByString('');
 
       expect(category, CategoryDto.other);
     });
 
     test('is case sensitive (current behavior)', () {
-      final category = CategoryDto.from('salário');
+      final category = CategoryDto.fromByString('salário');
 
       expect(category, CategoryDto.other);
     });

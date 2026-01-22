@@ -1,6 +1,8 @@
-import 'package:trocado/modules/transaction/transaction.dart';
-
+import 'package:trocado/modules/core/core.dart';
 import 'package:trocado/modules/category/category.dart';
+
+import 'package:trocado/modules/transaction/data/dtos/transaction_type_dto.dart';
+import 'package:trocado/modules/transaction/domain/models/transaction_model.dart';
 
 final class TransactionDto {
   final double amount;
@@ -24,12 +26,20 @@ final class TransactionDto {
 
   factory TransactionDto.empty() => TransactionDto(
     id: null,
-    amount: 0,
-    description: '',
+    amount: 700.72,
     type: .expense,
     category: .other,
-    observation: null,
     date: DateTime.now(),
+    description: 'Descrição mockada',
+    observation: 'Observação mockada',
+  );
+
+  factory TransactionDto.toDto(TransactionModel data) => TransactionDto(
+    amount: data.amount,
+    description: data.description,
+    category: .fromByString(data.category),
+    type: .fromByString(data.type),
+    date: dateTimeFromMilliseconds(data.date),
   );
 
   TransactionDto copyWith({

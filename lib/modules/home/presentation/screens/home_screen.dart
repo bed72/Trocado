@@ -1,18 +1,29 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:trocado/modules/core/core.dart';
-import 'package:trocado/modules/transaction/transaction.dart';
 
+import 'package:trocado/modules/transaction/transaction.dart';
+import 'package:trocado/modules/home/domain/models/home_model.dart';
+
+import 'package:trocado/modules/home/presentation/cubits/home_cubit.dart';
 import 'package:trocado/modules/home/presentation/widgets/balance/grid_balance_widget.dart';
 import 'package:trocado/modules/home/presentation/widgets/transaction/transaction_widget.dart';
 import 'package:trocado/modules/home/presentation/widgets/transaction/transaction_header_widget.dart';
 
 class HomeScreen extends StatefulWidget {
+  final HomeCubit homeCubit;
+  final TransactionCubit transactionCubit;
+
   final VoidCallback onNavigateToExit;
   final VoidCallback onNavigateToTransaction;
 
   const HomeScreen({
     super.key,
+    required this.homeCubit,
+    required this.transactionCubit,
     required this.onNavigateToExit,
     required this.onNavigateToTransaction,
   });
@@ -22,10 +33,15 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen>
-    with BackButtonMixin<HomeScreen> {
+    with AfterLayoutMixin, BackButtonMixin<HomeScreen> {
   @override
   void execute() {
     widget.onNavigateToExit();
+  }
+
+  @override
+  FutureOr<void> afterFirstLayout(BuildContext context) {
+    widget.homeCubit.findByPeriod();
   }
 
   @override
@@ -53,115 +69,77 @@ class _HomeScreenState extends State<HomeScreen>
   );
 
   Widget _buildContent(BuildContext context) {
-    return CustomScrollView(
-      slivers: [
-        SliverPadding(
-          padding: const .symmetric(horizontal: 16.0, vertical: 8.0),
-          sliver: SliverToBoxAdapter(child: GridBalanceWidget()),
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<HomeCubit, HomeState>(
+          bloc: widget.homeCubit,
+          listener: (_, state) => switch (state) {
+            HomeFailure() => _showFailureToast(state.failure),
+            _ => {},
+          },
         ),
-
-        SliverPersistentHeader(
-          pinned: true,
-          delegate: TransactionHeaderWidget(title: 'Transações recentes'),
-        ),
-
-        SliverPadding(
-          padding: const .symmetric(horizontal: 16.0),
-          sliver: SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (_, index) => TransactionWidget(dto: mockTransactions[index]),
-              childCount: mockTransactions.length,
-            ),
-          ),
+        BlocListener<TransactionCubit, TransactionState>(
+          bloc: widget.transactionCubit,
+          listener: (_, state) => switch (state) {
+            TransactionSuccess() => widget.homeCubit.findByPeriod(),
+            _ => {},
+          },
         ),
       ],
+      child: CustomScrollView(
+        slivers: [
+          SliverPadding(
+            padding: const .symmetric(horizontal: 16.0),
+            sliver: SliverToBoxAdapter(child: GridBalanceWidget()),
+          ),
+
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: TransactionHeaderWidget(title: 'Transações recentes'),
+          ),
+
+          BlocBuilder<HomeCubit, HomeState>(
+            bloc: widget.homeCubit,
+            builder: (_, state) => switch (state) {
+              HomeIdle() || HomeLoading() => _buildLoading(),
+              HomeFailure() => _buildFailure(),
+              HomeSuccess() => _buildSuccess(state.home),
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  SliverToBoxAdapter _buildLoading() => SliverToBoxAdapter(
+    child: SkeletonWidget(
+      child: Column(
+        children: .generate(10, (_) => TransactionWidget(dto: .empty())),
+      ),
+    ),
+  );
+
+  SliverToBoxAdapter _buildFailure() =>
+      const SliverToBoxAdapter(child: SizedBox.shrink());
+
+  SliverPadding _buildSuccess(HomeModel data) => SliverPadding(
+    padding: const .symmetric(horizontal: 16.0),
+    sliver: SliverList(
+      delegate: SliverChildBuilderDelegate(
+        childCount: data.transactions.length,
+        (_, index) => TransactionWidget(
+          dto: widget.homeCubit.toDto(data.transactions[index]),
+        ),
+      ),
+    ),
+  );
+
+  void _showFailureToast(String description) {
+    showToastWidget(
+      context: context,
+      type: .failure,
+      description: description,
+      title: 'Ops, algo aconteceu.',
     );
   }
 }
-
-final mockTransactions = [
-  TransactionDto(
-    description: 'Salário',
-    amount: 7000.00,
-    type: .income,
-    category: .salary,
-    date: DateTime(2025, 1, 5),
-  ),
-  TransactionDto(
-    description: 'Freelance',
-    amount: 2500.00,
-    type: .income,
-    category: .freelance,
-    date: DateTime(2025, 1, 8),
-  ),
-  TransactionDto(
-    description: 'Bônus',
-    amount: 1200.00,
-    type: .income,
-    category: .bonus,
-    date: DateTime(2025, 1, 10),
-  ),
-  TransactionDto(
-    description: 'Mercado',
-    amount: 320.45,
-    type: .expense,
-    category: .food,
-    date: DateTime(2025, 1, 12),
-  ),
-  TransactionDto(
-    description: 'Café',
-    amount: 18.90,
-    type: .expense,
-    category: .food,
-    date: DateTime(2025, 1, 13),
-  ),
-  TransactionDto(
-    description: 'Uber',
-    amount: 42.00,
-    type: .expense,
-    category: .transport,
-    date: DateTime(2025, 1, 14),
-  ),
-  TransactionDto(
-    description: 'Internet',
-    amount: 129.90,
-    type: .expense,
-    category: .bills,
-    date: DateTime(2025, 1, 15),
-  ),
-  TransactionDto(
-    description: 'Netflix',
-    amount: 39.90,
-    type: .expense,
-    category: .subscription,
-    date: DateTime(2025, 1, 16),
-  ),
-  TransactionDto(
-    description: 'Academia',
-    amount: 89.90,
-    type: .expense,
-    category: .health,
-    date: DateTime(2025, 1, 17),
-  ),
-  TransactionDto(
-    description: 'Livro',
-    amount: 75.00,
-    type: .expense,
-    category: .education,
-    date: DateTime(2025, 1, 18),
-  ),
-  TransactionDto(
-    description: 'Presente',
-    amount: 300.00,
-    type: .income,
-    category: .gift,
-    date: DateTime(2025, 1, 20),
-  ),
-  TransactionDto(
-    description: 'Investimentos',
-    amount: 210.00,
-    type: .income,
-    category: .investment,
-    date: DateTime(2025, 1, 22),
-  ),
-];

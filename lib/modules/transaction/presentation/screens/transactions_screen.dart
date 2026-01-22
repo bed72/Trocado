@@ -148,7 +148,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
       context: context,
       onClose: context.pop,
       title: 'Transação salva.',
-      description: 'Já já atualizamos sua home.',
+      description: 'Já atualizamos sua Home.',
     );
   }
 
@@ -164,7 +164,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     navigateToCategory: widget.navigateToCategory,
     navigateToCalculator: widget.navigateToCalculator,
     onTypeSelected: (int value) {
-      _dto = _dto.copyWith(type: .from(value));
+      _dto = _dto.copyWith(type: .fromByInt(value));
     },
     onDateSelected: (DateTime value) {
       _dto = _dto.copyWith(date: value);
@@ -176,7 +176,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
       _dto = _dto.copyWith(observation: value);
     },
     onCategorySelected: (String value) {
-      _dto = _dto.copyWith(category: .from(value));
+      _dto = _dto.copyWith(category: .fromByString(value));
     },
     onAmountSelected: (String value) {
       _dto = _dto.copyWith(amount: double.tryParse(value));

@@ -5,6 +5,7 @@ export 'main/providers/resource_provider.dart';
 export 'main/providers/datasource_provider.dart';
 export 'main/providers/repository_provider.dart';
 
+export 'domain/date/date.dart';
 export 'domain/either/either.dart';
 
 export 'domain/constants/toast_constant.dart';

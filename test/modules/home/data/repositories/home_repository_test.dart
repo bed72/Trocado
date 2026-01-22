@@ -6,6 +6,7 @@ import 'package:trocado/modules/core/domain/either/either.dart';
 import 'package:trocado/modules/home/data/repositories/home_repository.dart';
 import 'package:trocado/modules/home/domain/repositories/interface_home_repository.dart';
 import 'package:trocado/modules/home/infrastructure/datasources/home_local_datasource.dart';
+import 'package:trocado/modules/transaction/data/dtos/transaction_dto.dart';
 
 import 'package:trocado/modules/transaction/data/mappers/transaction_mapper.dart';
 import 'package:trocado/modules/transaction/domain/models/transaction_model.dart';
@@ -15,14 +16,20 @@ import '../../mocks/mocks.dart';
 
 void main() {
   late IHomeRepository repository;
-  late TransactionOutMapper mapper;
+  late TransactionDtoMapper dtoMapper;
+  late TransactionOutMapper outMapper;
   late IHomeLocalDatasource datasource;
 
   setUp(() {
+    dtoMapper = MockTransactionDtoMapper();
+    outMapper = MockTransactionOutMapper();
     datasource = MockHomeLocalDatasource();
-    mapper = MockTransactionOutMapper();
 
-    repository = HomeRepository(datasource: datasource, mapper: mapper);
+    repository = HomeRepository(
+      dtoMapper: dtoMapper,
+      outMapper: outMapper,
+      datasource: datasource,
+    );
 
     registerFallbackValue(
       TransactionEntity(
@@ -107,8 +114,8 @@ void main() {
             ),
           ).thenReturn(Right(entities));
 
-          when(() => mapper(entities[0])).thenReturn(models[0]);
-          when(() => mapper(entities[1])).thenReturn(models[1]);
+          when(() => outMapper(entities[0])).thenReturn(models[0]);
+          when(() => outMapper(entities[1])).thenReturn(models[1]);
 
           final data = repository.findByPeriod(
             endAt: 300,
@@ -118,8 +125,8 @@ void main() {
 
           expect(data.isRight, true);
           expect(data.right.length, 2);
-          verify(() => mapper(entities[0])).called(1);
-          verify(() => mapper(entities[1])).called(1);
+          verify(() => outMapper(entities[0])).called(1);
+          verify(() => outMapper(entities[1])).called(1);
         },
       );
 
@@ -167,6 +174,36 @@ void main() {
 
         expect(data.isLeft, true);
       });
+    });
+  });
+
+  group('toDto', () {
+    test('should map TransactionModel to TransactionDto using dtoMapper', () {
+      final model = TransactionModel(
+        id: 1,
+        amount: 100.5,
+        type: 'expense',
+        category: 'food',
+        date: 1704067200000,
+        description: 'Groceries',
+        observation: 'Weekly shopping',
+      );
+
+      final dto = TransactionDto(
+        amount: 100.5,
+        type: .expense,
+        category: .food,
+        description: 'Groceries',
+        observation: 'Weekly shopping',
+        date: DateTime.fromMillisecondsSinceEpoch(1704067200000),
+      );
+
+      when(() => dtoMapper(model)).thenReturn(dto);
+
+      final data = repository.toDto(model);
+
+      expect(data, dto);
+      verify(() => dtoMapper(model)).called(1);
     });
   });
 }

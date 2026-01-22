@@ -15,6 +15,7 @@ void transactionProvider() {
   provider
     ..registerFactory<TransactionInMapper>(TransactionInMapper.new)
     ..registerFactory<TransactionOutMapper>(TransactionOutMapper.new)
+    ..registerFactory<TransactionDtoMapper>(TransactionDtoMapper.new)
     ..registerFactory<ITransactionLocalDatasource>(
       () => TransactionLocalDatasource(client: provider.get<IDatabaseClient>()),
     )

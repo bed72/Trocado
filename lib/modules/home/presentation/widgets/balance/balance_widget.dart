@@ -24,10 +24,9 @@ class BalanceWidget extends StatelessWidget {
     };
 
     return Card(
-      elevation: 0.0,
-      child: Container(
-        margin: .all(8.0),
-        padding: .all(16.0),
+      margin: .all(0.0),
+      child: Padding(
+        padding: const .all(16.0),
         child: Column(
           spacing: 16.0,
           mainAxisSize: .min,
@@ -81,6 +80,6 @@ class BalanceWidget extends StatelessWidget {
           shape: .circle,
           color: color.withValues(alpha: 0.2),
         ),
-        child: IconWidget(name: icon, size: 16, color: color),
+        child: IconWidget(name: icon, size: 16.0, color: color),
       );
 }

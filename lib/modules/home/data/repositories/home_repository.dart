@@ -6,14 +6,20 @@ import 'package:trocado/modules/home/domain/repositories/interface_home_reposito
 import 'package:trocado/modules/home/infrastructure/datasources/home_local_datasource.dart';
 
 final class HomeRepository implements IHomeRepository {
-  final TransactionOutMapper _mapper;
+  final TransactionDtoMapper _dtoMapper;
+  final TransactionOutMapper _outMapper;
   final IHomeLocalDatasource _datasource;
 
   HomeRepository({
-    required TransactionOutMapper mapper,
+    required TransactionDtoMapper dtoMapper,
+    required TransactionOutMapper outMapper,
     required IHomeLocalDatasource datasource,
-  }) : _mapper = mapper,
+  }) : _dtoMapper = dtoMapper,
+       _outMapper = outMapper,
        _datasource = datasource;
+
+  @override
+  TransactionDto toDto(TransactionModel model) => _dtoMapper(model);
 
   @override
   Either<String, void> delete(int id) => _datasource.delete(id);
@@ -35,7 +41,7 @@ final class HomeRepository implements IHomeRepository {
     );
 
     return data.mapRight(
-      (transactions) => transactions.map(_mapper.call).toList(),
+      (transactions) => transactions.map(_outMapper.call).toList(),
     );
   }
 }

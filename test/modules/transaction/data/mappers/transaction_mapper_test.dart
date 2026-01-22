@@ -5,6 +5,7 @@ import 'package:trocado/modules/category/data/dtos/category_dto.dart';
 import 'package:trocado/modules/transaction/data/dtos/transaction_dto.dart';
 import 'package:trocado/modules/transaction/data/mappers/transaction_mapper.dart';
 import 'package:trocado/modules/transaction/data/dtos/transaction_type_dto.dart';
+import 'package:trocado/modules/transaction/domain/models/transaction_model.dart';
 
 import 'package:trocado/modules/transaction/infrastructure/database/entities/transaction_entity.dart';
 
@@ -91,6 +92,53 @@ void main() {
       final model = mapper(entity);
 
       expect(model.observation, isNull);
+    });
+  });
+
+  group('TransactionDtoMapper', () {
+    test('should map all fields correctly', () {
+      final timestamp = DateTime(2024, 1, 1).millisecondsSinceEpoch;
+
+      final model = TransactionModel(
+        id: 1,
+        amount: 150.75,
+        date: timestamp,
+        description: 'Almoço',
+        observation: 'Restaurante',
+        category: CategoryDto.food.label,
+        type: TransactionTypeDto.expense.label,
+      );
+
+      final mapper = TransactionDtoMapper();
+
+      final dto = mapper(model);
+
+      expect(dto.amount, 150.75);
+      expect(dto.description, 'Almoço');
+      expect(dto.observation, 'Restaurante');
+      expect(dto.category, CategoryDto.food);
+      expect(dto.type, TransactionTypeDto.expense);
+      expect(dto.date, DateTime.fromMillisecondsSinceEpoch(timestamp));
+    });
+
+    test('should map without observation', () {
+      final model = TransactionModel(
+        id: 2,
+        date: 0,
+        amount: 3000,
+        observation: null,
+        description: 'Salário',
+        category: CategoryDto.salary.label,
+        type: TransactionTypeDto.income.label,
+      );
+
+      final mapper = TransactionDtoMapper();
+
+      final dto = mapper(model);
+
+      expect(dto.observation, isNull);
+      expect(dto.category, CategoryDto.salary);
+      expect(dto.type, TransactionTypeDto.income);
     });
   });
 }

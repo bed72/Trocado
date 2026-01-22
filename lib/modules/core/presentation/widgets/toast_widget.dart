@@ -8,20 +8,34 @@ import 'package:trocado/modules/core/presentation/extensions/context_extension.d
 void showToastWidget({
   required BuildContext context,
   required String title,
+  int? seconds,
   String? description,
   VoidCallback? onClose,
   ToastConstant type = .success,
 }) => switch (type) {
-  .success => _showSuccessToast(context, title, description, onClose),
-  .failure => _showFailureToast(context, title, description, onClose),
+  .success => _showSuccessToast(
+    context: context,
+    title: title,
+    onClose: onClose,
+    seconds: seconds ?? 2,
+    description: description,
+  ),
+  .failure => _showFailureToast(
+    context: context,
+    title: title,
+    onClose: onClose,
+    seconds: seconds ?? 2,
+    description: description,
+  ),
 };
 
-void _showSuccessToast(
-  BuildContext context,
-  String title,
+void _showSuccessToast({
+  required BuildContext context,
+  required int seconds,
+  required String title,
   String? description,
   VoidCallback? onClose,
-) {
+}) {
   toastification.show(
     style: .flat,
     type: .success,
@@ -29,7 +43,7 @@ void _showSuccessToast(
     alignment: .bottomRight,
     borderRadius: .circular(20.0),
     dismissDirection: .horizontal,
-    autoCloseDuration: const Duration(seconds: 6),
+    autoCloseDuration: Duration(seconds: seconds),
     closeButton: ToastCloseButton(showType: .none),
     borderSide: BorderSide(width: 0.0, style: .none),
     backgroundColor: context.colors.surfaceContainer,
@@ -59,12 +73,13 @@ void _showSuccessToast(
   );
 }
 
-void _showFailureToast(
-  BuildContext context,
-  String title,
+void _showFailureToast({
+  required BuildContext context,
+  required int seconds,
+  required String title,
   String? description,
   VoidCallback? onClose,
-) {
+}) {
   toastification.show(
     style: .flat,
     type: .error,
@@ -72,7 +87,7 @@ void _showFailureToast(
     alignment: .bottomRight,
     borderRadius: .circular(20.0),
     dismissDirection: .horizontal,
-    autoCloseDuration: const Duration(seconds: 6),
+    autoCloseDuration: Duration(seconds: seconds),
     closeButton: ToastCloseButton(showType: .none),
     borderSide: BorderSide(width: 0.0, style: .none),
     backgroundColor: context.colors.surfaceContainer,

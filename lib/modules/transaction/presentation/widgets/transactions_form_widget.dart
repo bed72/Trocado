@@ -161,7 +161,7 @@ class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
             selected: _type == .income ? 0 : 1,
             onSelected: (value) {
               setState(() {
-                _type = .from(value);
+                _type = .fromByInt(value);
                 widget.dto.onTypeSelected(value);
               });
             },

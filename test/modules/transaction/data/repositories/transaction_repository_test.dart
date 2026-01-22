@@ -27,9 +27,9 @@ void main() {
     datasource = MockTransactionLocalDatasource();
 
     repository = TransactionRepository(
-      datasource: datasource,
       inMapper: inMapper,
       outMapper: outMapper,
+      datasource: datasource,
     );
 
     registerFallbackValue(
