@@ -1,67 +1,102 @@
-# 💸 Trocado
+# Trocado
 
-Aplicativo de **finanças pessoais para casais**, desenvolvido em **Flutter**, com foco em simplicidade, modularização e experiência fluida. A proposta é permitir que cada usuário gerencie suas carteiras, categorias e transações, com possibilidade futura de compartilhamento entre parceiros.
+**Trocado** é um aplicativo de controle financeiro pessoal focado em simplicidade, clareza e performance. O objetivo do projeto é permitir que o usuário registre, visualize e acompanhe suas **entradas e saídas financeiras** de forma intuitiva, com uma base técnica sólida e escalável.
 
----
-
-## 🚀 Tecnologias Utilizadas
-
-* **Flutter (>=3.22)**
-* **DuckRouter** para navegação declarativa, deep links e rotas aninhadas
-* **Provider** como camada de injeção de dependências e compartilhamento de objetos
-* **ChangeNotifier** como mecanismo de gerenciamento de estado, direto e intuitivo
-* **Tostore** para persistência local
-* **Equatable** para modelos imutáveis e comparações consistentes
+O projeto foi pensado desde o início com **arquitetura limpa**, forte separação de responsabilidades e alta testabilidade, facilitando a evolução contínua do app.
 
 ---
 
-## 🧭 Navegação com DuckRouter
+## 🧱 Principais Tecnologias
 
-O projeto utiliza o DuckRouter como solução principal de navegação, garantindo organização clara das rotas, URLs limpas e suporte a deep links. A estrutura de rotas permanece centralizada, facilitando manutenção e expansão.
+### 🧭 Duck Router
 
----
+O **Duck Router** é responsável pela navegação do aplicativo.
 
-## 📦 Injeção de Dependências com Provider
+Principais vantagens:
 
-Toda a camada de infraestrutura (repositórios, serviços, utilidades e notifiers) é fornecida ao app por meio do Provider. Isso permite desacoplamento, testabilidade e fácil substituição de implementações.
+* Navegação declarativa
+* Baixo acoplamento entre telas
+* Fácil composição de fluxos
+* Integração limpa com Cubits e módulos
 
----
-
-## 🔄 Gerenciamento de Estado com ChangeNotifier
-
-Os estados da aplicação são gerenciados com ChangeNotifier de forma simples, previsível e centralizada. Cada módulo possui seu próprio notifier responsável por atualizar a interface e coordenar chamadas para repositórios.
-
----
-
-## 🧪 Estrutura do Projeto
-
-O projeto segue uma arquitetura modularizada por features, com divisão clara de responsabilidades:
-
-* **app/**: tema, roteamento, widgets globais
-* **modules/**: organização por funcionalidades (carteiras, categorias, transações)
-* **shared/**: modelos, utilidades, repositórios e abstrações comuns
-* **main.dart**: inicialização da aplicação
-
-Essa estrutura facilita escalabilidade e manutenção, separando lógica de negócio, estado e interface.
+Ele permite que cada módulo cuide do seu próprio fluxo de navegação sem espalhar regras pelo app inteiro.
 
 ---
 
-## 📲 Como Rodar o Projeto
+### 🧠 Bloc / Cubit
 
-1. Instale as dependências com `flutter pub get`.
-2. Execute o aplicativo com `flutter run`.
+Utilizamos **Bloc (Cubit)** como gerenciador de estado.
+
+Motivações:
+
+* Estados explícitos e previsíveis
+* Separação clara entre UI e lógica
+* Facilidade de testes unitários
+* Controle total de side-effects (snackbars, navegação, etc.)
+
+Cada tela possui seu próprio Cubit, responsável por:
+
+* Carregar dados
+* Transformar estado
+* Emitir ações para a UI
 
 ---
 
-## 🔐 Licença
+### 🗄️ ObjectBox
 
-```
-Copyright (c) 2025 Gabriel Ramos
-Todos os direitos reservados.
+O **ObjectBox** é utilizado como banco de dados local.
 
-Este software é propriedade exclusiva de Gabriel Ramos.
-É proibida qualquer cópia, modificação, distribuição, comercialização
-ou uso sem autorização expressa e por escrito do proprietário.
+Benefícios:
 
-Contato para autorização: developer.bed@gmail.com
-```
+* Extremamente rápido
+* Tipado
+* Ótimo suporte a filtros e queries
+* Ideal para uso offline-first
+
+Ele é responsável por persistir as transações localmente e servir como fonte primária de dados do app.
+
+---
+
+## 📱 Status das Telas
+
+### 💸 Tela de Transações
+
+#### ✅ Já temos
+
+- [x] Validação de formulário
+- [x] Cadastro de transação
+- [x] Feedback visual de cadastro com sucesso
+
+#### 🚧 Falta implementar
+
+- [ ] Formatação de valor em **pt-BR**
+- [ ] Testes de **apagar transação**
+- [ ] Testes de **editar transação**
+- [ ] Feedback visual para **falha no cadastro**
+
+---
+
+### 🏠 Home
+
+#### ✅ Já temos
+
+- [x] Listagem de transações
+
+#### 🚧 Falta implementar
+
+- [ ] Paginação
+- [ ] Apagar transação com **swipeable**
+- [ ] Filtros (todas / receitas / despesas)
+- [ ] Tela de **estado vazio** (sem transações)
+- [ ] Cards com **resumo financeiro** (total gasto, entradas, saldo)
+
+---
+
+## 🚀 Próximos Passos
+
+* Refinar experiência de loading e empty states
+* Completar cobertura de testes
+* Evoluir filtros e paginação
+* Melhorar feedbacks visuais
+
+O Trocado está sendo desenvolvido com foco em **qualidade técnica**, **evolução contínua** e **experiência do usuário**.
