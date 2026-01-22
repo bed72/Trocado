@@ -19,10 +19,8 @@ class CategoryWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: .symmetric(horizontal: 0.0, vertical: 4.0),
-      shape: RoundedRectangleBorder(borderRadius: .circular(16.0)),
       child: ListTile(
         onTap: onTap,
-        contentPadding: const .symmetric(vertical: 8.0, horizontal: 12.0),
         leading: BackgroundIconWidget(
           name: category.icon,
           color: category.color,

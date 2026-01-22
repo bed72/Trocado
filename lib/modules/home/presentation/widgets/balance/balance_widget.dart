@@ -24,9 +24,7 @@ class BalanceWidget extends StatelessWidget {
     };
 
     return Card(
-      margin: .zero,
       elevation: 0.0,
-      shape: RoundedRectangleBorder(borderRadius: .circular(16.0)),
       child: Container(
         margin: .all(8.0),
         padding: .all(16.0),

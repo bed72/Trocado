@@ -17,11 +17,8 @@ class TransactionWidget extends StatelessWidget {
     final color = isIncome ? context.colors.primary : context.colors.error;
 
     return Card(
-      elevation: 0.0,
       margin: .symmetric(horizontal: 0.0, vertical: 4.0),
-      shape: RoundedRectangleBorder(borderRadius: .circular(16.0)),
       child: ListTile(
-        contentPadding: const .symmetric(vertical: 8.0, horizontal: 12.0),
         leading: BackgroundIconWidget(
           name: dto.category.icon,
           color: dto.category.color,

@@ -22,10 +22,16 @@ abstract final class Themes {
       inputDecoratorIsFilled: true,
       navigationRailUseIndicator: true,
 
+      cardRadius: 16.0,
+      cardElevation: 0.0,
+
       buttonMinSize: Size(54.0, 54.0),
 
       textButtonRadius: 16.0,
       textButtonSchemeColor: .primary,
+
+      listTileMinVerticalPadding: 0.0,
+      listTileContentPadding: const .symmetric(vertical: 8.0, horizontal: 12.0),
 
       elevatedButtonRadius: 16.0,
       elevatedButtonElevation: 0.0,
@@ -74,10 +80,16 @@ abstract final class Themes {
       tintedDisabledControls: true,
       navigationRailUseIndicator: true,
 
+      cardRadius: 16.0,
+      cardElevation: 0.0,
+
       buttonMinSize: Size(54.0, 54.0),
 
       textButtonRadius: 16.0,
       textButtonSchemeColor: .primary,
+
+      listTileMinVerticalPadding: 0.0,
+      listTileContentPadding: const .symmetric(vertical: 8.0, horizontal: 12.0),
 
       elevatedButtonRadius: 16.0,
       elevatedButtonElevation: 0.0,

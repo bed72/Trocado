@@ -22,10 +22,12 @@ class _SplashScreenState extends State<SplashScreen> with AfterLayoutMixin {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: ImageWidget(height: 180.0, source: AssetsConstant.logo.source),
+    return ScaffoldWidget(
+      child: Center(
+        child: ImageWidget(
+          height: 196.0,
+          source: AssetsConstant.logo.source,
+          color: context.colors.inversePrimary,
         ),
       ),
     );
