@@ -41,7 +41,7 @@ void main() {
       build: () => DateCubit(),
       act: (cubit) {
         cubit.select(DateTime(2024, 12, 25));
-        cubit.reset();
+        cubit.clear();
       },
       expect: () => [
         DateState(date: DateTime(2024, 12, 25), formatted: '25/12/2024'),

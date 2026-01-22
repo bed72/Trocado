@@ -51,7 +51,7 @@ void main() {
           return cubit;
         },
         expect: () => [
-          const TransactionLoading(),
+          TransactionLoading(),
           TransactionSuccess(transaction: transaction),
         ],
         verify: (_) {
@@ -67,8 +67,8 @@ void main() {
           return cubit;
         },
         expect: () => [
-          const TransactionLoading(),
-          const TransactionFailure(failure: 'Failure'),
+          TransactionLoading(),
+          TransactionFailure(failure: 'Failure'),
         ],
       );
     });
@@ -85,7 +85,7 @@ void main() {
           ).thenReturn(Right<String, void>(null));
           return cubit;
         },
-        expect: () => [const TransactionLoading(), const TransactionSuccess()],
+        expect: () => [TransactionLoading(), TransactionSuccess()],
         verify: (_) {
           verify(() => repository.save(dto)).called(1);
         },
@@ -99,8 +99,8 @@ void main() {
           return cubit;
         },
         expect: () => [
-          const TransactionLoading(),
-          const TransactionFailure(failure: 'Failure'),
+          TransactionLoading(),
+          TransactionFailure(failure: 'Failure'),
         ],
       );
     });
@@ -115,7 +115,7 @@ void main() {
           ).thenReturn(Right<String, void>(null));
           return cubit;
         },
-        expect: () => [const TransactionLoading(), const TransactionSuccess()],
+        expect: () => [TransactionLoading(), TransactionSuccess()],
         verify: (_) {
           verify(() => repository.delete(1)).called(1);
         },
@@ -129,8 +129,8 @@ void main() {
           return cubit;
         },
         expect: () => [
-          const TransactionLoading(),
-          const TransactionFailure(failure: 'Failure'),
+          TransactionLoading(),
+          TransactionFailure(failure: 'Failure'),
         ],
       );
     });

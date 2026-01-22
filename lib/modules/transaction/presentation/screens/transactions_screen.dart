@@ -47,6 +47,9 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   void initState() {
     super.initState();
 
+    widget.dateCubit.clear();
+    widget.categoryCubit.clear();
+    widget.caculatorCubit.clear();
     widget.transactionCubit.clear();
 
     _formKey = GlobalKey<FormState>();

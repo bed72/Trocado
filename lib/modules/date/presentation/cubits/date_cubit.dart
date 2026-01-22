@@ -8,7 +8,7 @@ part 'date_state.dart';
 final class DateCubit extends Cubit<DateState> {
   DateCubit() : super(DateState.empty());
 
-  void reset() {
+  void clear() {
     emit(DateState.empty());
   }
 

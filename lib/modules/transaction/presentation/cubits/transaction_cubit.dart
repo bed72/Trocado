@@ -17,11 +17,11 @@ final class TransactionCubit extends Cubit<TransactionState> {
       super(TransactionIdle());
 
   void clear() {
-    emit(const TransactionIdle());
+    emit(TransactionIdle());
   }
 
   void find(int id) {
-    emit(const TransactionLoading());
+    emit(TransactionLoading());
 
     final date = _repository.find(id);
 
@@ -32,24 +32,24 @@ final class TransactionCubit extends Cubit<TransactionState> {
   }
 
   void save(TransactionDto dto) {
-    emit(const TransactionLoading());
+    emit(TransactionLoading());
 
     final date = _repository.save(dto);
 
     date.fold(
       (failure) => emit(TransactionFailure(failure: failure)),
-      (_) => emit(const TransactionSuccess()),
+      (_) => emit(TransactionSuccess()),
     );
   }
 
   void delete(int id) {
-    emit(const TransactionLoading());
+    emit(TransactionLoading());
 
     final data = _repository.delete(id);
 
     data.fold(
       (failure) => emit(TransactionFailure(failure: failure)),
-      (_) => emit(const TransactionSuccess()),
+      (_) => emit(TransactionSuccess()),
     );
   }
 }

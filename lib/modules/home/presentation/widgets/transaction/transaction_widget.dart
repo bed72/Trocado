@@ -2,34 +2,36 @@ import 'package:flutter/material.dart';
 
 import 'package:trocado/modules/core/core.dart';
 
-import 'package:trocado/modules/home/presentation/states/transaction_state.dart';
+import 'package:trocado/modules/transaction/transaction.dart';
 
 class TransactionWidget extends StatelessWidget {
-  final TransactionState state;
+  final TransactionDto dto;
 
-  const TransactionWidget({super.key, required this.state});
+  const TransactionWidget({super.key, required this.dto});
 
   @override
   Widget build(BuildContext context) {
-    final isIncome = state.type == .income;
+    final isIncome = dto.type == .income;
 
     final prefix = isIncome ? '+' : '-';
     final color = isIncome ? context.colors.primary : context.colors.error;
 
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: .circular(16)),
+      elevation: 0.0,
+      margin: .symmetric(horizontal: 0.0, vertical: 4.0),
+      shape: RoundedRectangleBorder(borderRadius: .circular(16.0)),
       child: ListTile(
         contentPadding: const .symmetric(vertical: 8.0, horizontal: 12.0),
         leading: BackgroundIconWidget(
-          name: state.category.icon,
-          color: state.category.color,
+          name: dto.category.icon,
+          color: dto.category.color,
         ),
         title: Text(
-          state.label,
+          dto.description,
           style: context.typography.bodyLarge?.copyWith(fontWeight: .w600),
         ),
         subtitle: Text(
-          state.category.label,
+          dto.category.label,
           style: context.typography.labelSmall?.copyWith(
             fontWeight: .w600,
             letterSpacing: 0.5,
@@ -37,10 +39,10 @@ class TransactionWidget extends StatelessWidget {
           ),
         ),
         trailing: Text(
-          '$prefix ${state.amount}',
+          '$prefix ${dto.amount}',
           style: context.typography.bodyLarge?.copyWith(
-            fontWeight: .bold,
             color: color,
+            fontWeight: .bold,
           ),
         ),
       ),

@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 
 import 'package:trocado/modules/core/core.dart';
 
-import 'package:trocado/modules/home/presentation/states/balance_state.dart';
+import 'package:trocado/modules/home/data/dtos/balance_dto.dart';
 
 class BalanceWidget extends StatelessWidget {
-  final BalanceState state;
+  final BalanceDto state;
 
   const BalanceWidget({super.key, required this.state});
 
@@ -26,7 +26,7 @@ class BalanceWidget extends StatelessWidget {
     return Card(
       margin: .zero,
       elevation: 0.0,
-      shape: RoundedRectangleBorder(borderRadius: .circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: .circular(16.0)),
       child: Container(
         margin: .all(8.0),
         padding: .all(16.0),

@@ -22,7 +22,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   void initState() {
     super.initState();
 
-    widget.cubit.clear();
     _controller = TextEditingController();
   }
 

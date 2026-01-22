@@ -30,16 +30,4 @@ final class TransactionModel extends Equatable {
     description,
     observation,
   ];
-
-  @override
-  String toString() =>
-      'Transaction('
-      'id: $id, '
-      'date: $date, '
-      'type: $type, '
-      'amount: $amount, '
-      'category: $category, '
-      'description: $description, '
-      'observation: $observation'
-      ')';
 }

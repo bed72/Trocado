@@ -21,7 +21,6 @@ class _DateScreenState extends State<DateScreen> {
   void initState() {
     super.initState();
 
-    widget.cubit.reset();
     _date = widget.cubit.state.date;
   }
 

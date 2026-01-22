@@ -1,5 +1,6 @@
 import 'package:trocado/main.dart';
 
+import 'package:trocado/modules/home/home.dart';
 import 'package:trocado/modules/core/core.dart';
 import 'package:trocado/modules/date/date.dart';
 import 'package:trocado/modules/category/category.dart';
@@ -13,6 +14,7 @@ Future<void> ensureInitialized() async {
   repositoryProvider();
 
   dateProvider();
+  homeProvider();
   categoryProvider();
   calculatorProvider();
   transactionProvider();

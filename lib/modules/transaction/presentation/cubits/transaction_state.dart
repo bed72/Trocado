@@ -3,21 +3,14 @@ part of 'transaction_cubit.dart';
 @immutable
 sealed class TransactionState extends Equatable {
   const TransactionState();
-}
-
-final class TransactionIdle extends TransactionState {
-  const TransactionIdle();
 
   @override
   List<Object> get props => [];
 }
 
-final class TransactionLoading extends TransactionState {
-  const TransactionLoading();
+final class TransactionIdle extends TransactionState {}
 
-  @override
-  List<Object> get props => [];
-}
+final class TransactionLoading extends TransactionState {}
 
 final class TransactionSuccess extends TransactionState {
   final TransactionModel? transaction;
@@ -25,7 +18,7 @@ final class TransactionSuccess extends TransactionState {
   const TransactionSuccess({this.transaction});
 
   @override
-  List<Object?> get props => [transaction];
+  List<Object> get props => [transaction ?? []];
 }
 
 final class TransactionFailure extends TransactionState {
@@ -34,5 +27,5 @@ final class TransactionFailure extends TransactionState {
   const TransactionFailure({required this.failure});
 
   @override
-  List<Object?> get props => [failure];
+  List<Object> get props => [failure];
 }

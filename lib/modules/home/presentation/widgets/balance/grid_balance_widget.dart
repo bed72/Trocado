@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:trocado/modules/home/presentation/states/balance_state.dart';
+import 'package:trocado/modules/home/data/dtos/balance_dto.dart';
 import 'package:trocado/modules/home/presentation/widgets/balance/balance_widget.dart';
 
 class GridBalanceWidget extends StatelessWidget {
@@ -12,14 +12,14 @@ class GridBalanceWidget extends StatelessWidget {
       spacing: 16.0,
       children: [
         BalanceWidget(
-          state: BalanceState(label: 'Total', amount: 'R\$ 1.000,00'),
+          state: BalanceDto(label: 'Total', amount: 'R\$ 1.000,00'),
         ),
         Row(
           spacing: 16.0,
           children: [
             Expanded(
               child: BalanceWidget(
-                state: BalanceState(
+                state: BalanceDto(
                   type: .income,
                   label: 'Receita',
                   amount: 'R\$ 10.000,00',
@@ -28,7 +28,7 @@ class GridBalanceWidget extends StatelessWidget {
             ),
             Expanded(
               child: BalanceWidget(
-                state: BalanceState(
+                state: BalanceDto(
                   type: .expense,
                   label: 'Despesa',
                   amount: 'R\$ 1.000,00',
