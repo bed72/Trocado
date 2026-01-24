@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:trocado/modules/date/date.dart';
 import 'package:trocado/modules/category/category.dart';
 import 'package:trocado/modules/calculator/calculator.dart';
-import 'package:trocado/modules/transaction/data/dtos/transaction_type_dto.dart';
+
+import 'package:trocado/modules/transaction/data/dtos/transaction_dto.dart';
 
 final class TransactionParameterDto {
-  final TransactionTypeDto type;
   final GlobalKey<FormState> formKey;
 
   final DateCubit dateCubit;
@@ -24,20 +24,17 @@ final class TransactionParameterDto {
   final ValueChanged<String> onDescriptionSelected;
   final ValueChanged<String> onObservationSelected;
 
-  final String? Function(String?)? amountValidator;
-  final String? Function(String?)? descriptionValidator;
+  final TransactionDto? transaction;
 
   const TransactionParameterDto({
-    required this.type,
     required this.formKey,
     required this.dateCubit,
+    required this.transaction,
     required this.categoryCubit,
     required this.calculatorCubit,
     required this.navigateToDate,
     required this.navigateToCategory,
     required this.navigateToCalculator,
-    required this.amountValidator,
-    required this.descriptionValidator,
     required this.onTypeSelected,
     required this.onDateSelected,
     required this.onAmountSelected,

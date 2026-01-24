@@ -19,6 +19,7 @@ final class HomeLocation extends Location {
       homeCubit: context.get<HomeCubit>(),
       transactionCubit: context.get<TransactionCubit>(),
       onNavigateToExit: () => context.navigate(ExitLocation()),
+      onPress: (dto) => context.navigate(TransactionLocation(dto: dto)),
       onNavigateToTransaction: () => context.navigate(TransactionLocation()),
     );
   };

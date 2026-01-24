@@ -5,6 +5,7 @@ import 'package:trocado/modules/core/core.dart';
 import 'package:trocado/modules/date/date.dart';
 import 'package:trocado/modules/category/category.dart';
 import 'package:trocado/modules/calculator/calculator.dart';
+import 'package:trocado/modules/transaction/data/dtos/transaction_dto.dart';
 
 import 'package:trocado/modules/transaction/data/dtos/transaction_type_dto.dart';
 import 'package:trocado/modules/transaction/data/dtos/transaction_parameter_dto.dart';
@@ -20,6 +21,7 @@ class TransactionsFormWidget extends StatefulWidget {
 
 class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
   late TransactionTypeDto _type;
+  late TransactionDto? _transaction;
 
   late bool _mustShowDescriptionHelper;
   late bool _mustShowObservationHelper;
@@ -36,20 +38,31 @@ class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
   void initState() {
     super.initState();
 
-    _type = widget.dto.type;
-
     _debounce = DebounceAction();
 
     _mustShowDescriptionHelper = false;
     _mustShowObservationHelper = false;
 
-    _amountController = TextEditingController();
-    _dateController = TextEditingController(text: DateTime.now().format());
-    _categoryController = TextEditingController(text: CategoryDto.other.label);
-    _descriptionController = TextEditingController()
-      ..addListener(_handleDescriptionInteractions);
-    _observationController = TextEditingController()
-      ..addListener(_handleObservatiobInteractions);
+    _transaction = widget.dto.transaction;
+    _type = _transaction?.type ?? .expense;
+
+    _amountController = TextEditingController(
+      text: _transaction?.amount.toString(),
+    );
+    _dateController = TextEditingController(
+      text: _transaction?.date.format() ?? DateTime.now().format(),
+    );
+    _categoryController = TextEditingController(
+      text: (_transaction == null)
+          ? CategoryDto.other.label
+          : _transaction!.category.label,
+    );
+    _descriptionController = TextEditingController(
+      text: _transaction?.description,
+    )..addListener(_handleDescriptionInteractions);
+    _observationController = TextEditingController(
+      text: _transaction?.observation,
+    )..addListener(_handleObservatiobInteractions);
   }
 
   @override
@@ -81,7 +94,7 @@ class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
             placeholder: 'Ex: Café',
             controller: _descriptionController,
             helperWidget: _buildDescriptionHelper(),
-            validator: widget.dto.descriptionValidator,
+            validator: widget.dto.transaction?.validateDescription,
             onChanged: (value) =>
                 _debounce(() => widget.dto.onDescriptionSelected(value)),
           ),
@@ -102,7 +115,7 @@ class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
                 absorbing: true,
                 placeholder: 'Ex: 72.00',
                 controller: _amountController,
-                validator: widget.dto.amountValidator,
+                validator: widget.dto.transaction?.validateAmount,
               ),
             ),
           ),

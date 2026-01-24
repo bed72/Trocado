@@ -17,8 +17,8 @@ void main() {
       final dto = TransactionDto(
         id: null,
         date: date,
-        amount: 100.5,
         type: .expense,
+        amount: '100.5',
         category: .other,
         description: 'Groceries',
         observation: 'Weekly shopping',
@@ -41,8 +41,8 @@ void main() {
       final dto = TransactionDto(
         id: null,
         date: date,
-        amount: 50.0,
         type: .income,
+        amount: '50.0',
         category: .salary,
         observation: null,
         description: 'Salary',
@@ -113,7 +113,7 @@ void main() {
 
       final dto = mapper(model);
 
-      expect(dto.amount, 150.75);
+      expect(dto.amount, '150.75');
       expect(dto.description, 'Almoço');
       expect(dto.observation, 'Restaurante');
       expect(dto.category, CategoryDto.food);

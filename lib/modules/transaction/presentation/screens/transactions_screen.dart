@@ -10,6 +10,7 @@ import 'package:trocado/modules/transaction/data/dtos/transaction_dto.dart';
 import 'package:trocado/modules/transaction/data/dtos/transaction_parameter_dto.dart';
 import 'package:trocado/modules/transaction/presentation/cubits/transaction_cubit.dart';
 import 'package:trocado/modules/transaction/presentation/widgets/transactions_form_widget.dart';
+import 'package:trocado/modules/transaction/presentation/widgets/transactions_listener_widget.dart';
 
 class TransactionsScreen extends StatefulWidget {
   final TransactionDto? dto;
@@ -58,13 +59,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<TransactionCubit, TransactionState>(
-      bloc: widget.transactionCubit,
-      listener: (_, state) => switch (state) {
-        TransactionSuccess() => _showSuccessToast(),
-        TransactionFailure() => _showFailureToast(state.failure),
-        _ => {},
-      },
+    return TransactionsListenerWidget(
+      cubit: widget.transactionCubit,
       child: ScaffoldWidget(
         appBar: AppBarWidget(title: 'Transações'),
         child: Padding(
@@ -143,23 +139,12 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     );
   }
 
-  void _showSuccessToast() {
-    showToastWidget(
-      context: context,
-      onClose: context.pop,
-      title: 'Transação salva.',
-      description: 'Já atualizamos sua Home.',
-    );
-  }
-
   TransactionParameterDto _buildParameterDto() => TransactionParameterDto(
+    transaction: _dto,
     formKey: _formKey,
-    type: .expense,
     dateCubit: widget.dateCubit,
     categoryCubit: widget.categoryCubit,
     calculatorCubit: widget.caculatorCubit,
-    amountValidator: _dto.validateAmount,
-    descriptionValidator: _dto.validateDescription,
     navigateToDate: widget.navigateToDate,
     navigateToCategory: widget.navigateToCategory,
     navigateToCalculator: widget.navigateToCalculator,
@@ -169,6 +154,9 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     onDateSelected: (DateTime value) {
       _dto = _dto.copyWith(date: value);
     },
+    onAmountSelected: (String value) {
+      _dto = _dto.copyWith(amount: value);
+    },
     onDescriptionSelected: (String value) {
       _dto = _dto.copyWith(description: value);
     },
@@ -177,9 +165,6 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     },
     onCategorySelected: (String value) {
       _dto = _dto.copyWith(category: .fromByString(value));
-    },
-    onAmountSelected: (String value) {
-      _dto = _dto.copyWith(amount: double.tryParse(value));
     },
   );
 }

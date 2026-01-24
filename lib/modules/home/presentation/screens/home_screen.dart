@@ -1,17 +1,15 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:trocado/modules/core/core.dart';
-
 import 'package:trocado/modules/transaction/transaction.dart';
-import 'package:trocado/modules/home/domain/models/home_model.dart';
 
 import 'package:trocado/modules/home/presentation/cubits/home_cubit.dart';
-import 'package:trocado/modules/home/presentation/widgets/balance/grid_balance_widget.dart';
-import 'package:trocado/modules/home/presentation/widgets/transaction/transaction_widget.dart';
-import 'package:trocado/modules/home/presentation/widgets/transaction/transaction_header_widget.dart';
+
+import 'package:trocado/modules/home/presentation/widgets/home_app_bar_widget.dart';
+import 'package:trocado/modules/home/presentation/widgets/home_content_widget.dart';
+import 'package:trocado/modules/home/presentation/widgets/home_action_button_widget.dart';
 
 class HomeScreen extends StatefulWidget {
   final HomeCubit homeCubit;
@@ -19,9 +17,11 @@ class HomeScreen extends StatefulWidget {
 
   final VoidCallback onNavigateToExit;
   final VoidCallback onNavigateToTransaction;
+  final ValueChanged<TransactionDto> onPress;
 
   const HomeScreen({
     super.key,
+    required this.onPress,
     required this.homeCubit,
     required this.transactionCubit,
     required this.onNavigateToExit,
@@ -47,99 +47,15 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   Widget build(BuildContext context) {
     return ScaffoldWidget(
-      appBar: _buildAppBar(),
-      floatingActionButton: _buildFloatingActionButton(),
-      child: _buildContent(context),
-    );
-  }
-
-  AppBar _buildAppBar() => AppBar(
-    centerTitle: true,
-    toolbarHeight: 72.0,
-    title: SelectorWidget(
-      selected: 0,
-      onSelected: (value) {},
-      options: ['Todas', 'Despesas', 'Receitas'],
-    ),
-  );
-
-  FloatingActionButton _buildFloatingActionButton() => FloatingActionButton(
-    onPressed: widget.onNavigateToTransaction,
-    child: IconWidget(name: Icons.add),
-  );
-
-  Widget _buildContent(BuildContext context) {
-    return MultiBlocListener(
-      listeners: [
-        BlocListener<HomeCubit, HomeState>(
-          bloc: widget.homeCubit,
-          listener: (_, state) => switch (state) {
-            HomeFailure() => _showFailureToast(state.failure),
-            _ => {},
-          },
-        ),
-        BlocListener<TransactionCubit, TransactionState>(
-          bloc: widget.transactionCubit,
-          listener: (_, state) => switch (state) {
-            TransactionSuccess() => widget.homeCubit.findByPeriod(),
-            _ => {},
-          },
-        ),
-      ],
-      child: CustomScrollView(
-        slivers: [
-          SliverPadding(
-            padding: const .symmetric(horizontal: 16.0),
-            sliver: SliverToBoxAdapter(child: GridBalanceWidget()),
-          ),
-
-          SliverPersistentHeader(
-            pinned: true,
-            delegate: TransactionHeaderWidget(title: 'Transações recentes'),
-          ),
-
-          BlocBuilder<HomeCubit, HomeState>(
-            bloc: widget.homeCubit,
-            builder: (_, state) => switch (state) {
-              HomeIdle() || HomeLoading() => _buildLoading(),
-              HomeFailure() => _buildFailure(),
-              HomeSuccess() => _buildSuccess(state.home),
-            },
-          ),
-        ],
+      appBar: HomeAppBarWidget(),
+      floatingActionButton: HomeActionButtonWidget(
+        onNavigateToTransaction: widget.onNavigateToTransaction,
       ),
-    );
-  }
-
-  SliverToBoxAdapter _buildLoading() => SliverToBoxAdapter(
-    child: SkeletonWidget(
-      child: Column(
-        children: .generate(10, (_) => TransactionWidget(dto: .empty())),
+      child: HomeContentWidget(
+        onPress: widget.onPress,
+        homeCubit: widget.homeCubit,
+        transactionCubit: widget.transactionCubit,
       ),
-    ),
-  );
-
-  SliverToBoxAdapter _buildFailure() =>
-      const SliverToBoxAdapter(child: SizedBox.shrink());
-
-  SliverPadding _buildSuccess(HomeModel data) => SliverPadding(
-    padding: const .symmetric(horizontal: 16.0),
-    sliver: SliverList(
-      delegate: SliverChildBuilderDelegate(
-        childCount: data.transactions.length,
-        (_, index) => TransactionWidget(
-          dto: widget.homeCubit.toDto(data.transactions[index]),
-        ),
-      ),
-    ),
-  );
-
-  void _showFailureToast(String description) {
-    showToastWidget(
-      context: context,
-      type: .failure,
-      description: description,
-      title: 'Ops, algo aconteceu.',
     );
   }
 }

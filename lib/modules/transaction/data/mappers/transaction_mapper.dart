@@ -7,10 +7,11 @@ import 'package:trocado/modules/transaction/infrastructure/database/entities/tra
 class TransactionDtoMapper implements Mapper<TransactionModel, TransactionDto> {
   @override
   TransactionDto call(TransactionModel parameter) => TransactionDto(
-    amount: parameter.amount,
+    id: parameter.id,
     description: parameter.description,
     observation: parameter.observation,
     type: .fromByString(parameter.type),
+    amount: parameter.amount.toString(),
     category: .fromByString(parameter.category),
     date: dateTimeFromMilliseconds(parameter.date),
   );
@@ -19,11 +20,11 @@ class TransactionDtoMapper implements Mapper<TransactionModel, TransactionDto> {
 class TransactionInMapper implements Mapper<TransactionDto, TransactionEntity> {
   @override
   TransactionEntity call(TransactionDto parameter) => TransactionEntity(
-    amount: parameter.amount,
     type: parameter.type.label,
     category: parameter.category.label,
     description: parameter.description,
     observation: parameter.observation,
+    amount: double.parse(parameter.amount),
     date: parameter.date.millisecondsSinceEpoch,
   );
 }

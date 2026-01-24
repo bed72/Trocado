@@ -48,7 +48,7 @@ void main() {
       test('should insert when dto id is null', () {
         final dto = TransactionDto(
           id: null,
-          amount: 10.0,
+          amount: '10.0',
           type: .expense,
           category: .other,
           description: 'Lunch',
@@ -96,7 +96,7 @@ void main() {
       test('should return failure when datasource returns error on save', () {
         final dto = TransactionDto(
           id: null,
-          amount: 10.0,
+          amount: '10.0',
           type: .expense,
           category: .other,
           description: 'Lunch',
