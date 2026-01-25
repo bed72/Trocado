@@ -36,6 +36,6 @@ final class TransactionRepository implements ITransactionRepository {
 
     return dto.id == null
         ? _datasource.save(entity)
-        : _datasource.update(entity);
+        : _datasource.update(dto.id!, entity);
   }
 }

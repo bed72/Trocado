@@ -13,7 +13,7 @@ Future<void> main() async {
 
   await Future.wait([
     ensureInitialized(),
-    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]),
+    SystemChrome.setPreferredOrientations([.portraitUp]),
   ]);
 
   runApp(AppWidget());

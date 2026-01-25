@@ -2,25 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:equatable/equatable.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:trocado/modules/calculator/domain/repositories/interface_calculator_repository.dart';
+import 'package:trocado/modules/calculator/calculator.dart';
 
 part 'calculator_state.dart';
 
-class CalculatorCubit extends Cubit<CalculatorState> {
-  final ICalculatorRepository _repository;
+final class CalculatorCubit extends Cubit<CalculatorState> {
+  final IMoneyFormatter _formatter;
 
-  CalculatorCubit({required ICalculatorRepository repository})
-    : _repository = repository,
+  CalculatorCubit({required IMoneyFormatter formatter})
+    : _formatter = formatter,
       super(CalculatorState.empty());
 
   void onKeyTap(String key) => switch (key) {
     '✓' => apply(),
-    '=' => apply(),
     'AC' => clear(),
     'DEL' => delete(),
-    '()' => toggleParenthesis(),
     _ => append(key),
   };
+
+  void apply() {
+    emit(state);
+  }
 
   void clear() {
     emit(CalculatorState.empty());
@@ -29,57 +31,27 @@ class CalculatorCubit extends Cubit<CalculatorState> {
   void delete() {
     if (state.amount.isEmpty) return;
 
-    final amoubt = state.amount.substring(0, state.amount.length - 1);
+    final amount = state.amount.substring(0, state.amount.length - 1);
 
-    emit(state.copyWith(amount: amoubt, preview: _buildPreview(amoubt)));
+    emit(_buildState(amount));
   }
 
   void append(String value) {
-    if (state.amount.isEmpty && _isOperator(value)) return;
-    if (_isOperator(value) && _lastIsOperator()) return;
+    if (value == ',' && state.amount.contains(',')) return;
 
     final amount = state.amount + value;
-
-    emit(state.copyWith(amount: amount, preview: _buildPreview(amount)));
+    emit(_buildState(amount));
   }
 
-  void toggleParenthesis() {
-    final opens = '('.allMatches(state.amount).length;
-    final closes = ')'.allMatches(state.amount).length;
+  CalculatorState _buildState(String amount) {
+    if (amount.isEmpty) return CalculatorState.empty();
 
-    final amount = state.amount + (opens == closes ? '(' : ')');
+    final normalized = amount.replaceAll(',', '.');
+    final parsed = double.tryParse(normalized);
 
-    emit(state.copyWith(amount: amount, preview: _buildPreview(amount)));
+    return CalculatorState(
+      amount: amount,
+      preview: parsed == null ? amount : _formatter.format(parsed),
+    );
   }
-
-  void apply() {
-    if (state.amount.isEmpty) return;
-
-    final data = _repository.operation(state.amount);
-
-    if (data.isNaN) return;
-
-    final formatted = _format(data);
-
-    emit(state.copyWith(amount: formatted, preview: formatted));
-  }
-
-  String _buildPreview(String amount) {
-    if (amount.isEmpty) return '...';
-
-    final data = _repository.operation(amount);
-
-    return data.isNaN ? amount : _format(data);
-  }
-
-  bool _isOperator(String value) => ['+', '-', '*', '/'].contains(value);
-
-  bool _lastIsOperator() {
-    if (state.amount.isEmpty) return false;
-    return _isOperator(state.amount[state.amount.length - 1]);
-  }
-
-  String _format(double value) => value.toString().endsWith('.0')
-      ? value.toInt().toString()
-      : value.toString();
 }

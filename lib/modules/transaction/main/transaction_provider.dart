@@ -1,6 +1,7 @@
 import 'package:trocado/main.dart';
 
 import 'package:trocado/modules/core/core.dart';
+import 'package:trocado/modules/calculator/calculator.dart';
 
 import 'package:trocado/modules/transaction/presentation/cubits/transaction_cubit.dart';
 
@@ -13,9 +14,11 @@ import 'package:trocado/modules/transaction/infrastructure/datasources/local/tra
 
 void transactionProvider() {
   provider
-    ..registerFactory<TransactionInMapper>(TransactionInMapper.new)
     ..registerFactory<TransactionOutMapper>(TransactionOutMapper.new)
     ..registerFactory<TransactionDtoMapper>(TransactionDtoMapper.new)
+    ..registerFactory<TransactionInMapper>(
+      () => TransactionInMapper(formatter: provider.get<IMoneyFormatter>()),
+    )
     ..registerFactory<ITransactionLocalDatasource>(
       () => TransactionLocalDatasource(client: provider.get<IDatabaseClient>()),
     )

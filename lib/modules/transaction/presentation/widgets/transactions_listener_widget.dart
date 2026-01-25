@@ -47,7 +47,7 @@ class TransactionsListenerWidget extends StatelessWidget {
     showToastWidget(
       context: context,
       onClose: context.pop,
-      title: 'Transação salva.',
+      title: 'Ihulll, tudo certo.',
       description: 'Já atualizamos sua Home.',
     );
   }

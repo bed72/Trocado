@@ -7,7 +7,7 @@ abstract interface class ITransactionLocalDatasource {
   Either<String, void> delete(int id);
   Either<String, TransactionEntity> find(int id);
   Either<String, void> save(TransactionEntity entity);
-  Either<String, void> update(TransactionEntity entity);
+  Either<String, void> update(int id, TransactionEntity entity);
 }
 
 final class TransactionLocalDatasource implements ITransactionLocalDatasource {
@@ -57,9 +57,9 @@ final class TransactionLocalDatasource implements ITransactionLocalDatasource {
   }
 
   @override
-  Either<String, Null> update(TransactionEntity entity) {
+  Either<String, Null> update(int id, TransactionEntity entity) {
     try {
-      if (entity.id == 0) return const Left('Transação não encontrada.');
+      if (id == 0) return const Left('Transação não encontrada.');
 
       _box.put(entity);
 

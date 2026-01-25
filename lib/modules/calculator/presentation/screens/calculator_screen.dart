@@ -22,6 +22,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   void initState() {
     super.initState();
 
+    widget.cubit.clear();
     _controller = TextEditingController();
   }
 
@@ -47,12 +48,12 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
             BlocListener<CalculatorCubit, CalculatorState>(
               bloc: widget.cubit,
               listenWhen: (previous, current) =>
-                  previous.preview != current.preview,
+                  previous.amount != current.amount,
               listener: (_, state) {
                 _controller.text = state.amount;
               },
               child: TextFieldWidget(
-                hint: 'R\$',
+                hint: 'Valor',
                 readOnly: true,
                 absorbing: true,
                 placeholder: '100.0',

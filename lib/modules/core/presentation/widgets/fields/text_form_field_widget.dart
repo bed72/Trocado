@@ -210,7 +210,7 @@ class _TextFormFieldWidgetState extends State<TextFormFieldWidget> {
       contentPadding: .only(
         top: 30.0,
         left: 20.0,
-        bottom: 18.0,
+        bottom: _hasFailure ? 14.0 : 18.0,
         right: 20.0 + (widget.suffixIcon != null ? 36 : 0),
       ),
     ),

@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:trocado/modules/calculator/calculator.dart';
 
 import 'package:trocado/modules/category/data/dtos/category_dto.dart';
 
@@ -9,7 +11,15 @@ import 'package:trocado/modules/transaction/domain/models/transaction_model.dart
 
 import 'package:trocado/modules/transaction/infrastructure/database/entities/transaction_entity.dart';
 
+import '../../../calculator/mocks/mocks.dart';
+
 void main() {
+  late IMoneyFormatter formatter;
+
+  setUp(() {
+    formatter = MockMoneyFormatter();
+  });
+
   group('TransactionInMapper', () {
     test('should map TransactionDto to TransactionEntity correctly', () {
       final date = DateTime(2024, 1, 1);
@@ -24,7 +34,9 @@ void main() {
         observation: 'Weekly shopping',
       );
 
-      final mapper = TransactionInMapper();
+      final mapper = TransactionInMapper(formatter: formatter);
+
+      when(() => formatter.parse('100.5')).thenReturn(100.5);
       final entity = mapper(dto);
 
       expect(entity.amount, 100.5);
@@ -38,6 +50,8 @@ void main() {
     test('should map TransactionDto without observation', () {
       final date = DateTime(2024, 1, 1);
 
+      when(() => formatter.parse('50.0')).thenReturn(50.0);
+
       final dto = TransactionDto(
         id: null,
         date: date,
@@ -48,7 +62,7 @@ void main() {
         description: 'Salary',
       );
 
-      final mapper = TransactionInMapper();
+      final mapper = TransactionInMapper(formatter: formatter);
       final entity = mapper(dto);
 
       expect(entity.observation, isNull);

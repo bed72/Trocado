@@ -104,13 +104,13 @@ class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
             child: BlocListener<CalculatorCubit, CalculatorState>(
               bloc: widget.dto.calculatorCubit,
               listenWhen: (previous, current) =>
-                  previous.preview != current.preview,
+                  previous.amount != current.amount,
               listener: (_, state) {
-                widget.dto.onAmountSelected(state.amount);
                 _amountController.text = state.amount;
+                widget.dto.onAmountSelected(state.amount);
               },
               child: TextFormFieldWidget(
-                hint: 'R\$',
+                hint: 'Valor',
                 readOnly: true,
                 absorbing: true,
                 placeholder: 'Ex: 72.00',
@@ -127,8 +127,8 @@ class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
               listenWhen: (previous, current) =>
                   previous.category.label != current.category.label,
               listener: (_, state) {
-                widget.dto.onCategorySelected(state.category.label);
                 _categoryController.text = state.category.label;
+                widget.dto.onCategorySelected(state.category.label);
               },
               child: TextFormFieldWidget(
                 readOnly: true,

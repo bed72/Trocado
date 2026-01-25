@@ -69,7 +69,7 @@ void main() {
         final data = repository.save(dto);
 
         expect(data.isRight, true);
-        verifyNever(() => datasource.update(any()));
+        verifyNever(() => datasource.update(any(), any()));
         verify(() => datasource.save(any())).called(1);
       });
 
@@ -84,13 +84,15 @@ void main() {
         )..id = 1;
 
         when(() => inMapper(dto)).thenReturn(entity);
-        when(() => datasource.update(entity)).thenReturn(const Right(null));
+        when(
+          () => datasource.update(any(), entity),
+        ).thenReturn(const Right(null));
 
         final result = repository.save(dto);
 
         expect(result.isRight, true);
         verifyNever(() => datasource.save(any()));
-        verify(() => datasource.update(entity)).called(1);
+        verify(() => datasource.update(any(), entity)).called(1);
       });
 
       test('should return failure when datasource returns error on save', () {

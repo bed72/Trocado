@@ -9,71 +9,44 @@ class CalculatorKeyboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final backgroundColor = context.isDark
-        ? context.colors.secondaryContainer
-        : context.colors.secondaryContainer;
+    final backgroundColor = context.colors.secondaryContainer;
 
     return GridView.count(
       shrinkWrap: true,
-      crossAxisCount: 4,
-      mainAxisSpacing: 4.0,
-      crossAxisSpacing: 4.0,
+      crossAxisCount: 3,
+      mainAxisSpacing: 4,
+      crossAxisSpacing: 4,
       childAspectRatio: 1.2,
       physics: const NeverScrollableScrollPhysics(),
       children: [
-        _buildKey(
-          label: 'AC',
-          context: context,
-          backgroundColor: backgroundColor,
-        ),
-        _buildKey(
-          label: '÷',
-          context: context,
-          backgroundColor: backgroundColor,
-        ),
-        _buildKey(
-          label: '×',
-          context: context,
-          backgroundColor: backgroundColor,
-        ),
-        _buildKey(
-          label: 'DEL',
-          context: context,
-          backgroundColor: backgroundColor,
-        ),
+        _key(context, '7'),
+        _key(context, '8'),
+        _key(context, '9'),
 
-        _buildKey(context: context, label: '7'),
-        _buildKey(context: context, label: '8'),
-        _buildKey(context: context, label: '9'),
-        _buildKey(context: context, label: '()'),
+        _key(context, '4'),
+        _key(context, '5'),
+        _key(context, '6'),
 
-        _buildKey(context: context, label: '4'),
-        _buildKey(context: context, label: '5'),
-        _buildKey(context: context, label: '6'),
-        _buildKey(context: context, label: '-'),
+        _key(context, '1'),
+        _key(context, '2'),
+        _key(context, '3'),
 
-        _buildKey(context: context, label: '1'),
-        _buildKey(context: context, label: '2'),
-        _buildKey(context: context, label: '3'),
-        _buildKey(context: context, label: '+'),
+        _key(context, '0'),
+        _key(context, ','),
+        _key(context, ''),
 
-        _buildKey(context: context, label: '.'),
-        _buildKey(context: context, label: '0'),
-        _buildKey(context: context, label: '='),
-        _buildKey(
-          context: context,
-          label: '✓',
-          backgroundColor: backgroundColor,
-        ),
+        _key(context, 'AC', backgroundColor),
+        _key(context, 'DEL', backgroundColor),
+        _key(context, '✓', backgroundColor),
       ],
     );
   }
 
-  BounceWidget _buildKey({
-    required BuildContext context,
-    required String label,
+  BounceWidget _key(
+    BuildContext context,
+    String label, [
     Color? backgroundColor,
-  }) => BounceWidget.withTap(
+  ]) => BounceWidget.withTap(
     onTap: () => onKeyTap(label),
     child: Container(
       decoration: BoxDecoration(
