@@ -1,5 +1,5 @@
 import 'package:mocktail/mocktail.dart';
 
-import 'package:trocado/modules/calculator/data/formatters/money_formater.dart';
+import 'package:trocado/modules/calculator/data/dtos/money_dto.dart';
 
-final class MockMoneyFormatter extends Mock implements IMoneyFormatter {}
+final class MockMoneyFormatter extends Mock implements IMoneyDto {}

@@ -190,9 +190,9 @@ void main() {
       );
 
       final dto = TransactionDto(
+        amount: 100.5,
         type: .expense,
         category: .food,
-        amount: '100.5',
         description: 'Groceries',
         observation: 'Weekly shopping',
         date: DateTime.fromMillisecondsSinceEpoch(1704067200000),

@@ -19,7 +19,7 @@ final class TransactionParameterDto {
 
   final ValueChanged<int> onTypeSelected;
   final ValueChanged<DateTime> onDateSelected;
-  final ValueChanged<String> onAmountSelected;
+  final ValueChanged<double> onAmountSelected;
   final ValueChanged<String> onCategorySelected;
   final ValueChanged<String> onDescriptionSelected;
   final ValueChanged<String> onObservationSelected;

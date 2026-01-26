@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:trocado/modules/core/core.dart';
+import 'package:trocado/modules/calculator/calculator.dart';
 
-import 'package:trocado/modules/calculator/presentation/cubits/calculator_cubit.dart';
 import 'package:trocado/modules/calculator/presentation/widgets/calculator_keyboard_widget.dart';
 
 class CalculatorScreen extends StatefulWidget {
@@ -16,6 +16,7 @@ class CalculatorScreen extends StatefulWidget {
 }
 
 class _CalculatorScreenState extends State<CalculatorScreen> {
+  late final MoneyDto _moneyDto;
   late final TextEditingController _controller;
 
   @override
@@ -23,6 +24,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     super.initState();
 
     widget.cubit.clear();
+    _moneyDto = MoneyDto();
     _controller = TextEditingController();
   }
 
@@ -50,7 +52,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
               listenWhen: (previous, current) =>
                   previous.amount != current.amount,
               listener: (_, state) {
-                _controller.text = state.amount;
+                _controller.text = _moneyDto.format(state.amount);
               },
               child: TextFieldWidget(
                 hint: 'Valor',
@@ -66,7 +68,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
               buildWhen: (previous, current) =>
                   previous.preview != current.preview,
               builder: (_, state) => Text(
-                'Valor: ${state.preview}',
+                'Valor: ${_moneyDto.format(state.amount)}',
                 style: context.typography.bodyLarge?.copyWith(
                   fontWeight: .w600,
                   color: context.colors.outline,

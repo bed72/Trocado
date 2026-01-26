@@ -1,6 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
-import 'package:trocado/modules/calculator/calculator.dart';
 
 import 'package:trocado/modules/category/data/dtos/category_dto.dart';
 
@@ -11,15 +9,7 @@ import 'package:trocado/modules/transaction/domain/models/transaction_model.dart
 
 import 'package:trocado/modules/transaction/infrastructure/database/entities/transaction_entity.dart';
 
-import '../../../calculator/mocks/mocks.dart';
-
 void main() {
-  late IMoneyFormatter formatter;
-
-  setUp(() {
-    formatter = MockMoneyFormatter();
-  });
-
   group('TransactionInMapper', () {
     test('should map TransactionDto to TransactionEntity correctly', () {
       final date = DateTime(2024, 1, 1);
@@ -27,16 +17,15 @@ void main() {
       final dto = TransactionDto(
         id: null,
         date: date,
+        amount: 100.5,
         type: .expense,
-        amount: '100.5',
         category: .other,
         description: 'Groceries',
         observation: 'Weekly shopping',
       );
 
-      final mapper = TransactionInMapper(formatter: formatter);
+      final mapper = TransactionInMapper();
 
-      when(() => formatter.parse('100.5')).thenReturn(100.5);
       final entity = mapper(dto);
 
       expect(entity.amount, 100.5);
@@ -50,19 +39,17 @@ void main() {
     test('should map TransactionDto without observation', () {
       final date = DateTime(2024, 1, 1);
 
-      when(() => formatter.parse('50.0')).thenReturn(50.0);
-
       final dto = TransactionDto(
         id: null,
         date: date,
+        amount: 50.0,
         type: .income,
-        amount: '50.0',
         category: .salary,
         observation: null,
         description: 'Salary',
       );
 
-      final mapper = TransactionInMapper(formatter: formatter);
+      final mapper = TransactionInMapper();
       final entity = mapper(dto);
 
       expect(entity.observation, isNull);
@@ -127,7 +114,7 @@ void main() {
 
       final dto = mapper(model);
 
-      expect(dto.amount, '150.75');
+      expect(dto.amount, 150.75);
       expect(dto.description, 'Almoço');
       expect(dto.observation, 'Restaurante');
       expect(dto.category, CategoryDto.food);

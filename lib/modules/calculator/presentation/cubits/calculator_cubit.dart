@@ -7,11 +7,11 @@ import 'package:trocado/modules/calculator/calculator.dart';
 part 'calculator_state.dart';
 
 final class CalculatorCubit extends Cubit<CalculatorState> {
-  final IMoneyFormatter _formatter;
+  late final IMoneyDto _formatter;
 
-  CalculatorCubit({required IMoneyFormatter formatter})
-    : _formatter = formatter,
-      super(CalculatorState.empty());
+  CalculatorCubit() : super(CalculatorState.empty()) {
+    _formatter = MoneyDto();
+  }
 
   void onKeyTap(String key) => switch (key) {
     '✓' => apply(),
@@ -20,38 +20,39 @@ final class CalculatorCubit extends Cubit<CalculatorState> {
     _ => append(key),
   };
 
-  void apply() {
-    emit(state);
-  }
-
   void clear() {
     emit(CalculatorState.empty());
   }
 
   void delete() {
-    if (state.amount.isEmpty) return;
+    if (state.preview.isEmpty || state.preview == '...') return;
 
-    final amount = state.amount.substring(0, state.amount.length - 1);
+    final next = state.preview.substring(0, state.preview.length - 1);
 
-    emit(_buildState(amount));
+    emit(_buildState(next));
+  }
+
+  void apply() {
+    final formatted = _formatter.format(state.amount);
+
+    emit(state.copyWith(preview: formatted));
   }
 
   void append(String value) {
-    if (value == ',' && state.amount.contains(',')) return;
+    if (value == ',' && state.preview.contains(',')) return;
 
-    final amount = state.amount + value;
-    emit(_buildState(amount));
+    final base = state.preview == '...' ? '' : state.preview;
+    final next = '$base$value';
+
+    emit(_buildState(next));
   }
 
-  CalculatorState _buildState(String amount) {
-    if (amount.isEmpty) return CalculatorState.empty();
+  CalculatorState _buildState(String preview) {
+    if (preview.isEmpty) return CalculatorState.empty();
 
-    final normalized = amount.replaceAll(',', '.');
+    final normalized = preview.replaceAll(',', '.');
     final parsed = double.tryParse(normalized);
 
-    return CalculatorState(
-      amount: amount,
-      preview: parsed == null ? amount : _formatter.format(parsed),
-    );
+    return CalculatorState(amount: parsed ?? 0.0, preview: preview);
   }
 }

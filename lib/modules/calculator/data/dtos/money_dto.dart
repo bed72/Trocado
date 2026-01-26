@@ -1,15 +1,15 @@
 import 'package:intl/intl.dart';
 
-abstract interface class IMoneyFormatter {
+abstract interface class IMoneyDto {
   double parse(String value);
   String format(double value);
   String formatWithoutSymbol(double value);
 }
 
-final class MoneyFormatter implements IMoneyFormatter {
+final class MoneyDto implements IMoneyDto {
   final NumberFormat _formatter;
 
-  MoneyFormatter()
+  MoneyDto()
     : _formatter = NumberFormat.currency(
         symbol: 'R\$',
         locale: 'pt_BR',

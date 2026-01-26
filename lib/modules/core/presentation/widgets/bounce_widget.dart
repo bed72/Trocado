@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 final _upScale = 1.0;
-final _downScale = 0.96;
+final _downScale = 0.97;
 
 abstract base class BounceWidget extends StatefulWidget {
   final Widget child;
@@ -26,13 +26,13 @@ final class _BaseBounceWidget extends BounceWidget {
   State<_BaseBounceWidget> createState() => _BaseBounceWidgetState();
 }
 
-class _BaseBounceWidgetState extends State<_BaseBounceWidget> {
+final class _BaseBounceWidgetState extends State<_BaseBounceWidget> {
   @override
   Widget build(BuildContext context) {
     return AnimatedScale(
       scale: widget.scale,
       curve: Curves.easeOutBack,
-      duration: const Duration(milliseconds: 270),
+      duration: const Duration(milliseconds: 80),
       child: widget.child,
     );
   }
@@ -46,7 +46,7 @@ final class _BounceWithoutTapWidget extends BounceWidget {
       _BounceWithoutTapWidgetState();
 }
 
-class _BounceWithoutTapWidgetState extends State<_BounceWithoutTapWidget>
+final class _BounceWithoutTapWidgetState extends State<_BounceWithoutTapWidget>
     with SingleTickerProviderStateMixin {
   double _scale = _upScale;
 
@@ -82,30 +82,13 @@ final class _BounceWithOnTapWidget extends BounceWidget {
   State<_BounceWithOnTapWidget> createState() => _BounceWithOnTapWidgetState();
 }
 
-class _BounceWithOnTapWidgetState extends State<_BounceWithOnTapWidget>
-    with SingleTickerProviderStateMixin {
-  double _scale = _upScale;
-
-  void _onTapDown(TapDownDetails _) {
-    setState(() => _scale = _downScale);
-  }
-
-  void _onTapUp(TapUpDetails _) {
-    setState(() => _scale = _upScale);
-    widget.onTap?.call();
-  }
-
-  void _onTapCancel() {
-    setState(() => _scale = _upScale);
-  }
-
+final class _BounceWithOnTapWidgetState extends State<_BounceWithOnTapWidget> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTapUp: _onTapUp,
-      onTapDown: _onTapDown,
-      onTapCancel: _onTapCancel,
-      child: _BaseBounceWidget(scale: _scale, child: widget.child),
+      onTap: () async =>
+          await Future.delayed(const Duration(milliseconds: 30), widget.onTap),
+      child: _BounceWithoutTapWidget(child: widget.child),
     );
   }
 }

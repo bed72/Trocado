@@ -8,7 +8,7 @@ import 'package:trocado/modules/transaction/domain/repositories/interface_transa
 
 import 'package:trocado/modules/transaction/infrastructure/datasources/local/transaction_local_datasource.dart';
 
-final class MockMoneyFormatter extends Mock implements IMoneyFormatter {}
+final class MockMoneyFormatter extends Mock implements IMoneyDto {}
 
 final class MockTransactionInMapper extends Mock
     implements TransactionInMapper {}

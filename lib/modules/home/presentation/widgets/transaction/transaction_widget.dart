@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 
 import 'package:trocado/modules/core/core.dart';
-
+import 'package:trocado/modules/calculator/calculator.dart';
 import 'package:trocado/modules/transaction/transaction.dart';
 
 class TransactionWidget extends StatelessWidget {
   final TransactionDto dto;
   final ValueChanged<TransactionDto> onPress;
 
-  const TransactionWidget({
-    super.key,
-    required this.dto,
-    required this.onPress,
-  });
+  late final MoneyDto _moneyDto;
+
+  TransactionWidget({super.key, required this.dto, required this.onPress}) {
+    _moneyDto = MoneyDto();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,13 +42,15 @@ class TransactionWidget extends StatelessWidget {
               color: context.colors.onSurfaceVariant.withValues(alpha: 0.8),
             ),
           ),
-          trailing: Text(
-            '$prefix ${dto.amount}',
-            style: context.typography.bodyLarge?.copyWith(
-              color: color,
-              fontWeight: .bold,
-            ),
-          ),
+          trailing: dto.amount == null
+              ? null
+              : Text(
+                  '$prefix ${_moneyDto.format(dto.amount!)}',
+                  style: context.typography.bodyLarge?.copyWith(
+                    color: color,
+                    fontWeight: .bold,
+                  ),
+                ),
         ),
       ),
     );

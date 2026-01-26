@@ -2,13 +2,12 @@ import 'package:mocktail/mocktail.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:trocado/modules/calculator/data/formatters/money_formater.dart';
-import 'package:trocado/modules/calculator/presentation/cubits/calculator_cubit.dart';
+import 'package:trocado/modules/calculator/calculator.dart';
 
 import '../../mocks/mocks.dart';
 
 void main() {
-  late IMoneyFormatter formatter;
+  late IMoneyDto formatter;
 
   setUp(() {
     formatter = MockMoneyFormatter();
@@ -19,7 +18,7 @@ void main() {
     });
   });
 
-  CalculatorCubit build() => CalculatorCubit(formatter: formatter);
+  CalculatorCubit build() => CalculatorCubit();
 
   test('initial state is CalculatorState.empty()', () {
     final cubit = build();
@@ -28,15 +27,15 @@ void main() {
   });
 
   blocTest<CalculatorCubit, CalculatorState>(
-    'append builds value and formatted preview',
+    'append builds raw preview and parsed amount',
     build: build,
     act: (cubit) {
       cubit.onKeyTap('2');
       cubit.onKeyTap('0');
     },
     expect: () => const [
-      CalculatorState(amount: '2', preview: 'R\$ 2.00'),
-      CalculatorState(amount: '20', preview: 'R\$ 20.00'),
+      CalculatorState(amount: 2.0, preview: '2'),
+      CalculatorState(amount: 20.0, preview: '20'),
     ],
   );
 
@@ -50,10 +49,10 @@ void main() {
       cubit.onKeyTap('1');
     },
     expect: () => const [
-      CalculatorState(amount: '2', preview: 'R\$ 2.00'),
-      CalculatorState(amount: '20', preview: 'R\$ 20.00'),
-      CalculatorState(amount: '20,', preview: 'R\$ 20.00'),
-      CalculatorState(amount: '20,1', preview: 'R\$ 20.10'),
+      CalculatorState(amount: 2.0, preview: '2'),
+      CalculatorState(amount: 20.0, preview: '20'),
+      CalculatorState(amount: 20.0, preview: '20,'),
+      CalculatorState(amount: 20.1, preview: '20,1'),
     ],
   );
 
@@ -66,38 +65,43 @@ void main() {
       cubit.onKeyTap(',');
     },
     expect: () => const [
-      CalculatorState(amount: '1', preview: 'R\$ 1.00'),
-      CalculatorState(amount: '1,', preview: 'R\$ 1.00'),
+      CalculatorState(amount: 1.0, preview: '1'),
+      CalculatorState(amount: 1.0, preview: '1,'),
     ],
   );
 
   blocTest<CalculatorCubit, CalculatorState>(
-    'delete removes last character and updates preview',
+    'delete removes last character',
     build: build,
+    seed: () => const CalculatorState(amount: 20.1, preview: '20,1'),
     act: (cubit) => cubit.onKeyTap('DEL'),
-    seed: () => const CalculatorState(amount: '20,1', preview: 'R\$ 20.10'),
-    expect: () => const [CalculatorState(amount: '20,', preview: 'R\$ 20.00')],
+    expect: () => const [CalculatorState(amount: 20.0, preview: '20,')],
   );
 
   blocTest<CalculatorCubit, CalculatorState>(
-    'delete does nothing when amount is empty',
+    'delete does nothing when state is empty',
     build: build,
     act: (cubit) => cubit.onKeyTap('DEL'),
+    expect: () => [],
   );
 
   blocTest<CalculatorCubit, CalculatorState>(
     'AC clears state',
     build: build,
+    seed: () => const CalculatorState(amount: 10.0, preview: '10'),
     act: (cubit) => cubit.onKeyTap('AC'),
     expect: () => [CalculatorState.empty()],
-    seed: () => const CalculatorState(amount: '10', preview: 'R\$ 10.00'),
   );
 
   blocTest<CalculatorCubit, CalculatorState>(
-    'apply only confirms current value',
+    'apply formats preview but keeps amount',
     build: build,
-    expect: () => [],
+    seed: () => const CalculatorState(amount: 15.0, preview: '15'),
     act: (cubit) => cubit.onKeyTap('✓'),
-    seed: () => const CalculatorState(amount: '15', preview: 'R\$ 15.00'),
+    expect: () => [
+      isA<CalculatorState>()
+          .having((s) => s.amount, 'amount', 15.0)
+          .having((s) => s.preview, 'preview', contains('15')),
+    ],
   );
 }

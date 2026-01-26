@@ -20,13 +20,12 @@ class TransactionsFormWidget extends StatefulWidget {
 }
 
 class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
-  late TransactionTypeDto _type;
-  late TransactionDto? _transaction;
+  late final MoneyDto _moneyDto;
+  late TransactionTypeDto _typeDto;
+  late TransactionDto? _transactionDto;
 
   late bool _mustShowDescriptionHelper;
   late bool _mustShowObservationHelper;
-
-  late final DebounceAction _debounce;
 
   late final TextEditingController _dateController;
   late final TextEditingController _amountController;
@@ -38,30 +37,31 @@ class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
   void initState() {
     super.initState();
 
-    _debounce = DebounceAction();
-
     _mustShowDescriptionHelper = false;
     _mustShowObservationHelper = false;
 
-    _transaction = widget.dto.transaction;
-    _type = _transaction?.type ?? .expense;
+    _moneyDto = MoneyDto();
+    _transactionDto = widget.dto.transaction;
+    _typeDto = _transactionDto?.type ?? .expense;
 
     _amountController = TextEditingController(
-      text: _transaction?.amount.toString(),
+      text: _transactionDto?.amount == null
+          ? ''
+          : _moneyDto.format(_transactionDto!.amount!),
     );
     _dateController = TextEditingController(
-      text: _transaction?.date.format() ?? DateTime.now().format(),
+      text: _transactionDto?.date.format() ?? DateTime.now().format(),
     );
     _categoryController = TextEditingController(
-      text: (_transaction == null)
+      text: (_transactionDto == null)
           ? CategoryDto.other.label
-          : _transaction!.category.label,
+          : _transactionDto!.category.label,
     );
     _descriptionController = TextEditingController(
-      text: _transaction?.description,
+      text: _transactionDto?.description,
     )..addListener(_handleDescriptionInteractions);
     _observationController = TextEditingController(
-      text: _transaction?.observation,
+      text: _transactionDto?.observation,
     )..addListener(_handleObservatiobInteractions);
   }
 
@@ -94,9 +94,8 @@ class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
             placeholder: 'Ex: Café',
             controller: _descriptionController,
             helperWidget: _buildDescriptionHelper(),
+            onChanged: widget.dto.onDescriptionSelected,
             validator: widget.dto.transaction?.validateDescription,
-            onChanged: (value) =>
-                _debounce(() => widget.dto.onDescriptionSelected(value)),
           ),
 
           BounceWidget.withTap(
@@ -106,8 +105,8 @@ class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
               listenWhen: (previous, current) =>
                   previous.amount != current.amount,
               listener: (_, state) {
-                _amountController.text = state.amount;
                 widget.dto.onAmountSelected(state.amount);
+                _amountController.text = _moneyDto.format(state.amount);
               },
               child: TextFormFieldWidget(
                 hint: 'Valor',
@@ -165,16 +164,15 @@ class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
             controller: _observationController,
             placeholder: 'Ex: Meio quilo em grão',
             helperWidget: _buildObservationHelper(),
-            onChanged: (value) =>
-                _debounce(() => widget.dto.onObservationSelected(value)),
+            onChanged: widget.dto.onObservationSelected,
           ),
 
           SelectorWidget(
             options: ['Receita', 'Despesa'],
-            selected: _type == .income ? 0 : 1,
+            selected: _typeDto == .income ? 0 : 1,
             onSelected: (value) {
               setState(() {
-                _type = .fromByInt(value);
+                _typeDto = .fromByInt(value);
                 widget.dto.onTypeSelected(value);
               });
             },

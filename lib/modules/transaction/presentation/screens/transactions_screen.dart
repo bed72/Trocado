@@ -90,7 +90,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   Container _buildSaveButton(bool isLoading) => Container(
     width: .infinity,
     padding: .only(top: 16.0),
-    child: ButtonWidget.elevated(
+    child: ButtonWidget.outlined(
       label: 'Salvar',
       isLoading: isLoading,
       onTap: _handleSaveSubmit,
@@ -102,7 +102,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
       : Container(
           width: .infinity,
           padding: .only(top: 16.0),
-          child: ButtonWidget.outlined(
+          child: ButtonWidget.elevated(
             label: 'Deletar',
             isLoading: isLoading,
             onTap: _handleDeleteSubmit,
@@ -139,8 +139,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   }
 
   TransactionParameterDto _buildParameterDto() => TransactionParameterDto(
-    transaction: _dto,
     formKey: _formKey,
+    transaction: _dto,
     dateCubit: widget.dateCubit,
     categoryCubit: widget.categoryCubit,
     calculatorCubit: widget.caculatorCubit,
@@ -153,7 +153,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     onDateSelected: (DateTime value) {
       _dto = _dto.copyWith(date: value);
     },
-    onAmountSelected: (String value) {
+    onAmountSelected: (double value) {
       _dto = _dto.copyWith(amount: value);
     },
     onDescriptionSelected: (String value) {

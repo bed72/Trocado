@@ -61,6 +61,7 @@ final class TransactionLocalDatasource implements ITransactionLocalDatasource {
     try {
       if (id == 0) return const Left('Transação não encontrada.');
 
+      entity.id = id;
       _box.put(entity);
 
       return const Right(null);

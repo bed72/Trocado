@@ -11,9 +11,9 @@ void main() {
 
     setUp(() {
       dto = TransactionDto(
+        amount: 10.50,
         type: .expense,
         category: .food,
-        amount: '10.50',
         description: 'Café',
         date: DateTime(2025, 1, 1),
         observation: 'Pago no crédito',
@@ -24,7 +24,7 @@ void main() {
       test('should create an empty transaction with default values', () {
         final empty = TransactionDto.empty();
 
-        expect(empty.amount, '');
+        expect(empty.amount, isNull);
         expect(empty.description, '');
         expect(empty.observation, isNull);
         expect(empty.date, isA<DateTime>());
@@ -50,15 +50,15 @@ void main() {
 
         final copy = dto.copyWith(
           date: date,
+          amount: 99.90,
           type: .expense,
           category: .food,
-          amount: '99.90',
           description: 'Almoço',
           observation: 'Restaurante',
         );
 
         expect(copy.date, date);
-        expect(copy.amount, '99.90');
+        expect(copy.amount, 99.90);
         expect(copy.description, 'Almoço');
         expect(copy.observation, 'Restaurante');
         expect(copy.category, CategoryDto.food);

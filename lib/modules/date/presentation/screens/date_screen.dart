@@ -66,7 +66,7 @@ class _DateScreenState extends State<DateScreen> {
             Container(
               width: .infinity,
               padding: .only(left: 16.0, right: 16.0, bottom: 20.0),
-              child: ButtonWidget.elevated(
+              child: ButtonWidget.outlined(
                 label: 'Selecionar',
                 onTap: () {
                   widget.cubit.select(_date);
