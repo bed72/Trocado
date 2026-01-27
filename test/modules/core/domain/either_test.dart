@@ -24,7 +24,7 @@ void main() {
 
     test('map should transform Right value', () {
       final either = Right<String, int>(2);
-      final data = either.mapRight((n) => n * 2);
+      final data = either.mapRight((number) => number * 2);
 
       expect(data.isRight, isTrue);
       expect(data.right, equals(4));
@@ -32,7 +32,7 @@ void main() {
 
     test('map should not affect Left', () {
       final either = Left<String, int>('fail');
-      final data = either.mapRight((n) => n * 2);
+      final data = either.mapRight((number) => number * 2);
 
       expect(data.isLeft, isTrue);
       expect(data.left, equals('fail'));
@@ -40,7 +40,7 @@ void main() {
 
     test('mapLeft should transform Left value', () {
       final either = Left<String, int>('fail');
-      final data = either.mapLeft((msg) => msg.toUpperCase());
+      final data = either.mapLeft((message) => message.toUpperCase());
 
       expect(data.isLeft, isTrue);
       expect(data.left, equals('FAIL'));
@@ -48,7 +48,7 @@ void main() {
 
     test('mapLeft should not affect Right', () {
       final either = Right<String, int>(10);
-      final data = either.mapLeft((msg) => msg.toUpperCase());
+      final data = either.mapLeft((message) => message.toUpperCase());
 
       expect(data.isRight, isTrue);
       expect(data.right, equals(10));
@@ -56,7 +56,9 @@ void main() {
 
     test('flatMap should chain Right values', () {
       final either = Right<String, int>(2);
-      final data = either.flatMap((n) => Right<String, String>('value: $n'));
+      final data = either.flatMap(
+        (number) => Right<String, String>('value: $number'),
+      );
 
       expect(data.isRight, isTrue);
       expect(data.right, equals('value: 2'));
@@ -64,36 +66,38 @@ void main() {
 
     test('flatMap should propagate Left', () {
       final either = Left<String, int>('error');
-      final data = either.flatMap((n) => Right<String, String>('ok'));
+      final data = either.flatMap((_) => Right<String, String>('ok'));
 
       expect(data.isLeft, isTrue);
       expect(data.left, equals('error'));
     });
 
     test('either should transform both sides', () {
-      final left = Left<int, String>(10).either((l) => l * 2, (r) => r.length);
+      final left = Left<int, String>(
+        10,
+      ).either((left) => left * 2, (right) => right.length);
       final right = Right<int, String>(
         'abc',
-      ).either((l) => l * 2, (r) => r.length);
+      ).either((left) => left * 2, (right) => right.length);
 
       expect(left.left, equals(20));
       expect(right.right, equals(3));
     });
 
     test('swap should convert Left to Right and Right to Left', () {
-      final left = Left<String, int>('fail').swap();
       final right = Right<String, int>(42).swap();
-
-      expect(left.isRight, isTrue);
-      expect(left.right, equals('fail'));
+      final left = Left<String, int>('fail').swap();
 
       expect(right.isLeft, isTrue);
       expect(right.left, equals(42));
+
+      expect(left.isRight, isTrue);
+      expect(left.right, equals('fail'));
     });
 
     test('tryCatch should return Right on success', () {
       final data = Either.tryCatch<String, int, FormatException>(
-        (e) => e.toString(),
+        (exception) => exception.toString(),
         () => int.parse('123'),
       );
 
@@ -103,7 +107,7 @@ void main() {
 
     test('tryCatch should return Left on exception', () {
       final data = Either.tryCatch<String, int, FormatException>(
-        (e) => 'bad format',
+        (_) => 'bad format',
         () => int.parse('abc'),
       );
 
@@ -151,9 +155,9 @@ void main() {
         return 'fail';
       }, () => 99);
 
+      expect(called, isFalse);
       expect(data.isRight, isTrue);
       expect(data.right, equals(99));
-      expect(called, isFalse); // left not evaluated
     });
 
     test('equality should compare values correctly', () {
