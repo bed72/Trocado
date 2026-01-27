@@ -144,7 +144,7 @@ void main() {
     });
 
     test('condLazy should lazily evaluate values', () {
-      var called = false;
+      bool called = false;
 
       final data = Either.condLazy(true, () {
         called = true;
