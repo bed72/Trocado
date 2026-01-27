@@ -2,7 +2,8 @@ import 'package:mocktail/mocktail.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:trocado/modules/calculator/calculator.dart';
+import 'package:trocado/modules/core/data/dtos/money_dto.dart';
+import 'package:trocado/modules/calculator/presentation/cubits/calculator_cubit.dart';
 
 import '../../mocks/mocks.dart';
 

@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 
 import 'package:trocado/modules/transaction/transaction.dart';
 
@@ -7,6 +7,7 @@ import 'package:trocado/modules/home/presentation/widgets/transaction/transactio
 
 class HomeSuccessWidget extends StatelessWidget {
   final HomeModel data;
+  final ValueChanged<int> onDelete;
   final ValueChanged<TransactionDto> onPress;
   final TransactionDto Function(TransactionModel) toDto;
 
@@ -15,6 +16,7 @@ class HomeSuccessWidget extends StatelessWidget {
     required this.data,
     required this.toDto,
     required this.onPress,
+    required this.onDelete,
   });
 
   @override
@@ -26,6 +28,7 @@ class HomeSuccessWidget extends StatelessWidget {
           childCount: data.transactions.length,
           (_, index) => TransactionWidget(
             onPress: onPress,
+            onDelete: onDelete,
             dto: toDto(data.transactions[index]),
           ),
         ),

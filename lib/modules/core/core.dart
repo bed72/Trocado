@@ -1,4 +1,5 @@
 export 'data/mapper/mapper.dart';
+export 'data/dtos/money_dto.dart';
 
 export 'main/providers/client_provider.dart';
 export 'main/providers/resource_provider.dart';

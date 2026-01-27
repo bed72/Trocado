@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:trocado/modules/calculator/data/dtos/money_dto.dart';
+import 'package:trocado/modules/core/data/dtos/money_dto.dart';
 
 void main() {
   late IMoneyDto formatter;

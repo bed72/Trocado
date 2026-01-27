@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:equatable/equatable.dart';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:trocado/modules/calculator/calculator.dart';
+
+import 'package:trocado/modules/core/core.dart';
 
 part 'calculator_state.dart';
 

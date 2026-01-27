@@ -14,7 +14,11 @@ class HomeLoadingWidget extends StatelessWidget {
         child: Column(
           children: .generate(
             10,
-            (_) => TransactionWidget(onPress: (_) {}, dto: .empty()),
+            (_) => TransactionWidget(
+              dto: .empty(),
+              onPress: (_) {},
+              onDelete: (_) {},
+            ),
           ),
         ),
       ),
