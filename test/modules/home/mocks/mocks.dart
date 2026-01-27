@@ -2,8 +2,11 @@ import 'package:mocktail/mocktail.dart';
 
 import 'package:trocado/modules/transaction/data/mappers/transaction_mapper.dart';
 
+import 'package:trocado/modules/home/data/mappers/home_mapper.dart';
 import 'package:trocado/modules/home/domain/repositories/interface_home_repository.dart';
 import 'package:trocado/modules/home/infrastructure/datasources/home_local_datasource.dart';
+
+final class MockBalanceOutMapper extends Mock implements BalanceOutMapper {}
 
 final class MockTransactionDtoMapper extends Mock
     implements TransactionDtoMapper {}

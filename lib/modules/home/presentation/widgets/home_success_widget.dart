@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:trocado/modules/core/core.dart';
 import 'package:trocado/modules/transaction/transaction.dart';
 
 import 'package:trocado/modules/home/domain/models/home_model.dart';
@@ -23,16 +24,47 @@ class HomeSuccessWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return SliverPadding(
       padding: const .symmetric(horizontal: 16.0),
-      sliver: SliverList(
-        delegate: SliverChildBuilderDelegate(
-          childCount: data.transactions.length,
-          (_, index) => TransactionWidget(
-            onPress: onPress,
-            onDelete: onDelete,
-            dto: toDto(data.transactions[index]),
-          ),
-        ),
-      ),
+      sliver: data.transactions.isEmpty
+          ? _buildEmpty(context)
+          : SliverList(
+              delegate: SliverChildBuilderDelegate(
+                childCount: data.transactions.length,
+                (_, index) => TransactionWidget(
+                  onPress: onPress,
+                  onDelete: onDelete,
+                  dto: toDto(data.transactions[index]),
+                ),
+              ),
+            ),
     );
   }
+
+  Widget _buildEmpty(BuildContext context) => SliverFillRemaining(
+    hasScrollBody: false,
+    child: Center(
+      child: Column(
+        spacing: 8.0,
+        mainAxisSize: .min,
+        children: [
+          ImageWidget(height: 220.0, source: AssetsConstant.empty.source),
+          Text(
+            'Nenhuma transação por aqui 👀',
+            textAlign: .center,
+            style: context.typography.titleMedium?.copyWith(
+              fontWeight: .w800,
+              color: context.colors.onSurface.withValues(alpha: 0.8),
+            ),
+          ),
+          Text(
+            'Comece adicionando suas receitas ou despesasque elas vão aparecer aqui rapidinho.',
+            textAlign: .center,
+            style: context.typography.bodyMedium?.copyWith(
+              fontWeight: .w600,
+              color: context.colors.onSurfaceVariant.withValues(alpha: 0.6),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }

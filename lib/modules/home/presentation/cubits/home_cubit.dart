@@ -22,31 +22,39 @@ final class HomeCubit extends Cubit<HomeState> {
 
   TransactionDto toDto(TransactionModel model) => _repository.toDto(model);
 
-  void delete(int id) {
+  void deleteTransactionBy(int id) {
     final currentState = state;
     if (currentState is! HomeSuccess) return;
 
-    final optimistic = currentState.home.removeBy(id);
+    final optimistic = currentState.home.removeTransactionBy(id);
     emit(HomeSuccess(home: optimistic));
 
-    final result = _repository.delete(id);
+    final result = _repository.deleteTransactionBy(id);
 
     result.fold((failure) => emit(HomeFailure(failure: failure)), (_) {});
   }
 
-  void findByPeriod({int? startAt, int? endAt, TransactionTypeDto? type}) {
+  void findTransactionBy({int? startAt, int? endAt, TransactionTypeDto? type}) {
     emit(HomeLoading());
 
-    final data = _repository.findByPeriod(
+    final balance = _repository.getBalanceBy(endAt: endAt, startAt: startAt);
+    final transaction = _repository.findTransactionBy(
       type: type,
       endAt: endAt,
       startAt: startAt,
     );
 
-    data.fold(
-      (failure) => emit(HomeFailure(failure: failure)),
-      (transactions) =>
-          emit(HomeSuccess(home: HomeModel(transactions: transactions))),
-    );
+    transaction.fold((failure) => emit(HomeFailure(failure: failure)), (
+      transactions,
+    ) {
+      balance.fold(
+        (failure) => emit(HomeFailure(failure: failure)),
+        (balance) => emit(
+          HomeSuccess(
+            home: HomeModel(balance: balance, transactions: transactions),
+          ),
+        ),
+      );
+    });
   }
 }

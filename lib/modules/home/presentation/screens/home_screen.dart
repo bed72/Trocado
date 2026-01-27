@@ -41,7 +41,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   FutureOr<void> afterFirstLayout(BuildContext context) {
-    widget.homeCubit.findByPeriod();
+    widget.homeCubit.findTransactionBy();
   }
 
   @override

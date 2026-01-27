@@ -48,7 +48,7 @@ class HomeContentWidget extends StatelessWidget {
                 data: state.home,
                 onPress: onPress,
                 toDto: homeCubit.toDto,
-                onDelete: homeCubit.delete,
+                onDelete: homeCubit.deleteTransactionBy,
               ),
               HomeIdle() || HomeLoading() => const HomeLoadingWidget(),
             },

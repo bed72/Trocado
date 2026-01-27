@@ -35,7 +35,7 @@ class HomeListenerWidget extends StatelessWidget {
         BlocListener<TransactionCubit, TransactionState>(
           bloc: transactionCubit,
           listener: (_, state) => switch (state) {
-            TransactionSuccess() => homeCubit.findByPeriod(),
+            TransactionSuccess() => homeCubit.findTransactionBy(),
             _ => {},
           },
         ),

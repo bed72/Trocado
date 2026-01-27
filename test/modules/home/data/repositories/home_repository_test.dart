@@ -3,11 +3,14 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:trocado/modules/core/domain/either/either.dart';
 
+import 'package:trocado/modules/home/data/mappers/home_mapper.dart';
 import 'package:trocado/modules/home/data/repositories/home_repository.dart';
+import 'package:trocado/modules/home/domain/models/balance_model.dart';
 import 'package:trocado/modules/home/domain/repositories/interface_home_repository.dart';
 import 'package:trocado/modules/home/infrastructure/datasources/home_local_datasource.dart';
-import 'package:trocado/modules/transaction/data/dtos/transaction_dto.dart';
+import 'package:trocado/modules/home/infrastructure/entities/balance_entity.dart';
 
+import 'package:trocado/modules/transaction/data/dtos/transaction_dto.dart';
 import 'package:trocado/modules/transaction/data/mappers/transaction_mapper.dart';
 import 'package:trocado/modules/transaction/domain/models/transaction_model.dart';
 import 'package:trocado/modules/transaction/infrastructure/database/entities/transaction_entity.dart';
@@ -16,19 +19,24 @@ import '../../mocks/mocks.dart';
 
 void main() {
   late IHomeRepository repository;
-  late TransactionDtoMapper dtoMapper;
-  late TransactionOutMapper outMapper;
   late IHomeLocalDatasource datasource;
+  late BalanceOutMapper balanceOutMapper;
+  late TransactionDtoMapper transactionDtoMapper;
+  late TransactionOutMapper transactionOutMapper;
+
+  registerFallbackValue(BalanceEntity(total: 0, income: 0, expense: 0));
 
   setUp(() {
-    dtoMapper = MockTransactionDtoMapper();
-    outMapper = MockTransactionOutMapper();
     datasource = MockHomeLocalDatasource();
+    balanceOutMapper = MockBalanceOutMapper();
+    transactionDtoMapper = MockTransactionDtoMapper();
+    transactionOutMapper = MockTransactionOutMapper();
 
     repository = HomeRepository(
-      dtoMapper: dtoMapper,
-      outMapper: outMapper,
       datasource: datasource,
+      balanceOutMapper: balanceOutMapper,
+      transactionDtoMapper: transactionDtoMapper,
+      transactionOutMapper: transactionOutMapper,
     );
 
     registerFallbackValue(
@@ -45,20 +53,22 @@ void main() {
   group('HomeRepository', () {
     group('delete', () {
       test('should delegate delete to datasource', () {
-        when(() => datasource.delete(1)).thenReturn(const Right(null));
+        when(
+          () => datasource.deleteTransactionBy(1),
+        ).thenReturn(const Right(null));
 
-        final data = repository.delete(1);
+        final data = repository.deleteTransactionBy(1);
 
         expect(data.isRight, true);
-        verify(() => datasource.delete(1)).called(1);
+        verify(() => datasource.deleteTransactionBy(1)).called(1);
       });
 
       test('should return failure when datasource returns error on delete', () {
         when(
-          () => datasource.delete(1),
+          () => datasource.deleteTransactionBy(1),
         ).thenReturn(const Left('Delete failure'));
 
-        final data = repository.delete(1);
+        final data = repository.deleteTransactionBy(1);
 
         expect(data.isLeft, true);
       });
@@ -105,7 +115,7 @@ void main() {
           ];
 
           when(
-            () => datasource.findByPeriod(
+            () => datasource.findTransactionBy(
               type: 'Receita',
               endAt: any(named: 'endAt'),
               limit: any(named: 'limit'),
@@ -114,10 +124,10 @@ void main() {
             ),
           ).thenReturn(Right(entities));
 
-          when(() => outMapper(entities[0])).thenReturn(models[0]);
-          when(() => outMapper(entities[1])).thenReturn(models[1]);
+          when(() => transactionOutMapper(entities[0])).thenReturn(models[0]);
+          when(() => transactionOutMapper(entities[1])).thenReturn(models[1]);
 
-          final data = repository.findByPeriod(
+          final data = repository.findTransactionBy(
             endAt: 300,
             startAt: 0,
             type: .income,
@@ -125,14 +135,14 @@ void main() {
 
           expect(data.isRight, true);
           expect(data.right.length, 2);
-          verify(() => outMapper(entities[0])).called(1);
-          verify(() => outMapper(entities[1])).called(1);
+          verify(() => transactionOutMapper(entities[0])).called(1);
+          verify(() => transactionOutMapper(entities[1])).called(1);
         },
       );
 
       test('should pass null type to datasource when filter type is null', () {
         when(
-          () => datasource.findByPeriod(
+          () => datasource.findTransactionBy(
             type: null,
             endAt: any(named: 'endAt'),
             limit: any(named: 'limit'),
@@ -141,11 +151,11 @@ void main() {
           ),
         ).thenReturn(const Right([]));
 
-        final data = repository.findByPeriod(startAt: 0, endAt: 100);
+        final data = repository.findTransactionBy(startAt: 0, endAt: 100);
 
         expect(data.isRight, true);
         verify(
-          () => datasource.findByPeriod(
+          () => datasource.findTransactionBy(
             endAt: 100,
             startAt: 0,
             type: null,
@@ -157,7 +167,7 @@ void main() {
 
       test('should return failure when datasource returns error', () {
         when(
-          () => datasource.findByPeriod(
+          () => datasource.findTransactionBy(
             type: any(named: 'type'),
             endAt: any(named: 'endAt'),
             limit: any(named: 'limit'),
@@ -166,7 +176,7 @@ void main() {
           ),
         ).thenReturn(const Left('Datasource error'));
 
-        final data = repository.findByPeriod(
+        final data = repository.findTransactionBy(
           endAt: 100,
           startAt: 0,
           type: .expense,
@@ -198,12 +208,57 @@ void main() {
         date: DateTime.fromMillisecondsSinceEpoch(1704067200000),
       );
 
-      when(() => dtoMapper(model)).thenReturn(dto);
+      when(() => transactionDtoMapper(model)).thenReturn(dto);
 
       final data = repository.toDto(model);
 
       expect(data, dto);
-      verify(() => dtoMapper(model)).called(1);
+      verify(() => transactionDtoMapper(model)).called(1);
+    });
+  });
+
+  group('getBalanceByPeriod', () {
+    test(
+      'should return BalanceModel when datasource returns BalanceEntity',
+      () {
+        final model = BalanceModel(income: 1000, expense: 400, total: 600);
+        final entity = BalanceEntity(income: 1000, expense: 400, total: 600);
+
+        when(
+          () => datasource.getBalanceBy(
+            endAt: any(named: 'endAt'),
+            startAt: any(named: 'startAt'),
+          ),
+        ).thenReturn(Right(entity));
+
+        when(() => balanceOutMapper(entity)).thenReturn(model);
+
+        final data = repository.getBalanceBy(startAt: 0, endAt: 100);
+
+        expect(data.right, model);
+        expect(data.isRight, true);
+
+        verify(() => datasource.getBalanceBy(startAt: 0, endAt: 100)).called(1);
+
+        verify(() => balanceOutMapper(entity)).called(1);
+      },
+    );
+
+    test('should return failure when datasource returns error', () {
+      when(
+        () => datasource.getBalanceBy(
+          endAt: any(named: 'endAt'),
+          startAt: any(named: 'startAt'),
+        ),
+      ).thenReturn(const Left('Datasource error'));
+
+      final data = repository.getBalanceBy(startAt: 0, endAt: 100);
+
+      expect(data.isLeft, true);
+
+      verify(() => datasource.getBalanceBy(startAt: 0, endAt: 100)).called(1);
+
+      verifyNever(() => balanceOutMapper(any()));
     });
   });
 }

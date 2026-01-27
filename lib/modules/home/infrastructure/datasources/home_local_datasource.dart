@@ -3,10 +3,12 @@ import 'package:trocado/objectbox.g.dart';
 import 'package:trocado/modules/core/core.dart';
 import 'package:trocado/modules/transaction/transaction.dart';
 
-abstract interface class IHomeLocalDatasource {
-  Either<String, void> delete(int id);
+import 'package:trocado/modules/home/infrastructure/entities/balance_entity.dart';
 
-  Either<String, List<TransactionEntity>> findByPeriod({
+abstract interface class IHomeLocalDatasource {
+  Either<String, void> deleteTransactionBy(int id);
+  Either<String, BalanceEntity> getBalanceBy({int? startAt, int? endAt});
+  Either<String, List<TransactionEntity>> findTransactionBy({
     int? endAt,
     int? limit,
     int? offset,
@@ -25,7 +27,7 @@ final class HomeLocalDatasource implements IHomeLocalDatasource {
   }
 
   @override
-  Either<String, void> delete(int id) {
+  Either<String, void> deleteTransactionBy(int id) {
     try {
       final removed = _box.remove(id);
 
@@ -38,7 +40,29 @@ final class HomeLocalDatasource implements IHomeLocalDatasource {
   }
 
   @override
-  Either<String, List<TransactionEntity>> findByPeriod({
+  Either<String, BalanceEntity> getBalanceBy({int? startAt, int? endAt}) {
+    try {
+      final income = _sumByType(endAt: endAt, type: .income, startAt: startAt);
+      final expense = _sumByType(
+        endAt: endAt,
+        type: .expense,
+        startAt: startAt,
+      );
+
+      return Right(
+        BalanceEntity(
+          income: income,
+          expense: expense,
+          total: income - expense,
+        ),
+      );
+    } catch (_) {
+      return const Left('Ops, a operação falhou.');
+    }
+  }
+
+  @override
+  Either<String, List<TransactionEntity>> findTransactionBy({
     int? endAt,
     int? limit,
     int? offset,
@@ -46,9 +70,7 @@ final class HomeLocalDatasource implements IHomeLocalDatasource {
     String? type,
   }) {
     try {
-      final (start, end) = (startAt != null && endAt != null)
-          ? (startAt, endAt)
-          : currentMonthRange();
+      final (start, end) = _resolvePeriod(startAt, endAt);
 
       final condition = (type == null)
           ? TransactionEntity_.date.between(start, end)
@@ -71,5 +93,31 @@ final class HomeLocalDatasource implements IHomeLocalDatasource {
     } catch (_) {
       return const Left('Ops, a operação falhou.');
     }
+  }
+
+  (int, int) _resolvePeriod(int? startAt, int? endAt) =>
+      (startAt != null && endAt != null)
+      ? (startAt, endAt)
+      : currentMonthRange();
+
+  double _sumByType({
+    required int? endAt,
+    required int? startAt,
+    required TransactionTypeDto type,
+  }) {
+    final (start, end) = _resolvePeriod(startAt, endAt);
+
+    final query = _box
+        .query(
+          TransactionEntity_.date
+              .between(start, end)
+              .and(TransactionEntity_.type.equals(type.name)),
+        )
+        .build();
+
+    final value = query.property(TransactionEntity_.amount).sum();
+    query.close();
+
+    return value;
   }
 }
