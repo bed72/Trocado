@@ -22,6 +22,8 @@ export 'infrastructure/resources/observers/logger_navigation_observer.dart';
 
 export 'presentation/themes/themes.dart';
 export 'presentation/screens/failure_screen.dart';
+
+export 'presentation/pages/screen_page.dart';
 export 'presentation/pages/bottom_sheet_page.dart';
 
 export 'presentation/actions/quick_actions.dart';

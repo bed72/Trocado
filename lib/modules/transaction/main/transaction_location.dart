@@ -18,15 +18,17 @@ final class TransactionLocation extends Location {
   String get path => RoutesConstant.transactions.path;
 
   @override
-  LocationBuilder? get builder =>
-      (context) => TransactionsScreen(
-        dto: dto,
-        dateCubit: context.get<DateCubit>(),
-        categoryCubit: context.get<CategoryCubit>(),
-        caculatorCubit: context.get<CalculatorCubit>(),
-        transactionCubit: context.get<TransactionCubit>(),
-        navigateToDate: () => context.navigate(DateLocation()),
-        navigateToCategory: () => context.navigate(CategoryLocation()),
-        navigateToCalculator: () => context.navigate(CalculatorLocation()),
+  LocationPageBuilder get pageBuilder =>
+      (context) => screenPage(
+        TransactionsScreen(
+          dto: dto,
+          dateCubit: context.get<DateCubit>(),
+          categoryCubit: context.get<CategoryCubit>(),
+          caculatorCubit: context.get<CalculatorCubit>(),
+          transactionCubit: context.get<TransactionCubit>(),
+          navigateToDate: () => context.navigate(DateLocation()),
+          navigateToCategory: () => context.navigate(CategoryLocation()),
+          navigateToCalculator: () => context.navigate(CalculatorLocation()),
+        ),
       );
 }

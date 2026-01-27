@@ -17,14 +17,14 @@ void showToastWidget({
     context: context,
     title: title,
     onClose: onClose,
-    seconds: seconds ?? 2,
+    seconds: seconds ?? 3,
     description: description,
   ),
   .failure => _showFailureToast(
     context: context,
     title: title,
     onClose: onClose,
-    seconds: seconds ?? 2,
+    seconds: seconds ?? 3,
     description: description,
   ),
 };
@@ -40,16 +40,17 @@ void _showSuccessToast({
     style: .flat,
     type: .success,
     context: context,
+    showProgressBar: true,
     alignment: .bottomRight,
-    dismissDirection: .vertical,
+    dismissDirection: .down,
     borderRadius: .circular(20.0),
     autoCloseDuration: Duration(seconds: seconds),
     closeButton: ToastCloseButton(showType: .none),
     borderSide: BorderSide(width: 0.0, style: .none),
     backgroundColor: context.colors.surfaceContainer,
     icon: IconWidget(
-      name: Icons.celebration_rounded,
       color: context.colors.primary,
+      name: Icons.celebration_rounded,
     ),
     callbacks: ToastificationCallbacks(
       onDismissed: (_) => onClose?.call(),
@@ -70,6 +71,24 @@ void _showSuccessToast({
               color: context.colors.onSurfaceVariant.withValues(alpha: .6),
             ),
           ),
+    progressBarTheme: ProgressIndicatorThemeData(
+      stopIndicatorRadius: 2.0,
+      borderRadius: .all(.circular(2.0)),
+      color: context.colors.primary.withValues(alpha: .2),
+      linearTrackColor: context.colors.primary.withValues(alpha: .2),
+    ),
+    animationBuilder: (context, animation, _, child) {
+      final position =
+          Tween<Offset>(end: Offset.zero, begin: const Offset(0, 1)).animate(
+            CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutCubic,
+              reverseCurve: Curves.easeInCubic,
+            ),
+          );
+
+      return SlideTransition(position: position, child: child);
+    },
   );
 }
 
@@ -84,14 +103,21 @@ void _showFailureToast({
     style: .flat,
     type: .error,
     context: context,
+    showProgressBar: true,
     alignment: .bottomRight,
-    dismissDirection: .vertical,
+    dismissDirection: .down,
     borderRadius: .circular(20.0),
     autoCloseDuration: Duration(seconds: seconds),
     closeButton: ToastCloseButton(showType: .none),
     borderSide: BorderSide(width: 0.0, style: .none),
     backgroundColor: context.colors.surfaceContainer,
     icon: IconWidget(name: Icons.error, color: context.colors.error),
+    progressBarTheme: ProgressIndicatorThemeData(
+      stopIndicatorRadius: 2.0,
+      borderRadius: .all(.circular(2.0)),
+      color: context.colors.error.withValues(alpha: 6),
+      linearTrackColor: context.colors.error.withValues(alpha: .2),
+    ),
     callbacks: ToastificationCallbacks(
       onDismissed: (_) => onClose?.call(),
       onAutoCompleteCompleted: (_) => onClose?.call(),
@@ -111,5 +137,17 @@ void _showFailureToast({
               color: context.colors.onSurfaceVariant.withValues(alpha: .6),
             ),
           ),
+    animationBuilder: (context, animation, _, child) {
+      final position =
+          Tween<Offset>(end: Offset.zero, begin: const Offset(0, 1)).animate(
+            CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutCubic,
+              reverseCurve: Curves.easeInCubic,
+            ),
+          );
+
+      return SlideTransition(position: position, child: child);
+    },
   );
 }
