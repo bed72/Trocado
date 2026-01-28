@@ -270,5 +270,136 @@ void main() {
         act: (cubit) => cubit.clear(),
       );
     });
+
+    group('filterBalanceBy', () {
+      blocTest<HomeCubit, HomeState>(
+        'does nothing when state is not HomeSuccess',
+        build: () => cubit,
+        act: (cubit) => cubit.filterBalanceBy(type: .income),
+        verify: (_) {
+          verifyNever(
+            () => repository.findTransactionBy(
+              type: any(named: 'type'),
+              endAt: any(named: 'endAt'),
+              startAt: any(named: 'startAt'),
+            ),
+          );
+        },
+      );
+
+      blocTest<HomeCubit, HomeState>(
+        'selects type when none is selected and forwards it to findTransactionBy',
+        build: () {
+          when(
+            () => repository.findTransactionBy(
+              type: .income,
+              endAt: any(named: 'endAt'),
+              startAt: any(named: 'startAt'),
+            ),
+          ).thenReturn(
+            Right(
+              transactions
+                  .where((t) => t.type == TransactionTypeDto.income.label)
+                  .toList(),
+            ),
+          );
+
+          when(
+            () => repository.getBalanceBy(
+              endAt: any(named: 'endAt'),
+              startAt: any(named: 'startAt'),
+            ),
+          ).thenReturn(Right(initialBalance));
+
+          return cubit..emit(
+            HomeSuccess(
+              home: HomeModel(
+                balance: initialBalance,
+                transactions: transactions,
+              ),
+            ),
+          );
+        },
+        act: (cubit) => cubit.filterBalanceBy(type: .income),
+        expect: () => [
+          HomeLoading(),
+          HomeSuccess(
+            home: HomeModel(
+              balance: initialBalance,
+              transactions: [transactions[1]],
+            ),
+          ),
+        ],
+        verify: (_) {
+          expect(cubit.selectedType, TransactionTypeDto.income);
+        },
+      );
+
+      blocTest<HomeCubit, HomeState>(
+        'toggles back to null when same type is selected again',
+        build: () {
+          when(
+            () => repository.findTransactionBy(
+              type: .income,
+              endAt: any(named: 'endAt'),
+              startAt: any(named: 'startAt'),
+            ),
+          ).thenReturn(
+            Right(
+              transactions
+                  .where((t) => t.type == TransactionTypeDto.income.label)
+                  .toList(),
+            ),
+          );
+
+          when(
+            () => repository.findTransactionBy(
+              type: null,
+              endAt: any(named: 'endAt'),
+              startAt: any(named: 'startAt'),
+            ),
+          ).thenReturn(Right(transactions));
+
+          when(
+            () => repository.getBalanceBy(
+              endAt: any(named: 'endAt'),
+              startAt: any(named: 'startAt'),
+            ),
+          ).thenReturn(Right(initialBalance));
+
+          return cubit..emit(
+            HomeSuccess(
+              home: HomeModel(
+                balance: initialBalance,
+                transactions: transactions,
+              ),
+            ),
+          );
+        },
+        act: (cubit) async {
+          cubit.filterBalanceBy(type: .income);
+          cubit.filterBalanceBy(type: .income);
+        },
+        expect: () => [
+          HomeLoading(),
+          HomeSuccess(
+            home: HomeModel(
+              balance: initialBalance,
+              transactions: [transactions[1]],
+            ),
+          ),
+          HomeLoading(),
+          HomeSuccess(
+            home: HomeModel(
+              balance: initialBalance,
+              transactions: transactions,
+            ),
+          ),
+        ],
+        verify: (_) {
+          expect(cubit.selectedType, isNull);
+        },
+      );
+    });
   });
 }

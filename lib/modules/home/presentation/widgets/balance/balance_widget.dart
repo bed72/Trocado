@@ -1,72 +1,100 @@
 import 'package:flutter/material.dart';
 
 import 'package:trocado/modules/core/core.dart';
+import 'package:trocado/modules/transaction/transaction.dart';
 
 import 'package:trocado/modules/home/data/dtos/balance_dto.dart';
 
 class BalanceWidget extends StatelessWidget {
-  final BalanceDto state;
+  final BalanceDto dto;
+  final bool isSelected;
+  final ValueChanged<TransactionTypeDto?> onPress;
 
-  const BalanceWidget({super.key, required this.state});
+  const BalanceWidget({
+    super.key,
+    required this.dto,
+    required this.onPress,
+    required this.isSelected,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final color = switch (state.type) {
+    final color = switch (dto.type) {
       .income => context.colors.primary,
       .expense => context.colors.error,
       null => context.colors.onSurfaceVariant,
     };
 
-    final icon = switch (state.type) {
+    final icon = switch (dto.type) {
       .expense => Icons.south_east,
       .income => Icons.arrow_outward,
       null => Icons.info,
     };
 
-    return Card(
-      margin: .all(0.0),
-      child: Padding(
-        padding: const .all(16.0),
-        child: Column(
-          spacing: 16.0,
-          mainAxisSize: .min,
-          crossAxisAlignment: state.isTotal ? .center : .start,
-          children: [
-            Row(
-              mainAxisAlignment: state.isTotal ? .center : .spaceBetween,
+    return BounceWidget.withTap(
+      onTap: isSelected ? null : () => onPress(dto.type),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        decoration: ShapeDecoration(
+          color: isSelected
+              ? color.withValues(alpha: .4)
+              : context.colors.surface,
+          shape: RoundedRectangleBorder(
+            borderRadius: context.radius.cornerRadius300,
+            side: isSelected
+                ? BorderSide(width: 1.4, color: color.withValues(alpha: .2))
+                : BorderSide.none,
+          ),
+        ),
+        child: Card(
+          margin: .zero,
+          shape: RoundedRectangleBorder(
+            borderRadius: context.radius.cornerRadius300,
+          ),
+          child: Padding(
+            padding: const .all(16.0),
+            child: Column(
+              spacing: 16.0,
+              mainAxisSize: .min,
+              crossAxisAlignment: dto.isTotal ? .center : .start,
               children: [
+                Row(
+                  mainAxisAlignment: dto.isTotal ? .center : .spaceBetween,
+                  children: [
+                    Text(
+                      dto.label.toUpperCase(),
+                      style: dto.isTotal
+                          ? context.typography.titleMedium?.copyWith(
+                              fontWeight: .w600,
+                              color: context.colors.onSurfaceVariant.withValues(
+                                alpha: 0.8,
+                              ),
+                            )
+                          : context.typography.labelMedium?.copyWith(
+                              fontWeight: .w600,
+                              color: context.colors.onSurfaceVariant.withValues(
+                                alpha: 0.8,
+                              ),
+                            ),
+                    ),
+                    if (!dto.isTotal) _buildIcon(color: color, icon: icon),
+                  ],
+                ),
                 Text(
-                  state.label.toUpperCase(),
-                  style: state.isTotal
-                      ? context.typography.titleMedium?.copyWith(
-                          fontWeight: .w600,
-                          color: context.colors.onSurfaceVariant.withValues(
-                            alpha: 0.8,
-                          ),
+                  dto.amount,
+                  style: dto.isTotal
+                      ? context.typography.titleLarge?.copyWith(
+                          fontWeight: dto.isTotal ? .w600 : .bold,
+                          color: context.colors.onSurfaceVariant,
                         )
-                      : context.typography.labelMedium?.copyWith(
-                          fontWeight: .w600,
-                          color: context.colors.onSurfaceVariant.withValues(
-                            alpha: 0.8,
-                          ),
+                      : context.typography.titleMedium?.copyWith(
+                          fontWeight: dto.isTotal ? .w600 : .bold,
+                          color: context.colors.onSurfaceVariant,
                         ),
                 ),
-                if (!state.isTotal) _buildIcon(color: color, icon: icon),
               ],
             ),
-            Text(
-              state.amount,
-              style: state.isTotal
-                  ? context.typography.titleLarge?.copyWith(
-                      fontWeight: state.isTotal ? .w600 : .bold,
-                      color: context.colors.onSurfaceVariant,
-                    )
-                  : context.typography.titleMedium?.copyWith(
-                      fontWeight: state.isTotal ? .w600 : .bold,
-                      color: context.colors.onSurfaceVariant,
-                    ),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -78,7 +106,7 @@ class BalanceWidget extends StatelessWidget {
         height: 32.0,
         decoration: BoxDecoration(
           shape: .circle,
-          color: color.withValues(alpha: 0.2),
+          color: color.withValues(alpha: .2),
         ),
         child: IconWidget(name: icon, size: 16.0, color: color),
       );

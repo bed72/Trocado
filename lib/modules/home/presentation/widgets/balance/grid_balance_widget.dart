@@ -19,9 +19,10 @@ class GridBalanceWidget extends StatelessWidget {
       builder: (_, state) => switch (state) {
         HomeLoading() => HomeBalanceLoadingWidget(),
         HomeSuccess() => HomeBalaceSuccessWidget(
-          onPress: (value) {},
           format: cubit.format,
+          type: cubit.selectedType,
           model: state.home.balance,
+          onPress: (value) => cubit.filterBalanceBy(type: value),
         ),
         _ => const SizedBox.shrink(),
       },

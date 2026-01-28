@@ -23,8 +23,9 @@ final class HomeFailure extends HomeState {
 
 final class HomeSuccess extends HomeState {
   final HomeModel home;
+  final TransactionTypeDto? type;
 
-  const HomeSuccess({required this.home});
+  const HomeSuccess({required this.home, this.type});
 
   @override
   List<Object> get props => [home];

@@ -40,14 +40,18 @@ class HomeBalanceLoadingWidget extends StatelessWidget {
         spacing: 16.0,
         children: [
           BalanceWidget(
-            state: BalanceDto.empty(label: 'Total', amount: 'R\$ 1.000,00'),
+            isSelected: false,
+            onPress: (value) {},
+            dto: BalanceDto.empty(label: 'Total', amount: 'R\$ 1.000,00'),
           ),
           Row(
             spacing: 16.0,
             children: [
               Expanded(
                 child: BalanceWidget(
-                  state: BalanceDto.empty(
+                  isSelected: false,
+                  onPress: (value) {},
+                  dto: BalanceDto.empty(
                     type: .income,
                     label: 'Receita',
                     amount: 'R\$ 10.000,00',
@@ -56,7 +60,9 @@ class HomeBalanceLoadingWidget extends StatelessWidget {
               ),
               Expanded(
                 child: BalanceWidget(
-                  state: BalanceDto.empty(
+                  isSelected: false,
+                  onPress: (value) {},
+                  dto: BalanceDto.empty(
                     type: .expense,
                     label: 'Despesa',
                     amount: 'R\$ 1.000,00',

@@ -14,6 +14,10 @@ final class HomeCubit extends Cubit<HomeState> {
   final IMoneyFormatter _formatter;
   final IHomeRepository _repository;
 
+  TransactionTypeDto? _selectedType;
+
+  TransactionTypeDto? get selectedType => _selectedType;
+
   HomeCubit({
     required IMoneyFormatter formatter,
     required IHomeRepository repository,
@@ -29,6 +33,16 @@ final class HomeCubit extends Cubit<HomeState> {
 
   TransactionDto toTransactionDto(TransactionModel model) =>
       _repository.toTransactionDto(model);
+
+  void filterBalanceBy({int? endAt, int? startAt, TransactionTypeDto? type}) {
+    final currentState = state;
+    if (currentState is! HomeSuccess) return;
+
+    final nextType = _selectedType == type ? null : type;
+    _selectedType = nextType;
+
+    findTransactionBy(startAt: startAt, endAt: endAt, type: nextType);
+  }
 
   void deleteTransactionBy({required int id, int? startAt, int? endAt}) {
     final currentState = state;
