@@ -1,108 +1,105 @@
-import 'package:mocktail/mocktail.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:trocado/modules/core/data/dtos/money_dto.dart';
 import 'package:trocado/modules/calculator/presentation/cubits/calculator_cubit.dart';
 
-import '../../mocks/mocks.dart';
-
 void main() {
-  late IMoneyDto formatter;
-
-  setUp(() {
-    formatter = MockMoneyFormatter();
-
-    when(() => formatter.format(any())).thenAnswer((invocation) {
-      final value = invocation.positionalArguments.first as double;
-      return 'R\$ ${value.toStringAsFixed(2)}';
-    });
-  });
-
   CalculatorCubit build() => CalculatorCubit();
 
-  test('initial state is CalculatorState.empty()', () {
-    final cubit = build();
+  group('CalculatorCubit', () {
+    test('initial state is empty', () {
+      final cubit = build();
 
-    expect(cubit.state, CalculatorState.empty());
+      expect(cubit.state, CalculatorState.empty());
+    });
+
+    blocTest<CalculatorCubit, CalculatorState>(
+      'digits build the numeric amount incrementally',
+      build: build,
+      act: (cubit) {
+        cubit.onKeyTap('2');
+        cubit.onKeyTap('0');
+      },
+      expect: () => const [
+        CalculatorState(amount: 2.0),
+        CalculatorState(amount: 20.0),
+      ],
+    );
+
+    blocTest<CalculatorCubit, CalculatorState>(
+      'allows decimal comma input',
+      build: build,
+      act: (cubit) {
+        cubit.onKeyTap('2');
+        cubit.onKeyTap(',');
+        cubit.onKeyTap('5');
+      },
+      expect: () => const [
+        CalculatorState(amount: 2.0),
+        CalculatorState(amount: 2.5),
+      ],
+    );
+
+    blocTest<CalculatorCubit, CalculatorState>(
+      'ignores second comma',
+      build: build,
+      act: (cubit) {
+        cubit.onKeyTap('1');
+        cubit.onKeyTap(',');
+        cubit.onKeyTap(',');
+        cubit.onKeyTap('2');
+      },
+      expect: () => const [
+        CalculatorState(amount: 1.0),
+        CalculatorState(amount: 1.2),
+      ],
+    );
+
+    blocTest<CalculatorCubit, CalculatorState>(
+      'delete removes last digit from buffer',
+      build: build,
+      act: (cubit) {
+        cubit.onKeyTap('2');
+        cubit.onKeyTap('5');
+        cubit.onKeyTap('DEL');
+      },
+      expect: () => const [
+        CalculatorState(amount: 2.0),
+        CalculatorState(amount: 25.0),
+        CalculatorState(amount: 2.0),
+      ],
+    );
+
+    blocTest<CalculatorCubit, CalculatorState>(
+      'delete does nothing when buffer is empty',
+      build: build,
+      act: (cubit) => cubit.onKeyTap('DEL'),
+      expect: () => const <CalculatorState>[],
+    );
+
+    blocTest<CalculatorCubit, CalculatorState>(
+      'AC clears buffer and emits empty state',
+      build: build,
+      act: (cubit) {
+        cubit.onKeyTap('1');
+        cubit.onKeyTap('0');
+        cubit.onKeyTap('AC');
+      },
+      expect: () => const [
+        CalculatorState(amount: 1.0),
+        CalculatorState(amount: 10.0),
+        CalculatorState(amount: 0.0),
+      ],
+    );
+
+    blocTest<CalculatorCubit, CalculatorState>(
+      'apply does not change state',
+      build: build,
+      act: (cubit) {
+        cubit.onKeyTap('3');
+        cubit.onKeyTap('✓');
+      },
+      expect: () => const [CalculatorState(amount: 3.0)],
+    );
   });
-
-  blocTest<CalculatorCubit, CalculatorState>(
-    'append builds raw preview and parsed amount',
-    build: build,
-    act: (cubit) {
-      cubit.onKeyTap('2');
-      cubit.onKeyTap('0');
-    },
-    expect: () => const [
-      CalculatorState(amount: 2.0, preview: '2'),
-      CalculatorState(amount: 20.0, preview: '20'),
-    ],
-  );
-
-  blocTest<CalculatorCubit, CalculatorState>(
-    'append allows decimal comma',
-    build: build,
-    act: (cubit) {
-      cubit.onKeyTap('2');
-      cubit.onKeyTap('0');
-      cubit.onKeyTap(',');
-      cubit.onKeyTap('1');
-    },
-    expect: () => const [
-      CalculatorState(amount: 2.0, preview: '2'),
-      CalculatorState(amount: 20.0, preview: '20'),
-      CalculatorState(amount: 20.0, preview: '20,'),
-      CalculatorState(amount: 20.1, preview: '20,1'),
-    ],
-  );
-
-  blocTest<CalculatorCubit, CalculatorState>(
-    'does not allow two commas',
-    build: build,
-    act: (cubit) {
-      cubit.onKeyTap('1');
-      cubit.onKeyTap(',');
-      cubit.onKeyTap(',');
-    },
-    expect: () => const [
-      CalculatorState(amount: 1.0, preview: '1'),
-      CalculatorState(amount: 1.0, preview: '1,'),
-    ],
-  );
-
-  blocTest<CalculatorCubit, CalculatorState>(
-    'delete removes last character',
-    build: build,
-    seed: () => const CalculatorState(amount: 20.1, preview: '20,1'),
-    act: (cubit) => cubit.onKeyTap('DEL'),
-    expect: () => const [CalculatorState(amount: 20.0, preview: '20,')],
-  );
-
-  blocTest<CalculatorCubit, CalculatorState>(
-    'delete does nothing when state is empty',
-    build: build,
-    act: (cubit) => cubit.onKeyTap('DEL'),
-    expect: () => [],
-  );
-
-  blocTest<CalculatorCubit, CalculatorState>(
-    'AC clears state',
-    build: build,
-    seed: () => const CalculatorState(amount: 10.0, preview: '10'),
-    act: (cubit) => cubit.onKeyTap('AC'),
-    expect: () => [CalculatorState.empty()],
-  );
-
-  blocTest<CalculatorCubit, CalculatorState>(
-    'apply formats preview but keeps amount',
-    build: build,
-    seed: () => const CalculatorState(amount: 15.0, preview: '15'),
-    act: (cubit) => cubit.onKeyTap('✓'),
-    expect: () => [
-      isA<CalculatorState>()
-          .having((s) => s.amount, 'amount', 15.0)
-          .having((s) => s.preview, 'preview', contains('15')),
-    ],
-  );
 }

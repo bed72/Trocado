@@ -63,19 +63,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
               ),
             ),
 
-            BlocBuilder<CalculatorCubit, CalculatorState>(
-              bloc: widget.cubit,
-              buildWhen: (previous, current) =>
-                  previous.preview != current.preview,
-              builder: (_, state) => Text(
-                'Valor: ${_moneyDto.format(state.amount)}',
-                style: context.typography.bodyLarge?.copyWith(
-                  fontWeight: .w600,
-                  color: context.colors.outline,
-                ),
-              ),
-            ),
-
             CalculatorKeyboard(
               onKeyTap: (key) {
                 widget.cubit.onKeyTap(key);

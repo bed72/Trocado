@@ -2,16 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:trocado/modules/core/core.dart';
-
 part 'calculator_state.dart';
 
 final class CalculatorCubit extends Cubit<CalculatorState> {
-  late final IMoneyDto _formatter;
+  String _buffer = '';
 
-  CalculatorCubit() : super(CalculatorState.empty()) {
-    _formatter = MoneyDto();
-  }
+  CalculatorCubit() : super(CalculatorState.empty());
 
   void onKeyTap(String key) => switch (key) {
     '✓' => apply(),
@@ -20,39 +16,39 @@ final class CalculatorCubit extends Cubit<CalculatorState> {
     _ => append(key),
   };
 
+  void apply() {
+    emit(state);
+  }
+
   void clear() {
+    _buffer = '';
     emit(CalculatorState.empty());
   }
 
   void delete() {
-    if (state.preview.isEmpty || state.preview == '...') return;
+    if (_buffer.isEmpty) return;
 
-    final next = state.preview.substring(0, state.preview.length - 1);
-
-    emit(_buildState(next));
-  }
-
-  void apply() {
-    final formatted = _formatter.format(state.amount);
-
-    emit(state.copyWith(preview: formatted));
+    _buffer = _buffer.substring(0, _buffer.length - 1);
+    _emit();
   }
 
   void append(String value) {
-    if (value == ',' && state.preview.contains(',')) return;
+    if (value == ',' && _buffer.contains(',')) return;
 
-    final base = state.preview == '...' ? '' : state.preview;
-    final next = '$base$value';
-
-    emit(_buildState(next));
+    _buffer += value;
+    _emit();
   }
 
-  CalculatorState _buildState(String preview) {
-    if (preview.isEmpty) return CalculatorState.empty();
+  void _emit() {
+    if (_buffer.isEmpty) {
+      emit(CalculatorState.empty());
 
-    final normalized = preview.replaceAll(',', '.');
-    final parsed = double.tryParse(normalized);
+      return;
+    }
 
-    return CalculatorState(amount: parsed ?? 0.0, preview: preview);
+    final normalized = _buffer.replaceAll(',', '.');
+    final parsed = double.tryParse(normalized) ?? 0.0;
+
+    emit(state.copyWith(amount: parsed));
   }
 }
