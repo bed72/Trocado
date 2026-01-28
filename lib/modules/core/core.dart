@@ -1,5 +1,4 @@
 export 'data/mapper/mapper.dart';
-export 'data/dtos/money_dto.dart';
 
 export 'main/providers/client_provider.dart';
 export 'main/providers/resource_provider.dart';
@@ -19,6 +18,7 @@ export 'domain/constants/quick_actions_constant.dart';
 export 'infrastructure/clients/database/database_client.dart';
 
 export 'infrastructure/resources/loggers/logger.dart';
+export 'infrastructure/resources/formatters/money_formatter.dart';
 export 'infrastructure/resources/observers/logger_navigation_observer.dart';
 
 export 'presentation/themes/themes.dart';

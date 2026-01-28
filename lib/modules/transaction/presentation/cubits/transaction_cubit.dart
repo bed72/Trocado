@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:equatable/equatable.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:trocado/modules/core/core.dart';
 import 'package:trocado/modules/transaction/data/dtos/transaction_dto.dart';
 
 import 'package:trocado/modules/transaction/domain/models/transaction_model.dart';
@@ -10,11 +11,19 @@ import 'package:trocado/modules/transaction/domain/repositories/interface_transa
 part 'transaction_state.dart';
 
 final class TransactionCubit extends Cubit<TransactionState> {
+  final IMoneyFormatter _formatter;
   final ITransactionRepository _repository;
 
-  TransactionCubit({required ITransactionRepository repository})
-    : _repository = repository,
-      super(TransactionIdle());
+  TransactionCubit({
+    required IMoneyFormatter formatter,
+    required ITransactionRepository repository,
+  }) : _formatter = formatter,
+       _repository = repository,
+       super(TransactionIdle());
+
+  double parse(String value) => _formatter.parse(value);
+
+  String format(double value) => _formatter.format(value);
 
   void clear() {
     emit(TransactionIdle());

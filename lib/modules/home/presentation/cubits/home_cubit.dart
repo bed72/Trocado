@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:trocado/modules/core/core.dart';
 import 'package:trocado/modules/transaction/transaction.dart';
 
 import 'package:trocado/modules/home/domain/models/home_model.dart';
@@ -10,51 +11,63 @@ import 'package:trocado/modules/home/domain/repositories/interface_home_reposito
 part 'home_state.dart';
 
 final class HomeCubit extends Cubit<HomeState> {
+  final IMoneyFormatter _formatter;
   final IHomeRepository _repository;
 
-  HomeCubit({required IHomeRepository repository})
-    : _repository = repository,
-      super(HomeIdle());
+  HomeCubit({
+    required IMoneyFormatter formatter,
+    required IHomeRepository repository,
+  }) : _formatter = formatter,
+       _repository = repository,
+       super(HomeIdle());
+
+  String format(double value) => _formatter.format(value);
 
   void clear() {
     emit(HomeIdle());
   }
 
-  TransactionDto toDto(TransactionModel model) => _repository.toDto(model);
+  TransactionDto toTransactionDto(TransactionModel model) =>
+      _repository.toTransactionDto(model);
 
-  void deleteTransactionBy(int id) {
+  void deleteTransactionBy({required int id, int? startAt, int? endAt}) {
     final currentState = state;
     if (currentState is! HomeSuccess) return;
 
     final optimistic = currentState.home.removeTransactionBy(id);
     emit(HomeSuccess(home: optimistic));
 
-    final result = _repository.deleteTransactionBy(id);
+    final data = _repository
+        .deleteTransactionBy(id)
+        .flatMap(
+          (_) => _repository
+              .getBalanceBy(startAt: startAt, endAt: endAt)
+              .mapRight((balance) => optimistic.copyWith(balance: balance)),
+        );
 
-    result.fold((failure) => emit(HomeFailure(failure: failure)), (_) {});
+    data.fold(
+      (failure) => emit(HomeFailure(failure: failure)),
+      (home) => emit(HomeSuccess(home: home)),
+    );
   }
 
   void findTransactionBy({int? startAt, int? endAt, TransactionTypeDto? type}) {
     emit(HomeLoading());
 
-    final balance = _repository.getBalanceBy(endAt: endAt, startAt: startAt);
-    final transaction = _repository.findTransactionBy(
-      type: type,
-      endAt: endAt,
-      startAt: startAt,
-    );
+    final data = _repository
+        .findTransactionBy(type: type, endAt: endAt, startAt: startAt)
+        .flatMap(
+          (transactions) => _repository
+              .getBalanceBy(startAt: startAt, endAt: endAt)
+              .mapRight(
+                (balance) =>
+                    HomeModel(balance: balance, transactions: transactions),
+              ),
+        );
 
-    transaction.fold((failure) => emit(HomeFailure(failure: failure)), (
-      transactions,
-    ) {
-      balance.fold(
-        (failure) => emit(HomeFailure(failure: failure)),
-        (balance) => emit(
-          HomeSuccess(
-            home: HomeModel(balance: balance, transactions: transactions),
-          ),
-        ),
-      );
-    });
+    data.fold(
+      (failure) => emit(HomeFailure(failure: failure)),
+      (home) => emit(HomeSuccess(home: home)),
+    );
   }
 }

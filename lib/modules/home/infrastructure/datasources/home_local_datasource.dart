@@ -111,7 +111,7 @@ final class HomeLocalDatasource implements IHomeLocalDatasource {
         .query(
           TransactionEntity_.date
               .between(start, end)
-              .and(TransactionEntity_.type.equals(type.name)),
+              .and(TransactionEntity_.type.equals(type.label)),
         )
         .build();
 

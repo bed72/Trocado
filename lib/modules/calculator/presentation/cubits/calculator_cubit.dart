@@ -2,12 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:trocado/modules/core/core.dart';
+
 part 'calculator_state.dart';
 
 final class CalculatorCubit extends Cubit<CalculatorState> {
   String _buffer = '';
 
-  CalculatorCubit() : super(CalculatorState.empty());
+  final IMoneyFormatter _formatter;
+
+  CalculatorCubit({required IMoneyFormatter formatter})
+    : _formatter = formatter,
+      super(CalculatorState.empty());
+
+  String format(double value) => _formatter.format(value);
 
   void onKeyTap(String key) => switch (key) {
     '✓' => apply(),

@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:trocado/app_widget.dart';
 import 'package:trocado/app_provider.dart';
 
-final provider = GetIt.instance;
+final i = GetIt.instance;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

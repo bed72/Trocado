@@ -20,7 +20,6 @@ class TransactionsFormWidget extends StatefulWidget {
 }
 
 class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
-  late final MoneyDto _moneyDto;
   late TransactionTypeDto _typeDto;
   late TransactionDto? _transactionDto;
 
@@ -40,14 +39,13 @@ class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
     _mustShowDescriptionHelper = false;
     _mustShowObservationHelper = false;
 
-    _moneyDto = MoneyDto();
     _transactionDto = widget.dto.transaction;
     _typeDto = _transactionDto?.type ?? .expense;
 
     _amountController = TextEditingController(
       text: _transactionDto?.amount == null
           ? ''
-          : _moneyDto.format(_transactionDto!.amount!),
+          : widget.dto.format(_transactionDto!.amount!),
     );
     _dateController = TextEditingController(
       text: _transactionDto?.date.format() ?? DateTime.now().format(),
@@ -106,7 +104,7 @@ class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
                   previous.amount != current.amount,
               listener: (_, state) {
                 widget.dto.onAmountSelected(state.amount);
-                _amountController.text = _moneyDto.format(state.amount);
+                _amountController.text = widget.dto.format(state.amount);
               },
               child: TextFormFieldWidget(
                 hint: 'Valor',
@@ -114,7 +112,10 @@ class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
                 absorbing: true,
                 placeholder: 'Ex: 72.00',
                 controller: _amountController,
-                validator: widget.dto.transaction?.validateAmount,
+                validator: (value) => widget.dto.transaction?.validateAmount(
+                  value: value,
+                  parse: widget.dto.parse,
+                ),
               ),
             ),
           ),

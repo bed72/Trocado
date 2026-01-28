@@ -13,7 +13,7 @@ import 'package:trocado/modules/transaction/domain/repositories/interface_transa
 import 'package:trocado/modules/transaction/infrastructure/database/entities/transaction_entity.dart';
 import 'package:trocado/modules/transaction/infrastructure/datasources/local/transaction_local_datasource.dart';
 
-import '../../mocks/mocks.dart';
+import '../../../../mocks/mocks.dart';
 
 void main() {
   late TransactionInMapper inMapper;

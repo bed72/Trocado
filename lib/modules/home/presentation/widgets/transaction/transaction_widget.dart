@@ -8,18 +8,16 @@ import 'package:trocado/modules/home/presentation/notifiers/swipe_radius_notifie
 class TransactionWidget extends StatefulWidget {
   final TransactionDto dto;
   final ValueChanged<int> onDelete;
+  final String Function(double) format;
   final ValueChanged<TransactionDto> onPress;
 
-  late final MoneyDto _moneyDto;
-
-  TransactionWidget({
+  const TransactionWidget({
     super.key,
     required this.dto,
+    required this.format,
     required this.onPress,
     required this.onDelete,
-  }) {
-    _moneyDto = MoneyDto();
-  }
+  });
 
   @override
   State<TransactionWidget> createState() => _TransactionWidgetState();
@@ -43,7 +41,7 @@ class _TransactionWidgetState extends State<TransactionWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final isIncome = widget.dto.type == TransactionTypeDto.income;
+    final isIncome = widget.dto.type == .income;
 
     final prefix = isIncome ? '+' : '-';
     final color = isIncome ? context.colors.primary : context.colors.error;
@@ -100,7 +98,7 @@ class _TransactionWidgetState extends State<TransactionWidget> {
           trailing: widget.dto.amount == null
               ? null
               : Text(
-                  '$prefix ${widget._moneyDto.format(widget.dto.amount!)}',
+                  '$prefix ${widget.format(widget.dto.amount!)}',
                   style: context.typography.bodyLarge?.copyWith(
                     color: color,
                     fontWeight: .bold,

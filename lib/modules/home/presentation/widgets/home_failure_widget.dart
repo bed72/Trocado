@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 
-class HomeFailureWidget extends StatelessWidget {
-  const HomeFailureWidget({super.key});
+class HomeTransactionFailureWidget extends StatelessWidget {
+  const HomeTransactionFailureWidget({super.key});
 
   @override
   Widget build(BuildContext context) {

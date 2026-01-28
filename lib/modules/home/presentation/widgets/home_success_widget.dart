@@ -4,18 +4,23 @@ import 'package:trocado/modules/core/core.dart';
 import 'package:trocado/modules/transaction/transaction.dart';
 
 import 'package:trocado/modules/home/domain/models/home_model.dart';
+import 'package:trocado/modules/home/domain/models/balance_model.dart';
+
+import 'package:trocado/modules/home/presentation/widgets/balance/balance_widget.dart';
 import 'package:trocado/modules/home/presentation/widgets/transaction/transaction_widget.dart';
 
-class HomeSuccessWidget extends StatelessWidget {
+class HomeTransactionSuccessWidget extends StatelessWidget {
   final HomeModel data;
   final ValueChanged<int> onDelete;
+  final String Function(double value) format;
   final ValueChanged<TransactionDto> onPress;
   final TransactionDto Function(TransactionModel) toDto;
 
-  const HomeSuccessWidget({
+  const HomeTransactionSuccessWidget({
     super.key,
     required this.data,
     required this.toDto,
+    required this.format,
     required this.onPress,
     required this.onDelete,
   });
@@ -30,6 +35,7 @@ class HomeSuccessWidget extends StatelessWidget {
               delegate: SliverChildBuilderDelegate(
                 childCount: data.transactions.length,
                 (_, index) => TransactionWidget(
+                  format: format,
                   onPress: onPress,
                   onDelete: onDelete,
                   dto: toDto(data.transactions[index]),
@@ -67,4 +73,44 @@ class HomeSuccessWidget extends StatelessWidget {
       ),
     ),
   );
+}
+
+class HomeBalaceSuccessWidget extends StatelessWidget {
+  final BalanceModel model;
+  final String Function(double value) format;
+  final ValueChanged<TransactionTypeDto?> onPress;
+
+  const HomeBalaceSuccessWidget({
+    super.key,
+    required this.model,
+    required this.format,
+    required this.onPress,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      spacing: 16.0,
+      children: [
+        BalanceWidget(
+          state: .total(value: model.total, format: format),
+        ),
+        Row(
+          spacing: 16.0,
+          children: [
+            Expanded(
+              child: BalanceWidget(
+                state: .income(value: model.income, format: format),
+              ),
+            ),
+            Expanded(
+              child: BalanceWidget(
+                state: .expense(value: model.expense, format: format),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
 }

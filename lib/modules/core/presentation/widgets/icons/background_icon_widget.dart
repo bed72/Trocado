@@ -18,7 +18,7 @@ class BackgroundIconWidget extends StatelessWidget {
       height: 48.0,
       alignment: .center,
       decoration: BoxDecoration(
-        borderRadius: context.radius.cornerRadius100,
+        borderRadius: context.radius.cornerRadius300,
         color: color.withValues(alpha: 0.2),
       ),
       child: IconWidget(name: name, color: color),

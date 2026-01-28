@@ -123,7 +123,7 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
 
   Container _buildBorder() => Container(
     decoration: BoxDecoration(
-      borderRadius: context.radius.cornerRadius100,
+      borderRadius: context.radius.cornerRadius300,
       border: Border.all(width: 1.0, color: _color),
     ),
   );

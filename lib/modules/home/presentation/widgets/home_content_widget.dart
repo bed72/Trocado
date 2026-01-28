@@ -32,7 +32,9 @@ class HomeContentWidget extends StatelessWidget {
         slivers: [
           SliverPadding(
             padding: const .symmetric(horizontal: 16.0),
-            sliver: SliverToBoxAdapter(child: GridBalanceWidget()),
+            sliver: SliverToBoxAdapter(
+              child: GridBalanceWidget(cubit: homeCubit),
+            ),
           ),
 
           SliverPersistentHeader(
@@ -43,14 +45,16 @@ class HomeContentWidget extends StatelessWidget {
           BlocBuilder<HomeCubit, HomeState>(
             bloc: homeCubit,
             builder: (_, state) => switch (state) {
-              HomeFailure() => const HomeFailureWidget(),
-              HomeSuccess() => HomeSuccessWidget(
+              HomeFailure() => const HomeTransactionFailureWidget(),
+              HomeSuccess() => HomeTransactionSuccessWidget(
                 data: state.home,
                 onPress: onPress,
-                toDto: homeCubit.toDto,
-                onDelete: homeCubit.deleteTransactionBy,
+                format: homeCubit.format,
+                toDto: homeCubit.toTransactionDto,
+                onDelete: (id) => homeCubit.deleteTransactionBy(id: id),
               ),
-              HomeIdle() || HomeLoading() => const HomeLoadingWidget(),
+              HomeIdle() ||
+              HomeLoading() => const HomeTransactionLoadingWidget(),
             },
           ),
         ],

@@ -16,7 +16,6 @@ class CalculatorScreen extends StatefulWidget {
 }
 
 class _CalculatorScreenState extends State<CalculatorScreen> {
-  late final MoneyDto _moneyDto;
   late final TextEditingController _controller;
 
   @override
@@ -24,7 +23,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     super.initState();
 
     widget.cubit.clear();
-    _moneyDto = MoneyDto();
     _controller = TextEditingController();
   }
 
@@ -52,7 +50,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
               listenWhen: (previous, current) =>
                   previous.amount != current.amount,
               listener: (_, state) {
-                _controller.text = _moneyDto.format(state.amount);
+                _controller.text = widget.cubit.format(state.amount);
               },
               child: TextFieldWidget(
                 hint: 'Valor',

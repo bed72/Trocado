@@ -11,20 +11,23 @@ import 'package:trocado/modules/home/domain/repositories/interface_home_reposito
 import 'package:trocado/modules/home/infrastructure/datasources/home_local_datasource.dart';
 
 void homeProvider() {
-  provider
+  i
     ..registerFactory<BalanceOutMapper>(BalanceOutMapper.new)
     ..registerFactory<IHomeLocalDatasource>(
-      () => HomeLocalDatasource(client: provider.get<IDatabaseClient>()),
+      () => HomeLocalDatasource(client: i.get<IDatabaseClient>()),
     )
     ..registerFactory<IHomeRepository>(
       () => HomeRepository(
-        datasource: provider.get<IHomeLocalDatasource>(),
-        balanceOutMapper: provider.get<BalanceOutMapper>(),
-        transactionDtoMapper: provider.get<TransactionDtoMapper>(),
-        transactionOutMapper: provider.get<TransactionOutMapper>(),
+        datasource: i.get<IHomeLocalDatasource>(),
+        balanceOutMapper: i.get<BalanceOutMapper>(),
+        transactionDtoMapper: i.get<TransactionDtoMapper>(),
+        transactionOutMapper: i.get<TransactionOutMapper>(),
       ),
     )
     ..registerCachedFactory<HomeCubit>(
-      () => HomeCubit(repository: provider.get<IHomeRepository>()),
+      () => HomeCubit(
+        formatter: i.get<IMoneyFormatter>(),
+        repository: i.get<IHomeRepository>(),
+      ),
     );
 }

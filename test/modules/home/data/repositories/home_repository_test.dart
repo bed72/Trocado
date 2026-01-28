@@ -15,7 +15,7 @@ import 'package:trocado/modules/transaction/data/mappers/transaction_mapper.dart
 import 'package:trocado/modules/transaction/domain/models/transaction_model.dart';
 import 'package:trocado/modules/transaction/infrastructure/database/entities/transaction_entity.dart';
 
-import '../../mocks/mocks.dart';
+import '../../../../mocks/mocks.dart';
 
 void main() {
   late IHomeRepository repository;
@@ -210,7 +210,7 @@ void main() {
 
       when(() => transactionDtoMapper(model)).thenReturn(dto);
 
-      final data = repository.toDto(model);
+      final data = repository.toTransactionDto(model);
 
       expect(data, dto);
       verify(() => transactionDtoMapper(model)).called(1);

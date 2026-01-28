@@ -1,12 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:trocado/modules/core/data/dtos/money_dto.dart';
+import 'package:trocado/modules/core/infrastructure/resources/formatters/money_formatter.dart';
 
 void main() {
-  late IMoneyDto formatter;
+  late IMoneyFormatter formatter;
 
   setUp(() {
-    formatter = MoneyDto();
+    formatter = MoneyFormatter();
   });
 
   test('format should format value to BRL', () {

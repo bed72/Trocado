@@ -144,6 +144,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     dateCubit: widget.dateCubit,
     categoryCubit: widget.categoryCubit,
     calculatorCubit: widget.caculatorCubit,
+    parse: widget.transactionCubit.parse,
+    format: widget.transactionCubit.format,
     navigateToDate: widget.navigateToDate,
     navigateToCategory: widget.navigateToCategory,
     navigateToCalculator: widget.navigateToCalculator,

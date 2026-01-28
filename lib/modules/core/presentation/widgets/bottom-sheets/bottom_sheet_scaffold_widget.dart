@@ -24,7 +24,7 @@ class BottomSheetScaffoldWidget extends StatelessWidget {
       width: .infinity,
       decoration: BoxDecoration(
         color: context.colors.surface,
-        borderRadius: const .vertical(top: Radius.circular(20.0)),
+        borderRadius: const .vertical(top: .circular(20.0)),
       ),
       child: Padding(
         padding: _withoutPadding

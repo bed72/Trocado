@@ -17,7 +17,7 @@ class GhostButtonWidget extends StatelessWidget {
     return Container(
       height: 56.0,
       decoration: BoxDecoration(
-        borderRadius: context.radius.cornerRadius100,
+        borderRadius: context.radius.cornerRadius300,
         color: context.colors.surfaceBright.withValues(
           alpha: context.isDark ? .3 : .9,
         ),

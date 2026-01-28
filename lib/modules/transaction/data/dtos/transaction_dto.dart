@@ -1,8 +1,6 @@
-import 'package:trocado/modules/core/core.dart';
 import 'package:trocado/modules/category/category.dart';
 
 import 'package:trocado/modules/transaction/data/dtos/transaction_type_dto.dart';
-import 'package:trocado/modules/transaction/domain/models/transaction_model.dart';
 
 final class TransactionDto {
   final DateTime date;
@@ -14,8 +12,6 @@ final class TransactionDto {
   final double? amount;
   final String? observation;
 
-  late final MoneyDto _moneyDto;
-
   TransactionDto({
     required this.date,
     required this.type,
@@ -24,9 +20,7 @@ final class TransactionDto {
     required this.description,
     this.id,
     this.observation,
-  }) {
-    _moneyDto = MoneyDto();
-  }
+  });
 
   factory TransactionDto.empty() => TransactionDto(
     id: null,
@@ -36,14 +30,6 @@ final class TransactionDto {
     category: .other,
     observation: null,
     date: DateTime.now(),
-  );
-
-  factory TransactionDto.toDto(TransactionModel data) => TransactionDto(
-    amount: data.amount,
-    description: data.description,
-    type: .fromByString(data.type),
-    category: .fromByString(data.category),
-    date: dateTimeFromMilliseconds(data.date),
   );
 
   TransactionDto copyWith({
@@ -86,12 +72,15 @@ final class TransactionDto {
     return !regex.hasMatch(trimmed) ? 'Use ao menos 3 letras.' : null;
   }
 
-  String? validateAmount(String? value) {
+  String? validateAmount({
+    required String? value,
+    required double Function(String) parse,
+  }) {
     if (value == null || value.trim().isEmpty) {
       return 'Adicione um valor.';
     }
 
-    final parsed = _moneyDto.parse(value);
+    final parsed = parse(value);
 
     return (parsed <= 0) ? 'Adicione um valor válido' : null;
   }

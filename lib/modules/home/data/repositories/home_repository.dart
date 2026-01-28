@@ -25,7 +25,8 @@ final class HomeRepository implements IHomeRepository {
        _transactionOutMapper = transactionOutMapper;
 
   @override
-  TransactionDto toDto(TransactionModel model) => _transactionDtoMapper(model);
+  TransactionDto toTransactionDto(TransactionModel model) =>
+      _transactionDtoMapper(model);
 
   @override
   Either<String, void> deleteTransactionBy(int id) =>

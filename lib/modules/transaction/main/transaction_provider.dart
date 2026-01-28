@@ -12,23 +12,25 @@ import 'package:trocado/modules/transaction/domain/repositories/interface_transa
 import 'package:trocado/modules/transaction/infrastructure/datasources/local/transaction_local_datasource.dart';
 
 void transactionProvider() {
-  provider
+  i
     ..registerFactory<TransactionInMapper>(TransactionInMapper.new)
     ..registerFactory<TransactionOutMapper>(TransactionOutMapper.new)
     ..registerFactory<TransactionDtoMapper>(TransactionDtoMapper.new)
     ..registerFactory<ITransactionLocalDatasource>(
-      () => TransactionLocalDatasource(client: provider.get<IDatabaseClient>()),
+      () => TransactionLocalDatasource(client: i.get<IDatabaseClient>()),
     )
     ..registerFactory<ITransactionRepository>(
       () => TransactionRepository(
-        inMapper: provider.get<TransactionInMapper>(),
-        outMapper: provider.get<TransactionOutMapper>(),
-        datasource: provider.get<ITransactionLocalDatasource>(),
+        inMapper: i.get<TransactionInMapper>(),
+        outMapper: i.get<TransactionOutMapper>(),
+        datasource: i.get<ITransactionLocalDatasource>(),
       ),
     )
     ..registerLazySingleton<TransactionCubit>(
-      () =>
-          TransactionCubit(repository: provider.get<ITransactionRepository>()),
+      () => TransactionCubit(
+        formatter: i.get<IMoneyFormatter>(),
+        repository: i.get<ITransactionRepository>(),
+      ),
       dispose: (cubit) => cubit.close(),
     );
 }

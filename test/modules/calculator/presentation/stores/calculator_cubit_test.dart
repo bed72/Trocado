@@ -2,9 +2,18 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:trocado/modules/calculator/presentation/cubits/calculator_cubit.dart';
+import 'package:trocado/modules/core/core.dart';
+
+import '../../../../mocks/mocks.dart';
 
 void main() {
-  CalculatorCubit build() => CalculatorCubit();
+  late IMoneyFormatter formatter;
+
+  setUp(() {
+    formatter = MockMoneyFormatter();
+  });
+
+  CalculatorCubit build() => CalculatorCubit(formatter: formatter);
 
   group('CalculatorCubit', () {
     test('initial state is empty', () {

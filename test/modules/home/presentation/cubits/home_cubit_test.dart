@@ -1,8 +1,7 @@
 import 'package:mocktail/mocktail.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:trocado/modules/core/domain/either/either.dart';
+import 'package:trocado/modules/core/core.dart';
 
 import 'package:trocado/modules/transaction/data/dtos/transaction_type_dto.dart';
 import 'package:trocado/modules/transaction/domain/models/transaction_model.dart';
@@ -13,13 +12,15 @@ import 'package:trocado/modules/home/domain/models/home_model.dart';
 import 'package:trocado/modules/home/domain/models/balance_model.dart';
 import 'package:trocado/modules/home/domain/repositories/interface_home_repository.dart';
 
-import '../../mocks/mocks.dart';
+import '../../../../mocks/mocks.dart';
 
 void main() {
   late HomeCubit cubit;
+  late IMoneyFormatter formatter;
   late IHomeRepository repository;
 
-  final balance = BalanceModel(income: 100, expense: 50, total: 50);
+  final initialBalance = BalanceModel(income: 100, expense: 50, total: 50);
+  final refreshedBalance = BalanceModel(income: 90, expense: 50, total: 40);
 
   final transactions = [
     TransactionModel(
@@ -41,8 +42,9 @@ void main() {
   ];
 
   setUp(() {
+    formatter = MockMoneyFormatter();
     repository = MockHomeRepository();
-    cubit = HomeCubit(repository: repository);
+    cubit = HomeCubit(formatter: formatter, repository: repository);
   });
 
   tearDown(() {
@@ -61,17 +63,17 @@ void main() {
           when(
             () => repository.findTransactionBy(
               type: any(named: 'type'),
-              startAt: any(named: 'startAt'),
               endAt: any(named: 'endAt'),
+              startAt: any(named: 'startAt'),
             ),
           ).thenReturn(Right(transactions));
 
           when(
             () => repository.getBalanceBy(
-              startAt: any(named: 'startAt'),
               endAt: any(named: 'endAt'),
+              startAt: any(named: 'startAt'),
             ),
-          ).thenReturn(Right(balance));
+          ).thenReturn(Right(initialBalance));
 
           return cubit;
         },
@@ -79,7 +81,10 @@ void main() {
         expect: () => [
           HomeLoading(),
           HomeSuccess(
-            home: HomeModel(balance: balance, transactions: transactions),
+            home: HomeModel(
+              balance: initialBalance,
+              transactions: transactions,
+            ),
           ),
         ],
       );
@@ -106,8 +111,8 @@ void main() {
 
           return cubit;
         },
-        act: (cubit) => cubit.findTransactionBy(startAt: 0, endAt: 200),
         expect: () => [HomeLoading(), HomeFailure(failure: 'Failure')],
+        act: (cubit) => cubit.findTransactionBy(startAt: 0, endAt: 200),
       );
 
       blocTest<HomeCubit, HomeState>(
@@ -139,29 +144,48 @@ void main() {
       blocTest<HomeCubit, HomeState>(
         'does nothing when state is not HomeSuccess',
         build: () => cubit,
-        act: (cubit) => cubit.deleteTransactionBy(1),
+        act: (cubit) => cubit.deleteTransactionBy(id: 1),
         verify: (_) {
           verifyNever(() => repository.deleteTransactionBy(any()));
         },
       );
 
       blocTest<HomeCubit, HomeState>(
-        'emits optimistic HomeSuccess when delete succeeds',
+        'emits optimistic HomeSuccess and refreshed HomeSuccess when delete succeeds',
         build: () {
           when(
             () => repository.deleteTransactionBy(1),
           ).thenReturn(const Right(null));
 
+          when(
+            () => repository.getBalanceBy(
+              endAt: any(named: 'endAt'),
+              startAt: any(named: 'startAt'),
+            ),
+          ).thenReturn(Right(refreshedBalance));
+
           return cubit..emit(
             HomeSuccess(
-              home: HomeModel(balance: balance, transactions: transactions),
+              home: HomeModel(
+                balance: initialBalance,
+                transactions: transactions,
+              ),
             ),
           );
         },
-        act: (cubit) => cubit.deleteTransactionBy(1),
+        act: (cubit) => cubit.deleteTransactionBy(id: 1),
         expect: () => [
           HomeSuccess(
-            home: HomeModel(balance: balance, transactions: [transactions[1]]),
+            home: HomeModel(
+              balance: initialBalance,
+              transactions: [transactions[1]],
+            ),
+          ),
+          HomeSuccess(
+            home: HomeModel(
+              balance: refreshedBalance,
+              transactions: [transactions[1]],
+            ),
           ),
         ],
       );
@@ -175,16 +199,65 @@ void main() {
 
           return cubit..emit(
             HomeSuccess(
-              home: HomeModel(balance: balance, transactions: transactions),
+              home: HomeModel(
+                balance: initialBalance,
+                transactions: transactions,
+              ),
             ),
           );
         },
-        act: (cubit) => cubit.deleteTransactionBy(1),
+        act: (cubit) => cubit.deleteTransactionBy(id: 1),
         expect: () => [
           HomeSuccess(
-            home: HomeModel(balance: balance, transactions: [transactions[1]]),
+            home: HomeModel(
+              balance: initialBalance,
+              transactions: [transactions[1]],
+            ),
           ),
           HomeFailure(failure: 'Failure'),
+        ],
+        verify: (_) {
+          verifyNever(
+            () => repository.getBalanceBy(
+              endAt: any(named: 'endAt'),
+              startAt: any(named: 'startAt'),
+            ),
+          );
+        },
+      );
+
+      blocTest<HomeCubit, HomeState>(
+        'emits HomeFailure when balance refresh fails after delete',
+        build: () {
+          when(
+            () => repository.deleteTransactionBy(1),
+          ).thenReturn(const Right(null));
+
+          when(
+            () => repository.getBalanceBy(
+              endAt: any(named: 'endAt'),
+              startAt: any(named: 'startAt'),
+            ),
+          ).thenReturn(const Left('Balance failure'));
+
+          return cubit..emit(
+            HomeSuccess(
+              home: HomeModel(
+                balance: initialBalance,
+                transactions: transactions,
+              ),
+            ),
+          );
+        },
+        act: (cubit) => cubit.deleteTransactionBy(id: 1),
+        expect: () => [
+          HomeSuccess(
+            home: HomeModel(
+              balance: initialBalance,
+              transactions: [transactions[1]],
+            ),
+          ),
+          HomeFailure(failure: 'Balance failure'),
         ],
       );
     });

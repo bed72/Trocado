@@ -112,44 +112,54 @@ void main() {
     });
 
     group('validateAmount()', () {
+      double parseAmount(String value) {
+        final normalized = value.replaceAll(',', '.');
+        final parsed = double.tryParse(normalized);
+        if (parsed == null) {
+          throw FormatException('Invalid number');
+        }
+        return parsed;
+      }
+
       test('should return error when amount is null', () {
-        final data = dto.validateAmount(null);
+        final data = dto.validateAmount(value: null, parse: parseAmount);
 
         expect(data, 'Adicione um valor.');
       });
 
       test('should return error when amount is empty', () {
-        final data = dto.validateAmount('   ');
+        final data = dto.validateAmount(value: '   ', parse: parseAmount);
 
         expect(data, 'Adicione um valor.');
       });
 
-      test('should return error when amount is not a number', () {
-        final data = dto.validateAmount('abc');
-
-        expect(data, 'Adicione um valor válido');
+      test('should throw when amount is not a number', () {
+        expect(
+          () => dto.validateAmount(value: 'abc', parse: parseAmount),
+          throwsA(isA<FormatException>()),
+        );
       });
 
       test('should return error when amount is zero', () {
-        final data = dto.validateAmount('0');
+        final data = dto.validateAmount(value: '0', parse: parseAmount);
 
         expect(data, 'Adicione um valor válido');
       });
 
       test('should return error when amount is negative', () {
-        final data = dto.validateAmount('-10');
+        final data = dto.validateAmount(value: '-10', parse: parseAmount);
 
         expect(data, 'Adicione um valor válido');
       });
 
       test('should accept comma as decimal separator', () {
-        final data = dto.validateAmount('10,50');
+        final data = dto.validateAmount(value: '10,50', parse: parseAmount);
 
         expect(data, isNull);
       });
 
       test('should return null when amount is valid', () {
-        final data = dto.validateAmount('25.90');
+        final data = dto.validateAmount(value: '25.90', parse: parseAmount);
 
         expect(data, isNull);
       });

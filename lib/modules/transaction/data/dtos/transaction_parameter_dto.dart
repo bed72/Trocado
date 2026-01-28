@@ -9,6 +9,9 @@ import 'package:trocado/modules/transaction/data/dtos/transaction_dto.dart';
 final class TransactionParameterDto {
   final GlobalKey<FormState> formKey;
 
+  final double Function(String) parse;
+  final String Function(double) format;
+
   final DateCubit dateCubit;
   final CategoryCubit categoryCubit;
   final CalculatorCubit calculatorCubit;
@@ -27,6 +30,8 @@ final class TransactionParameterDto {
   final TransactionDto? transaction;
 
   const TransactionParameterDto({
+    required this.parse,
+    required this.format,
     required this.formKey,
     required this.dateCubit,
     required this.transaction,

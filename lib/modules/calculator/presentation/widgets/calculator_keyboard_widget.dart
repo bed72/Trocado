@@ -63,7 +63,7 @@ class CalculatorKeyboard extends StatelessWidget {
     onTap: () => onKeyTap(label),
     child: Container(
       decoration: BoxDecoration(
-        borderRadius: context.radius.cornerRadius100,
+        borderRadius: context.radius.cornerRadius300,
         color: background ?? context.colors.outlineVariant,
       ),
       child: Center(

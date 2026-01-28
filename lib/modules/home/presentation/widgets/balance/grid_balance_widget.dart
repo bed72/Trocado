@@ -1,43 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:trocado/modules/home/data/dtos/balance_dto.dart';
-import 'package:trocado/modules/home/presentation/widgets/balance/balance_widget.dart';
+import 'package:trocado/modules/home/presentation/cubits/home_cubit.dart';
+import 'package:trocado/modules/home/presentation/widgets/home_success_widget.dart';
+import 'package:trocado/modules/home/presentation/widgets/home_loading_widget.dart';
 
 class GridBalanceWidget extends StatelessWidget {
-  const GridBalanceWidget({super.key});
+  final HomeCubit cubit;
+
+  const GridBalanceWidget({super.key, required this.cubit});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      spacing: 16.0,
-      children: [
-        BalanceWidget(
-          state: BalanceDto(label: 'Total', amount: 'R\$ 1.000,00'),
+    return BlocBuilder<HomeCubit, HomeState>(
+      bloc: cubit,
+      buildWhen: (_, current) =>
+          current is HomeSuccess || current is HomeLoading,
+      builder: (_, state) => switch (state) {
+        HomeLoading() => HomeBalanceLoadingWidget(),
+        HomeSuccess() => HomeBalaceSuccessWidget(
+          onPress: (value) {},
+          format: cubit.format,
+          model: state.home.balance,
         ),
-        Row(
-          spacing: 16.0,
-          children: [
-            Expanded(
-              child: BalanceWidget(
-                state: BalanceDto(
-                  type: .income,
-                  label: 'Receita',
-                  amount: 'R\$ 10.000,00',
-                ),
-              ),
-            ),
-            Expanded(
-              child: BalanceWidget(
-                state: BalanceDto(
-                  type: .expense,
-                  label: 'Despesa',
-                  amount: 'R\$ 1.000,00',
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
+        _ => const SizedBox.shrink(),
+      },
     );
   }
 }

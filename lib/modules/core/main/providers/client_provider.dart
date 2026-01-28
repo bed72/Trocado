@@ -4,7 +4,7 @@ import 'package:trocado/modules/core/infrastructure/clients/database/database_cl
 import 'package:trocado/modules/core/infrastructure/resources/loggers/logger.dart';
 
 void clientProvider() {
-  provider.registerLazySingleton<IDatabaseClient>(
-    () => DatabaseClient(logger: provider.get<ILogger>()),
+  i.registerLazySingleton<IDatabaseClient>(
+    () => DatabaseClient(logger: i.get<ILogger>()),
   );
 }

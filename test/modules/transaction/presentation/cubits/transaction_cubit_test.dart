@@ -1,8 +1,7 @@
 import 'package:mocktail/mocktail.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:trocado/modules/core/domain/either/either.dart';
+import 'package:trocado/modules/core/core.dart';
 
 import 'package:trocado/modules/transaction/data/dtos/transaction_dto.dart';
 
@@ -11,15 +10,17 @@ import 'package:trocado/modules/transaction/presentation/cubits/transaction_cubi
 import 'package:trocado/modules/transaction/domain/models/transaction_model.dart';
 import 'package:trocado/modules/transaction/domain/repositories/interface_transaction_repository.dart';
 
-import '../../mocks/mocks.dart';
+import '../../../../mocks/mocks.dart';
 
 void main() {
   late TransactionCubit cubit;
+  late IMoneyFormatter formatter;
   late ITransactionRepository repository;
 
   setUp(() {
+    formatter = MockMoneyFormatter();
     repository = MockTransactionRepository();
-    cubit = TransactionCubit(repository: repository);
+    cubit = TransactionCubit(formatter: formatter, repository: repository);
   });
 
   tearDown(() {
