@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 import 'package:trocado/modules/core/core.dart';
 
@@ -9,49 +10,61 @@ class CalculatorKeyboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final backgroundColor = context.colors.secondaryContainer;
+    final background = context.colors.secondaryContainer;
 
-    return GridView.count(
-      shrinkWrap: true,
-      crossAxisCount: 3,
+    return StaggeredGrid.count(
+      crossAxisCount: 4,
       mainAxisSpacing: 4,
       crossAxisSpacing: 4,
-      childAspectRatio: 1.2,
-      physics: const NeverScrollableScrollPhysics(),
       children: [
-        _key(context, '7'),
-        _key(context, '8'),
-        _key(context, '9'),
+        _buildTile(context: context, label: '7'),
+        _buildTile(context: context, label: '8'),
+        _buildTile(context: context, label: '9'),
+        _buildTile(context: context, label: 'DEL', background: background),
 
-        _key(context, '4'),
-        _key(context, '5'),
-        _key(context, '6'),
+        _buildTile(context: context, label: '4'),
+        _buildTile(context: context, label: '5'),
+        _buildTile(context: context, label: '6'),
+        _buildTile(context: context, label: 'AC', background: background),
 
-        _key(context, '1'),
-        _key(context, '2'),
-        _key(context, '3'),
+        _buildTile(context: context, label: '1'),
+        _buildTile(context: context, label: '2'),
+        _buildTile(context: context, label: '3'),
+        _buildTile(
+          context: context,
+          label: '✓',
+          background: background,
+          rowSpan: 2,
+        ),
 
-        _key(context, '0'),
-        _key(context, ','),
-        _key(context, ''),
-
-        _key(context, 'AC', backgroundColor),
-        _key(context, 'DEL', backgroundColor),
-        _key(context, '✓', backgroundColor),
+        _buildTile(context: context, label: '0', columnSpan: 2),
+        _buildTile(context: context, label: ','),
       ],
     );
   }
 
-  BounceWidget _key(
-    BuildContext context,
-    String label, [
-    Color? backgroundColor,
-  ]) => BounceWidget.withTap(
+  StaggeredGridTile _buildTile({
+    required BuildContext context,
+    required String label,
+    int rowSpan = 1,
+    int columnSpan = 1,
+    Color? background,
+  }) => StaggeredGridTile.count(
+    mainAxisCellCount: rowSpan,
+    crossAxisCellCount: columnSpan,
+    child: _buildKey(context: context, label: label, background: background),
+  );
+
+  BounceWidget _buildKey({
+    required BuildContext context,
+    required String label,
+    Color? background,
+  }) => BounceWidget.withTap(
     onTap: () => onKeyTap(label),
     child: Container(
       decoration: BoxDecoration(
         borderRadius: context.radius.cornerRadius100,
-        color: backgroundColor ?? context.colors.outlineVariant,
+        color: background ?? context.colors.outlineVariant,
       ),
       child: Center(
         child: Text(

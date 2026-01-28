@@ -41,7 +41,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       title: 'Continha Rápida',
       subtitle: 'Use a calculadora pra agilizar seus registros.',
       child: Padding(
-        padding: const .only(top: 12.0),
+        padding: const .only(top: 12.0, bottom: 20.0),
         child: Column(
           spacing: 16.0,
           mainAxisSize: .min,
