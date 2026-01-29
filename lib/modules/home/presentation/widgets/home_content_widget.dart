@@ -15,8 +15,8 @@ import 'package:trocado/modules/home/presentation/widgets/transaction/transactio
 class HomeContentWidget extends StatelessWidget {
   final DateCubit dateCubit;
   final HomeCubit homeCubit;
+  final ValueChanged<int?> onPress;
   final TransactionCubit transactionCubit;
-  final ValueChanged<TransactionDto> onPress;
 
   const HomeContentWidget({
     super.key,

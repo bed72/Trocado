@@ -12,12 +12,18 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with AfterLayoutMixin {
+class _SplashScreenState extends State<SplashScreen> {
   @override
-  FutureOr<void> afterFirstLayout(BuildContext context) async {
-    await Future.delayed(Durations.extralong4);
+  void initState() {
+    super.initState();
 
-    widget.navigateTo();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+
+      await Future.delayed(Durations.extralong4);
+
+      widget.navigateTo();
+    });
   }
 
   @override

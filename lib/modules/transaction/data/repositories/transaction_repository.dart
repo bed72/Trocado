@@ -9,16 +9,22 @@ import 'package:trocado/modules/transaction/infrastructure/datasources/local/tra
 
 final class TransactionRepository implements ITransactionRepository {
   final TransactionInMapper _inMapper;
+  final TransactionDtoMapper _dtoMapper;
   final TransactionOutMapper _outMapper;
   final ITransactionLocalDatasource _datasource;
 
   TransactionRepository({
     required TransactionInMapper inMapper,
+    required TransactionDtoMapper dtoMapper,
     required TransactionOutMapper outMapper,
     required ITransactionLocalDatasource datasource,
   }) : _inMapper = inMapper,
+       _dtoMapper = dtoMapper,
        _outMapper = outMapper,
        _datasource = datasource;
+
+  @override
+  TransactionDto toTransactionDto(TransactionModel model) => _dtoMapper(model);
 
   @override
   Either<String, void> delete(int id) => _datasource.delete(id);

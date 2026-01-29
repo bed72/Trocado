@@ -13,7 +13,7 @@ import 'package:trocado/modules/transaction/presentation/widgets/transactions_fo
 import 'package:trocado/modules/transaction/presentation/widgets/transactions_listener_widget.dart';
 
 class TransactionsScreen extends StatefulWidget {
-  final TransactionDto? dto;
+  final int? id;
 
   final DateCubit dateCubit;
   final CategoryCubit categoryCubit;
@@ -33,7 +33,7 @@ class TransactionsScreen extends StatefulWidget {
     required this.navigateToDate,
     required this.navigateToCategory,
     required this.navigateToCalculator,
-    this.dto,
+    this.id,
   });
 
   @override
@@ -44,16 +44,22 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   late TransactionDto _dto;
   late final GlobalKey<FormState> _formKey;
 
+  bool get _isEditing => widget.id != null;
+
   @override
   void initState() {
     super.initState();
 
     widget.categoryCubit.clear();
     widget.transactionCubit.clear();
-
     _formKey = GlobalKey<FormState>();
-    _dto =
-        widget.dto ?? TransactionDto.empty(date: widget.dateCubit.state.date);
+    _dto = TransactionDto.empty(date: widget.dateCubit.state.date);
+
+    if (_isEditing) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        widget.transactionCubit.find(widget.id!);
+      });
+    }
   }
 
   @override
@@ -61,11 +67,24 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     return TransactionsListenerWidget(
       cubit: widget.transactionCubit,
       child: ScaffoldWidget(
-        appBar: AppBarWidget(title: 'Transações'),
+        appBar: AppBarWidget(
+          title: _isEditing ? 'Editar Transação' : 'Nova Transação',
+        ),
         child: Padding(
           padding: const .all(16.0),
-          child: BlocBuilder<TransactionCubit, TransactionState>(
+          child: BlocConsumer<TransactionCubit, TransactionState>(
             bloc: widget.transactionCubit,
+            listenWhen: (_, current) =>
+                current is TransactionSuccess && current.transaction != null,
+            listener: (_, state) {
+              if (state is TransactionSuccess && state.transaction != null) {
+                setState(() {
+                  _dto = widget.transactionCubit.toTransactionDto(
+                    state.transaction!,
+                  );
+                });
+              }
+            },
             builder: (_, state) =>
                 _buildContent(isLoading: state is TransactionLoading),
           ),

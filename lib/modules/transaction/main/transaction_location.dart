@@ -4,24 +4,25 @@ import 'package:trocado/modules/core/core.dart';
 import 'package:trocado/modules/date/date.dart';
 import 'package:trocado/modules/category/category.dart';
 import 'package:trocado/modules/calculator/calculator.dart';
-import 'package:trocado/modules/transaction/data/dtos/transaction_dto.dart';
 
 import 'package:trocado/modules/transaction/presentation/cubits/transaction_cubit.dart';
 import 'package:trocado/modules/transaction/presentation/screens/transactions_screen.dart';
 
 final class TransactionLocation extends Location {
-  final TransactionDto? dto;
+  final int? id;
 
-  const TransactionLocation({this.dto});
+  const TransactionLocation({this.id});
 
   @override
-  String get path => RoutesConstant.transactions.path;
+  String get path => id != null
+      ? '${RoutesConstant.transactions.path}/$id'
+      : RoutesConstant.transactions.path;
 
   @override
   LocationPageBuilder get pageBuilder =>
       (context) => screenPage(
         TransactionsScreen(
-          dto: dto,
+          id: id,
           dateCubit: context.get<DateCubit>(),
           categoryCubit: context.get<CategoryCubit>(),
           caculatorCubit: context.get<CalculatorCubit>(),

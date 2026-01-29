@@ -17,17 +17,20 @@ import '../../../../mocks/mocks.dart';
 
 void main() {
   late TransactionInMapper inMapper;
+  late TransactionDtoMapper dtoMapper;
   late TransactionOutMapper outMapper;
   late ITransactionRepository repository;
   late ITransactionLocalDatasource datasource;
 
   setUp(() {
     inMapper = MockTransactionInMapper();
+    dtoMapper = MockTransactionDtoMapper();
     outMapper = MockTransactionOutMapper();
     datasource = MockTransactionLocalDatasource();
 
     repository = TransactionRepository(
       inMapper: inMapper,
+      dtoMapper: dtoMapper,
       outMapper: outMapper,
       datasource: datasource,
     );

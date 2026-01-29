@@ -22,6 +22,7 @@ void transactionProvider() {
     ..registerFactory<ITransactionRepository>(
       () => TransactionRepository(
         inMapper: i.get<TransactionInMapper>(),
+        dtoMapper: i.get<TransactionDtoMapper>(),
         outMapper: i.get<TransactionOutMapper>(),
         datasource: i.get<ITransactionLocalDatasource>(),
       ),

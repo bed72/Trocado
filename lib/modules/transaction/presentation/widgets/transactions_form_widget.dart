@@ -5,8 +5,8 @@ import 'package:trocado/modules/core/core.dart';
 import 'package:trocado/modules/date/date.dart';
 import 'package:trocado/modules/category/category.dart';
 import 'package:trocado/modules/calculator/calculator.dart';
-import 'package:trocado/modules/transaction/data/dtos/transaction_dto.dart';
 
+import 'package:trocado/modules/transaction/data/dtos/transaction_dto.dart';
 import 'package:trocado/modules/transaction/data/dtos/transaction_type_dto.dart';
 import 'package:trocado/modules/transaction/data/dtos/transaction_parameter_dto.dart';
 
@@ -42,25 +42,26 @@ class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
     _transactionDto = widget.dto.transaction;
     _typeDto = _transactionDto?.type ?? .expense;
 
-    _amountController = TextEditingController(
-      text: _transactionDto?.amount == null
-          ? ''
-          : widget.dto.format(_transactionDto!.amount!),
-    );
-    _dateController = TextEditingController(
-      text: _transactionDto?.date.format(),
-    );
-    _categoryController = TextEditingController(
-      text: (_transactionDto == null)
-          ? CategoryDto.other.label
-          : _transactionDto!.category.label,
-    );
-    _descriptionController = TextEditingController(
-      text: _transactionDto?.description,
-    )..addListener(_handleDescriptionInteractions);
-    _observationController = TextEditingController(
-      text: _transactionDto?.observation,
-    )..addListener(_handleObservatiobInteractions);
+    _dateController = TextEditingController();
+    _amountController = TextEditingController();
+    _categoryController = TextEditingController();
+    _descriptionController = TextEditingController()
+      ..addListener(_handleDescriptionInteractions);
+    _observationController = TextEditingController()
+      ..addListener(_handleObservatiobInteractions);
+
+    _populateControllers();
+  }
+
+  @override
+  void didUpdateWidget(covariant TransactionsFormWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.dto.transaction?.id != widget.dto.transaction?.id) {
+      _transactionDto = widget.dto.transaction;
+      _typeDto = _transactionDto?.type ?? .expense;
+      _populateControllers();
+    }
   }
 
   @override
@@ -197,6 +198,17 @@ class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
           _observationController.text.isNotEmpty &&
           _observationController.text.length < 3;
     });
+  }
+
+  void _populateControllers() {
+    _dateController.text = _transactionDto?.date.format() ?? '';
+    _descriptionController.text = _transactionDto?.description ?? '';
+    _observationController.text = _transactionDto?.observation ?? '';
+    _categoryController.text =
+        _transactionDto?.category.label ?? CategoryDto.other.label;
+    _amountController.text = _transactionDto?.amount == null
+        ? ''
+        : widget.dto.format(_transactionDto!.amount!);
   }
 
   SwitcherSizeAnimation _buildDescriptionHelper() => SwitcherSizeAnimation(

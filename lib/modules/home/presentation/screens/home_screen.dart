@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 
 import 'package:trocado/modules/core/core.dart';
@@ -17,9 +15,9 @@ class HomeScreen extends StatefulWidget {
   final HomeCubit homeCubit;
   final TransactionCubit transactionCubit;
 
+  final ValueChanged<int?> onPress;
   final VoidCallback onNavigateToExit;
   final VoidCallback onNavigateToTransaction;
-  final ValueChanged<TransactionDto> onPress;
 
   const HomeScreen({
     super.key,
@@ -36,14 +34,16 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen>
-    with AfterLayoutMixin, BackButtonMixin<HomeScreen> {
+    with BackButtonMixin<HomeScreen> {
   @override
   void execute() {
     widget.onNavigateToExit();
   }
 
   @override
-  FutureOr<void> afterFirstLayout(BuildContext context) {
+  void initState() {
+    super.initState();
+
     widget.homeCubit.findTransactionBy();
   }
 

@@ -22,8 +22,10 @@ final class TransactionCubit extends Cubit<TransactionState> {
        super(TransactionIdle());
 
   double parse(String value) => _formatter.parse(value);
-
   String format(double value) => _formatter.format(value);
+
+  TransactionDto toTransactionDto(TransactionModel model) =>
+      _repository.toTransactionDto(model);
 
   void clear() {
     emit(TransactionIdle());

@@ -19,6 +19,10 @@ class TransactionsListenerWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocListener<TransactionCubit, TransactionState>(
       bloc: cubit,
+      listenWhen: (_, current) =>
+          (current is TransactionSuccess && current.transaction != null)
+          ? false
+          : true,
       listener: (_, state) => switch (state) {
         TransactionSuccess() => _showSuccessToast(context: context),
         TransactionFailure() => _showFailureToast(

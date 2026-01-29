@@ -8,8 +8,8 @@ import 'package:trocado/modules/home/presentation/notifiers/swipe_radius_notifie
 class TransactionWidget extends StatefulWidget {
   final TransactionDto dto;
   final ValueChanged<int> onDelete;
+  final ValueChanged<int?> onPress;
   final String Function(double) format;
-  final ValueChanged<TransactionDto> onPress;
 
   const TransactionWidget({
     super.key,
@@ -47,7 +47,7 @@ class _TransactionWidgetState extends State<TransactionWidget> {
     final color = isIncome ? context.colors.primary : context.colors.error;
 
     return BounceWidget.withTap(
-      onTap: () => widget.onPress(widget.dto),
+      onTap: () => widget.onPress(widget.dto.id),
       child: Padding(
         padding: const .only(bottom: 8.0),
         child: Dismissible(

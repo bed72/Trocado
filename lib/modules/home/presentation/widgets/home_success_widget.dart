@@ -15,8 +15,8 @@ class HomeTransactionSuccessWidget extends StatelessWidget {
   final bool hasReachedEnd;
   final VoidCallback onLoadMore;
   final ValueChanged<int> onDelete;
+  final ValueChanged<int?> onPress;
   final String Function(double value) format;
-  final ValueChanged<TransactionDto> onPress;
   final TransactionDto Function(TransactionModel) toDto;
 
   const HomeTransactionSuccessWidget({
