@@ -48,12 +48,12 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   void initState() {
     super.initState();
 
-    widget.dateCubit.clear();
     widget.categoryCubit.clear();
     widget.transactionCubit.clear();
 
     _formKey = GlobalKey<FormState>();
-    _dto = widget.dto ?? TransactionDto.empty();
+    _dto =
+        widget.dto ?? TransactionDto.empty(date: widget.dateCubit.state.date);
   }
 
   @override

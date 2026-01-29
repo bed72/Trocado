@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:trocado/modules/date/date.dart';
 import 'package:trocado/modules/transaction/transaction.dart';
 
 import 'package:trocado/modules/home/presentation/cubits/home_cubit.dart';
@@ -12,6 +13,7 @@ import 'package:trocado/modules/home/presentation/widgets/balance/grid_balance_w
 import 'package:trocado/modules/home/presentation/widgets/transaction/transaction_header_widget.dart';
 
 class HomeContentWidget extends StatelessWidget {
+  final DateCubit dateCubit;
   final HomeCubit homeCubit;
   final TransactionCubit transactionCubit;
   final ValueChanged<TransactionDto> onPress;
@@ -19,6 +21,7 @@ class HomeContentWidget extends StatelessWidget {
   const HomeContentWidget({
     super.key,
     required this.onPress,
+    required this.dateCubit,
     required this.homeCubit,
     required this.transactionCubit,
   });
@@ -26,6 +29,7 @@ class HomeContentWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return HomeListenerWidget(
+      dateCubit: dateCubit,
       homeCubit: homeCubit,
       transactionCubit: transactionCubit,
       child: CustomScrollView(

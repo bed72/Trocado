@@ -48,7 +48,7 @@ class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
           : widget.dto.format(_transactionDto!.amount!),
     );
     _dateController = TextEditingController(
-      text: _transactionDto?.date.format() ?? DateTime.now().format(),
+      text: _transactionDto?.date.format(),
     );
     _categoryController = TextEditingController(
       text: (_transactionDto == null)

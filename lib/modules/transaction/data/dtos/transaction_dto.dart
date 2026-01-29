@@ -22,14 +22,14 @@ final class TransactionDto {
     this.observation,
   });
 
-  factory TransactionDto.empty() => TransactionDto(
+  factory TransactionDto.empty({DateTime? date}) => TransactionDto(
     id: null,
     amount: null,
     type: .expense,
     description: '',
     category: .other,
     observation: null,
-    date: DateTime.now(),
+    date: date ?? DateTime.now(),
   );
 
   TransactionDto copyWith({

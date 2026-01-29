@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'package:trocado/modules/core/core.dart';
+import 'package:trocado/modules/date/date.dart';
 import 'package:trocado/modules/transaction/transaction.dart';
 
 import 'package:trocado/modules/home/presentation/cubits/home_cubit.dart';
@@ -12,6 +13,7 @@ import 'package:trocado/modules/home/presentation/widgets/home_content_widget.da
 import 'package:trocado/modules/home/presentation/widgets/home_action_button_widget.dart';
 
 class HomeScreen extends StatefulWidget {
+  final DateCubit dateCubit;
   final HomeCubit homeCubit;
   final TransactionCubit transactionCubit;
 
@@ -22,6 +24,7 @@ class HomeScreen extends StatefulWidget {
   const HomeScreen({
     super.key,
     required this.onPress,
+    required this.dateCubit,
     required this.homeCubit,
     required this.transactionCubit,
     required this.onNavigateToExit,
@@ -54,6 +57,7 @@ class _HomeScreenState extends State<HomeScreen>
       child: HomeContentWidget(
         onPress: widget.onPress,
         homeCubit: widget.homeCubit,
+        dateCubit: widget.dateCubit,
         transactionCubit: widget.transactionCubit,
       ),
     );

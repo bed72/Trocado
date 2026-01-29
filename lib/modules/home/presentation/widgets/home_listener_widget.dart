@@ -2,18 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:trocado/modules/core/core.dart';
+import 'package:trocado/modules/date/date.dart';
 import 'package:trocado/modules/transaction/transaction.dart';
 
 import 'package:trocado/modules/home/presentation/cubits/home_cubit.dart';
 
 class HomeListenerWidget extends StatelessWidget {
   final Widget child;
+  final DateCubit dateCubit;
   final HomeCubit homeCubit;
   final TransactionCubit transactionCubit;
 
   const HomeListenerWidget({
     super.key,
     required this.child,
+    required this.dateCubit,
     required this.homeCubit,
     required this.transactionCubit,
   });
@@ -32,6 +35,22 @@ class HomeListenerWidget extends StatelessWidget {
             _ => {},
           },
         ),
+
+        BlocListener<HomeCubit, HomeState>(
+          bloc: homeCubit,
+          listenWhen: (previous, current) =>
+              (previous is HomeSuccess && current is HomeSuccess)
+              ? previous.month != current.month
+              : current is HomeSuccess,
+          listener: (_, state) {
+            if (state is HomeSuccess) {
+              dateCubit.select(
+                DateTime.fromMillisecondsSinceEpoch(state.month.startAt),
+              );
+            }
+          },
+        ),
+
         BlocListener<TransactionCubit, TransactionState>(
           bloc: transactionCubit,
           listener: (_, state) => switch (state) {

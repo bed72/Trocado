@@ -41,8 +41,13 @@ class _DateScreenState extends State<DateScreen> {
               width: .infinity,
               height: context.height * 0.5,
               padding: .symmetric(vertical: 16.0, horizontal: 8.0),
-              child: BlocBuilder<DateCubit, DateState>(
+              child: BlocConsumer<DateCubit, DateState>(
                 bloc: widget.cubit,
+                listenWhen: (previous, current) =>
+                    previous.date != current.date,
+                listener: (_, state) {
+                  setState(() => _date = state.date);
+                },
                 builder: (_, state) => SfDateRangePicker(
                   view: .month,
                   showNavigationArrow: true,
