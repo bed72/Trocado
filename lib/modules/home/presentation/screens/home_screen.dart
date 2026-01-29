@@ -47,7 +47,7 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   Widget build(BuildContext context) {
     return ScaffoldWidget(
-      appBar: HomeAppBarWidget(),
+      appBar: HomeAppBarWidget(cubit: widget.homeCubit),
       floatingActionButton: HomeActionButtonWidget(
         onNavigateToTransaction: widget.onNavigateToTransaction,
       ),

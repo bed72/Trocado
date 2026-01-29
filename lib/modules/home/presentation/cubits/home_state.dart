@@ -23,12 +23,14 @@ final class HomeFailure extends HomeState {
 
 final class HomeSuccess extends HomeState {
   final HomeModel home;
+  final MonthModel month;
   final bool hasReachedEnd;
   final bool isLoadingMore;
   final TransactionTypeDto? type;
 
   const HomeSuccess({
     required this.home,
+    required this.month,
     this.type,
     this.isLoadingMore = false,
     this.hasReachedEnd = false,
@@ -36,16 +38,18 @@ final class HomeSuccess extends HomeState {
 
   HomeSuccess copyWith({
     HomeModel? home,
+    MonthModel? month,
     bool? hasReachedEnd,
     bool? isLoadingMore,
     TransactionTypeDto? type,
   }) => HomeSuccess(
     home: home ?? this.home,
     type: type ?? this.type,
+    month: month ?? this.month,
     isLoadingMore: isLoadingMore ?? this.isLoadingMore,
     hasReachedEnd: hasReachedEnd ?? this.hasReachedEnd,
   );
 
   @override
-  List<Object> get props => [home, isLoadingMore, hasReachedEnd];
+  List<Object> get props => [home, month, isLoadingMore, hasReachedEnd];
 }

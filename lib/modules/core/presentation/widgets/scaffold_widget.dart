@@ -3,6 +3,7 @@ import 'package:trocado/modules/core/presentation/extensions/context_extension.d
 
 class ScaffoldWidget extends StatelessWidget {
   final Widget child;
+  final Widget? bottomNavigationBar;
   final PreferredSizeWidget? appBar;
   final Widget? floatingActionButton;
   final PopInvokedWithResultCallback<dynamic>? onPopInvokedWithResult;
@@ -11,6 +12,7 @@ class ScaffoldWidget extends StatelessWidget {
     super.key,
     required this.child,
     this.appBar,
+    this.bottomNavigationBar,
     this.floatingActionButton,
     this.onPopInvokedWithResult,
   });
@@ -24,6 +26,10 @@ class ScaffoldWidget extends StatelessWidget {
         appBar: appBar,
         body: SafeArea(child: child),
         floatingActionButton: floatingActionButton,
+        bottomNavigationBar: SafeArea(
+          top: false,
+          child: bottomNavigationBar ?? const SizedBox.shrink(),
+        ),
       ),
     );
   }

@@ -9,6 +9,7 @@ import 'package:trocado/modules/transaction/domain/models/transaction_model.dart
 import 'package:trocado/modules/home/presentation/cubits/home_cubit.dart';
 
 import 'package:trocado/modules/home/domain/models/home_model.dart';
+import 'package:trocado/modules/home/domain/models/month_model.dart';
 import 'package:trocado/modules/home/domain/models/balance_model.dart';
 import 'package:trocado/modules/home/domain/repositories/interface_home_repository.dart';
 
@@ -16,6 +17,7 @@ import '../../../../mocks/mocks.dart';
 
 void main() {
   late HomeCubit cubit;
+  late MonthModel currentMonth;
   late IMoneyFormatter formatter;
   late IHomeRepository repository;
 
@@ -42,6 +44,7 @@ void main() {
   ];
 
   setUp(() {
+    currentMonth = MonthModel.now();
     formatter = MockMoneyFormatter();
     repository = MockHomeRepository();
     cubit = HomeCubit(formatter: formatter, repository: repository);
@@ -79,10 +82,11 @@ void main() {
 
           return cubit;
         },
-        act: (cubit) => cubit.findTransactionBy(startAt: 0, endAt: 200),
+        act: (cubit) => cubit.findTransactionBy(),
         expect: () => [
           HomeLoading(),
           HomeSuccess(
+            month: currentMonth,
             hasReachedEnd: true,
             home: HomeModel(
               balance: initialBalance,
@@ -116,8 +120,8 @@ void main() {
 
           return cubit;
         },
+        act: (cubit) => cubit.findTransactionBy(),
         expect: () => [HomeLoading(), HomeFailure(failure: 'Failure')],
-        act: (cubit) => cubit.findTransactionBy(startAt: 0, endAt: 200),
       );
 
       blocTest<HomeCubit, HomeState>(
@@ -142,7 +146,7 @@ void main() {
 
           return cubit;
         },
-        act: (cubit) => cubit.findTransactionBy(startAt: 0, endAt: 200),
+        act: (cubit) => cubit.findTransactionBy(),
         expect: () => [HomeLoading(), HomeFailure(failure: 'Balance failure')],
       );
     });
@@ -170,6 +174,7 @@ void main() {
         build: () {
           return cubit..emit(
             HomeSuccess(
+              month: currentMonth,
               hasReachedEnd: true,
               home: HomeModel(
                 balance: initialBalance,
@@ -197,6 +202,7 @@ void main() {
         build: () {
           return cubit..emit(
             HomeSuccess(
+              month: currentMonth,
               isLoadingMore: true,
               home: HomeModel(
                 balance: initialBalance,
@@ -245,25 +251,30 @@ void main() {
 
           return cubit..emit(
             HomeSuccess(
+              month: currentMonth,
+              hasReachedEnd: false,
               home: HomeModel(
                 balance: initialBalance,
                 transactions: transactions,
               ),
-              hasReachedEnd: false,
             ),
           );
         },
         act: (cubit) => cubit.loadMore(),
         expect: () => [
           HomeSuccess(
+            month: currentMonth,
+            isLoadingMore: true,
+            hasReachedEnd: false,
             home: HomeModel(
               balance: initialBalance,
               transactions: transactions,
             ),
-            isLoadingMore: true,
-            hasReachedEnd: false,
           ),
           HomeSuccess(
+            month: currentMonth,
+            hasReachedEnd: true,
+            isLoadingMore: false,
             home: HomeModel(
               balance: initialBalance,
               transactions: [
@@ -278,8 +289,6 @@ void main() {
                 ),
               ],
             ),
-            hasReachedEnd: true,
-            isLoadingMore: false,
           ),
         ],
       );
@@ -299,31 +308,34 @@ void main() {
 
           return cubit..emit(
             HomeSuccess(
+              month: currentMonth,
+              hasReachedEnd: false,
               home: HomeModel(
                 balance: initialBalance,
                 transactions: transactions,
               ),
-              hasReachedEnd: false,
             ),
           );
         },
         act: (cubit) => cubit.loadMore(),
         expect: () => [
           HomeSuccess(
-            home: HomeModel(
-              balance: initialBalance,
-              transactions: transactions,
-            ),
+            month: currentMonth,
             isLoadingMore: true,
             hasReachedEnd: false,
-          ),
-          HomeSuccess(
             home: HomeModel(
               balance: initialBalance,
               transactions: transactions,
             ),
+          ),
+          HomeSuccess(
+            month: currentMonth,
             isLoadingMore: false,
             hasReachedEnd: false,
+            home: HomeModel(
+              balance: initialBalance,
+              transactions: transactions,
+            ),
           ),
         ],
       );
@@ -355,6 +367,7 @@ void main() {
 
           return cubit..emit(
             HomeSuccess(
+              month: currentMonth,
               home: HomeModel(
                 balance: initialBalance,
                 transactions: transactions,
@@ -365,17 +378,19 @@ void main() {
         act: (cubit) => cubit.deleteTransactionBy(id: 1),
         expect: () => [
           HomeSuccess(
+            month: currentMonth,
             home: HomeModel(
               balance: initialBalance,
               transactions: [transactions[1]],
             ),
           ),
           HomeSuccess(
+            month: currentMonth,
+            hasReachedEnd: true,
             home: HomeModel(
               balance: refreshedBalance,
               transactions: [transactions[1]],
             ),
-            hasReachedEnd: true,
           ),
         ],
       );
@@ -389,6 +404,7 @@ void main() {
 
           return cubit..emit(
             HomeSuccess(
+              month: currentMonth,
               home: HomeModel(
                 balance: initialBalance,
                 transactions: transactions,
@@ -399,6 +415,7 @@ void main() {
         act: (cubit) => cubit.deleteTransactionBy(id: 1),
         expect: () => [
           HomeSuccess(
+            month: currentMonth,
             home: HomeModel(
               balance: initialBalance,
               transactions: [transactions[1]],
@@ -432,6 +449,7 @@ void main() {
 
           return cubit..emit(
             HomeSuccess(
+              month: currentMonth,
               home: HomeModel(
                 balance: initialBalance,
                 transactions: transactions,
@@ -442,6 +460,7 @@ void main() {
         act: (cubit) => cubit.deleteTransactionBy(id: 1),
         expect: () => [
           HomeSuccess(
+            month: currentMonth,
             home: HomeModel(
               balance: initialBalance,
               transactions: [transactions[1]],
@@ -507,6 +526,7 @@ void main() {
 
           return cubit..emit(
             HomeSuccess(
+              month: currentMonth,
               home: HomeModel(
                 balance: initialBalance,
                 transactions: transactions,
@@ -514,16 +534,17 @@ void main() {
             ),
           );
         },
-        act: (cubit) => cubit.filterBalanceBy(type: .income),
+        act: (cubit) => cubit.filterBalanceBy(type: TransactionTypeDto.income),
         expect: () => [
           HomeLoading(),
           HomeSuccess(
             type: .income,
+            month: currentMonth,
+            hasReachedEnd: true,
             home: HomeModel(
               balance: initialBalance,
               transactions: [transactions[1]],
             ),
-            hasReachedEnd: true,
           ),
         ],
         verify: (_) {
@@ -569,6 +590,7 @@ void main() {
 
           return cubit..emit(
             HomeSuccess(
+              month: currentMonth,
               home: HomeModel(
                 balance: initialBalance,
                 transactions: transactions,
@@ -584,23 +606,164 @@ void main() {
           HomeLoading(),
           HomeSuccess(
             type: .income,
+            month: currentMonth,
+            hasReachedEnd: true,
             home: HomeModel(
               balance: initialBalance,
               transactions: [transactions[1]],
             ),
-            hasReachedEnd: true,
           ),
           HomeLoading(),
           HomeSuccess(
+            month: currentMonth,
+            hasReachedEnd: true,
             home: HomeModel(
               balance: initialBalance,
               transactions: transactions,
             ),
-            hasReachedEnd: true,
           ),
         ],
         verify: (_) {
           expect(cubit.selectedType, isNull);
+        },
+      );
+    });
+
+    group('changeMonth', () {
+      blocTest<HomeCubit, HomeState>(
+        'emits [HomeLoading, HomeSuccess] with new month data',
+        build: () {
+          when(
+            () => repository.findTransactionBy(
+              type: any(named: 'type'),
+              endAt: any(named: 'endAt'),
+              limit: any(named: 'limit'),
+              offset: any(named: 'offset'),
+              startAt: any(named: 'startAt'),
+            ),
+          ).thenReturn(Right(transactions));
+
+          when(
+            () => repository.getBalanceBy(
+              endAt: any(named: 'endAt'),
+              startAt: any(named: 'startAt'),
+            ),
+          ).thenReturn(Right(initialBalance));
+
+          return cubit;
+        },
+        act: (cubit) => cubit.changeMonth(currentMonth.previous),
+        expect: () => [
+          HomeLoading(),
+          HomeSuccess(
+            month: currentMonth.previous,
+            hasReachedEnd: true,
+            home: HomeModel(
+              balance: initialBalance,
+              transactions: transactions,
+            ),
+          ),
+        ],
+        verify: (_) {
+          expect(cubit.currentMonth, currentMonth.previous);
+          expect(cubit.selectedType, isNull);
+        },
+      );
+
+      blocTest<HomeCubit, HomeState>(
+        'resets selectedType when changing month',
+        build: () {
+          when(
+            () => repository.findTransactionBy(
+              type: any(named: 'type'),
+              endAt: any(named: 'endAt'),
+              limit: any(named: 'limit'),
+              offset: any(named: 'offset'),
+              startAt: any(named: 'startAt'),
+            ),
+          ).thenReturn(Right(transactions));
+
+          when(
+            () => repository.getBalanceBy(
+              endAt: any(named: 'endAt'),
+              startAt: any(named: 'startAt'),
+            ),
+          ).thenReturn(Right(initialBalance));
+
+          return cubit;
+        },
+        seed: () => HomeSuccess(
+          type: .income,
+          month: currentMonth,
+          home: HomeModel(balance: initialBalance, transactions: transactions),
+        ),
+        act: (cubit) {
+          cubit.filterBalanceBy(type: .income);
+          cubit.changeMonth(currentMonth.next);
+        },
+        verify: (_) {
+          expect(cubit.selectedType, isNull);
+          expect(cubit.currentMonth, currentMonth.next);
+        },
+      );
+    });
+
+    group('previousMonth', () {
+      blocTest<HomeCubit, HomeState>(
+        'calls changeMonth with previous month',
+        build: () {
+          when(
+            () => repository.findTransactionBy(
+              type: any(named: 'type'),
+              endAt: any(named: 'endAt'),
+              limit: any(named: 'limit'),
+              offset: any(named: 'offset'),
+              startAt: any(named: 'startAt'),
+            ),
+          ).thenReturn(Right(transactions));
+
+          when(
+            () => repository.getBalanceBy(
+              endAt: any(named: 'endAt'),
+              startAt: any(named: 'startAt'),
+            ),
+          ).thenReturn(Right(initialBalance));
+
+          return cubit;
+        },
+        act: (cubit) => cubit.previousMonth(),
+        verify: (_) {
+          expect(cubit.currentMonth, currentMonth.previous);
+        },
+      );
+    });
+
+    group('nextMonth', () {
+      blocTest<HomeCubit, HomeState>(
+        'calls changeMonth with next month',
+        build: () {
+          when(
+            () => repository.findTransactionBy(
+              type: any(named: 'type'),
+              endAt: any(named: 'endAt'),
+              limit: any(named: 'limit'),
+              offset: any(named: 'offset'),
+              startAt: any(named: 'startAt'),
+            ),
+          ).thenReturn(Right(transactions));
+
+          when(
+            () => repository.getBalanceBy(
+              endAt: any(named: 'endAt'),
+              startAt: any(named: 'startAt'),
+            ),
+          ).thenReturn(Right(initialBalance));
+
+          return cubit;
+        },
+        act: (cubit) => cubit.nextMonth(),
+        verify: (_) {
+          expect(cubit.currentMonth, currentMonth.next);
         },
       );
     });
