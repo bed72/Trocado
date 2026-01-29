@@ -53,6 +53,7 @@ class HomeContentWidget extends StatelessWidget {
               HomeSuccess() => HomeTransactionSuccessWidget(
                 data: state.home,
                 onPress: onPress,
+                type: state.type,
                 format: homeCubit.format,
                 onLoadMore: homeCubit.loadMore,
                 toDto: homeCubit.toTransactionDto,

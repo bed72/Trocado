@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:trocado/modules/core/core.dart';
+import 'package:trocado/modules/home/presentation/widgets/home_empty_widget.dart';
 import 'package:trocado/modules/transaction/transaction.dart';
 
 import 'package:trocado/modules/home/domain/models/home_model.dart';
@@ -14,6 +15,7 @@ class HomeTransactionSuccessWidget extends StatelessWidget {
   final bool isLoadingMore;
   final bool hasReachedEnd;
   final VoidCallback onLoadMore;
+  final TransactionTypeDto? type;
   final ValueChanged<int> onDelete;
   final ValueChanged<int?> onPress;
   final String Function(double value) format;
@@ -27,6 +29,7 @@ class HomeTransactionSuccessWidget extends StatelessWidget {
     required this.onPress,
     required this.onDelete,
     required this.onLoadMore,
+    this.type,
     this.isLoadingMore = false,
     this.hasReachedEnd = false,
   });
@@ -36,7 +39,7 @@ class HomeTransactionSuccessWidget extends StatelessWidget {
     return SliverPadding(
       padding: const .symmetric(horizontal: 16.0),
       sliver: data.transactions.isEmpty
-          ? _buildEmpty(context)
+          ? _buildEmpty()
           : SliverList(
               delegate: SliverChildBuilderDelegate(
                 childCount: data.transactions.length + (hasReachedEnd ? 0 : 1),
@@ -67,33 +70,9 @@ class HomeTransactionSuccessWidget extends StatelessWidget {
     child: CircularProgressIndicatorWidget(),
   );
 
-  SliverFillRemaining _buildEmpty(BuildContext context) => SliverFillRemaining(
+  SliverFillRemaining _buildEmpty() => SliverFillRemaining(
     hasScrollBody: false,
-    child: Center(
-      child: Column(
-        spacing: 8.0,
-        mainAxisSize: .min,
-        children: [
-          ImageWidget(height: 220.0, source: AssetsConstant.empty.source),
-          Text(
-            'Nenhuma transação por aqui 👀',
-            textAlign: .center,
-            style: context.typography.titleMedium?.copyWith(
-              fontWeight: .w800,
-              color: context.colors.onSurface.withValues(alpha: 0.8),
-            ),
-          ),
-          Text(
-            'Comece adicionando suas receitas ou despesasque elas vão aparecer aqui rapidinho.',
-            textAlign: .center,
-            style: context.typography.bodyMedium?.copyWith(
-              fontWeight: .w600,
-              color: context.colors.onSurfaceVariant.withValues(alpha: 0.6),
-            ),
-          ),
-        ],
-      ),
-    ),
+    child: HomeEmptyWidget(type: type),
   );
 }
 

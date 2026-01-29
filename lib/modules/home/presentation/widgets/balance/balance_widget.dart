@@ -109,5 +109,6 @@ class BalanceWidget extends StatelessWidget {
     width: 32.0,
     height: 32.0,
     iconSize: 16.0,
+    borderRadius: .circular(4.0),
   );
 }
