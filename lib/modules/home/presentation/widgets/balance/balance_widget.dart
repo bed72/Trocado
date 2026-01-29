@@ -26,8 +26,8 @@ class BalanceWidget extends StatelessWidget {
     };
 
     final icon = switch (dto.type) {
-      .expense => Icons.south_east,
-      .income => Icons.arrow_outward,
+      .income => Icons.trending_up,
+      .expense => Icons.trending_down,
       null => Icons.info,
     };
 
@@ -100,14 +100,14 @@ class BalanceWidget extends StatelessWidget {
     );
   }
 
-  Container _buildIcon({required Color color, required IconData icon}) =>
-      Container(
-        width: 32.0,
-        height: 32.0,
-        decoration: BoxDecoration(
-          shape: .circle,
-          color: color.withValues(alpha: .2),
-        ),
-        child: IconWidget(name: icon, size: 16.0, color: color),
-      );
+  BackgroundIconWidget _buildIcon({
+    required Color color,
+    required IconData icon,
+  }) => BackgroundIconWidget(
+    name: icon,
+    color: color,
+    width: 32.0,
+    height: 32.0,
+    iconSize: 16.0,
+  );
 }

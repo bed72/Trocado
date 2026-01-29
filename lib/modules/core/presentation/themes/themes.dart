@@ -31,7 +31,7 @@ abstract final class Themes {
       textButtonSchemeColor: .primary,
 
       listTileMinVerticalPadding: 0.0,
-      listTileContentPadding: const .symmetric(vertical: 8.0, horizontal: 12.0),
+      listTileContentPadding: const .symmetric(vertical: 8.0, horizontal: 16.0),
 
       elevatedButtonRadius: 16.0,
       elevatedButtonElevation: 0.0,
@@ -89,7 +89,7 @@ abstract final class Themes {
       textButtonSchemeColor: .primary,
 
       listTileMinVerticalPadding: 0.0,
-      listTileContentPadding: const .symmetric(vertical: 8.0, horizontal: 12.0),
+      listTileContentPadding: const .symmetric(vertical: 8.0, horizontal: 16.0),
 
       elevatedButtonRadius: 16.0,
       elevatedButtonElevation: 0.0,
