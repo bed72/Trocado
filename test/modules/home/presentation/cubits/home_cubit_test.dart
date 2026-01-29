@@ -64,6 +64,8 @@ void main() {
             () => repository.findTransactionBy(
               type: any(named: 'type'),
               endAt: any(named: 'endAt'),
+              limit: any(named: 'limit'),
+              offset: any(named: 'offset'),
               startAt: any(named: 'startAt'),
             ),
           ).thenReturn(Right(transactions));
@@ -81,6 +83,7 @@ void main() {
         expect: () => [
           HomeLoading(),
           HomeSuccess(
+            hasReachedEnd: true,
             home: HomeModel(
               balance: initialBalance,
               transactions: transactions,
@@ -96,6 +99,8 @@ void main() {
             () => repository.findTransactionBy(
               type: any(named: 'type'),
               endAt: any(named: 'endAt'),
+              limit: any(named: 'limit'),
+              offset: any(named: 'offset'),
               startAt: any(named: 'startAt'),
             ),
           ).thenReturn(const Left('Failure'));
@@ -122,6 +127,8 @@ void main() {
             () => repository.findTransactionBy(
               type: any(named: 'type'),
               endAt: any(named: 'endAt'),
+              limit: any(named: 'limit'),
+              offset: any(named: 'offset'),
               startAt: any(named: 'startAt'),
             ),
           ).thenReturn(Right(transactions));
@@ -137,6 +144,188 @@ void main() {
         },
         act: (cubit) => cubit.findTransactionBy(startAt: 0, endAt: 200),
         expect: () => [HomeLoading(), HomeFailure(failure: 'Balance failure')],
+      );
+    });
+
+    group('loadMore', () {
+      blocTest<HomeCubit, HomeState>(
+        'does nothing when state is not HomeSuccess',
+        build: () => cubit,
+        act: (cubit) => cubit.loadMore(),
+        verify: (_) {
+          verifyNever(
+            () => repository.findTransactionBy(
+              type: any(named: 'type'),
+              endAt: any(named: 'endAt'),
+              limit: any(named: 'limit'),
+              offset: any(named: 'offset'),
+              startAt: any(named: 'startAt'),
+            ),
+          );
+        },
+      );
+
+      blocTest<HomeCubit, HomeState>(
+        'does nothing when hasReachedEnd is true',
+        build: () {
+          return cubit..emit(
+            HomeSuccess(
+              hasReachedEnd: true,
+              home: HomeModel(
+                balance: initialBalance,
+                transactions: transactions,
+              ),
+            ),
+          );
+        },
+        act: (cubit) => cubit.loadMore(),
+        verify: (_) {
+          verifyNever(
+            () => repository.findTransactionBy(
+              type: any(named: 'type'),
+              endAt: any(named: 'endAt'),
+              limit: any(named: 'limit'),
+              offset: any(named: 'offset'),
+              startAt: any(named: 'startAt'),
+            ),
+          );
+        },
+      );
+
+      blocTest<HomeCubit, HomeState>(
+        'does nothing when isLoadingMore is true',
+        build: () {
+          return cubit..emit(
+            HomeSuccess(
+              isLoadingMore: true,
+              home: HomeModel(
+                balance: initialBalance,
+                transactions: transactions,
+              ),
+            ),
+          );
+        },
+        act: (cubit) => cubit.loadMore(),
+        verify: (_) {
+          verifyNever(
+            () => repository.findTransactionBy(
+              type: any(named: 'type'),
+              endAt: any(named: 'endAt'),
+              limit: any(named: 'limit'),
+              offset: any(named: 'offset'),
+              startAt: any(named: 'startAt'),
+            ),
+          );
+        },
+      );
+
+      blocTest<HomeCubit, HomeState>(
+        'emits [isLoadingMore: true, updated list] when loadMore succeeds',
+        build: () {
+          final newTransactions = [
+            TransactionModel(
+              id: 3,
+              date: 125,
+              amount: 30,
+              category: 'bonus',
+              description: 'Bonus',
+              type: TransactionTypeDto.income.label,
+            ),
+          ];
+
+          when(
+            () => repository.findTransactionBy(
+              offset: 2,
+              type: any(named: 'type'),
+              endAt: any(named: 'endAt'),
+              limit: any(named: 'limit'),
+              startAt: any(named: 'startAt'),
+            ),
+          ).thenReturn(Right(newTransactions));
+
+          return cubit..emit(
+            HomeSuccess(
+              home: HomeModel(
+                balance: initialBalance,
+                transactions: transactions,
+              ),
+              hasReachedEnd: false,
+            ),
+          );
+        },
+        act: (cubit) => cubit.loadMore(),
+        expect: () => [
+          HomeSuccess(
+            home: HomeModel(
+              balance: initialBalance,
+              transactions: transactions,
+            ),
+            isLoadingMore: true,
+            hasReachedEnd: false,
+          ),
+          HomeSuccess(
+            home: HomeModel(
+              balance: initialBalance,
+              transactions: [
+                ...transactions,
+                TransactionModel(
+                  id: 3,
+                  date: 125,
+                  amount: 30,
+                  category: 'bonus',
+                  description: 'Bonus',
+                  type: TransactionTypeDto.income.label,
+                ),
+              ],
+            ),
+            hasReachedEnd: true,
+            isLoadingMore: false,
+          ),
+        ],
+      );
+
+      blocTest<HomeCubit, HomeState>(
+        'emits [isLoadingMore: true, isLoadingMore: false] when loadMore fails',
+        build: () {
+          when(
+            () => repository.findTransactionBy(
+              type: any(named: 'type'),
+              endAt: any(named: 'endAt'),
+              limit: any(named: 'limit'),
+              offset: any(named: 'offset'),
+              startAt: any(named: 'startAt'),
+            ),
+          ).thenReturn(const Left('Failure'));
+
+          return cubit..emit(
+            HomeSuccess(
+              home: HomeModel(
+                balance: initialBalance,
+                transactions: transactions,
+              ),
+              hasReachedEnd: false,
+            ),
+          );
+        },
+        act: (cubit) => cubit.loadMore(),
+        expect: () => [
+          HomeSuccess(
+            home: HomeModel(
+              balance: initialBalance,
+              transactions: transactions,
+            ),
+            isLoadingMore: true,
+            hasReachedEnd: false,
+          ),
+          HomeSuccess(
+            home: HomeModel(
+              balance: initialBalance,
+              transactions: transactions,
+            ),
+            isLoadingMore: false,
+            hasReachedEnd: false,
+          ),
+        ],
       );
     });
 
@@ -186,6 +375,7 @@ void main() {
               balance: refreshedBalance,
               transactions: [transactions[1]],
             ),
+            hasReachedEnd: true,
           ),
         ],
       );
@@ -280,7 +470,9 @@ void main() {
           verifyNever(
             () => repository.findTransactionBy(
               type: any(named: 'type'),
+              limit: any(named: 'limit'),
               endAt: any(named: 'endAt'),
+              offset: any(named: 'offset'),
               startAt: any(named: 'startAt'),
             ),
           );
@@ -294,6 +486,8 @@ void main() {
             () => repository.findTransactionBy(
               type: .income,
               endAt: any(named: 'endAt'),
+              limit: any(named: 'limit'),
+              offset: any(named: 'offset'),
               startAt: any(named: 'startAt'),
             ),
           ).thenReturn(
@@ -324,10 +518,12 @@ void main() {
         expect: () => [
           HomeLoading(),
           HomeSuccess(
+            type: .income,
             home: HomeModel(
               balance: initialBalance,
               transactions: [transactions[1]],
             ),
+            hasReachedEnd: true,
           ),
         ],
         verify: (_) {
@@ -342,6 +538,8 @@ void main() {
             () => repository.findTransactionBy(
               type: .income,
               endAt: any(named: 'endAt'),
+              limit: any(named: 'limit'),
+              offset: any(named: 'offset'),
               startAt: any(named: 'startAt'),
             ),
           ).thenReturn(
@@ -356,6 +554,8 @@ void main() {
             () => repository.findTransactionBy(
               type: null,
               endAt: any(named: 'endAt'),
+              limit: any(named: 'limit'),
+              offset: any(named: 'offset'),
               startAt: any(named: 'startAt'),
             ),
           ).thenReturn(Right(transactions));
@@ -383,10 +583,12 @@ void main() {
         expect: () => [
           HomeLoading(),
           HomeSuccess(
+            type: .income,
             home: HomeModel(
               balance: initialBalance,
               transactions: [transactions[1]],
             ),
+            hasReachedEnd: true,
           ),
           HomeLoading(),
           HomeSuccess(
@@ -394,6 +596,7 @@ void main() {
               balance: initialBalance,
               transactions: transactions,
             ),
+            hasReachedEnd: true,
           ),
         ],
         verify: (_) {

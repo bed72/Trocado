@@ -11,6 +11,9 @@ import 'package:trocado/modules/home/presentation/widgets/transaction/transactio
 
 class HomeTransactionSuccessWidget extends StatelessWidget {
   final HomeModel data;
+  final bool isLoadingMore;
+  final bool hasReachedEnd;
+  final VoidCallback onLoadMore;
   final ValueChanged<int> onDelete;
   final String Function(double value) format;
   final ValueChanged<TransactionDto> onPress;
@@ -23,6 +26,9 @@ class HomeTransactionSuccessWidget extends StatelessWidget {
     required this.format,
     required this.onPress,
     required this.onDelete,
+    required this.onLoadMore,
+    this.isLoadingMore = false,
+    this.hasReachedEnd = false,
   });
 
   @override
@@ -33,19 +39,35 @@ class HomeTransactionSuccessWidget extends StatelessWidget {
           ? _buildEmpty(context)
           : SliverList(
               delegate: SliverChildBuilderDelegate(
-                childCount: data.transactions.length,
-                (_, index) => TransactionWidget(
-                  format: format,
-                  onPress: onPress,
-                  onDelete: onDelete,
-                  dto: toDto(data.transactions[index]),
-                ),
+                childCount: data.transactions.length + (hasReachedEnd ? 0 : 1),
+                (_, index) {
+                  if (index >= data.transactions.length) {
+                    if (!isLoadingMore) {
+                      WidgetsBinding.instance.addPostFrameCallback(
+                        (_) => onLoadMore(),
+                      );
+                    }
+                    return _buildLoading();
+                  }
+
+                  return TransactionWidget(
+                    format: format,
+                    onPress: onPress,
+                    onDelete: onDelete,
+                    dto: toDto(data.transactions[index]),
+                  );
+                },
               ),
             ),
     );
   }
 
-  Widget _buildEmpty(BuildContext context) => SliverFillRemaining(
+  Padding _buildLoading() => const Padding(
+    padding: .symmetric(vertical: 16.0),
+    child: CircularProgressIndicatorWidget(),
+  );
+
+  SliverFillRemaining _buildEmpty(BuildContext context) => SliverFillRemaining(
     hasScrollBody: false,
     child: Center(
       child: Column(

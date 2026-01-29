@@ -50,7 +50,10 @@ class HomeContentWidget extends StatelessWidget {
                 data: state.home,
                 onPress: onPress,
                 format: homeCubit.format,
+                onLoadMore: homeCubit.loadMore,
                 toDto: homeCubit.toTransactionDto,
+                isLoadingMore: state.isLoadingMore,
+                hasReachedEnd: state.hasReachedEnd,
                 onDelete: (id) => homeCubit.deleteTransactionBy(id: id),
               ),
               HomeIdle() ||

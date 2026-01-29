@@ -23,10 +23,29 @@ final class HomeFailure extends HomeState {
 
 final class HomeSuccess extends HomeState {
   final HomeModel home;
+  final bool hasReachedEnd;
+  final bool isLoadingMore;
   final TransactionTypeDto? type;
 
-  const HomeSuccess({required this.home, this.type});
+  const HomeSuccess({
+    required this.home,
+    this.type,
+    this.isLoadingMore = false,
+    this.hasReachedEnd = false,
+  });
+
+  HomeSuccess copyWith({
+    HomeModel? home,
+    bool? hasReachedEnd,
+    bool? isLoadingMore,
+    TransactionTypeDto? type,
+  }) => HomeSuccess(
+    home: home ?? this.home,
+    type: type ?? this.type,
+    isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+    hasReachedEnd: hasReachedEnd ?? this.hasReachedEnd,
+  );
 
   @override
-  List<Object> get props => [home];
+  List<Object> get props => [home, isLoadingMore, hasReachedEnd];
 }

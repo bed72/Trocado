@@ -11,9 +11,13 @@ import 'package:trocado/modules/home/domain/repositories/interface_home_reposito
 part 'home_state.dart';
 
 final class HomeCubit extends Cubit<HomeState> {
+  final int _pageSize = 40;
+
   final IMoneyFormatter _formatter;
   final IHomeRepository _repository;
 
+  int? _currentEndAt;
+  int? _currentStartAt;
   TransactionTypeDto? _selectedType;
 
   TransactionTypeDto? get selectedType => _selectedType;
@@ -29,6 +33,10 @@ final class HomeCubit extends Cubit<HomeState> {
 
   void clear() {
     emit(HomeIdle());
+
+    _currentEndAt = null;
+    _selectedType = null;
+    _currentStartAt = null;
   }
 
   TransactionDto toTransactionDto(TransactionModel model) =>
@@ -49,7 +57,7 @@ final class HomeCubit extends Cubit<HomeState> {
     if (currentState is! HomeSuccess) return;
 
     final optimistic = currentState.home.removeTransactionBy(id);
-    emit(HomeSuccess(home: optimistic));
+    emit(currentState.copyWith(home: optimistic));
 
     final data = _repository
         .deleteTransactionBy(id)
@@ -61,15 +69,30 @@ final class HomeCubit extends Cubit<HomeState> {
 
     data.fold(
       (failure) => emit(HomeFailure(failure: failure)),
-      (home) => emit(HomeSuccess(home: home)),
+      (home) => emit(
+        currentState.copyWith(
+          home: home,
+          hasReachedEnd: home.transactions.length < _pageSize,
+        ),
+      ),
     );
   }
 
   void findTransactionBy({int? startAt, int? endAt, TransactionTypeDto? type}) {
     emit(HomeLoading());
 
+    _selectedType = type;
+    _currentEndAt = endAt;
+    _currentStartAt = startAt;
+
     final data = _repository
-        .findTransactionBy(type: type, endAt: endAt, startAt: startAt)
+        .findTransactionBy(
+          offset: 0,
+          type: type,
+          endAt: endAt,
+          startAt: startAt,
+          limit: _pageSize,
+        )
         .flatMap(
           (transactions) => _repository
               .getBalanceBy(startAt: startAt, endAt: endAt)
@@ -81,7 +104,45 @@ final class HomeCubit extends Cubit<HomeState> {
 
     data.fold(
       (failure) => emit(HomeFailure(failure: failure)),
-      (home) => emit(HomeSuccess(home: home)),
+      (home) => emit(
+        HomeSuccess(
+          home: home,
+          type: type,
+          hasReachedEnd: home.transactions.length < _pageSize,
+        ),
+      ),
     );
+  }
+
+  void loadMore() {
+    final currentState = state;
+    if (currentState is! HomeSuccess) return;
+    if (currentState.isLoadingMore || currentState.hasReachedEnd) return;
+
+    emit(currentState.copyWith(isLoadingMore: true));
+
+    final currentOffset = currentState.home.transactions.length;
+
+    final data = _repository.findTransactionBy(
+      limit: _pageSize,
+      type: _selectedType,
+      endAt: _currentEndAt,
+      offset: currentOffset,
+      startAt: _currentStartAt,
+    );
+
+    data.fold((failure) => emit(currentState.copyWith(isLoadingMore: false)), (
+      transactions,
+    ) {
+      final updated = [...currentState.home.transactions, ...transactions];
+
+      emit(
+        currentState.copyWith(
+          isLoadingMore: false,
+          hasReachedEnd: transactions.length < _pageSize,
+          home: currentState.home.copyWith(transactions: updated),
+        ),
+      );
+    });
   }
 }
