@@ -10,9 +10,9 @@ final class EmptyImageStrategy implements ImageStrategy {
   Widget build({
     required String source,
     required BoxFit? fit,
+    required Color? color,
     required double? width,
     required double? height,
-    required Color? color,
     required bool showLoading,
     required String? fallback,
     required String? semanticLabel,
@@ -22,9 +22,9 @@ final class EmptyImageStrategy implements ImageStrategy {
       height: height,
       child: IconWidget(
         color: color ?? Colors.grey,
-        name: Icons.add_photo_alternate,
+        name: Icons.hourglass_empty_rounded,
         size: (width ?? height ?? 48) * 0.6,
-        semanticsLabel: semanticLabel ?? 'Adicona foto',
+        semanticsLabel: semanticLabel ?? 'Sem imagem',
       ),
     );
   }

@@ -80,6 +80,7 @@ final class HomeLocalDatasource implements IHomeLocalDatasource {
 
       final query = _box
           .query(condition)
+          .order(TransactionEntity_.id, flags: Order.descending)
           .order(TransactionEntity_.date, flags: Order.descending)
           .build();
 
