@@ -1,35 +1,29 @@
 import 'package:trocado/main.dart';
 
+import 'package:trocado/modules/home/home.dart';
 import 'package:trocado/modules/core/core.dart';
+import 'package:trocado/modules/date/date.dart';
+import 'package:trocado/modules/category/category.dart';
 import 'package:trocado/modules/calculator/calculator.dart';
-import 'package:trocado/modules/onboarding/onboarding.dart';
+import 'package:trocado/modules/transaction/transaction.dart';
 
 Future<void> ensureInitialized() async {
-  storeProvider();
   clientProvider();
-  externalProvider();
   resourceProvider();
   datasourceProvider();
   repositoryProvider();
 
+  dateProvider();
+  homeProvider();
+  categoryProvider();
   calculatorProvider();
-  onboardingProvider();
+  transactionProvider();
 
   await _ensureInitialized();
 }
 
 Future<void> _ensureInitialized() async {
-  final user = provider.get<UserStore>();
-  final theme = provider.get<ThemeStore>();
-  final database = provider.get<IDatabaseClient>();
-  final onboarding = provider.get<OnboardingStore>();
+  final database = i.get<IDatabaseClient>();
 
-  await Future.wait([
-    user.ensureInitialized(),
-    theme.ensureInitialized(),
-    database.ensureInitialized(),
-    onboarding.ensureInitialized(),
-
-    provider.allReady(),
-  ]);
+  await Future.wait([database.ensureInitialized(), i.allReady()]);
 }

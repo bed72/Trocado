@@ -5,7 +5,7 @@ import 'package:trocado/modules/core/presentation/animation/animation.dart';
 import 'package:trocado/modules/core/presentation/extensions/context_extension.dart';
 
 import 'package:trocado/modules/core/presentation/widgets/bounce_widget.dart';
-import 'package:trocado/modules/core/presentation/widgets/buttons/button_ghost_widget.dart';
+import 'package:trocado/modules/core/presentation/widgets/buttons/ghost_button_widget.dart';
 import 'package:trocado/modules/core/presentation/widgets/circular_progress_indicator_widget.dart';
 
 enum ButtonWidgetType { text, ghost, elevated, outlined }
@@ -51,8 +51,8 @@ class ButtonWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BounceWidget.withTap(
-      onTap: onTap == null ? null : () => onTap!(),
+    return BounceWidget.withOnPress(
+      onPress: onTap == null ? null : () => onTap!(),
       child: _buildButton(context: context, child: _buildContent(context)),
     );
   }
@@ -81,7 +81,7 @@ class ButtonWidget extends StatelessWidget {
   Widget _buildButton({required BuildContext context, required Widget child}) =>
       switch (type) {
         .text => TextButton(onPressed: onTap, child: child),
-        .ghost => ButtonGhostWidget(onPressed: onTap, child: child),
+        .ghost => GhostButtonWidget(onPressed: onTap, child: child),
         .elevated => ElevatedButton(onPressed: onTap, child: child),
         .outlined => OutlinedButton(onPressed: onTap, child: child),
       };

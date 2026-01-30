@@ -1,60 +1,57 @@
-import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
-
-import 'package:trocado/modules/core/domain/constant/database_constant.dart';
-
-import 'package:trocado/modules/core/infrastructure/clients/schemas/schemas.dart';
 import 'package:trocado/modules/core/infrastructure/resources/loggers/logger.dart';
 
-abstract interface class IDatabaseClient {
-  Database get database;
+import 'package:trocado/objectbox.g.dart';
 
+abstract interface class IDatabaseClient {
+  Store get store;
+
+  void dispose();
   Future<void> ensureInitialized();
 }
 
 final class DatabaseClient implements IDatabaseClient {
-  final ILogger _logger;
+  Admin? _admin;
+  Store? _instance;
 
-  Database? _instance;
+  final ILogger _logger;
 
   DatabaseClient({required ILogger logger}) : _logger = logger;
 
   @override
-  Database get database {
-    final database = _instance;
+  Store get store {
+    final store = _instance;
 
-    if (database == null) {
-      throw Exception('Database not initialized. Call ensureInitialized()');
-    }
+    if (store == null) throw Exception('Database not initialized.');
 
-    return database;
+    return store;
+  }
+
+  @override
+  void dispose() {
+    _admin?.close();
+    _instance?.close();
   }
 
   @override
   Future<void> ensureInitialized() async {
     if (_instance != null) return;
 
-    final path = await _path();
+    _logger.debug('[DATABSE] Opening store');
 
-    _instance = await openDatabase(
-      path,
-      version: 1,
-      onCreate: (database, version) async {
-        _logger.debug('[DATABASE] Creating database v$version');
+    _instance = await openStore();
+    _startAdminIfAvailable();
 
-        await _create(database);
-      },
-    );
+    _logger.debug('[DATABSE] Store initialized');
   }
 
-  Future<String> _path() async {
-    final path = await getDatabasesPath();
-    return join(path, DatabaseConstant.databaseName.name);
-  }
+  void _startAdminIfAvailable() {
+    assert(() {
+      if (Admin.isAvailable()) {
+        _admin = Admin(store);
+        _logger.debug('[DATABASE] ObjectBox Admin started');
+      }
 
-  Future<void> _create(Database database) async {
-    for (final schema in schemas) {
-      await database.execute(schema);
-    }
+      return true;
+    }());
   }
 }

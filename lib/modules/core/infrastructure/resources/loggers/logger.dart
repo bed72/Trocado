@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-import 'package:trocado/modules/core/domain/constant/logger_level_constant.dart';
+import 'package:trocado/modules/core/domain/constants/logger_level_constant.dart';
 
 abstract interface class ILogger {
   void debug(String message, {Object? error, StackTrace? stackTrace});

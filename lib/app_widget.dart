@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'package:trocado/app_route.dart';
 
@@ -11,18 +11,20 @@ final class AppWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = context.get<ThemeStore>();
-
-    return Observer(
-      builder: (_) => MaterialApp.router(
-        title: 'Trocado',
-        theme: Themes.light,
-        darkTheme: Themes.dark,
-        themeMode: store.theme,
-        routerConfig: routerConfig,
-        debugShowCheckedModeBanner: kDebugMode,
-        builder: (_, child) => LoadWidget(child: child),
-      ),
+    return MaterialApp.router(
+      title: 'Trocado',
+      theme: Themes.light,
+      darkTheme: Themes.dark,
+      routerConfig: routerConfig,
+      themeMode: ThemeMode.system,
+      debugShowCheckedModeBanner: kDebugMode,
+      supportedLocales: const [Locale('pt', 'BR')],
+      builder: (_, child) => LoadWidget(child: child),
+      localizationsDelegates: const [
+        GlobalWidgetsLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
     );
   }
 }

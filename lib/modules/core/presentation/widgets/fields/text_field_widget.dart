@@ -10,12 +10,14 @@ class TextFieldWidget extends StatefulWidget {
   final bool? absorbing;
   final bool obscureText;
   final FocusNode? focus;
-  final Widget? suffixIcon;
+  final String? placeholder;
   final String? initialValue;
   final Widget? helperWidget;
+  final IconData? suffixIcon;
   final TextInputType? keyboardType;
   final TextInputAction? inputAction;
   final ValueChanged<String>? onChanged;
+  final VoidCallback? onPressedSuffixIcon;
   final TextEditingController? controller;
   final ValueChanged<String>? onSubmitted;
   final List<TextInputFormatter>? inputFormatters;
@@ -31,11 +33,13 @@ class TextFieldWidget extends StatefulWidget {
     this.suffixIcon,
     this.inputAction,
     this.onSubmitted,
+    this.placeholder,
     this.helperWidget,
     this.keyboardType,
     this.initialValue,
     this.inputFormatters,
     this.obscureText = false,
+    this.onPressedSuffixIcon,
   });
 
   @override
@@ -50,6 +54,19 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
 
   bool get _hasFailure => _failure != null;
   bool get _collapsed => _focus.hasFocus || _controller.text.isNotEmpty;
+  bool get _showHelperWidget =>
+      widget.helperWidget != null && !_hasFailure && widget.placeholder != null;
+  bool get _showPlaceholder =>
+      _collapsed &&
+      _controller.text.isEmpty &&
+      !_hasFailure &&
+      widget.placeholder != null;
+  Color get _color {
+    if (_hasFailure) return context.colors.error;
+    if (_focus.hasFocus) return context.colors.primary;
+
+    return context.colors.onSurfaceVariant.withValues(alpha: 0.8);
+  }
 
   @override
   void initState() {
@@ -91,23 +108,23 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
 
           _buildFailure(),
 
-          widget.helperWidget ?? const SizedBox.shrink(),
+          _showHelperWidget ? widget.helperWidget! : const SizedBox.shrink(),
         ],
       ),
     );
   }
 
+  Text _buildPlaceholder() => Text(
+    widget.placeholder!,
+    style: context.typography.bodySmall?.copyWith(
+      color: _color.withValues(alpha: .6),
+    ),
+  );
+
   Container _buildBorder() => Container(
     decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(20),
-      border: Border.all(
-        width: 1.0,
-        color: _hasFailure
-            ? context.colors.error
-            : _focus.hasFocus
-            ? context.colors.primary
-            : context.colors.primary,
-      ),
+      borderRadius: context.radius.cornerRadius300,
+      border: Border.all(width: 1.0, color: _color),
     ),
   );
 
@@ -115,7 +132,7 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
     child: _failure == null
         ? const SizedBox.shrink()
         : Padding(
-            padding: const EdgeInsets.only(left: 4.0, top: 4.0),
+            padding: const .only(left: 4.0, top: 4.0),
             child: Text(
               _failure!,
               style: context.typography.bodySmall?.copyWith(
@@ -132,15 +149,13 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
       left: 20.0,
       duration: duration,
       curve: Curves.easeOutCubic,
-      top: _collapsed ? 14.0 : 22.0,
+      top: _collapsed ? 14.0 : 23.0,
       child: AnimatedDefaultTextStyle(
         duration: duration,
         curve: Curves.easeOutCubic,
         style: context.typography.bodySmall!.copyWith(
+          color: _color,
           fontSize: _collapsed ? 12.0 : 14.0,
-          height: _collapsed ? 1 : (20.0 / 14.0),
-          letterSpacing: _collapsed ? 0.0 : -0.23,
-          color: _hasFailure ? context.colors.error : context.colors.primary,
         ),
         child: Text(widget.hint),
       ),
@@ -164,22 +179,31 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
     decoration: InputDecoration(
       filled: false,
       border: .none,
+      errorText: null,
       errorBorder: .none,
       enabledBorder: .none,
       focusedBorder: .none,
       disabledBorder: .none,
       focusedErrorBorder: .none,
-      suffixIcon: widget.suffixIcon,
-      errorText: _hasFailure ? '' : null,
       errorStyle: const TextStyle(fontSize: 0, height: 0),
+      hint: _showPlaceholder ? _buildPlaceholder() : null,
+      suffixIcon: widget.suffixIcon == null
+          ? null
+          : IconButton(
+              onPressed: widget.onPressedSuffixIcon,
+              icon: Icon(widget.suffixIcon, color: _color),
+            ),
       contentPadding: .only(
         top: 30.0,
         left: 20.0,
-        bottom: 18.0,
+        bottom: _hasFailure ? 14.0 : 18.0,
         right: 20.0 + (widget.suffixIcon != null ? 36 : 0),
       ),
     ),
   );
 
-  void _forceLabelAnimation() => setState(() {});
+  void _forceLabelAnimation() {
+    if (!mounted) return;
+    setState(() {});
+  }
 }

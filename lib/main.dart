@@ -6,14 +6,14 @@ import 'package:flutter/services.dart';
 import 'package:trocado/app_widget.dart';
 import 'package:trocado/app_provider.dart';
 
-final provider = GetIt.instance;
+final i = GetIt.instance;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Future.wait([
     ensureInitialized(),
-    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]),
+    SystemChrome.setPreferredOrientations([.portraitUp]),
   ]);
 
   runApp(AppWidget());

@@ -24,8 +24,8 @@ final class NetworkImageStrategy implements ImageStrategy {
       color: color,
       height: height,
       isAntiAlias: true,
+      filterQuality: .high,
       semanticLabel: semanticLabel,
-      filterQuality: FilterQuality.high,
       loadingBuilder: showLoading
           ? (_, child, progress) =>
                 progress == null ? child : _loading(width, height)

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-import 'package:trocado/modules/core/presentation/widgets/icon_widget.dart';
+import 'package:trocado/modules/core/presentation/widgets/icons/icon_widget.dart';
 import 'package:trocado/modules/core/presentation/widgets/images/strategy/image_strategy.dart';
 
 final class EmptyImageStrategy implements ImageStrategy {
@@ -11,9 +10,9 @@ final class EmptyImageStrategy implements ImageStrategy {
   Widget build({
     required String source,
     required BoxFit? fit,
+    required Color? color,
     required double? width,
     required double? height,
-    required Color? color,
     required bool showLoading,
     required String? fallback,
     required String? semanticLabel,
@@ -22,10 +21,10 @@ final class EmptyImageStrategy implements ImageStrategy {
       width: width,
       height: height,
       child: IconWidget(
-        name: LucideIcons.userRound,
         color: color ?? Colors.grey,
-        semanticsLabel: semanticLabel ?? 'User icon',
+        icon: Icons.hourglass_empty_rounded,
         size: (width ?? height ?? 48) * 0.6,
+        semanticsLabel: semanticLabel ?? 'Sem imagem',
       ),
     );
   }

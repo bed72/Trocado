@@ -23,8 +23,8 @@ final class AssetImageStrategy implements ImageStrategy {
       width: width,
       height: height,
       isAntiAlias: true,
-      filterQuality: FilterQuality.high,
-      alignment: AlignmentGeometry.center,
+      alignment: .center,
+      filterQuality: .high,
       semanticLabel: semanticLabel ?? 'Local imagem',
       errorBuilder: (_, _, _) => fallback != null
           ? Image.asset(fallback, fit: fit, width: width, height: height)

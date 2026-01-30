@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
+
 import 'package:trocado/modules/core/presentation/extensions/context_extension.dart';
 
 class BottomSheetScaffoldWidget extends StatelessWidget {
   final Widget child;
   final String? title;
   final String? subtitle;
+  final bool? withoutPadding;
 
   const BottomSheetScaffoldWidget({
     super.key,
     required this.child,
     this.title,
     this.subtitle,
+    this.withoutPadding,
   });
+
+  bool get _withoutPadding => (withoutPadding ?? false);
 
   @override
   Widget build(BuildContext context) {
@@ -19,10 +24,12 @@ class BottomSheetScaffoldWidget extends StatelessWidget {
       width: .infinity,
       decoration: BoxDecoration(
         color: context.colors.surface,
-        borderRadius: const .vertical(top: Radius.circular(20.0)),
+        borderRadius: const .vertical(top: .circular(20.0)),
       ),
       child: Padding(
-        padding: const .only(left: 20.0, top: 20.0, right: 20.0, bottom: 32.0),
+        padding: _withoutPadding
+            ? .only(left: 0, top: 20.0, right: 0, bottom: 32.0)
+            : .only(left: 20.0, top: 20.0, right: 20.0, bottom: 32.0),
         child: Column(
           mainAxisSize: .min,
           crossAxisAlignment: .start,
@@ -40,21 +47,29 @@ class BottomSheetScaffoldWidget extends StatelessWidget {
             ),
 
             if (title != null) ...[
-              Text(
-                title!,
-                style: context.typography.titleLarge?.copyWith(
-                  fontWeight: .w600,
-                  color: context.colors.onSurface,
+              Padding(
+                padding: .symmetric(horizontal: _withoutPadding ? 16.0 : 0.0),
+                child: Text(
+                  title!,
+                  style: context.typography.titleLarge?.copyWith(
+                    fontWeight: .w600,
+                    color: context.colors.onSurface,
+                  ),
                 ),
               ),
               const SizedBox(height: 6.0),
             ],
             if (subtitle != null) ...[
-              Text(
-                subtitle!,
-                style: context.typography.bodyLarge?.copyWith(
-                  fontWeight: .w600,
-                  color: context.colors.onSurface.withValues(alpha: .60),
+              Padding(
+                padding: .symmetric(horizontal: _withoutPadding ? 16.0 : 0.0),
+                child: Text(
+                  subtitle!,
+                  style: context.typography.bodyLarge?.copyWith(
+                    fontWeight: .w600,
+                    color: context.colors.onSurfaceVariant.withValues(
+                      alpha: 0.8,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 6.0),

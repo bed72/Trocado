@@ -1,0 +1,1 @@
+enum ToastConstant { success, failure }

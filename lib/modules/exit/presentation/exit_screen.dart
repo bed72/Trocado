@@ -1,0 +1,42 @@
+import 'package:flutter/material.dart';
+
+import 'package:trocado/modules/core/core.dart';
+
+class ExitScreen extends StatelessWidget {
+  final VoidCallback onExit;
+  final VoidCallback onCancel;
+
+  const ExitScreen({super.key, required this.onExit, required this.onCancel});
+
+  @override
+  Widget build(BuildContext context) {
+    return BottomSheetScaffoldWidget(
+      title: 'Opps',
+      subtitle: 'Deseja realmente sair do app?',
+      child: Column(
+        spacing: 16.0,
+        mainAxisSize: .min,
+        children: [
+          const SizedBox(height: 16.0),
+
+          Row(
+            spacing: 16.0,
+            children: [
+              Expanded(
+                child: ButtonWidget.ghost(onTap: onExit, child: Text('Sair')),
+              ),
+              Expanded(
+                child: ButtonWidget.outlined(
+                  onTap: onCancel,
+                  child: Text('Cancelar'),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16.0),
+        ],
+      ),
+    );
+  }
+}

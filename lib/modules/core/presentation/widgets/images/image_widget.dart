@@ -40,12 +40,12 @@ class ImageWidget extends StatelessWidget {
     return strategy.build(
       source: source!,
       semanticLabel: alt,
-      width: width,
       color: color,
+      width: width,
       height: height,
       fallback: fallback,
+      fit: fit ?? .cover,
       showLoading: showLoading,
-      fit: fit ?? BoxFit.cover,
     );
   }
 }
