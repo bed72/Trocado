@@ -80,10 +80,10 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - lib/modules/core/presentation/assets/images/bag.webp
     - lib/modules/core/presentation/assets/images/logo.webp
-    - lib/modules/core/presentation/assets/images/empty.webp
-    - lib/modules/core/presentation/assets/images/money.webp
+    - lib/modules/core/presentation/assets/images/scope.webp
+    - lib/modules/core/presentation/assets/images/iceberg.webp
+    - lib/modules/core/presentation/assets/images/breaking.webp
 
   # An image asset can refer to one or more resolution-specific 'variants', see
   # https://flutter.dev/to/resolution-aware-images

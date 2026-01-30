@@ -1,10 +1,10 @@
 const _path = 'lib/modules/core/presentation/assets';
 
 enum AssetsConstant {
-  bag(source: '$_path/images/bag.webp'),
   logo(source: '$_path/images/logo.webp'),
-  money(source: '$_path/images/money.webp'),
-  empty(source: '$_path/images/empty.webp');
+  scope(source: '$_path/images/scope.webp'),
+  iceberg(source: '$_path/images/iceberg.webp'),
+  breaking(source: '$_path/images/breaking.webp');
 
   final String source;
 

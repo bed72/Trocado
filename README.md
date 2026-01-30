@@ -100,3 +100,5 @@ Ele é responsável por persistir as transações localmente e servir como fonte
 * Melhorar feedbacks visuais
 
 O Trocado está sendo desenvolvido com foco em **qualidade técnica**, **evolução contínua** e **experiência do usuário**.
+
+<a href="https://storyset.com/money">Money illustrations by Storyset</a>

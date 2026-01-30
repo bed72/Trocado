@@ -22,7 +22,7 @@ class HomeEmptyWidget extends StatelessWidget {
       spacing: 8.0,
       mainAxisSize: .min,
       children: [
-        ImageWidget(height: 220.0, source: AssetsConstant.empty.source),
+        ImageWidget(height: 220.0, source: AssetsConstant.breaking.source),
         Text(
           'Nenhuma transação por aqui 👀',
           textAlign: .center,
@@ -48,7 +48,7 @@ class HomeEmptyWidget extends StatelessWidget {
       spacing: 8.0,
       mainAxisSize: .min,
       children: [
-        ImageWidget(height: 220.0, source: AssetsConstant.bag.source),
+        ImageWidget(height: 220.0, source: AssetsConstant.scope.source),
         Text(
           'Nada de entradas ainda 💼',
           textAlign: .center,
@@ -74,7 +74,7 @@ class HomeEmptyWidget extends StatelessWidget {
       spacing: 8.0,
       mainAxisSize: .min,
       children: [
-        ImageWidget(height: 220.0, source: AssetsConstant.money.source),
+        ImageWidget(height: 220.0, source: AssetsConstant.iceberg.source),
         Text(
           'Caramba, zero gastos! 🎉',
           textAlign: .center,
