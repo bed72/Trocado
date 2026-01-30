@@ -13,7 +13,7 @@ class HomeAppBarWidget extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
       centerTitle: true,
-      toolbarHeight: 72.0,
+      toolbarHeight: 56.0,
       title: BlocBuilder<HomeCubit, HomeState>(
         bloc: cubit,
         buildWhen: (previous, current) =>
@@ -34,5 +34,5 @@ class HomeAppBarWidget extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(72.0);
+  Size get preferredSize => const Size.fromHeight(56.0);
 }

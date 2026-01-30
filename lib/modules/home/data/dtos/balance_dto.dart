@@ -2,31 +2,25 @@ import 'package:trocado/modules/transaction/transaction.dart';
 
 final class BalanceDto {
   final String label;
-  final String amount;
+  final double amount;
   final TransactionTypeModel? type;
-
-  const BalanceDto({required this.label, required this.amount, this.type});
 
   bool get isTotal => type == null;
 
+  const BalanceDto({required this.label, required this.amount, this.type});
+
   factory BalanceDto.empty({
     String label = '',
-    String amount = '',
+    double amount = 0.0,
     TransactionTypeModel? type,
   }) => BalanceDto(label: label, amount: amount, type: type);
 
-  factory BalanceDto.total({
-    required double value,
-    required String Function(double value) format,
-  }) => BalanceDto(label: 'Total', amount: format(value));
+  factory BalanceDto.total({required double amount}) =>
+      BalanceDto(label: 'Total', amount: amount);
 
-  factory BalanceDto.income({
-    required double value,
-    required String Function(double value) format,
-  }) => BalanceDto(type: .income, label: 'Receita', amount: format(value));
+  factory BalanceDto.income({required double amount}) =>
+      BalanceDto(type: .income, label: 'Receita', amount: amount);
 
-  factory BalanceDto.expense({
-    required double value,
-    required String Function(double value) format,
-  }) => BalanceDto(type: .expense, label: 'Despesa', amount: format(value));
+  factory BalanceDto.expense({required double amount}) =>
+      BalanceDto(type: .expense, label: 'Despesa', amount: amount);
 }

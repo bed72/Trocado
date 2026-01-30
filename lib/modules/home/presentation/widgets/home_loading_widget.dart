@@ -42,7 +42,7 @@ class HomeBalanceLoadingWidget extends StatelessWidget {
           BalanceWidget(
             isSelected: false,
             onPress: (value) {},
-            dto: BalanceDto.empty(label: 'Total', amount: 'R\$ 1.000,00'),
+            dto: BalanceDto.empty(label: 'Total', amount: 1.000),
           ),
           Row(
             spacing: 16.0,
@@ -54,7 +54,7 @@ class HomeBalanceLoadingWidget extends StatelessWidget {
                   dto: BalanceDto.empty(
                     type: .income,
                     label: 'Receita',
-                    amount: 'R\$ 10.000,00',
+                    amount: 100.000,
                   ),
                 ),
               ),
@@ -63,9 +63,9 @@ class HomeBalanceLoadingWidget extends StatelessWidget {
                   isSelected: false,
                   onPress: (value) {},
                   dto: BalanceDto.empty(
+                    amount: 1.000,
                     type: .expense,
                     label: 'Despesa',
-                    amount: 'R\$ 1.000,00',
                   ),
                 ),
               ),

@@ -75,14 +75,12 @@ class HomeTransactionSuccessWidget extends StatelessWidget {
 class HomeBalaceSuccessWidget extends StatelessWidget {
   final BalanceModel model;
   final TransactionTypeModel? type;
-  final String Function(double value) format;
   final ValueChanged<TransactionTypeModel?> onPress;
 
   const HomeBalaceSuccessWidget({
     super.key,
     required this.type,
     required this.model,
-    required this.format,
     required this.onPress,
   });
 
@@ -94,7 +92,7 @@ class HomeBalaceSuccessWidget extends StatelessWidget {
         BalanceWidget(
           onPress: onPress,
           isSelected: type == null,
-          dto: .total(value: model.total, format: format),
+          dto: .total(amount: model.total),
         ),
         Row(
           spacing: 16.0,
@@ -103,14 +101,14 @@ class HomeBalaceSuccessWidget extends StatelessWidget {
               child: BalanceWidget(
                 onPress: onPress,
                 isSelected: type == .income,
-                dto: .income(value: model.income, format: format),
+                dto: .income(amount: model.income),
               ),
             ),
             Expanded(
               child: BalanceWidget(
                 onPress: onPress,
                 isSelected: type == .expense,
-                dto: .expense(value: model.expense, format: format),
+                dto: .expense(amount: model.expense),
               ),
             ),
           ],

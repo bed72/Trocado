@@ -67,18 +67,6 @@ class BalanceWidget extends StatelessWidget {
                   ],
                 ),
 
-                // Text(
-                //   dto.amount,
-                //   style: dto.isTotal
-                //       ? context.typography.titleLarge?.copyWith(
-                //           fontWeight: dto.isTotal ? .w600 : .bold,
-                //           color: context.colors.onSurfaceVariant,
-                //         )
-                //       : context.typography.titleMedium?.copyWith(
-                //           fontWeight: dto.isTotal ? .w600 : .bold,
-                //           color: context.colors.onSurfaceVariant,
-                //         ),
-                // ),
                 _buildValue(context),
               ],
             ),
@@ -114,13 +102,15 @@ class BalanceWidget extends StatelessWidget {
   );
 
   AnimatedDigitWidget _buildValue(BuildContext context) => AnimatedDigitWidget(
-    value: 2.000,
     prefix: 'R\$ ',
+    autoSize: true,
+    value: dto.amount,
     fractionDigits: 2,
     separateSymbol: '.',
     decimalSeparator: ',',
     enableSeparator: true,
-    duration: const Duration(milliseconds: 400),
+    animateAutoSize: true,
+    duration: const Duration(milliseconds: 600),
     textStyle: dto.isTotal
         ? context.typography.titleLarge?.copyWith(
             fontWeight: .w600,
