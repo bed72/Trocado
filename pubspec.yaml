@@ -36,8 +36,8 @@ dependencies:
   intl: ^0.20.2
   collection: ^1.19.1
 
-  objectbox: ^5.1.0
-  objectbox_flutter_libs: ^5.1.0
+  objectbox: ^5.2.0
+  objectbox_flutter_libs: ^5.2.0
 
   get_it: ^9.2.0
   equatable: ^2.0.8
@@ -66,7 +66,7 @@ dev_dependencies:
   bloc_test: ^10.0.0
   build_runner: ^2.10.5
   flutter_lints: ^6.0.0
-  objectbox_generator: ^5.1.0
+  objectbox_generator: ^5.2.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
