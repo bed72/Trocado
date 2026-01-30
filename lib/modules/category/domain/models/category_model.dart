@@ -33,7 +33,33 @@ enum CategoryModel {
     icon: Icons.redeem,
     color: Colors.purple,
   ),
+  services(
+    types: {.expense},
+    label: 'Serviços',
+    icon: Icons.miscellaneous_services,
+    color: Colors.blueGrey,
+  ),
 
+  financing(
+    types: {.expense},
+    label: 'Financiamento',
+    icon: Icons.account_balance,
+    color: Colors.deepOrange,
+  ),
+
+  housing(
+    types: {.expense},
+    label: 'Moradia',
+    icon: Icons.home,
+    color: Colors.brown,
+  ),
+
+  debt(
+    types: {.expense},
+    label: 'Dívidas',
+    icon: Icons.credit_card,
+    color: Colors.redAccent,
+  ),
   food(
     types: {.expense},
     label: 'Alimentação',
