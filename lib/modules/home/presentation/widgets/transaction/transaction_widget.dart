@@ -46,8 +46,8 @@ class _TransactionWidgetState extends State<TransactionWidget> {
     final prefix = isIncome ? '+' : '-';
     final color = isIncome ? context.colors.primary : context.colors.error;
 
-    return BounceWidget.withTap(
-      onTap: () => widget.onPress(widget.dto.id),
+    return BounceWidget.withOnPress(
+      onPress: () => widget.onPress(widget.dto.id),
       child: Padding(
         padding: const .only(bottom: 8.0),
         child: Dismissible(

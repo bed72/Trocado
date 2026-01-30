@@ -51,8 +51,8 @@ class ButtonWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BounceWidget.withTap(
-      onTap: onTap == null ? null : () => onTap!(),
+    return BounceWidget.withOnPress(
+      onPress: onTap == null ? null : () => onTap!(),
       child: _buildButton(context: context, child: _buildContent(context)),
     );
   }

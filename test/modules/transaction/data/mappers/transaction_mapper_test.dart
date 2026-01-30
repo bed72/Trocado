@@ -1,10 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:trocado/modules/category/data/dtos/category_dto.dart';
+import 'package:trocado/modules/category/domain/models/category_model.dart';
 
 import 'package:trocado/modules/transaction/data/dtos/transaction_dto.dart';
 import 'package:trocado/modules/transaction/data/mappers/transaction_mapper.dart';
-import 'package:trocado/modules/transaction/data/dtos/transaction_type_dto.dart';
 import 'package:trocado/modules/transaction/domain/models/transaction_model.dart';
 
 import 'package:trocado/modules/transaction/infrastructure/database/entities/transaction_entity.dart';
@@ -32,8 +31,8 @@ void main() {
       expect(entity.description, 'Groceries');
       expect(entity.observation, 'Weekly shopping');
       expect(entity.date, date.millisecondsSinceEpoch);
-      expect(entity.category, CategoryDto.other.label);
-      expect(entity.type, TransactionTypeDto.expense.label);
+      expect(entity.category, CategoryModel.other.label);
+      expect(entity.type, TransactionTypeModel.expense.label);
     });
 
     test('should map TransactionDto without observation', () {
@@ -106,8 +105,8 @@ void main() {
         date: timestamp,
         description: 'Almoço',
         observation: 'Restaurante',
-        category: CategoryDto.food.label,
-        type: TransactionTypeDto.expense.label,
+        category: CategoryModel.food.label,
+        type: TransactionTypeModel.expense.label,
       );
 
       final mapper = TransactionDtoMapper();
@@ -117,8 +116,8 @@ void main() {
       expect(dto.amount, 150.75);
       expect(dto.description, 'Almoço');
       expect(dto.observation, 'Restaurante');
-      expect(dto.category, CategoryDto.food);
-      expect(dto.type, TransactionTypeDto.expense);
+      expect(dto.category, CategoryModel.food);
+      expect(dto.type, TransactionTypeModel.expense);
       expect(dto.date, DateTime.fromMillisecondsSinceEpoch(timestamp));
     });
 
@@ -129,8 +128,8 @@ void main() {
         amount: 3000,
         observation: null,
         description: 'Salário',
-        category: CategoryDto.salary.label,
-        type: TransactionTypeDto.income.label,
+        category: CategoryModel.salary.label,
+        type: TransactionTypeModel.income.label,
       );
 
       final mapper = TransactionDtoMapper();
@@ -138,8 +137,8 @@ void main() {
       final dto = mapper(model);
 
       expect(dto.observation, isNull);
-      expect(dto.category, CategoryDto.salary);
-      expect(dto.type, TransactionTypeDto.income);
+      expect(dto.category, CategoryModel.salary);
+      expect(dto.type, TransactionTypeModel.income);
     });
   });
 }

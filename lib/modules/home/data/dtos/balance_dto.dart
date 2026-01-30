@@ -3,7 +3,7 @@ import 'package:trocado/modules/transaction/transaction.dart';
 final class BalanceDto {
   final String label;
   final String amount;
-  final TransactionTypeDto? type;
+  final TransactionTypeModel? type;
 
   const BalanceDto({required this.label, required this.amount, this.type});
 
@@ -12,7 +12,7 @@ final class BalanceDto {
   factory BalanceDto.empty({
     String label = '',
     String amount = '',
-    TransactionTypeDto? type,
+    TransactionTypeModel? type,
   }) => BalanceDto(label: label, amount: amount, type: type);
 
   factory BalanceDto.total({

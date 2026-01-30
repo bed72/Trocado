@@ -20,8 +20,8 @@ final class HomeCubit extends Cubit<HomeState> {
   MonthModel _currentMonth = MonthModel.now();
   MonthModel get currentMonth => _currentMonth;
 
-  TransactionTypeDto? _selectedType;
-  TransactionTypeDto? get selectedType => _selectedType;
+  TransactionTypeModel? _selectedType;
+  TransactionTypeModel? get selectedType => _selectedType;
 
   HomeCubit({
     required IMoneyFormatter formatter,
@@ -52,7 +52,7 @@ final class HomeCubit extends Cubit<HomeState> {
     findTransactionBy();
   }
 
-  void filterBalanceBy({int? endAt, int? startAt, TransactionTypeDto? type}) {
+  void filterBalanceBy({int? endAt, int? startAt, TransactionTypeModel? type}) {
     final currentState = state;
     if (currentState is! HomeSuccess) return;
 
@@ -91,7 +91,7 @@ final class HomeCubit extends Cubit<HomeState> {
     );
   }
 
-  void findTransactionBy({TransactionTypeDto? type}) {
+  void findTransactionBy({TransactionTypeModel? type}) {
     emit(HomeLoading());
 
     _selectedType = type;

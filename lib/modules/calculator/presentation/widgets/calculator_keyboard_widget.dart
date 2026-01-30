@@ -59,8 +59,8 @@ class CalculatorKeyboard extends StatelessWidget {
     required BuildContext context,
     required String label,
     Color? background,
-  }) => BounceWidget.withTap(
-    onTap: () => onKeyTap(label),
+  }) => BounceWidget.withOnPress(
+    onPress: () => onKeyTap(label),
     child: Container(
       decoration: BoxDecoration(
         borderRadius: context.radius.cornerRadius300,

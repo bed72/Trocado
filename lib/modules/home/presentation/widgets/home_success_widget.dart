@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
 import 'package:trocado/modules/core/core.dart';
-import 'package:trocado/modules/home/presentation/widgets/home_empty_widget.dart';
 import 'package:trocado/modules/transaction/transaction.dart';
 
 import 'package:trocado/modules/home/domain/models/home_model.dart';
 import 'package:trocado/modules/home/domain/models/balance_model.dart';
 
+import 'package:trocado/modules/home/presentation/widgets/home_empty_widget.dart';
 import 'package:trocado/modules/home/presentation/widgets/balance/balance_widget.dart';
 import 'package:trocado/modules/home/presentation/widgets/transaction/transaction_widget.dart';
 
@@ -15,7 +15,7 @@ class HomeTransactionSuccessWidget extends StatelessWidget {
   final bool isLoadingMore;
   final bool hasReachedEnd;
   final VoidCallback onLoadMore;
-  final TransactionTypeDto? type;
+  final TransactionTypeModel? type;
   final ValueChanged<int> onDelete;
   final ValueChanged<int?> onPress;
   final String Function(double value) format;
@@ -45,11 +45,7 @@ class HomeTransactionSuccessWidget extends StatelessWidget {
                 childCount: data.transactions.length + (hasReachedEnd ? 0 : 1),
                 (_, index) {
                   if (index >= data.transactions.length) {
-                    if (!isLoadingMore) {
-                      WidgetsBinding.instance.addPostFrameCallback(
-                        (_) => onLoadMore(),
-                      );
-                    }
+                    if (!isLoadingMore) addPostFrameCallback(onLoadMore);
                     return _buildLoading();
                   }
 
@@ -78,9 +74,9 @@ class HomeTransactionSuccessWidget extends StatelessWidget {
 
 class HomeBalaceSuccessWidget extends StatelessWidget {
   final BalanceModel model;
-  final TransactionTypeDto? type;
+  final TransactionTypeModel? type;
   final String Function(double value) format;
-  final ValueChanged<TransactionTypeDto?> onPress;
+  final ValueChanged<TransactionTypeModel?> onPress;
 
   const HomeBalaceSuccessWidget({
     super.key,

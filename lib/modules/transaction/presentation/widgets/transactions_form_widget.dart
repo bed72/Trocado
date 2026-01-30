@@ -6,8 +6,9 @@ import 'package:trocado/modules/date/date.dart';
 import 'package:trocado/modules/category/category.dart';
 import 'package:trocado/modules/calculator/calculator.dart';
 
+import 'package:trocado/modules/transaction/domain/models/transaction_model.dart';
+
 import 'package:trocado/modules/transaction/data/dtos/transaction_dto.dart';
-import 'package:trocado/modules/transaction/data/dtos/transaction_type_dto.dart';
 import 'package:trocado/modules/transaction/data/dtos/transaction_parameter_dto.dart';
 
 class TransactionsFormWidget extends StatefulWidget {
@@ -20,7 +21,7 @@ class TransactionsFormWidget extends StatefulWidget {
 }
 
 class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
-  late TransactionTypeDto _typeDto;
+  late TransactionTypeModel _typeModel;
   late TransactionDto? _transactionDto;
 
   late bool _mustShowDescriptionHelper;
@@ -40,7 +41,7 @@ class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
     _mustShowObservationHelper = false;
 
     _transactionDto = widget.dto.transaction;
-    _typeDto = _transactionDto?.type ?? .expense;
+    _typeModel = _transactionDto?.type ?? .expense;
 
     _dateController = TextEditingController();
     _amountController = TextEditingController();
@@ -59,7 +60,7 @@ class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
 
     if (oldWidget.dto.transaction?.id != widget.dto.transaction?.id) {
       _transactionDto = widget.dto.transaction;
-      _typeDto = _transactionDto?.type ?? .expense;
+      _typeModel = _transactionDto?.type ?? .expense;
       _populateControllers();
     }
   }
@@ -97,8 +98,8 @@ class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
             validator: widget.dto.transaction?.validateDescription,
           ),
 
-          BounceWidget.withTap(
-            onTap: widget.dto.navigateToCalculator,
+          BounceWidget.withOnPress(
+            onPress: widget.dto.navigateToCalculator,
             child: BlocListener<CalculatorCubit, CalculatorState>(
               bloc: widget.dto.calculatorCubit,
               listenWhen: (previous, current) =>
@@ -121,8 +122,8 @@ class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
             ),
           ),
 
-          BounceWidget.withTap(
-            onTap: widget.dto.navigateToCategory,
+          BounceWidget.withOnPress(
+            onPress: widget.dto.navigateToCategory,
             child: BlocListener<CategoryCubit, CategoryState>(
               bloc: widget.dto.categoryCubit,
               listenWhen: (previous, current) =>
@@ -140,8 +141,8 @@ class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
             ),
           ),
 
-          BounceWidget.withTap(
-            onTap: widget.dto.navigateToDate,
+          BounceWidget.withOnPress(
+            onPress: widget.dto.navigateToDate,
             child: BlocListener<DateCubit, DateState>(
               bloc: widget.dto.dateCubit,
               listenWhen: (previous, current) =>
@@ -171,10 +172,10 @@ class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
 
           SelectorWidget(
             options: ['Receita', 'Despesa'],
-            selected: _typeDto == .income ? 0 : 1,
+            selected: _typeModel == .income ? 0 : 1,
             onSelected: (value) {
               setState(() {
-                _typeDto = .fromByInt(value);
+                _typeModel = .fromByInt(value);
                 widget.dto.onTypeSelected(value);
               });
             },
@@ -205,7 +206,7 @@ class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
     _descriptionController.text = _transactionDto?.description ?? '';
     _observationController.text = _transactionDto?.observation ?? '';
     _categoryController.text =
-        _transactionDto?.category.label ?? CategoryDto.other.label;
+        _transactionDto?.category.label ?? CategoryModel.other.label;
     _amountController.text = _transactionDto?.amount == null
         ? ''
         : widget.dto.format(_transactionDto!.amount!);

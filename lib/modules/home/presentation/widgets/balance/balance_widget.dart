@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:animated_digit/animated_digit.dart';
 
 import 'package:trocado/modules/core/core.dart';
 import 'package:trocado/modules/transaction/transaction.dart';
@@ -8,7 +9,7 @@ import 'package:trocado/modules/home/data/dtos/balance_dto.dart';
 class BalanceWidget extends StatelessWidget {
   final BalanceDto dto;
   final bool isSelected;
-  final ValueChanged<TransactionTypeDto?> onPress;
+  final ValueChanged<TransactionTypeModel?> onPress;
 
   const BalanceWidget({
     super.key,
@@ -31,8 +32,8 @@ class BalanceWidget extends StatelessWidget {
       null => Icons.info,
     };
 
-    return BounceWidget.withTap(
-      onTap: isSelected ? null : () => onPress(dto.type),
+    return BounceWidget.withOnPress(
+      onPress: isSelected ? null : () => onPress(dto.type),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         decoration: ShapeDecoration(
@@ -61,37 +62,24 @@ class BalanceWidget extends StatelessWidget {
                 Row(
                   mainAxisAlignment: dto.isTotal ? .center : .spaceBetween,
                   children: [
-                    Text(
-                      dto.label.toUpperCase(),
-                      style: dto.isTotal
-                          ? context.typography.titleMedium?.copyWith(
-                              fontWeight: .w600,
-                              color: context.colors.onSurfaceVariant.withValues(
-                                alpha: 0.8,
-                              ),
-                            )
-                          : context.typography.labelMedium?.copyWith(
-                              fontWeight: .w600,
-                              color: context.colors.onSurfaceVariant.withValues(
-                                alpha: 0.8,
-                              ),
-                            ),
-                    ),
+                    _buildLabel(context),
                     if (!dto.isTotal) _buildIcon(color: color, icon: icon),
                   ],
                 ),
-                Text(
-                  dto.amount,
-                  style: dto.isTotal
-                      ? context.typography.titleLarge?.copyWith(
-                          fontWeight: dto.isTotal ? .w600 : .bold,
-                          color: context.colors.onSurfaceVariant,
-                        )
-                      : context.typography.titleMedium?.copyWith(
-                          fontWeight: dto.isTotal ? .w600 : .bold,
-                          color: context.colors.onSurfaceVariant,
-                        ),
-                ),
+
+                // Text(
+                //   dto.amount,
+                //   style: dto.isTotal
+                //       ? context.typography.titleLarge?.copyWith(
+                //           fontWeight: dto.isTotal ? .w600 : .bold,
+                //           color: context.colors.onSurfaceVariant,
+                //         )
+                //       : context.typography.titleMedium?.copyWith(
+                //           fontWeight: dto.isTotal ? .w600 : .bold,
+                //           color: context.colors.onSurfaceVariant,
+                //         ),
+                // ),
+                _buildValue(context),
               ],
             ),
           ),
@@ -109,6 +97,38 @@ class BalanceWidget extends StatelessWidget {
     width: 32.0,
     height: 32.0,
     iconSize: 16.0,
-    borderRadius: .circular(4.0),
+    borderRadius: .circular(12.0),
+  );
+
+  Text _buildLabel(BuildContext context) => Text(
+    dto.label.toUpperCase(),
+    style: dto.isTotal
+        ? context.typography.titleMedium?.copyWith(
+            fontWeight: .w600,
+            color: context.colors.onSurfaceVariant.withValues(alpha: 0.8),
+          )
+        : context.typography.labelMedium?.copyWith(
+            fontWeight: .w600,
+            color: context.colors.onSurfaceVariant.withValues(alpha: 0.8),
+          ),
+  );
+
+  AnimatedDigitWidget _buildValue(BuildContext context) => AnimatedDigitWidget(
+    value: 2.000,
+    prefix: 'R\$ ',
+    fractionDigits: 2,
+    separateSymbol: '.',
+    decimalSeparator: ',',
+    enableSeparator: true,
+    duration: const Duration(milliseconds: 400),
+    textStyle: dto.isTotal
+        ? context.typography.titleLarge?.copyWith(
+            fontWeight: .w600,
+            color: context.colors.onSurfaceVariant,
+          )
+        : context.typography.titleMedium?.copyWith(
+            fontWeight: .bold,
+            color: context.colors.onSurfaceVariant,
+          ),
   );
 }

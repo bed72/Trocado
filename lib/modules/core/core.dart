@@ -27,7 +27,8 @@ export 'presentation/screens/failure_screen.dart';
 export 'presentation/pages/screen_page.dart';
 export 'presentation/pages/bottom_sheet_page.dart';
 
-export 'presentation/actions/quick_actions.dart';
+export 'presentation/actions/quick_action.dart';
+export 'presentation/actions/callback_action.dart';
 export 'presentation/actions/debounce_action.dart';
 
 export 'presentation/mixins/back_button_mixin.dart';
@@ -55,6 +56,7 @@ export 'presentation/widgets/buttons/button_widget.dart';
 export 'presentation/widgets/fields/text_field_widget.dart';
 export 'presentation/widgets/selectors/selector_widget.dart';
 export 'presentation/widgets/skeletons/skeleton_widget.dart';
+export 'presentation/widgets/buttons/icon_button_widget.dart';
 export 'presentation/widgets/keyboard_visibility_widget.dart';
 export 'presentation/widgets/icons/background_icon_widget.dart';
 export 'presentation/widgets/fields/text_form_field_widget.dart';

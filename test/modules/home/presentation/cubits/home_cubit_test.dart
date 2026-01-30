@@ -3,7 +3,6 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:trocado/modules/core/core.dart';
 
-import 'package:trocado/modules/transaction/data/dtos/transaction_type_dto.dart';
 import 'package:trocado/modules/transaction/domain/models/transaction_model.dart';
 
 import 'package:trocado/modules/home/presentation/cubits/home_cubit.dart';
@@ -31,7 +30,7 @@ void main() {
       amount: 10,
       category: 'food',
       description: 'Lunch',
-      type: TransactionTypeDto.expense.label,
+      type: TransactionTypeModel.expense.label,
     ),
     TransactionModel(
       id: 2,
@@ -39,7 +38,7 @@ void main() {
       amount: 20,
       category: 'salary',
       description: 'Salary',
-      type: TransactionTypeDto.income.label,
+      type: TransactionTypeModel.income.label,
     ),
   ];
 
@@ -235,7 +234,7 @@ void main() {
               amount: 30,
               category: 'bonus',
               description: 'Bonus',
-              type: TransactionTypeDto.income.label,
+              type: TransactionTypeModel.income.label,
             ),
           ];
 
@@ -285,7 +284,7 @@ void main() {
                   amount: 30,
                   category: 'bonus',
                   description: 'Bonus',
-                  type: TransactionTypeDto.income.label,
+                  type: TransactionTypeModel.income.label,
                 ),
               ],
             ),
@@ -512,7 +511,7 @@ void main() {
           ).thenReturn(
             Right(
               transactions
-                  .where((t) => t.type == TransactionTypeDto.income.label)
+                  .where((t) => t.type == TransactionTypeModel.income.label)
                   .toList(),
             ),
           );
@@ -534,7 +533,8 @@ void main() {
             ),
           );
         },
-        act: (cubit) => cubit.filterBalanceBy(type: TransactionTypeDto.income),
+        act: (cubit) =>
+            cubit.filterBalanceBy(type: TransactionTypeModel.income),
         expect: () => [
           HomeLoading(),
           HomeSuccess(
@@ -548,7 +548,7 @@ void main() {
           ),
         ],
         verify: (_) {
-          expect(cubit.selectedType, TransactionTypeDto.income);
+          expect(cubit.selectedType, TransactionTypeModel.income);
         },
       );
 
@@ -566,7 +566,7 @@ void main() {
           ).thenReturn(
             Right(
               transactions
-                  .where((t) => t.type == TransactionTypeDto.income.label)
+                  .where((t) => t.type == TransactionTypeModel.income.label)
                   .toList(),
             ),
           );

@@ -8,13 +8,13 @@ abstract base class BounceWidget extends StatefulWidget {
 
   const BounceWidget({super.key, required this.child});
 
-  factory BounceWidget.withTap({
+  factory BounceWidget.withOnPress({
     Key? key,
     required Widget child,
-    required VoidCallback? onTap,
-  }) => _BounceWithOnTapWidget(key: key, onTap: onTap, child: child);
+    required VoidCallback? onPress,
+  }) => _BounceWithOnTapWidget(key: key, onPress: onPress, child: child);
 
-  factory BounceWidget.withoutTap({Key? key, required Widget child}) =>
+  factory BounceWidget.withoutOnPress({Key? key, required Widget child}) =>
       _BounceWithoutTapWidget(key: key, child: child);
 }
 
@@ -74,9 +74,9 @@ final class _BounceWithoutTapWidgetState extends State<_BounceWithoutTapWidget>
 }
 
 final class _BounceWithOnTapWidget extends BounceWidget {
-  final VoidCallback? onTap;
+  final VoidCallback? onPress;
 
-  const _BounceWithOnTapWidget({super.key, required super.child, this.onTap});
+  const _BounceWithOnTapWidget({super.key, required super.child, this.onPress});
 
   @override
   State<_BounceWithOnTapWidget> createState() => _BounceWithOnTapWidgetState();
@@ -86,8 +86,10 @@ final class _BounceWithOnTapWidgetState extends State<_BounceWithOnTapWidget> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () async =>
-          await Future.delayed(const Duration(milliseconds: 30), widget.onTap),
+      onTap: () async => await Future.delayed(
+        const Duration(milliseconds: 30),
+        widget.onPress,
+      ),
       child: _BounceWithoutTapWidget(child: widget.child),
     );
   }

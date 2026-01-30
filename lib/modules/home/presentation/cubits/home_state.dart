@@ -26,7 +26,7 @@ final class HomeSuccess extends HomeState {
   final MonthModel month;
   final bool hasReachedEnd;
   final bool isLoadingMore;
-  final TransactionTypeDto? type;
+  final TransactionTypeModel? type;
 
   const HomeSuccess({
     required this.home,
@@ -41,7 +41,7 @@ final class HomeSuccess extends HomeState {
     MonthModel? month,
     bool? hasReachedEnd,
     bool? isLoadingMore,
-    TransactionTypeDto? type,
+    TransactionTypeModel? type,
   }) => HomeSuccess(
     home: home ?? this.home,
     type: type ?? this.type,

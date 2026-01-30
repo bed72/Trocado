@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:trocado/modules/core/presentation/animation/animation.dart';
+import 'package:trocado/modules/core/presentation/actions/callback_action.dart';
 import 'package:trocado/modules/core/presentation/extensions/context_extension.dart';
 
 class TextFormFieldWidget extends StatefulWidget {
@@ -183,7 +184,7 @@ class _TextFormFieldWidgetState extends State<TextFormFieldWidget> {
     validator: (value) {
       final data = widget.validator?.call(value);
 
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      addPostFrameCallback(() {
         if (!mounted) return;
         if (_failure != data) setState(() => _failure = data);
       });

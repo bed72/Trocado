@@ -13,6 +13,6 @@ abstract interface class IHomeRepository {
     int? limit,
     int? offset,
     int? startAt,
-    TransactionTypeDto? type,
+    TransactionTypeModel? type,
   });
 }

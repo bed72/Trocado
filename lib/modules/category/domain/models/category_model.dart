@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:trocado/modules/transaction/transaction.dart';
 
-enum CategoryDto {
+enum CategoryModel {
   salary(
     types: {.income},
     label: 'Salário',
@@ -93,16 +93,16 @@ enum CategoryDto {
   final Color color;
   final String label;
   final IconData icon;
-  final Set<TransactionTypeDto> types;
+  final Set<TransactionTypeModel> types;
 
-  const CategoryDto({
+  const CategoryModel({
     required this.label,
     required this.types,
     required this.icon,
     required this.color,
   });
 
-  static CategoryDto fromByString(String value) => .values.firstWhere(
+  static CategoryModel fromByString(String value) => .values.firstWhere(
     (category) => category.label == value,
     orElse: () => .other,
   );

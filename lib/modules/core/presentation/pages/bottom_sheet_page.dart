@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:duck_router/duck_router.dart';
 
+import 'package:trocado/modules/core/presentation/actions/callback_action.dart';
 import 'package:trocado/modules/core/presentation/extensions/context_extension.dart';
 
 final class BottomSheetPage<T> extends DuckPage<T> {
@@ -25,7 +26,7 @@ final class BottomSheetPage<T> extends DuckPage<T> {
         barrierColor: Colors.transparent,
         reverseTransitionDuration: Duration.zero,
         pageBuilder: (context, _, _) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
+          addPostFrameCallback(() {
             showModalBottomSheet<T>(
               context: context,
               useSafeArea: true,

@@ -1,12 +1,12 @@
 import 'package:trocado/modules/category/category.dart';
 
-import 'package:trocado/modules/transaction/data/dtos/transaction_type_dto.dart';
+import 'package:trocado/modules/transaction/domain/models/transaction_model.dart';
 
 final class TransactionDto {
   final DateTime date;
   final String description;
-  final CategoryDto category;
-  final TransactionTypeDto type;
+  final CategoryModel category;
+  final TransactionTypeModel type;
 
   final int? id;
   final double? amount;
@@ -38,8 +38,8 @@ final class TransactionDto {
     DateTime? date,
     String? description,
     String? observation,
-    CategoryDto? category,
-    TransactionTypeDto? type,
+    CategoryModel? category,
+    TransactionTypeModel? type,
   }) => TransactionDto(
     id: id ?? this.id,
     date: date ?? this.date,

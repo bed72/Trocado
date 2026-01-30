@@ -3,19 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:trocado/modules/core/core.dart';
 import 'package:trocado/modules/transaction/transaction.dart';
 
-import 'package:trocado/modules/category/data/dtos/category_dto.dart';
+import 'package:trocado/modules/category/domain/models/category_model.dart';
 import 'package:trocado/modules/category/presentation/widgets/category_widget.dart';
 
 class CategoriesWidget extends StatelessWidget {
-  final CategoryDto? selected;
-  final ValueChanged<CategoryDto> onSelected;
+  final CategoryModel? selected;
+  final ValueChanged<CategoryModel> onSelected;
 
-  List<CategoryDto> get _incomeCategories => CategoryDto.values
-      .where((category) => category.types.contains(TransactionTypeDto.income))
+  List<CategoryModel> get _incomeCategories => CategoryModel.values
+      .where((category) => category.types.contains(TransactionTypeModel.income))
       .toList();
 
-  List<CategoryDto> get _expenseCategories => CategoryDto.values
-      .where((category) => category.types.contains(TransactionTypeDto.expense))
+  List<CategoryModel> get _expenseCategories => CategoryModel.values
+      .where(
+        (category) => category.types.contains(TransactionTypeModel.expense),
+      )
       .toList();
 
   const CategoriesWidget({
@@ -49,7 +51,7 @@ class CategoriesWidget extends StatelessWidget {
     );
   }
 
-  SliverList _buildCategories(List<CategoryDto> categories) => SliverList(
+  SliverList _buildCategories(List<CategoryModel> categories) => SliverList(
     delegate: SliverChildBuilderDelegate(childCount: categories.length, (
       _,
       index,

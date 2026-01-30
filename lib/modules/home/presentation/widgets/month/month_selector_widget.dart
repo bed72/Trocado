@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:trocado/modules/core/core.dart';
 
 import 'package:trocado/modules/home/domain/models/month_model.dart';
-import 'package:trocado/modules/home/presentation/widgets/month/month_button_widget.dart';
 
 class MonthSelectorWidget extends StatelessWidget {
   final MonthModel month;
@@ -22,12 +21,26 @@ class MonthSelectorWidget extends StatelessWidget {
     return Row(
       mainAxisAlignment: .spaceBetween,
       children: [
-        MonthButtonWidget(onPress: onPrevious, icon: Icons.chevron_left),
+        IconButtonWidget(
+          width: 36.0,
+          height: 36.0,
+          iconSize: 22.0,
+          onPress: onPrevious,
+          name: Icons.chevron_left,
+          borderRadius: .circular(12.0),
+        ),
         Text(
           month.label,
           style: context.typography.titleMedium?.copyWith(fontWeight: .w800),
         ),
-        MonthButtonWidget(onPress: onNext, icon: Icons.chevron_right),
+        IconButtonWidget(
+          width: 36.0,
+          height: 36.0,
+          iconSize: 22.0,
+          onPress: onNext,
+          name: Icons.chevron_right,
+          borderRadius: .circular(12.0),
+        ),
       ],
     );
   }

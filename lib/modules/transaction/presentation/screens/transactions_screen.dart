@@ -56,9 +56,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     _dto = TransactionDto.empty(date: widget.dateCubit.state.date);
 
     if (_isEditing) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        widget.transactionCubit.find(widget.id!);
-      });
+      addPostFrameCallback(() => widget.transactionCubit.find(widget.id!));
     }
   }
 
@@ -68,6 +66,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
       cubit: widget.transactionCubit,
       child: ScaffoldWidget(
         appBar: AppBarWidget(
+          leading: _buildGoBack(),
           title: _isEditing ? 'Editar Transação' : 'Nova Transação',
         ),
         child: Padding(
@@ -92,6 +91,15 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
       ),
     );
   }
+
+  IconButtonWidget _buildGoBack() => IconButtonWidget(
+    width: 36.0,
+    height: 36.0,
+    iconSize: 22.0,
+    onPress: context.pop,
+    name: Icons.chevron_left,
+    borderRadius: .circular(12.0),
+  );
 
   Column _buildContent({bool isLoading = false}) => Column(
     children: [

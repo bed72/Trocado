@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:trocado/modules/category/category.dart';
 
 import 'package:trocado/modules/transaction/data/dtos/transaction_dto.dart';
-import 'package:trocado/modules/transaction/data/dtos/transaction_type_dto.dart';
+import 'package:trocado/modules/transaction/domain/models/transaction_model.dart';
 
 void main() {
   group('TransactionDto', () {
@@ -28,8 +28,8 @@ void main() {
         expect(empty.description, '');
         expect(empty.observation, isNull);
         expect(empty.date, isA<DateTime>());
-        expect(empty.category, CategoryDto.other);
-        expect(empty.type, TransactionTypeDto.expense);
+        expect(empty.category, CategoryModel.other);
+        expect(empty.type, TransactionTypeModel.expense);
       });
     });
 
@@ -61,8 +61,8 @@ void main() {
         expect(copy.amount, 99.90);
         expect(copy.description, 'Almoço');
         expect(copy.observation, 'Restaurante');
-        expect(copy.category, CategoryDto.food);
-        expect(copy.type, TransactionTypeDto.expense);
+        expect(copy.category, CategoryModel.food);
+        expect(copy.type, TransactionTypeModel.expense);
       });
     });
 

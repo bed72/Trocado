@@ -12,11 +12,12 @@ class HomeActionButtonWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FloatingActionButton(
-      elevation: 0.0,
-      isExtended: true,
-      onPressed: onNavigateToTransaction,
-      child: IconWidget(name: Icons.add),
+    return BounceWidget.withOnPress(
+      onPress: onNavigateToTransaction,
+      child: BackgroundIconWidget(
+        name: Icons.add,
+        color: context.colors.primary,
+      ),
     );
   }
 }

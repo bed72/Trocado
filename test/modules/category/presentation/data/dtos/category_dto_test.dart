@@ -6,42 +6,42 @@ import 'package:trocado/modules/transaction/transaction.dart';
 void main() {
   group('CategoryDto', () {
     test('returns correct category when label exists', () {
-      final category = CategoryDto.fromByString('Salário');
+      final category = CategoryModel.fromByString('Salário');
 
-      expect(category, CategoryDto.salary);
+      expect(category, CategoryModel.salary);
     });
 
     test('returns correct category for expense label', () {
-      final category = CategoryDto.fromByString('Alimentação');
+      final category = CategoryModel.fromByString('Alimentação');
 
-      expect(category, CategoryDto.food);
+      expect(category, CategoryModel.food);
     });
 
     test('returns CategoryDto.other when label does not exist', () {
-      final category = CategoryDto.fromByString('Categoria inexistente');
+      final category = CategoryModel.fromByString('Categoria inexistente');
 
-      expect(category, CategoryDto.other);
+      expect(category, CategoryModel.other);
     });
 
     test('returns CategoryDto.other when label is empty', () {
-      final category = CategoryDto.fromByString('');
+      final category = CategoryModel.fromByString('');
 
-      expect(category, CategoryDto.other);
+      expect(category, CategoryModel.other);
     });
 
     test('is case sensitive (current behavior)', () {
-      final category = CategoryDto.fromByString('salário');
+      final category = CategoryModel.fromByString('salário');
 
-      expect(category, CategoryDto.other);
+      expect(category, CategoryModel.other);
     });
 
     test('other category supports both income and expense', () {
-      final other = CategoryDto.other;
+      final other = CategoryModel.other;
 
       expect(
         other.types.containsAll({
-          TransactionTypeDto.income,
-          TransactionTypeDto.expense,
+          TransactionTypeModel.income,
+          TransactionTypeModel.expense,
         }),
         isTrue,
       );

@@ -4,7 +4,7 @@ import 'package:trocado/modules/core/core.dart';
 import 'package:trocado/modules/category/category.dart';
 
 class CategoryWidget extends StatelessWidget {
-  final CategoryDto category;
+  final CategoryModel category;
   final bool selected;
   final VoidCallback onTap;
 

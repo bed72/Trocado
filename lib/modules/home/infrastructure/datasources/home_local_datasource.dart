@@ -104,7 +104,7 @@ final class HomeLocalDatasource implements IHomeLocalDatasource {
   double _sumByType({
     required int? endAt,
     required int? startAt,
-    required TransactionTypeDto type,
+    required TransactionTypeModel type,
   }) {
     final (start, end) = _resolvePeriod(startAt, endAt);
 

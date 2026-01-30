@@ -1,11 +1,10 @@
 import 'package:flutter/widgets.dart';
 
 import 'package:trocado/modules/core/core.dart';
-import 'package:trocado/modules/transaction/data/dtos/transaction_type_dto.dart';
+import 'package:trocado/modules/transaction/transaction.dart';
 
-// TODO Text
 class HomeEmptyWidget extends StatelessWidget {
-  final TransactionTypeDto? type;
+  final TransactionTypeModel? type;
 
   const HomeEmptyWidget({super.key, this.type});
 
