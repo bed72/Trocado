@@ -48,7 +48,7 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file("../../.keys/trocado.jks")
+            storeFile = file("/home/bed/Documentos/Code/keys/trocado.jks")
             keyAlias = System.getenv("TROCADO_KEY_ALIAS")
             keyPassword = System.getenv("TROCADO_KEY_PASSWORD")
             storePassword = System.getenv("TROCADO_STORE_PASSWORD")

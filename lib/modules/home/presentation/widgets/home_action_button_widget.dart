@@ -14,13 +14,19 @@ class HomeActionButtonWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return BounceWidget.withOnPress(
       onPress: onNavigateToTransaction,
-      child: BackgroundIconWidget(
-        icon: Icons.add,
-        alpha: .8,
-        width: 64.0,
-        height: 64.0,
-        borderRadius: .circular(26.0),
-        color: context.colors.primary,
+      child: Container(
+        width: 56.0,
+        height: 56.0,
+        alignment: .center,
+        decoration: BoxDecoration(
+          color: context.colors.primary,
+          borderRadius: context.radius.cornerRadius300,
+        ),
+        child: IconWidget(
+          size: 26.0,
+          icon: Icons.add,
+          color: context.colors.onPrimary,
+        ),
       ),
     );
   }
