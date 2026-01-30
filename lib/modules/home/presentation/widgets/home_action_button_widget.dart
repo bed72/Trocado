@@ -16,6 +16,9 @@ class HomeActionButtonWidget extends StatelessWidget {
       onPress: onNavigateToTransaction,
       child: BackgroundIconWidget(
         icon: Icons.add,
+        width: 64.0,
+        height: 64.0,
+        borderRadius: .circular(26.0),
         color: context.colors.primary,
       ),
     );

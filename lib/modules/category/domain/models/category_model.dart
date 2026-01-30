@@ -85,7 +85,7 @@ enum CategoryModel {
 
   other(
     label: 'Outros',
-    types: {.income, .expense},
+    types: {.expense},
     icon: Icons.category,
     color: Colors.grey,
   );

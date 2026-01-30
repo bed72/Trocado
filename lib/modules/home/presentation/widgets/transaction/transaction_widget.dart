@@ -99,7 +99,7 @@ class _TransactionWidgetState extends State<TransactionWidget> {
               ? null
               : Text(
                   '$prefix ${widget.format(widget.dto.amount!)}',
-                  style: context.typography.bodyLarge?.copyWith(
+                  style: context.typography.titleMedium?.copyWith(
                     color: color,
                     fontWeight: .bold,
                   ),
