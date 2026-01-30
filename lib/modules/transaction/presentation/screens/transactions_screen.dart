@@ -53,7 +53,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     widget.categoryCubit.clear();
     widget.transactionCubit.clear();
     _formKey = GlobalKey<FormState>();
-    _dto = TransactionDto.empty(date: widget.dateCubit.state.date);
+    _dto = .empty(date: widget.dateCubit.state.date);
 
     if (_isEditing) {
       addPostFrameCallback(() => widget.transactionCubit.find(widget.id!));

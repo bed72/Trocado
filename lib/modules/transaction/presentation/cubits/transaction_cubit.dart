@@ -34,9 +34,9 @@ final class TransactionCubit extends Cubit<TransactionState> {
   void find(int id) {
     emit(TransactionLoading());
 
-    final date = _repository.find(id);
+    final data = _repository.find(id);
 
-    date.fold(
+    data.fold(
       (failure) => emit(TransactionFailure(failure: failure)),
       (transaction) => emit(TransactionSuccess(transaction: transaction)),
     );
@@ -45,9 +45,9 @@ final class TransactionCubit extends Cubit<TransactionState> {
   void save(TransactionDto dto) {
     emit(TransactionLoading());
 
-    final date = _repository.save(dto);
+    final data = _repository.save(dto);
 
-    date.fold(
+    data.fold(
       (failure) => emit(TransactionFailure(failure: failure)),
       (_) => emit(TransactionSuccess()),
     );

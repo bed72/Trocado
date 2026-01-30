@@ -42,7 +42,6 @@ class _TransactionWidgetState extends State<TransactionWidget> {
   @override
   Widget build(BuildContext context) {
     final isIncome = widget.dto.type == .income;
-
     final prefix = isIncome ? '+' : '-';
     final color = isIncome ? context.colors.primary : context.colors.error;
 
@@ -102,6 +101,7 @@ class _TransactionWidgetState extends State<TransactionWidget> {
                   style: context.typography.titleMedium?.copyWith(
                     color: color,
                     fontWeight: .bold,
+                    fontFeatures: const [.tabularFigures()],
                   ),
                 ),
         ),

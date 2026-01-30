@@ -115,10 +115,12 @@ class BalanceWidget extends StatelessWidget {
         ? context.typography.titleLarge?.copyWith(
             fontWeight: .w600,
             color: context.colors.onSurfaceVariant,
+            fontFeatures: const [.tabularFigures()],
           )
         : context.typography.titleMedium?.copyWith(
             fontWeight: .bold,
             color: context.colors.onSurfaceVariant,
+            fontFeatures: const [.tabularFigures()],
           ),
   );
 }

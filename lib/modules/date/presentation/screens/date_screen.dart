@@ -51,8 +51,8 @@ class _DateScreenState extends State<DateScreen> {
                 builder: (_, state) => SfDateRangePicker(
                   view: .month,
                   showNavigationArrow: true,
-                  initialSelectedDate: _date,
                   initialDisplayDate: state.date,
+                  initialSelectedDate: state.date,
                   backgroundColor: context.colors.surface,
                   onSelectionChanged: (date) {
                     setState(() => _date = date.value as DateTime);

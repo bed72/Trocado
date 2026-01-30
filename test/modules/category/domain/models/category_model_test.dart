@@ -4,7 +4,7 @@ import 'package:trocado/modules/category/category.dart';
 import 'package:trocado/modules/transaction/transaction.dart';
 
 void main() {
-  group('CategoryDto', () {
+  group('CategoryModel', () {
     test('returns correct category when label exists', () {
       final category = CategoryModel.fromByString('Salário');
 
@@ -17,13 +17,13 @@ void main() {
       expect(category, CategoryModel.food);
     });
 
-    test('returns CategoryDto.other when label does not exist', () {
+    test('returns CategoryModel.other when label does not exist', () {
       final category = CategoryModel.fromByString('Categoria inexistente');
 
       expect(category, CategoryModel.other);
     });
 
-    test('returns CategoryDto.other when label is empty', () {
+    test('returns CategoryModel.other when label is empty', () {
       final category = CategoryModel.fromByString('');
 
       expect(category, CategoryModel.other);
@@ -35,16 +35,10 @@ void main() {
       expect(category, CategoryModel.other);
     });
 
-    test('other category supports both income and expense', () {
+    test('other category supports expense', () {
       final other = CategoryModel.other;
 
-      expect(
-        other.types.containsAll({
-          TransactionTypeModel.income,
-          TransactionTypeModel.expense,
-        }),
-        isTrue,
-      );
+      expect(other.types.containsAll({TransactionTypeModel.expense}), isTrue);
     });
   });
 }
