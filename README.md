@@ -66,13 +66,11 @@ Ele é responsável por persistir as transações localmente e servir como fonte
 - [x] Validação de formulário
 - [x] Cadastro de transação
 - [x] Feedback visual de cadastro com sucesso
-
-#### 🚧 Falta implementar
-
-- [ ] Formatação de valor em **pt-BR**
-- [ ] Testes de **apagar transação**
-- [ ] Testes de **editar transação**
-- [ ] Feedback visual para **falha no cadastro**
+- [x] Formatação de valor em **pt-BR**
+- [x] Testes de **apagar transação**
+- [x] Testes de **editar transação**
+- [x] Feedback visual para **falha no cadastro**
+- [x] Controle do seletor de data baseado no mês
 
 ---
 
@@ -81,24 +79,25 @@ Ele é responsável por persistir as transações localmente e servir como fonte
 #### ✅ Já temos
 
 - [x] Listagem de transações
+- [x] Paginação
+- [x] Apagar transação com **swipeable**
+- [x] Filtros (todas / receitas / despesas)
+- [x] Tela de **estado vazio** (sem transações)
+- [x] Cards com **resumo financeiro** (total gasto, entradas, saldo)
 
 #### 🚧 Falta implementar
-
-- [ ] Paginação
-- [ ] Apagar transação com **swipeable**
-- [ ] Filtros (todas / receitas / despesas)
-- [ ] Tela de **estado vazio** (sem transações)
-- [ ] Cards com **resumo financeiro** (total gasto, entradas, saldo)
+- [ ] Filtros
+- [ ] Insights
+- [ ] Média móvel
+- [ ] Desvio padrão
+- [ ] Comparação histórica
 
 ---
 
 ## 🚀 Próximos Passos
-
-* Refinar experiência de loading e empty states
 * Completar cobertura de testes
-* Evoluir filtros e paginação
-* Melhorar feedbacks visuais
 
 O Trocado está sendo desenvolvido com foco em **qualidade técnica**, **evolução contínua** e **experiência do usuário**.
 
+Todas as ilustração são mérito exclusivos de:
 <a href="https://storyset.com/money">Money illustrations by Storyset</a>
