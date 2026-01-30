@@ -97,7 +97,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     height: 36.0,
     iconSize: 22.0,
     onPress: context.pop,
-    name: Icons.chevron_left,
+    icon: Icons.chevron_left,
     borderRadius: .circular(12.0),
   );
 

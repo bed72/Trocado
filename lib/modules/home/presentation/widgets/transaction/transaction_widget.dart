@@ -80,7 +80,7 @@ class _TransactionWidgetState extends State<TransactionWidget> {
         color: context.colors.surfaceContainer,
         child: ListTile(
           leading: BackgroundIconWidget(
-            name: widget.dto.category.icon,
+            icon: widget.dto.category.icon,
             color: widget.dto.category.color,
           ),
           title: Text(
@@ -117,6 +117,6 @@ class _TransactionWidgetState extends State<TransactionWidget> {
         bottomRight: .circular(20.0),
       ),
     ),
-    child: IconWidget(name: Icons.delete, color: context.colors.error),
+    child: IconWidget(icon: Icons.delete, color: context.colors.error),
   );
 }

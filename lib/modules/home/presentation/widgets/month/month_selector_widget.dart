@@ -21,27 +21,25 @@ class MonthSelectorWidget extends StatelessWidget {
     return Row(
       mainAxisAlignment: .spaceBetween,
       children: [
-        IconButtonWidget(
-          width: 36.0,
-          height: 36.0,
-          iconSize: 22.0,
-          onPress: onPrevious,
-          name: Icons.chevron_left,
-          borderRadius: .circular(12.0),
-        ),
+        _buildIcon(onPress: onPrevious, icon: Icons.chevron_left_rounded),
         Text(
           month.label,
           style: context.typography.titleMedium?.copyWith(fontWeight: .w800),
         ),
-        IconButtonWidget(
-          width: 36.0,
-          height: 36.0,
-          iconSize: 22.0,
-          onPress: onNext,
-          name: Icons.chevron_right,
-          borderRadius: .circular(12.0),
-        ),
+        _buildIcon(onPress: onNext, icon: Icons.chevron_right_rounded),
       ],
     );
   }
+
+  IconButtonWidget _buildIcon({
+    required IconData icon,
+    required VoidCallback onPress,
+  }) => IconButtonWidget(
+    icon: icon,
+    width: 36.0,
+    height: 36.0,
+    iconSize: 22.0,
+    onPress: onPress,
+    borderRadius: .circular(12.0),
+  );
 }

@@ -80,7 +80,7 @@ class BalanceWidget extends StatelessWidget {
     required Color color,
     required IconData icon,
   }) => BackgroundIconWidget(
-    name: icon,
+    icon: icon,
     color: color,
     width: 32.0,
     height: 32.0,

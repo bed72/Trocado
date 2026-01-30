@@ -17,7 +17,7 @@ class HelperWidget extends StatelessWidget {
       child: Row(
         spacing: 4.0,
         children: [
-          IconWidget(size: 16.0, color: color, name: Icons.info),
+          IconWidget(size: 16.0, color: color, icon: Icons.info),
           Text(
             title,
             style: context.typography.bodySmall?.copyWith(

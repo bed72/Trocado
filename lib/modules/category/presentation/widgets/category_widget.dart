@@ -22,7 +22,7 @@ class CategoryWidget extends StatelessWidget {
       child: ListTile(
         onTap: onTap,
         leading: BackgroundIconWidget(
-          name: category.icon,
+          icon: category.icon,
           color: category.color,
         ),
         title: Text(
@@ -32,7 +32,7 @@ class CategoryWidget extends StatelessWidget {
         trailing: SwitcherAnimation(
           child: selected
               ? IconWidget(
-                  name: Icons.check_circle,
+                  icon: Icons.check_circle,
                   color: context.colors.primary,
                   key: const ValueKey('selected'),
                 )

@@ -3,7 +3,7 @@ import 'package:trocado/modules/core/core.dart';
 
 class BackgroundIconWidget extends StatelessWidget {
   final Color color;
-  final IconData name;
+  final IconData icon;
   final double? width;
   final double? height;
   final double? iconSize;
@@ -11,7 +11,7 @@ class BackgroundIconWidget extends StatelessWidget {
 
   const BackgroundIconWidget({
     super.key,
-    required this.name,
+    required this.icon,
     required this.color,
     this.width,
     this.height,
@@ -29,7 +29,7 @@ class BackgroundIconWidget extends StatelessWidget {
         color: color.withValues(alpha: 0.2),
         borderRadius: borderRadius ?? context.radius.cornerRadius300,
       ),
-      child: IconWidget(name: name, color: color, size: iconSize),
+      child: IconWidget(icon: icon, color: color, size: iconSize),
     );
   }
 }

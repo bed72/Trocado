@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 class IconWidget extends StatelessWidget {
   final Color? color;
   final double? size;
-  final IconData name;
+  final IconData icon;
   final String? semanticsLabel;
   final FontWeight? fontWeight;
 
   const IconWidget({
     super.key,
-    required this.name,
+    required this.icon,
     this.size,
     this.color,
     this.fontWeight,
@@ -18,7 +18,7 @@ class IconWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Icon(
-    name,
+    icon,
     size: size,
     color: color,
     fontWeight: fontWeight,

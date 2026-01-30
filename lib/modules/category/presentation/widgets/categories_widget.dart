@@ -77,7 +77,7 @@ class CategoriesWidget extends StatelessWidget {
       child: Row(
         spacing: 16.0,
         children: [
-          BackgroundIconWidget(name: icon, color: color),
+          BackgroundIconWidget(icon: icon, color: color),
           Text(
             title,
             style: context.typography.bodyLarge?.copyWith(

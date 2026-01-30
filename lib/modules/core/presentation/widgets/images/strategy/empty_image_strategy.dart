@@ -22,7 +22,7 @@ final class EmptyImageStrategy implements ImageStrategy {
       height: height,
       child: IconWidget(
         color: color ?? Colors.grey,
-        name: Icons.hourglass_empty_rounded,
+        icon: Icons.hourglass_empty_rounded,
         size: (width ?? height ?? 48) * 0.6,
         semanticsLabel: semanticLabel ?? 'Sem imagem',
       ),

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:trocado/modules/core/core.dart';
 
 class IconButtonWidget extends StatelessWidget {
-  final IconData name;
+  final IconData icon;
   final Color? color;
   final double? width;
   final double? height;
@@ -13,7 +13,7 @@ class IconButtonWidget extends StatelessWidget {
 
   const IconButtonWidget({
     super.key,
-    required this.name,
+    required this.icon,
     required this.onPress,
     this.width,
     this.color,
@@ -27,7 +27,7 @@ class IconButtonWidget extends StatelessWidget {
     return BounceWidget.withOnPress(
       onPress: onPress,
       child: BackgroundIconWidget(
-        name: name,
+        icon: icon,
         width: width,
         height: height,
         iconSize: iconSize,

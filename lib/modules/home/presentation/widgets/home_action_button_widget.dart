@@ -15,7 +15,7 @@ class HomeActionButtonWidget extends StatelessWidget {
     return BounceWidget.withOnPress(
       onPress: onNavigateToTransaction,
       child: BackgroundIconWidget(
-        name: Icons.add,
+        icon: Icons.add,
         color: context.colors.primary,
       ),
     );

@@ -50,7 +50,7 @@ void _showSuccessToast({
     backgroundColor: context.colors.surfaceContainer,
     icon: IconWidget(
       color: context.colors.primary,
-      name: Icons.celebration_rounded,
+      icon: Icons.celebration_rounded,
     ),
     callbacks: ToastificationCallbacks(
       onDismissed: (_) => onClose?.call(),
@@ -111,7 +111,7 @@ void _showFailureToast({
     closeButton: ToastCloseButton(showType: .none),
     borderSide: BorderSide(width: 0.0, style: .none),
     backgroundColor: context.colors.surfaceContainer,
-    icon: IconWidget(name: Icons.error, color: context.colors.error),
+    icon: IconWidget(icon: Icons.error, color: context.colors.error),
     progressBarTheme: ProgressIndicatorThemeData(
       stopIndicatorRadius: 2.0,
       borderRadius: .all(.circular(2.0)),
