@@ -89,7 +89,7 @@ configurations {
 dependencies {
     implementation("androidx.core:core-splashscreen:1.2.0")
 
-    debugImplementation("io.objectbox:objectbox-android-objectbrowser:5.2.0")
+    debugImplementation("io.objectbox:objectbox-android-objectbrowser:5.1.0")
 }
 
 flutter {

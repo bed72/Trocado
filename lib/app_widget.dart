@@ -4,7 +4,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'package:trocado/app_route.dart';
 
-import 'package:trocado/modules/core/core.dart';
+import 'package:trocado/src/presentation/themes/themes.dart';
+import 'package:trocado/src/presentation/widgets/load_widget.dart';
 
 final class AppWidget extends StatelessWidget {
   const AppWidget({super.key});

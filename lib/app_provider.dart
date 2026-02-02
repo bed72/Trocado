@@ -1,23 +1,11 @@
 import 'package:trocado/main.dart';
 
-import 'package:trocado/modules/home/home.dart';
-import 'package:trocado/modules/core/core.dart';
-import 'package:trocado/modules/date/date.dart';
-import 'package:trocado/modules/category/category.dart';
-import 'package:trocado/modules/calculator/calculator.dart';
-import 'package:trocado/modules/transaction/transaction.dart';
+import 'package:trocado/src/main/providers/providers.dart';
+
+import 'package:trocado/src/infrastructure/clients/database/database_client.dart';
 
 Future<void> ensureInitialized() async {
-  clientProvider();
-  resourceProvider();
-  datasourceProvider();
-  repositoryProvider();
-
-  dateProvider();
-  homeProvider();
-  categoryProvider();
-  calculatorProvider();
-  transactionProvider();
+  providers();
 
   await _ensureInitialized();
 }
