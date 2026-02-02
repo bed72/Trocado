@@ -25,11 +25,9 @@ final class TransactionCubit extends Cubit<TransactionState> {
        _transactionRepository = repository,
        super(TransactionIdle(form: TransactionFormDto.empty()));
 
-  // === Métodos de formatação ===
   double parse(String value) => _moneyRepository.parse(value);
   String format(double value) => _moneyRepository.format(value);
 
-  // === Métodos do Calculator (migrados) ===
   void onKeyTap(String key) => switch (key) {
     '✓' => applyAmount(),
     'AC' => clearAmount(),
@@ -72,7 +70,6 @@ final class TransactionCubit extends Cubit<TransactionState> {
     emit(_copyStateWith(form: state.form.copyWith(amount: parsed)));
   }
 
-  // === Métodos do Date (migrados) ===
   void clearDate() {
     emit(
       _copyStateWith(
@@ -89,7 +86,6 @@ final class TransactionCubit extends Cubit<TransactionState> {
     );
   }
 
-  // === Métodos do Category (migrados) ===
   void clearCategory() {
     emit(
       _copyStateWith(form: state.form.copyWith(category: CategoryModel.other)),
@@ -100,7 +96,6 @@ final class TransactionCubit extends Cubit<TransactionState> {
     emit(_copyStateWith(form: state.form.copyWith(category: category)));
   }
 
-  // === Métodos CRUD ===
   void clear() {
     _buffer = '';
     emit(TransactionIdle(form: TransactionFormDto.empty()));
@@ -114,7 +109,7 @@ final class TransactionCubit extends Cubit<TransactionState> {
     data.fold(
       (failure) => emit(TransactionFailure(form: state.form, failure: failure)),
       (transaction) {
-        final newForm = state.form.copyWith(
+        final form = state.form.copyWith(
           amount: transaction.amount,
           category: .fromByString(transaction.category),
           date: .fromMillisecondsSinceEpoch(transaction.date),
@@ -123,7 +118,8 @@ final class TransactionCubit extends Cubit<TransactionState> {
           ).format(),
         );
         _buffer = transaction.amount.toString();
-        emit(TransactionSuccess(form: newForm, transaction: transaction));
+
+        emit(TransactionSuccess(form: form, transaction: transaction));
       },
     );
   }
@@ -150,7 +146,6 @@ final class TransactionCubit extends Cubit<TransactionState> {
     );
   }
 
-  // === Helper para emitir estados mantendo o tipo atual ===
   TransactionState _copyStateWith({TransactionFormDto? form}) {
     final newForm = form ?? state.form;
 
