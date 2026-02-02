@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import 'package:trocado/src/domain/constants/logger_level_constant.dart';
 
-abstract interface class ILogger {
+abstract interface class ILoggerClient {
   void debug(String message, {Object? error, StackTrace? stackTrace});
   void error(String message, {Object? error, StackTrace? stackTrace});
   void warning(String message, {Object? error, StackTrace? stackTrace});
@@ -11,20 +11,15 @@ abstract interface class ILogger {
   void information(String message, {Object? error, StackTrace? stackTrace});
 }
 
-final class Logger implements ILogger {
+final class LoggerClient implements ILoggerClient {
   final bool showTimestamp;
   final String defaultTitle;
 
-  Logger({this.showTimestamp = true, this.defaultTitle = 'Trocado'});
+  LoggerClient({this.showTimestamp = true, this.defaultTitle = 'Trocado'});
 
   @override
   void debug(String message, {Object? error, StackTrace? stackTrace}) {
-    _log(
-      error: error,
-      message: message,
-      stackTrace: stackTrace,
-      level: LoggerLevelConstant.debug,
-    );
+    _log(error: error, level: .debug, message: message, stackTrace: stackTrace);
   }
 
   @override
@@ -32,8 +27,8 @@ final class Logger implements ILogger {
     _log(
       error: error,
       message: message,
+      level: .information,
       stackTrace: stackTrace,
-      level: LoggerLevelConstant.information,
     );
   }
 
@@ -41,29 +36,24 @@ final class Logger implements ILogger {
   void warning(String message, {Object? error, StackTrace? stackTrace}) {
     _log(
       error: error,
+      level: .warning,
       message: message,
       stackTrace: stackTrace,
-      level: LoggerLevelConstant.warning,
     );
   }
 
   @override
   void error(String message, {Object? error, StackTrace? stackTrace}) {
-    _log(
-      error: error,
-      message: message,
-      stackTrace: stackTrace,
-      level: LoggerLevelConstant.error,
-    );
+    _log(error: error, level: .error, message: message, stackTrace: stackTrace);
   }
 
   @override
   void verbose(String message, {Object? error, StackTrace? stackTrace}) {
     _log(
       error: error,
+      level: .verbose,
       message: message,
       stackTrace: stackTrace,
-      level: LoggerLevelConstant.verbose,
     );
   }
 
@@ -71,9 +61,9 @@ final class Logger implements ILogger {
   void critical(String message, {Object? error, StackTrace? stackTrace}) {
     _log(
       error: error,
+      level: .critical,
       message: message,
       stackTrace: stackTrace,
-      level: LoggerLevelConstant.critical,
     );
   }
 

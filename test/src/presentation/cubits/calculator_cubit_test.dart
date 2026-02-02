@@ -1,19 +1,19 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:trocado/src/domain/repositories/interface_money_repository.dart';
 
 import 'package:trocado/src/presentation/cubits/calculator/calculator_cubit.dart';
-import 'package:trocado/src/infrastructure/resources/formatters/money_formatter.dart';
 
 import '../../../mocks/mocks.dart';
 
 void main() {
-  late IMoneyFormatter formatter;
+  late IMoneyRepository repository;
 
   setUp(() {
-    formatter = MockMoneyFormatter();
+    repository = MockMoneyRepository();
   });
 
-  CalculatorCubit build() => CalculatorCubit(formatter: formatter);
+  CalculatorCubit build() => CalculatorCubit(repository: repository);
 
   group('CalculatorCubit', () {
     test('initial state is empty', () {

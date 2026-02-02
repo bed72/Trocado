@@ -1,15 +1,11 @@
 import 'package:intl/intl.dart';
 
-abstract interface class IMoneyFormatter {
-  double parse(String value);
-  String format(double value);
-  String formatWithoutSymbol(double value);
-}
+import 'package:trocado/src/domain/repositories/interface_money_repository.dart';
 
-final class MoneyFormatter implements IMoneyFormatter {
+final class MoneyRepository implements IMoneyRepository {
   final NumberFormat _formatter;
 
-  MoneyFormatter()
+  MoneyRepository()
     : _formatter = NumberFormat.currency(
         symbol: 'R\$',
         locale: 'pt_BR',

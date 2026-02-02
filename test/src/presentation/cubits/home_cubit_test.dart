@@ -2,25 +2,25 @@ import 'package:mocktail/mocktail.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:trocado/src/presentation/cubits/home/home_cubit.dart';
-
 import 'package:trocado/src/domain/either/either.dart';
 
 import 'package:trocado/src/domain/models/home_model.dart';
 import 'package:trocado/src/domain/models/month_model.dart';
 import 'package:trocado/src/domain/models/balance_model.dart';
 import 'package:trocado/src/domain/models/transaction_model.dart';
-import 'package:trocado/src/domain/repositories/interface_home_repository.dart';
 
-import 'package:trocado/src/infrastructure/resources/formatters/money_formatter.dart';
+import 'package:trocado/src/presentation/cubits/home/home_cubit.dart';
+
+import 'package:trocado/src/domain/repositories/interface_money_repository.dart';
+import 'package:trocado/src/domain/repositories/interface_transaction_repository.dart';
 
 import '../../../mocks/mocks.dart';
 
 void main() {
   late HomeCubit cubit;
   late MonthModel currentMonth;
-  late IMoneyFormatter formatter;
-  late IHomeRepository repository;
+  late IMoneyRepository moneyRepository;
+  late ITransactionRepository transactionRepository;
 
   final initialBalance = BalanceModel(income: 100, expense: 50, total: 50);
   final refreshedBalance = BalanceModel(income: 90, expense: 50, total: 40);
@@ -46,9 +46,13 @@ void main() {
 
   setUp(() {
     currentMonth = MonthModel.now();
-    formatter = MockMoneyFormatter();
-    repository = MockHomeRepository();
-    cubit = HomeCubit(formatter: formatter, repository: repository);
+    moneyRepository = MockMoneyRepository();
+    transactionRepository = MockTransactionRepository();
+
+    cubit = HomeCubit(
+      moneyRepository: moneyRepository,
+      transactionRepository: transactionRepository,
+    );
   });
 
   tearDown(() {
@@ -65,7 +69,7 @@ void main() {
         'emits [HomeLoading, HomeSuccess] when success',
         build: () {
           when(
-            () => repository.findTransactionBy(
+            () => transactionRepository.findTransactionBy(
               type: any(named: 'type'),
               endAt: any(named: 'endAt'),
               limit: any(named: 'limit'),
@@ -75,7 +79,7 @@ void main() {
           ).thenReturn(Right(transactions));
 
           when(
-            () => repository.getBalanceBy(
+            () => transactionRepository.getBalanceBy(
               endAt: any(named: 'endAt'),
               startAt: any(named: 'startAt'),
             ),
@@ -101,7 +105,7 @@ void main() {
         'emits [HomeLoading, HomeFailure] when transaction fails',
         build: () {
           when(
-            () => repository.findTransactionBy(
+            () => transactionRepository.findTransactionBy(
               type: any(named: 'type'),
               endAt: any(named: 'endAt'),
               limit: any(named: 'limit'),
@@ -111,7 +115,7 @@ void main() {
           ).thenReturn(const Left('Failure'));
 
           when(
-            () => repository.getBalanceBy(
+            () => transactionRepository.getBalanceBy(
               endAt: any(named: 'endAt'),
               startAt: any(named: 'startAt'),
             ),
@@ -129,7 +133,7 @@ void main() {
         'emits HomeFailure when balance fails',
         build: () {
           when(
-            () => repository.findTransactionBy(
+            () => transactionRepository.findTransactionBy(
               type: any(named: 'type'),
               endAt: any(named: 'endAt'),
               limit: any(named: 'limit'),
@@ -139,7 +143,7 @@ void main() {
           ).thenReturn(Right(transactions));
 
           when(
-            () => repository.getBalanceBy(
+            () => transactionRepository.getBalanceBy(
               endAt: any(named: 'endAt'),
               startAt: any(named: 'startAt'),
             ),
@@ -159,7 +163,7 @@ void main() {
         act: (cubit) => cubit.loadMore(),
         verify: (_) {
           verifyNever(
-            () => repository.findTransactionBy(
+            () => transactionRepository.findTransactionBy(
               type: any(named: 'type'),
               endAt: any(named: 'endAt'),
               limit: any(named: 'limit'),
@@ -187,7 +191,7 @@ void main() {
         act: (cubit) => cubit.loadMore(),
         verify: (_) {
           verifyNever(
-            () => repository.findTransactionBy(
+            () => transactionRepository.findTransactionBy(
               type: any(named: 'type'),
               endAt: any(named: 'endAt'),
               limit: any(named: 'limit'),
@@ -215,7 +219,7 @@ void main() {
         act: (cubit) => cubit.loadMore(),
         verify: (_) {
           verifyNever(
-            () => repository.findTransactionBy(
+            () => transactionRepository.findTransactionBy(
               type: any(named: 'type'),
               endAt: any(named: 'endAt'),
               limit: any(named: 'limit'),
@@ -241,7 +245,7 @@ void main() {
           ];
 
           when(
-            () => repository.findTransactionBy(
+            () => transactionRepository.findTransactionBy(
               offset: 2,
               type: any(named: 'type'),
               endAt: any(named: 'endAt'),
@@ -298,7 +302,7 @@ void main() {
         'emits [isLoadingMore: true, isLoadingMore: false] when loadMore fails',
         build: () {
           when(
-            () => repository.findTransactionBy(
+            () => transactionRepository.findTransactionBy(
               type: any(named: 'type'),
               endAt: any(named: 'endAt'),
               limit: any(named: 'limit'),
@@ -348,7 +352,7 @@ void main() {
         build: () => cubit,
         act: (cubit) => cubit.deleteTransactionBy(id: 1),
         verify: (_) {
-          verifyNever(() => repository.deleteTransactionBy(any()));
+          verifyNever(() => transactionRepository.deleteTransactionById(any()));
         },
       );
 
@@ -356,11 +360,11 @@ void main() {
         'emits optimistic HomeSuccess and refreshed HomeSuccess when delete succeeds',
         build: () {
           when(
-            () => repository.deleteTransactionBy(1),
+            () => transactionRepository.deleteTransactionById(1),
           ).thenReturn(const Right(null));
 
           when(
-            () => repository.getBalanceBy(
+            () => transactionRepository.getBalanceBy(
               endAt: any(named: 'endAt'),
               startAt: any(named: 'startAt'),
             ),
@@ -400,7 +404,7 @@ void main() {
         'emits HomeFailure when delete fails after optimistic update',
         build: () {
           when(
-            () => repository.deleteTransactionBy(1),
+            () => transactionRepository.deleteTransactionById(1),
           ).thenReturn(const Left('Failure'));
 
           return cubit..emit(
@@ -426,7 +430,7 @@ void main() {
         ],
         verify: (_) {
           verifyNever(
-            () => repository.getBalanceBy(
+            () => transactionRepository.getBalanceBy(
               endAt: any(named: 'endAt'),
               startAt: any(named: 'startAt'),
             ),
@@ -438,11 +442,11 @@ void main() {
         'emits HomeFailure when balance refresh fails after delete',
         build: () {
           when(
-            () => repository.deleteTransactionBy(1),
+            () => transactionRepository.deleteTransactionById(1),
           ).thenReturn(const Right(null));
 
           when(
-            () => repository.getBalanceBy(
+            () => transactionRepository.getBalanceBy(
               endAt: any(named: 'endAt'),
               startAt: any(named: 'startAt'),
             ),
@@ -488,7 +492,7 @@ void main() {
         act: (cubit) => cubit.filterBalanceBy(type: .income),
         verify: (_) {
           verifyNever(
-            () => repository.findTransactionBy(
+            () => transactionRepository.findTransactionBy(
               type: any(named: 'type'),
               limit: any(named: 'limit'),
               endAt: any(named: 'endAt'),
@@ -503,7 +507,7 @@ void main() {
         'selects type when none is selected and forwards it to findTransactionBy',
         build: () {
           when(
-            () => repository.findTransactionBy(
+            () => transactionRepository.findTransactionBy(
               type: .income,
               endAt: any(named: 'endAt'),
               limit: any(named: 'limit'),
@@ -519,7 +523,7 @@ void main() {
           );
 
           when(
-            () => repository.getBalanceBy(
+            () => transactionRepository.getBalanceBy(
               endAt: any(named: 'endAt'),
               startAt: any(named: 'startAt'),
             ),
@@ -558,7 +562,7 @@ void main() {
         'toggles back to null when same type is selected again',
         build: () {
           when(
-            () => repository.findTransactionBy(
+            () => transactionRepository.findTransactionBy(
               type: .income,
               endAt: any(named: 'endAt'),
               limit: any(named: 'limit'),
@@ -574,7 +578,7 @@ void main() {
           );
 
           when(
-            () => repository.findTransactionBy(
+            () => transactionRepository.findTransactionBy(
               type: null,
               endAt: any(named: 'endAt'),
               limit: any(named: 'limit'),
@@ -584,7 +588,7 @@ void main() {
           ).thenReturn(Right(transactions));
 
           when(
-            () => repository.getBalanceBy(
+            () => transactionRepository.getBalanceBy(
               endAt: any(named: 'endAt'),
               startAt: any(named: 'startAt'),
             ),
@@ -636,7 +640,7 @@ void main() {
         'emits [HomeLoading, HomeSuccess] with new month data',
         build: () {
           when(
-            () => repository.findTransactionBy(
+            () => transactionRepository.findTransactionBy(
               type: any(named: 'type'),
               endAt: any(named: 'endAt'),
               limit: any(named: 'limit'),
@@ -646,7 +650,7 @@ void main() {
           ).thenReturn(Right(transactions));
 
           when(
-            () => repository.getBalanceBy(
+            () => transactionRepository.getBalanceBy(
               endAt: any(named: 'endAt'),
               startAt: any(named: 'startAt'),
             ),
@@ -676,7 +680,7 @@ void main() {
         'resets selectedType when changing month',
         build: () {
           when(
-            () => repository.findTransactionBy(
+            () => transactionRepository.findTransactionBy(
               type: any(named: 'type'),
               endAt: any(named: 'endAt'),
               limit: any(named: 'limit'),
@@ -686,7 +690,7 @@ void main() {
           ).thenReturn(Right(transactions));
 
           when(
-            () => repository.getBalanceBy(
+            () => transactionRepository.getBalanceBy(
               endAt: any(named: 'endAt'),
               startAt: any(named: 'startAt'),
             ),
@@ -715,7 +719,7 @@ void main() {
         'calls changeMonth with previous month',
         build: () {
           when(
-            () => repository.findTransactionBy(
+            () => transactionRepository.findTransactionBy(
               type: any(named: 'type'),
               endAt: any(named: 'endAt'),
               limit: any(named: 'limit'),
@@ -725,7 +729,7 @@ void main() {
           ).thenReturn(Right(transactions));
 
           when(
-            () => repository.getBalanceBy(
+            () => transactionRepository.getBalanceBy(
               endAt: any(named: 'endAt'),
               startAt: any(named: 'startAt'),
             ),
@@ -745,7 +749,7 @@ void main() {
         'calls changeMonth with next month',
         build: () {
           when(
-            () => repository.findTransactionBy(
+            () => transactionRepository.findTransactionBy(
               type: any(named: 'type'),
               endAt: any(named: 'endAt'),
               limit: any(named: 'limit'),
@@ -755,7 +759,7 @@ void main() {
           ).thenReturn(Right(transactions));
 
           when(
-            () => repository.getBalanceBy(
+            () => transactionRepository.getBalanceBy(
               endAt: any(named: 'endAt'),
               startAt: any(named: 'startAt'),
             ),

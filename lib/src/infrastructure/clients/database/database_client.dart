@@ -1,6 +1,6 @@
-import 'package:trocado/src/infrastructure/resources/loggers/logger.dart';
-
 import 'package:trocado/objectbox.g.dart';
+
+import 'package:trocado/src/infrastructure/clients/logger/logger_client.dart';
 
 abstract interface class IDatabaseClient {
   Store get store;
@@ -13,9 +13,9 @@ final class DatabaseClient implements IDatabaseClient {
   Admin? _admin;
   Store? _instance;
 
-  final ILogger _logger;
+  final ILoggerClient _client;
 
-  DatabaseClient({required ILogger logger}) : _logger = logger;
+  DatabaseClient({required ILoggerClient client}) : _client = client;
 
   @override
   Store get store {
@@ -36,19 +36,19 @@ final class DatabaseClient implements IDatabaseClient {
   Future<void> ensureInitialized() async {
     if (_instance != null) return;
 
-    _logger.debug('[DATABSE] Opening store');
+    _client.debug('[DATABSE] Opening store');
 
     _instance = await openStore();
     _startAdminIfAvailable();
 
-    _logger.debug('[DATABSE] Store initialized');
+    _client.debug('[DATABSE] Store initialized');
   }
 
   void _startAdminIfAvailable() {
     assert(() {
       if (Admin.isAvailable()) {
         _admin = Admin(store);
-        _logger.debug('[DATABASE] ObjectBox Admin started');
+        _client.debug('[DATABASE] ObjectBox Admin started');
       }
 
       return true;

@@ -6,16 +6,16 @@ import 'package:trocado/src/domain/models/month_model.dart';
 
 import 'package:trocado/src/domain/models/home_model.dart';
 import 'package:trocado/src/domain/models/transaction_model.dart';
-import 'package:trocado/src/domain/repositories/interface_home_repository.dart';
-import 'package:trocado/src/infrastructure/resources/formatters/money_formatter.dart';
+import 'package:trocado/src/domain/repositories/interface_money_repository.dart';
+import 'package:trocado/src/domain/repositories/interface_transaction_repository.dart';
 
 part 'home_state.dart';
 
 final class HomeCubit extends Cubit<HomeState> {
   final int _pageSize = 40;
 
-  final IMoneyFormatter _formatter;
-  final IHomeRepository _repository;
+  final IMoneyRepository _moneyRepository;
+  final ITransactionRepository _transactionRepository;
 
   MonthModel _currentMonth = MonthModel.now();
   MonthModel get currentMonth => _currentMonth;
@@ -24,13 +24,13 @@ final class HomeCubit extends Cubit<HomeState> {
   TransactionTypeModel? get selectedType => _selectedType;
 
   HomeCubit({
-    required IMoneyFormatter formatter,
-    required IHomeRepository repository,
-  }) : _formatter = formatter,
-       _repository = repository,
+    required IMoneyRepository moneyRepository,
+    required ITransactionRepository transactionRepository,
+  }) : _moneyRepository = moneyRepository,
+       _transactionRepository = transactionRepository,
        super(HomeIdle());
 
-  String format(double value) => _formatter.format(value);
+  String format(double value) => _moneyRepository.format(value);
 
   void clear() {
     emit(HomeIdle());
@@ -66,10 +66,10 @@ final class HomeCubit extends Cubit<HomeState> {
     final optimistic = currentState.home.removeTransactionBy(id);
     emit(currentState.copyWith(home: optimistic));
 
-    final data = _repository
-        .deleteTransactionBy(id)
+    final data = _transactionRepository
+        .deleteTransactionById(id)
         .flatMap(
-          (_) => _repository
+          (_) => _transactionRepository
               .getBalanceBy(
                 endAt: _currentMonth.endAt,
                 startAt: _currentMonth.startAt,
@@ -93,7 +93,7 @@ final class HomeCubit extends Cubit<HomeState> {
 
     _selectedType = type;
 
-    final data = _repository
+    final data = _transactionRepository
         .findTransactionBy(
           offset: 0,
           type: type,
@@ -102,7 +102,7 @@ final class HomeCubit extends Cubit<HomeState> {
           startAt: _currentMonth.startAt,
         )
         .flatMap(
-          (transactions) => _repository
+          (transactions) => _transactionRepository
               .getBalanceBy(
                 endAt: _currentMonth.endAt,
                 startAt: _currentMonth.startAt,
@@ -135,7 +135,7 @@ final class HomeCubit extends Cubit<HomeState> {
 
     final currentOffset = currentState.home.transactions.length;
 
-    final data = _repository.findTransactionBy(
+    final data = _transactionRepository.findTransactionBy(
       limit: _pageSize,
       type: _selectedType,
       offset: currentOffset,

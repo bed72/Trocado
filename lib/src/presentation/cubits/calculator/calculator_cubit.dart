@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:trocado/src/infrastructure/resources/formatters/money_formatter.dart';
+
+import 'package:trocado/src/domain/repositories/interface_money_repository.dart';
 
 part 'calculator_state.dart';
 
 final class CalculatorCubit extends Cubit<CalculatorState> {
   String _buffer = '';
 
-  final IMoneyFormatter _formatter;
+  final IMoneyRepository _repository;
 
-  CalculatorCubit({required IMoneyFormatter formatter})
-    : _formatter = formatter,
+  CalculatorCubit({required IMoneyRepository repository})
+    : _repository = repository,
       super(CalculatorState.empty());
 
-  String format(double value) => _formatter.format(value);
+  String format(double value) => _repository.format(value);
 
   void onKeyTap(String key) => switch (key) {
     '✓' => apply(),

@@ -2,25 +2,29 @@ import 'package:mocktail/mocktail.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:trocado/src/presentation/cubits/transaction/transaction_cubit.dart';
-
-import 'package:trocado/src/infrastructure/resources/formatters/money_formatter.dart';
-
 import 'package:trocado/src/domain/either/either.dart';
 import 'package:trocado/src/domain/models/transaction_model.dart';
+
+import 'package:trocado/src/presentation/cubits/transaction/transaction_cubit.dart';
+
+import 'package:trocado/src/domain/repositories/interface_money_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_transaction_repository.dart';
 
 import '../../../mocks/mocks.dart';
 
 void main() {
   late TransactionCubit cubit;
-  late IMoneyFormatter formatter;
-  late ITransactionRepository repository;
+  late IMoneyRepository moneyRepository;
+  late ITransactionRepository transactionRepository;
 
   setUp(() {
-    formatter = MockMoneyFormatter();
-    repository = MockTransactionRepository();
-    cubit = TransactionCubit(formatter: formatter, repository: repository);
+    moneyRepository = MockMoneyRepository();
+    transactionRepository = MockTransactionRepository();
+
+    cubit = TransactionCubit(
+      formatter: moneyRepository,
+      repository: transactionRepository,
+    );
   });
 
   tearDown(() {
@@ -48,7 +52,9 @@ void main() {
         'emits [TransactionLoading, TransactionSuccess] when find succeeds',
         act: (cubit) => cubit.find(1),
         build: () {
-          when(() => repository.find(1)).thenReturn(Right(transaction));
+          when(
+            () => transactionRepository.findTransactionById(1),
+          ).thenReturn(Right(transaction));
           return cubit;
         },
         expect: () => [
@@ -56,7 +62,7 @@ void main() {
           TransactionSuccess(transaction: transaction),
         ],
         verify: (_) {
-          verify(() => repository.find(1)).called(1);
+          verify(() => transactionRepository.findTransactionById(1)).called(1);
         },
       );
 
@@ -64,7 +70,9 @@ void main() {
         'emits [TransactionLoading, TransactionFailure] when find fails',
         act: (cubit) => cubit.find(1),
         build: () {
-          when(() => repository.find(1)).thenReturn(const Left('Failure'));
+          when(
+            () => transactionRepository.findTransactionById(1),
+          ).thenReturn(const Left('Failure'));
           return cubit;
         },
         expect: () => [
@@ -80,13 +88,15 @@ void main() {
         act: (cubit) => cubit.delete(1),
         build: () {
           when(
-            () => repository.delete(1),
+            () => transactionRepository.deleteTransactionById(1),
           ).thenReturn(Right<String, void>(null));
           return cubit;
         },
         expect: () => [TransactionLoading(), TransactionSuccess()],
         verify: (_) {
-          verify(() => repository.delete(1)).called(1);
+          verify(
+            () => transactionRepository.deleteTransactionById(1),
+          ).called(1);
         },
       );
 
@@ -94,7 +104,9 @@ void main() {
         'emits [TransactionLoading, TransactionFailure] when delete fails',
         act: (cubit) => cubit.delete(1),
         build: () {
-          when(() => repository.delete(1)).thenReturn(const Left('Failure'));
+          when(
+            () => transactionRepository.deleteTransactionById(1),
+          ).thenReturn(const Left('Failure'));
           return cubit;
         },
         expect: () => [

@@ -1,5 +1,6 @@
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:trocado/src/data/mapper/balance_to_model_mapper.dart';
 
 import 'package:trocado/src/domain/either/either.dart';
 
@@ -17,18 +18,21 @@ import '../../../mocks/mocks.dart';
 void main() {
   late ITransactionRepository repository;
   late ITransactionLocalDatasource datasource;
-  late TransactionToModelMapper toModelMapper;
-  late TransactionToEntityMapper toEntityMapper;
+  late BalanceToModelMapper balanceToModelMapper;
+  late TransactionToModelMapper transactionToModelMapper;
+  late TransactionToEntityMapper transactionToEntityMapper;
 
   setUp(() {
     datasource = MockTransactionLocalDatasource();
-    toModelMapper = MockTransactionToModelMapper();
-    toEntityMapper = MockTransactionToEntityMapper();
+    balanceToModelMapper = MockBalanceToModelMapper();
+    transactionToModelMapper = MockTransactionToModelMapper();
+    transactionToEntityMapper = MockTransactionToEntityMapper();
 
     repository = TransactionRepository(
       datasource: datasource,
-      toModelMapper: toModelMapper,
-      toEntityMapper: toEntityMapper,
+      balanceToModelMapper: balanceToModelMapper,
+      transactionToModelMapper: transactionToModelMapper,
+      transactionToEntityMapper: transactionToEntityMapper,
     );
 
     registerFallbackValue(
@@ -45,27 +49,33 @@ void main() {
 
   group('TransactionRepository', () {
     test('should return failure when datasource returns error', () {
-      when(() => datasource.find(99)).thenReturn(const Left('Not found'));
+      when(
+        () => datasource.findTransactionById(99),
+      ).thenReturn(const Left('Not found'));
 
-      final data = repository.find(99);
+      final data = repository.findTransactionById(99);
 
       expect(data.isLeft, true);
     });
 
     group('delete', () {
       test('should delegate delete to datasource', () {
-        when(() => datasource.delete(1)).thenReturn(const Right(null));
+        when(
+          () => datasource.deleteTransactionById(1),
+        ).thenReturn(const Right(null));
 
-        final data = repository.delete(1);
+        final data = repository.deleteTransactionById(1);
 
         expect(data.isRight, true);
-        verify(() => datasource.delete(1)).called(1);
+        verify(() => datasource.deleteTransactionById(1)).called(1);
       });
 
       test('should return failure when datasource returns error on delete', () {
-        when(() => datasource.delete(1)).thenReturn(const Left('Delete error'));
+        when(
+          () => datasource.deleteTransactionById(1),
+        ).thenReturn(const Left('Delete error'));
 
-        final data = repository.delete(1);
+        final data = repository.deleteTransactionById(1);
 
         expect(data.isLeft, true);
       });
