@@ -9,9 +9,7 @@ import 'package:trocado/src/data/dtos/transaction_parameter_dto.dart';
 import 'package:trocado/src/presentation/animation/animation.dart';
 import 'package:trocado/src/presentation/extensions/int_time_extension.dart';
 
-import 'package:trocado/src/presentation/cubits/date/date_cubit.dart';
-import 'package:trocado/src/presentation/cubits/category/category_cubit.dart';
-import 'package:trocado/src/presentation/cubits/calculator/calculator_cubit.dart';
+import 'package:trocado/src/presentation/cubits/transaction/transaction_cubit.dart';
 
 import 'package:trocado/src/presentation/widgets/bounce_widget.dart';
 import 'package:trocado/src/presentation/widgets/helper_widget.dart';
@@ -112,13 +110,13 @@ class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
 
           BounceWidget.withOnPress(
             onPress: widget.dto.navigateToCalculator,
-            child: BlocListener<CalculatorCubit, CalculatorState>(
-              bloc: widget.dto.calculatorCubit,
+            child: BlocListener<TransactionCubit, TransactionState>(
+              bloc: widget.dto.transactionCubit,
               listenWhen: (previous, current) =>
-                  previous.amount != current.amount,
+                  previous.form.amount != current.form.amount,
               listener: (_, state) {
-                widget.dto.onAmountSelected(state.amount);
-                _amountController.text = widget.dto.format(state.amount);
+                widget.dto.onAmountSelected(state.form.amount);
+                _amountController.text = widget.dto.format(state.form.amount);
               },
               child: TextFormFieldWidget(
                 hint: 'Valor',
@@ -136,13 +134,13 @@ class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
 
           BounceWidget.withOnPress(
             onPress: widget.dto.navigateToCategory,
-            child: BlocListener<CategoryCubit, CategoryState>(
-              bloc: widget.dto.categoryCubit,
+            child: BlocListener<TransactionCubit, TransactionState>(
+              bloc: widget.dto.transactionCubit,
               listenWhen: (previous, current) =>
-                  previous.category.label != current.category.label,
+                  previous.form.category.label != current.form.category.label,
               listener: (_, state) {
-                _categoryController.text = state.category.label;
-                widget.dto.onCategorySelected(state.category.label);
+                _categoryController.text = state.form.category.label;
+                widget.dto.onCategorySelected(state.form.category.label);
               },
               child: TextFormFieldWidget(
                 readOnly: true,
@@ -155,13 +153,13 @@ class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
 
           BounceWidget.withOnPress(
             onPress: widget.dto.navigateToDate,
-            child: BlocListener<DateCubit, DateState>(
-              bloc: widget.dto.dateCubit,
+            child: BlocListener<TransactionCubit, TransactionState>(
+              bloc: widget.dto.transactionCubit,
               listenWhen: (previous, current) =>
-                  previous.formatted != current.formatted,
+                  previous.form.formattedDate != current.form.formattedDate,
               listener: (_, state) {
-                widget.dto.onDateSelected(state.date);
-                _dateController.text = state.formatted;
+                widget.dto.onDateSelected(state.form.date);
+                _dateController.text = state.form.formattedDate;
               },
               child: TextFormFieldWidget(
                 hint: 'Data',
@@ -187,7 +185,7 @@ class _TransactionsFormWidgetState extends State<TransactionsFormWidget> {
             selected: _typeModel == .income ? 0 : 1,
             onSelected: (value) {
               setState(() {
-                _typeModel = TransactionTypeModel.fromByString(value);
+                _typeModel = .fromByString(value);
                 widget.dto.onTypeSelected(value);
               });
             },

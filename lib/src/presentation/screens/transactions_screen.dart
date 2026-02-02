@@ -1,29 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:trocado/src/data/dtos/transaction_parameter_dto.dart';
 import 'package:trocado/src/domain/models/transaction_model.dart';
+
+import 'package:trocado/src/data/dtos/transaction_parameter_dto.dart';
+
 import 'package:trocado/src/presentation/actions/callback_action.dart';
-import 'package:trocado/src/presentation/cubits/calculator/calculator_cubit.dart';
-import 'package:trocado/src/presentation/cubits/category/category_cubit.dart';
-import 'package:trocado/src/presentation/cubits/date/date_cubit.dart';
-import 'package:trocado/src/presentation/cubits/transaction/transaction_cubit.dart';
+
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 import 'package:trocado/src/presentation/extensions/widget_extension.dart';
+
+import 'package:trocado/src/presentation/cubits/transaction/transaction_cubit.dart';
+
+import 'package:trocado/src/presentation/widgets/toast_widget.dart';
 import 'package:trocado/src/presentation/widgets/app_bar_widget.dart';
+import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';
 import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
 import 'package:trocado/src/presentation/widgets/buttons/icon_button_widget.dart';
-import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';
-import 'package:trocado/src/presentation/widgets/toast_widget.dart';
 import 'package:trocado/src/presentation/widgets/transaction/transactions_form_widget.dart';
-import 'package:trocado/src/presentation/widgets/transaction/transactions_listener_widget.dart';
 
 class TransactionsScreen extends StatefulWidget {
   final int? id;
 
-  final DateCubit dateCubit;
-  final CategoryCubit categoryCubit;
-  final CalculatorCubit caculatorCubit;
   final TransactionCubit transactionCubit;
 
   final VoidCallback navigateToDate;
@@ -32,9 +30,6 @@ class TransactionsScreen extends StatefulWidget {
 
   const TransactionsScreen({
     super.key,
-    required this.dateCubit,
-    required this.categoryCubit,
-    required this.caculatorCubit,
     required this.transactionCubit,
     required this.navigateToDate,
     required this.navigateToCategory,
@@ -56,10 +51,11 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   void initState() {
     super.initState();
 
-    widget.categoryCubit.clear();
     widget.transactionCubit.clear();
     _formKey = GlobalKey<FormState>();
-    _model = .empty(date: widget.dateCubit.state.date);
+    _model = TransactionModel.empty(
+      date: widget.transactionCubit.state.form.date,
+    );
 
     if (_isEditing) {
       addPostFrameCallback(() => widget.transactionCubit.find(widget.id!));
@@ -68,8 +64,17 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return TransactionsListenerWidget(
-      cubit: widget.transactionCubit,
+    return BlocListener<TransactionCubit, TransactionState>(
+      bloc: widget.transactionCubit,
+      listenWhen: (_, current) =>
+          (current is TransactionSuccess && current.transaction != null)
+          ? false
+          : true,
+      listener: (_, state) => switch (state) {
+        TransactionSuccess() => _showSuccessToast(),
+        TransactionFailure() => _showFailureToast(state.failure),
+        _ => {},
+      },
       child: ScaffoldWidget(
         appBar: AppBarWidget(
           leading: _buildGoBack(),
@@ -100,7 +105,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     iconSize: 22.0,
     onPress: context.pop,
     icon: Icons.chevron_left,
-    borderRadius: .circular(12.0),
+    borderRadius: BorderRadius.circular(12.0),
   );
 
   Column _buildContent({bool isLoading = false}) => Column(
@@ -158,10 +163,19 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     widget.transactionCubit.save(_model);
   }
 
-  void _showFailureToast(String description) {
+  void _showSuccessToast() {
     showToastWidget(
       context: context,
+      onClose: context.pop,
+      title: 'Ihulll, tudo certo.',
+      description: 'Já atualizamos sua Home.',
+    );
+  }
+
+  void _showFailureToast(String description) {
+    showToastWidget(
       type: .failure,
+      context: context,
       description: description,
       title: 'Ops, algo aconteceu.',
     );
@@ -170,11 +184,9 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   TransactionParameterDto _buildParameterDto() => TransactionParameterDto(
     formKey: _formKey,
     transaction: _model,
-    dateCubit: widget.dateCubit,
-    categoryCubit: widget.categoryCubit,
-    calculatorCubit: widget.caculatorCubit,
     parse: widget.transactionCubit.parse,
     format: widget.transactionCubit.format,
+    transactionCubit: widget.transactionCubit,
     navigateToDate: widget.navigateToDate,
     navigateToCategory: widget.navigateToCategory,
     navigateToCalculator: widget.navigateToCalculator,

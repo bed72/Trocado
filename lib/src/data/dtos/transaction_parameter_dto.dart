@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:trocado/src/domain/models/transaction_model.dart';
 
-import 'package:trocado/src/presentation/cubits/date/date_cubit.dart';
-import 'package:trocado/src/presentation/cubits/category/category_cubit.dart';
-import 'package:trocado/src/presentation/cubits/calculator/calculator_cubit.dart';
+import 'package:trocado/src/presentation/cubits/transaction/transaction_cubit.dart';
 
 final class TransactionParameterDto {
   final GlobalKey<FormState> formKey;
@@ -11,9 +9,7 @@ final class TransactionParameterDto {
   final double Function(String) parse;
   final String Function(double) format;
 
-  final DateCubit dateCubit;
-  final CategoryCubit categoryCubit;
-  final CalculatorCubit calculatorCubit;
+  final TransactionCubit transactionCubit;
 
   final VoidCallback navigateToDate;
   final VoidCallback navigateToCategory;
@@ -32,10 +28,8 @@ final class TransactionParameterDto {
     required this.parse,
     required this.format,
     required this.formKey,
-    required this.dateCubit,
     required this.transaction,
-    required this.categoryCubit,
-    required this.calculatorCubit,
+    required this.transactionCubit,
     required this.navigateToDate,
     required this.navigateToCategory,
     required this.navigateToCalculator,

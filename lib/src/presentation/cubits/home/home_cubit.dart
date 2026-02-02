@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -9,13 +11,18 @@ import 'package:trocado/src/domain/models/transaction_model.dart';
 import 'package:trocado/src/domain/repositories/interface_money_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_transaction_repository.dart';
 
+import 'package:trocado/src/presentation/cubits/transaction/transaction_cubit.dart';
+
 part 'home_state.dart';
 
 final class HomeCubit extends Cubit<HomeState> {
   final int _pageSize = 40;
 
   final IMoneyRepository _moneyRepository;
+  final TransactionCubit _transactionCubit;
   final ITransactionRepository _transactionRepository;
+
+  StreamSubscription<TransactionState>? _transactionSubscription;
 
   MonthModel _currentMonth = MonthModel.now();
   MonthModel get currentMonth => _currentMonth;
@@ -25,10 +32,20 @@ final class HomeCubit extends Cubit<HomeState> {
 
   HomeCubit({
     required IMoneyRepository moneyRepository,
+    required TransactionCubit transactionCubit,
     required ITransactionRepository transactionRepository,
   }) : _moneyRepository = moneyRepository,
+       _transactionCubit = transactionCubit,
        _transactionRepository = transactionRepository,
-       super(HomeIdle());
+       super(HomeIdle()) {
+    _listenToTransactionCubit();
+  }
+
+  @override
+  Future<void> close() {
+    _transactionSubscription?.cancel();
+    return super.close();
+  }
 
   String format(double value) => _moneyRepository.format(value);
 
@@ -47,6 +64,10 @@ final class HomeCubit extends Cubit<HomeState> {
     _currentMonth = model;
 
     findTransactionBy();
+
+    if (_transactionCubit.state is! TransactionSuccess) {
+      _transactionCubit.selectDate(.fromMillisecondsSinceEpoch(model.startAt));
+    }
   }
 
   void filterBalanceBy({int? endAt, int? startAt, TransactionTypeModel? type}) {
@@ -155,6 +176,14 @@ final class HomeCubit extends Cubit<HomeState> {
           home: currentState.home.copyWith(transactions: updated),
         ),
       );
+    });
+  }
+
+  void _listenToTransactionCubit() {
+    _transactionSubscription = _transactionCubit.stream.listen((state) {
+      if (state is TransactionSuccess && state.transaction == null) {
+        findTransactionBy();
+      }
     });
   }
 }

@@ -4,6 +4,9 @@ import 'package:trocado/src/data/mapper/balance_to_model_mapper.dart';
 import 'package:trocado/src/data/mapper/transaction_to_model_mapper.dart';
 import 'package:trocado/src/data/mapper/transaction_to_entity_mapper.dart';
 
+import 'package:trocado/src/presentation/cubits/home/home_cubit.dart';
+import 'package:trocado/src/presentation/cubits/transaction/transaction_cubit.dart';
+
 import 'package:trocado/src/data/repositories/money_repository.dart';
 import 'package:trocado/src/data/repositories/logger_repository.dart';
 import 'package:trocado/src/data/repositories/transaction_repository.dart';
@@ -11,12 +14,6 @@ import 'package:trocado/src/data/repositories/transaction_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_money_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_logger_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_transaction_repository.dart';
-
-import 'package:trocado/src/presentation/cubits/date/date_cubit.dart';
-import 'package:trocado/src/presentation/cubits/home/home_cubit.dart';
-import 'package:trocado/src/presentation/cubits/category/category_cubit.dart';
-import 'package:trocado/src/presentation/cubits/calculator/calculator_cubit.dart';
-import 'package:trocado/src/presentation/cubits/transaction/transaction_cubit.dart';
 
 import 'package:trocado/src/infrastructure/clients/logger/logger_client.dart';
 import 'package:trocado/src/infrastructure/clients/database/database_client.dart';
@@ -64,29 +61,18 @@ void providers() {
 
   // Cubits
   i
-    ..registerLazySingleton<DateCubit>(
-      DateCubit.new,
-      dispose: (cubit) => cubit.close(),
-    )
-    ..registerLazySingleton<CategoryCubit>(
-      CategoryCubit.new,
-      dispose: (cubit) => cubit.close(),
-    )
-    ..registerLazySingleton<CalculatorCubit>(
-      () => CalculatorCubit(repository: i.get<IMoneyRepository>()),
+    ..registerLazySingleton<TransactionCubit>(
+      () => TransactionCubit(
+        formatter: i.get<IMoneyRepository>(),
+        repository: i.get<ITransactionRepository>(),
+      ),
       dispose: (cubit) => cubit.close(),
     )
     ..registerLazySingleton<HomeCubit>(
       () => HomeCubit(
         moneyRepository: i.get<IMoneyRepository>(),
+        transactionCubit: i.get<TransactionCubit>(),
         transactionRepository: i.get<ITransactionRepository>(),
-      ),
-      dispose: (cubit) => cubit.close(),
-    )
-    ..registerLazySingleton<TransactionCubit>(
-      () => TransactionCubit(
-        formatter: i.get<IMoneyRepository>(),
-        repository: i.get<ITransactionRepository>(),
       ),
       dispose: (cubit) => cubit.close(),
     );

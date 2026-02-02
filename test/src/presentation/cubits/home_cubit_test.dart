@@ -1,6 +1,7 @@
 import 'package:mocktail/mocktail.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'package:trocado/src/domain/either/either.dart';
 
@@ -10,6 +11,7 @@ import 'package:trocado/src/domain/models/balance_model.dart';
 import 'package:trocado/src/domain/models/transaction_model.dart';
 
 import 'package:trocado/src/presentation/cubits/home/home_cubit.dart';
+import 'package:trocado/src/presentation/cubits/transaction/transaction_cubit.dart';
 
 import 'package:trocado/src/domain/repositories/interface_money_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_transaction_repository.dart';
@@ -19,6 +21,7 @@ import '../../../mocks/mocks.dart';
 void main() {
   late HomeCubit cubit;
   late MonthModel currentMonth;
+  late TransactionCubit transactionCubit;
   late IMoneyRepository moneyRepository;
   late ITransactionRepository transactionRepository;
 
@@ -44,18 +47,29 @@ void main() {
     ),
   ];
 
+  setUpAll(() async {
+    await initializeDateFormatting('pt_BR');
+  });
+
   setUp(() {
     currentMonth = MonthModel.now();
     moneyRepository = MockMoneyRepository();
     transactionRepository = MockTransactionRepository();
 
+    transactionCubit = TransactionCubit(
+      formatter: moneyRepository,
+      repository: transactionRepository,
+    );
+
     cubit = HomeCubit(
       moneyRepository: moneyRepository,
+      transactionCubit: transactionCubit,
       transactionRepository: transactionRepository,
     );
   });
 
   tearDown(() {
+    transactionCubit.close();
     cubit.close();
   });
 

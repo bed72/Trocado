@@ -3,12 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 import 'package:trocado/src/presentation/widgets/fields/text_field_widget.dart';
-import 'package:trocado/src/presentation/cubits/calculator/calculator_cubit.dart';
+import 'package:trocado/src/presentation/cubits/transaction/transaction_cubit.dart';
 import 'package:trocado/src/presentation/widgets/calculator/calculator_keyboard_widget.dart';
 import 'package:trocado/src/presentation/widgets/bottom-sheets/bottom_sheet_scaffold_widget.dart';
 
 class CalculatorScreen extends StatefulWidget {
-  final CalculatorCubit cubit;
+  final TransactionCubit cubit;
 
   const CalculatorScreen({super.key, required this.cubit});
 
@@ -23,7 +23,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   void initState() {
     super.initState();
 
-    widget.cubit.clear();
+    widget.cubit.clearAmount();
     _controller = TextEditingController();
   }
 
@@ -46,12 +46,12 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           mainAxisSize: .min,
           crossAxisAlignment: .start,
           children: [
-            BlocListener<CalculatorCubit, CalculatorState>(
+            BlocListener<TransactionCubit, TransactionState>(
               bloc: widget.cubit,
               listenWhen: (previous, current) =>
-                  previous.amount != current.amount,
+                  previous.form.amount != current.form.amount,
               listener: (_, state) {
-                _controller.text = widget.cubit.format(state.amount);
+                _controller.text = widget.cubit.format(state.form.amount);
               },
               child: TextFieldWidget(
                 hint: 'Valor',

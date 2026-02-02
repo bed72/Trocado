@@ -5,7 +5,7 @@ import 'package:trocado/src/domain/constants/routes_constant.dart';
 import 'package:trocado/src/presentation/pages/bottom_sheet_page.dart';
 import 'package:trocado/src/presentation/screens/category_screen.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
-import 'package:trocado/src/presentation/cubits/category/category_cubit.dart';
+import 'package:trocado/src/presentation/cubits/transaction/transaction_cubit.dart';
 
 final class CategoryLocation extends Location {
   @override
@@ -15,6 +15,6 @@ final class CategoryLocation extends Location {
   LocationPageBuilder get pageBuilder =>
       (_) => BottomSheetPage(
         builder: (context) =>
-            CategoryScreen(cubit: context.get<CategoryCubit>()),
+            CategoryScreen(cubit: context.get<TransactionCubit>()),
       );
 }

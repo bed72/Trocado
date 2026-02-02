@@ -2,30 +2,36 @@ part of 'transaction_cubit.dart';
 
 @immutable
 sealed class TransactionState extends Equatable {
-  const TransactionState();
+  final TransactionFormDto form;
+
+  const TransactionState({required this.form});
 
   @override
-  List<Object> get props => [];
+  List<Object> get props => [form];
 }
 
-final class TransactionIdle extends TransactionState {}
+final class TransactionIdle extends TransactionState {
+  const TransactionIdle({required super.form});
+}
 
-final class TransactionLoading extends TransactionState {}
+final class TransactionLoading extends TransactionState {
+  const TransactionLoading({required super.form});
+}
 
 final class TransactionSuccess extends TransactionState {
   final TransactionModel? transaction;
 
-  const TransactionSuccess({this.transaction});
+  const TransactionSuccess({required super.form, this.transaction});
 
   @override
-  List<Object> get props => [transaction ?? []];
+  List<Object> get props => [form, transaction ?? []];
 }
 
 final class TransactionFailure extends TransactionState {
   final String failure;
 
-  const TransactionFailure({required this.failure});
+  const TransactionFailure({required super.form, required this.failure});
 
   @override
-  List<Object> get props => [failure];
+  List<Object> get props => [form, failure];
 }

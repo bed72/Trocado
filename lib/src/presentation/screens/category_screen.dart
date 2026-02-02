@@ -5,11 +5,11 @@ import 'package:trocado/src/presentation/widgets/category/categories_widget.dart
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
-import 'package:trocado/src/presentation/cubits/category/category_cubit.dart';
+import 'package:trocado/src/presentation/cubits/transaction/transaction_cubit.dart';
 import 'package:trocado/src/presentation/widgets/bottom-sheets/bottom_sheet_scaffold_widget.dart';
 
 class CategoryScreen extends StatefulWidget {
-  final CategoryCubit cubit;
+  final TransactionCubit cubit;
 
   const CategoryScreen({super.key, required this.cubit});
 
@@ -30,11 +30,11 @@ class _CategoryScreenState extends State<CategoryScreen> {
             child: CustomScrollView(
               shrinkWrap: true,
               slivers: [
-                BlocBuilder<CategoryCubit, CategoryState>(
+                BlocBuilder<TransactionCubit, TransactionState>(
                   bloc: widget.cubit,
                   builder: (_, state) => CategoriesWidget(
-                    selected: state.category,
-                    onSelected: widget.cubit.select,
+                    selected: state.form.category,
+                    onSelected: widget.cubit.selectCategory,
                   ),
                 ),
 
@@ -44,7 +44,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
           ),
 
           Container(
-            width: .infinity,
+            width: double.infinity,
             padding: .symmetric(vertical: 20.0),
             child: ButtonWidget.outlined(
               onTap: context.pop,
