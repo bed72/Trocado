@@ -52,7 +52,7 @@ final class LoggerClientProvider
   }
 }
 
-String _$loggerClientHash() => r'bc0bbc82cbd4ef5c1bf58ba9cf12639a03b05e8d';
+String _$loggerClientHash() => r'04ecfcf7e471137d0008f878b95fe878645929ab';
 
 @ProviderFor(databaseClient)
 final databaseClientProvider = DatabaseClientProvider._();
@@ -94,7 +94,7 @@ final class DatabaseClientProvider
   }
 }
 
-String _$databaseClientHash() => r'4b2535a4412e0297c9f3457303cffdeb5b0757f4';
+String _$databaseClientHash() => r'bc2cc97e695bfc456f92459d01b30e1df678a5ad';
 
 /// MAPPERS
 
@@ -147,7 +147,7 @@ final class TransactionToModelMapperProvider
 }
 
 String _$transactionToModelMapperHash() =>
-    r'1ff49a64e04c6717d336f626dc8882cf869b61f2';
+    r'f216a3b776f2b27c7b992d96da31ec0965796ce4';
 
 @ProviderFor(transactionToEntityMapper)
 final transactionToEntityMapperProvider = TransactionToEntityMapperProvider._();
@@ -195,7 +195,7 @@ final class TransactionToEntityMapperProvider
 }
 
 String _$transactionToEntityMapperHash() =>
-    r'6dc037396f23fc839fe726377f6fcac8b6442884';
+    r'b1268a1d564d6784a75398ff40c82028f4653ba8';
 
 /// DATASOURCES
 
@@ -247,7 +247,7 @@ final class LoggerDataSourceProvider
   }
 }
 
-String _$loggerDataSourceHash() => r'66ec47200f8ba0dd2d40ad3d2c37516da5d9e093';
+String _$loggerDataSourceHash() => r'cb0380dc665f407a486c915188d6cdf2c4329552';
 
 @ProviderFor(transactionDataSource)
 final transactionDataSourceProvider = TransactionDataSourceProvider._();
@@ -295,14 +295,16 @@ final class TransactionDataSourceProvider
 }
 
 String _$transactionDataSourceHash() =>
-    r'3597d31467af097498f21cb105b1b543358876c1';
+    r'77a53b517863b9b2777619d6c549462e72b34e1f';
 
 /// REPOSITORIES
+// TODO ISSO NÃO E UM REPO IMoneyRepository
 
 @ProviderFor(moneyRepository)
 final moneyRepositoryProvider = MoneyRepositoryProvider._();
 
 /// REPOSITORIES
+// TODO ISSO NÃO E UM REPO IMoneyRepository
 
 final class MoneyRepositoryProvider
     extends
@@ -313,6 +315,7 @@ final class MoneyRepositoryProvider
         >
     with $Provider<IMoneyRepository> {
   /// REPOSITORIES
+  // TODO ISSO NÃO E UM REPO IMoneyRepository
   MoneyRepositoryProvider._()
     : super(
         from: null,
@@ -346,7 +349,54 @@ final class MoneyRepositoryProvider
   }
 }
 
-String _$moneyRepositoryHash() => r'b890ea5776b771a28f963a2d8bc20fcf1559dc60';
+String _$moneyRepositoryHash() => r'66e94ef36eb264cd9c1fae8756ac11e3afbd4c2d';
+
+@ProviderFor(balanceRepository)
+final balanceRepositoryProvider = BalanceRepositoryProvider._();
+
+final class BalanceRepositoryProvider
+    extends
+        $FunctionalProvider<
+          IBalanceRepository,
+          IBalanceRepository,
+          IBalanceRepository
+        >
+    with $Provider<IBalanceRepository> {
+  BalanceRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'balanceRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$balanceRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<IBalanceRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  IBalanceRepository create(Ref ref) {
+    return balanceRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(IBalanceRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<IBalanceRepository>(value),
+    );
+  }
+}
+
+String _$balanceRepositoryHash() => r'378ce0bd065c56dda21748ea90a40e0476847a61';
 
 @ProviderFor(loggerRepository)
 final loggerRepositoryProvider = LoggerRepositoryProvider._();
@@ -393,7 +443,7 @@ final class LoggerRepositoryProvider
   }
 }
 
-String _$loggerRepositoryHash() => r'f802530530f59ffe26fea03f3751b9bdfde7a632';
+String _$loggerRepositoryHash() => r'8bba4ae64b024b686950b642ddac42413983076a';
 
 @ProviderFor(transactionRepository)
 final transactionRepositoryProvider = TransactionRepositoryProvider._();
@@ -441,4 +491,4 @@ final class TransactionRepositoryProvider
 }
 
 String _$transactionRepositoryHash() =>
-    r'a54cb3760bcebe62cd202ebe045f37b796ba91ed';
+    r'3feaa118e699edcc255468e0cfbad41c31a5afcf';

@@ -1,8 +1,12 @@
-part of 'transaction_cubit.dart';
+import 'package:flutter/widgets.dart';
+import 'package:equatable/equatable.dart';
+
+import 'package:trocado/src/domain/models/transaction_model.dart';
+import 'package:trocado/src/presentation/notifiers/transaction/transaction_data.dart';
 
 @immutable
 sealed class TransactionState extends Equatable {
-  final TransactionFormDto form;
+  final TransactionFormData form;
 
   const TransactionState({required this.form});
 

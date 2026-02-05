@@ -2,14 +2,12 @@ import 'package:flutter/material.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 import 'package:trocado/src/presentation/widgets/fields/text_field_widget.dart';
-import 'package:trocado/src/presentation/cubits/transaction/transaction_cubit.dart';
+import 'package:trocado/src/presentation/notifiers/transaction/transaction_notifier.dart';
 import 'package:trocado/src/presentation/widgets/calculator/calculator_keyboard_widget.dart';
 import 'package:trocado/src/presentation/widgets/bottom-sheets/bottom_sheet_scaffold_widget.dart';
 
 class CalculatorScreen extends StatefulWidget {
-  final TransactionCubit cubit;
-
-  const CalculatorScreen({super.key, required this.cubit});
+  const CalculatorScreen({super.key});
 
   @override
   State<CalculatorScreen> createState() => _CalculatorScreenState();
@@ -22,7 +20,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   void initState() {
     super.initState();
 
-    widget.cubit.clearAmount();
     _controller = TextEditingController();
   }
 

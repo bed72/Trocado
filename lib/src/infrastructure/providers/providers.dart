@@ -5,10 +5,12 @@ import 'package:trocado/src/data/mapper/transaction_to_entity_mapper.dart';
 
 import 'package:trocado/src/data/repositories/money_repository.dart';
 import 'package:trocado/src/data/repositories/logger_repository.dart';
+import 'package:trocado/src/data/repositories/balance_repsository.dart';
 import 'package:trocado/src/data/repositories/transaction_repository.dart';
 
 import 'package:trocado/src/data/datasources/interface_logger_data_source.dart';
 import 'package:trocado/src/data/datasources/interface_transaction_data_source.dart';
+import 'package:trocado/src/domain/repositories/interface_balance_repository.dart';
 
 import 'package:trocado/src/domain/repositories/interface_money_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_logger_repository.dart';
@@ -49,8 +51,12 @@ ITransactionDataSource transactionDataSource(Ref ref) =>
     TransactionDatasource(client: ref.read(databaseClientProvider));
 
 /// REPOSITORIES
+// TODO ISSO NÃO E UM REPO IMoneyRepository
 @riverpod
 IMoneyRepository moneyRepository(Ref ref) => MoneyRepository();
+
+@riverpod
+IBalanceRepository balanceRepository(Ref ref) => BalanceRepsository();
 
 @riverpod
 ILoggerRepository loggerRepository(Ref ref) =>

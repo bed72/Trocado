@@ -10,8 +10,6 @@ import 'package:trocado/src/presentation/pages/screen_page.dart';
 import 'package:trocado/src/presentation/screens/transactions_screen.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
-import 'package:trocado/src/presentation/cubits/transaction/transaction_cubit.dart';
-
 final class TransactionLocation extends Location {
   final int? id;
 
@@ -25,7 +23,6 @@ final class TransactionLocation extends Location {
       (context) => screenPage(
         TransactionsScreen(
           id: id,
-          transactionCubit: context.get<TransactionCubit>(),
           navigateToDate: () => context.navigate(DateLocation()),
           navigateToCategory: () => context.navigate(CategoryLocation()),
           navigateToCalculator: () => context.navigate(CalculatorLocation()),

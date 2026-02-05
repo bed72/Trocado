@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 
-import 'package:trocado/src/presentation/cubits/home/home_cubit.dart';
+import 'package:trocado/src/presentation/notifiers/home/home_notifier.dart';
 import 'package:trocado/src/presentation/widgets/home/month/month_selector_widget.dart';
 
 class HomeAppBarWidget extends StatelessWidget implements PreferredSizeWidget {
-  final HomeCubit cubit;
-
-  const HomeAppBarWidget({super.key, required this.cubit});
+  const HomeAppBarWidget({super.key});
 
   @override
   Widget build(BuildContext context) {

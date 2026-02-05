@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:trocado/src/presentation/mixins/back_button_mixin.dart';
 
-import 'package:trocado/src/presentation/cubits/home/home_cubit.dart';
+import 'package:trocado/src/presentation/notifiers/home/home_notifier.dart';
 
 import 'package:trocado/src/presentation/widgets/toast_widget.dart';
 import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';
@@ -15,14 +15,12 @@ import 'package:trocado/src/presentation/widgets/home/balance/grid_balance_widge
 import 'package:trocado/src/presentation/widgets/home/transaction/transaction_header_widget.dart';
 
 class HomeScreen extends StatefulWidget {
-  final HomeCubit cubit;
   final ValueChanged<int?> onPress;
   final VoidCallback onNavigateToExit;
   final VoidCallback onNavigateToTransaction;
 
   const HomeScreen({
     super.key,
-    required this.cubit,
     required this.onPress,
     required this.onNavigateToExit,
     required this.onNavigateToTransaction,

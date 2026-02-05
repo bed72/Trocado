@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-
 import 'package:trocado/src/domain/models/transaction_model.dart';
 
 import 'package:trocado/src/data/dtos/transaction_parameter_dto.dart';
@@ -10,7 +9,7 @@ import 'package:trocado/src/presentation/actions/callback_action.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 import 'package:trocado/src/presentation/extensions/widget_extension.dart';
 
-import 'package:trocado/src/presentation/cubits/transaction/transaction_cubit.dart';
+import 'package:trocado/src/presentation/notifiers/transaction/transaction_notifier.dart';
 
 import 'package:trocado/src/presentation/widgets/toast_widget.dart';
 import 'package:trocado/src/presentation/widgets/app_bar_widget.dart';
@@ -22,15 +21,12 @@ import 'package:trocado/src/presentation/widgets/transaction/transactions_form_w
 class TransactionsScreen extends StatefulWidget {
   final int? id;
 
-  final TransactionCubit transactionCubit;
-
   final VoidCallback navigateToDate;
   final VoidCallback navigateToCategory;
   final VoidCallback navigateToCalculator;
 
   const TransactionsScreen({
     super.key,
-    required this.transactionCubit,
     required this.navigateToDate,
     required this.navigateToCategory,
     required this.navigateToCalculator,

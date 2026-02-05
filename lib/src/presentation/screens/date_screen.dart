@@ -2,17 +2,13 @@ import 'package:flutter/widgets.dart';
 
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
-import 'package:trocado/src/presentation/cubits/transaction/transaction_cubit.dart';
-
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
 import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
 import 'package:trocado/src/presentation/widgets/bottom-sheets/bottom_sheet_scaffold_widget.dart';
 
 class DateScreen extends StatefulWidget {
-  final TransactionCubit cubit;
-
-  const DateScreen({super.key, required this.cubit});
+  const DateScreen({super.key});
 
   @override
   State<DateScreen> createState() => _DateScreenState();

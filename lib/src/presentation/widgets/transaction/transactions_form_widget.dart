@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 
-
 import 'package:trocado/src/domain/models/category_model.dart';
 import 'package:trocado/src/domain/models/transaction_model.dart';
-
-import 'package:trocado/src/data/dtos/transaction_parameter_dto.dart';
 
 import 'package:trocado/src/presentation/animation/animation.dart';
 import 'package:trocado/src/presentation/extensions/int_time_extension.dart';
 
-import 'package:trocado/src/presentation/cubits/transaction/transaction_cubit.dart';
+import 'package:trocado/src/presentation/notifiers/transaction/transaction_notifier.dart';
 
 import 'package:trocado/src/presentation/widgets/bounce_widget.dart';
 import 'package:trocado/src/presentation/widgets/helper_widget.dart';

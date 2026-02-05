@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:trocado/src/presentation/cubits/home/home_cubit.dart';
+import 'package:trocado/src/presentation/notifiers/home/home_notifier.dart';
 import 'package:trocado/src/presentation/widgets/home/home_success_widget.dart';
 import 'package:trocado/src/presentation/widgets/home/home_loading_widget.dart';
 

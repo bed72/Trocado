@@ -4,13 +4,10 @@ import 'package:trocado/src/presentation/widgets/category/categories_widget.dart
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
-import 'package:trocado/src/presentation/cubits/transaction/transaction_cubit.dart';
 import 'package:trocado/src/presentation/widgets/bottom-sheets/bottom_sheet_scaffold_widget.dart';
 
 class CategoryScreen extends StatefulWidget {
-  final TransactionCubit cubit;
-
-  const CategoryScreen({super.key, required this.cubit});
+  const CategoryScreen({super.key});
 
   @override
   State<CategoryScreen> createState() => _CategoryScreenState();
