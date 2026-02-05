@@ -4,8 +4,8 @@ import 'package:trocado/src/domain/either/either.dart';
 import 'package:trocado/src/domain/models/transaction_model.dart';
 
 import 'package:trocado/src/infrastructure/clients/database/database_client.dart';
-import 'package:trocado/src/infrastructure/database/entities/balance_entity.dart';
-import 'package:trocado/src/infrastructure/database/entities/transaction_entity.dart';
+import 'package:trocado/src/infrastructure/clients/database/entities/balance_entity.dart';
+import 'package:trocado/src/infrastructure/clients/database/entities/transaction_entity.dart';
 
 abstract interface class ITransactionLocalDatasource {
   Either<String, void> deleteTransactionById(int id);

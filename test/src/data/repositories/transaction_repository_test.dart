@@ -11,8 +11,8 @@ import 'package:trocado/src/domain/models/balance_model.dart';
 import 'package:trocado/src/domain/models/transaction_model.dart';
 import 'package:trocado/src/domain/repositories/interface_transaction_repository.dart';
 
-import 'package:trocado/src/infrastructure/database/entities/balance_entity.dart';
-import 'package:trocado/src/infrastructure/database/entities/transaction_entity.dart';
+import 'package:trocado/src/infrastructure/clients/database/entities/balance_entity.dart';
+import 'package:trocado/src/infrastructure/clients/database/entities/transaction_entity.dart';
 import 'package:trocado/src/infrastructure/datasources/local/transaction_local_datasource.dart';
 
 import '../../../mocks/mocks.dart';

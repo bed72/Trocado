@@ -2,7 +2,7 @@ import 'package:trocado/src/domain/mappers/mapper.dart';
 
 import 'package:trocado/src/domain/models/balance_model.dart';
 
-import 'package:trocado/src/infrastructure/database/entities/balance_entity.dart';
+import 'package:trocado/src/infrastructure/clients/database/entities/balance_entity.dart';
 
 class BalanceToModelMapper implements Mapper<BalanceEntity, BalanceModel> {
   @override

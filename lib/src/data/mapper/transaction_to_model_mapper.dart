@@ -2,7 +2,7 @@ import 'package:trocado/src/domain/mappers/mapper.dart';
 
 import 'package:trocado/src/domain/models/transaction_model.dart';
 
-import 'package:trocado/src/infrastructure/database/entities/transaction_entity.dart';
+import 'package:trocado/src/infrastructure/clients/database/entities/transaction_entity.dart';
 
 class TransactionToModelMapper
     implements Mapper<TransactionEntity, TransactionModel> {
