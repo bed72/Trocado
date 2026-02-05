@@ -1,4 +1,4 @@
-import 'package:trocado/src/domain/mappers/mapper.dart';
+import 'package:trocado/src/data/mapper/mapper.dart';
 
 import 'package:trocado/src/domain/models/transaction_model.dart';
 

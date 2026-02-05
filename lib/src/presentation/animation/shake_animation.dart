@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:trocado/src/domain/constants/animation_constant.dart';
+
+enum ShakeAnimationConstant { horizontal, vertical }
 
 class ShakeAnimation extends StatefulWidget {
   final Widget child;

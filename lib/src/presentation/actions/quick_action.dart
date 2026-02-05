@@ -2,7 +2,23 @@ import 'package:flutter/material.dart';
 
 import 'package:quick_actions/quick_actions.dart';
 
-import 'package:trocado/src/domain/constants/quick_actions_constant.dart';
+enum QuickActionsConstant {
+  input(
+    icon: 'ic_bank_arrow_up',
+    localizedTitle: 'Nova transação',
+    localizedSubtitle: 'Cadastrar uma nova transação',
+  );
+
+  final String icon;
+  final String localizedTitle;
+  final String localizedSubtitle;
+
+  const QuickActionsConstant({
+    required this.icon,
+    required this.localizedTitle,
+    required this.localizedSubtitle,
+  });
+}
 
 void quickAction({required ValueChanged<String> action}) {
   QuickActions()

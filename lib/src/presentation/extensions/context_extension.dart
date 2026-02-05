@@ -1,4 +1,3 @@
-import 'package:get_it/get_it.dart';
 import 'package:flutter/material.dart';
 import 'package:duck_router/duck_router.dart';
 
@@ -18,20 +17,6 @@ extension BuildContextCommonExtension on BuildContext {
   TextTheme get typography => Theme.of(this).textTheme;
   CornerRadiusToken get radius =>
       Theme.of(this).extension<CornerRadiusToken>()!;
-}
-
-extension BuildContextProvideExtension on BuildContext {
-  T get<T extends Object>({
-    dynamic param1,
-    dynamic param2,
-    Type? type,
-    String? instanceName,
-  }) => GetIt.instance.get(
-    type: type,
-    param1: param1,
-    param2: param2,
-    instanceName: instanceName,
-  );
 }
 
 extension BuildContextNavigatinExtension on BuildContext {

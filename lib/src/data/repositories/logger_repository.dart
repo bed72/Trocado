@@ -1,11 +1,11 @@
+import 'package:trocado/src/data/datasources/interface_logger_data_source.dart';
 import 'package:trocado/src/domain/repositories/interface_logger_repository.dart';
-import 'package:trocado/src/infrastructure/datasources/local/logger_local_datasource.dart';
 
 final class LoggerRepository implements ILoggerRepository {
-  final ILoggerLocalDatasource _datasource;
+  final ILoggerDataSource _datasource;
 
-  LoggerRepository({required ILoggerLocalDatasource datasource})
-    : _datasource = datasource;
+  LoggerRepository({required ILoggerDataSource dataSource})
+    : _datasource = dataSource;
 
   @override
   void debug(String message, {Object? error, StackTrace? stackTrace}) {

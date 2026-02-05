@@ -13,7 +13,7 @@ import 'package:trocado/src/domain/repositories/interface_transaction_repository
 
 import 'package:trocado/src/infrastructure/clients/database/entities/balance_entity.dart';
 import 'package:trocado/src/infrastructure/clients/database/entities/transaction_entity.dart';
-import 'package:trocado/src/infrastructure/datasources/local/transaction_local_datasource.dart';
+import 'package:trocado/src/infrastructure/datasources/local/transaction_data_source.dart';
 
 import '../../../mocks/mocks.dart';
 
@@ -67,7 +67,7 @@ void main() {
     transactionToEntityMapper = MockTransactionToEntityMapper();
 
     repository = TransactionRepository(
-      datasource: datasource,
+      dataSource: datasource,
       balanceToModelMapper: balanceToModelMapper,
       transactionToModelMapper: transactionToModelMapper,
       transactionToEntityMapper: transactionToEntityMapper,

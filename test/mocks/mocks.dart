@@ -7,7 +7,7 @@ import 'package:trocado/src/data/mapper/transaction_to_entity_mapper.dart';
 import 'package:trocado/src/domain/repositories/interface_money_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_transaction_repository.dart';
 
-import 'package:trocado/src/infrastructure/datasources/local/transaction_local_datasource.dart';
+import 'package:trocado/src/infrastructure/datasources/local/transaction_data_source.dart';
 
 final class MockMoneyRepository extends Mock implements IMoneyRepository {}
 

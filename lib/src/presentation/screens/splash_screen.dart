@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import 'package:trocado/src/domain/constants/assets_constant.dart';
+import 'package:trocado/src/presentation/constants/assets_constant.dart';
 
 import 'package:trocado/src/presentation/actions/callback_action.dart';
 import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';

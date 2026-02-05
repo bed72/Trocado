@@ -146,7 +146,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
             ? null
             : fbb.writeString(object.observation!);
         fbb.startTable(8);
-        fbb.addInt64(0, object.id);
+        fbb.addInt64(0, object.id ?? 0);
         fbb.addInt64(1, object.date);
         fbb.addOffset(2, typeOffset);
         fbb.addFloat64(3, object.amount);
@@ -154,11 +154,16 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addOffset(5, descriptionOffset);
         fbb.addOffset(6, observationOffset);
         fbb.finish(fbb.endTable());
-        return object.id;
+        return object.id ?? 0;
       },
       objectFromFB: (obx.Store store, ByteData fbData) {
         final buffer = fb.BufferContext(fbData);
         final rootOffset = buffer.derefObject(0);
+        final idParam = const fb.Int64Reader().vTableGetNullable(
+          buffer,
+          rootOffset,
+          4,
+        );
         final dateParam = const fb.Int64Reader().vTableGet(
           buffer,
           rootOffset,
@@ -184,13 +189,14 @@ obx_int.ModelDefinition getObjectBoxModel() {
           asciiOptimization: true,
         ).vTableGetNullable(buffer, rootOffset, 16);
         final object = TransactionEntity(
+          id: idParam,
           date: dateParam,
           type: typeParam,
           amount: amountParam,
           category: categoryParam,
           description: descriptionParam,
           observation: observationParam,
-        )..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
+        );
 
         return object;
       },

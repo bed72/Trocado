@@ -1,15 +1,7 @@
 import 'package:trocado/src/infrastructure/clients/logger/logger_client.dart';
+import 'package:trocado/src/data/datasources/interface_logger_data_source.dart';
 
-abstract interface class ILoggerLocalDatasource {
-  void debug(String message, {Object? error, StackTrace? stackTrace});
-  void error(String message, {Object? error, StackTrace? stackTrace});
-  void warning(String message, {Object? error, StackTrace? stackTrace});
-  void verbose(String message, {Object? error, StackTrace? stackTrace});
-  void critical(String message, {Object? error, StackTrace? stackTrace});
-  void information(String message, {Object? error, StackTrace? stackTrace});
-}
-
-final class LoggerLocalDatasource implements ILoggerLocalDatasource {
+final class LoggerLocalDatasource implements ILoggerDataSource {
   final ILoggerClient _client;
 
   LoggerLocalDatasource({required ILoggerClient client}) : _client = client;
