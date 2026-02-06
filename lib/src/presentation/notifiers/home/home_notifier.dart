@@ -2,11 +2,11 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:trocado/src/infrastructure/providers/providers.dart';
 
-import 'package:trocado/src/presentation/notifiers/home/home_data.dart';
+import 'package:trocado/src/presentation/notifiers/data/home_data.dart';
 import 'package:trocado/src/presentation/notifiers/home/home_state.dart';
 
 import 'package:trocado/src/domain/models/entry_model.dart';
-import 'package:trocado/src/domain/models/month_model.dart';
+import 'package:trocado/src/presentation/notifiers/data/month_data.dart';
 
 import 'package:trocado/src/domain/repositories/interface_balance_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_transaction_repository.dart';
@@ -48,11 +48,11 @@ final class HomeNotifier extends _$HomeNotifier {
         _offset = transactions.length;
 
         state = HomeSuccess(
-          data: HomeContentData(
+          data: HomeData(
             filter: null,
             balance: balance,
             isLoadingMore: false,
-            month: MonthModel.now(),
+            month: MonthData.now(),
             transactions: transactions,
             hasReachedEnd: transactions.length < _pageSize,
           ),

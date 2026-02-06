@@ -1,54 +1,55 @@
 import 'package:flutter/widgets.dart';
-
-import 'package:trocado/src/presentation/widgets/category/categories_widget.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
+import 'package:trocado/src/presentation/notifiers/transaction/transaction_notifier.dart';
+
 import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
+import 'package:trocado/src/presentation/widgets/category/categories_widget.dart';
 import 'package:trocado/src/presentation/widgets/bottom-sheets/bottom_sheet_scaffold_widget.dart';
 
-class CategoryScreen extends StatefulWidget {
+class CategoryScreen extends StatelessWidget {
   const CategoryScreen({super.key});
 
   @override
-  State<CategoryScreen> createState() => _CategoryScreenState();
-}
-
-class _CategoryScreenState extends State<CategoryScreen> {
-  @override
   Widget build(BuildContext context) {
-    return BottomSheetScaffoldWidget(
-      title: 'Categorias',
-      subtitle: 'Escolha a categoria que melhor representa esta transação.',
-      child: Column(
-        mainAxisSize: .min,
-        children: [
-          Flexible(
-            child: CustomScrollView(
-              shrinkWrap: true,
-              slivers: [
-                BlocBuilder<TransactionCubit, TransactionState>(
-                  bloc: widget.cubit,
-                  builder: (_, state) => CategoriesWidget(
-                    selected: state.form.category,
-                    onSelected: widget.cubit.selectCategory,
-                  ),
+    return Consumer(
+      builder: (_, ref, _) {
+        final notifier = ref.read(transactionProvider.notifier);
+        final selectedCategory = ref.watch(
+          transactionProvider.select((state) => state.form.category),
+        );
+
+        return BottomSheetScaffoldWidget(
+          title: 'Categorias',
+          subtitle: 'Escolha a categoria que melhor representa esta transação.',
+          child: Column(
+            mainAxisSize: .min,
+            children: [
+              Flexible(
+                child: CustomScrollView(
+                  shrinkWrap: true,
+                  slivers: [
+                    CategoriesWidget(
+                      selected: selectedCategory,
+                      onSelected: notifier.selectCategory,
+                    ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                  ],
                 ),
-
-                const SliverToBoxAdapter(child: SizedBox(height: 16.0)),
-              ],
-            ),
+              ),
+              Container(
+                width: double.infinity,
+                padding: const .symmetric(vertical: 20),
+                child: ButtonWidget.outlined(
+                  onTap: context.pop,
+                  label: 'Selecionar',
+                ),
+              ),
+            ],
           ),
-
-          Container(
-            width: double.infinity,
-            padding: .symmetric(vertical: 20.0),
-            child: ButtonWidget.outlined(
-              onTap: context.pop,
-              label: 'Selecionar',
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

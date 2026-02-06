@@ -41,57 +41,58 @@ class _HomeScreenState extends State<HomeScreen>
   void initState() {
     super.initState();
 
-    widget.cubit.findTransactionBy();
+    // widget.cubit.findTransactionBy();
   }
 
   @override
   Widget build(BuildContext context) {
     return ScaffoldWidget(
-      appBar: HomeAppBarWidget(cubit: widget.cubit),
+      // appBar: HomeAppBarWidget(),
       floatingActionButton: HomeActionButtonWidget(
         onNavigateToTransaction: widget.onNavigateToTransaction,
       ),
-      child: BlocListener<HomeCubit, HomeState>(
-        bloc: widget.cubit,
-        listener: (_, state) => switch (state) {
-          HomeFailure() => _showFailureToast(state.failure),
-          _ => {},
-        },
-        child: CustomScrollView(
-          slivers: [
-            SliverPadding(
-              padding: const .symmetric(horizontal: 16.0),
-              sliver: SliverToBoxAdapter(
-                child: GridBalanceWidget(cubit: widget.cubit),
-              ),
-            ),
+      child: Placeholder(),
+      // BlocListener<HomeCubit, HomeState>(
+      //   bloc: widget.cubit,
+      //   listener: (_, state) => switch (state) {
+      //     HomeFailure() => _showFailureToast(state.failure),
+      //     _ => {},
+      //   },
+      //   child: CustomScrollView(
+      //     slivers: [
+      //       SliverPadding(
+      //         padding: const .symmetric(horizontal: 16.0),
+      //         sliver: SliverToBoxAdapter(
+      //           child: GridBalanceWidget(cubit: widget.cubit),
+      //         ),
+      //       ),
 
-            SliverPersistentHeader(
-              pinned: true,
-              delegate: TransactionHeaderWidget(title: 'Transações recentes'),
-            ),
+      //       SliverPersistentHeader(
+      //         pinned: true,
+      //         delegate: TransactionHeaderWidget(title: 'Transações recentes'),
+      //       ),
 
-            BlocBuilder<HomeCubit, HomeState>(
-              bloc: widget.cubit,
-              builder: (_, state) => switch (state) {
-                HomeFailure() => const HomeTransactionFailureWidget(),
-                HomeSuccess() => HomeTransactionSuccessWidget(
-                  data: state.home,
-                  onPress: widget.onPress,
-                  type: state.type,
-                  format: widget.cubit.format,
-                  onLoadMore: widget.cubit.loadMore,
-                  isLoadingMore: state.isLoadingMore,
-                  hasReachedEnd: state.hasReachedEnd,
-                  onDelete: (id) => widget.cubit.deleteTransactionBy(id: id),
-                ),
-                HomeIdle() ||
-                HomeLoading() => const HomeTransactionLoadingWidget(),
-              },
-            ),
-          ],
-        ),
-      ),
+      //       BlocBuilder<HomeCubit, HomeState>(
+      //         bloc: widget.cubit,
+      //         builder: (_, state) => switch (state) {
+      //           HomeFailure() => const HomeTransactionFailureWidget(),
+      //           HomeSuccess() => HomeTransactionSuccessWidget(
+      //             data: state.home,
+      //             onPress: widget.onPress,
+      //             type: state.type,
+      //             format: widget.cubit.format,
+      //             onLoadMore: widget.cubit.loadMore,
+      //             isLoadingMore: state.isLoadingMore,
+      //             hasReachedEnd: state.hasReachedEnd,
+      //             onDelete: (id) => widget.cubit.deleteTransactionBy(id: id),
+      //           ),
+      //           HomeIdle() ||
+      //           HomeLoading() => const HomeTransactionLoadingWidget(),
+      //         },
+      //       ),
+      //     ],
+      //   ),
+      // ),
     );
   }
 

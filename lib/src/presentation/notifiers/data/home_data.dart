@@ -2,13 +2,14 @@ import 'package:flutter/foundation.dart';
 import 'package:equatable/equatable.dart';
 import 'package:trocado/src/domain/models/entry_model.dart';
 
-import 'package:trocado/src/domain/models/month_model.dart';
 import 'package:trocado/src/domain/models/balance_model.dart';
 import 'package:trocado/src/domain/models/transaction_model.dart';
 
+import 'package:trocado/src/presentation/notifiers/data/month_data.dart';
+
 @immutable
-final class HomeContentData extends Equatable {
-  final MonthModel month;
+final class HomeData extends Equatable {
+  final MonthData month;
   final bool isLoadingMore;
   final bool hasReachedEnd;
   final BalanceModel balance;
@@ -16,7 +17,7 @@ final class HomeContentData extends Equatable {
 
   final EntryModel? filter;
 
-  const HomeContentData({
+  const HomeData({
     required this.month,
     required this.filter,
     required this.balance,
@@ -25,23 +26,23 @@ final class HomeContentData extends Equatable {
     required this.hasReachedEnd,
   });
 
-  factory HomeContentData.empty() => HomeContentData(
+  factory HomeData.empty() => HomeData(
     filter: null,
     isLoadingMore: false,
     hasReachedEnd: false,
     transactions: const [],
-    month: MonthModel.now(),
+    month: MonthData.now(),
     balance: BalanceModel.empty(),
   );
 
-  HomeContentData copyWith({
-    MonthModel? month,
+  HomeData copyWith({
+    MonthData? month,
     EntryModel? filter,
     bool? hasReachedEnd,
     bool? isLoadingMore,
     BalanceModel? balance,
     List<TransactionModel>? transactions,
-  }) => HomeContentData(
+  }) => HomeData(
     month: month ?? this.month,
     filter: filter ?? this.filter,
     balance: balance ?? this.balance,

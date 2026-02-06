@@ -7,11 +7,9 @@ import 'package:trocado/src/data/repositories/transaction_repository.dart';
 import 'package:trocado/src/data/datasources/interface_transaction_data_source.dart';
 
 import 'package:trocado/src/domain/either/either.dart';
-import 'package:trocado/src/domain/models/balance_model.dart';
 import 'package:trocado/src/domain/models/transaction_model.dart';
 import 'package:trocado/src/domain/repositories/interface_transaction_repository.dart';
 
-import 'package:trocado/src/infrastructure/datasources/local/transaction_data_source.dart';
 import 'package:trocado/src/infrastructure/clients/database/entities/transaction_entity.dart';
 
 import '../../../mocks/mocks.dart';
@@ -65,9 +63,9 @@ void main() {
         () {
           when(() => dataSource.deleteById(1)).thenReturn(const Right(null));
 
-          final result = repository.deleteById(1);
+          final data = repository.deleteById(1);
 
-          expect(result.isRight, true);
+          expect(data.isRight, true);
           verify(() => dataSource.deleteById(1)).called(1);
         },
       );
@@ -77,10 +75,10 @@ void main() {
           () => dataSource.deleteById(1),
         ).thenReturn(const Left('Transação não encontrada.'));
 
-        final result = repository.deleteById(1);
+        final data = repository.deleteById(1);
 
-        expect(result.isLeft, true);
-        expect(result.left, 'Transação não encontrada.');
+        expect(data.isLeft, true);
+        expect(data.left, 'Transação não encontrada.');
       });
     });
 
@@ -92,10 +90,10 @@ void main() {
           () => transactionToModelMapper.call(transactionEntity),
         ).thenReturn(transactionModel);
 
-        final result = repository.findById(1);
+        final data = repository.findById(1);
 
-        expect(result.isRight, true);
-        expect(result.right, transactionModel);
+        expect(data.isRight, true);
+        expect(data.right, transactionModel);
         verify(() => dataSource.findById(1)).called(1);
         verify(
           () => transactionToModelMapper.call(transactionEntity),
@@ -107,68 +105,65 @@ void main() {
           () => dataSource.findById(99),
         ).thenReturn(const Left('Transação não encontrada.'));
 
-        final result = repository.findById(99);
+        final data = repository.findById(99);
 
-        expect(result.isLeft, true);
-        expect(result.left, 'Transação não encontrada.');
+        expect(data.isLeft, true);
+        expect(data.left, 'Transação não encontrada.');
         verifyNever(() => transactionToModelMapper.call(any()));
       });
     });
 
-    group('saveTransactionByModel', () {
-      test('should call saveTransactionByEntity when model.id is null', () {
+    group('upsert', () {
+      test('should call upsert when model.id is null', () {
         final newModel = TransactionModel(
           id: null,
-          date: 1704067200000,
           type: 'income',
           amount: 100.50,
           category: 'Salário',
+          date: 1704067200000,
           description: 'Salário mensal',
         );
 
         final newEntity = TransactionEntity(
-          date: 1704067200000,
+          id: 0,
           type: 'income',
           amount: 100.50,
-          category: 'Salário',
-          description: 'Salário mensal',
           observation: null,
+          category: 'Salário',
+          date: 1704067200000,
+          description: 'Salário mensal',
         );
 
         when(
           () => transactionToEntityMapper.call(newModel),
         ).thenReturn(newEntity);
-        when(
-          () => dataSource.saveTransactionByEntity(any()),
-        ).thenReturn(const Right(null));
+        when(() => dataSource.upsert(any())).thenReturn(const Right(null));
 
-        final result = repository.saveTransactionByModel(newModel);
+        final data = repository.upsert(newModel);
 
-        expect(result.isRight, true);
+        expect(data.isRight, true);
         verify(() => transactionToEntityMapper.call(newModel)).called(1);
-        verify(() => dataSource.saveTransactionByEntity(newEntity)).called(1);
-        verifyNever(() => dataSource.updateTransactionById(any(), any()));
+        verify(() => dataSource.upsert(newEntity)).called(1);
+        verifyNever(() => dataSource.upsert(any()));
       });
 
-      test('should call updateTransactionById when model.id is not null', () {
+      test('should call upsert when model.id is not null', () {
         when(
           () => transactionToEntityMapper.call(transactionModel),
         ).thenReturn(transactionEntity);
 
         when(
-          () => dataSource.updateTransactionById(1, transactionEntity),
+          () => dataSource.upsert(transactionEntity),
         ).thenReturn(const Right(null));
 
-        final result = repository.saveTransactionByModel(transactionModel);
+        final data = repository.upsert(transactionModel);
 
-        expect(result.isRight, true);
+        expect(data.isRight, true);
         verify(
           () => transactionToEntityMapper.call(transactionModel),
         ).called(1);
-        verify(
-          () => dataSource.updateTransactionById(1, transactionEntity),
-        ).called(1);
-        verifyNever(() => dataSource.saveTransactionByEntity(any()));
+        verify(() => dataSource.upsert(transactionEntity)).called(1);
+        verifyNever(() => dataSource.upsert(any()));
       });
 
       test('should return Left when save fails', () {
@@ -182,10 +177,11 @@ void main() {
         );
 
         final newEntity = TransactionEntity(
-          date: 1704067200000,
+          id: 1,
           type: 'income',
           amount: 100.50,
           category: 'Salário',
+          date: 1704067200000,
           description: 'Salário mensal',
           observation: null,
         );
@@ -194,13 +190,13 @@ void main() {
           () => transactionToEntityMapper.call(newModel),
         ).thenReturn(newEntity);
         when(
-          () => dataSource.saveTransactionByEntity(any()),
+          () => dataSource.upsert(any()),
         ).thenReturn(const Left('Ops, a operação falhou.'));
 
-        final result = repository.saveTransactionByModel(newModel);
+        final data = repository.upsert(newModel);
 
-        expect(result.isLeft, true);
-        expect(result.left, 'Ops, a operação falhou.');
+        expect(data.isLeft, true);
+        expect(data.left, 'Ops, a operação falhou.');
       });
 
       test('should return Left when update fails', () {
@@ -209,63 +205,64 @@ void main() {
         ).thenReturn(transactionEntity);
 
         when(
-          () => dataSource.updateTransactionById(1, transactionEntity),
+          () => dataSource.upsert(transactionEntity),
         ).thenReturn(const Left('Transação não encontrada.'));
 
-        final result = repository.saveTransactionByModel(transactionModel);
+        final data = repository.upsert(transactionModel);
 
-        expect(result.isLeft, true);
-        expect(result.left, 'Transação não encontrada.');
+        expect(data.isLeft, true);
+        expect(data.left, 'Transação não encontrada.');
       });
     });
 
-    group('findTransactionBy', () {
+    group('findByPeriod', () {
       test('should return mapped list of TransactionModel on success', () {
         final entities = [
           TransactionEntity(
-            date: 1704067200000,
+            id: 1,
             type: 'income',
             amount: 100.0,
             category: 'Salário',
+            date: 1704067200000,
             description: 'Salário',
             observation: null,
-          )..id = 1,
+          ),
           TransactionEntity(
-            date: 1704153600000,
-            type: 'expense',
+            id: 2,
             amount: 50.0,
-            category: 'Alimentação',
+            type: 'expense',
+            date: 1704153600000,
             description: 'Almoço',
+            category: 'Alimentação',
             observation: null,
-          )..id = 2,
+          ),
         ];
 
         final models = [
           TransactionModel(
             id: 1,
-            date: 1704067200000,
             type: 'income',
             amount: 100.0,
+            date: 1704067200000,
             category: 'Salário',
             description: 'Salário',
           ),
           TransactionModel(
             id: 2,
-            date: 1704153600000,
-            type: 'expense',
             amount: 50.0,
-            category: 'Alimentação',
+            type: 'expense',
+            date: 1704153600000,
             description: 'Almoço',
+            category: 'Alimentação',
           ),
         ];
 
         when(
-          () => dataSource.findTransactionBy(
-            startAt: any(named: 'startAt'),
-            endAt: any(named: 'endAt'),
+          () => dataSource.findByPeriod(
             limit: any(named: 'limit'),
             offset: any(named: 'offset'),
-            type: any(named: 'type'),
+            startAt: any(named: 'startAt'),
+            endAt: any(named: 'endAt'),
           ),
         ).thenReturn(Right(entities));
 
@@ -276,24 +273,23 @@ void main() {
           () => transactionToModelMapper.call(entities[1]),
         ).thenReturn(models[1]);
 
-        final result = repository.findTransactionBy(
+        final data = repository.findByPeriod(
+          offset: 0,
+          limit: 10,
           startAt: 1000,
           endAt: 2000,
-          limit: 10,
-          offset: 0,
         );
 
-        expect(result.isRight, true);
-        expect(result.right.length, 2);
-        expect(result.right[0], models[0]);
-        expect(result.right[1], models[1]);
+        expect(data.isRight, true);
+        expect(data.right.length, 2);
+        expect(data.right[0], models[0]);
+        expect(data.right[1], models[1]);
         verify(
-          () => dataSource.findTransactionBy(
+          () => dataSource.findByPeriod(
             startAt: 1000,
             endAt: 2000,
             limit: 10,
             offset: 0,
-            type: null,
           ),
         ).called(1);
         verify(() => transactionToModelMapper.call(entities[0])).called(1);
@@ -302,95 +298,81 @@ void main() {
 
       test('should pass type label when type is provided', () {
         when(
-          () => dataSource.findTransactionBy(
+          () => dataSource.findByPeriod(
             startAt: any(named: 'startAt'),
             endAt: any(named: 'endAt'),
             limit: any(named: 'limit'),
             offset: any(named: 'offset'),
-            type: any(named: 'type'),
           ),
         ).thenReturn(const Right([]));
 
-        final result = repository.findTransactionBy(
-          startAt: 1000,
-          endAt: 2000,
-          type: TransactionTypeModel.income,
-        );
+        final data = repository.findByPeriod(startAt: 1000, endAt: 2000);
 
-        expect(result.isRight, true);
-        expect(result.right, isEmpty);
+        expect(data.isRight, true);
+        expect(data.right, isEmpty);
         verify(
-          () => dataSource.findTransactionBy(
-            startAt: 1000,
-            endAt: 2000,
-            type: 'Receita',
-          ),
+          () => dataSource.findByPeriod(startAt: 1000, endAt: 2000),
         ).called(1);
       });
 
       test('should return empty list when no transactions found', () {
         when(
-          () => dataSource.findTransactionBy(
+          () => dataSource.findByPeriod(
             startAt: any(named: 'startAt'),
             endAt: any(named: 'endAt'),
             limit: any(named: 'limit'),
             offset: any(named: 'offset'),
-            type: any(named: 'type'),
           ),
         ).thenReturn(const Right([]));
 
-        final result = repository.findTransactionBy();
+        final data = repository.findByPeriod();
 
-        expect(result.isRight, true);
-        expect(result.right, isEmpty);
+        expect(data.isRight, true);
+        expect(data.right, isEmpty);
         verifyNever(() => transactionToModelMapper.call(any()));
       });
 
       test('should return Left when datasource returns error', () {
         when(
-          () => dataSource.findTransactionBy(
+          () => dataSource.findByPeriod(
             startAt: any(named: 'startAt'),
             endAt: any(named: 'endAt'),
             limit: any(named: 'limit'),
             offset: any(named: 'offset'),
-            type: any(named: 'type'),
           ),
         ).thenReturn(const Left('Ops, a operação falhou.'));
 
-        final result = repository.findTransactionBy();
+        final data = repository.findByPeriod();
 
-        expect(result.isLeft, true);
-        expect(result.left, 'Ops, a operação falhou.');
+        expect(data.isLeft, true);
+        expect(data.left, 'Ops, a operação falhou.');
         verifyNever(() => transactionToModelMapper.call(any()));
       });
 
       test('should handle all optional parameters', () {
         when(
-          () => dataSource.findTransactionBy(
+          () => dataSource.findByPeriod(
             startAt: any(named: 'startAt'),
             endAt: any(named: 'endAt'),
             limit: any(named: 'limit'),
             offset: any(named: 'offset'),
-            type: any(named: 'type'),
           ),
         ).thenReturn(const Right([]));
 
-        final result = repository.findTransactionBy(
+        final data = repository.findByPeriod(
           startAt: 1000,
           endAt: 2000,
           limit: 20,
           offset: 5,
-          type: TransactionTypeModel.expense,
         );
 
-        expect(result.isRight, true);
+        expect(data.isRight, true);
         verify(
-          () => dataSource.findTransactionBy(
+          () => dataSource.findByPeriod(
             startAt: 1000,
             endAt: 2000,
             limit: 20,
             offset: 5,
-            type: 'Despesa',
           ),
         ).called(1);
       });

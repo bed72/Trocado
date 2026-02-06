@@ -25,12 +25,12 @@ class CategoryWidget extends StatelessWidget {
       margin: .symmetric(horizontal: 0.0, vertical: 4.0),
       child: ListTile(
         onTap: onTap,
-        leading: BackgroundIconWidget(
-          icon: category.icon,
-          color: category.color,
-        ),
+        // leading: BackgroundIconWidget(
+        //   icon: category.icon,
+        //   color: category.color,
+        // ),
         title: Text(
-          category.label,
+          category.name,
           style: context.typography.bodyLarge?.copyWith(fontWeight: .w600),
         ),
         trailing: SwitcherAnimation(

@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:trocado/src/data/mapper/transaction_to_model_mapper.dart';
@@ -25,46 +26,53 @@ import 'package:trocado/src/infrastructure/datasources/local/logger_local_data_s
 part 'providers.g.dart';
 
 /// CLINETS
-@riverpod
+@Riverpod()
 ILoggerClient loggerClient(Ref ref) => LoggerClient();
 
-@riverpod
+@Riverpod(keepAlive: true)
 IDatabaseClient databaseClient(Ref ref) =>
     DatabaseClient(client: ref.read(loggerClientProvider));
 
 /// MAPPERS
-@riverpod
+@Riverpod()
 TransactionToModelMapper transactionToModelMapper(Ref ref) =>
     TransactionToModelMapper();
 
-@riverpod
+@Riverpod()
 TransactionToEntityMapper transactionToEntityMapper(Ref ref) =>
     TransactionToEntityMapper();
 
 /// DATASOURCES
-@riverpod
+@Riverpod()
 ILoggerDataSource loggerDataSource(Ref ref) =>
     LoggerLocalDatasource(client: ref.read(loggerClientProvider));
 
-@riverpod
+@Riverpod()
 ITransactionDataSource transactionDataSource(Ref ref) =>
     TransactionDatasource(client: ref.read(databaseClientProvider));
 
 /// REPOSITORIES
 // TODO ISSO NÃO E UM REPO IMoneyRepository
-@riverpod
+@Riverpod()
 IMoneyRepository moneyRepository(Ref ref) => MoneyRepository();
 
-@riverpod
+@Riverpod()
 IBalanceRepository balanceRepository(Ref ref) => BalanceRepsository();
 
-@riverpod
+@Riverpod()
 ILoggerRepository loggerRepository(Ref ref) =>
     LoggerRepository(dataSource: ref.read(loggerDataSourceProvider));
 
-@riverpod
+@Riverpod()
 ITransactionRepository transactionRepository(Ref ref) => TransactionRepository(
   dataSource: ref.read(transactionDataSourceProvider),
   transactionToModelMapper: ref.read(transactionToModelMapperProvider),
   transactionToEntityMapper: ref.read(transactionToEntityMapperProvider),
 );
+
+/// INITIALIZERS
+final initialization = FutureProvider<void>((Ref ref) async {
+  final database = ref.read(databaseClientProvider);
+
+  await database.ensureInitialized();
+});

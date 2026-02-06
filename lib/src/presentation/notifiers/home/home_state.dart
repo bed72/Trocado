@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:equatable/equatable.dart';
 
-import 'package:trocado/src/presentation/notifiers/home/home_data.dart';
+import 'package:trocado/src/presentation/notifiers/data/home_data.dart';
 
 @immutable
 sealed class HomeState extends Equatable {
@@ -23,11 +23,11 @@ final class HomeFailure extends HomeState {
 }
 
 final class HomeSuccess extends HomeState {
-  final HomeContentData data;
+  final HomeData data;
 
   const HomeSuccess({required this.data});
 
-  HomeSuccess copyWith({HomeContentData? data}) =>
+  HomeSuccess copyWith({HomeData? data}) =>
       HomeSuccess(data: data ?? this.data);
 
   @override

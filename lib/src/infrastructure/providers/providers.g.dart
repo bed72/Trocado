@@ -52,7 +52,7 @@ final class LoggerClientProvider
   }
 }
 
-String _$loggerClientHash() => r'04ecfcf7e471137d0008f878b95fe878645929ab';
+String _$loggerClientHash() => r'634360e07610f84e781c9c2c2f552b719df64a1d';
 
 @ProviderFor(databaseClient)
 final databaseClientProvider = DatabaseClientProvider._();
@@ -67,7 +67,7 @@ final class DatabaseClientProvider
         argument: null,
         retry: null,
         name: r'databaseClientProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -94,7 +94,7 @@ final class DatabaseClientProvider
   }
 }
 
-String _$databaseClientHash() => r'bc2cc97e695bfc456f92459d01b30e1df678a5ad';
+String _$databaseClientHash() => r'cb6a333b42aa30cb67a196074f997e8b77988b4f';
 
 /// MAPPERS
 
@@ -147,7 +147,7 @@ final class TransactionToModelMapperProvider
 }
 
 String _$transactionToModelMapperHash() =>
-    r'f216a3b776f2b27c7b992d96da31ec0965796ce4';
+    r'b0e323431b9a702f40430566af9cd34944bbbc4b';
 
 @ProviderFor(transactionToEntityMapper)
 final transactionToEntityMapperProvider = TransactionToEntityMapperProvider._();
@@ -195,7 +195,7 @@ final class TransactionToEntityMapperProvider
 }
 
 String _$transactionToEntityMapperHash() =>
-    r'b1268a1d564d6784a75398ff40c82028f4653ba8';
+    r'78df157b36d4c2c5fbe806beff6fb422f96d6ba1';
 
 /// DATASOURCES
 
@@ -247,7 +247,7 @@ final class LoggerDataSourceProvider
   }
 }
 
-String _$loggerDataSourceHash() => r'cb0380dc665f407a486c915188d6cdf2c4329552';
+String _$loggerDataSourceHash() => r'a97eed8595c120eb344470f4abf23d72dc8387ea';
 
 @ProviderFor(transactionDataSource)
 final transactionDataSourceProvider = TransactionDataSourceProvider._();
@@ -295,7 +295,7 @@ final class TransactionDataSourceProvider
 }
 
 String _$transactionDataSourceHash() =>
-    r'77a53b517863b9b2777619d6c549462e72b34e1f';
+    r'0c35e90d530fc019816fbc8036ba2ade9bab8092';
 
 /// REPOSITORIES
 // TODO ISSO NÃO E UM REPO IMoneyRepository
@@ -349,7 +349,7 @@ final class MoneyRepositoryProvider
   }
 }
 
-String _$moneyRepositoryHash() => r'66e94ef36eb264cd9c1fae8756ac11e3afbd4c2d';
+String _$moneyRepositoryHash() => r'f2b23e756f1fb71423bb45a4e16391347cc7b9cc';
 
 @ProviderFor(balanceRepository)
 final balanceRepositoryProvider = BalanceRepositoryProvider._();
@@ -396,7 +396,7 @@ final class BalanceRepositoryProvider
   }
 }
 
-String _$balanceRepositoryHash() => r'378ce0bd065c56dda21748ea90a40e0476847a61';
+String _$balanceRepositoryHash() => r'01e5eed8681772bb6fe24151576b1a9a8154be66';
 
 @ProviderFor(loggerRepository)
 final loggerRepositoryProvider = LoggerRepositoryProvider._();
@@ -443,7 +443,7 @@ final class LoggerRepositoryProvider
   }
 }
 
-String _$loggerRepositoryHash() => r'8bba4ae64b024b686950b642ddac42413983076a';
+String _$loggerRepositoryHash() => r'd2ee66293038443698e2ca57c82f9a0cd17e6d5c';
 
 @ProviderFor(transactionRepository)
 final transactionRepositoryProvider = TransactionRepositoryProvider._();
@@ -491,4 +491,4 @@ final class TransactionRepositoryProvider
 }
 
 String _$transactionRepositoryHash() =>
-    r'3feaa118e699edcc255468e0cfbad41c31a5afcf';
+    r'a7d5bc63142b4cbdba0121009759e5afba55011b';

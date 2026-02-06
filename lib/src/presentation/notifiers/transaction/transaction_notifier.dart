@@ -9,7 +9,7 @@ import 'package:trocado/src/domain/repositories/interface_money_repository.dart'
 import 'package:trocado/src/domain/repositories/interface_transaction_repository.dart';
 
 import 'package:trocado/src/presentation/extensions/date_time_extension.dart';
-import 'package:trocado/src/presentation/notifiers/transaction/transaction_data.dart';
+import 'package:trocado/src/presentation/notifiers/data/transaction_data.dart';
 import 'package:trocado/src/presentation/notifiers/transaction/transaction_state.dart';
 
 part 'transaction_notifier.g.dart';
@@ -155,7 +155,7 @@ final class TransactionNotifier extends _$TransactionNotifier {
     );
   }
 
-  TransactionState _copyStateWith({TransactionFormData? form}) {
+  TransactionState _copyStateWith({TransactionData? form}) {
     final newForm = form ?? state.form;
 
     return switch (state) {

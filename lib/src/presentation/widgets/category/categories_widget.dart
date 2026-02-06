@@ -10,16 +10,6 @@ class CategoriesWidget extends StatelessWidget {
   final CategoryModel? selected;
   final ValueChanged<CategoryModel> onSelected;
 
-  List<CategoryModel> get _incomeCategories => CategoryModel.values
-      .where((category) => category.types.contains(TransactionTypeModel.income))
-      .toList();
-
-  List<CategoryModel> get _expenseCategories => CategoryModel.values
-      .where(
-        (category) => category.types.contains(TransactionTypeModel.expense),
-      )
-      .toList();
-
   const CategoriesWidget({
     super.key,
     required this.selected,
@@ -36,17 +26,15 @@ class CategoriesWidget extends StatelessWidget {
           icon: Icons.trending_up,
           color: context.colors.primary,
         ),
-        _buildCategories(_incomeCategories),
+        _buildCategories(CategoryModel.values),
 
-        const SliverToBoxAdapter(child: SizedBox(height: 16.0)),
-
-        _buildSectionHeader(
-          context: context,
-          title: 'Despesas',
-          icon: Icons.trending_down,
-          color: context.colors.error,
-        ),
-        _buildCategories(_expenseCategories),
+        // _buildSectionHeader(
+        //   context: context,
+        //   title: 'Despesas',
+        //   icon: Icons.trending_down,
+        //   color: context.colors.error,
+        // ),
+        // _buildCategories(_expenseCategories),
       ],
     );
   }

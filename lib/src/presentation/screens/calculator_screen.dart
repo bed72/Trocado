@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 import 'package:trocado/src/presentation/widgets/fields/text_field_widget.dart';
@@ -14,60 +15,61 @@ class CalculatorScreen extends StatefulWidget {
 }
 
 class _CalculatorScreenState extends State<CalculatorScreen> {
-  late final TextEditingController _controller;
+  late final TextEditingController controller;
 
   @override
   void initState() {
     super.initState();
 
-    _controller = TextEditingController();
+    controller = TextEditingController();
   }
 
   @override
   void dispose() {
-    _controller.dispose();
-
+    controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return BottomSheetScaffoldWidget(
-      title: 'Continha Rápida',
-      subtitle: 'Use a calculadora pra agilizar seus registros.',
-      child: Padding(
-        padding: const .only(top: 12.0, bottom: 20.0),
-        child: Column(
-          spacing: 16.0,
-          mainAxisSize: .min,
-          crossAxisAlignment: .start,
-          children: [
-            BlocListener<TransactionCubit, TransactionState>(
-              bloc: widget.cubit,
-              listenWhen: (previous, current) =>
-                  previous.form.amount != current.form.amount,
-              listener: (_, state) {
-                _controller.text = widget.cubit.format(state.form.amount);
-              },
-              child: TextFieldWidget(
-                hint: 'Valor',
-                readOnly: true,
-                absorbing: true,
-                placeholder: '100.0',
-                controller: _controller,
-              ),
-            ),
+    return Consumer(
+      builder: (_, ref, _) {
+        final notifier = ref.read(transactionProvider.notifier);
+        final amount = ref.watch(
+          transactionProvider.select((state) => state.form.amount),
+        );
 
-            CalculatorKeyboard(
-              onKeyTap: (key) {
-                widget.cubit.onKeyTap(key);
+        final formatted = notifier.format(amount);
+        if (controller.text != formatted) controller.text = formatted;
 
-                if (key == '✓') context.pop();
-              },
+        return BottomSheetScaffoldWidget(
+          title: 'Continha Rápida',
+          subtitle: 'Use a calculadora pra agilizar seus registros.',
+          child: Padding(
+            padding: const .only(top: 12, bottom: 20),
+            child: Column(
+              spacing: 16,
+              mainAxisSize: .min,
+              crossAxisAlignment: .start,
+              children: [
+                TextFieldWidget(
+                  hint: 'Valor',
+                  readOnly: true,
+                  absorbing: true,
+                  placeholder: '100.0',
+                  controller: controller,
+                ),
+                CalculatorKeyboard(
+                  onKeyTap: (key) {
+                    notifier.onKeyTap(key);
+                    if (key == '✓') context.pop();
+                  },
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import 'package:trocado/src/domain/models/month_model.dart';
+import 'package:trocado/src/presentation/notifiers/data/month_data.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 import 'package:trocado/src/presentation/widgets/buttons/icon_button_widget.dart';
 
 class MonthSelectorWidget extends StatelessWidget {
-  final MonthModel month;
+  final MonthData month;
   final VoidCallback onNext;
   final VoidCallback onPrevious;
 

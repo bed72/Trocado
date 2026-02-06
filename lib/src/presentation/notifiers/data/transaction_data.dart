@@ -4,32 +4,32 @@ import 'package:equatable/equatable.dart';
 import 'package:trocado/src/domain/models/category_model.dart';
 
 @immutable
-final class TransactionFormData extends Equatable {
+final class TransactionData extends Equatable {
   final double amount;
   final DateTime date;
   final String formattedDate;
   final CategoryModel category;
 
-  const TransactionFormData({
+  const TransactionData({
     required this.date,
     required this.amount,
     required this.category,
     required this.formattedDate,
   });
 
-  factory TransactionFormData.empty() => TransactionFormData(
+  factory TransactionData.empty() => TransactionData(
     amount: 0.0,
     date: .now(),
     category: .other,
     formattedDate: '',
   );
 
-  TransactionFormData copyWith({
+  TransactionData copyWith({
     double? amount,
     DateTime? date,
     String? formattedDate,
     CategoryModel? category,
-  }) => TransactionFormData(
+  }) => TransactionData(
     date: date ?? this.date,
     amount: amount ?? this.amount,
     category: category ?? this.category,
