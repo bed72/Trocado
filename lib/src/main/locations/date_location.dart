@@ -7,7 +7,7 @@ import 'package:trocado/src/presentation/pages/bottom_sheet_page.dart';
 
 final class DateLocation extends Location {
   @override
-  String get path => RoutesConstant.date.path;
+  String get path => AppRoutes.date.path;
 
   @override
   LocationPageBuilder get pageBuilder =>

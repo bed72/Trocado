@@ -22,7 +22,7 @@ mixin BackButtonMixin<T extends StatefulWidget> on State<T> {
   bool _execute(bool _, RouteInfo info) {
     final routeName = info.currentRoute(context)?.settings.name;
 
-    if ([RoutesConstant.home.path].contains(routeName)) {
+    if ([AppRoutes.home.path].contains(routeName)) {
       execute();
 
       return true;

@@ -9,7 +9,7 @@ import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
 final class SplashLocation extends Location {
   @override
-  String get path => RoutesConstant.splash.path;
+  String get path => AppRoutes.splash.path;
 
   @override
   LocationBuilder? get builder =>

@@ -10,10 +10,8 @@ class TransactionToModelMapper
   TransactionModel call(TransactionEntity parameter) => TransactionModel(
     id: parameter.id,
     date: parameter.date,
-    type: parameter.type,
     amount: parameter.amount,
     category: parameter.category,
     description: parameter.description,
-    observation: parameter.observation,
   );
 }

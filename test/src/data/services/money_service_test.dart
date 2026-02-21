@@ -1,13 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:trocado/src/data/repositories/money_repository.dart';
-import 'package:trocado/src/domain/repositories/interface_money_repository.dart';
+import 'package:trocado/src/data/services/money_service.dart';
+
+import 'package:trocado/src/domain/services/interface_money_repository.dart';
 
 void main() {
-  late IMoneyRepository formatter;
+  late IMoneyService formatter;
 
   setUp(() {
-    formatter = MoneyRepository();
+    formatter = MoneyService();
   });
 
   test('format should format value to BRL', () {

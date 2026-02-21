@@ -1,1 +1,0 @@
-enum EntryModel { income, expense }

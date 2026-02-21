@@ -20,11 +20,6 @@
           "type": 6
         },
         {
-          "id": "3:1052695545010608414",
-          "name": "type",
-          "type": 9
-        },
-        {
           "id": "4:3291498247467525613",
           "name": "amount",
           "type": 8
@@ -37,11 +32,6 @@
         {
           "id": "6:8136152323425421718",
           "name": "description",
-          "type": 9
-        },
-        {
-          "id": "7:8914437015231901503",
-          "name": "observation",
           "type": 9
         }
       ],
@@ -56,7 +46,10 @@
   "modelVersionParserMinimum": 5,
   "retiredEntityUids": [],
   "retiredIndexUids": [],
-  "retiredPropertyUids": [],
+  "retiredPropertyUids": [
+    8914437015231901503,
+    1052695545010608414
+  ],
   "retiredRelationUids": [],
   "version": 1
 }

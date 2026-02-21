@@ -11,7 +11,7 @@ final class ExitLocation extends Location {
   const ExitLocation();
 
   @override
-  String get path => RoutesConstant.exit.path;
+  String get path => AppRoutes.exit.path;
 
   @override
   LocationPageBuilder get pageBuilder =>

@@ -7,21 +7,21 @@ import 'package:trocado/src/main/locations/category_location.dart';
 import 'package:trocado/src/main/locations/calculator_location.dart';
 
 import 'package:trocado/src/presentation/pages/screen_page.dart';
-import 'package:trocado/src/presentation/screens/transactions_screen.dart';
+import 'package:trocado/src/presentation/screens/expense_screen.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
-final class TransactionLocation extends Location {
+final class ExpenseLocation extends Location {
   final int? id;
 
-  const TransactionLocation({this.id});
+  const ExpenseLocation({this.id});
 
   @override
-  String get path => '${RoutesConstant.transactions.path}/$id';
+  String get path => '${AppRoutes.expense.path}/$id';
 
   @override
   LocationPageBuilder get pageBuilder =>
       (context) => screenPage(
-        TransactionsScreen(
+        ExpenseScreen(
           id: id,
           navigateToDate: () => context.navigate(DateLocation()),
           navigateToCategory: () => context.navigate(CategoryLocation()),

@@ -7,7 +7,7 @@ import 'package:trocado/src/presentation/screens/category_screen.dart';
 
 final class CategoryLocation extends Location {
   @override
-  String get path => RoutesConstant.category.path;
+  String get path => AppRoutes.category.path;
 
   @override
   LocationPageBuilder get pageBuilder =>

@@ -8,70 +8,62 @@ import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
 
 @immutable
-final class RoutesConstant {
+final class AppRoutes {
   final String path;
   final String name;
   final RegExp regex;
 
-  const RoutesConstant._({
+  const AppRoutes._({
     required this.path,
     required this.name,
     required this.regex,
   });
 
-  static final date = RoutesConstant._(
+  static final date = AppRoutes._(
     path: '/date',
     name: 'date-route',
     regex: RegExp(r'/date$'),
   );
 
-  static final exit = RoutesConstant._(
+  static final exit = AppRoutes._(
     path: '/exit',
     name: 'exit-route',
     regex: RegExp(r'/exit$'),
   );
 
-  static final home = RoutesConstant._(
+  static final home = AppRoutes._(
     path: '/home',
     name: 'home-route',
     regex: RegExp(r'^/$'),
   );
 
-  static final splash = RoutesConstant._(
+  static final splash = AppRoutes._(
     path: '/splash',
     name: 'splash-route',
     regex: RegExp(r'/splash'),
   );
 
-  static final category = RoutesConstant._(
+  static final category = AppRoutes._(
     path: '/category',
     name: 'category-route',
     regex: RegExp(r'^/category$'),
   );
 
-  static final calculator = RoutesConstant._(
+  static final calculator = AppRoutes._(
     path: '/calculator',
     name: 'calculator-route',
     regex: RegExp(r'^/calculator$'),
   );
 
-  static final transactions = RoutesConstant._(
-    path: '/transactions',
-    name: 'transactions-route',
-    regex: RegExp(r'^/transactions$'),
+  static final expense = AppRoutes._(
+    path: '/expense',
+    name: 'expense-route',
+    regex: RegExp(r'^/expense$'),
   );
 
-  static final _all = [
-    date,
-    exit,
-    home,
-    splash,
-    category,
-    calculator,
-    transactions,
-  ];
+  static final _all = [date, exit, home, splash, category, calculator, expense];
 
-  static RoutesConstant? match(String location) =>
+  static AppRoutes? match(String location) =>
       _all.firstWhereOrNull((route) => route.regex.hasMatch(location));
 }
 

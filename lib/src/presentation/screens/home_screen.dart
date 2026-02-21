@@ -2,28 +2,19 @@ import 'package:flutter/material.dart';
 
 import 'package:trocado/src/presentation/mixins/back_button_mixin.dart';
 
-import 'package:trocado/src/presentation/notifiers/home/home_notifier.dart';
-
-import 'package:trocado/src/presentation/widgets/toast_widget.dart';
 import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';
-import 'package:trocado/src/presentation/widgets/home/home_failure_widget.dart';
-import 'package:trocado/src/presentation/widgets/home/home_loading_widget.dart';
-import 'package:trocado/src/presentation/widgets/home/home_success_widget.dart';
-import 'package:trocado/src/presentation/widgets/home/home_app_bar_widget.dart';
 import 'package:trocado/src/presentation/widgets/home/home_action_button_widget.dart';
-import 'package:trocado/src/presentation/widgets/home/balance/grid_balance_widget.dart';
-import 'package:trocado/src/presentation/widgets/home/transaction/transaction_header_widget.dart';
 
 class HomeScreen extends StatefulWidget {
   final ValueChanged<int?> onPress;
   final VoidCallback onNavigateToExit;
-  final VoidCallback onNavigateToTransaction;
+  final VoidCallback onNavigateToExpense;
 
   const HomeScreen({
     super.key,
     required this.onPress,
     required this.onNavigateToExit,
-    required this.onNavigateToTransaction,
+    required this.onNavigateToExpense,
   });
 
   @override
@@ -38,18 +29,11 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   @override
-  void initState() {
-    super.initState();
-
-    // widget.cubit.findTransactionBy();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return ScaffoldWidget(
       // appBar: HomeAppBarWidget(),
       floatingActionButton: HomeActionButtonWidget(
-        onNavigateToTransaction: widget.onNavigateToTransaction,
+        onNavigateToTransaction: widget.onNavigateToExpense,
       ),
       child: Placeholder(),
       // BlocListener<HomeCubit, HomeState>(
@@ -96,12 +80,12 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  void _showFailureToast(String description) {
-    showToastWidget(
-      type: .failure,
-      context: context,
-      description: description,
-      title: 'Ops, algo aconteceu.',
-    );
-  }
+  // void _showFailureToast(String description) {
+  //   showToastWidget(
+  //     type: .failure,
+  //     context: context,
+  //     description: description,
+  //     title: 'Ops, algo aconteceu.',
+  //   );
+  // }
 }

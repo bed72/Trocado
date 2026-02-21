@@ -22,9 +22,7 @@ void main() {
 
   final transactionEntity = TransactionEntity(
     id: 1,
-    type: 'income',
     amount: 100.50,
-    observation: null,
     category: 'Salário',
     date: 1704067200000,
     description: 'Salário mensal',
@@ -32,7 +30,6 @@ void main() {
 
   final transactionModel = TransactionModel(
     id: 1,
-    type: 'income',
     amount: 100.50,
     category: 'Salário',
     date: 1704067200000,
@@ -117,7 +114,6 @@ void main() {
       test('should call upsert when model.id is null', () {
         final newModel = TransactionModel(
           id: null,
-          type: 'income',
           amount: 100.50,
           category: 'Salário',
           date: 1704067200000,
@@ -126,9 +122,7 @@ void main() {
 
         final newEntity = TransactionEntity(
           id: 0,
-          type: 'income',
           amount: 100.50,
-          observation: null,
           category: 'Salário',
           date: 1704067200000,
           description: 'Salário mensal',
@@ -169,21 +163,18 @@ void main() {
       test('should return Left when save fails', () {
         final newModel = TransactionModel(
           id: null,
-          date: 1704067200000,
-          type: 'income',
           amount: 100.50,
           category: 'Salário',
+          date: 1704067200000,
           description: 'Salário mensal',
         );
 
         final newEntity = TransactionEntity(
           id: 1,
-          type: 'income',
           amount: 100.50,
           category: 'Salário',
           date: 1704067200000,
           description: 'Salário mensal',
-          observation: null,
         );
 
         when(
@@ -220,28 +211,23 @@ void main() {
         final entities = [
           TransactionEntity(
             id: 1,
-            type: 'income',
             amount: 100.0,
             category: 'Salário',
             date: 1704067200000,
             description: 'Salário',
-            observation: null,
           ),
           TransactionEntity(
             id: 2,
             amount: 50.0,
-            type: 'expense',
             date: 1704153600000,
             description: 'Almoço',
             category: 'Alimentação',
-            observation: null,
           ),
         ];
 
         final models = [
           TransactionModel(
             id: 1,
-            type: 'income',
             amount: 100.0,
             date: 1704067200000,
             category: 'Salário',
@@ -250,7 +236,6 @@ void main() {
           TransactionModel(
             id: 2,
             amount: 50.0,
-            type: 'expense',
             date: 1704153600000,
             description: 'Almoço',
             category: 'Alimentação',

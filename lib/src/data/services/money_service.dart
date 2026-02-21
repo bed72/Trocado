@@ -1,11 +1,11 @@
 import 'package:intl/intl.dart';
 
-import 'package:trocado/src/domain/repositories/interface_money_repository.dart';
+import 'package:trocado/src/domain/services/interface_money_repository.dart';
 
-final class MoneyRepository implements IMoneyRepository {
+final class MoneyService implements IMoneyService {
   final NumberFormat _formatter;
 
-  MoneyRepository()
+  MoneyService()
     : _formatter = NumberFormat.currency(
         symbol: 'R\$',
         locale: 'pt_BR',

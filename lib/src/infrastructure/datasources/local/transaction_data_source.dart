@@ -7,12 +7,12 @@ import 'package:trocado/src/data/datasources/interface_transaction_data_source.d
 import 'package:trocado/src/infrastructure/clients/database/database_client.dart';
 import 'package:trocado/src/infrastructure/clients/database/entities/transaction_entity.dart';
 
-final class TransactionDatasource implements ITransactionDataSource {
+final class TransactionDataSource implements ITransactionDataSource {
   final IDatabaseClient _client;
 
   late final Box<TransactionEntity> _box;
 
-  TransactionDatasource({required IDatabaseClient client}) : _client = client {
+  TransactionDataSource({required IDatabaseClient client}) : _client = client {
     _box = _client.store.box<TransactionEntity>();
   }
 
@@ -50,23 +50,6 @@ final class TransactionDatasource implements ITransactionDataSource {
       _box.put(entity);
 
       return const Right(null);
-    } catch (_) {
-      return const Left('Ops, a operação falhou.');
-    }
-  }
-
-  @override
-  Either<String, List<TransactionEntity>> findByEntry(String entry) {
-    try {
-      final query = _box
-          .query(TransactionEntity_.type.contains(entry))
-          .order(TransactionEntity_.date, flags: Order.descending)
-          .build();
-
-      final data = query.find();
-      query.close();
-
-      return Right(data);
     } catch (_) {
       return const Left('Ops, a operação falhou.');
     }

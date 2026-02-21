@@ -7,7 +7,7 @@ import 'package:trocado/src/presentation/screens/calculator_screen.dart';
 
 final class CalculatorLocation extends Location {
   @override
-  String get path => RoutesConstant.calculator.path;
+  String get path => AppRoutes.calculator.path;
 
   @override
   LocationPageBuilder get pageBuilder =>

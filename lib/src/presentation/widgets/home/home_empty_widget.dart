@@ -2,7 +2,7 @@
 
 // import 'package:trocado/src/presentation/constants/assets_constant.dart';
 // import 'package:trocado/src/domain/models/transaction_model.dart';
-// import 'package:trocado/src/presentation/extensions/context_extension.dart';
+//
 // import 'package:trocado/src/presentation/widgets/images/image_widget.dart';
 
 // class HomeEmptyWidget extends StatelessWidget {
