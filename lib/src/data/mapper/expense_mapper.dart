@@ -1,7 +1,7 @@
 import 'package:trocado/src/data/mapper/mapper.dart';
 
 import 'package:trocado/src/domain/models/expense_model.dart';
-import 'package:trocado/src/presentation/data/expense_presentation_data.dart';
+import 'package:trocado/src/presentation/data/ui/expense_presentation_data.dart';
 import 'package:trocado/src/infrastructure/clients/database/entities/expense_entity.dart';
 
 class ExpenseEntityToModelMapper

@@ -6,7 +6,7 @@ import 'package:trocado/src/presentation/widgets/bounce_widget.dart';
 import 'package:trocado/src/presentation/capsules/amount_capsule.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
-import 'package:trocado/src/presentation/data/calculator_presentation_data.dart';
+import 'package:trocado/src/presentation/data/ui/calculator_presentation_data.dart';
 
 class CalculatorKeyboard extends StatelessWidget {
   const CalculatorKeyboard({super.key});
@@ -67,10 +67,10 @@ class CalculatorKeyboard extends StatelessWidget {
 
       return BounceWidget.withOnPress(
         onPress: () {
-          final input = _map(label);
-          setValue(input);
+          final data = CalculatorPresentationData.map(label);
+          setValue(data);
 
-          if (input.action == .submit) context.pop();
+          if (data.action == .submit) context.pop();
         },
         child: Container(
           decoration: BoxDecoration(
@@ -90,12 +90,4 @@ class CalculatorKeyboard extends StatelessWidget {
       );
     },
   );
-
-  CalculatorPresentationData _map(String label) => switch (label) {
-    'AC' => const .clear(),
-    '✓' => const .submit(),
-    ',' => const .decimal(),
-    'DEL' => const .delete(),
-    _ => .digit(label),
-  };
 }

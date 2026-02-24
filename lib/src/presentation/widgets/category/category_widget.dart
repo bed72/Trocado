@@ -4,7 +4,7 @@ import 'package:flutter_rearch/flutter_rearch.dart';
 import 'package:trocado/src/presentation/animation/animation.dart';
 import 'package:trocado/src/presentation/capsules/category_capsule.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
-import 'package:trocado/src/presentation/data/category_presentation_data.dart';
+import 'package:trocado/src/presentation/data/ui/category_presentation_data.dart';
 
 import 'package:trocado/src/presentation/widgets/bounce_widget.dart';
 import 'package:trocado/src/presentation/widgets/icons/background_icon_widget.dart';

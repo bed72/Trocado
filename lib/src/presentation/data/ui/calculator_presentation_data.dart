@@ -1,4 +1,4 @@
-enum CalculatorPresentationActionData { digit, clear, delete, submit, decimal }
+enum CalculatorPresentationActionData { digit, clear, delete, submit }
 
 final class CalculatorPresentationData {
   final String? value;
@@ -8,5 +8,11 @@ final class CalculatorPresentationData {
   const CalculatorPresentationData.clear() : action = .clear, value = null;
   const CalculatorPresentationData.delete() : action = .delete, value = null;
   const CalculatorPresentationData.submit() : action = .submit, value = null;
-  const CalculatorPresentationData.decimal() : action = .decimal, value = null;
+
+  factory CalculatorPresentationData.map(String label) => switch (label) {
+    '✓' => const .submit(),
+    'AC' => const .clear(),
+    'DEL' => const .delete(),
+    _ => .digit(label),
+  };
 }

@@ -1,13 +1,15 @@
 import 'package:rearch/rearch.dart';
 
 import 'package:trocado/src/main/capsules/capsules.dart';
-import 'package:trocado/src/presentation/data/calculator_presentation_data.dart';
+import 'package:trocado/src/presentation/data/ui/calculator_presentation_data.dart';
 
 (String, void Function(CalculatorPresentationData)) amountCapsule(
   CapsuleHandle use,
 ) {
   final service = use(moneyServiceCapsule);
   final (amount, setAmount) = use.state<int>(0);
+
+  final formatted = service.format(amount / 100);
 
   void onChange(CalculatorPresentationData data) {
     switch (data.action) {
@@ -24,13 +26,10 @@ import 'package:trocado/src/presentation/data/calculator_presentation_data.dart'
         setAmount(0);
         break;
 
-      case .decimal:
       case .submit:
         break;
     }
   }
-
-  final formatted = service.format(amount / 100);
 
   return (formatted, onChange);
 }

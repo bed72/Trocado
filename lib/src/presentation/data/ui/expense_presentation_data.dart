@@ -1,20 +1,4 @@
-import 'package:trocado/src/presentation/data/category_presentation_data.dart';
-
-sealed class ExpenseSavedPresentationData {
-  const ExpenseSavedPresentationData();
-}
-
-final class ExpenseSavedSuccessPresentationData
-    extends ExpenseSavedPresentationData {
-  final String message;
-  const ExpenseSavedSuccessPresentationData(this.message);
-}
-
-final class ExpenseSavedFailurePresentationData
-    extends ExpenseSavedPresentationData {
-  final String message;
-  const ExpenseSavedFailurePresentationData(this.message);
-}
+import 'package:trocado/src/presentation/data/ui/category_presentation_data.dart';
 
 final class ExpensePresentationData {
   final double amount;
@@ -31,7 +15,6 @@ final class ExpensePresentationData {
 
   bool get hasValidAmount => amount > 0;
   bool get hasValidDescription => description.trim().isNotEmpty;
-
   bool get isValid => hasValidDescription && hasValidAmount;
 
   ExpensePresentationData copyWith({
@@ -45,14 +28,4 @@ final class ExpensePresentationData {
     category: category ?? this.category,
     description: description ?? this.description,
   );
-
-  @override
-  String toString() =>
-      'ExpensePresentationData('
-      'description: "$description", '
-      'amount: $amount, '
-      'date: $date, '
-      'category: $category, '
-      'isValid: $isValid'
-      ')';
 }
