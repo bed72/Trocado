@@ -1,26 +1,25 @@
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:trocado/src/data/mapper/transaction_to_model_mapper.dart';
-import 'package:trocado/src/data/mapper/transaction_to_entity_mapper.dart';
-import 'package:trocado/src/data/repositories/transaction_repository.dart';
-import 'package:trocado/src/data/datasources/interface_transaction_data_source.dart';
+import 'package:trocado/src/data/mapper/expense_mapper.dart';
+import 'package:trocado/src/data/repositories/expense_repository.dart';
+import 'package:trocado/src/data/datasources/interface_expense_data_source.dart';
 
 import 'package:trocado/src/domain/either/either.dart';
-import 'package:trocado/src/domain/models/transaction_model.dart';
-import 'package:trocado/src/domain/repositories/interface_transaction_repository.dart';
+import 'package:trocado/src/domain/models/expense_model.dart';
+import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
-import 'package:trocado/src/infrastructure/clients/database/entities/transaction_entity.dart';
+import 'package:trocado/src/infrastructure/clients/database/entities/expense_entity.dart';
 
 import '../../../mocks/mocks.dart';
 
 void main() {
-  late ITransactionRepository repository;
-  late ITransactionDataSource dataSource;
-  late TransactionToModelMapper transactionToModelMapper;
-  late TransactionToEntityMapper transactionToEntityMapper;
+  late IExpenseRepository repository;
+  late IExpenseDataSource dataSource;
+  late ExpenseEntityToModelMapper transactionToModelMapper;
+  late ExpenseModelToEntityMapper transactionToEntityMapper;
 
-  final transactionEntity = TransactionEntity(
+  final transactionEntity = ExpenseEntity(
     id: 1,
     amount: 100.50,
     category: 'Salário',
@@ -28,7 +27,7 @@ void main() {
     description: 'Salário mensal',
   );
 
-  final transactionModel = TransactionModel(
+  final transactionModel = ExpenseModel(
     id: 1,
     amount: 100.50,
     category: 'Salário',
@@ -46,7 +45,7 @@ void main() {
     transactionToModelMapper = MockTransactionToModelMapper();
     transactionToEntityMapper = MockTransactionToEntityMapper();
 
-    repository = TransactionRepository(
+    repository = ExpenseRepository(
       dataSource: dataSource,
       transactionToModelMapper: transactionToModelMapper,
       transactionToEntityMapper: transactionToEntityMapper,
@@ -112,7 +111,7 @@ void main() {
 
     group('upsert', () {
       test('should call upsert when model.id is null', () {
-        final newModel = TransactionModel(
+        final newModel = ExpenseModel(
           id: null,
           amount: 100.50,
           category: 'Salário',
@@ -120,7 +119,7 @@ void main() {
           description: 'Salário mensal',
         );
 
-        final newEntity = TransactionEntity(
+        final newEntity = ExpenseEntity(
           id: 0,
           amount: 100.50,
           category: 'Salário',
@@ -161,7 +160,7 @@ void main() {
       });
 
       test('should return Left when save fails', () {
-        final newModel = TransactionModel(
+        final newModel = ExpenseModel(
           id: null,
           amount: 100.50,
           category: 'Salário',
@@ -169,7 +168,7 @@ void main() {
           description: 'Salário mensal',
         );
 
-        final newEntity = TransactionEntity(
+        final newEntity = ExpenseEntity(
           id: 1,
           amount: 100.50,
           category: 'Salário',
@@ -209,14 +208,14 @@ void main() {
     group('findByPeriod', () {
       test('should return mapped list of TransactionModel on success', () {
         final entities = [
-          TransactionEntity(
+          ExpenseEntity(
             id: 1,
             amount: 100.0,
             category: 'Salário',
             date: 1704067200000,
             description: 'Salário',
           ),
-          TransactionEntity(
+          ExpenseEntity(
             id: 2,
             amount: 50.0,
             date: 1704153600000,
@@ -226,14 +225,14 @@ void main() {
         ];
 
         final models = [
-          TransactionModel(
+          ExpenseModel(
             id: 1,
             amount: 100.0,
             date: 1704067200000,
             category: 'Salário',
             description: 'Salário',
           ),
-          TransactionModel(
+          ExpenseModel(
             id: 2,
             amount: 50.0,
             date: 1704153600000,

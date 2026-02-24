@@ -2,18 +2,18 @@ import 'package:trocado/objectbox.g.dart';
 
 import 'package:trocado/src/domain/either/either.dart';
 
-import 'package:trocado/src/data/datasources/interface_transaction_data_source.dart';
+import 'package:trocado/src/data/datasources/interface_expense_data_source.dart';
 
 import 'package:trocado/src/infrastructure/clients/database/database_client.dart';
-import 'package:trocado/src/infrastructure/clients/database/entities/transaction_entity.dart';
+import 'package:trocado/src/infrastructure/clients/database/entities/expense_entity.dart';
 
-final class TransactionDataSource implements ITransactionDataSource {
+final class TransactionDataSource implements IExpenseDataSource {
   final IDatabaseClient _client;
 
-  late final Box<TransactionEntity> _box;
+  late final Box<ExpenseEntity> _box;
 
   TransactionDataSource({required IDatabaseClient client}) : _client = client {
-    _box = _client.store.box<TransactionEntity>();
+    _box = _client.store.box<ExpenseEntity>();
   }
 
   @override
@@ -30,7 +30,7 @@ final class TransactionDataSource implements ITransactionDataSource {
   }
 
   @override
-  Either<String, TransactionEntity> findById(int id) {
+  Either<String, ExpenseEntity> findById(int id) {
     try {
       final entity = _box.get(id);
 
@@ -43,7 +43,7 @@ final class TransactionDataSource implements ITransactionDataSource {
   }
 
   @override
-  Either<String, Null> upsert(TransactionEntity entity) {
+  Either<String, Null> upsert(ExpenseEntity entity) {
     try {
       if (entity.id == 0) return const Left('Transação não encontrada.');
 
@@ -56,7 +56,7 @@ final class TransactionDataSource implements ITransactionDataSource {
   }
 
   @override
-  Either<String, List<TransactionEntity>> findByPeriod({
+  Either<String, List<ExpenseEntity>> findByPeriod({
     int? limit,
     int? offset,
     int? startAt,
@@ -68,9 +68,9 @@ final class TransactionDataSource implements ITransactionDataSource {
           : _currentMonthRange();
 
       final query = _box
-          .query(TransactionEntity_.date.between(start, end))
-          .order(TransactionEntity_.id, flags: Order.descending)
-          .order(TransactionEntity_.date, flags: Order.descending)
+          .query(ExpenseEntity_.date.between(start, end))
+          .order(ExpenseEntity_.id, flags: Order.descending)
+          .order(ExpenseEntity_.date, flags: Order.descending)
           .build();
 
       if (limit != null) query.limit = limit;

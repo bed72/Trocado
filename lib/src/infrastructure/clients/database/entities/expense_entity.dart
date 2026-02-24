@@ -1,7 +1,7 @@
 import 'package:objectbox/objectbox.dart';
 
 @Entity()
-final class TransactionEntity {
+final class ExpenseEntity {
   final int date;
   final double amount;
   final String category;
@@ -10,7 +10,7 @@ final class TransactionEntity {
   @Id()
   int? id;
 
-  TransactionEntity({
+  ExpenseEntity({
     required this.id,
     required this.date,
     required this.amount,

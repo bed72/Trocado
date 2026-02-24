@@ -14,46 +14,46 @@ import 'package:objectbox/internal.dart'
 import 'package:objectbox/objectbox.dart' as obx;
 import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 
-import 'src/infrastructure/clients/database/entities/transaction_entity.dart';
+import 'src/infrastructure/clients/database/entities/expense_entity.dart';
 
 export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
 
 final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
-    id: const obx_int.IdUid(1, 1852755316315486217),
-    name: 'TransactionEntity',
-    lastPropertyId: const obx_int.IdUid(7, 8914437015231901503),
+    id: const obx_int.IdUid(2, 5353104918585052881),
+    name: 'ExpenseEntity',
+    lastPropertyId: const obx_int.IdUid(5, 5677225363591521911),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(1, 124474464062880185),
-        name: 'id',
-        type: 6,
-        flags: 1,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(2, 6359883799787194156),
+        id: const obx_int.IdUid(1, 4401769687359133975),
         name: 'date',
         type: 6,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(4, 3291498247467525613),
+        id: const obx_int.IdUid(2, 1439559730341620322),
         name: 'amount',
         type: 8,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(5, 7680930992602820770),
+        id: const obx_int.IdUid(3, 683469373526493450),
         name: 'category',
         type: 9,
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(6, 8136152323425421718),
+        id: const obx_int.IdUid(4, 4534146325090464610),
         name: 'description',
         type: 9,
         flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 5677225363591521911),
+        name: 'id',
+        type: 6,
+        flags: 1,
       ),
     ],
     relations: <obx_int.ModelRelation>[],
@@ -104,13 +104,21 @@ obx_int.ModelDefinition getObjectBoxModel() {
     // Typically, this is done with `dart run build_runner build`.
     generatorVersion: obx_int.GeneratorVersion.v2025_12_16,
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(1, 1852755316315486217),
+    lastEntityId: const obx_int.IdUid(2, 5353104918585052881),
     lastIndexId: const obx_int.IdUid(0, 0),
     lastRelationId: const obx_int.IdUid(0, 0),
     lastSequenceId: const obx_int.IdUid(0, 0),
-    retiredEntityUids: const [],
+    retiredEntityUids: const [1852755316315486217],
     retiredIndexUids: const [],
-    retiredPropertyUids: const [8914437015231901503, 1052695545010608414],
+    retiredPropertyUids: const [
+      8914437015231901503,
+      1052695545010608414,
+      124474464062880185,
+      6359883799787194156,
+      3291498247467525613,
+      7680930992602820770,
+      8136152323425421718,
+    ],
     retiredRelationUids: const [],
     modelVersion: 5,
     modelVersionParserMinimum: 5,
@@ -118,23 +126,23 @@ obx_int.ModelDefinition getObjectBoxModel() {
   );
 
   final bindings = <Type, obx_int.EntityDefinition>{
-    TransactionEntity: obx_int.EntityDefinition<TransactionEntity>(
+    ExpenseEntity: obx_int.EntityDefinition<ExpenseEntity>(
       model: _entities[0],
-      toOneRelations: (TransactionEntity object) => [],
-      toManyRelations: (TransactionEntity object) => {},
-      getId: (TransactionEntity object) => object.id,
-      setId: (TransactionEntity object, int id) {
+      toOneRelations: (ExpenseEntity object) => [],
+      toManyRelations: (ExpenseEntity object) => {},
+      getId: (ExpenseEntity object) => object.id,
+      setId: (ExpenseEntity object, int id) {
         object.id = id;
       },
-      objectToFB: (TransactionEntity object, fb.Builder fbb) {
+      objectToFB: (ExpenseEntity object, fb.Builder fbb) {
         final categoryOffset = fbb.writeString(object.category);
         final descriptionOffset = fbb.writeString(object.description);
-        fbb.startTable(8);
-        fbb.addInt64(0, object.id ?? 0);
-        fbb.addInt64(1, object.date);
-        fbb.addFloat64(3, object.amount);
-        fbb.addOffset(4, categoryOffset);
-        fbb.addOffset(5, descriptionOffset);
+        fbb.startTable(6);
+        fbb.addInt64(0, object.date);
+        fbb.addFloat64(1, object.amount);
+        fbb.addOffset(2, categoryOffset);
+        fbb.addOffset(3, descriptionOffset);
+        fbb.addInt64(4, object.id ?? 0);
         fbb.finish(fbb.endTable());
         return object.id ?? 0;
       },
@@ -144,27 +152,27 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final idParam = const fb.Int64Reader().vTableGetNullable(
           buffer,
           rootOffset,
-          4,
+          12,
         );
         final dateParam = const fb.Int64Reader().vTableGet(
           buffer,
           rootOffset,
-          6,
+          4,
           0,
         );
         final amountParam = const fb.Float64Reader().vTableGet(
           buffer,
           rootOffset,
-          10,
+          6,
           0,
         );
         final categoryParam = const fb.StringReader(
           asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 12, '');
+        ).vTableGet(buffer, rootOffset, 8, '');
         final descriptionParam = const fb.StringReader(
           asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 14, '');
-        final object = TransactionEntity(
+        ).vTableGet(buffer, rootOffset, 10, '');
+        final object = ExpenseEntity(
           id: idParam,
           date: dateParam,
           amount: amountParam,
@@ -180,30 +188,30 @@ obx_int.ModelDefinition getObjectBoxModel() {
   return obx_int.ModelDefinition(model, bindings);
 }
 
-/// [TransactionEntity] entity fields to define ObjectBox queries.
-class TransactionEntity_ {
-  /// See [TransactionEntity.id].
-  static final id = obx.QueryIntegerProperty<TransactionEntity>(
+/// [ExpenseEntity] entity fields to define ObjectBox queries.
+class ExpenseEntity_ {
+  /// See [ExpenseEntity.date].
+  static final date = obx.QueryIntegerProperty<ExpenseEntity>(
     _entities[0].properties[0],
   );
 
-  /// See [TransactionEntity.date].
-  static final date = obx.QueryIntegerProperty<TransactionEntity>(
+  /// See [ExpenseEntity.amount].
+  static final amount = obx.QueryDoubleProperty<ExpenseEntity>(
     _entities[0].properties[1],
   );
 
-  /// See [TransactionEntity.amount].
-  static final amount = obx.QueryDoubleProperty<TransactionEntity>(
+  /// See [ExpenseEntity.category].
+  static final category = obx.QueryStringProperty<ExpenseEntity>(
     _entities[0].properties[2],
   );
 
-  /// See [TransactionEntity.category].
-  static final category = obx.QueryStringProperty<TransactionEntity>(
+  /// See [ExpenseEntity.description].
+  static final description = obx.QueryStringProperty<ExpenseEntity>(
     _entities[0].properties[3],
   );
 
-  /// See [TransactionEntity.description].
-  static final description = obx.QueryStringProperty<TransactionEntity>(
+  /// See [ExpenseEntity.id].
+  static final id = obx.QueryIntegerProperty<ExpenseEntity>(
     _entities[0].properties[4],
   );
 }

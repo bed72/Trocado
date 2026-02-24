@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rearch/flutter_rearch.dart';
 
-import 'package:trocado/src/presentation/capsules/category_capsule.dart';
+import 'package:trocado/src/presentation/capsules/date_capsule.dart';
+import 'package:trocado/src/presentation/extensions/date_time_extension.dart';
 
 import 'package:trocado/src/presentation/widgets/bounce_widget.dart';
 import 'package:trocado/src/presentation/widgets/fields/text_field_widget.dart';
 
-class ExpenseCategoryFieldWidget extends StatelessWidget {
+class ExpenseDateFieldWidget extends StatelessWidget {
   final VoidCallback navigateTo;
 
-  const ExpenseCategoryFieldWidget({super.key, required this.navigateTo});
+  const ExpenseDateFieldWidget({super.key, required this.navigateTo});
 
   @override
   Widget build(BuildContext context) {
@@ -17,14 +18,14 @@ class ExpenseCategoryFieldWidget extends StatelessWidget {
       onPress: navigateTo,
       child: RearchBuilder(
         builder: (_, use) {
-          final (value, _) = use(categoryCapsule);
+          final (value, _) = use(dateCapsule);
 
           return TextFieldWidget(
+            hint: 'Data',
             readOnly: true,
             absorbing: true,
-            hint: 'Categoria',
             key: ValueKey(value),
-            initialValue: value.label,
+            initialValue: value.format(),
           );
         },
       ),

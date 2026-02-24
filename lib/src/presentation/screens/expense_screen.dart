@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-import 'package:trocado/src/presentation/extensions/widget_extension.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
 import 'package:trocado/src/presentation/widgets/app_bar_widget.dart';
 import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';
-import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
 import 'package:trocado/src/presentation/widgets/buttons/icon_button_widget.dart';
 import 'package:trocado/src/presentation/widgets/expense/expense_form_widget.dart';
+import 'package:trocado/src/presentation/widgets/expense/expense_save_button_widget.dart';
+import 'package:trocado/src/presentation/widgets/expense/expense_save_effect_widget.dart';
 
 class ExpenseScreen extends StatefulWidget {
   final int? id;
@@ -29,15 +29,7 @@ class ExpenseScreen extends StatefulWidget {
 }
 
 class _ExpenseScreenState extends State<ExpenseScreen> {
-  late final GlobalKey<FormState> _formKey;
-
   bool get _isEditing => widget.id != null;
-
-  @override
-  void initState() {
-    super.initState();
-    _formKey = GlobalKey<FormState>();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +52,8 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
               ),
             ),
             // _buildDeleteButton(notifier, state),
-            _buildSaveButton(),
+            ExpenseSaveButtonWidget(),
+            const ExpenseSaveEffectWidget(),
           ],
         ),
       ),
@@ -74,23 +67,6 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
     onPress: context.pop,
     icon: Icons.chevron_left,
     borderRadius: context.radius.cornerRadius100,
-  );
-
-  Container _buildSaveButton() => Container(
-    width: .infinity,
-    padding: const .only(top: 16),
-    child: ButtonWidget.outlined(
-      label: 'Salvar',
-      isLoading: false,
-      onTap: () {
-        hideKeyboard;
-
-        final isValid = _formKey.currentState?.validate() ?? false;
-        if (!isValid) return;
-
-        // notifier.save();
-      },
-    ),
   );
 
   // Container _buildDeleteButton(

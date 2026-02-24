@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-final class TransactionModel extends Equatable {
+final class ExpenseModel extends Equatable {
   final int date;
   final double amount;
   final String category;
@@ -8,7 +8,7 @@ final class TransactionModel extends Equatable {
 
   final int? id;
 
-  const TransactionModel({
+  const ExpenseModel({
     required this.date,
     required this.amount,
     required this.category,

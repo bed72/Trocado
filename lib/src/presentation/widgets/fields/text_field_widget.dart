@@ -96,7 +96,7 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
         crossAxisAlignment: .start,
         children: [
           SizedBox(
-            height: 64.0,
+            height: 66.0,
             child: Stack(
               children: [
                 Positioned.fill(child: _buildBorder()),

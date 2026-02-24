@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_rearch/flutter_rearch.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 import 'package:trocado/src/presentation/widgets/bounce_widget.dart';
+import 'package:trocado/src/presentation/capsules/amount_capsule.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
-class CalculatorKeyboard extends StatelessWidget {
-  final void Function(String) onKeyTap;
+import 'package:trocado/src/presentation/data/calculator_presentation_data.dart';
 
-  const CalculatorKeyboard({super.key, required this.onKeyTap});
+class CalculatorKeyboard extends StatelessWidget {
+  const CalculatorKeyboard({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -34,12 +36,11 @@ class CalculatorKeyboard extends StatelessWidget {
         _buildTile(
           context: context,
           label: '✓',
-          background: background,
           rowSpan: 2,
+          background: background,
         ),
 
-        _buildTile(context: context, label: '0', columnSpan: 2),
-        _buildTile(context: context, label: ','),
+        _buildTile(context: context, label: '0', columnSpan: 3),
       ],
     );
   }
@@ -56,26 +57,45 @@ class CalculatorKeyboard extends StatelessWidget {
     child: _buildKey(context: context, label: label, background: background),
   );
 
-  BounceWidget _buildKey({
+  RearchBuilder _buildKey({
     required BuildContext context,
     required String label,
     Color? background,
-  }) => BounceWidget.withOnPress(
-    onPress: () => onKeyTap(label),
-    child: Container(
-      decoration: BoxDecoration(
-        borderRadius: context.radius.cornerRadius300,
-        color: background ?? context.colors.outlineVariant,
-      ),
-      child: Center(
-        child: Text(
-          label,
-          style: context.typography.bodyLarge?.copyWith(
-            fontWeight: .w800,
-            color: context.colors.onSurfaceVariant.withValues(alpha: 0.8),
+  }) => RearchBuilder(
+    builder: (_, use) {
+      final (value, setValue) = use(amountCapsule);
+
+      return BounceWidget.withOnPress(
+        onPress: () {
+          final input = _map(label);
+          setValue(input);
+
+          if (input.action == .submit) context.pop();
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: context.radius.cornerRadius300,
+            color: background ?? context.colors.outlineVariant,
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: context.typography.bodyLarge?.copyWith(
+                fontWeight: .w800,
+                color: context.colors.onSurfaceVariant.withValues(alpha: 0.8),
+              ),
+            ),
           ),
         ),
-      ),
-    ),
+      );
+    },
   );
+
+  CalculatorPresentationData _map(String label) => switch (label) {
+    'AC' => const .clear(),
+    '✓' => const .submit(),
+    ',' => const .decimal(),
+    'DEL' => const .delete(),
+    _ => .digit(label),
+  };
 }

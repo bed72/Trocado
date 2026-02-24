@@ -1,33 +1,12 @@
 import 'package:flutter/material.dart';
 
-import 'package:trocado/src/presentation/extensions/context_extension.dart';
+import 'package:trocado/src/presentation/widgets/calculator/calculator_field_widget.dart';
 
-import 'package:trocado/src/presentation/widgets/fields/text_field_widget.dart';
 import 'package:trocado/src/presentation/widgets/calculator/calculator_keyboard_widget.dart';
 import 'package:trocado/src/presentation/widgets/bottom-sheets/bottom_sheet_scaffold_widget.dart';
 
-class CalculatorScreen extends StatefulWidget {
+class CalculatorScreen extends StatelessWidget {
   const CalculatorScreen({super.key});
-
-  @override
-  State<CalculatorScreen> createState() => _CalculatorScreenState();
-}
-
-class _CalculatorScreenState extends State<CalculatorScreen> {
-  late final TextEditingController controller;
-
-  @override
-  void initState() {
-    super.initState();
-
-    controller = TextEditingController();
-  }
-
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,21 +19,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           spacing: 16,
           mainAxisSize: .min,
           crossAxisAlignment: .start,
-          children: [
-            TextFieldWidget(
-              hint: 'Valor',
-              readOnly: true,
-              absorbing: true,
-              placeholder: '100.0',
-              controller: controller,
-            ),
-            CalculatorKeyboard(
-              onKeyTap: (key) {
-                // notifier.onKeyTap(key);
-                if (key == '✓') context.pop();
-              },
-            ),
-          ],
+          children: [CalculatorFieldWidget(), CalculatorKeyboard()],
         ),
       ),
     );

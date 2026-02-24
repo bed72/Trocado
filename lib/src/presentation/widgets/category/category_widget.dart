@@ -18,11 +18,11 @@ class CategoryWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return RearchBuilder(
       builder: (_, use) {
-        final (selected, setSelected) = use(categoryCapsule);
-        final isSelected = selected == category;
+        final (value, setValue) = use(categoryCapsule);
+        final isSelected = value == category;
 
         return BounceWidget.withOnPress(
-          onPress: () => setSelected(category),
+          onPress: () => setValue(category),
           child: Card(
             color: isSelected
                 ? category.color.withValues(alpha: .04)
@@ -48,10 +48,10 @@ class CategoryWidget extends StatelessWidget {
                         icon: Icons.check,
                         color: category.color,
                         borderRadius: .circular(14.0),
-                        key: ValueKey('selected-${category.labelKey}'),
+                        key: ValueKey('selected-${category.name}'),
                       )
                     : SizedBox(
-                        key: ValueKey('empty-${category.labelKey}'),
+                        key: ValueKey('unselected-${category.name}'),
                         width: 24.0,
                       ),
               ),
