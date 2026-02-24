@@ -14,7 +14,7 @@ class ExpenseSaveButtonWidget extends StatelessWidget {
     return RearchBuilder(
       builder: (_, use) {
         final (form, _) = use(formExpenseCapsule);
-        final (save, setSave) = use(saveExpenseCapsule);
+        final (save, setSave, _) = use(saveExpenseCapsule);
 
         return Container(
           width: .infinity,

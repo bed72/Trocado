@@ -5,7 +5,6 @@ enum CategoryPresentationData {
   housing(label: 'Moradia', icon: Icons.home, color: Color(0xFF283593)),
   gift(label: 'Presente', icon: Icons.redeem, color: Color(0xFFD81B60)),
   health(label: 'Saúde', icon: Icons.favorite, color: Color(0xFFD32F2F)),
-  other(label: 'Outros', icon: Icons.category, color: Color(0xFF9E9E9E)),
   debt(label: 'Dívidas', icon: Icons.credit_card, color: Color(0xFFC62828)),
   bills(label: 'Contas', icon: Icons.receipt_long, color: Color(0xFF6D4C41)),
   education(label: 'Educação', icon: Icons.school, color: Color(0xFF1976D2)),
@@ -39,7 +38,8 @@ enum CategoryPresentationData {
     label: 'Serviços',
     color: Color(0xFF455A64),
     icon: Icons.miscellaneous_services,
-  );
+  ),
+  other(label: 'Outros', icon: Icons.category, color: Color(0xFF9E9E9E));
 
   final Color color;
   final String label;

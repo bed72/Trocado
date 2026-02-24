@@ -7,21 +7,21 @@ import 'package:trocado/src/presentation/data/calculator_presentation_data.dart'
   CapsuleHandle use,
 ) {
   final service = use(moneyServiceCapsule);
-  final (cents, setCents) = use.state<int>(0);
+  final (amount, setAmount) = use.state<int>(0);
 
-  void onInput(CalculatorPresentationData data) {
+  void onChange(CalculatorPresentationData data) {
     switch (data.action) {
       case .digit:
         final digit = int.parse(data.value!);
-        setCents(cents * 10 + digit);
+        setAmount(amount * 10 + digit);
         break;
 
       case .delete:
-        setCents(cents ~/ 10);
+        setAmount(amount ~/ 10);
         break;
 
       case .clear:
-        setCents(0);
+        setAmount(0);
         break;
 
       case .decimal:
@@ -30,7 +30,7 @@ import 'package:trocado/src/presentation/data/calculator_presentation_data.dart'
     }
   }
 
-  final formatted = service.format(cents / 100);
+  final formatted = service.format(amount / 100);
 
-  return (formatted, onInput);
+  return (formatted, onChange);
 }

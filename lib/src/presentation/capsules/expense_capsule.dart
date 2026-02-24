@@ -8,14 +8,17 @@ import 'package:trocado/src/presentation/capsules/category_capsule.dart';
 import 'package:trocado/src/presentation/capsules/description_capsule.dart';
 import 'package:trocado/src/presentation/data/expense_presentation_data.dart';
 
-(ExpenseSavedPresentationData?, void Function()) saveExpenseCapsule(
-  CapsuleHandle use,
-) {
+(ExpenseSavedPresentationData?, void Function(), void Function())
+saveExpenseCapsule(CapsuleHandle use) {
   final repository = use(expenseRepositoryCapsule);
   final (expense, clearForm) = use(formExpenseCapsule);
   final mapper = use(expensePresentationToModelMapper);
 
   final (value, setValue) = use.state<ExpenseSavedPresentationData?>(null);
+
+  void clear() {
+    setValue(null);
+  }
 
   void save() {
     repository
@@ -35,7 +38,7 @@ import 'package:trocado/src/presentation/data/expense_presentation_data.dart';
         );
   }
 
-  return (value, save);
+  return (value, save, clear);
 }
 
 (ExpensePresentationData, void Function()) formExpenseCapsule(
