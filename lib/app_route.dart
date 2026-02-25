@@ -1,11 +1,10 @@
+import 'package:flutter/material.dart';
+import 'package:collection/collection.dart';
 import 'package:duck_router/duck_router.dart';
 
 import 'package:trocado/src/main/locations/splash_location.dart';
 
 import 'package:trocado/src/presentation/observers/logger_navigation_observer.dart';
-
-import 'package:flutter/material.dart';
-import 'package:collection/collection.dart';
 
 @immutable
 final class AppRoutes {
@@ -61,7 +60,22 @@ final class AppRoutes {
     regex: RegExp(r'^/expense$'),
   );
 
-  static final _all = [date, exit, home, splash, category, calculator, expense];
+  static final budget = AppRoutes._(
+    path: '/budget',
+    name: 'budget-route',
+    regex: RegExp(r'^/budget$'),
+  );
+
+  static final _all = [
+    date,
+    exit,
+    home,
+    budget,
+    splash,
+    expense,
+    category,
+    calculator,
+  ];
 
   static AppRoutes? match(String location) =>
       _all.firstWhereOrNull((route) => route.regex.hasMatch(location));
