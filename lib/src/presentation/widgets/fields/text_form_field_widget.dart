@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:trocado/src/presentation/animation/animation.dart';
+import 'package:trocado/src/presentation/widgets/helper_widget.dart';
 import 'package:trocado/src/presentation/actions/callback_action.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
@@ -133,15 +134,7 @@ class _TextFormFieldWidgetState extends State<TextFormFieldWidget> {
   SwitcherAnimation _buildFailure() => SwitcherAnimation(
     child: _failure == null
         ? const SizedBox.shrink()
-        : Padding(
-            padding: const .only(left: 4.0, top: 4.0),
-            child: Text(
-              _failure!,
-              style: context.typography.bodySmall?.copyWith(
-                color: context.colors.error,
-              ),
-            ),
-          ),
+        : HelperWidget(title: _failure!, color: context.colors.error),
   );
 
   AnimatedPositioned _buildLabel() {

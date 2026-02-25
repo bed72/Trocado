@@ -31,8 +31,9 @@ final class ExpenseFormState extends Equatable {
   bool get hasValidDescription => description.trim().length >= 3;
   bool get isValid => hasValidAmount && hasValidDescription;
 
-  String? get amountFailure =>
-      hasFailure && !hasValidAmount ? 'Informe um valor maior que zero.' : null;
+  String? get amountFailure => hasFailure && !hasValidAmount
+      ? 'Informe um valor maior que R\$ 0,00.'
+      : null;
 
   String? get descriptionFailure => hasFailure && !hasValidDescription
       ? 'A descrição deve conter ao menos 3 letras.'

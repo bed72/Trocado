@@ -47,7 +47,10 @@ class ExpenseScreen extends StatelessWidget {
                   crossAxisAlignment: .start,
                   children: [
                     ExpenseDescriptionFieldWidget(bloc: bloc),
-                    ExpenseAmountFieldWidget(navigateTo: navigateToCalculator),
+                    ExpenseAmountFieldWidget(
+                      bloc: bloc,
+                      navigateTo: navigateToCalculator,
+                    ),
                     ExpenseDateFieldWidget(navigateTo: navigateToDate),
                     ExpenseCategoryFieldWidget(navigateTo: navigateToCategory),
                   ],

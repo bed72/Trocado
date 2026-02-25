@@ -47,6 +47,7 @@ class DateScreen extends StatelessWidget {
                 ),
                 monthViewSettings: const DateRangePickerMonthViewSettings(
                   firstDayOfWeek: 1,
+
                   showTrailingAndLeadingDates: true,
                 ),
               ),
