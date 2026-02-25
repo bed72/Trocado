@@ -37,28 +37,29 @@ import 'package:trocado/src/presentation/capsules/states/expense_saved_state.dar
   return (data, clear);
 }
 
-(ExpenseSavedState?, void Function(), void Function()) saveExpenseCapsule(
+(ExpenseSavedState?, ExpenseSavedState Function()) saveExpenseCapsule(
   CapsuleHandle use,
 ) {
   final repository = use(expenseRepositoryCapsule);
-  final (expense, clearForm) = use(formExpenseCapsule);
+  final (form, clearForm) = use(formExpenseCapsule);
   final mapper = use(expensePresentationToModelMapper);
 
   final (value, setValue) = use.state<ExpenseSavedState?>(null);
 
-  void clear() {
-    setValue(null);
-  }
+  ExpenseSavedState save() {
+    setValue(const ExpenseSavedLoadingState());
 
-  void save() {
-    repository.upsert(mapper(expense)).fold(
-      (failure) => setValue(ExpenseSavedFailureState(failure)),
+    final data = repository.upsert(mapper(form)).fold(
+      ExpenseSavedFailureState.new,
       (_) {
-        setValue(const ExpenseSavedSuccessState('Despesa salva com sucesso'));
         clearForm();
+        return const ExpenseSavedSuccessState('Despesa salva com sucesso');
       },
     );
+
+    setValue(data);
+    return data;
   }
 
-  return (value, save, clear);
+  return (value, save);
 }

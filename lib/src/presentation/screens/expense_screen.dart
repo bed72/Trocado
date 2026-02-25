@@ -7,7 +7,6 @@ import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';
 import 'package:trocado/src/presentation/widgets/buttons/icon_button_widget.dart';
 import 'package:trocado/src/presentation/widgets/expense/expense_form_widget.dart';
 import 'package:trocado/src/presentation/widgets/expense/expense_save_button_widget.dart';
-import 'package:trocado/src/presentation/widgets/expense/expense_save_effect_widget.dart';
 
 class ExpenseScreen extends StatefulWidget {
   final int? id;
@@ -52,8 +51,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
               ),
             ),
             // _buildDeleteButton(notifier, state),
-            ExpenseSaveButtonWidget(),
-            const ExpenseSaveEffectWidget(),
+            const ExpenseSaveButtonWidget(),
           ],
         ),
       ),
