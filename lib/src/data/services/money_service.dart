@@ -6,11 +6,7 @@ final class MoneyService implements IMoneyService {
   final NumberFormat _formatter;
 
   MoneyService()
-    : _formatter = NumberFormat.currency(
-        symbol: 'R\$',
-        locale: 'pt_BR',
-        decimalDigits: 2,
-      );
+    : _formatter = .currency(symbol: 'R\$', locale: 'pt_BR', decimalDigits: 2);
 
   @override
   String format(double value) => _formatter.format(value);
@@ -27,6 +23,6 @@ final class MoneyService implements IMoneyService {
         .replaceAll(',', '.')
         .trim();
 
-    return double.tryParse(normalized) ?? 0.0;
+    return .tryParse(normalized) ?? 0.0;
   }
 }

@@ -21,3 +21,6 @@ final class MockTransactionDataSource extends Mock
 
 final class MockTransactionRepository extends Mock
     implements IExpenseRepository {}
+
+final class MockPresentationToModelMapper extends Mock
+    implements ExpensePresentationToModelMapper {}

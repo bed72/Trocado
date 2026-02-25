@@ -1,10 +1,9 @@
 import 'package:flutter/widgets.dart';
-import 'package:flutter_rearch/flutter_rearch.dart';
 
 import 'package:trocado/app_widget.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  runApp(RearchBootstrapper(child: const AppWidget()));
+  runApp(const AppWidget());
 }

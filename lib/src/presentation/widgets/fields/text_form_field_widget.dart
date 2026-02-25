@@ -69,7 +69,7 @@ class _TextFormFieldWidgetState extends State<TextFormFieldWidget> {
     if (_hasFailure) return context.colors.error;
     if (_focus.hasFocus) return context.colors.primary;
 
-    return context.colors.onSurfaceVariant.withValues(alpha: 0.8);
+    return context.colors.onSurfaceVariant;
   }
 
   @override
@@ -120,15 +120,13 @@ class _TextFormFieldWidgetState extends State<TextFormFieldWidget> {
 
   Text _buildPlaceholder() => Text(
     widget.placeholder!,
-    style: context.typography.bodySmall?.copyWith(
-      color: _color.withValues(alpha: .6),
-    ),
+    style: context.typography.bodySmall?.copyWith(color: _color),
   );
 
   Container _buildBorder() => Container(
     decoration: BoxDecoration(
       borderRadius: context.radius.cornerRadius300,
-      border: Border.all(width: 1.0, color: _color),
+      border: Border.all(width: 1.0, color: _color.withValues(alpha: .8)),
     ),
   );
 
@@ -176,8 +174,8 @@ class _TextFormFieldWidgetState extends State<TextFormFieldWidget> {
     autovalidateMode: .disabled,
     obscureText: widget.obscureText,
     readOnly: widget.readOnly ?? false,
+    cursorRadius: const .circular(2.0),
     inputFormatters: widget.inputFormatters,
-    cursorRadius: const Radius.circular(2.0),
     onFieldSubmitted: widget.onFieldSubmitted,
     keyboardType: widget.keyboardType ?? .text,
     textInputAction: widget.inputAction ?? .next,

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 
-import 'package:trocado/src/presentation/data/ui/category_presentation_data.dart';
 import 'package:trocado/src/presentation/widgets/category/category_widget.dart';
+import 'package:trocado/src/presentation/data/ui/category_presentation_data.dart';
+import 'package:trocado/src/presentation/bloc/expense_form/expense_form_bloc.dart';
 
 class CategoriesWidget extends StatelessWidget {
-  const CategoriesWidget({super.key});
+  final ExpenseFormBloc bloc;
+
+  const CategoriesWidget({super.key, required this.bloc});
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +16,7 @@ class CategoriesWidget extends StatelessWidget {
     return SliverList(
       delegate: SliverChildBuilderDelegate(
         childCount: categories.length,
-        (_, index) => CategoryWidget(category: categories[index]),
+        (_, index) => CategoryWidget(bloc: bloc, category: categories[index]),
       ),
     );
   }

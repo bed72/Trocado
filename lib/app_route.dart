@@ -70,9 +70,4 @@ final class AppRoutes {
 final routerConfig = DuckRouter(
   initialLocation: SplashLocation(),
   navigatorObserverBuilder: (_) => [LoggerNavigatorObserver()],
-  onDeepLink: (uri, _) {
-    // adb shell am start -a android.intent.action.VIEW -d "trocado://app/settings"
-
-    return [];
-  },
 );

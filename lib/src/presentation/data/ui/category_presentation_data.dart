@@ -54,24 +54,24 @@ enum CategoryPresentationData {
   static CategoryPresentationData fromName(String name) =>
       CategoryPresentationData.values.firstWhere(
         (category) => category.name == name,
-        orElse: () => CategoryPresentationData.other,
+        orElse: () => .other,
       );
 
   static CategoryPresentationData fromModel(CategoryModel model) =>
       switch (model) {
-        CategoryModel.debt => CategoryPresentationData.debt,
-        CategoryModel.food => CategoryPresentationData.food,
-        CategoryModel.gift => CategoryPresentationData.gift,
-        CategoryModel.bills => CategoryPresentationData.bills,
-        CategoryModel.other => CategoryPresentationData.other,
-        CategoryModel.health => CategoryPresentationData.health,
-        CategoryModel.housing => CategoryPresentationData.housing,
-        CategoryModel.services => CategoryPresentationData.services,
-        CategoryModel.shopping => CategoryPresentationData.shopping,
-        CategoryModel.financing => CategoryPresentationData.financing,
-        CategoryModel.transport => CategoryPresentationData.transport,
-        CategoryModel.education => CategoryPresentationData.education,
-        CategoryModel.subscription => CategoryPresentationData.subscription,
-        CategoryModel.entertainment => CategoryPresentationData.entertainment,
+        .debt => .debt,
+        .food => .food,
+        .gift => .gift,
+        .bills => .bills,
+        .other => .other,
+        .health => .health,
+        .housing => .housing,
+        .services => .services,
+        .shopping => .shopping,
+        .financing => .financing,
+        .transport => .transport,
+        .education => .education,
+        .subscription => .subscription,
+        .entertainment => .entertainment,
       };
 }

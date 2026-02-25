@@ -1,59 +1,62 @@
 import 'package:flutter/material.dart';
-
-import 'package:flutter_rearch/flutter_rearch.dart';
-
-import 'package:trocado/src/presentation/capsules/expense_capsule.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:trocado/src/presentation/extensions/widget_extension.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
 import 'package:trocado/src/presentation/widgets/toast_widget.dart';
 import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
-import 'package:trocado/src/presentation/capsules/states/expense_saved_state.dart';
+
+import 'package:trocado/src/presentation/bloc/expense_form/expense_form_bloc.dart';
+import 'package:trocado/src/presentation/bloc/expense_form/expense_form_event.dart';
+import 'package:trocado/src/presentation/bloc/expense_form/expense_form_state.dart';
 
 class ExpenseSaveButtonWidget extends StatelessWidget {
-  const ExpenseSaveButtonWidget({super.key});
+  final ExpenseFormBloc bloc;
+
+  const ExpenseSaveButtonWidget({super.key, required this.bloc});
 
   @override
   Widget build(BuildContext context) {
-    return RearchBuilder(
-      builder: (_, use) {
-        final (form, _) = use(formExpenseCapsule);
-        final (state, save) = use(saveExpenseCapsule);
-
-        final isLoading = state is ExpenseSavedLoadingState;
+    return BlocConsumer<ExpenseFormBloc, ExpenseFormState>(
+      listener: _showToast,
+      listenWhen: (previous, current) => previous.status != current.status,
+      buildWhen: (previous, current) =>
+          previous.status != current.status ||
+          previous.isValid != current.isValid,
+      builder: (context, state) {
+        final isLoading = state.status == .loading;
 
         return Container(
           width: .infinity,
-          padding: const .only(top: 16),
+          padding: const .only(top: 16.0),
           child: ButtonWidget.outlined(
             label: 'Salvar',
             isLoading: isLoading,
-            onTap: form.isValid
-                ? () {
+            onTap: isLoading
+                ? null
+                : () {
                     hideKeyboard;
-
-                    final data = save();
-                    _showToast(context: context, data: data);
-                  }
-                : null,
+                    bloc.add(const ExpenseFormSubmitted());
+                  },
           ),
         );
       },
     );
   }
 
-  void _showToast({
-    required BuildContext context,
-    required ExpenseSavedState data,
-  }) {
-    switch (data) {
-      case ExpenseSavedFailureState(:final message):
-        showToastWidget(context: context, title: message);
-      case ExpenseSavedSuccessState(:final message):
-        showToastWidget(context: context, title: message, onClose: context.pop);
-      case ExpenseSavedLoadingState():
-        break;
-    }
-  }
+  void _showToast(BuildContext context, ExpenseFormState state) =>
+      switch (state.status) {
+        .failure => showToastWidget(
+          context: context,
+          type: .failure,
+          title: state.message ?? 'Erro ao salvar despesa.',
+        ),
+        .success => showToastWidget(
+          context: context,
+          onClose: context.pop,
+          title: state.message ?? 'Despesa salva com sucesso.',
+        ),
+        _ => {},
+      };
 }

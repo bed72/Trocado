@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 
+import 'package:trocado/src/presentation/bloc/expense_form/expense_form_bloc.dart';
+
 import 'package:trocado/src/presentation/widgets/calculator/calculator_field_widget.dart';
 
 import 'package:trocado/src/presentation/widgets/calculator/calculator_keyboard_widget.dart';
 import 'package:trocado/src/presentation/widgets/bottom-sheets/bottom_sheet_scaffold_widget.dart';
 
 class CalculatorScreen extends StatelessWidget {
-  const CalculatorScreen({super.key});
+  final ExpenseFormBloc bloc;
+
+  const CalculatorScreen({super.key, required this.bloc});
 
   @override
   Widget build(BuildContext context) {
@@ -14,12 +18,15 @@ class CalculatorScreen extends StatelessWidget {
       title: 'Continha Rápida',
       subtitle: 'Use a calculadora pra agilizar seus registros.',
       child: Padding(
-        padding: const .only(top: 12, bottom: 20),
+        padding: const .only(top: 12.0, bottom: 20.0),
         child: Column(
-          spacing: 16,
+          spacing: 16.0,
           mainAxisSize: .min,
           crossAxisAlignment: .start,
-          children: [CalculatorFieldWidget(), CalculatorKeyboard()],
+          children: [
+            CalculatorFieldWidget(),
+            CalculatorKeyboard(bloc: bloc),
+          ],
         ),
       ),
     );

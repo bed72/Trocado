@@ -1,12 +1,16 @@
 import 'package:flutter/widgets.dart';
 
+import 'package:trocado/src/presentation/bloc/expense_form/expense_form_bloc.dart';
+
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
 import 'package:trocado/src/presentation/widgets/category/categories_widget.dart';
 import 'package:trocado/src/presentation/widgets/bottom-sheets/bottom_sheet_scaffold_widget.dart';
 
 class CategoryScreen extends StatelessWidget {
-  const CategoryScreen({super.key});
+  final ExpenseFormBloc bloc;
+
+  const CategoryScreen({super.key, required this.bloc});
 
   @override
   Widget build(BuildContext context) {
@@ -20,14 +24,14 @@ class CategoryScreen extends StatelessWidget {
             child: CustomScrollView(
               shrinkWrap: true,
               slivers: [
-                CategoriesWidget(),
-                const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                CategoriesWidget(bloc: bloc),
+                const SliverToBoxAdapter(child: SizedBox(height: 16.0)),
               ],
             ),
           ),
           Container(
-            width: double.infinity,
-            padding: const .symmetric(vertical: 20),
+            width: .infinity,
+            padding: const .symmetric(vertical: 20.0),
             child: ButtonWidget.outlined(
               onTap: context.pop,
               label: 'Selecionar',

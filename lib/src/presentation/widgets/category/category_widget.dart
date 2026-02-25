@@ -1,28 +1,37 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_rearch/flutter_rearch.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:trocado/src/presentation/animation/animation.dart';
-import 'package:trocado/src/presentation/capsules/category_capsule.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 import 'package:trocado/src/presentation/data/ui/category_presentation_data.dart';
+
+import 'package:trocado/src/presentation/bloc/expense_form/expense_form_bloc.dart';
+import 'package:trocado/src/presentation/bloc/expense_form/expense_form_event.dart';
+import 'package:trocado/src/presentation/bloc/expense_form/expense_form_state.dart';
 
 import 'package:trocado/src/presentation/widgets/bounce_widget.dart';
 import 'package:trocado/src/presentation/widgets/icons/background_icon_widget.dart';
 
 class CategoryWidget extends StatelessWidget {
+  final ExpenseFormBloc bloc;
+
   final CategoryPresentationData category;
 
-  const CategoryWidget({super.key, required this.category});
+  const CategoryWidget({super.key, required this.bloc, required this.category});
 
   @override
   Widget build(BuildContext context) {
-    return RearchBuilder(
-      builder: (_, use) {
-        final (value, setValue) = use(categoryCapsule);
-        final isSelected = value == category;
+    return BlocSelector<
+      ExpenseFormBloc,
+      ExpenseFormState,
+      CategoryPresentationData
+    >(
+      selector: (state) => state.category,
+      builder: (context, selected) {
+        final isSelected = selected == category;
 
         return BounceWidget.withOnPress(
-          onPress: () => setValue(category),
+          onPress: () => bloc.add(ExpenseCategoryChanged(category)),
           child: Card(
             color: isSelected
                 ? category.color.withValues(alpha: .04)
@@ -39,7 +48,6 @@ class CategoryWidget extends StatelessWidget {
                   fontWeight: isSelected ? .bold : .w600,
                 ),
               ),
-
               trailing: SwitcherAnimation(
                 child: isSelected
                     ? BackgroundIconWidget(
