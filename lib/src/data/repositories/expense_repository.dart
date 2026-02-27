@@ -7,16 +7,16 @@ import 'package:trocado/src/domain/repositories/interface_expense_repository.dar
 
 final class ExpenseRepository implements IExpenseRepository {
   final IExpenseDataSource _dataSource;
-  final ExpenseEntityToModelMapper _transactionToModelMapper;
-  final ExpenseModelToEntityMapper _transactionToEntityMapper;
+  final ExpenseEntityToModelMapper _entityToModelMapper;
+  final ExpenseModelToEntityMapper _modelToEntityMapper;
 
   ExpenseRepository({
     required IExpenseDataSource dataSource,
-    required ExpenseEntityToModelMapper transactionToModelMapper,
-    required ExpenseModelToEntityMapper transactionToEntityMapper,
+    required ExpenseEntityToModelMapper expenseToModelMapper,
+    required ExpenseModelToEntityMapper expenseToEntityMapper,
   }) : _dataSource = dataSource,
-       _transactionToModelMapper = transactionToModelMapper,
-       _transactionToEntityMapper = transactionToEntityMapper;
+       _entityToModelMapper = expenseToModelMapper,
+       _modelToEntityMapper = expenseToEntityMapper;
 
   @override
   Either<String, void> deleteById(int id) => _dataSource.deleteById(id);
@@ -25,12 +25,12 @@ final class ExpenseRepository implements IExpenseRepository {
   Either<String, ExpenseModel> findById(int id) {
     final data = _dataSource.findById(id);
 
-    return data.mapRight(_transactionToModelMapper.call);
+    return data.mapRight(_entityToModelMapper.call);
   }
 
   @override
   Either<String, void> upsert(ExpenseModel model) {
-    final entity = _transactionToEntityMapper(model);
+    final entity = _modelToEntityMapper(model);
 
     return _dataSource.upsert(entity);
   }
@@ -50,8 +50,7 @@ final class ExpenseRepository implements IExpenseRepository {
     );
 
     return data.mapRight(
-      (transactions) =>
-          transactions.map(_transactionToModelMapper.call).toList(),
+      (expenses) => expenses.map(_entityToModelMapper.call).toList(),
     );
   }
 }

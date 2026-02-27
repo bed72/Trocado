@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:trocado/src/main/injection.dart';
 
 import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';
 import 'package:trocado/src/presentation/widgets/images/image_widget.dart';
@@ -30,7 +30,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
     addPostFrameCallback(() async {
       try {
-        final database = context.read<IDatabaseClient>();
+        final database = sl<IDatabaseClient>();
         await database.ensureInitialized();
 
         if (!mounted) return;

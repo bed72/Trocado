@@ -14,6 +14,7 @@ import 'package:objectbox/internal.dart'
 import 'package:objectbox/objectbox.dart' as obx;
 import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 
+import 'src/infrastructure/clients/database/entities/budget_entity.dart';
 import 'src/infrastructure/clients/database/entities/expense_entity.dart';
 
 export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
@@ -54,6 +55,46 @@ final _entities = <obx_int.ModelEntity>[
         name: 'id',
         type: 6,
         flags: 1,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(3, 9134741375688702267),
+    name: 'BudgetEntity',
+    lastPropertyId: const obx_int.IdUid(5, 1624905594375077018),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 8306207677289473670),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 5821562572562123966),
+        name: 'amount',
+        type: 8,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 2232114485359185188),
+        name: 'startDate',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 2453380748853350183),
+        name: 'endDate',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 1624905594375077018),
+        name: 'description',
+        type: 9,
+        flags: 0,
       ),
     ],
     relations: <obx_int.ModelRelation>[],
@@ -104,7 +145,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
     // Typically, this is done with `dart run build_runner build`.
     generatorVersion: obx_int.GeneratorVersion.v2025_12_16,
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(2, 5353104918585052881),
+    lastEntityId: const obx_int.IdUid(3, 9134741375688702267),
     lastIndexId: const obx_int.IdUid(0, 0),
     lastRelationId: const obx_int.IdUid(0, 0),
     lastSequenceId: const obx_int.IdUid(0, 0),
@@ -183,6 +224,67 @@ obx_int.ModelDefinition getObjectBoxModel() {
         return object;
       },
     ),
+    BudgetEntity: obx_int.EntityDefinition<BudgetEntity>(
+      model: _entities[1],
+      toOneRelations: (BudgetEntity object) => [],
+      toManyRelations: (BudgetEntity object) => {},
+      getId: (BudgetEntity object) => object.id,
+      setId: (BudgetEntity object, int id) {
+        object.id = id;
+      },
+      objectToFB: (BudgetEntity object, fb.Builder fbb) {
+        final descriptionOffset = object.description == null
+            ? null
+            : fbb.writeString(object.description!);
+        fbb.startTable(6);
+        fbb.addInt64(0, object.id ?? 0);
+        fbb.addFloat64(1, object.amount);
+        fbb.addInt64(2, object.startDate);
+        fbb.addInt64(3, object.endDate);
+        fbb.addOffset(4, descriptionOffset);
+        fbb.finish(fbb.endTable());
+        return object.id ?? 0;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final idParam = const fb.Int64Reader().vTableGetNullable(
+          buffer,
+          rootOffset,
+          4,
+        );
+        final amountParam = const fb.Float64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          6,
+          0,
+        );
+        final startDateParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          8,
+          0,
+        );
+        final endDateParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          10,
+          0,
+        );
+        final descriptionParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 12);
+        final object = BudgetEntity(
+          id: idParam,
+          amount: amountParam,
+          startDate: startDateParam,
+          endDate: endDateParam,
+          description: descriptionParam,
+        );
+
+        return object;
+      },
+    ),
   };
 
   return obx_int.ModelDefinition(model, bindings);
@@ -213,5 +315,33 @@ class ExpenseEntity_ {
   /// See [ExpenseEntity.id].
   static final id = obx.QueryIntegerProperty<ExpenseEntity>(
     _entities[0].properties[4],
+  );
+}
+
+/// [BudgetEntity] entity fields to define ObjectBox queries.
+class BudgetEntity_ {
+  /// See [BudgetEntity.id].
+  static final id = obx.QueryIntegerProperty<BudgetEntity>(
+    _entities[1].properties[0],
+  );
+
+  /// See [BudgetEntity.amount].
+  static final amount = obx.QueryDoubleProperty<BudgetEntity>(
+    _entities[1].properties[1],
+  );
+
+  /// See [BudgetEntity.startDate].
+  static final startDate = obx.QueryIntegerProperty<BudgetEntity>(
+    _entities[1].properties[2],
+  );
+
+  /// See [BudgetEntity.endDate].
+  static final endDate = obx.QueryIntegerProperty<BudgetEntity>(
+    _entities[1].properties[3],
+  );
+
+  /// See [BudgetEntity.description].
+  static final description = obx.QueryStringProperty<BudgetEntity>(
+    _entities[1].properties[4],
   );
 }

@@ -36,9 +36,43 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "3:9134741375688702267",
+      "lastPropertyId": "5:1624905594375077018",
+      "name": "BudgetEntity",
+      "properties": [
+        {
+          "id": "1:8306207677289473670",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:5821562572562123966",
+          "name": "amount",
+          "type": 8
+        },
+        {
+          "id": "3:2232114485359185188",
+          "name": "startDate",
+          "type": 6
+        },
+        {
+          "id": "4:2453380748853350183",
+          "name": "endDate",
+          "type": 6
+        },
+        {
+          "id": "5:1624905594375077018",
+          "name": "description",
+          "type": 9
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "2:5353104918585052881",
+  "lastEntityId": "3:9134741375688702267",
   "lastIndexId": "0:0",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",

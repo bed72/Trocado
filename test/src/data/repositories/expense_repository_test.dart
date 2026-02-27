@@ -16,43 +16,43 @@ import '../../../mocks/mocks.dart';
 void main() {
   late IExpenseRepository repository;
   late IExpenseDataSource dataSource;
-  late ExpenseEntityToModelMapper transactionToModelMapper;
-  late ExpenseModelToEntityMapper transactionToEntityMapper;
+  late ExpenseEntityToModelMapper expenseToModelMapper;
+  late ExpenseModelToEntityMapper expenseEntityMapper;
 
-  final transactionEntity = ExpenseEntity(
+  final expenseEntity = ExpenseEntity(
     id: 1,
     amount: 100.50,
-    category: 'Salário',
     date: 1704067200000,
-    description: 'Salário mensal',
+    category: 'Alimentação',
+    description: 'Compras semanal',
   );
 
-  final transactionModel = ExpenseModel(
+  final expenseModel = ExpenseModel(
     id: 1,
     amount: 100.50,
-    category: 'Salário',
     date: 1704067200000,
-    description: 'Salário mensal',
+    category: 'Alimentação',
+    description: 'Compras semanal',
   );
 
   setUpAll(() {
-    registerFallbackValue(transactionModel);
-    registerFallbackValue(transactionEntity);
+    registerFallbackValue(expenseModel);
+    registerFallbackValue(expenseEntity);
   });
 
   setUp(() {
-    dataSource = MockTransactionDataSource();
-    transactionToModelMapper = MockTransactionToModelMapper();
-    transactionToEntityMapper = MockTransactionToEntityMapper();
+    dataSource = MockExpenseDataSource();
+    expenseToModelMapper = MockExpenseEntityToModelMapper();
+    expenseEntityMapper = MockExpenseModelToEntityMapper();
 
     repository = ExpenseRepository(
       dataSource: dataSource,
-      transactionToModelMapper: transactionToModelMapper,
-      transactionToEntityMapper: transactionToEntityMapper,
+      expenseToModelMapper: expenseToModelMapper,
+      expenseToEntityMapper: expenseEntityMapper,
     );
   });
 
-  group('TransactionRepository', () {
+  group('ExpenseRepository', () {
     group('deleteById', () {
       test(
         'should delegate delete to datasource and return Right on success',
@@ -69,43 +69,41 @@ void main() {
       test('should return Left when datasource returns error', () {
         when(
           () => dataSource.deleteById(1),
-        ).thenReturn(const Left('Transação não encontrada.'));
+        ).thenReturn(const Left('Despesa não encontrada.'));
 
         final data = repository.deleteById(1);
 
         expect(data.isLeft, true);
-        expect(data.left, 'Transação não encontrada.');
+        expect(data.left, 'Despesa não encontrada.');
       });
     });
 
     group('findById', () {
-      test('should return mapped TransactionModel on success', () {
-        when(() => dataSource.findById(1)).thenReturn(Right(transactionEntity));
+      test('should return mapped ExpenseModel on success', () {
+        when(() => dataSource.findById(1)).thenReturn(Right(expenseEntity));
 
         when(
-          () => transactionToModelMapper.call(transactionEntity),
-        ).thenReturn(transactionModel);
+          () => expenseToModelMapper.call(expenseEntity),
+        ).thenReturn(expenseModel);
 
         final data = repository.findById(1);
 
         expect(data.isRight, true);
-        expect(data.right, transactionModel);
+        expect(data.right, expenseModel);
         verify(() => dataSource.findById(1)).called(1);
-        verify(
-          () => transactionToModelMapper.call(transactionEntity),
-        ).called(1);
+        verify(() => expenseToModelMapper.call(expenseEntity)).called(1);
       });
 
-      test('should return Left when datasource returns error', () {
+      test('should return Left when dataSource returns error', () {
         when(
           () => dataSource.findById(99),
-        ).thenReturn(const Left('Transação não encontrada.'));
+        ).thenReturn(const Left('Despesa não encontrada.'));
 
         final data = repository.findById(99);
 
         expect(data.isLeft, true);
-        expect(data.left, 'Transação não encontrada.');
-        verifyNever(() => transactionToModelMapper.call(any()));
+        expect(data.left, 'Despesa não encontrada.');
+        verifyNever(() => expenseToModelMapper.call(any()));
       });
     });
 
@@ -114,48 +112,44 @@ void main() {
         final newModel = ExpenseModel(
           id: null,
           amount: 100.50,
-          category: 'Salário',
           date: 1704067200000,
-          description: 'Salário mensal',
+          category: 'Alimentação',
+          description: 'Compras semanal',
         );
 
         final newEntity = ExpenseEntity(
           id: 0,
           amount: 100.50,
-          category: 'Salário',
           date: 1704067200000,
-          description: 'Salário mensal',
+          category: 'Alimentação',
+          description: 'Compras semanal',
         );
 
-        when(
-          () => transactionToEntityMapper.call(newModel),
-        ).thenReturn(newEntity);
+        when(() => expenseEntityMapper.call(newModel)).thenReturn(newEntity);
         when(() => dataSource.upsert(any())).thenReturn(const Right(null));
 
         final data = repository.upsert(newModel);
 
         expect(data.isRight, true);
-        verify(() => transactionToEntityMapper.call(newModel)).called(1);
+        verify(() => expenseEntityMapper.call(newModel)).called(1);
         verify(() => dataSource.upsert(newEntity)).called(1);
         verifyNever(() => dataSource.upsert(any()));
       });
 
       test('should call upsert when model.id is not null', () {
         when(
-          () => transactionToEntityMapper.call(transactionModel),
-        ).thenReturn(transactionEntity);
+          () => expenseEntityMapper.call(expenseModel),
+        ).thenReturn(expenseEntity);
 
         when(
-          () => dataSource.upsert(transactionEntity),
+          () => dataSource.upsert(expenseEntity),
         ).thenReturn(const Right(null));
 
-        final data = repository.upsert(transactionModel);
+        final data = repository.upsert(expenseModel);
 
         expect(data.isRight, true);
-        verify(
-          () => transactionToEntityMapper.call(transactionModel),
-        ).called(1);
-        verify(() => dataSource.upsert(transactionEntity)).called(1);
+        verify(() => expenseEntityMapper.call(expenseModel)).called(1);
+        verify(() => dataSource.upsert(expenseEntity)).called(1);
         verifyNever(() => dataSource.upsert(any()));
       });
 
@@ -163,22 +157,20 @@ void main() {
         final newModel = ExpenseModel(
           id: null,
           amount: 100.50,
-          category: 'Salário',
           date: 1704067200000,
-          description: 'Salário mensal',
+          category: 'Alimentação',
+          description: 'Compras semanal',
         );
 
         final newEntity = ExpenseEntity(
           id: 1,
           amount: 100.50,
-          category: 'Salário',
           date: 1704067200000,
-          description: 'Salário mensal',
+          category: 'Alimentação',
+          description: 'Compras semanal',
         );
 
-        when(
-          () => transactionToEntityMapper.call(newModel),
-        ).thenReturn(newEntity);
+        when(() => expenseEntityMapper.call(newModel)).thenReturn(newEntity);
         when(
           () => dataSource.upsert(any()),
         ).thenReturn(const Left('Ops, a operação falhou.'));
@@ -191,29 +183,29 @@ void main() {
 
       test('should return Left when update fails', () {
         when(
-          () => transactionToEntityMapper.call(transactionModel),
-        ).thenReturn(transactionEntity);
+          () => expenseEntityMapper.call(expenseModel),
+        ).thenReturn(expenseEntity);
 
         when(
-          () => dataSource.upsert(transactionEntity),
-        ).thenReturn(const Left('Transação não encontrada.'));
+          () => dataSource.upsert(expenseEntity),
+        ).thenReturn(const Left('Despesa não encontrada.'));
 
-        final data = repository.upsert(transactionModel);
+        final data = repository.upsert(expenseModel);
 
         expect(data.isLeft, true);
-        expect(data.left, 'Transação não encontrada.');
+        expect(data.left, 'Despesa não encontrada.');
       });
     });
 
     group('findByPeriod', () {
-      test('should return mapped list of TransactionModel on success', () {
+      test('should return mapped list of ExpenseModel on success', () {
         final entities = [
           ExpenseEntity(
             id: 1,
             amount: 100.0,
-            category: 'Salário',
             date: 1704067200000,
-            description: 'Salário',
+            category: 'Alimentação',
+            description: 'Compras semanal',
           ),
           ExpenseEntity(
             id: 2,
@@ -229,8 +221,8 @@ void main() {
             id: 1,
             amount: 100.0,
             date: 1704067200000,
-            category: 'Salário',
-            description: 'Salário',
+            category: 'Alimentação',
+            description: 'Compras semanal',
           ),
           ExpenseModel(
             id: 2,
@@ -251,10 +243,10 @@ void main() {
         ).thenReturn(Right(entities));
 
         when(
-          () => transactionToModelMapper.call(entities[0]),
+          () => expenseToModelMapper.call(entities[0]),
         ).thenReturn(models[0]);
         when(
-          () => transactionToModelMapper.call(entities[1]),
+          () => expenseToModelMapper.call(entities[1]),
         ).thenReturn(models[1]);
 
         final data = repository.findByPeriod(
@@ -276,8 +268,8 @@ void main() {
             offset: 0,
           ),
         ).called(1);
-        verify(() => transactionToModelMapper.call(entities[0])).called(1);
-        verify(() => transactionToModelMapper.call(entities[1])).called(1);
+        verify(() => expenseToModelMapper.call(entities[0])).called(1);
+        verify(() => expenseToModelMapper.call(entities[1])).called(1);
       });
 
       test('should pass type label when type is provided', () {
@@ -299,7 +291,7 @@ void main() {
         ).called(1);
       });
 
-      test('should return empty list when no transactions found', () {
+      test('should return empty list when no expenses found', () {
         when(
           () => dataSource.findByPeriod(
             startAt: any(named: 'startAt'),
@@ -313,7 +305,7 @@ void main() {
 
         expect(data.isRight, true);
         expect(data.right, isEmpty);
-        verifyNever(() => transactionToModelMapper.call(any()));
+        verifyNever(() => expenseToModelMapper.call(any()));
       });
 
       test('should return Left when datasource returns error', () {
@@ -330,7 +322,7 @@ void main() {
 
         expect(data.isLeft, true);
         expect(data.left, 'Ops, a operação falhou.');
-        verifyNever(() => transactionToModelMapper.call(any()));
+        verifyNever(() => expenseToModelMapper.call(any()));
       });
 
       test('should handle all optional parameters', () {

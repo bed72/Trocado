@@ -15,13 +15,13 @@ import '../../../mocks/mocks.dart';
 
 void main() {
   late MockMoneyRepository service;
-  late MockTransactionRepository repository;
+  late MockExpenseRepository repository;
   late MockPresentationToModelMapper mapper;
 
   setUp(() {
     service = MockMoneyRepository();
     mapper = MockPresentationToModelMapper();
-    repository = MockTransactionRepository();
+    repository = MockExpenseRepository();
 
     when(() => service.format(any())).thenAnswer((invocation) {
       final value = invocation.positionalArguments[0] as double;

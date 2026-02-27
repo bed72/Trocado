@@ -7,12 +7,12 @@ import 'package:trocado/src/data/datasources/interface_expense_data_source.dart'
 import 'package:trocado/src/infrastructure/clients/database/database_client.dart';
 import 'package:trocado/src/infrastructure/clients/database/entities/expense_entity.dart';
 
-final class TransactionDataSource implements IExpenseDataSource {
+final class ExpenseDataSource implements IExpenseDataSource {
   final IDatabaseClient _client;
 
   late final Box<ExpenseEntity> _box;
 
-  TransactionDataSource({required IDatabaseClient client}) : _client = client {
+  ExpenseDataSource({required IDatabaseClient client}) : _client = client {
     _box = _client.store.box<ExpenseEntity>();
   }
 
@@ -23,7 +23,7 @@ final class TransactionDataSource implements IExpenseDataSource {
 
       return removed
           ? const Right(null)
-          : const Left('Transação não encontrada.');
+          : const Left('Despesa não encontrada.');
     } catch (_) {
       return const Left('Ops, a operação falhou.');
     }
@@ -36,7 +36,7 @@ final class TransactionDataSource implements IExpenseDataSource {
 
       return entity != null
           ? Right(entity)
-          : const Left('Transação não encontrada.');
+          : const Left('Despesa não encontrada.');
     } catch (_) {
       return const Left('Ops, a operação falhou.');
     }
@@ -45,7 +45,7 @@ final class TransactionDataSource implements IExpenseDataSource {
   @override
   Either<String, Null> upsert(ExpenseEntity entity) {
     try {
-      if (entity.id == 0) return const Left('Transação não encontrada.');
+      if (entity.id == 0) return const Left('Despesa não encontrada.');
 
       _box.put(entity);
 
