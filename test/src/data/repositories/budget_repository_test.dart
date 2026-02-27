@@ -1,10 +1,12 @@
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:trocado/src/data/mapper/budget_mapper.dart';
 import 'package:trocado/src/data/repositories/budget_repository.dart';
+import 'package:trocado/src/data/datasources/interface_budget_data_source.dart';
 
 import 'package:trocado/src/domain/either/either.dart';
-import 'package:trocado/src/domain/models/budget_model.dart';
+import 'package:trocado/src/domain/models/budget/budget_model.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
 
 import 'package:trocado/src/infrastructure/clients/database/entities/budget_entity.dart';
@@ -12,30 +14,30 @@ import 'package:trocado/src/infrastructure/clients/database/entities/budget_enti
 import '../../../mocks/mocks.dart';
 
 void main() {
+  late IBudgetDataSource dataSource;
   late IBudgetRepository repository;
-  late MockBudgetDataSource dataSource;
-  late MockBudgetEntityToModelMapper entityToModelMapper;
-  late MockBudgetModelToEntityMapper modelToEntityMapper;
+  late BudgetEntityToModelMapper entityToModelMapper;
+  late BudgetModelToEntityMapper modelToEntityMapper;
 
-  final budgetEntity = BudgetEntity(
+  final entity = BudgetEntity(
     id: 1,
+    endDate: 2000,
     amount: 1000.0,
     startDate: 1000,
-    endDate: 2000,
     description: 'Fevereiro',
   );
 
-  final budgetModel = BudgetModel(
+  final model = BudgetModel(
     id: 1,
+    endDate: 2000,
     amount: 1000.0,
     startDate: 1000,
-    endDate: 2000,
     description: 'Fevereiro',
   );
 
   setUpAll(() {
-    registerFallbackValue(budgetModel);
-    registerFallbackValue(budgetEntity);
+    registerFallbackValue(model);
+    registerFallbackValue(entity);
   });
 
   setUp(() {
@@ -53,84 +55,79 @@ void main() {
   group('BudgetRepository', () {
     group('upsert', () {
       test('should convert model to entity and delegate to data source', () {
-        when(() => modelToEntityMapper.call(budgetModel))
-            .thenReturn(budgetEntity);
+        when(() => modelToEntityMapper.call(model)).thenReturn(entity);
         when(() => dataSource.upsert(any())).thenReturn(const Right(null));
 
-        final result = repository.upsert(budgetModel);
+        final data = repository.upsert(model);
 
-        expect(result.isRight, true);
-        verify(() => modelToEntityMapper.call(budgetModel)).called(1);
-        verify(() => dataSource.upsert(budgetEntity)).called(1);
+        expect(data.isRight, true);
+        verify(() => modelToEntityMapper.call(model)).called(1);
+        verify(() => dataSource.upsert(entity)).called(1);
       });
 
       test('should return Left when data source fails', () {
-        when(() => modelToEntityMapper.call(budgetModel))
-            .thenReturn(budgetEntity);
-        when(() => dataSource.upsert(any()))
-            .thenReturn(const Left('Ops, a operação falhou.'));
+        when(() => modelToEntityMapper.call(model)).thenReturn(entity);
+        when(
+          () => dataSource.upsert(any()),
+        ).thenReturn(const Left('Ops, a operação falhou.'));
 
-        final result = repository.upsert(budgetModel);
+        final data = repository.upsert(model);
 
-        expect(result.isLeft, true);
-        expect(result.left, 'Ops, a operação falhou.');
+        expect(data.isLeft, true);
+        expect(data.left, 'Ops, a operação falhou.');
       });
     });
 
     group('findActive', () {
       test('should return mapped model when budget found', () {
-        when(() => dataSource.findActive(1500))
-            .thenReturn(Right(budgetEntity));
-        when(() => entityToModelMapper.call(budgetEntity))
-            .thenReturn(budgetModel);
+        when(() => dataSource.findActive(1500)).thenReturn(Right(entity));
+        when(() => entityToModelMapper.call(entity)).thenReturn(model);
 
-        final result = repository.findActive(1500);
+        final data = repository.findActive(1500);
 
-        expect(result.isRight, true);
-        expect(result.right, budgetModel);
+        expect(data.right, model);
+        expect(data.isRight, true);
       });
 
       test('should return null when no active budget', () {
-        when(() => dataSource.findActive(1500))
-            .thenReturn(const Right(null));
+        when(() => dataSource.findActive(1500)).thenReturn(const Right(null));
 
-        final result = repository.findActive(1500);
+        final data = repository.findActive(1500);
 
-        expect(result.isRight, true);
-        expect(result.right, isNull);
+        expect(data.isRight, true);
+        expect(data.right, isNull);
       });
 
       test('should return Left when data source fails', () {
-        when(() => dataSource.findActive(1500))
-            .thenReturn(const Left('Ops, a operação falhou.'));
+        when(
+          () => dataSource.findActive(1500),
+        ).thenReturn(const Left('Ops, a operação falhou.'));
 
-        final result = repository.findActive(1500);
+        final data = repository.findActive(1500);
 
-        expect(result.isLeft, true);
+        expect(data.isLeft, true);
       });
     });
 
     group('findAll', () {
       test('should return mapped list of models', () {
-        when(() => dataSource.findAll())
-            .thenReturn(Right([budgetEntity]));
-        when(() => entityToModelMapper.call(budgetEntity))
-            .thenReturn(budgetModel);
+        when(() => dataSource.findAll()).thenReturn(Right([entity]));
+        when(() => entityToModelMapper.call(entity)).thenReturn(model);
 
-        final result = repository.findAll();
+        final data = repository.findAll();
 
-        expect(result.isRight, true);
-        expect(result.right.length, 1);
-        expect(result.right.first, budgetModel);
+        expect(data.isRight, true);
+        expect(data.right.length, 1);
+        expect(data.right.first, model);
       });
 
       test('should return empty list when no budgets', () {
         when(() => dataSource.findAll()).thenReturn(const Right([]));
 
-        final result = repository.findAll();
+        final data = repository.findAll();
 
-        expect(result.isRight, true);
-        expect(result.right, isEmpty);
+        expect(data.isRight, true);
+        expect(data.right, isEmpty);
       });
     });
 
@@ -138,19 +135,20 @@ void main() {
       test('should delegate to data source', () {
         when(() => dataSource.deleteById(1)).thenReturn(const Right(null));
 
-        final result = repository.deleteById(1);
+        final data = repository.deleteById(1);
 
-        expect(result.isRight, true);
+        expect(data.isRight, true);
         verify(() => dataSource.deleteById(1)).called(1);
       });
 
       test('should return Left when not found', () {
-        when(() => dataSource.deleteById(99))
-            .thenReturn(const Left('Budget não encontrado.'));
+        when(
+          () => dataSource.deleteById(99),
+        ).thenReturn(const Left('Budget não encontrado.'));
 
-        final result = repository.deleteById(99);
+        final data = repository.deleteById(99);
 
-        expect(result.isLeft, true);
+        expect(data.isLeft, true);
       });
     });
   });

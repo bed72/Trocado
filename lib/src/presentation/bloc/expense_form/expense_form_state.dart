@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:equatable/equatable.dart';
 
-import 'package:trocado/src/presentation/data/ui/category_presentation_data.dart';
+import 'package:trocado/src/presentation/data/category_presentation_data.dart';
 
 enum ExpenseFormStatus { initial, loading, success, failure }
 

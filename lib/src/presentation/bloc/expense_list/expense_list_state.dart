@@ -1,40 +1,47 @@
 import 'package:equatable/equatable.dart';
 
-import 'package:trocado/src/domain/models/expense_model.dart';
+import 'package:trocado/src/presentation/data/expense_presentation_data.dart';
 
-enum ExpenseListStatus { initial, loading, loaded, error }
+enum ExpenseListStatus { initial, loading, loaded, failure }
 
 final class ExpenseListState extends Equatable {
-  final List<ExpenseModel> expenses;
-  final ExpenseListStatus status;
-  final bool hasReachedMax;
   final int page;
-  final String? errorMessage;
+  final bool hasReachedMax;
+  final String? failureMessage;
+  final ExpenseListStatus status;
+  final List<ExpensePresentationData> expenses;
 
   const ExpenseListState({
     this.page = 0,
-    this.errorMessage,
+    this.failureMessage,
+    this.status = .initial,
     this.expenses = const [],
     this.hasReachedMax = false,
-    this.status = ExpenseListStatus.initial,
   });
 
-  double get totalAmount => expenses.fold(0, (sum, e) => sum + e.amount);
+  double get totalAmount =>
+      expenses.fold(0, (sum, expense) => sum + expense.amount);
 
   ExpenseListState copyWith({
     int? page,
-    String? errorMessage,
     bool? hasReachedMax,
+    String? failureMessage,
     ExpenseListStatus? status,
-    List<ExpenseModel>? expenses,
+    List<ExpensePresentationData>? expenses,
   }) => ExpenseListState(
     page: page ?? this.page,
     status: status ?? this.status,
     expenses: expenses ?? this.expenses,
-    errorMessage: errorMessage ?? this.errorMessage,
     hasReachedMax: hasReachedMax ?? this.hasReachedMax,
+    failureMessage: failureMessage ?? this.failureMessage,
   );
 
   @override
-  List<Object?> get props => [expenses, status, hasReachedMax, page, errorMessage];
+  List<Object?> get props => [
+    page,
+    status,
+    expenses,
+    hasReachedMax,
+    failureMessage,
+  ];
 }

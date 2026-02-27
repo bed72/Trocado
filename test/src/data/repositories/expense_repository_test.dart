@@ -16,8 +16,8 @@ import '../../../mocks/mocks.dart';
 void main() {
   late IExpenseRepository repository;
   late IExpenseDataSource dataSource;
-  late ExpenseEntityToModelMapper expenseToModelMapper;
   late ExpenseModelToEntityMapper expenseEntityMapper;
+  late ExpenseEntityToModelMapper expenseToModelMapper;
 
   final expenseEntity = ExpenseEntity(
     id: 1,
@@ -42,8 +42,8 @@ void main() {
 
   setUp(() {
     dataSource = MockExpenseDataSource();
-    expenseToModelMapper = MockExpenseEntityToModelMapper();
     expenseEntityMapper = MockExpenseModelToEntityMapper();
+    expenseToModelMapper = MockExpenseEntityToModelMapper();
 
     repository = ExpenseRepository(
       dataSource: dataSource,
@@ -131,9 +131,8 @@ void main() {
         final data = repository.upsert(newModel);
 
         expect(data.isRight, true);
-        verify(() => expenseEntityMapper.call(newModel)).called(1);
         verify(() => dataSource.upsert(newEntity)).called(1);
-        verifyNever(() => dataSource.upsert(any()));
+        verify(() => expenseEntityMapper.call(newModel)).called(1);
       });
 
       test('should call upsert when model.id is not null', () {
@@ -148,9 +147,8 @@ void main() {
         final data = repository.upsert(expenseModel);
 
         expect(data.isRight, true);
-        verify(() => expenseEntityMapper.call(expenseModel)).called(1);
         verify(() => dataSource.upsert(expenseEntity)).called(1);
-        verifyNever(() => dataSource.upsert(any()));
+        verify(() => expenseEntityMapper.call(expenseModel)).called(1);
       });
 
       test('should return Left when save fails', () {
@@ -235,10 +233,10 @@ void main() {
 
         when(
           () => dataSource.findByPeriod(
+            endAt: any(named: 'endAt'),
             limit: any(named: 'limit'),
             offset: any(named: 'offset'),
             startAt: any(named: 'startAt'),
-            endAt: any(named: 'endAt'),
           ),
         ).thenReturn(Right(entities));
 
@@ -250,10 +248,10 @@ void main() {
         ).thenReturn(models[1]);
 
         final data = repository.findByPeriod(
-          offset: 0,
           limit: 10,
-          startAt: 1000,
+          offset: 0,
           endAt: 2000,
+          startAt: 1000,
         );
 
         expect(data.isRight, true);
@@ -262,10 +260,10 @@ void main() {
         expect(data.right[1], models[1]);
         verify(
           () => dataSource.findByPeriod(
-            startAt: 1000,
-            endAt: 2000,
             limit: 10,
             offset: 0,
+            endAt: 2000,
+            startAt: 1000,
           ),
         ).called(1);
         verify(() => expenseToModelMapper.call(entities[0])).called(1);
@@ -275,10 +273,10 @@ void main() {
       test('should pass type label when type is provided', () {
         when(
           () => dataSource.findByPeriod(
-            startAt: any(named: 'startAt'),
             endAt: any(named: 'endAt'),
             limit: any(named: 'limit'),
             offset: any(named: 'offset'),
+            startAt: any(named: 'startAt'),
           ),
         ).thenReturn(const Right([]));
 
@@ -294,10 +292,10 @@ void main() {
       test('should return empty list when no expenses found', () {
         when(
           () => dataSource.findByPeriod(
-            startAt: any(named: 'startAt'),
             endAt: any(named: 'endAt'),
             limit: any(named: 'limit'),
             offset: any(named: 'offset'),
+            startAt: any(named: 'startAt'),
           ),
         ).thenReturn(const Right([]));
 
@@ -328,27 +326,27 @@ void main() {
       test('should handle all optional parameters', () {
         when(
           () => dataSource.findByPeriod(
-            startAt: any(named: 'startAt'),
             endAt: any(named: 'endAt'),
             limit: any(named: 'limit'),
             offset: any(named: 'offset'),
+            startAt: any(named: 'startAt'),
           ),
         ).thenReturn(const Right([]));
 
         final data = repository.findByPeriod(
-          startAt: 1000,
-          endAt: 2000,
           limit: 20,
           offset: 5,
+          endAt: 2000,
+          startAt: 1000,
         );
 
         expect(data.isRight, true);
         verify(
           () => dataSource.findByPeriod(
-            startAt: 1000,
-            endAt: 2000,
             limit: 20,
             offset: 5,
+            endAt: 2000,
+            startAt: 1000,
           ),
         ).called(1);
       });

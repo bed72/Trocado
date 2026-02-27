@@ -1,11 +1,9 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:trocado/src/presentation/mapper/expense_presentation_mapper.dart';
-
-import 'package:trocado/src/domain/services/interface_money_repository.dart';
+import 'package:trocado/src/domain/services/interface_money_service.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
-import 'package:trocado/src/presentation/data/ui/expense_presentation_data.dart';
+import 'package:trocado/src/presentation/mapper/expense_presentation_mapper.dart';
 
 import 'package:trocado/src/presentation/bloc/expense_form/expense_form_event.dart';
 import 'package:trocado/src/presentation/bloc/expense_form/expense_form_state.dart';
@@ -13,12 +11,12 @@ import 'package:trocado/src/presentation/bloc/expense_form/expense_form_state.da
 final class ExpenseFormBloc extends Bloc<ExpenseFormEvent, ExpenseFormState> {
   final IMoneyService _service;
   final IExpenseRepository _repository;
-  final ExpensePresentationToModelMapper _mapper;
+  final ExpenseStateToModelMapper _mapper;
 
   ExpenseFormBloc({
     required IMoneyService service,
     required IExpenseRepository repository,
-    required ExpensePresentationToModelMapper mapper,
+    required ExpenseStateToModelMapper mapper,
   }) : _mapper = mapper,
        _service = service,
        _repository = repository,
@@ -99,23 +97,16 @@ final class ExpenseFormBloc extends Bloc<ExpenseFormEvent, ExpenseFormState> {
       return;
     }
 
-    emit(state.copyWith(status: ExpenseFormStatus.loading));
+    emit(state.copyWith(status: .loading));
 
-    final presentation = ExpensePresentationData(
-      date: state.date,
-      category: state.category,
-      amount: state.amount / 100,
-      description: state.description,
-    );
-
-    final data = _repository.upsert(_mapper(presentation));
+    final data = _repository.upsert(_mapper(state));
     data.fold(
       (failure) => emit(state.copyWith(status: .failure, message: failure)),
       (_) {
         emit(
           state.copyWith(
             status: .success,
-            message: 'Despesa salva com sucesso',
+            message: 'Despesa salva com sucesso.',
           ),
         );
         add(const ExpenseFormReset());

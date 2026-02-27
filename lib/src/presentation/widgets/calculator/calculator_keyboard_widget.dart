@@ -7,7 +7,7 @@ import 'package:trocado/src/presentation/extensions/context_extension.dart';
 import 'package:trocado/src/presentation/bloc/expense_form/expense_form_bloc.dart';
 import 'package:trocado/src/presentation/bloc/expense_form/expense_form_event.dart';
 
-import 'package:trocado/src/presentation/data/ui/amount_presentation_data.dart';
+import 'package:trocado/src/presentation/data/amount_presentation_data.dart';
 
 class CalculatorKeyboard extends StatelessWidget {
   final ExpenseFormBloc bloc;

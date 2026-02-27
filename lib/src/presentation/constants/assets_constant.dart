@@ -2,7 +2,6 @@ const _path = 'lib/src/presentation/assets';
 
 enum AssetsConstant {
   logo(source: '$_path/images/logo.webp'),
-  scope(source: '$_path/images/scope.webp'),
   iceberg(source: '$_path/images/iceberg.webp'),
   breaking(source: '$_path/images/breaking.webp');
 

@@ -1,4 +1,4 @@
-import 'package:trocado/src/presentation/data/ui/category_presentation_data.dart';
+import 'package:trocado/src/presentation/data/category_presentation_data.dart';
 
 sealed class ExpenseFormEvent {
   const ExpenseFormEvent();

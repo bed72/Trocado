@@ -2,15 +2,15 @@ import 'package:equatable/equatable.dart';
 
 final class BudgetModel extends Equatable {
   final int? id;
+  final int endDate;
   final double amount;
   final int startDate;
-  final int endDate;
   final String? description;
 
   const BudgetModel({
     required this.amount,
-    required this.startDate,
     required this.endDate,
+    required this.startDate,
     this.id,
     this.description,
   });

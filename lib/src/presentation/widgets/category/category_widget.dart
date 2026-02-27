@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:trocado/src/presentation/animation/animation.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
-import 'package:trocado/src/presentation/data/ui/category_presentation_data.dart';
+import 'package:trocado/src/presentation/data/category_presentation_data.dart';
 
 import 'package:trocado/src/presentation/bloc/expense_form/expense_form_bloc.dart';
 import 'package:trocado/src/presentation/bloc/expense_form/expense_form_event.dart';

@@ -4,8 +4,10 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:trocado/src/domain/either/either.dart';
 import 'package:trocado/src/domain/models/expense_model.dart';
+import 'package:trocado/src/domain/services/interface_money_service.dart';
+import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
-import 'package:trocado/src/presentation/data/ui/expense_presentation_data.dart';
+import 'package:trocado/src/presentation/mapper/expense_presentation_mapper.dart';
 
 import 'package:trocado/src/presentation/bloc/expense_form/expense_form_bloc.dart';
 import 'package:trocado/src/presentation/bloc/expense_form/expense_form_event.dart';
@@ -14,14 +16,14 @@ import 'package:trocado/src/presentation/bloc/expense_form/expense_form_state.da
 import '../../../mocks/mocks.dart';
 
 void main() {
-  late MockMoneyRepository service;
-  late MockExpenseRepository repository;
-  late MockPresentationToModelMapper mapper;
+  late IMoneyService service;
+  late IExpenseRepository repository;
+  late ExpenseStateToModelMapper mapper;
 
   setUp(() {
-    service = MockMoneyRepository();
-    mapper = MockPresentationToModelMapper();
+    service = MockMoneyService();
     repository = MockExpenseRepository();
+    mapper = MockExpenseStateToModelMapper();
 
     when(() => service.format(any())).thenAnswer((invocation) {
       final value = invocation.positionalArguments[0] as double;
@@ -29,26 +31,29 @@ void main() {
     });
 
     registerFallbackValue(
-      ExpensePresentationData(
-        amount: 0,
-        description: '',
-        category: .other,
-        date: DateTime(2024),
+      const ExpenseModel(
+        date: 0,
+        amount: 123,
+        category: 'other',
+        description: 'café',
       ),
     );
 
     registerFallbackValue(
-      const ExpenseModel(
-        date: 0,
-        amount: 0,
-        description: '',
-        category: 'other',
+      ExpenseFormState(
+        amount: 123,
+        category: .other,
+        description: 'Café',
+        date: DateTime(2026, 2, 27),
       ),
     );
   });
 
-  ExpenseFormBloc buildBloc() =>
-      ExpenseFormBloc(service: service, repository: repository, mapper: mapper);
+  ExpenseFormBloc buildBloc() => ExpenseFormBloc(
+    service: service,
+    repository: repository,
+    mapper: mapper,
+  );
 
   group('amount', () {
     blocTest<ExpenseFormBloc, ExpenseFormState>(
@@ -169,10 +174,10 @@ void main() {
         bloc.add(const ExpenseAmountDigitPressed('1'));
       },
       verify: (bloc) {
+        expect(bloc.state.isValid, true);
         expect(bloc.state.hasFailure, true);
         expect(bloc.state.amountFailure, isNull);
         expect(bloc.state.descriptionFailure, isNull);
-        expect(bloc.state.isValid, true);
       },
     );
   });

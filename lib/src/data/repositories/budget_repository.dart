@@ -2,7 +2,7 @@ import 'package:trocado/src/data/mapper/budget_mapper.dart';
 import 'package:trocado/src/data/datasources/interface_budget_data_source.dart';
 
 import 'package:trocado/src/domain/either/either.dart';
-import 'package:trocado/src/domain/models/budget_model.dart';
+import 'package:trocado/src/domain/models/budget/budget_model.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
 
 final class BudgetRepository implements IBudgetRepository {

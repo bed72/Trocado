@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:trocado/src/data/services/money_service.dart';
 
-import 'package:trocado/src/domain/services/interface_money_repository.dart';
+import 'package:trocado/src/domain/services/interface_money_service.dart';
 
 void main() {
   late IMoneyService formatter;

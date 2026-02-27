@@ -1,30 +1,30 @@
 import 'package:equatable/equatable.dart';
 
-import 'package:trocado/src/domain/models/budget_summary_model.dart';
+import 'package:trocado/src/domain/models/budget/budget_summary_model.dart';
 
-enum BudgetStatus { initial, loading, active, empty, error }
+enum BudgetStatus { initial, loading, active, empty, failure }
 
 final class BudgetState extends Equatable {
-  final BudgetSummaryModel? summary;
   final BudgetStatus status;
-  final String? errorMessage;
+  final String? failureMessage;
+  final BudgetSummaryModel? summary;
 
   const BudgetState({
     this.summary,
-    this.errorMessage,
-    this.status = BudgetStatus.initial,
+    this.failureMessage,
+    this.status = .initial,
   });
 
   BudgetState copyWith({
-    BudgetSummaryModel? summary,
     BudgetStatus? status,
-    String? errorMessage,
+    String? failureMessage,
+    BudgetSummaryModel? summary,
   }) => BudgetState(
-    summary: summary ?? this.summary,
     status: status ?? this.status,
-    errorMessage: errorMessage ?? this.errorMessage,
+    summary: summary ?? this.summary,
+    failureMessage: failureMessage ?? this.failureMessage,
   );
 
   @override
-  List<Object?> get props => [summary, status, errorMessage];
+  List<Object?> get props => [status, summary, failureMessage];
 }

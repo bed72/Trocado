@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:trocado/src/presentation/widgets/category/category_widget.dart';
-import 'package:trocado/src/presentation/data/ui/category_presentation_data.dart';
+import 'package:trocado/src/presentation/data/category_presentation_data.dart';
 import 'package:trocado/src/presentation/bloc/expense_form/expense_form_bloc.dart';
 
 class CategoriesWidget extends StatelessWidget {

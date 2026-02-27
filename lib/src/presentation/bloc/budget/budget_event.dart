@@ -7,15 +7,15 @@ final class BudgetLoaded extends BudgetEvent {
 }
 
 final class BudgetCreated extends BudgetEvent {
-  final double amount;
-  final int startDate;
   final int endDate;
+  final int startDate;
+  final double amount;
   final String? description;
 
   const BudgetCreated({
     required this.amount,
-    required this.startDate,
     required this.endDate,
+    required this.startDate,
     this.description,
   });
 }

@@ -1,21 +1,22 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:trocado/src/domain/models/budget_model.dart';
-import 'package:trocado/src/domain/usecases/get_budget_summary.dart';
-import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
-
 import 'package:trocado/src/presentation/bloc/budget/budget_event.dart';
 import 'package:trocado/src/presentation/bloc/budget/budget_state.dart';
 
+import 'package:trocado/src/domain/models/budget/budget_model.dart';
+
+import 'package:trocado/src/domain/use_cases/get_budget_summary_use_case.dart';
+import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
+
 final class BudgetBloc extends Bloc<BudgetEvent, BudgetState> {
-  final IBudgetRepository _budgetRepository;
-  final GetBudgetSummary _getBudgetSummary;
+  final IBudgetRepository _repository;
+  final GetBudgetSummaryUseCase _useCase;
 
   BudgetBloc({
-    required IBudgetRepository budgetRepository,
-    required GetBudgetSummary getBudgetSummary,
-  }) : _budgetRepository = budgetRepository,
-       _getBudgetSummary = getBudgetSummary,
+    required IBudgetRepository repository,
+    required GetBudgetSummaryUseCase useCase,
+  }) : _useCase = useCase,
+       _repository = repository,
        super(const BudgetState()) {
     on<BudgetLoaded>(_onLoaded);
     on<BudgetCreated>(_onCreated);
@@ -23,54 +24,45 @@ final class BudgetBloc extends Bloc<BudgetEvent, BudgetState> {
   }
 
   void _onLoaded(BudgetLoaded event, Emitter<BudgetState> emit) {
-    emit(state.copyWith(status: BudgetStatus.loading));
+    emit(state.copyWith(status: .loading));
 
     final now = DateTime.now().millisecondsSinceEpoch;
-    final result = _budgetRepository.findActive(now);
+    final budgetData = _repository.findActive(now);
 
-    result.fold(
-      (error) => emit(state.copyWith(
-        status: BudgetStatus.error,
-        errorMessage: error,
-      )),
-      (budget) {
-        if (budget == null) {
-          emit(state.copyWith(status: BudgetStatus.empty));
+    budgetData.fold(
+      (failure) =>
+          emit(state.copyWith(status: .failure, failureMessage: failure)),
+      (success) {
+        if (success == null) {
+          emit(state.copyWith(status: .empty));
           return;
         }
 
-        final summaryResult = _getBudgetSummary(budget);
-        summaryResult.fold(
-          (error) => emit(state.copyWith(
-            status: BudgetStatus.error,
-            errorMessage: error,
-          )),
-          (summary) => emit(state.copyWith(
-            summary: summary,
-            status: BudgetStatus.active,
-          )),
+        final summaryData = _useCase(success);
+        summaryData.fold(
+          (failure) =>
+              emit(state.copyWith(status: .failure, failureMessage: failure)),
+          (success) => emit(state.copyWith(summary: success, status: .active)),
         );
       },
     );
   }
 
   void _onCreated(BudgetCreated event, Emitter<BudgetState> emit) {
-    emit(state.copyWith(status: BudgetStatus.loading));
+    emit(state.copyWith(status: .loading));
 
     final model = BudgetModel(
       amount: event.amount,
-      startDate: event.startDate,
       endDate: event.endDate,
+      startDate: event.startDate,
       description: event.description,
     );
 
-    final result = _budgetRepository.upsert(model);
+    final data = _repository.upsert(model);
 
-    result.fold(
-      (error) => emit(state.copyWith(
-        status: BudgetStatus.error,
-        errorMessage: error,
-      )),
+    data.fold(
+      (failure) =>
+          emit(state.copyWith(status: .failure, failureMessage: failure)),
       (_) => add(const BudgetLoaded()),
     );
   }
@@ -79,16 +71,11 @@ final class BudgetBloc extends Bloc<BudgetEvent, BudgetState> {
     final summary = state.summary;
     if (summary == null) return;
 
-    final result = _getBudgetSummary(summary.budget);
-    result.fold(
-      (error) => emit(state.copyWith(
-        status: BudgetStatus.error,
-        errorMessage: error,
-      )),
-      (newSummary) => emit(state.copyWith(
-        summary: newSummary,
-        status: BudgetStatus.active,
-      )),
+    final data = _useCase(summary.budget);
+    data.fold(
+      (failure) =>
+          emit(state.copyWith(status: .failure, failureMessage: failure)),
+      (success) => emit(state.copyWith(summary: success, status: .active)),
     );
   }
 }
