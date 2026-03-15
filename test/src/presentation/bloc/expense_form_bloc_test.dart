@@ -2,13 +2,13 @@ import 'package:mocktail/mocktail.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:trocado/src/application/services/money_service.dart';
+
 import 'package:trocado/src/domain/either/either.dart';
 import 'package:trocado/src/domain/models/expense_model.dart';
-import 'package:trocado/src/domain/services/interface_money_service.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
 import 'package:trocado/src/presentation/mapper/expense_presentation_mapper.dart';
-
 import 'package:trocado/src/presentation/bloc/expense_form/expense_form_bloc.dart';
 import 'package:trocado/src/presentation/bloc/expense_form/expense_form_event.dart';
 import 'package:trocado/src/presentation/bloc/expense_form/expense_form_state.dart';
@@ -49,11 +49,8 @@ void main() {
     );
   });
 
-  ExpenseFormBloc buildBloc() => ExpenseFormBloc(
-    service: service,
-    repository: repository,
-    mapper: mapper,
-  );
+  ExpenseFormBloc buildBloc() =>
+      ExpenseFormBloc(service: service, repository: repository, mapper: mapper);
 
   group('amount', () {
     blocTest<ExpenseFormBloc, ExpenseFormState>(

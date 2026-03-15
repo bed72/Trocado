@@ -1,6 +1,7 @@
 import 'package:mocktail/mocktail.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:trocado/src/application/use_cases/get_budget_summary_use_case.dart';
 
 import 'package:trocado/src/presentation/bloc/budget/budget_bloc.dart';
 import 'package:trocado/src/presentation/bloc/budget/budget_event.dart';
@@ -11,7 +12,6 @@ import 'package:trocado/src/domain/either/either.dart';
 import 'package:trocado/src/domain/models/budget/budget_model.dart';
 import 'package:trocado/src/domain/models/budget/budget_summary_model.dart';
 
-import 'package:trocado/src/domain/use_cases/get_budget_summary_use_case.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
 
 import '../../../mocks/mocks.dart';

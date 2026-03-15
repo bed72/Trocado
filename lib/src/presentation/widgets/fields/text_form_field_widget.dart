@@ -127,6 +127,7 @@ class _TextFormFieldWidgetState extends State<TextFormFieldWidget> {
   Container _buildBorder() => Container(
     decoration: BoxDecoration(
       borderRadius: context.radius.cornerRadius300,
+      color: _hasFailure ? context.colors.error.withAlpha(27) : null,
       border: Border.all(width: 1.0, color: _color.withValues(alpha: .8)),
     ),
   );
@@ -172,6 +173,7 @@ class _TextFormFieldWidgetState extends State<TextFormFieldWidget> {
     onFieldSubmitted: widget.onFieldSubmitted,
     keyboardType: widget.keyboardType ?? .text,
     textInputAction: widget.inputAction ?? .next,
+    style: TextStyle(color: _hasFailure ? context.colors.error : null),
     validator: (value) {
       final data = widget.validator?.call(value);
 

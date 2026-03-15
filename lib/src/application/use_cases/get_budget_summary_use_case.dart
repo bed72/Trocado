@@ -1,6 +1,6 @@
 import 'package:trocado/src/domain/either/either.dart';
 
-import 'package:trocado/src/domain/use_cases/useca_case.dart';
+import 'package:trocado/src/application/use_cases/useca_case.dart';
 
 import 'package:trocado/src/domain/models/budget/budget_model.dart';
 import 'package:trocado/src/domain/models/budget/budget_summary_model.dart';

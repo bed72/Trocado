@@ -2,9 +2,10 @@ import 'package:mocktail/mocktail.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:trocado/src/application/services/money_service.dart';
+
 import 'package:trocado/src/domain/either/either.dart';
 import 'package:trocado/src/domain/models/expense_model.dart';
-import 'package:trocado/src/domain/services/interface_money_service.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
 import 'package:trocado/src/presentation/data/expense_presentation_data.dart';

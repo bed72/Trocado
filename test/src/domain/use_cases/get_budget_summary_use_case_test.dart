@@ -2,10 +2,13 @@ import 'package:mocktail/mocktail.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:trocado/src/domain/either/either.dart';
+
 import 'package:trocado/src/domain/models/expense_model.dart';
 import 'package:trocado/src/domain/models/budget/budget_model.dart';
-import 'package:trocado/src/domain/use_cases/get_budget_summary_use_case.dart';
+
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
+
+import 'package:trocado/src/application/use_cases/get_budget_summary_use_case.dart';
 
 import '../../../mocks/mocks.dart';
 

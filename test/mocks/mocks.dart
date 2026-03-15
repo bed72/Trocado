@@ -8,11 +8,11 @@ import 'package:trocado/src/data/datasources/interface_expense_data_source.dart'
 
 import 'package:trocado/src/presentation/mapper/expense_presentation_mapper.dart';
 
-import 'package:trocado/src/domain/services/interface_money_service.dart';
-import 'package:trocado/src/domain/use_cases/get_budget_summary_use_case.dart';
-
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
+
+import 'package:trocado/src/application/services/money_service.dart';
+import 'package:trocado/src/application/use_cases/get_budget_summary_use_case.dart';
 
 // Services
 final class MockMoneyService extends Mock implements IMoneyService {}

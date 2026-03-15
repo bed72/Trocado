@@ -4,9 +4,9 @@ import 'package:trocado/src/presentation/bloc/budget/budget_event.dart';
 import 'package:trocado/src/presentation/bloc/budget/budget_state.dart';
 
 import 'package:trocado/src/domain/models/budget/budget_model.dart';
-
-import 'package:trocado/src/domain/use_cases/get_budget_summary_use_case.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
+
+import 'package:trocado/src/application/use_cases/get_budget_summary_use_case.dart';
 
 final class BudgetBloc extends Bloc<BudgetEvent, BudgetState> {
   final IBudgetRepository _repository;
