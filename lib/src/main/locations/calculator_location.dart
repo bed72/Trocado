@@ -1,20 +1,21 @@
 import 'package:duck_router/duck_router.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:trocado/src/domain/constants/routes_constant.dart';
+import 'package:trocado/app_route.dart';
 
 import 'package:trocado/src/presentation/pages/bottom_sheet_page.dart';
 import 'package:trocado/src/presentation/screens/calculator_screen.dart';
-import 'package:trocado/src/presentation/extensions/context_extension.dart';
-import 'package:trocado/src/presentation/cubits/transaction/transaction_cubit.dart';
+
+import 'package:trocado/src/presentation/bloc/expense_form/expense_form_bloc.dart';
 
 final class CalculatorLocation extends Location {
   @override
-  String get path => RoutesConstant.calculator.path;
+  String get path => AppRoutes.calculator.path;
 
   @override
-  LocationPageBuilder get pageBuilder => (context) {
-    final cubit = context.get<TransactionCubit>();
-
-    return BottomSheetPage(builder: (_) => CalculatorScreen(cubit: cubit));
-  };
+  LocationPageBuilder get pageBuilder =>
+      (_) => BottomSheetPage(
+        builder: (context) =>
+            CalculatorScreen(bloc: context.read<ExpenseFormBloc>()),
+      );
 }

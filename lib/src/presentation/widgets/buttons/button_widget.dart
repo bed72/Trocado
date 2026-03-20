@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:trocado/src/presentation/animation/animation.dart';
-
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
 import 'package:trocado/src/presentation/widgets/bounce_widget.dart';
@@ -56,7 +55,7 @@ class ButtonWidget extends StatelessWidget {
     key: const ValueKey('content'),
     mainAxisSize: .min,
     spacing: (child != null && label != null) ? 8.0 : 0.0,
-    children: [if (child != null) child!, Text(label ?? '')],
+    children: [?child, Text(label ?? '')],
   );
 
   CircularProgressIndicatorWidget _buildLoading(BuildContext context) =>

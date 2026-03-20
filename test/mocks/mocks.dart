@@ -1,27 +1,52 @@
 import 'package:mocktail/mocktail.dart';
 
-import 'package:trocado/src/data/mapper/balance_to_model_mapper.dart';
-import 'package:trocado/src/data/mapper/transaction_to_model_mapper.dart';
-import 'package:trocado/src/data/mapper/transaction_to_entity_mapper.dart';
+import 'package:trocado/src/data/mapper/budget_mapper.dart';
+import 'package:trocado/src/data/mapper/expense_mapper.dart';
 
-import 'package:trocado/src/domain/repositories/interface_money_repository.dart';
-import 'package:trocado/src/domain/repositories/interface_transaction_repository.dart';
+import 'package:trocado/src/data/datasources/interface_budget_data_source.dart';
+import 'package:trocado/src/data/datasources/interface_expense_data_source.dart';
 
-import 'package:trocado/src/infrastructure/datasources/local/transaction_local_datasource.dart';
+import 'package:trocado/src/presentation/mapper/expense_presentation_mapper.dart';
 
-final class MockMoneyRepository extends Mock implements IMoneyRepository {}
+import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
+import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
-final class MockBalanceToModelMapper extends Mock
-    implements BalanceToModelMapper {}
+import 'package:trocado/src/application/services/money_service.dart';
+import 'package:trocado/src/application/use_cases/get_budget_summary_use_case.dart';
 
-final class MockTransactionToModelMapper extends Mock
-    implements TransactionToModelMapper {}
+// Services
+final class MockMoneyService extends Mock implements IMoneyService {}
 
-final class MockTransactionToEntityMapper extends Mock
-    implements TransactionToEntityMapper {}
+// Expense Mappers
+final class MockExpenseEntityToModelMapper extends Mock
+    implements ExpenseEntityToModelMapper {}
 
-final class MockTransactionLocalDatasource extends Mock
-    implements ITransactionLocalDatasource {}
+final class MockExpenseModelToEntityMapper extends Mock
+    implements ExpenseModelToEntityMapper {}
 
-final class MockTransactionRepository extends Mock
-    implements ITransactionRepository {}
+final class MockExpenseModelToPresentationMapper extends Mock
+    implements ExpenseModelToPresentationMapper {}
+
+final class MockExpenseStateToModelMapper extends Mock
+    implements ExpenseStateToModelMapper {}
+
+// Budget Mappers
+final class MockBudgetEntityToModelMapper extends Mock
+    implements BudgetEntityToModelMapper {}
+
+final class MockBudgetModelToEntityMapper extends Mock
+    implements BudgetModelToEntityMapper {}
+
+// Data Sources
+final class MockExpenseDataSource extends Mock implements IExpenseDataSource {}
+
+final class MockBudgetDataSource extends Mock implements IBudgetDataSource {}
+
+// Repositories
+final class MockExpenseRepository extends Mock implements IExpenseRepository {}
+
+final class MockBudgetRepository extends Mock implements IBudgetRepository {}
+
+// Use Cases
+final class MockGetBudgetSummary extends Mock
+    implements GetBudgetSummaryUseCase {}

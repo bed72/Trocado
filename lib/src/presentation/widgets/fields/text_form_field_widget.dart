@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:trocado/src/presentation/animation/animation.dart';
+import 'package:trocado/src/presentation/widgets/helper_widget.dart';
 import 'package:trocado/src/presentation/actions/callback_action.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
@@ -69,7 +70,7 @@ class _TextFormFieldWidgetState extends State<TextFormFieldWidget> {
     if (_hasFailure) return context.colors.error;
     if (_focus.hasFocus) return context.colors.primary;
 
-    return context.colors.onSurfaceVariant.withValues(alpha: 0.8);
+    return context.colors.onSurfaceVariant;
   }
 
   @override
@@ -100,7 +101,7 @@ class _TextFormFieldWidgetState extends State<TextFormFieldWidget> {
         crossAxisAlignment: .start,
         children: [
           SizedBox(
-            height: 64.0,
+            height: 66.0,
             child: Stack(
               children: [
                 Positioned.fill(child: _buildBorder()),
@@ -120,30 +121,21 @@ class _TextFormFieldWidgetState extends State<TextFormFieldWidget> {
 
   Text _buildPlaceholder() => Text(
     widget.placeholder!,
-    style: context.typography.bodySmall?.copyWith(
-      color: _color.withValues(alpha: .6),
-    ),
+    style: context.typography.bodySmall?.copyWith(color: _color),
   );
 
   Container _buildBorder() => Container(
     decoration: BoxDecoration(
       borderRadius: context.radius.cornerRadius300,
-      border: Border.all(width: 1.0, color: _color),
+      color: _hasFailure ? context.colors.error.withAlpha(27) : null,
+      border: Border.all(width: 1.0, color: _color.withValues(alpha: .8)),
     ),
   );
 
   SwitcherAnimation _buildFailure() => SwitcherAnimation(
     child: _failure == null
         ? const SizedBox.shrink()
-        : Padding(
-            padding: const .only(left: 4.0, top: 4.0),
-            child: Text(
-              _failure!,
-              style: context.typography.bodySmall?.copyWith(
-                color: context.colors.error,
-              ),
-            ),
-          ),
+        : HelperWidget(title: _failure!, color: context.colors.error),
   );
 
   AnimatedPositioned _buildLabel() {
@@ -176,11 +168,12 @@ class _TextFormFieldWidgetState extends State<TextFormFieldWidget> {
     autovalidateMode: .disabled,
     obscureText: widget.obscureText,
     readOnly: widget.readOnly ?? false,
+    cursorRadius: const .circular(2.0),
     inputFormatters: widget.inputFormatters,
-    cursorRadius: const Radius.circular(2.0),
     onFieldSubmitted: widget.onFieldSubmitted,
     keyboardType: widget.keyboardType ?? .text,
     textInputAction: widget.inputAction ?? .next,
+    style: TextStyle(color: _hasFailure ? context.colors.error : null),
     validator: (value) {
       final data = widget.validator?.call(value);
 

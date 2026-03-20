@@ -5,12 +5,14 @@ import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
 class HelperWidget extends StatelessWidget {
   final String title;
+  final Color? color;
 
-  const HelperWidget({super.key, required this.title});
+  const HelperWidget({super.key, required this.title, this.color});
 
   @override
   Widget build(BuildContext context) {
-    final color = context.colors.inverseSurface.withValues(alpha: .72);
+    final color =
+        this.color ?? context.colors.inverseSurface.withValues(alpha: .72);
 
     return Padding(
       padding: const .only(left: 4.0, top: 4.0),

@@ -1,20 +1,12 @@
-import 'package:get_it/get_it.dart';
-
 import 'package:flutter/widgets.dart';
-import 'package:flutter/services.dart';
 
 import 'package:trocado/app_widget.dart';
-import 'package:trocado/app_provider.dart';
-
-final i = GetIt.instance;
+import 'package:trocado/src/main/injection.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Future.wait([
-    ensureInitialized(),
-    SystemChrome.setPreferredOrientations([.portraitUp]),
-  ]);
+  await ensureInitialized();
 
-  runApp(AppWidget());
+  runApp(const AppWidget());
 }

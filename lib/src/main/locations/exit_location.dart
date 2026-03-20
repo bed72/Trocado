@@ -1,7 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:duck_router/duck_router.dart';
 
-import 'package:trocado/src/domain/constants/routes_constant.dart';
+import 'package:trocado/app_route.dart';
 
 import 'package:trocado/src/presentation/screens/exit_screen.dart';
 import 'package:trocado/src/presentation/pages/bottom_sheet_page.dart';
@@ -11,7 +11,7 @@ final class ExitLocation extends Location {
   const ExitLocation();
 
   @override
-  String get path => RoutesConstant.exit.path;
+  String get path => AppRoutes.exit.path;
 
   @override
   LocationPageBuilder get pageBuilder =>

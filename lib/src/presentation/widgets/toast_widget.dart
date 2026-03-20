@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:toastification/toastification.dart';
 
-import 'package:trocado/src/domain/constants/toast_constant.dart';
 import 'package:trocado/src/presentation/widgets/icons/icon_widget.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
+
+enum ToastConstant { success, failure }
 
 void showToastWidget({
   required BuildContext context,

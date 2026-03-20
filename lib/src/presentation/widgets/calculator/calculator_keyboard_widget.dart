@@ -4,10 +4,15 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:trocado/src/presentation/widgets/bounce_widget.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
-class CalculatorKeyboard extends StatelessWidget {
-  final void Function(String) onKeyTap;
+import 'package:trocado/src/presentation/bloc/expense_form/expense_form_bloc.dart';
+import 'package:trocado/src/presentation/bloc/expense_form/expense_form_event.dart';
 
-  const CalculatorKeyboard({super.key, required this.onKeyTap});
+import 'package:trocado/src/presentation/data/amount_presentation_data.dart';
+
+class CalculatorKeyboard extends StatelessWidget {
+  final ExpenseFormBloc bloc;
+
+  const CalculatorKeyboard({super.key, required this.bloc});
 
   @override
   Widget build(BuildContext context) {
@@ -33,13 +38,12 @@ class CalculatorKeyboard extends StatelessWidget {
         _buildTile(context: context, label: '3'),
         _buildTile(
           context: context,
-          label: '✓',
-          background: background,
+          label: '\u2713',
           rowSpan: 2,
+          background: background,
         ),
 
-        _buildTile(context: context, label: '0', columnSpan: 2),
-        _buildTile(context: context, label: ','),
+        _buildTile(context: context, label: '0', columnSpan: 3),
       ],
     );
   }
@@ -56,26 +60,37 @@ class CalculatorKeyboard extends StatelessWidget {
     child: _buildKey(context: context, label: label, background: background),
   );
 
-  BounceWidget _buildKey({
+  Widget _buildKey({
     required BuildContext context,
     required String label,
     Color? background,
-  }) => BounceWidget.withOnPress(
-    onPress: () => onKeyTap(label),
-    child: Container(
-      decoration: BoxDecoration(
-        borderRadius: context.radius.cornerRadius300,
-        color: background ?? context.colors.outlineVariant,
-      ),
-      child: Center(
-        child: Text(
-          label,
-          style: context.typography.bodyLarge?.copyWith(
-            fontWeight: .w800,
-            color: context.colors.onSurfaceVariant.withValues(alpha: 0.8),
+  }) {
+    return BounceWidget.withOnPress(
+      onPress: () {
+        final data = AmountPresentationData.map(label);
+
+        final _ = switch (data.action) {
+          .submit => context.pop(),
+          .clear => bloc.add(const ExpenseAmountCleared()),
+          .delete => bloc.add(const ExpenseAmountDeletePressed()),
+          .digit => bloc.add(ExpenseAmountDigitPressed(data.value!)),
+        };
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: context.radius.cornerRadius300,
+          color: background ?? context.colors.outlineVariant,
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: context.typography.bodyLarge?.copyWith(
+              fontWeight: FontWeight.w800,
+              color: context.colors.onSurfaceVariant.withValues(alpha: 0.8),
+            ),
           ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }

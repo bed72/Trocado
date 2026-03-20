@@ -1,23 +1,17 @@
 import 'package:flutter/widgets.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:trocado/src/presentation/widgets/category/categories_widget.dart';
+import 'package:trocado/src/presentation/bloc/expense_form/expense_form_bloc.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
-import 'package:trocado/src/presentation/cubits/transaction/transaction_cubit.dart';
+import 'package:trocado/src/presentation/widgets/category/categories_widget.dart';
 import 'package:trocado/src/presentation/widgets/bottom-sheets/bottom_sheet_scaffold_widget.dart';
 
-class CategoryScreen extends StatefulWidget {
-  final TransactionCubit cubit;
+class CategoryScreen extends StatelessWidget {
+  final ExpenseFormBloc bloc;
 
-  const CategoryScreen({super.key, required this.cubit});
+  const CategoryScreen({super.key, required this.bloc});
 
-  @override
-  State<CategoryScreen> createState() => _CategoryScreenState();
-}
-
-class _CategoryScreenState extends State<CategoryScreen> {
   @override
   Widget build(BuildContext context) {
     return BottomSheetScaffoldWidget(
@@ -30,22 +24,14 @@ class _CategoryScreenState extends State<CategoryScreen> {
             child: CustomScrollView(
               shrinkWrap: true,
               slivers: [
-                BlocBuilder<TransactionCubit, TransactionState>(
-                  bloc: widget.cubit,
-                  builder: (_, state) => CategoriesWidget(
-                    selected: state.form.category,
-                    onSelected: widget.cubit.selectCategory,
-                  ),
-                ),
-
+                CategoriesWidget(bloc: bloc),
                 const SliverToBoxAdapter(child: SizedBox(height: 16.0)),
               ],
             ),
           ),
-
           Container(
-            width: double.infinity,
-            padding: .symmetric(vertical: 20.0),
+            width: .infinity,
+            padding: const .symmetric(vertical: 20.0),
             child: ButtonWidget.outlined(
               onTap: context.pop,
               label: 'Selecionar',

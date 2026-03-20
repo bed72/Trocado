@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'package:back_button_interceptor/back_button_interceptor.dart';
+import 'package:trocado/app_route.dart';
 
-import 'package:trocado/src/domain/constants/routes_constant.dart';
+import 'package:back_button_interceptor/back_button_interceptor.dart';
 
 mixin BackButtonMixin<T extends StatefulWidget> on State<T> {
   void execute();
@@ -22,7 +22,7 @@ mixin BackButtonMixin<T extends StatefulWidget> on State<T> {
   bool _execute(bool _, RouteInfo info) {
     final routeName = info.currentRoute(context)?.settings.name;
 
-    if ([RoutesConstant.home.path].contains(routeName)) {
+    if ([AppRoutes.home.path].contains(routeName)) {
       execute();
 
       return true;

@@ -54,6 +54,7 @@ abstract final class Themes {
         horizontal: 0.0,
       ),
     ),
+
     visualDensity: FlexColorScheme.comfortablePlatformDensity,
     cupertinoOverrideTheme: const CupertinoThemeData(applyThemeToAll: true),
     appBarElevation: 0.0,
