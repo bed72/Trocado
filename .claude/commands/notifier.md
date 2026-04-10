@@ -1,0 +1,120 @@
+# Criar Riverpod Notifier (MVI)
+
+Cria um Notifier com padrão MVI para a feature: $ARGUMENTS
+
+---
+
+## Estrutura a gerar
+
+### 1. State — `lib/src/presentation/providers/xxx/xxx_state.dart`
+
+```dart
+enum XxxStatus { initial, loading, success, failure }
+
+class XxxState extends Equatable {
+  final XxxStatus status;
+  final String message;
+
+  const XxxState({
+    this.status = XxxStatus.initial,
+    this.message = '',
+  });
+
+  XxxState copyWith({XxxStatus? status, String? message}) => XxxState(
+    status: status ?? this.status,
+    message: message ?? this.message,
+  );
+
+  @override
+  List<Object> get props => [status, message];
+}
+```
+
+### 2. Intent — `lib/src/presentation/providers/xxx/xxx_intent.dart`
+
+```dart
+sealed class XxxIntent {}
+
+final class XxxActionA extends XxxIntent {
+  final String value;
+  const XxxActionA(this.value);
+}
+
+final class XxxSubmit extends XxxIntent {}
+```
+
+### 3. Notifier — `lib/src/presentation/providers/xxx/xxx_notifier.dart`
+
+```dart
+part 'xxx_notifier.g.dart';
+
+@riverpod
+class XxxNotifier extends _$XxxNotifier {
+  @override
+  XxxState build() => const XxxState();
+
+  void dispatch(XxxIntent intent) => switch (intent) {
+    XxxActionA(:final value) => state = state.copyWith(...),
+    XxxSubmit()              => _submit(),
+  };
+
+  Future<void> _submit() async {
+    state = state.copyWith(status: XxxStatus.loading);
+
+    final result = await ref.read(xxxRepositoryProvider).action();
+
+    state = result.fold(
+      (failure) => state.copyWith(status: XxxStatus.failure, message: failure.message),
+      (_)       => state.copyWith(status: XxxStatus.success),
+    );
+  }
+}
+```
+
+### 4. Consumer na Screen
+
+```dart
+class XxxScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Consumer(
+      builder: (context, ref, _) {
+        ref.listen(xxxNotifierProvider, (_, state) {
+          if (state.status == XxxStatus.success) context.navigate(NextLocation());
+          if (state.status == XxxStatus.failure) {
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: Text(state.message)));
+          }
+        });
+
+        final status = ref.watch(
+          xxxNotifierProvider.select((s) => s.status),
+        );
+
+        return XxxWidget(
+          isLoading: status == XxxStatus.loading,
+          onIntent: ref.read(xxxNotifierProvider.notifier).dispatch,
+        );
+      },
+    );
+  }
+}
+```
+
+---
+
+## Após criar os arquivos
+
+```bash
+dart run build_runner build --delete-conflicting-outputs
+```
+
+---
+
+## Regras
+
+- Campos antes do construtor em `XxxState`
+- Zero comentários no código
+- `@riverpod` apenas no Notifier — não usar code gen em State ou Intent
+- `switch` no `dispatch` deve ser exhaustivo (cobrir todos os intents)
+- Widget filho (`XxxWidget`) não conhece Riverpod — recebe `onIntent` como callback
