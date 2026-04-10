@@ -1,11 +1,6 @@
 targets:
   $default:
     builders:
-      mobx_codegen|mobx_codegen:
-        generate_for:
-          - lib/**_store.dart
-          - lib/**_state.dart
-      
       dart_json_mapper:
         generate_for:
           - lib/main.dart

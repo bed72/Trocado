@@ -6,7 +6,7 @@ import 'package:trocado/src/main/injection.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await ensureInitialized();
+  ensureInitialized();
 
   runApp(const AppWidget());
 }

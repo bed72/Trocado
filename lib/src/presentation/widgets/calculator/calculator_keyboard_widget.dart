@@ -4,15 +4,10 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:trocado/src/presentation/widgets/bounce_widget.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
-import 'package:trocado/src/presentation/bloc/expense_form/expense_form_bloc.dart';
-import 'package:trocado/src/presentation/bloc/expense_form/expense_form_event.dart';
-
 import 'package:trocado/src/presentation/data/amount_presentation_data.dart';
 
 class CalculatorKeyboard extends StatelessWidget {
-  final ExpenseFormBloc bloc;
-
-  const CalculatorKeyboard({super.key, required this.bloc});
+  const CalculatorKeyboard({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -71,9 +66,9 @@ class CalculatorKeyboard extends StatelessWidget {
 
         final _ = switch (data.action) {
           .submit => context.pop(),
-          .clear => bloc.add(const ExpenseAmountCleared()),
-          .delete => bloc.add(const ExpenseAmountDeletePressed()),
-          .digit => bloc.add(ExpenseAmountDigitPressed(data.value!)),
+          .clear => {},
+          .delete => {},
+          .digit => {},
         };
       },
       child: Container(

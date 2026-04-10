@@ -1,5 +1,5 @@
 import 'package:trocado/src/infrastructure/clients/logger/logger_client.dart';
-import 'package:trocado/src/data/datasources/interface_logger_data_source.dart';
+import 'package:trocado/src/infrastructure/datasources/logger_data_source.dart';
 
 final class LoggerLocalDatasource implements ILoggerDataSource {
   final ILoggerClient _client;

@@ -5,9 +5,6 @@ import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
 import 'package:trocado/src/presentation/mixins/back_button_mixin.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
-import 'package:trocado/src/presentation/bloc/expense_list/expense_list_bloc.dart';
-import 'package:trocado/src/presentation/bloc/expense_list/expense_list_event.dart';
-import 'package:trocado/src/presentation/bloc/expense_list/expense_list_state.dart';
 
 import 'package:trocado/src/presentation/widgets/app_bar_widget.dart';
 import 'package:trocado/src/presentation/widgets/empty/empty_widget.dart';
@@ -15,8 +12,6 @@ import 'package:trocado/src/presentation/widgets/home/home_success_widget.dart';
 import 'package:trocado/src/presentation/widgets/home/home_action_button_widget.dart';
 
 class HomeScreen extends StatefulWidget {
-  final ExpenseListBloc bloc;
-
   final VoidCallback navigateToExit;
   final VoidCallback navigateToBudget;
   final VoidCallback navigateToCreateExpense;
@@ -24,7 +19,6 @@ class HomeScreen extends StatefulWidget {
 
   const HomeScreen({
     super.key,
-    required this.bloc,
     required this.navigateToExit,
     required this.navigateToBudget,
     required this.navigateToCreateExpense,

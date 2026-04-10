@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:trocado/src/presentation/bloc/expense_form/expense_form_bloc.dart';
 
 import 'package:trocado/src/presentation/widgets/app_bar_widget.dart';
 import 'package:trocado/src/presentation/widgets/go_back_widget.dart';
@@ -14,14 +13,12 @@ import 'package:trocado/src/presentation/widgets/expense/expense_description_fie
 class ExpenseScreen extends StatelessWidget {
   final int? id;
 
-  final ExpenseFormBloc bloc;
   final VoidCallback navigateToDate;
   final VoidCallback navigateToCategory;
   final VoidCallback navigateToCalculator;
 
   const ExpenseScreen({
     super.key,
-    required this.bloc,
     required this.navigateToDate,
     required this.navigateToCategory,
     required this.navigateToCalculator,
@@ -52,7 +49,7 @@ class ExpenseScreen extends StatelessWidget {
                 ),
               ),
             ),
-            ExpenseSaveButtonWidget(bloc: bloc),
+            ExpenseSaveButtonWidget(bloc:),
           ],
         ),
       ),

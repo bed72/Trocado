@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:trocado/src/main/injection.dart';
 
 import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';
 import 'package:trocado/src/presentation/widgets/images/image_widget.dart';
@@ -9,8 +8,6 @@ import 'package:trocado/src/presentation/widgets/images/image_widget.dart';
 import 'package:trocado/src/presentation/actions/callback_action.dart';
 import 'package:trocado/src/presentation/constants/assets_constant.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
-
-import 'package:trocado/src/infrastructure/clients/database/database_client.dart';
 
 class SplashScreen extends StatefulWidget {
   final VoidCallback navigateTo;
@@ -30,9 +27,6 @@ class _SplashScreenState extends State<SplashScreen> {
 
     addPostFrameCallback(() async {
       try {
-        final database = sl<IDatabaseClient>();
-        await database.ensureInitialized();
-
         if (!mounted) return;
 
         await Future.delayed(Durations.extralong4);
