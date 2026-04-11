@@ -1,4 +1,4 @@
-enum Endpoints {
+enum EndpointKey {
   signIn('/api/v1/token'),
   signUp('/api/v1/auth/register'),
   verifyToken('/api/v1/token/verify'),
@@ -6,7 +6,7 @@ enum Endpoints {
   passwordResetConfirm('/api/v1/auth/password/reset'),
   passwordResetRequest('/api/v1/auth/password/request');
 
-  const Endpoints(this.path);
+  const EndpointKey(this.path);
 
   final String path;
 }

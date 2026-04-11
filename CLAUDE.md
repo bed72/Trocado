@@ -387,7 +387,10 @@ dart run build_runner build --delete-conflicting-outputs
 
 ## SDD — Spec-Driven Development
 
-Antes de implementar qualquer coisa, usar o skill `/sdd` para criar uma spec.
+> **OBRIGATÓRIO: NUNCA implemente nada sem antes criar a spec com `/sdd`.**
+> A spec é a base de toda implementação. Implementar sem spec é proibido — sem exceção.
+
+Antes de qualquer linha de código, usar o skill `/sdd` para criar a spec e aguardar aprovação.
 Ver skill `/sdd` para o fluxo completo.
 
 **Escopo:** implementar exatamente o que está na spec — nem mais, nem menos.

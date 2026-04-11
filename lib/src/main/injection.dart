@@ -12,6 +12,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:trocado/src/infrastructure/clients/http/http_client.dart';
 import 'package:trocado/src/infrastructure/clients/logger/logger_client.dart';
 import 'package:trocado/src/infrastructure/clients/storage/storage_client.dart';
+import 'package:trocado/src/infrastructure/datasources/local/local_token_data_source.dart';
 import 'package:trocado/src/infrastructure/datasources/remote/remote_authentication_data_source.dart';
 
 import 'package:trocado/src/presentation/mapper/expense_presentation_mapper.dart';
@@ -34,10 +35,13 @@ void ensureInitialized() {
   sl.registerLazySingleton<IRemoteAuthenticationDataSource>(
     () => RemoteAuthenticationDataSource(client: sl()),
   );
+  sl.registerLazySingleton<ITokenDataSource>(
+    () => LocalTokenDataSource(client: sl()),
+  );
 
   // Repositories (Data)
   sl.registerLazySingleton<IAuthenticationRepository>(
-    () => AuthenticationRepository(dataSource: sl()),
+    () => AuthenticationRepository(remote: sl(), local: sl()),
   );
 
   // Mappers (Data)

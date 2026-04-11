@@ -2,6 +2,19 @@
 
 Fluxo para implementar um endpoint do backend no app Flutter Trocado.
 
+## ⚠️ REGRA MAIS IMPORTANTE — NUNCA IGNORE
+
+**SEMPRE crie a spec ANTES de qualquer implementação.**
+Sem spec aprovada pelo usuário = sem código. Zero exceções.
+
+O fluxo correto é:
+1. Usuário pede uma feature
+2. Você cria a spec (`/sdd`) e aguarda aprovação
+3. Usuário aprova
+4. Você implementa
+
+Implementar sem spec é um erro grave — a spec é o contrato que guia toda a implementação.
+
 ## Pré-requisito
 
 Antes de implementar qualquer coisa, criar uma spec com `/sdd`.

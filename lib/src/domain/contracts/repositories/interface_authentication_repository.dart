@@ -7,4 +7,6 @@ abstract interface class IAuthenticationRepository {
     required String email,
     required String password,
   });
+  Future<AuthenticationModel?> getTokens();
+  Future<void> clearTokens();
 }

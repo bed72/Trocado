@@ -2,7 +2,7 @@ import 'package:trocado/src/domain/either/either.dart';
 
 import 'package:trocado/src/infrastructure/clients/http/http_client.dart';
 
-import 'package:trocado/src/infrastructure/clients/http/endpoints.dart';
+import 'package:trocado/src/infrastructure/clients/http/endpoint_key.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/requests.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/sign_in_request.dart';
 
@@ -27,7 +27,7 @@ final class RemoteAuthenticationDataSource
     required SignInRequest parameter,
   }) async {
     final response = await _client.post(
-      parameter: Requests(Endpoints.signIn.path, body: parameter.toJson()),
+      parameter: Requests(EndpointKey.signIn.path, body: parameter.toJson()),
     );
 
     return response.either(FailureResponse.fromJson, SignInResponse.fromJson);

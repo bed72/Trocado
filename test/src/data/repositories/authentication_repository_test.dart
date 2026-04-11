@@ -8,6 +8,7 @@ import 'package:trocado/src/data/repositories/authentication_repository.dart';
 
 import 'package:trocado/src/infrastructure/clients/http/http_client.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/requests.dart';
+import 'package:trocado/src/infrastructure/datasources/local/local_token_data_source.dart';
 
 import 'package:trocado/src/infrastructure/datasources/remote/remote_authentication_data_source.dart';
 
@@ -15,14 +16,20 @@ import '../../../mocks/mocks.dart';
 
 void main() {
   late IHttpClient client;
+  late ITokenDataSource tokenDataSource;
   late AuthenticationRepository repository;
 
   setUp(() {
     client = MockHttpClient();
+    tokenDataSource = MockTokenDataSource();
     final dataSource = RemoteAuthenticationDataSource(client: client);
-    repository = AuthenticationRepository(dataSource: dataSource);
+    repository = AuthenticationRepository(remote: dataSource, local: tokenDataSource);
 
     registerFallbackValue(const Requests('/'));
+
+    when(
+      () => tokenDataSource.save(access: any(named: 'access'), refresh: any(named: 'refresh')),
+    ).thenAnswer((_) async {});
   });
 
   group('signIn', () {
@@ -40,6 +47,45 @@ void main() {
       expect(data.isRight, isTrue);
       expect(data.right.access, 'access-token');
       expect(data.right.refresh, 'refresh-token');
+    });
+
+    test('calls save with tokens on success', () async {
+      when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async =>
+            const Right({'access': 'access-token', 'refresh': 'refresh-token'}),
+      );
+
+      await repository.signIn(
+        password: 'password123',
+        email: 'jane@trocado.app',
+      );
+
+      verify(
+        () => tokenDataSource.save(access: 'access-token', refresh: 'refresh-token'),
+      ).called(1);
+    });
+
+    test('does not call save on failure', () async {
+      when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'field': 'non_field_errors',
+              'code': 'no_active_account',
+              'message': 'No active account found with the given credentials.',
+            },
+          ],
+        }),
+      );
+
+      await repository.signIn(
+        password: 'wrong',
+        email: 'wrong@trocado.app',
+      );
+
+      verifyNever(
+        () => tokenDataSource.save(access: any(named: 'access'), refresh: any(named: 'refresh')),
+      );
     });
 
     test('returns Left ValidationFailure on invalid credentials', () async {

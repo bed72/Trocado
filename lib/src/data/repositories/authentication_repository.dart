@@ -7,27 +7,39 @@ import 'package:trocado/src/domain/models/authentication_model.dart';
 import 'package:trocado/src/domain/contracts/repositories/interface_authentication_repository.dart';
 
 import 'package:trocado/src/infrastructure/clients/http/requests/sign_in_request.dart';
+import 'package:trocado/src/infrastructure/datasources/local/local_token_data_source.dart';
 import 'package:trocado/src/infrastructure/datasources/remote/remote_authentication_data_source.dart';
 
 final class AuthenticationRepository implements IAuthenticationRepository {
-  final IRemoteAuthenticationDataSource _dataSource;
+  final IRemoteAuthenticationDataSource _remote;
+  final ITokenDataSource _local;
 
   AuthenticationRepository({
-    required IRemoteAuthenticationDataSource dataSource,
-  }) : _dataSource = dataSource;
+    required IRemoteAuthenticationDataSource remote,
+    required ITokenDataSource local,
+  }) : _remote = remote,
+       _local = local;
 
   @override
   Future<Either<Failure, AuthenticationModel>> signIn({
     required String email,
     required String password,
   }) async {
-    final data = await _dataSource.signIn(
+    final data = await _remote.signIn(
       parameter: SignInRequest(email: email, password: password),
     );
-
-    return data.either(
-      (failure) => failure.toFailure(),
-      (success) => success.toModel(),
-    );
+    if (data.isLeft) return Left(data.left.toFailure());
+    await _local.save(access: data.right.access, refresh: data.right.refresh);
+    return Right(data.right.toModel());
   }
+
+  @override
+  Future<AuthenticationModel?> getTokens() async {
+    final tokens = await _local.get();
+    if (tokens.access == null || tokens.refresh == null) return null;
+    return AuthenticationModel(access: tokens.access!, refresh: tokens.refresh!);
+  }
+
+  @override
+  Future<void> clearTokens() => _local.clear();
 }
