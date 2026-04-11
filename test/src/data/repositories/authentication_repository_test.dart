@@ -1,31 +1,33 @@
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:trocado/src/data/repositories/authentication_repository.dart';
+
 import 'package:trocado/src/domain/either/either.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
-
-import 'package:trocado/src/data/repositories/authentication_repository.dart';
+import 'package:trocado/src/domain/contracts/repositories/interface_authentication_repository.dart';
 
 import 'package:trocado/src/infrastructure/clients/http/http_client.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/requests.dart';
-import 'package:trocado/src/infrastructure/datasources/local/local_token_data_source.dart';
 
+import 'package:trocado/src/infrastructure/datasources/local/local_token_data_source.dart';
 import 'package:trocado/src/infrastructure/datasources/remote/remote_authentication_data_source.dart';
 
 import '../../../mocks/mocks.dart';
 
 void main() {
   late IHttpClient client;
+  late IAuthenticationRepository repository;
   late ILocalTokenDataSource tokenDataSource;
-  late AuthenticationRepository repository;
+  late IRemoteAuthenticationDataSource authenticationDataSource;
 
   setUp(() {
     client = MockHttpClient();
     tokenDataSource = MockTokenDataSource();
-    final dataSource = RemoteAuthenticationDataSource(client: client);
+    authenticationDataSource = RemoteAuthenticationDataSource(client: client);
     repository = AuthenticationRepository(
-      authenticationDataSource: dataSource,
       tokenDataSource: tokenDataSource,
+      authenticationDataSource: authenticationDataSource,
     );
 
     registerFallbackValue(const Requests('/'));

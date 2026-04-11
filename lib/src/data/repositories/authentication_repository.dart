@@ -28,24 +28,14 @@ final class AuthenticationRepository implements IAuthenticationRepository {
     final data = await _authenticationDataSource.signIn(
       parameter: SignInRequest(email: email, password: password),
     );
+
     if (data.isLeft) return Left(data.left.toFailure());
+
     await _tokenDataSource.save(
       access: data.right.access,
       refresh: data.right.refresh,
     );
+
     return Right(data.right.toModel());
   }
-
-  @override
-  Future<AuthenticationModel?> getTokens() async {
-    final tokens = await _tokenDataSource.get();
-    if (tokens.access == null || tokens.refresh == null) return null;
-    return AuthenticationModel(
-      access: tokens.access!,
-      refresh: tokens.refresh!,
-    );
-  }
-
-  @override
-  Future<void> clearTokens() => _tokenDataSource.clear();
 }
