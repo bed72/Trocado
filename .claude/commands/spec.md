@@ -85,6 +85,15 @@ Após o `/opsx:propose` gerar os artefatos, confirmar com o usuário:
 
 Só avançar para `/opsx:apply` após aprovação.
 
+### 6. Arquivar após implementação
+
+```
+/opsx:archive <change-name>
+```
+
+Move `openspec/changes/<change-name>/` para `openspec/archive/<change-name>/`.
+Executar após todos os itens do `tasks.md` estarem concluídos e commitados.
+
 ---
 
 ## Exemplo de uso
