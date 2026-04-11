@@ -17,4 +17,4 @@ final class MockMoneyService extends Mock implements IMoneyService {}
 
 final class MockStorageClient extends Mock implements IStorageClient {}
 
-final class MockTokenDataSource extends Mock implements ITokenDataSource {}
+final class MockTokenDataSource extends Mock implements ILocalTokenDataSource {}

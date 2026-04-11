@@ -35,13 +35,13 @@ void ensureInitialized() {
   sl.registerLazySingleton<IRemoteAuthenticationDataSource>(
     () => RemoteAuthenticationDataSource(client: sl()),
   );
-  sl.registerLazySingleton<ITokenDataSource>(
+  sl.registerLazySingleton<ILocalTokenDataSource>(
     () => LocalTokenDataSource(client: sl()),
   );
 
   // Repositories (Data)
   sl.registerLazySingleton<IAuthenticationRepository>(
-    () => AuthenticationRepository(remote: sl(), local: sl()),
+    () => AuthenticationRepository(authenticationDataSource: sl(), tokenDataSource: sl()),
   );
 
   // Mappers (Data)

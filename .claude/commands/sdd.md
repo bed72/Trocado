@@ -76,7 +76,11 @@ final class RemoteXxxDataSource implements IXxxDataSource {
 }
 ```
 
-**Arquivo da interface:** prefixo `interface_` — ex: `interface_xxx_data_source.dart` (classe continua `IXxxDataSource`).
+**Interface e implementação no mesmo arquivo** — sem arquivo `interface_` separado. A regra `interface_` se aplica apenas a repositórios (que ficam em camadas diferentes).
+
+**Nomenclatura da interface:**
+- Datasource remoto: `IRemoteXxxDataSource` — ex: `IRemoteAuthenticationDataSource`
+- Datasource local: `ILocalXxxDataSource` — ex: `ILocalTokenDataSource`
 
 ### 4. Repositório (data)
 

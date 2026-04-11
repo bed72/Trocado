@@ -16,19 +16,25 @@ import '../../../mocks/mocks.dart';
 
 void main() {
   late IHttpClient client;
-  late ITokenDataSource tokenDataSource;
+  late ILocalTokenDataSource tokenDataSource;
   late AuthenticationRepository repository;
 
   setUp(() {
     client = MockHttpClient();
     tokenDataSource = MockTokenDataSource();
     final dataSource = RemoteAuthenticationDataSource(client: client);
-    repository = AuthenticationRepository(remote: dataSource, local: tokenDataSource);
+    repository = AuthenticationRepository(
+      authenticationDataSource: dataSource,
+      tokenDataSource: tokenDataSource,
+    );
 
     registerFallbackValue(const Requests('/'));
 
     when(
-      () => tokenDataSource.save(access: any(named: 'access'), refresh: any(named: 'refresh')),
+      () => tokenDataSource.save(
+        access: any(named: 'access'),
+        refresh: any(named: 'refresh'),
+      ),
     ).thenAnswer((_) async {});
   });
 
@@ -61,7 +67,10 @@ void main() {
       );
 
       verify(
-        () => tokenDataSource.save(access: 'access-token', refresh: 'refresh-token'),
+        () => tokenDataSource.save(
+          access: 'access-token',
+          refresh: 'refresh-token',
+        ),
       ).called(1);
     });
 
@@ -78,13 +87,13 @@ void main() {
         }),
       );
 
-      await repository.signIn(
-        password: 'wrong',
-        email: 'wrong@trocado.app',
-      );
+      await repository.signIn(password: 'wrong', email: 'wrong@trocado.app');
 
       verifyNever(
-        () => tokenDataSource.save(access: any(named: 'access'), refresh: any(named: 'refresh')),
+        () => tokenDataSource.save(
+          access: any(named: 'access'),
+          refresh: any(named: 'refresh'),
+        ),
       );
     });
 

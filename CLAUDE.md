@@ -296,6 +296,9 @@ Funções que retornam `Stream<T>` não são `async`.
 | Classes | `PascalCase` | `ExpenseModel` |
 | Interfaces (classe) | prefixo `I` | `IExpenseRepository` |
 | Interfaces (arquivo) | prefixo `interface_` | `interface_expense_repository.dart` |
+| Datasources e Clients | interface + implementação no mesmo arquivo | `remote_authentication_data_source.dart` |
+| Datasources remotos | prefixo `IRemote` na interface | `IRemoteAuthenticationDataSource` |
+| Datasources locais | prefixo `ILocal` na interface | `ILocalTokenDataSource` |
 | Failures | sufixo `Failure` | `NetworkFailure` |
 | Requests | sufixo `Request` | `SignInRequest` |
 | Responses | sufixo `Response` | `SignInResponse` |

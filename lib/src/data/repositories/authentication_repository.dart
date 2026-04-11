@@ -11,35 +11,41 @@ import 'package:trocado/src/infrastructure/datasources/local/local_token_data_so
 import 'package:trocado/src/infrastructure/datasources/remote/remote_authentication_data_source.dart';
 
 final class AuthenticationRepository implements IAuthenticationRepository {
-  final IRemoteAuthenticationDataSource _remote;
-  final ITokenDataSource _local;
+  final ILocalTokenDataSource _tokenDataSource;
+  final IRemoteAuthenticationDataSource _authenticationDataSource;
 
   AuthenticationRepository({
-    required IRemoteAuthenticationDataSource remote,
-    required ITokenDataSource local,
-  }) : _remote = remote,
-       _local = local;
+    required ILocalTokenDataSource tokenDataSource,
+    required IRemoteAuthenticationDataSource authenticationDataSource,
+  }) : _tokenDataSource = tokenDataSource,
+       _authenticationDataSource = authenticationDataSource;
 
   @override
   Future<Either<Failure, AuthenticationModel>> signIn({
     required String email,
     required String password,
   }) async {
-    final data = await _remote.signIn(
+    final data = await _authenticationDataSource.signIn(
       parameter: SignInRequest(email: email, password: password),
     );
     if (data.isLeft) return Left(data.left.toFailure());
-    await _local.save(access: data.right.access, refresh: data.right.refresh);
+    await _tokenDataSource.save(
+      access: data.right.access,
+      refresh: data.right.refresh,
+    );
     return Right(data.right.toModel());
   }
 
   @override
   Future<AuthenticationModel?> getTokens() async {
-    final tokens = await _local.get();
+    final tokens = await _tokenDataSource.get();
     if (tokens.access == null || tokens.refresh == null) return null;
-    return AuthenticationModel(access: tokens.access!, refresh: tokens.refresh!);
+    return AuthenticationModel(
+      access: tokens.access!,
+      refresh: tokens.refresh!,
+    );
   }
 
   @override
-  Future<void> clearTokens() => _local.clear();
+  Future<void> clearTokens() => _tokenDataSource.clear();
 }
