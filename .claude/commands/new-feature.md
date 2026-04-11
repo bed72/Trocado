@@ -27,15 +27,17 @@ Notifier → Repository → DataSource → Client
 - [ ] Criar `XxxResponse` em `lib/src/infrastructure/clients/http/responses/`
   — campos antes do construtor, `fromJson()` obrigatório
 - [ ] Criar interface de datasource em `lib/src/infrastructure/datasources/`
-  — retornar `Future<Model>` puro, sem `Either`, sem `Failure`
-- [ ] Criar datasource remoto em `lib/src/infrastructure/datasources/remote/` usando Dio
-  — usar `XxxRequest`/`XxxResponse`, converter `Response` → `Model`
+  — retornar `Either<FailureResponse, XxxResponse>`
+- [ ] Criar datasource remoto em `lib/src/infrastructure/datasources/remote/` usando Client
+  — mapear `Either<Map, Map>` do Client para `Either<FailureResponse, XxxResponse>` via `fromJson`
+- [ ] Criar uma interface de Client em `lib/src/infrastructure/clients/http/` com os 5 principais metodos GET, POST, PUT PATCH e DELETE,
+  — deve retornar `Either<Map<String, dynamic>, Map<String, dynamic>>`, único try-catch do projeto
 
 ### 3. Data — repositório
 
 - [ ] Criar implementação de repositório em `lib/src/data/repositories/`
   — receber interface de datasource (nunca implementação concreta)
-  — converter exceções em `Left(Failure)`
+  — converter `FailureResponse → Left(Failure)` e `XxxResponse → Right(Model)`
 
 ### 4. Presentation — MVI
 
@@ -63,6 +65,4 @@ Notifier → Repository → DataSource → Client
 ---
 
 ## Referências
-
-- Contrato da API: `openapi.json`
 - Fluxo SDD: skill `/sdd`

@@ -14,18 +14,28 @@ Todos os mocks em `test/mocks/mocks.dart`.
 
 ---
 
+## Regras gerais
+
+- **Descrições sempre em inglês** — `test()`, `group()` e `testWidgets()`
+- `registerFallbackValue` para tipos customizados passados como argumento
+- `Left(const NetworkFailure())` — nunca `Left('msg')` diretamente
+- Testar cada intent do sealed class individualmente
+- Testar edge cases: lista vazia, null, failure com mensagem customizada
+
+---
+
 ## Testes de Failure
 
 ```dart
-test('NetworkFailure retorna mensagem padrão', () {
+test('NetworkFailure returns default message', () {
   const failure = NetworkFailure();
   expect(failure.message, isNotEmpty);
   expect(failure.toString(), equals(failure.message));
 });
 
-test('ValidationFailure aceita mensagem customizada', () {
-  const failure = ValidationFailure('Valor deve ser maior que zero');
-  expect(failure.message, 'Valor deve ser maior que zero');
+test('ValidationFailure accepts custom message', () {
+  const failure = ValidationFailure('Value must be greater than zero');
+  expect(failure.message, 'Value must be greater than zero');
 });
 ```
 
@@ -42,22 +52,26 @@ setUp(() {
   repository = XxxRepository(dataSource: mockDataSource);
 });
 
-test('retorna Right quando datasource responde', () async {
+test('returns Right when datasource responds', () async {
   when(() => mockDataSource.findAll())
-      .thenAnswer((_) async => [model]);
+      .thenAnswer((_) async => Right([model]));
 
   final result = await repository.findAll();
 
-  expect(result.isRight(), true);
+  expect(result.isRight, isTrue);
 });
 
-test('retorna Left NetworkFailure em DioException de conexão', () async {
-  when(() => mockDataSource.findAll())
-      .thenThrow(DioException(requestOptions: RequestOptions(), type: DioExceptionType.connectionError));
+test('returns Left NetworkFailure on connection error', () async {
+  when(() => mockDataSource.findAll()).thenThrow(
+    DioException(
+      requestOptions: RequestOptions(),
+      type: DioExceptionType.connectionError,
+    ),
+  );
 
   final result = await repository.findAll();
 
-  expect(result.isLeft(), true);
+  expect(result.isLeft, isTrue);
   result.fold((f) => expect(f, isA<NetworkFailure>()), (_) {});
 });
 ```
@@ -79,16 +93,14 @@ setUp(() {
 
 tearDown(container.dispose);
 
-test('dispatch XxxActionA atualiza state', () {
-  container.read(xxxNotifierProvider.notifier)
-      .dispatch(const XxxActionA('valor'));
+test('dispatch XxxActionA updates state', () {
+  container.read(xxxNotifierProvider.notifier).dispatch(const XxxActionA('value'));
 
-  expect(container.read(xxxNotifierProvider).field, 'valor');
+  expect(container.read(xxxNotifierProvider).field, 'value');
 });
 
-test('dispatch XxxSubmit emite loading e success', () async {
-  when(() => mockRepo.action())
-      .thenAnswer((_) async => Right(model));
+test('dispatch XxxSubmit emits loading then success', () async {
+  when(() => mockRepo.action()).thenAnswer((_) async => Right(model));
 
   final notifier = container.read(xxxNotifierProvider.notifier);
   final future = notifier.dispatch(const XxxSubmit());
@@ -98,7 +110,7 @@ test('dispatch XxxSubmit emite loading e success', () async {
   expect(container.read(xxxNotifierProvider).status, XxxStatus.success);
 });
 
-test('dispatch XxxSubmit emite failure', () async {
+test('dispatch XxxSubmit emits failure', () async {
   when(() => mockRepo.action())
       .thenAnswer((_) async => Left(const NetworkFailure()));
 
@@ -109,12 +121,3 @@ test('dispatch XxxSubmit emite failure', () async {
   expect(state.message, isNotEmpty);
 });
 ```
-
----
-
-## Regras gerais
-
-- `registerFallbackValue` para tipos customizados passados como argumento
-- `Left(const NetworkFailure())` — nunca `Left('msg')` diretamente
-- Testar cada intent do sealed class individualmente
-- Testar edge cases: lista vazia, null, failure com mensagem customizada

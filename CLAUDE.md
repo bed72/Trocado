@@ -66,12 +66,12 @@ nunca das implementações concretas.
 
 - `clients/http/requests/` — classes de request com `toJson()` (ex: `SignInRequest`)
 - `clients/http/responses/` — classes de response com `fromJson()` (ex: `SignInResponse`)
+- `clients/http/responses/failure_response.dart` — `FailureResponse` genérico compartilhado: `{ "errors": [{ "field", "message", "code" }] }`
 - `clients/logger/logger_client.dart` — `ILoggerClient` + `LoggerClient`
-- `datasources/` — interfaces de datasource (retornam `Future<Model>` puro, sem `Either`, sem `Failure`)
-- `datasources/remote/` — usa `Request`/`Response` do cliente HTTP, converte `Response` → `Model`
+- `datasources/` — interfaces de datasource retornam `Either<FailureResponse, XxxResponse>`
+- `datasources/remote/` — mapeia `Either<Map, Map>` do Client para `Either<FailureResponse, XxxResponse>` via `fromJson`
 
-**Regra:** datasources retornam models de domínio diretamente.
-Nunca retornam `Failure` ou `Either` — quem converte exceções é o repositório em `data/`.
+**Regra:** o único `try-catch` fica no Client. Datasources deserializam ambos os lados do `Either`. Repositórios convertem `FailureResponse → Failure` e `XxxResponse → Model`.
 
 ### `presentation/` — UI e state
 
@@ -113,10 +113,101 @@ class ExpenseState extends Equatable {
 }
 ```
 
+### Tipos explícitos — sem `var`
+
+Nunca usar `var`. Declarar sempre o tipo explicitamente.
+
+```dart
+// correto
+final Either<Failure, List<ExpenseModel>> either = await repository.findAll();
+final List<ErrorItemResponse> errors = (json['errors'] as List)
+    .map((e) => ErrorItemResponse.fromJson(e as Map<String, dynamic>))
+    .toList();
+
+// evitar
+var either = await repository.findAll();
+var errors = [...];
+```
+
+### Nomes de variáveis descritivos — sem `result`
+
+Nunca nomear variável de `result`. Usar o nome do tipo ou do conceito que representa.
+
+```dart
+// correto — implementação
+final Either<Failure, List<ExpenseModel>> expenses = await repository.findAll();
+
+// correto — testes
+final Either<Map, Map> either = await sut.get(parameter: const Request('/'));
+final ExpenseState state = container.read(expenseNotifierProvider);
+final FailureResponse failure = FailureResponse.fromJson(json);
+
+// evitar
+final result = await repository.findAll();
+final result = await sut.get(...);
+```
+
 ### Sem comentários explicativos
 
 Código deve ser autoexplicativo pelo nome de variáveis, métodos e classes.
 Nenhum `//` para descrever o que o código faz.
+
+### Expression body (`=>`)
+
+Usar `=>` sempre que o corpo da função for uma única expressão. Evitar `return` com chaves nesses casos.
+
+```dart
+// correto
+Map<String, dynamic> _unknownError() => {
+  'errors': [{'field': 'non_field_errors', 'message': 'Unknown error', 'code': 'unknown'}],
+};
+
+Either<L2, R2> either<L2, R2>(L2 Function(L l) fnL, R2 Function(R r) fnR) =>
+    fold((l) => Left(fnL(l)), (r) => Right(fnR(r)));
+
+// evitar
+Map<String, dynamic> _unknownError() {
+  return {'errors': [...]};
+}
+```
+
+### Pattern matching
+
+Usar pattern matching do Dart 3 sempre que possível: destructuring, switch expressions, record patterns.
+
+```dart
+// destructuring em assignment
+final Response(data: data) = await _dio.get(path);
+
+// switch expression no dispatch (MVI)
+void dispatch(XxxIntent intent) => switch (intent) {
+  EmailChanged(:final value) => state = state.copyWith(email: value),
+  SubmitPressed()            => _submit(),
+};
+
+// evitar if/else ou switch statement onde switch expression serve
+```
+
+### Injeção de dependência
+
+Dependências recebidas via construtor com parâmetro **nomeado obrigatório**. Nunca posicional para dependências.
+
+```dart
+// correto
+final class DioHttpClient implements IHttpClient {
+  final Dio _dio;
+  DioHttpClient({required Dio dio}) : _dio = dio;
+}
+
+final class XxxRepository implements IXxxRepository {
+  final IXxxDataSource _dataSource;
+  XxxRepository({required IXxxDataSource dataSource}) : _dataSource = dataSource;
+}
+
+// evitar
+DioHttpClient(this._dio);         // posicional
+DioHttpClient(Dio dio) { ... }    // sem named parameter
+```
 
 ### MVI para formulários e state
 
@@ -234,6 +325,19 @@ test/
     │   └── repositories/     ← testes de repositórios
     └── presentation/
         └── providers/        ← testes de Notifiers (ProviderContainer)
+```
+
+**Descrições de testes sempre em inglês.** Nomes de `test()`, `group()` e `testWidgets()` em inglês.
+
+```dart
+// correto
+test('returns Right when datasource responds', () async { ... });
+group('POST', () {
+  test('returns Left with body on 400 error', () async { ... });
+});
+
+// evitar
+test('retorna Right quando datasource responde', () async { ... });
 ```
 
 ```bash
