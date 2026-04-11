@@ -47,7 +47,7 @@ openspec/changes/<change-name>/
 Ao gerar cada artefato, aplique as constraints do projeto:
 
 **`proposal.md`** — incluir:
-- Camadas afetadas
+- Camadas afetadas — **somente o que o usuário pediu**; se identificar dependências em outras camadas, listar em "Fora do escopo" e perguntar ao usuário antes de incluir
 - O que NÃO está no escopo
 
 **`design.md`** — incluir:

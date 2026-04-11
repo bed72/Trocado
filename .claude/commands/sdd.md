@@ -4,21 +4,19 @@ Fluxo para implementar um endpoint do backend no app Flutter Trocado.
 
 ## Pré-requisito
 
-Verificar o contrato do endpoint em `openapi.json` antes de qualquer implementação.
-
----
-
-## Fluxo completo
-
-### 1. Verificar openapi.json
-
-Mapear campos relevantes:
+Antes de implementar qualquer coisa, criar uma spec com `/sdd`.
+**Implementar exatamente o escopo definido na spec.** Se durante a implementação for identificado que outras camadas são necessárias, perguntar ao usuário antes de incluir.
+Mapear campos do contrato:
 - Campos obrigatórios vs opcionais
 - Tipos de dados (String decimal, ISO date, nullable)
 - Paginação (cursor: `next`/`previous`)
 - ReadOnly fields (não enviar no POST/PATCH)
 
-### 2. Model (domain)
+---
+
+## Fluxo completo
+
+### 1. Model (domain)
 
 Criar/atualizar em `lib/src/domain/models/`:
 - `amount: double` (converter de `String` decimal do backend)
@@ -26,13 +24,7 @@ Criar/atualizar em `lib/src/domain/models/`:
 - Campos antes do construtor
 - `copyWith()` obrigatório
 
-### 3. Datasource interface (infrastructure)
-
-Criar em `lib/src/infrastructure/datasources/`:
-- Retornar `Future<Model>` puro
-- **Sem** `Either`, **sem** `Failure`
-
-### 4. Request e Response (infrastructure/http)
+### 2. Request e Response (infrastructure/http)
 
 Criar em `lib/src/infrastructure/clients/http/`:
 - `requests/xxx_request.dart` — campos antes do construtor, `toJson()`
@@ -40,41 +32,78 @@ Criar em `lib/src/infrastructure/clients/http/`:
   - `value: String` (decimal do backend) → converter para `double` ao mapear para Model
   - `date: String` (ISO 8601) → converter para `int` (milliseconds) ao mapear para Model
 
-### 5. Datasource remoto (infrastructure/remote)
+### 3. Datasource interface (infrastructure)
 
-Criar em `lib/src/infrastructure/datasources/remote/` usando Dio:
-- Usar `XxxRequest` para montar o body do request
-- Deserializar resposta com `XxxResponse.fromJson()`
-- Converter `XxxResponse` → `Model`
+Criar em `lib/src/infrastructure/datasources/remote/`:
+- Retornar `Either<FailureResponse, XxxResponse>`
+- Receber `IHttpClient` via construtor
+- Deserializar ambos os lados do `Either<Map, Map>` retornado pelo client
+- Path do endpoint via `Endpoints` enum em `lib/src/infrastructure/clients/http/endpoints.dart`
 
-Mapeamento HTTP status → Failure (feito no repositório):
-
-| HTTP Status | Failure |
-|---|---|
-| timeout / sem conexão | `NetworkFailure` |
-| 404 | `NotFoundFailure` |
-| 5xx | `ServerFailure` |
-| 422 / 400 | `ValidationFailure(message)` |
-| outros | `UnknownFailure` |
-
-### 6. Repositório (data)
-
-Implementar em `lib/src/data/repositories/`:
-- Receber interface de datasource (nunca implementação concreta)
-- Wrap em try/catch → `Left(Failure)` / `Right(model)`
+**Convenções de nomenclatura no datasource:**
+- Parâmetro do método: sempre `parameter` (não `request`)
+- Variável do retorno do client: `response` (nunca `either` — reservado para `Either` explícito no repositório)
 
 ```dart
-try {
-  final model = await _dataSource.findById(id);
-  return Right(model);
-} on DioException catch (e) {
-  return Left(_mapDioException(e));
-} catch (e) {
-  return Left(UnknownFailure(e.toString()));
+abstract interface class IXxxDataSource {
+  Future<Either<FailureResponse, XxxResponse>> action({required XxxRequest parameter});
+}
+
+final class RemoteXxxDataSource implements IXxxDataSource {
+  final IHttpClient _client;
+  RemoteXxxDataSource({required IHttpClient client}) : _client = client;
+
+  @override
+  Future<Either<FailureResponse, XxxResponse>> action({required XxxRequest parameter}) async {
+    final response = await _client.post(
+      parameter: Requests(Endpoints.xxx.path, body: parameter.toJson()),
+    );
+    return response.either(FailureResponse.fromJson, XxxResponse.fromJson);
+  }
 }
 ```
 
-### 7. Provider (main)
+**Arquivo da interface:** prefixo `interface_` — ex: `interface_xxx_data_source.dart` (classe continua `IXxxDataSource`).
+
+### 4. Repositório (data)
+
+Implementar em `lib/src/data/repositories/`:
+- Receber interface de datasource (nunca implementação concreta)
+- Converter `FailureResponse → Failure` e `XxxResponse → Model`
+- **Sem try-catch** — o único try-catch fica no Client
+
+```dart
+@override
+Future<Either<Failure, XxxModel>> action({required param}) async {
+  final data = await _dataSource.action(
+    parameter: XxxRequest(param: param),
+  );
+  return data.either((failure) => failure.toFailure(), (success) => success.toModel());
+}
+```
+
+Sem `_toFailure` local. A conversão `FailureResponse → Failure` é feita via `FailureResponseExtension.toFailure()` definida em `lib/src/data/extensions/failure_response_extension.dart`, que usa o enum `FailureCodeResponse` (em `infrastructure/clients/http/responses/failure/failure_code.dart`) no pattern match:
+
+```dart
+return switch (FailureCodeResponse.fromString(item.code)) {
+  .networkError => const NetworkFailure(),
+  .serverError  => const ServerFailure(),
+  .notFound     => const NotFoundFailure(),
+  _             => ValidationFailure(item.message),
+};
+```
+
+Mapeamento HTTP status → Failure (feito no repositório via `FailureResponse`):
+
+| Código (`FailureItemResponse.code`) | Failure |
+|---|---|
+| `connection_error` / `timeout` | `NetworkFailure` |
+| `not_found` | `NotFoundFailure` |
+| `server_error` | `ServerFailure` |
+| outros | `ValidationFailure(message)` |
+| desconhecido | `UnknownFailure` |
+
+### 5. Provider (main)
 
 Criar providers Riverpod com `@riverpod` para:
 - Datasource remoto
@@ -84,14 +113,16 @@ Criar providers Riverpod com `@riverpod` para:
 dart run build_runner build --delete-conflicting-outputs
 ```
 
-### 8. Testes
+### 6. Testes
 
-- `test/src/data/repositories/` — unit tests com mock do datasource
+**Não há testes de datasource separados.** A lógica de deserialização é coberta por:
+
+- `test/src/infrastructure/responses/xxx_response_test.dart` — testa `fromJson` isolado
+- `test/src/data/repositories/xxx_repository_test.dart` — mock em `IHttpClient`, testa repositório + datasource juntos
 - `test/src/presentation/providers/` — Notifier com mock do repositório
 
 ---
 
 ## Referências
 
-- API contract: `openapi.json`
 - CLAUDE.md: camadas e regras de dependência

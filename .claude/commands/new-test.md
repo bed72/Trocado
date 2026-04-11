@@ -5,12 +5,14 @@ Padrões de teste para o projeto Trocado.
 ## Setup
 
 ```dart
-final class MockXxxRepository extends Mock implements IXxxRepository {}
-final class MockXxxDataSource extends Mock implements IXxxDataSource {}
+final class MockHttpClient extends Mock implements IHttpClient {}
 final class MockMoneyService extends Mock implements IMoneyService {}
+final class MockXxxRepository extends Mock implements IXxxRepository {}
 ```
 
 Todos os mocks em `test/mocks/mocks.dart`.
+
+**Não há mocks de datasource.** O datasource é testado junto com o repositório via mock do `IHttpClient`.
 
 ---
 
@@ -41,38 +43,70 @@ test('ValidationFailure accepts custom message', () {
 
 ---
 
-## Testes de Repositório
+## Testes de Response (fromJson)
 
 ```dart
-late MockXxxDataSource mockDataSource;
+test('parses success response', () {
+  final  response = XxxResponse.fromJson({'field': 'value'});
+  expect(response.field, 'value');
+});
+
+test('parses failure response', () {
+  final  failure = FailureResponse.fromJson({
+    'errors': [{'field': 'email', 'message': 'Invalid', 'code': 'invalid'}],
+  });
+  expect(failure.errors.first.code, 'invalid');
+});
+```
+
+---
+
+## Testes de Repositório
+
+Mock em `IHttpClient` — testa repositório + datasource juntos. **Não mockar datasource.**
+
+Declarar mocks com o **tipo da interface**, não o tipo do mock:
+
+```dart
+late IHttpClient client;  // correto — tipo da interface
 late XxxRepository repository;
 
 setUp(() {
-  mockDataSource = MockXxxDataSource();
-  repository = XxxRepository(dataSource: mockDataSource);
+  client = MockHttpClient();  // mock atribuído, não declarado
+  final dataSource = RemoteXxxDataSource(client: client);
+  repository = XxxRepository(dataSource: dataSource);
 });
 
-test('returns Right when datasource responds', () async {
-  when(() => mockDataSource.findAll())
-      .thenAnswer((_) async => Right([model]));
+test('returns Right with model on success', () async {
+  when(() => client.post(parameter: any(named: 'parameter')))
+      .thenAnswer((_) async => Right({'field': 'value'}));
 
-  final result = await repository.findAll();
+  final data = await repository.action();
 
-  expect(result.isRight, isTrue);
+  expect(data.isRight, isTrue);
+});
+
+test('returns Left ValidationFailure on 400', () async {
+  when(() => client.post(parameter: any(named: 'parameter')))
+      .thenAnswer((_) async => Left({
+        'errors': [{'field': 'email', 'message': 'Invalid email', 'code': 'invalid'}],
+      }));
+
+  final data = await repository.action();
+
+  expect(data.isLeft, isTrue);
+  data.fold((failure) => expect(failure, isA<ValidationFailure>()), (_) {});
 });
 
 test('returns Left NetworkFailure on connection error', () async {
-  when(() => mockDataSource.findAll()).thenThrow(
-    DioException(
-      requestOptions: RequestOptions(),
-      type: DioExceptionType.connectionError,
-    ),
-  );
+  when(() => client.post(parameter: any(named: 'parameter')))
+      .thenAnswer((_) async => Left({
+        'errors': [{'field': 'non_field_errors', 'message': 'No connection', 'code': 'connection_error'}],
+      }));
 
-  final result = await repository.findAll();
+  final data = await repository.action();
 
-  expect(result.isLeft, isTrue);
-  result.fold((f) => expect(f, isA<NetworkFailure>()), (_) {});
+  data.fold((failure) => expect(failure, isA<NetworkFailure>()), (_) {});
 });
 ```
 
@@ -82,12 +116,12 @@ test('returns Left NetworkFailure on connection error', () async {
 
 ```dart
 late ProviderContainer container;
-late MockXxxRepository mockRepo;
+late MockXxxRepository repository;
 
 setUp(() {
-  mockRepo = MockXxxRepository();
+  repository = MockXxxRepository();
   container = ProviderContainer(
-    overrides: [xxxRepositoryProvider.overrideWithValue(mockRepo)],
+    overrides: [xxxRepositoryProvider.overrideWithValue(repository)],
   );
 });
 
@@ -100,7 +134,7 @@ test('dispatch XxxActionA updates state', () {
 });
 
 test('dispatch XxxSubmit emits loading then success', () async {
-  when(() => mockRepo.action()).thenAnswer((_) async => Right(model));
+  when(() => repository.action()).thenAnswer((_) async => Right(model));
 
   final notifier = container.read(xxxNotifierProvider.notifier);
   final future = notifier.dispatch(const XxxSubmit());
@@ -111,7 +145,7 @@ test('dispatch XxxSubmit emits loading then success', () async {
 });
 
 test('dispatch XxxSubmit emits failure', () async {
-  when(() => mockRepo.action())
+  when(() => repository.action())
       .thenAnswer((_) async => Left(const NetworkFailure()));
 
   await container.read(xxxNotifierProvider.notifier).dispatch(const XxxSubmit());

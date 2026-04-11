@@ -1,7 +1,7 @@
 # Trocado — Flutter App
 
 App de controle financeiro para casais. "Trocado" é o nome coloquial brasileiro para dinheiro.
-Consome a API REST Django documentada em `openapi.json`.
+Consome a API REST Django.
 
 ## Stack
 
@@ -71,7 +71,10 @@ nunca das implementações concretas.
 - `datasources/` — interfaces de datasource retornam `Either<FailureResponse, XxxResponse>`
 - `datasources/remote/` — mapeia `Either<Map, Map>` do Client para `Either<FailureResponse, XxxResponse>` via `fromJson`
 
-**Regra:** o único `try-catch` fica no Client. Datasources deserializam ambos os lados do `Either`. Repositórios convertem `FailureResponse → Failure` e `XxxResponse → Model`.
+**Regra:** o único `try-catch` fica no Client. Datasources deserializam ambos os lados do `Either`. Repositórios convertem `FailureResponse → Failure` (via `FailureResponseExtension.toFailure()`) e `XxxResponse → Model`.
+
+- `infrastructure/clients/http/responses/failure/failure_code_response.dart` — enum `FailureCode` com os códigos da API
+- `data/extensions/failure_response_extension.dart` — extension `toFailure()` compartilhada por todos os repositórios
 
 ### `presentation/` — UI e state
 
@@ -115,36 +118,40 @@ class ExpenseState extends Equatable {
 
 ### Tipos explícitos — sem `var`
 
-Nunca usar `var`. Declarar sempre o tipo explicitamente.
+Nunca usar `var`. Para `final`, omitir o tipo quando ele é inferível pelo contexto (retorno de método, `fromJson`, etc.). Declarar o tipo explicitamente apenas quando a inferência não é óbvia ou quando aumenta a legibilidade.
 
 ```dart
-// correto
-final Either<Failure, List<ExpenseModel>> either = await repository.findAll();
+// correto — tipo inferível, omitir
+final data = await repository.findAll();
+final data = await _dataSource.signIn(parameter: request);
+
+// correto — tipo explícito quando agrega legibilidade
 final List<ErrorItemResponse> errors = (json['errors'] as List)
     .map((e) => ErrorItemResponse.fromJson(e as Map<String, dynamic>))
     .toList();
 
-// evitar
-var either = await repository.findAll();
+// evitar — var sempre
+var data = await repository.findAll();
 var errors = [...];
 ```
 
-### Nomes de variáveis descritivos — sem `result`
+### Nomes de variáveis descritivos — sem `result` e sem `either`
 
-Nunca nomear variável de `result`. Usar o nome do tipo ou do conceito que representa.
+Nunca nomear variável de `result` ou `either`. Usar `data` para retorno de operações assíncronas, ou o nome do conceito que representa.
 
 ```dart
 // correto — implementação
-final Either<Failure, List<ExpenseModel>> expenses = await repository.findAll();
+final data = await repository.findAll();
+final data = await _dataSource.signIn(parameter: request);
 
 // correto — testes
-final Either<Map, Map> either = await sut.get(parameter: const Request('/'));
-final ExpenseState state = container.read(expenseNotifierProvider);
+final data = await repository.signIn(email: 'jane@trocado.app', password: '123');
+final state = container.read(expenseNotifierProvider);
 final FailureResponse failure = FailureResponse.fromJson(json);
 
 // evitar
 final result = await repository.findAll();
-final result = await sut.get(...);
+final either = await _dataSource.signIn(parameter: request);
 ```
 
 ### Sem comentários explicativos
@@ -287,7 +294,8 @@ Funções que retornam `Stream<T>` não são `async`.
 |---|---|---|
 | Arquivos | `snake_case.dart` | `expense_model.dart` |
 | Classes | `PascalCase` | `ExpenseModel` |
-| Interfaces | prefixo `I` | `IExpenseRepository` |
+| Interfaces (classe) | prefixo `I` | `IExpenseRepository` |
+| Interfaces (arquivo) | prefixo `interface_` | `interface_expense_repository.dart` |
 | Failures | sufixo `Failure` | `NetworkFailure` |
 | Requests | sufixo `Request` | `SignInRequest` |
 | Responses | sufixo `Response` | `SignInResponse` |
@@ -317,14 +325,43 @@ context.root();
 
 ```
 test/
-├── mocks/mocks.dart          ← todos os mocks (mocktail)
+├── mocks/mocks.dart               ← todos os mocks (mocktail)
 └── src/
-    ├── domain/               ← testes de models, services, failures
-    │   └── failures/         ← testes de Failure
+    ├── infrastructure/
+    │   └── responses/             ← testes de fromJson das responses
+    ├── domain/                    ← testes de models, services, failures
+    │   └── failures/              ← testes de Failure
     ├── data/
-    │   └── repositories/     ← testes de repositórios
+    │   └── repositories/          ← testes de repositórios (mock em IHttpClient)
     └── presentation/
-        └── providers/        ← testes de Notifiers (ProviderContainer)
+        └── providers/             ← testes de Notifiers (ProviderContainer)
+```
+
+### Estratégia de mock por camada
+
+| O que testar | Mock em | Não mockar |
+|---|---|---|
+| Response `fromJson` | — (puro) | — |
+| Repositório + Datasource | `IHttpClient` | `IXxxDataSource` |
+| Notifier | `IXxxRepository` | — |
+
+**Não há testes de datasource separados.** O datasource só deserializa JSON — coberto pelos testes de `fromJson` das responses e pelos testes de repositório.
+
+**Declaração de mocks com o tipo da interface**, não do mock:
+
+```dart
+// correto
+late IHttpClient client;
+late IAuthenticationRepository repository;
+
+setUp(() {
+  client = MockHttpClient();
+  repository = MockAuthenticationRepository();
+});
+
+// evitar
+late MockHttpClient mockClient;
+late MockAuthenticationRepository mockRepository;
 ```
 
 **Descrições de testes sempre em inglês.** Nomes de `test()`, `group()` e `testWidgets()` em inglês.
@@ -350,14 +387,15 @@ dart run build_runner build --delete-conflicting-outputs
 
 ## SDD — Spec-Driven Development
 
-Contratos da API estão em `openapi.json`.
-Antes de implementar qualquer datasource remoto, verificar o contrato do endpoint em `openapi.json`.
+Antes de implementar qualquer coisa, usar o skill `/sdd` para criar uma spec.
 Ver skill `/sdd` para o fluxo completo.
+
+**Escopo:** implementar exatamente o que está na spec — nem mais, nem menos.
+Se outras camadas forem necessárias além do que foi pedido, perguntar antes de incluir.
 
 ---
 
 ## Documentação de Referência
 
-- API backend: `openapi.json`
 - App nativo Kotlin (referência): Obsidian `Trocado/Native/`
 - Backend Django (referência): Obsidian `Trocado/BackEnd/`
