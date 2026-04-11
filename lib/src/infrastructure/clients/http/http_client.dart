@@ -2,25 +2,24 @@ import 'package:dio/dio.dart';
 
 import 'package:trocado/src/domain/either/either.dart';
 
-import 'package:trocado/src/infrastructure/clients/http/requests/request.dart';
-
-typedef Result = Either<Map<String, dynamic>, Map<String, dynamic>>;
+import 'package:trocado/src/infrastructure/clients/http/requests/requests.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/reponses.dart';
 
 abstract interface class IHttpClient {
-  Future<Result> get({required Request parameter});
-  Future<Result> put({required Request parameter});
-  Future<Result> post({required Request parameter});
-  Future<Result> patch({required Request parameter});
-  Future<Result> delete({required Request parameter});
+  Future<Responses> get({required Requests parameter});
+  Future<Responses> put({required Requests parameter});
+  Future<Responses> post({required Requests parameter});
+  Future<Responses> patch({required Requests parameter});
+  Future<Responses> delete({required Requests parameter});
 }
 
-final class DioHttpClient implements IHttpClient {
+final class HttpClient implements IHttpClient {
   final Dio _dio;
 
-  DioHttpClient({required Dio dio}) : _dio = dio;
+  HttpClient({required Dio dio}) : _dio = dio;
 
   @override
-  Future<Result> get({required Request parameter}) async {
+  Future<Responses> get({required Requests parameter}) async {
     try {
       final Response(data: data) = await _dio.get<Map<String, dynamic>>(
         parameter.path,
@@ -30,14 +29,14 @@ final class DioHttpClient implements IHttpClient {
 
       return Right(data ?? {});
     } on DioException catch (exception) {
-      return Left(_mapDioError(exception));
+      return Left(_mapFailure(exception));
     } catch (_) {
-      return Left(_unknownError());
+      return Left(_unknownFailure());
     }
   }
 
   @override
-  Future<Result> post({required Request parameter}) async {
+  Future<Responses> post({required Requests parameter}) async {
     try {
       final Response(data: data) = await _dio.post<Map<String, dynamic>>(
         parameter.path,
@@ -48,14 +47,14 @@ final class DioHttpClient implements IHttpClient {
 
       return Right(data ?? {});
     } on DioException catch (exception) {
-      return Left(_mapDioError(exception));
+      return Left(_mapFailure(exception));
     } catch (_) {
-      return Left(_unknownError());
+      return Left(_unknownFailure());
     }
   }
 
   @override
-  Future<Result> put({required Request parameter}) async {
+  Future<Responses> put({required Requests parameter}) async {
     try {
       final Response(data: data) = await _dio.put<Map<String, dynamic>>(
         parameter.path,
@@ -66,14 +65,14 @@ final class DioHttpClient implements IHttpClient {
 
       return Right(data ?? {});
     } on DioException catch (exception) {
-      return Left(_mapDioError(exception));
+      return Left(_mapFailure(exception));
     } catch (_) {
-      return Left(_unknownError());
+      return Left(_unknownFailure());
     }
   }
 
   @override
-  Future<Result> patch({required Request parameter}) async {
+  Future<Responses> patch({required Requests parameter}) async {
     try {
       final Response(data: data) = await _dio.patch<Map<String, dynamic>>(
         parameter.path,
@@ -84,14 +83,14 @@ final class DioHttpClient implements IHttpClient {
 
       return Right(data ?? {});
     } on DioException catch (exception) {
-      return Left(_mapDioError(exception));
+      return Left(_mapFailure(exception));
     } catch (_) {
-      return Left(_unknownError());
+      return Left(_unknownFailure());
     }
   }
 
   @override
-  Future<Result> delete({required Request parameter}) async {
+  Future<Responses> delete({required Requests parameter}) async {
     try {
       final Response(data: data) = await _dio.delete<Map<String, dynamic>>(
         parameter.path,
@@ -102,13 +101,13 @@ final class DioHttpClient implements IHttpClient {
 
       return Right(data ?? {});
     } on DioException catch (exception) {
-      return Left(_mapDioError(exception));
+      return Left(_mapFailure(exception));
     } catch (_) {
-      return Left(_unknownError());
+      return Left(_unknownFailure());
     }
   }
 
-  Map<String, dynamic> _unknownError() => {
+  Map<String, dynamic> _unknownFailure() => {
     'errors': [
       {
         'code': 'unknown',
@@ -118,7 +117,7 @@ final class DioHttpClient implements IHttpClient {
     ],
   };
 
-  Map<String, dynamic> _mapDioError(DioException exception) =>
+  Map<String, dynamic> _mapFailure(DioException exception) =>
       exception.response != null
       ? exception.response!.data as Map<String, dynamic>
       : {

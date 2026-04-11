@@ -3,17 +3,17 @@ import 'package:mocktail/mocktail.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:trocado/src/infrastructure/clients/http/http_client.dart';
-import 'package:trocado/src/infrastructure/clients/http/requests/request.dart';
+import 'package:trocado/src/infrastructure/clients/http/requests/requests.dart';
 
 import '../../../../mocks/mocks.dart';
 
 void main() {
   late MockDio dio;
-  late DioHttpClient sut;
+  late HttpClient sut;
 
   setUp(() {
     dio = MockDio();
-    sut = DioHttpClient(dio: dio);
+    sut = HttpClient(dio: dio);
   });
 
   DioException networkError() => DioException(
@@ -46,7 +46,7 @@ void main() {
         ),
       ).thenAnswer((_) async => successResponse({'id': 1}));
 
-      final data = await sut.get(parameter: const Request('/endpoint'));
+      final data = await sut.get(parameter: const Requests('/endpoint'));
 
       expect(data.isRight, isTrue);
       expect(data.right, {'id': 1});
@@ -71,7 +71,7 @@ void main() {
         ),
       ).thenThrow(dioErrorWithResponse(body, 404));
 
-      final data = await sut.get(parameter: const Request('/endpoint'));
+      final data = await sut.get(parameter: const Requests('/endpoint'));
 
       expect(data.left, body);
       expect(data.isLeft, isTrue);
@@ -86,7 +86,7 @@ void main() {
         ),
       ).thenThrow(networkError());
 
-      final data = await sut.get(parameter: const Request('/endpoint'));
+      final data = await sut.get(parameter: const Requests('/endpoint'));
 
       expect(data.isLeft, isTrue);
       final errors = data.left['errors'] as List;
@@ -102,7 +102,7 @@ void main() {
         ),
       ).thenThrow(Exception('unexpected'));
 
-      final data = await sut.get(parameter: const Request('/endpoint'));
+      final data = await sut.get(parameter: const Requests('/endpoint'));
 
       expect(data.isLeft, isTrue);
       final errors = data.left['errors'] as List;
@@ -122,7 +122,7 @@ void main() {
       ).thenAnswer((_) async => successResponse({'token': 'abc'}));
 
       final data = await sut.post(
-        parameter: const Request('/auth', body: {'email': 'a@b.com'}),
+        parameter: const Requests('/auth', body: {'email': 'a@b.com'}),
       );
 
       expect(data.isRight, isTrue);
@@ -149,7 +149,7 @@ void main() {
         ),
       ).thenThrow(dioErrorWithResponse(body, 400));
 
-      final data = await sut.post(parameter: const Request('/auth'));
+      final data = await sut.post(parameter: const Requests('/auth'));
 
       expect(data.left, body);
       expect(data.isLeft, isTrue);
@@ -168,7 +168,7 @@ void main() {
       ).thenAnswer((_) async => successResponse({'updated': true}));
 
       final data = await sut.put(
-        parameter: const Request('/resource/1', body: {'name': 'test'}),
+        parameter: const Requests('/resource/1', body: {'name': 'test'}),
       );
 
       expect(data.isRight, isTrue);
@@ -187,7 +187,7 @@ void main() {
       ).thenAnswer((_) async => successResponse({'patched': true}));
 
       final data = await sut.patch(
-        parameter: const Request('/resource/1', body: {'name': 'test'}),
+        parameter: const Requests('/resource/1', body: {'name': 'test'}),
       );
 
       expect(data.isRight, isTrue);
@@ -204,7 +204,7 @@ void main() {
         ),
       ).thenAnswer((_) async => successResponse({}));
 
-      final data = await sut.delete(parameter: const Request('/resource/1'));
+      final data = await sut.delete(parameter: const Requests('/resource/1'));
 
       expect(data.isRight, isTrue);
     });
