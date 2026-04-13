@@ -1,12 +1,10 @@
 import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:trocado/app_widget.dart';
-import 'package:trocado/src/main/injection.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  ensureInitialized();
-
-  runApp(const AppWidget());
+  runApp(const ProviderScope(child: AppWidget()));
 }

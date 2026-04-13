@@ -81,6 +81,29 @@ nunca das implementações concretas.
 Riverpod Notifiers com padrão MVI: sealed class `XxxIntent` + método `dispatch` + `switch` exhaustivo.
 Widgets são `StatelessWidget` puros. Apenas screens usam `Consumer` para acessar providers.
 
+**Regra:** nunca usar `ConsumerWidget`. Sempre `StatelessWidget` + `Consumer` interno:
+
+```dart
+// correto
+class SignInScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Consumer(
+      builder: (context, ref, _) {
+        final state = ref.watch(signInNotifierProvider);
+        return ...;
+      },
+    );
+  }
+}
+
+// proibido
+class SignInScreen extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) { ... }
+}
+```
+
 ### `main/` — Composition root
 
 - `locations/` — definições de rota com `duck_router`

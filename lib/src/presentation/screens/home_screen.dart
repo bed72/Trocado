@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
 
 import 'package:trocado/src/presentation/mixins/back_button_mixin.dart';
@@ -46,36 +46,37 @@ class _HomeScreenState extends State<HomeScreen>
         onNavigateToExpense: widget.navigateToCreateExpense,
       ),
       body: SafeArea(
-        child: BlocBuilder<ExpenseListBloc, ExpenseListState>(
-          builder: (_, state) => switch (state.status) {
-            .initial ||
-            .loading => const Center(child: CircularProgressIndicator()),
-            .failure => Center(
-              child: Column(
-                mainAxisSize: .min,
-                children: [
-                  Text(
-                    state.failureMessage ?? 'Ops, algo deu errado.',
-                    style: context.typography.bodyLarge,
-                  ),
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: () =>
-                        widget.bloc.add(const ExpenseListRefreshRequested()),
-                    child: const Text('Tentar novamente'),
-                  ),
-                ],
-              ),
-            ),
-            .loaded =>
-              state.expenses.isEmpty
-                  ? EmptyWidget(type: .expense)
-                  : HomeSuccessWidget(
-                      data: state,
-                      navigatTo: widget.navigateToChangeExpense,
-                    ),
-          },
-        ),
+        child: Placeholder(),
+        // BlocBuilder<ExpenseListBloc, ExpenseListState>(
+        //   builder: (_, state) => switch (state.status) {
+        //     .initial ||
+        //     .loading => const Center(child: CircularProgressIndicator()),
+        //     .failure => Center(
+        //       child: Column(
+        //         mainAxisSize: .min,
+        //         children: [
+        //           Text(
+        //             state.failureMessage ?? 'Ops, algo deu errado.',
+        //             style: context.typography.bodyLarge,
+        //           ),
+        //           const SizedBox(height: 16),
+        //           TextButton(
+        //             onPressed: () =>
+        //                 widget.bloc.add(const ExpenseListRefreshRequested()),
+        //             child: const Text('Tentar novamente'),
+        //           ),
+        //         ],
+        //       ),
+        //     ),
+        //     .loaded =>
+        //       state.expenses.isEmpty
+        //           ? EmptyWidget(type: .expense)
+        //           : HomeSuccessWidget(
+        //               data: state,
+        //               navigatTo: widget.navigateToChangeExpense,
+        //             ),
+        //   },
+        // ),
       ),
     );
   }

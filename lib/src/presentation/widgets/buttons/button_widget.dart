@@ -70,8 +70,15 @@ class ButtonWidget extends StatelessWidget {
 
   Widget _buildButton({required BuildContext context, required Widget child}) =>
       switch (type) {
-        .text => TextButton(onPressed: onTap, child: child),
         .elevated => ElevatedButton(onPressed: onTap, child: child),
         .outlined => OutlinedButton(onPressed: onTap, child: child),
+        .text => TextButton(
+          onPressed: onTap,
+          style: TextButton.styleFrom(
+            overlayColor: Colors.transparent,
+            backgroundColor: Colors.transparent,
+          ),
+          child: child,
+        ),
       };
 }

@@ -1,17 +1,11 @@
 import 'package:flutter/material.dart';
 
 import 'package:trocado/src/presentation/widgets/home/expense/expense_widget.dart';
-import 'package:trocado/src/presentation/bloc/expense_list/expense_list_state.dart';
 
 class HomeSuccessWidget extends StatelessWidget {
-  final ExpenseListState data;
   final ValueChanged<int?> navigatTo;
 
-  const HomeSuccessWidget({
-    super.key,
-    required this.data,
-    required this.navigatTo,
-  });
+  const HomeSuccessWidget({super.key, required this.navigatTo});
 
   @override
   Widget build(BuildContext context) {
@@ -20,9 +14,9 @@ class HomeSuccessWidget extends StatelessWidget {
         SliverPadding(
           padding: const .symmetric(horizontal: 16),
           sliver: SliverList.builder(
-            itemCount: data.expenses.length + (data.hasReachedMax ? 0 : 1),
+            itemCount: 0,
             itemBuilder: (_, index) {
-              if (index >= data.expenses.length) {
+              if (index >= 0) {
                 return const Padding(
                   padding: .symmetric(vertical: 16),
                   child: Center(child: CircularProgressIndicator()),
@@ -36,7 +30,7 @@ class HomeSuccessWidget extends StatelessWidget {
 
               return ExpenseWidget(
                 navigatTo: navigatTo,
-                data: data.expenses[index],
+                // data: data.expenses[index],
               );
               // ListTile(
               //   onTap: () => navigatTo(expense.id),

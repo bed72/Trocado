@@ -1,5 +1,4 @@
 import 'package:flutter/widgets.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
@@ -27,12 +26,12 @@ class DateScreen extends StatelessWidget {
             child: SfDateRangePicker(
               view: .month,
               showNavigationArrow: true,
-              initialDisplayDate: value,
-              initialSelectedDate: value,
+              initialDisplayDate: .now(),
+              initialSelectedDate: .now(),
               backgroundColor: context.colors.surface,
               onSelectionChanged: (args) {
                 final date = args.value;
-                if (date is DateTime) bloc.add(ExpenseDateChanged(date));
+                // if (date is DateTime) bloc.add(ExpenseDateChanged(date));
               },
               headerStyle: DateRangePickerHeaderStyle(
                 backgroundColor: context.colors.surface,

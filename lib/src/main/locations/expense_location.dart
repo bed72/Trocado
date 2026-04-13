@@ -1,10 +1,8 @@
 import 'package:duck_router/duck_router.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:trocado/app_route.dart';
 
 import 'package:trocado/src/main/locations/date_location.dart';
-import 'package:trocado/src/main/locations/category_location.dart';
 import 'package:trocado/src/main/locations/calculator_location.dart';
 
 import 'package:trocado/src/presentation/pages/screen_page.dart';
@@ -25,7 +23,6 @@ final class ExpenseLocation extends Location {
         ExpenseScreen(
           id: id,
           navigateToDate: () => context.navigate(DateLocation()),
-          navigateToCategory: () => context.navigate(CategoryLocation()),
           navigateToCalculator: () => context.navigate(CalculatorLocation()),
         ),
       );

@@ -66,12 +66,19 @@ final class AppRoutes {
     regex: RegExp(r'^/budget$'),
   );
 
+  static final signIn = AppRoutes._(
+    path: '/sign-in',
+    name: 'sign-in-route',
+    regex: RegExp(r'^/sign-in$'),
+  );
+
   static final _all = [
     date,
     exit,
     home,
     budget,
     splash,
+    signIn,
     expense,
     category,
     calculator,

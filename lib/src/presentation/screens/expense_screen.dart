@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-
 import 'package:trocado/src/presentation/widgets/app_bar_widget.dart';
 import 'package:trocado/src/presentation/widgets/go_back_widget.dart';
 import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';
@@ -14,13 +13,11 @@ class ExpenseScreen extends StatelessWidget {
   final int? id;
 
   final VoidCallback navigateToDate;
-  final VoidCallback navigateToCategory;
   final VoidCallback navigateToCalculator;
 
   const ExpenseScreen({
     super.key,
     required this.navigateToDate,
-    required this.navigateToCategory,
     required this.navigateToCalculator,
     this.id,
   });
@@ -38,18 +35,14 @@ class ExpenseScreen extends StatelessWidget {
                 child: Column(
                   spacing: 16.0,
                   children: [
-                    ExpenseDescriptionFieldWidget(bloc: bloc),
-                    ExpenseAmountFieldWidget(
-                      bloc: bloc,
-                      navigateTo: navigateToCalculator,
-                    ),
+                    ExpenseDescriptionFieldWidget(),
+                    ExpenseAmountFieldWidget(navigateTo: navigateToCalculator),
                     ExpenseDateFieldWidget(navigateTo: navigateToDate),
-                    ExpenseCategoryFieldWidget(navigateTo: navigateToCategory),
                   ],
                 ),
               ),
             ),
-            ExpenseSaveButtonWidget(bloc:),
+            ExpenseSaveButtonWidget(),
           ],
         ),
       ),

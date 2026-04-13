@@ -118,3 +118,4 @@ dart run build_runner build --delete-conflicting-outputs
 - `@riverpod` apenas no Notifier — não usar code gen em State ou Intent
 - `switch` no `dispatch` deve ser exhaustivo (cobrir todos os intents)
 - Widget filho (`XxxWidget`) não conhece Riverpod — recebe `onIntent` como callback
+- **Nunca usar `ConsumerWidget`** — sempre `StatelessWidget` + `Consumer` interno na screen
