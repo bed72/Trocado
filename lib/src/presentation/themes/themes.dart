@@ -48,11 +48,9 @@ abstract final class Themes {
       ),
 
       inputDecoratorRadius: 16.0,
+      inputDecoratorIsDense: false,
       inputDecoratorBorderType: .outline,
-      inputDecoratorContentPadding: const .symmetric(
-        vertical: 14.0,
-        horizontal: 0.0,
-      ),
+      inputDecoratorContentPadding: const .symmetric(horizontal: 0.0),
     ),
 
     visualDensity: FlexColorScheme.comfortablePlatformDensity,
@@ -105,11 +103,9 @@ abstract final class Themes {
       ),
 
       inputDecoratorRadius: 16.0,
+      inputDecoratorIsDense: false,
       inputDecoratorBorderType: .outline,
-      inputDecoratorContentPadding: const .symmetric(
-        vertical: 16.0,
-        horizontal: 0.0,
-      ),
+      inputDecoratorContentPadding: const .symmetric(horizontal: 0.0),
     ),
 
     visualDensity: FlexColorScheme.comfortablePlatformDensity,
