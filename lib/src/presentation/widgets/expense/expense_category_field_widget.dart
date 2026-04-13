@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:trocado/src/presentation/widgets/bounce_widget.dart';
-import 'package:trocado/src/presentation/widgets/fields/text_field_widget.dart';
+import 'package:trocado/src/presentation/widgets/fields/input_widget.dart';
 
 class ExpenseCategoryFieldWidget extends StatelessWidget {
   final VoidCallback navigateTo;
@@ -12,12 +12,12 @@ class ExpenseCategoryFieldWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return BounceWidget.withOnPress(
       onPress: navigateTo,
-      child: TextFieldWidget(
+      child: const InputWidget(
+        label: 'Categoria',
+        hint: 'Categoria',
         readOnly: true,
         absorbing: true,
-        hint: 'Categoria',
-        // key: ValueKey(category),
-        initialValue: 'category.label',
+        // initialValue: category.label,
       ),
     );
   }

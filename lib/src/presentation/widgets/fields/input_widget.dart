@@ -8,6 +8,7 @@ class InputWidget extends StatefulWidget {
   final bool enabled;
   final String label;
   final bool readOnly;
+  final bool absorbing;
   final String? failure;
   final bool obscureText;
   final String? initialValue;
@@ -34,6 +35,7 @@ class InputWidget extends StatefulWidget {
     this.onFocusChanged,
     this.enabled = true,
     this.readOnly = false,
+    this.absorbing = false,
     this.onTrailingIconTap,
     this.obscureText = false,
   });
@@ -50,8 +52,8 @@ class _InputWidgetState extends State<InputWidget> {
   bool get _isFailure => widget.failure != null;
 
   Color _color(BuildContext context) {
-    if (_isFailure) return context.colors.error;
     if (_isFocused) return context.colors.primary;
+    if (_isFailure) return context.colors.error;
     return context.colors.onSurfaceVariant;
   }
 
@@ -91,7 +93,10 @@ class _InputWidgetState extends State<InputWidget> {
       crossAxisAlignment: .start,
       children: [
         _buildLabel(color),
-        _buildField(color),
+        AbsorbPointer(
+          absorbing: widget.absorbing,
+          child: _buildField(color),
+        ),
         if (_isFailure) _buildFailure(color),
       ],
     );
@@ -129,9 +134,9 @@ class _InputWidgetState extends State<InputWidget> {
       hintStyle: context.typography.bodyMedium?.copyWith(
         color: color.withValues(alpha: .6),
       ),
-      fillColor: _isFailure
-          ? context.colors.error.withValues(alpha: .06)
-          : context.colors.primary.withValues(alpha: .06),
+      fillColor: _isFocused
+          ? context.colors.primary.withValues(alpha: .06)
+          : context.colors.error.withValues(alpha: .06),
       disabledBorder: _outlinedBorder(
         context.colors.onSurfaceVariant.withValues(alpha: .4),
       ),

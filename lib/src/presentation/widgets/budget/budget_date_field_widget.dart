@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:trocado/src/presentation/extensions/date_time_extension.dart';
 
 import 'package:trocado/src/presentation/widgets/bounce_widget.dart';
-import 'package:trocado/src/presentation/widgets/fields/text_field_widget.dart';
+import 'package:trocado/src/presentation/widgets/fields/input_widget.dart';
 
 class BudgetDateFieldWidget extends StatelessWidget {
   final VoidCallback navigateTo;
@@ -14,10 +14,11 @@ class BudgetDateFieldWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return BounceWidget.withOnPress(
       onPress: navigateTo,
-      child: TextFieldWidget(
+      child: InputWidget(
+        label: 'Data de término',
+        hint: 'Data de término',
         readOnly: true,
         absorbing: true,
-        hint: 'Data de término',
         initialValue: DateTime.now().format(),
       ),
     );
