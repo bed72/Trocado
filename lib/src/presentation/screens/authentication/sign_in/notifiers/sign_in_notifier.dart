@@ -15,8 +15,8 @@ part 'sign_in_notifier.g.dart';
 
 @riverpod
 final class SignInNotifier extends _$SignInNotifier {
-  late IAuthenticationRepository _repository;
   late SignInFormValidator _validator;
+  late IAuthenticationRepository _repository;
 
   @override
   SignInState build() {
@@ -25,6 +25,7 @@ final class SignInNotifier extends _$SignInNotifier {
       emailValidation: EmailValidation(),
       passwordValidation: PasswordValidation(),
     );
+
     return const SignInState();
   }
 
