@@ -4,18 +4,27 @@ import 'package:trocado/src/main/providers/repositories_provider.dart';
 
 import 'package:trocado/src/domain/contracts/repositories/interface_authentication_repository.dart';
 
+import 'package:trocado/src/presentation/validators/email_validation.dart';
+import 'package:trocado/src/presentation/validators/password_validation.dart';
+
 import 'package:trocado/src/presentation/screens/authentication/sign_in/notifiers/sign_in_state.dart';
 import 'package:trocado/src/presentation/screens/authentication/sign_in/notifiers/sign_in_intent.dart';
+import 'package:trocado/src/presentation/screens/authentication/sign_in/validators/sign_in_form_validator.dart';
 
 part 'sign_in_notifier.g.dart';
 
 @riverpod
 final class SignInNotifier extends _$SignInNotifier {
   late IAuthenticationRepository _repository;
+  late SignInFormValidator _validator;
 
   @override
   SignInState build() {
     _repository = ref.watch(authenticationRepositoryProvider);
+    _validator = const SignInFormValidator(
+      emailValidation: EmailValidation(),
+      passwordValidation: PasswordValidation(),
+    );
     return const SignInState();
   }
 
@@ -32,45 +41,24 @@ final class SignInNotifier extends _$SignInNotifier {
   };
 
   Future<void> _submit() async {
-    if (!_validate()) return;
+    final (:state, :isValid) = _validator(this.state);
+    this.state = state;
 
-    state = state.copyWith(status: .loading);
+    if (!isValid) return;
+
+    this.state = this.state.copyWith(status: .loading);
 
     final data = await _repository.signIn(
-      email: state.email,
-      password: state.password,
+      email: this.state.email,
+      password: this.state.password,
     );
 
     data.fold(
-      (failure) =>
-          state = state.copyWith(status: .failure, message: failure.message),
-      (_) => state = state.copyWith(status: .success),
+      (failure) => this.state = this.state.copyWith(
+        status: .failure,
+        message: failure.message,
+      ),
+      (_) => this.state = this.state.copyWith(status: .success),
     );
-  }
-
-  bool _validate() {
-    final emailFailure = _validateEmail(state.email);
-    final passwordFailure = _validatePassword(state.password);
-
-    if (emailFailure != null || passwordFailure != null) {
-      state = state.copyWith(
-        emailFailure: emailFailure,
-        passwordFailure: passwordFailure,
-      );
-      return false;
-    }
-    return true;
-  }
-
-  String? _validateEmail(String email) {
-    if (email.isEmpty) return 'E-mail obrigatório';
-    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(email)) return 'E-mail inválido';
-    return null;
-  }
-
-  String? _validatePassword(String password) {
-    if (password.isEmpty) return 'Senha obrigatória';
-    if (password.length < 8) return 'Senha deve ter ao menos 8 caracteres';
-    return null;
   }
 }
