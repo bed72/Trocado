@@ -13,6 +13,8 @@ final class SignInLocation extends Location {
 
   @override
   LocationBuilder? get builder =>
-      (context) =>
-          SignInScreen(onSuccess: () => context.navigate(HomeLocation()));
+      (context) => SignInScreen(
+        onSuccess: () =>
+            context.navigate(HomeLocation(), root: true, replace: true),
+      );
 }
