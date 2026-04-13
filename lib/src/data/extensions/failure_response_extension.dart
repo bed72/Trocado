@@ -7,11 +7,11 @@ extension FailureResponseExtension on FailureResponse {
   Failure toFailure() {
     final failure = errors.first;
 
-    return switch (FailureCodeResponse.fromString(failure.code)) {
+    return switch (FailureCodeResponse.fromString(failure.code ?? '')) {
       .notFound => const NotFoundFailure(),
       .serverError => const ServerFailure(),
       .networkError => const NetworkFailure(),
-      _ => ValidationFailure(failure.message),
+      _ => ValidationFailure(failure.message ?? 'Falha desconhecida.'),
     };
   }
 }

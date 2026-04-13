@@ -61,6 +61,24 @@ void main() {
       expect(data.errors.length, 2);
     });
 
+    test('deserializes null field from backend', () {
+      final json = {
+        'errors': [
+          {
+            'field': null,
+            'code': 'no_active_account',
+            'message': 'Usuário e/ou senha incorreto(s)',
+          },
+        ],
+      };
+
+      final data = FailureResponse.fromJson(json);
+
+      expect(data.errors.first.field, isNull);
+      expect(data.errors.first.code, 'no_active_account');
+      expect(data.errors.first.message, 'Usuário e/ou senha incorreto(s)');
+    });
+
     test('deserializes empty errors list', () {
       final json = {'errors': <dynamic>[]};
 

@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:trocado/src/presentation/extensions/widget_extension.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
+import 'package:trocado/src/presentation/widgets/toast_widget.dart';
 import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';
 import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
 import 'package:trocado/src/presentation/widgets/fields/text_field_widget.dart';
@@ -21,8 +23,11 @@ class SignInScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer(
       builder: (_, ref, _) {
-        ref.listen(signInProvider.select((state) => state.status), (_, status) {
-          if (status == .success) onSuccess();
+        ref.listen(signInProvider, (_, state) {
+          if (state.status == .success) onSuccess();
+          if (state.status == .failure) {
+            _showToastWidget(context: context, message: state.message);
+          }
         });
 
         final state = ref.watch(signInProvider);
@@ -88,8 +93,8 @@ class SignInScreen extends StatelessWidget {
           width: .infinity,
           child: ButtonWidget.elevated(
             label: 'Entrar',
+            onTap: () => _submit(notifier),
             isLoading: state.status == .loading,
-            onTap: () => notifier.dispatch(SubmitPressed()),
           ),
         ),
 
@@ -110,4 +115,22 @@ class SignInScreen extends StatelessWidget {
       ],
     ),
   );
+
+  void _submit(SignInNotifier notifier) {
+    hideKeyboard;
+
+    notifier.dispatch(SubmitPressed());
+  }
+
+  void _showToastWidget({
+    required BuildContext context,
+    required String message,
+  }) {
+    showToastWidget(
+      context: context,
+      title: 'Opps',
+      type: .failure,
+      description: message,
+    );
+  }
 }

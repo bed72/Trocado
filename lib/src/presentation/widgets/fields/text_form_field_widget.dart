@@ -153,7 +153,13 @@ class _TextFormFieldWidgetState extends State<TextFormFieldWidget> {
           color: _color,
           fontSize: _collapsed ? 12.0 : 14.0,
         ),
-        child: Text(widget.hint),
+        child: Text(
+          widget.hint,
+          style: context.typography.bodyMedium?.copyWith(
+            color: _color.withValues(alpha: .8),
+            fontWeight: _collapsed ? .w500 : .w600,
+          ),
+        ),
       ),
     );
   }
@@ -166,6 +172,7 @@ class _TextFormFieldWidgetState extends State<TextFormFieldWidget> {
     controller: _controller,
     onChanged: widget.onChanged,
     autovalidateMode: .disabled,
+    style: TextStyle(color: _color),
     obscureText: widget.obscureText,
     readOnly: widget.readOnly ?? false,
     cursorRadius: const .circular(2.0),
@@ -173,7 +180,6 @@ class _TextFormFieldWidgetState extends State<TextFormFieldWidget> {
     onFieldSubmitted: widget.onFieldSubmitted,
     keyboardType: widget.keyboardType ?? .text,
     textInputAction: widget.inputAction ?? .next,
-    style: TextStyle(color: _hasFailure ? context.colors.error : null),
     validator: (value) {
       final data = widget.validator?.call(value);
 

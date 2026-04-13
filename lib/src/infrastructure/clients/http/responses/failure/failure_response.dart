@@ -1,7 +1,7 @@
 final class FailureItemResponse {
-  final String code;
-  final String field;
-  final String message;
+  final String? code;
+  final String? field;
+  final String? message;
 
   const FailureItemResponse({
     required this.code,
@@ -11,9 +11,9 @@ final class FailureItemResponse {
 
   factory FailureItemResponse.fromJson(Map<String, dynamic> json) =>
       FailureItemResponse(
-        code: json['code'] as String,
-        field: json['field'] as String,
-        message: json['message'] as String,
+        code: json['code'] as String?,
+        field: json['field'] as String?,
+        message: json['message'] as String?,
       );
 }
 

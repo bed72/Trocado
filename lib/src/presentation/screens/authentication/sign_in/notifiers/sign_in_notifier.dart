@@ -1,18 +1,25 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:trocado/src/main/providers/repositories_provider.dart';
+
+import 'package:trocado/src/domain/contracts/repositories/interface_authentication_repository.dart';
+
 import 'package:trocado/src/presentation/screens/authentication/sign_in/notifiers/sign_in_state.dart';
 import 'package:trocado/src/presentation/screens/authentication/sign_in/notifiers/sign_in_events.dart';
 
-import 'package:trocado/src/main/providers/repositories_provider.dart';
-
-part '../sign_in_notifier.g.dart';
+part 'sign_in_notifier.g.dart';
 
 @riverpod
 final class SignInNotifier extends _$SignInNotifier {
-  @override
-  SignInState build() => const SignInState();
+  late IAuthenticationRepository _repository;
 
-  void dispatch(SignInEvents intent) => switch (intent) {
+  @override
+  SignInState build() {
+    _repository = ref.watch(authenticationRepositoryProvider);
+    return const SignInState();
+  }
+
+  void dispatch(SignInEvents events) => switch (events) {
     EmailChanged(:final value) => state = state.copyWith(email: value),
     PasswordChanged(:final value) => state = state.copyWith(password: value),
     SubmitPressed() => _submit(),
@@ -21,9 +28,10 @@ final class SignInNotifier extends _$SignInNotifier {
   Future<void> _submit() async {
     state = state.copyWith(status: .loading);
 
-    final data = await ref
-        .read(authenticationRepositoryProvider)
-        .signIn(email: state.email, password: state.password);
+    final data = await _repository.signIn(
+      email: state.email,
+      password: state.password,
+    );
 
     data.fold(
       (failure) =>

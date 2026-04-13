@@ -157,7 +157,13 @@ class TextFieldWidgetState extends State<TextFieldWidget> {
           color: _color,
           fontSize: _collapsed ? 12.0 : 14.0,
         ),
-        child: Text(widget.hint),
+        child: Text(
+          widget.hint,
+          style: context.typography.bodyMedium?.copyWith(
+            color: _color.withValues(alpha: .8),
+            fontWeight: _collapsed ? .w500 : .w600,
+          ),
+        ),
       ),
     );
   }
@@ -169,6 +175,7 @@ class TextFieldWidgetState extends State<TextFieldWidget> {
     focusNode: _focus,
     controller: _controller,
     onChanged: widget.onChanged,
+    style: TextStyle(color: _color),
     obscureText: widget.obscureText,
     onSubmitted: widget.onSubmitted,
     cursorRadius: const .circular(2.0),
@@ -176,7 +183,6 @@ class TextFieldWidgetState extends State<TextFieldWidget> {
     inputFormatters: widget.inputFormatters,
     keyboardType: widget.keyboardType ?? .text,
     textInputAction: widget.inputAction ?? .next,
-    style: TextStyle(color: _hasFailure ? context.colors.error : null),
     decoration: InputDecoration(
       filled: false,
       border: .none,

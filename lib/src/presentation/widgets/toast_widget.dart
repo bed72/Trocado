@@ -18,14 +18,14 @@ void showToastWidget({
     context: context,
     title: title,
     onClose: onClose,
-    seconds: seconds ?? 2,
+    seconds: seconds ?? 3,
     description: description,
   ),
   .failure => _showFailureToast(
     context: context,
     title: title,
     onClose: onClose,
-    seconds: seconds ?? 2,
+    seconds: seconds ?? 3,
     description: description,
   ),
 };
