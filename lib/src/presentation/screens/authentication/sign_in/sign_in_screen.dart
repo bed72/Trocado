@@ -11,22 +11,36 @@ import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
 import 'package:trocado/src/presentation/widgets/fields/text_field_widget.dart';
 
 import 'package:trocado/src/presentation/screens/authentication/sign_in/notifiers/sign_in_state.dart';
-import 'package:trocado/src/presentation/screens/authentication/sign_in/notifiers/sign_in_events.dart';
+import 'package:trocado/src/presentation/screens/authentication/sign_in/notifiers/sign_in_intent.dart';
 import 'package:trocado/src/presentation/screens/authentication/sign_in/notifiers/sign_in_notifier.dart';
 
-class SignInScreen extends StatelessWidget {
+class SignInScreen extends StatefulWidget {
   final VoidCallback onSuccess;
 
   const SignInScreen({super.key, required this.onSuccess});
 
   @override
+  State<SignInScreen> createState() => _SignInScreenState();
+}
+
+class _SignInScreenState extends State<SignInScreen> {
+  final _emailKey = GlobalKey<TextFieldWidgetState>();
+  final _passwordKey = GlobalKey<TextFieldWidgetState>();
+
+  @override
   Widget build(BuildContext context) {
     return Consumer(
       builder: (_, ref, _) {
-        ref.listen(signInProvider, (_, state) {
-          if (state.status == .success) onSuccess();
-          if (state.status == .failure) {
-            _showToastWidget(context: context, message: state.message);
+        ref.listen(signInProvider, (previous, next) {
+          if (next.status == .success) widget.onSuccess();
+          if (next.status == .failure) {
+            _showToastWidget(context: context, message: next.message);
+          }
+          if (previous?.emailFailure != next.emailFailure) {
+            _emailKey.currentState?.setFailure(next.emailFailure);
+          }
+          if (previous?.passwordFailure != next.passwordFailure) {
+            _passwordKey.currentState?.setFailure(next.passwordFailure);
           }
         });
 
@@ -66,6 +80,7 @@ class SignInScreen extends StatelessWidget {
         const SizedBox(height: 28.0),
 
         TextFieldWidget(
+          key: _emailKey,
           hint: 'E-mail',
           keyboardType: .emailAddress,
           placeholder: 'Digite seu e-mail',
@@ -75,6 +90,7 @@ class SignInScreen extends StatelessWidget {
         const SizedBox(height: 12.0),
 
         TextFieldWidget(
+          key: _passwordKey,
           hint: 'Senha',
           obscureText: true,
           inputAction: .done,
@@ -119,7 +135,7 @@ class SignInScreen extends StatelessWidget {
   void _submit(SignInNotifier notifier) {
     hideKeyboard;
 
-    notifier.dispatch(SubmitPressed());
+    notifier.dispatch(const SubmitPressed());
   }
 
   void _showToastWidget({
