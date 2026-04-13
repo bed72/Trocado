@@ -7,7 +7,7 @@ import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
 import 'package:trocado/src/presentation/widgets/toast_widget.dart';
 import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';
-import 'package:trocado/src/presentation/widgets/fields/input_widget.dart';
+import 'package:trocado/src/presentation/widgets/fields/text_field_widget.dart';
 import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
 
 import 'package:trocado/src/presentation/screens/authentication/sign_in/notifiers/sign_in_state.dart';
@@ -71,7 +71,7 @@ class SignInScreen extends StatelessWidget {
 
               const SizedBox(height: 28.0),
 
-              InputWidget(
+              TextFieldWidget(
                 label: 'E-mail',
                 hint: 'Digite seu e-mail',
                 keyboardType: .emailAddress,
@@ -81,7 +81,7 @@ class SignInScreen extends StatelessWidget {
 
               const SizedBox(height: 12.0),
 
-              InputWidget(
+              TextFieldWidget(
                 label: 'Senha',
                 obscureText: true,
                 inputAction: .done,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:trocado/src/presentation/widgets/bounce_widget.dart';
-import 'package:trocado/src/presentation/widgets/fields/input_widget.dart';
+import 'package:trocado/src/presentation/widgets/fields/text_field_widget.dart';
 
 class ExpenseAmountFieldWidget extends StatelessWidget {
   final VoidCallback navigateTo;
@@ -12,7 +12,7 @@ class ExpenseAmountFieldWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return BounceWidget.withOnPress(
       onPress: navigateTo,
-      child: const InputWidget(
+      child: const TextFieldWidget(
         label: 'Valor',
         hint: 'Ex: R\$ 72.00',
         readOnly: true,

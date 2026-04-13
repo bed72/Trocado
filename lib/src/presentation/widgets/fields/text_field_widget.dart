@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
-class InputWidget extends StatefulWidget {
+class TextFieldWidget extends StatefulWidget {
   final String hint;
   final int maxLines;
   final bool enabled;
@@ -20,7 +20,7 @@ class InputWidget extends StatefulWidget {
   final TextEditingController? controller;
   final ValueChanged<bool>? onFocusChanged;
 
-  const InputWidget({
+  const TextFieldWidget({
     super.key,
     required this.hint,
     required this.label,
@@ -41,10 +41,10 @@ class InputWidget extends StatefulWidget {
   });
 
   @override
-  State<InputWidget> createState() => _InputWidgetState();
+  State<TextFieldWidget> createState() => _TextFieldWidgetState();
 }
 
-class _InputWidgetState extends State<InputWidget> {
+class _TextFieldWidgetState extends State<TextFieldWidget> {
   late final FocusNode _focus;
   late final TextEditingController? _controller;
 
