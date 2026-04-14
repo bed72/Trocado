@@ -5,12 +5,20 @@ import 'package:trocado/src/infrastructure/clients/http/http_client.dart';
 import 'package:trocado/src/infrastructure/clients/http/endpoint_key.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/requests.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/sign_in_request.dart';
+import 'package:trocado/src/infrastructure/clients/http/requests/sign_up_request.dart';
 
 import 'package:trocado/src/infrastructure/clients/http/responses/sign_in_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/sign_up_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/failure/failure_response.dart';
 
 abstract interface class IRemoteAuthenticationDataSource {
   Future<Either<FailureResponse, SignInResponse>> signIn({
+    required String email,
+    required String password,
+  });
+
+  Future<Either<FailureResponse, SignUpResponse>> signUp({
+    required String name,
     required String email,
     required String password,
   });
@@ -36,5 +44,25 @@ final class RemoteAuthenticationDataSource
     );
 
     return response.either(FailureResponse.fromJson, SignInResponse.fromJson);
+  }
+
+  @override
+  Future<Either<FailureResponse, SignUpResponse>> signUp({
+    required String name,
+    required String email,
+    required String password,
+  }) async {
+    final response = await _client.post(
+      parameter: Requests(
+        EndpointKey.signUp.path,
+        body: SignUpRequest(
+          name: name,
+          email: email,
+          password: password,
+        ).toJson(),
+      ),
+    );
+
+    return response.either(FailureResponse.fromJson, SignUpResponse.fromJson);
   }
 }

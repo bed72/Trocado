@@ -8,35 +8,36 @@ import 'package:trocado/src/presentation/extensions/context_extension.dart';
 import 'package:trocado/src/presentation/widgets/toast_widget.dart';
 import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';
 import 'package:trocado/src/presentation/widgets/fields/text_field_widget.dart';
+import 'package:trocado/src/presentation/widgets/fields/checkbox_widget.dart';
 import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
 
-import 'package:trocado/src/presentation/screens/authentication/sign_in/notifiers/sign_in_state.dart';
-import 'package:trocado/src/presentation/screens/authentication/sign_in/notifiers/sign_in_intent.dart';
-import 'package:trocado/src/presentation/screens/authentication/sign_in/notifiers/sign_in_notifier.dart';
+import 'package:trocado/src/presentation/screens/authentication/sign_up/notifiers/sign_up_state.dart';
+import 'package:trocado/src/presentation/screens/authentication/sign_up/notifiers/sign_up_intent.dart';
+import 'package:trocado/src/presentation/screens/authentication/sign_up/notifiers/sign_up_notifier.dart';
 
-class SignInScreen extends StatelessWidget {
+class SignUpScreen extends StatelessWidget {
   final VoidCallback onSuccess;
-  final VoidCallback onSignUp;
+  final VoidCallback onSignIn;
 
-  const SignInScreen({
+  const SignUpScreen({
     super.key,
     required this.onSuccess,
-    required this.onSignUp,
+    required this.onSignIn,
   });
 
   @override
   Widget build(BuildContext context) {
     return Consumer(
       builder: (_, ref, _) {
-        ref.listen(signInProvider, (_, next) {
+        ref.listen(signUpProvider, (_, next) {
           if (next.status == .success) onSuccess();
           if (next.status == .failure) {
             _showToastWidget(context: context, message: next.message);
           }
         });
 
-        final state = ref.watch(signInProvider);
-        final notifier = ref.read(signInProvider.notifier);
+        final state = ref.watch(signUpProvider);
+        final notifier = ref.read(signUpProvider.notifier);
 
         return ScaffoldWidget(
           child: _buildBody(context: context, state: state, notifier: notifier),
@@ -47,8 +48,8 @@ class SignInScreen extends StatelessWidget {
 
   Widget _buildBody({
     required BuildContext context,
-    required SignInState state,
-    required SignInNotifier notifier,
+    required SignUpState state,
+    required SignUpNotifier notifier,
   }) => LayoutBuilder(
     builder: (_, constraints) => SingleChildScrollView(
       padding: const .symmetric(horizontal: 16.0),
@@ -61,14 +62,14 @@ class SignInScreen extends StatelessWidget {
               const Spacer(),
 
               Text(
-                'Bem-vindo',
+                'Criar sua conta',
                 style: context.typography.headlineLarge?.copyWith(
                   fontWeight: .bold,
                 ),
               ),
 
               Text(
-                'Entre na sua conta para continuar',
+                'Preencha os dados abaixo',
                 style: context.typography.bodyMedium?.copyWith(
                   color: context.colors.onSurfaceVariant,
                 ),
@@ -95,12 +96,13 @@ class SignInScreen extends StatelessWidget {
                 onChanged: (value) => notifier.dispatch(PasswordChanged(value)),
               ),
 
-              Align(
-                alignment: .centerRight,
-                child: ButtonWidget.text(
-                  onTap: () {},
-                  label: 'Esqueci minha senha',
-                ),
+              const SizedBox(height: 16.0),
+
+              CheckboxWidget(
+                label: 'Aceito os termos de uso e política de privacidade',
+                checked: state.termsAccepted,
+                failure: state.termsFailure,
+                onChanged: (value) => notifier.dispatch(TermsToggled(value)),
               ),
 
               const Spacer(),
@@ -108,7 +110,7 @@ class SignInScreen extends StatelessWidget {
               SizedBox(
                 width: .infinity,
                 child: ButtonWidget.elevated(
-                  label: 'Entrar',
+                  label: 'Continuar',
                   onTap: () => _submit(notifier),
                   isLoading: state.status == .loading,
                 ),
@@ -120,10 +122,10 @@ class SignInScreen extends StatelessWidget {
                 mainAxisAlignment: .center,
                 children: [
                   Text(
-                    'Ainda não tem uma conta? ',
+                    'Já possui uma conta? ',
                     style: context.typography.bodyMedium,
                   ),
-                  ButtonWidget.text(onTap: onSignUp, label: 'Criar conta'),
+                  ButtonWidget.text(onTap: onSignIn, label: 'Entrar'),
                 ],
               ),
 
@@ -135,7 +137,7 @@ class SignInScreen extends StatelessWidget {
     ),
   );
 
-  void _submit(SignInNotifier notifier) {
+  void _submit(SignUpNotifier notifier) {
     hideKeyboard();
 
     notifier.dispatch(const SubmitPressed());

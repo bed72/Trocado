@@ -2,8 +2,10 @@ import 'package:trocado/src/core/either/either.dart';
 
 import 'package:trocado/src/data/extensions/failure_response_extension.dart';
 import 'package:trocado/src/data/extensions/sign_in_response_extension.dart';
+import 'package:trocado/src/data/extensions/sign_up_response_extension.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
+import 'package:trocado/src/domain/models/sign_up_model.dart';
 import 'package:trocado/src/domain/models/authentication_model.dart';
 
 import 'package:trocado/src/domain/repositories/interface_authentication_repository.dart';
@@ -27,6 +29,29 @@ final class AuthenticationRepository implements IAuthenticationRepository {
     required String password,
   }) async {
     final data = await _authenticationDataSource.signIn(
+      email: email,
+      password: password,
+    );
+
+    if (data.isLeft) return Left(data.left.toFailure());
+
+    await _tokenDataSource.save(
+      access: data.right.access,
+      refresh: data.right.refresh,
+    );
+
+    return Right(data.right.toModel());
+  }
+
+  @override
+  Future<Either<Failure, SignUpModel>> signUp({
+    required String email,
+    required String password,
+  }) async {
+    final name = email.split('@').first;
+
+    final data = await _authenticationDataSource.signUp(
+      name: name,
       email: email,
       password: password,
     );

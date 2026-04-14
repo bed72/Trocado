@@ -15,6 +15,17 @@ import 'package:trocado/src/infrastructure/datasources/remote/remote_authenticat
 
 import '../../../mocks/mocks.dart';
 
+const _signUpSuccessJson = {
+  'access': 'access-token',
+  'refresh': 'refresh-token',
+  'user': {
+    'id': 42,
+    'email': 'jane@trocado.app',
+    'name': 'jane',
+    'avatar': null,
+  },
+};
+
 void main() {
   late IHttpClient client;
   late IAuthenticationRepository repository;
@@ -163,6 +174,145 @@ void main() {
       final data = await repository.signIn(
         password: 'password123',
         email: 'jane@trocado.app',
+      );
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<ServerFailure>());
+    });
+  });
+
+  group('signUp', () {
+    test('returns Right with SignUpModel on success', () async {
+      when(
+        () => client.post(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Right(_signUpSuccessJson));
+
+      final data = await repository.signUp(
+        email: 'jane@trocado.app',
+        password: 'password123',
+      );
+
+      expect(data.isRight, isTrue);
+      expect(data.right.access, 'access-token');
+      expect(data.right.refresh, 'refresh-token');
+      expect(data.right.user.id, 42);
+      expect(data.right.user.email, 'jane@trocado.app');
+      expect(data.right.user.name, 'jane');
+    });
+
+    test('calls tokenDataSource.save with correct tokens on success', () async {
+      when(
+        () => client.post(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Right(_signUpSuccessJson));
+
+      await repository.signUp(
+        email: 'jane@trocado.app',
+        password: 'password123',
+      );
+
+      verify(
+        () => tokenDataSource.save(
+          access: 'access-token',
+          refresh: 'refresh-token',
+        ),
+      ).called(1);
+    });
+
+    test('does not call save on failure', () async {
+      when(
+        () => client.post(parameter: any(named: 'parameter')),
+      ).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'field': 'email',
+              'code': 'unique',
+              'message': 'Este e-mail já está cadastrado.',
+            },
+          ],
+        }),
+      );
+
+      await repository.signUp(
+        email: 'jane@trocado.app',
+        password: 'password123',
+      );
+
+      verifyNever(
+        () => tokenDataSource.save(
+          access: any(named: 'access'),
+          refresh: any(named: 'refresh'),
+        ),
+      );
+    });
+
+    test('returns Left ValidationFailure on conflict', () async {
+      when(
+        () => client.post(parameter: any(named: 'parameter')),
+      ).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'field': 'email',
+              'code': 'unique',
+              'message': 'Este e-mail já está cadastrado.',
+            },
+          ],
+        }),
+      );
+
+      final data = await repository.signUp(
+        email: 'jane@trocado.app',
+        password: 'password123',
+      );
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<ValidationFailure>());
+      expect(data.left.message, 'Este e-mail já está cadastrado.');
+    });
+
+    test('returns Left NetworkFailure on network error', () async {
+      when(
+        () => client.post(parameter: any(named: 'parameter')),
+      ).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'code': 'network_error',
+              'field': 'non_field_errors',
+              'message': 'Network error',
+            },
+          ],
+        }),
+      );
+
+      final data = await repository.signUp(
+        email: 'jane@trocado.app',
+        password: 'password123',
+      );
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<NetworkFailure>());
+    });
+
+    test('returns Left ServerFailure on server error', () async {
+      when(
+        () => client.post(parameter: any(named: 'parameter')),
+      ).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'code': 'server_error',
+              'field': 'non_field_errors',
+              'message': 'Internal server error',
+            },
+          ],
+        }),
+      );
+
+      final data = await repository.signUp(
+        email: 'jane@trocado.app',
+        password: 'password123',
       );
 
       expect(data.isLeft, isTrue);

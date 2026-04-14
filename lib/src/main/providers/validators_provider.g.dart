@@ -55,4 +55,52 @@ final class SignInFormValidatorProvider
 }
 
 String _$signInFormValidatorHash() =>
-    r'a1c057b0ac2be219f42abcd256f6469c8977d927';
+    r'eb5e3a9027bc58f91277fb163307c112fabed133';
+
+@ProviderFor(signUpFormValidator)
+final signUpFormValidatorProvider = SignUpFormValidatorProvider._();
+
+final class SignUpFormValidatorProvider
+    extends
+        $FunctionalProvider<
+          SignUpFormValidator,
+          SignUpFormValidator,
+          SignUpFormValidator
+        >
+    with $Provider<SignUpFormValidator> {
+  SignUpFormValidatorProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'signUpFormValidatorProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$signUpFormValidatorHash();
+
+  @$internal
+  @override
+  $ProviderElement<SignUpFormValidator> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  SignUpFormValidator create(Ref ref) {
+    return signUpFormValidator(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(SignUpFormValidator value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<SignUpFormValidator>(value),
+    );
+  }
+}
+
+String _$signUpFormValidatorHash() =>
+    r'b8872e5b617745be6e530c4c8a299d352a79313b';

@@ -5,7 +5,7 @@ import 'package:trocado/src/infrastructure/clients/http/responses/sign_in_respon
 void main() {
   group('SignInResponse.fromJson', () {
     test('parses access and refresh tokens', () {
-      final SignInResponse response = SignInResponse.fromJson({
+      final response = SignInResponse.fromJson({
         'access': 'access-token',
         'refresh': 'refresh-token',
       });
