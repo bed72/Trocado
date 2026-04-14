@@ -18,6 +18,7 @@ Consome a API REST Django.
 Clean Architecture estrita. Regra de dependência:
 
 ```
+core   ← todos
 domain ← data ← infrastructure
 domain ← presentation
 main   → tudo
@@ -25,23 +26,29 @@ main   → tudo
 
 | Camada            | Depende de                                   | Nunca conhece                       |
 |-------------------|----------------------------------------------|-------------------------------------|
-| `domain/`         | nada                                         | tudo                                |
-| `data/`           | `domain/` + interfaces de `infrastructure/`  | `presentation/`, `main/`            |
-| `infrastructure/` | suas próprias interfaces                     | `domain/`, `data/`, `presentation/` |
-| `presentation/`   | `domain/` (models + interfaces)              | `data/`, `infrastructure/`          |
+| `core/`           | nada                                         | nada                                |
+| `domain/`         | `core/`                                      | tudo exceto `core/`                 |
+| `data/`           | `domain/` + `core/` + concretos de `infrastructure/` | `presentation/`, `main/`  |
+| `infrastructure/` | `core/`                                      | `domain/`, `data/`, `presentation/` |
+| `presentation/`   | `domain/` + `core/`                          | `data/`, `infrastructure/`          |
 | `main/`           | tudo                                         | —                                   |
 
 ---
 
 ## Camadas
 
+### `core/` — Utilitários transversais (sem dependências)
+
+- `either/either.dart` — `Either<L, R>` importado por todas as camadas
+
+`core/` não conhece nada — é a fundação. Qualquer utilitário genuinamente transversal (sem dependência de domínio ou framework) vive aqui.
+
 ### `domain/` — Dart puro, zero Flutter
 
 - `failures/failure.dart` — `sealed class Failure` (NetworkFailure, NotFoundFailure, ServerFailure, DatabaseFailure, ValidationFailure, UnknownFailure)
 - `models/` — models de domínio (definir por feature, ex: `ExpenseModel`, `CategoryModel`)
-- `contracts/repositories/` — interfaces abstratas de repositório (ex: `IExpenseRepository`)
-- `either/either.dart` — `Either<L, R>` para tratamento funcional de erros
-- `contracts/mapper.dart` — interface base `Mapper<IN, OUT>`
+- `repositories/` — interfaces abstratas de repositório (ex: `IExpenseRepository`)
+- `validators/validation.dart` — `sealed class ValidationBase<T>` + interface `Validation<T>`
 
 **Regra de ouro:** zero imports de `flutter`, `dart:ui` ou qualquer pacote externo.
 
@@ -58,20 +65,53 @@ Notifier → Repository → DataSource → Client (Dio)
 ### `data/` — Implementa contratos de `domain`
 
 - `repositories/` — implementações de `IXxxRepository`
+- `extensions/` — extensions de mapping: `FailureResponseExtension.toFailure()`, `XxxResponseExtension.toModel()`
 
-Repositórios dependem de **interfaces** de datasource (`infrastructure/datasources/`),
-nunca das implementações concretas.
+Repositórios dependem de **interfaces** de datasource (`infrastructure/datasources/`), nunca das implementações concretas.
+
+O mapping `XxxResponse → XxxModel` é feito via extension em `data/extensions/`, **nunca** como método `toModel()` diretamente na response (que é infraestrutura e não pode conhecer domain).
 
 ### `infrastructure/` — Clientes externos e framework-specific
 
 - `clients/http/requests/` — classes de request com `toJson()` (ex: `SignInRequest`)
-- `clients/http/responses/` — classes de response com `fromJson()` (ex: `SignInResponse`)
+- `clients/http/responses/` — classes de response com `fromJson()` apenas (ex: `SignInResponse`) — **nunca `toModel()`**
 - `clients/http/responses/failure_response.dart` — `FailureResponse` genérico compartilhado: `{ "errors": [{ "field", "message", "code" }] }`
 - `clients/logger/logger_client.dart` — `ILoggerClient` + `LoggerClient`
 - `datasources/` — interfaces de datasource retornam `Either<FailureResponse, XxxResponse>`
 - `datasources/remote/` — mapeia `Either<Map, Map>` do Client para `Either<FailureResponse, XxxResponse>` via `fromJson`
 
-**Regra:** o único `try-catch` fica no Client. Datasources deserializam ambos os lados do `Either`. Repositórios convertem `FailureResponse → Failure` (via `FailureResponseExtension.toFailure()`) e `XxxResponse → Model`.
+**Regra:** o único `try-catch` fica no Client. Datasources deserializam ambos os lados do `Either`. Repositórios convertem `FailureResponse → Failure` (via `FailureResponseExtension.toFailure()`) e `XxxResponse → Model` (via `XxxResponseExtension.toModel()` de `data/extensions/`).
+
+**Interfaces de datasource aceitam parâmetros de domínio** (tipos primitivos como `String`, `int`), nunca DTOs de infraestrutura (`XxxRequest`). A criação do `XxxRequest` é responsabilidade da implementação concreta do datasource, não da interface nem do repositório.
+
+```dart
+// correto — interface aceita domínio
+abstract interface class IRemoteAuthenticationDataSource {
+  Future<Either<FailureResponse, SignInResponse>> signIn({
+    required String email,
+    required String password,
+  });
+}
+
+// correto — implementação cria o DTO internamente
+Future<Either<FailureResponse, SignInResponse>> signIn({
+  required String email,
+  required String password,
+}) async {
+  final response = await _client.post(
+    parameter: Requests(EndpointKey.signIn.path,
+      body: SignInRequest(email: email, password: password).toJson()),
+  );
+  return response.either(FailureResponse.fromJson, SignInResponse.fromJson);
+}
+
+// proibido — interface conhece DTO de infra
+abstract interface class IRemoteAuthenticationDataSource {
+  Future<Either<FailureResponse, SignInResponse>> signIn({
+    required SignInRequest parameter, // ❌
+  });
+}
+```
 
 - `infrastructure/clients/http/responses/failure/failure_code_response.dart` — enum `FailureCode` com os códigos da API
 - `data/extensions/failure_response_extension.dart` — extension `toFailure()` compartilhada por todos os repositórios
@@ -107,6 +147,7 @@ class SignInScreen extends ConsumerWidget {
 ### `main/` — Composition root
 
 - `locations/` — definições de rota com `duck_router`
+- `providers/` — providers Riverpod que fazem o wiring de dependências concretas (clients, datasources, repositories, validators)
 
 ---
 
@@ -252,9 +293,16 @@ final class EmailChanged extends SignInIntent {
 final class SubmitPressed extends SignInIntent {}
 
 @riverpod
-class SignInNotifier extends _$SignInNotifier {
+final class SignInNotifier extends _$SignInNotifier {
+  late SignInFormValidator _validator;
+  late IAuthenticationRepository _repository;
+
   @override
-  SignInState build() => const SignInState();
+  SignInState build() {
+    _validator = ref.watch(signInFormValidatorProvider);
+    _repository = ref.watch(authenticationRepositoryProvider);
+    return const SignInState();
+  }
 
   void dispatch(SignInIntent intent) => switch (intent) {
     EmailChanged(:final value) => state = state.copyWith(email: value),
@@ -262,6 +310,10 @@ class SignInNotifier extends _$SignInNotifier {
   };
 }
 ```
+
+**Campos em `build()` são `late`, nunca `late final`.** O Riverpod re-executa `build()` na mesma instância quando uma dependência `ref.watch` muda — `late final` lançaria `LateInitializationError` na segunda execução.
+
+**Todas as dependências do Notifier vêm via `ref.watch` no `build()`**, incluindo validators. Nunca instanciar dependências diretamente no notifier — isso inclui `static const`. Validators são providers em `main/providers/validators_provider.dart`.
 
 ### Either para erros
 

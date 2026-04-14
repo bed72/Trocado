@@ -25,19 +25,23 @@ Notifier → Repository → DataSource → Client
 - [ ] Criar `XxxRequest` em `lib/src/infrastructure/clients/http/requests/`
   — campos antes do construtor, `toJson()` obrigatório
 - [ ] Criar `XxxResponse` em `lib/src/infrastructure/clients/http/responses/`
-  — campos antes do construtor, `fromJson()` obrigatório
+  — campos antes do construtor, `fromJson()` **apenas** — nunca `toModel()`
 - [ ] Criar interface de datasource em `lib/src/infrastructure/datasources/`
   — retornar `Either<FailureResponse, XxxResponse>`
+  — interface aceita parâmetros de domínio (String, int…), nunca `XxxRequest`
 - [ ] Criar datasource remoto em `lib/src/infrastructure/datasources/remote/` usando Client
+  — criar `XxxRequest` internamente na implementação, não na interface
   — mapear `Either<Map, Map>` do Client para `Either<FailureResponse, XxxResponse>` via `fromJson`
-- [ ] Criar uma interface de Client em `lib/src/infrastructure/clients/http/` com os 5 principais metodos GET, POST, PUT PATCH e DELETE,
-  — deve retornar `Either<Map<String, dynamic>, Map<String, dynamic>>`, único try-catch do projeto
 
-### 3. Data — repositório
+### 3. Data — repositório e extensions
 
+- [ ] Criar `lib/src/data/extensions/xxx_response_extension.dart`
+  — extension `toModel()` em `XxxResponse` retornando `XxxModel`
 - [ ] Criar implementação de repositório em `lib/src/data/repositories/`
   — receber interface de datasource (nunca implementação concreta)
-  — converter `FailureResponse → Left(Failure)` e `XxxResponse → Right(Model)`
+  — passar parâmetros de domínio direto ao datasource (sem criar `XxxRequest`)
+  — converter `FailureResponse → Left(failure.toFailure())` e `XxxResponse → Right(response.toModel())`
+  — usar `data.either(...)` quando não há async entre os dois lados; early return quando há
 
 ### 4. Presentation — MVI
 

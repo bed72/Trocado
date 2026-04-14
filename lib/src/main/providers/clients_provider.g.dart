@@ -47,48 +47,7 @@ final class DioProvider extends $FunctionalProvider<Dio, Dio, Dio>
   }
 }
 
-String _$dioHash() => r'b3d9faf84ba5b2d59788ef4eef6c890af216168f';
-
-@ProviderFor(httpClient)
-final httpClientProvider = HttpClientProvider._();
-
-final class HttpClientProvider
-    extends $FunctionalProvider<IHttpClient, IHttpClient, IHttpClient>
-    with $Provider<IHttpClient> {
-  HttpClientProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'httpClientProvider',
-        isAutoDispose: false,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$httpClientHash();
-
-  @$internal
-  @override
-  $ProviderElement<IHttpClient> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
-
-  @override
-  IHttpClient create(Ref ref) {
-    return httpClient(ref);
-  }
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(IHttpClient value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<IHttpClient>(value),
-    );
-  }
-}
-
-String _$httpClientHash() => r'35887c386298e00b9fcfae9b178572774197a3f6';
+String _$dioHash() => r'30e6e30b128562eff46ffa612bf633c9125dfde5';
 
 @ProviderFor(storageClient)
 final storageClientProvider = StorageClientProvider._();
@@ -130,3 +89,44 @@ final class StorageClientProvider
 }
 
 String _$storageClientHash() => r'4dfdbdf68f1668495a6836c3ed672d6fc8ce296a';
+
+@ProviderFor(httpClient)
+final httpClientProvider = HttpClientProvider._();
+
+final class HttpClientProvider
+    extends $FunctionalProvider<IHttpClient, IHttpClient, IHttpClient>
+    with $Provider<IHttpClient> {
+  HttpClientProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'httpClientProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$httpClientHash();
+
+  @$internal
+  @override
+  $ProviderElement<IHttpClient> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  IHttpClient create(Ref ref) {
+    return httpClient(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(IHttpClient value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<IHttpClient>(value),
+    );
+  }
+}
+
+String _$httpClientHash() => r'35887c386298e00b9fcfae9b178572774197a3f6';

@@ -4,10 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:trocado/src/main/providers/repositories_provider.dart';
 
-import 'package:trocado/src/domain/either/either.dart';
+import 'package:trocado/src/core/either/either.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/models/authentication_model.dart';
-import 'package:trocado/src/domain/contracts/repositories/interface_authentication_repository.dart';
+import 'package:trocado/src/domain/repositories/interface_authentication_repository.dart';
 
 import 'package:trocado/src/presentation/screens/authentication/sign_in/notifiers/sign_in_state.dart';
 import 'package:trocado/src/presentation/screens/authentication/sign_in/notifiers/sign_in_intent.dart';
@@ -177,10 +177,7 @@ void main() {
         notifier.dispatch(const EmailChanged('notanemail'));
         notifier.dispatch(const SubmitPressed());
 
-        expect(
-          container.read(signInProvider).emailFailure,
-          'E-mail inválido',
-        );
+        expect(container.read(signInProvider).emailFailure, 'E-mail inválido');
       });
 
       test('sets passwordFailure when password is empty', () {
@@ -196,19 +193,22 @@ void main() {
         );
       });
 
-      test('sets passwordFailure when password is shorter than 8 characters', () {
-        final container = makeContainer();
-        final notifier = container.read(signInProvider.notifier);
+      test(
+        'sets passwordFailure when password is shorter than 8 characters',
+        () {
+          final container = makeContainer();
+          final notifier = container.read(signInProvider.notifier);
 
-        notifier.dispatch(const EmailChanged('jane@trocado.app'));
-        notifier.dispatch(const PasswordChanged('1234567'));
-        notifier.dispatch(const SubmitPressed());
+          notifier.dispatch(const EmailChanged('jane@trocado.app'));
+          notifier.dispatch(const PasswordChanged('1234567'));
+          notifier.dispatch(const SubmitPressed());
 
-        expect(
-          container.read(signInProvider).passwordFailure,
-          'Senha deve ter ao menos 8 caracteres',
-        );
-      });
+          expect(
+            container.read(signInProvider).passwordFailure,
+            'Senha deve ter ao menos 8 caracteres',
+          );
+        },
+      );
 
       test('sets both failures when both fields are invalid', () {
         final container = makeContainer();

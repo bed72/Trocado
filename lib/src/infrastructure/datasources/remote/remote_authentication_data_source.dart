@@ -1,4 +1,4 @@
-import 'package:trocado/src/domain/either/either.dart';
+import 'package:trocado/src/core/either/either.dart';
 
 import 'package:trocado/src/infrastructure/clients/http/http_client.dart';
 
@@ -11,7 +11,8 @@ import 'package:trocado/src/infrastructure/clients/http/responses/failure/failur
 
 abstract interface class IRemoteAuthenticationDataSource {
   Future<Either<FailureResponse, SignInResponse>> signIn({
-    required SignInRequest parameter,
+    required String email,
+    required String password,
   });
 }
 
@@ -24,10 +25,14 @@ final class RemoteAuthenticationDataSource
 
   @override
   Future<Either<FailureResponse, SignInResponse>> signIn({
-    required SignInRequest parameter,
+    required String email,
+    required String password,
   }) async {
     final response = await _client.post(
-      parameter: Requests(EndpointKey.signIn.path, body: parameter.toJson()),
+      parameter: Requests(
+        EndpointKey.signIn.path,
+        body: SignInRequest(email: email, password: password).toJson(),
+      ),
     );
 
     return response.either(FailureResponse.fromJson, SignInResponse.fromJson);

@@ -1,12 +1,13 @@
-import 'package:trocado/src/data/extensions/failure_response_extension.dart';
+import 'package:trocado/src/core/either/either.dart';
 
-import 'package:trocado/src/domain/either/either.dart';
+import 'package:trocado/src/data/extensions/failure_response_extension.dart';
+import 'package:trocado/src/data/extensions/sign_in_response_extension.dart';
+
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/models/authentication_model.dart';
 
-import 'package:trocado/src/domain/contracts/repositories/interface_authentication_repository.dart';
+import 'package:trocado/src/domain/repositories/interface_authentication_repository.dart';
 
-import 'package:trocado/src/infrastructure/clients/http/requests/sign_in_request.dart';
 import 'package:trocado/src/infrastructure/datasources/local/local_token_data_source.dart';
 import 'package:trocado/src/infrastructure/datasources/remote/remote_authentication_data_source.dart';
 
@@ -26,7 +27,8 @@ final class AuthenticationRepository implements IAuthenticationRepository {
     required String password,
   }) async {
     final data = await _authenticationDataSource.signIn(
-      parameter: SignInRequest(email: email, password: password),
+      email: email,
+      password: password,
     );
 
     if (data.isLeft) return Left(data.left.toFailure());

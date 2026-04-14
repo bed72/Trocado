@@ -15,7 +15,7 @@ class BudgetSaveButtonWidget extends StatelessWidget {
         label: 'Salvar',
         isLoading: false,
         onTap: () {
-          hideKeyboard;
+          hideKeyboard();
         },
       ),
     );

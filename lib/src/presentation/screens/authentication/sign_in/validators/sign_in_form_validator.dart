@@ -1,4 +1,5 @@
 import 'package:trocado/src/domain/validators/validation.dart';
+
 import 'package:trocado/src/presentation/validators/email_validation.dart';
 import 'package:trocado/src/presentation/validators/password_validation.dart';
 
@@ -15,22 +16,22 @@ final class SignInFormValidator {
        _passwordValidation = passwordValidation;
 
   ({SignInState state, bool isValid}) call(SignInState state) {
-    final emailResult = _emailValidation(state.email);
-    final passwordResult = _passwordValidation(state.password);
+    final email = _emailValidation(state.email);
+    final password = _passwordValidation(state.password);
 
-    final isValid = emailResult is Valid && passwordResult is Valid;
+    final isValid = email is Valid && password is Valid;
 
     final validated = state.copyWith(
-      emailFailure: switch (emailResult) {
+      emailFailure: switch (email) {
         Valid() => null,
         Invalid(:final message) => message,
       },
-      passwordFailure: switch (passwordResult) {
+      passwordFailure: switch (password) {
         Valid() => null,
         Invalid(:final message) => message,
       },
-      clearEmailFailure: emailResult is Valid,
-      clearPasswordFailure: passwordResult is Valid,
+      clearEmailFailure: email is Valid,
+      clearPasswordFailure: password is Valid,
     );
 
     return (state: validated, isValid: isValid);

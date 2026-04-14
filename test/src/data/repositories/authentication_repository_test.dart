@@ -3,9 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:trocado/src/data/repositories/authentication_repository.dart';
 
-import 'package:trocado/src/domain/either/either.dart';
+import 'package:trocado/src/core/either/either.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
-import 'package:trocado/src/domain/contracts/repositories/interface_authentication_repository.dart';
+import 'package:trocado/src/domain/repositories/interface_authentication_repository.dart';
 
 import 'package:trocado/src/infrastructure/clients/http/http_client.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/requests.dart';

@@ -49,9 +49,14 @@ final class XxxSubmit extends XxxIntent {}
 part 'xxx_notifier.g.dart';
 
 @riverpod
-class XxxNotifier extends _$XxxNotifier {
+final class XxxNotifier extends _$XxxNotifier {
+  late IXxxRepository _repository;
+
   @override
-  XxxState build() => const XxxState();
+  XxxState build() {
+    _repository = ref.watch(xxxRepositoryProvider);
+    return const XxxState();
+  }
 
   void dispatch(XxxIntent intent) => switch (intent) {
     XxxActionA(:final value) => state = state.copyWith(...),
@@ -61,11 +66,11 @@ class XxxNotifier extends _$XxxNotifier {
   Future<void> _submit() async {
     state = state.copyWith(status: XxxStatus.loading);
 
-    final result = await ref.read(xxxRepositoryProvider).action();
+    final data = await _repository.action();
 
-    state = result.fold(
-      (failure) => state.copyWith(status: XxxStatus.failure, message: failure.message),
-      (_)       => state.copyWith(status: XxxStatus.success),
+    data.fold(
+      (failure) => state = state.copyWith(status: XxxStatus.failure, message: failure.message),
+      (_)       => state = state.copyWith(status: XxxStatus.success),
     );
   }
 }
@@ -119,3 +124,6 @@ dart run build_runner build --delete-conflicting-outputs
 - `switch` no `dispatch` deve ser exhaustivo (cobrir todos os intents)
 - Widget filho (`XxxWidget`) não conhece Riverpod — recebe `onIntent` como callback
 - **Nunca usar `ConsumerWidget`** — sempre `StatelessWidget` + `Consumer` interno na screen
+- **Dependências via `ref.watch` em `build()`** — repositórios, validators e demais dependências nunca instanciadas diretamente no notifier
+- **Campos de dependência são `late`, nunca `late final`** — `build()` pode ser re-executado na mesma instância quando um `ref.watch` muda; `late final` lançaria erro na segunda execução
+- Se o notifier usa um validator, ele é provido por um provider em `main/providers/validators_provider.dart`

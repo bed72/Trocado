@@ -34,11 +34,18 @@ final class SignInState extends Equatable {
     message: message ?? this.message,
     password: password ?? this.password,
     emailFailure: clearEmailFailure ? null : emailFailure ?? this.emailFailure,
-    passwordFailure:
-        clearPasswordFailure ? null : passwordFailure ?? this.passwordFailure,
+    passwordFailure: clearPasswordFailure
+        ? null
+        : passwordFailure ?? this.passwordFailure,
   );
 
   @override
-  List<Object?> get props =>
-      [email, password, status, message, emailFailure, passwordFailure];
+  List<Object?> get props => [
+    email,
+    status,
+    message,
+    password,
+    emailFailure,
+    passwordFailure,
+  ];
 }

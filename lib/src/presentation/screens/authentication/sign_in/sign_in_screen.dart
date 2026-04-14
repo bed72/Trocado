@@ -131,7 +131,7 @@ class SignInScreen extends StatelessWidget {
   );
 
   void _submit(SignInNotifier notifier) {
-    hideKeyboard;
+    hideKeyboard();
 
     notifier.dispatch(const SubmitPressed());
   }

@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:trocado/src/domain/either/either.dart';
+import 'package:trocado/src/core/either/either.dart';
 
 void main() {
   group('Either', () {

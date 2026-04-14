@@ -1,11 +1,9 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:trocado/src/main/providers/validators_provider.dart';
 import 'package:trocado/src/main/providers/repositories_provider.dart';
 
-import 'package:trocado/src/domain/contracts/repositories/interface_authentication_repository.dart';
-
-import 'package:trocado/src/presentation/validators/email_validation.dart';
-import 'package:trocado/src/presentation/validators/password_validation.dart';
+import 'package:trocado/src/domain/repositories/interface_authentication_repository.dart';
 
 import 'package:trocado/src/presentation/screens/authentication/sign_in/notifiers/sign_in_state.dart';
 import 'package:trocado/src/presentation/screens/authentication/sign_in/notifiers/sign_in_intent.dart';
@@ -20,12 +18,8 @@ final class SignInNotifier extends _$SignInNotifier {
 
   @override
   SignInState build() {
+    _validator = ref.watch(signInFormValidatorProvider);
     _repository = ref.watch(authenticationRepositoryProvider);
-    _validator = const SignInFormValidator(
-      emailValidation: EmailValidation(),
-      passwordValidation: PasswordValidation(),
-    );
-
     return const SignInState();
   }
 

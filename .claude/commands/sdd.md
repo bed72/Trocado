@@ -41,9 +41,9 @@ Criar/atualizar em `lib/src/domain/models/`:
 
 Criar em `lib/src/infrastructure/clients/http/`:
 - `requests/xxx_request.dart` — campos antes do construtor, `toJson()`
-- `responses/xxx_response.dart` — campos antes do construtor, `fromJson()`
-  - `value: String` (decimal do backend) → converter para `double` ao mapear para Model
-  - `date: String` (ISO 8601) → converter para `int` (milliseconds) ao mapear para Model
+- `responses/xxx_response.dart` — campos antes do construtor, `fromJson()` **apenas**
+  - Nunca adicionar `toModel()` na response — infrastructure não conhece domain
+  - O mapping para model é feito via extension em `data/extensions/` (passo 4)
 
 ### 3. Datasource interface (infrastructure)
 
@@ -57,19 +57,28 @@ Criar em `lib/src/infrastructure/datasources/remote/`:
 - Parâmetro do método: sempre `parameter` (não `request`)
 - Variável do retorno do client: `response` (nunca `either` — reservado para `Either` explícito no repositório)
 
+A interface aceita **parâmetros de domínio** (tipos primitivos), nunca DTOs de infraestrutura. O `XxxRequest` é criado dentro da implementação concreta.
+
 ```dart
-abstract interface class IXxxDataSource {
-  Future<Either<FailureResponse, XxxResponse>> action({required XxxRequest parameter});
+abstract interface class IRemoteXxxDataSource {
+  Future<Either<FailureResponse, XxxResponse>> action({
+    required String param, // domínio — nunca XxxRequest
+  });
 }
 
-final class RemoteXxxDataSource implements IXxxDataSource {
+final class RemoteXxxDataSource implements IRemoteXxxDataSource {
   final IHttpClient _client;
   RemoteXxxDataSource({required IHttpClient client}) : _client = client;
 
   @override
-  Future<Either<FailureResponse, XxxResponse>> action({required XxxRequest parameter}) async {
+  Future<Either<FailureResponse, XxxResponse>> action({
+    required String param,
+  }) async {
     final response = await _client.post(
-      parameter: Requests(Endpoints.xxx.path, body: parameter.toJson()),
+      parameter: Requests(
+        Endpoints.xxx.path,
+        body: XxxRequest(param: param).toJson(), // DTO criado aqui
+      ),
     );
     return response.either(FailureResponse.fromJson, XxxResponse.fromJson);
   }
@@ -86,16 +95,41 @@ final class RemoteXxxDataSource implements IXxxDataSource {
 
 Implementar em `lib/src/data/repositories/`:
 - Receber interface de datasource (nunca implementação concreta)
+- Receber parâmetros de domínio e passar direto ao datasource (sem criar `XxxRequest`)
 - Converter `FailureResponse → Failure` e `XxxResponse → Model`
 - **Sem try-catch** — o único try-catch fica no Client
 
+Criar também `lib/src/data/extensions/xxx_response_extension.dart` com `toModel()`:
+
+```dart
+// data/extensions/xxx_response_extension.dart
+extension XxxResponseExtension on XxxResponse {
+  XxxModel toModel() => XxxModel(field: field);
+}
+```
+
+Caso o repositório não tenha operações async entre Left e Right, usar `data.either`:
+
 ```dart
 @override
-Future<Either<Failure, XxxModel>> action({required param}) async {
-  final data = await _dataSource.action(
-    parameter: XxxRequest(param: param),
-  );
-  return data.either((failure) => failure.toFailure(), (success) => success.toModel());
+Future<Either<Failure, XxxModel>> action({required String param}) async {
+  final data = await _dataSource.action(param: param);
+  return data.either((failure) => failure.toFailure(), (response) => response.toModel());
+}
+```
+
+Quando há operação async no Right (ex: salvar token após autenticar), usar early return:
+
+```dart
+@override
+Future<Either<Failure, XxxModel>> action({required String param}) async {
+  final data = await _dataSource.action(param: param);
+
+  if (data.isLeft) return Left(data.left.toFailure());
+
+  await _otherDataSource.save(value: data.right.value);
+
+  return Right(data.right.toModel());
 }
 ```
 

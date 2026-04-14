@@ -1,5 +1,3 @@
-import 'package:trocado/src/domain/models/authentication_model.dart';
-
 final class SignInResponse {
   final String access;
   final String refresh;
@@ -10,7 +8,4 @@ final class SignInResponse {
     access: json['access'] as String,
     refresh: json['refresh'] as String,
   );
-
-  AuthenticationModel toModel() =>
-      AuthenticationModel(access: access, refresh: refresh);
 }
