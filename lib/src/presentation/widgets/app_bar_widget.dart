@@ -15,21 +15,20 @@ class AppBarWidget extends StatelessWidget implements PreferredSizeWidget {
       elevation: 0,
       actions: actions,
       automaticallyImplyLeading: false,
-      title: title == null
-          ? null
-          : Row(
-              spacing: 16.0,
-              children: [
-                leading ?? const SizedBox.shrink(),
-                Text(
-                  title!,
-                  style: context.typography.titleLarge?.copyWith(
-                    fontWeight: .w600,
-                    color: context.colors.onSurface,
-                  ),
-                ),
-              ],
+      title: Row(
+        spacing: 16.0,
+        children: [
+          ?leading,
+          if (title != null)
+            Text(
+              title!,
+              style: context.typography.titleLarge?.copyWith(
+                fontWeight: .w600,
+                color: context.colors.onSurface,
+              ),
             ),
+        ],
+      ),
     );
   }
 

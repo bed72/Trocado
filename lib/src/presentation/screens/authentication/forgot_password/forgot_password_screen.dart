@@ -45,7 +45,7 @@ class ForgotPasswordScreen extends StatelessWidget {
         final notifier = ref.read(forgotPasswordProvider.notifier);
 
         return ScaffoldWidget(
-          appBar: AppBarWidget(title: '', leading: GoBackWidget()),
+          appBar: AppBarWidget(leading: GoBackWidget()),
           child: _buildBody(context: context, state: state, notifier: notifier),
         );
       },
@@ -61,16 +61,16 @@ class ForgotPasswordScreen extends StatelessWidget {
       SliverFillRemaining(
         hasScrollBody: false,
         child: Padding(
-          padding: const .symmetric(horizontal: 16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Column(
-            crossAxisAlignment: .start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 32.0),
+              const SizedBox(height: 24.0),
 
               Text(
                 'Esqueceu a senha?',
-                style: context.typography.headlineSmall?.copyWith(
-                  fontWeight: .bold,
+                style: context.typography.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
                 ),
               ),
 
@@ -88,7 +88,7 @@ class ForgotPasswordScreen extends StatelessWidget {
               TextFieldWidget(
                 label: 'E-mail',
                 hint: 'Digite seu e-mail',
-                keyboardType: .emailAddress,
+                keyboardType: TextInputType.emailAddress,
                 failure: state.emailFailure,
                 onChanged: (value) => notifier.dispatch(EmailChanged(value)),
               ),
@@ -96,7 +96,7 @@ class ForgotPasswordScreen extends StatelessWidget {
               const Spacer(),
 
               SizedBox(
-                width: .infinity,
+                width: double.infinity,
                 child: ButtonWidget.elevated(
                   label: 'Enviar',
                   onTap: () => _submit(notifier),

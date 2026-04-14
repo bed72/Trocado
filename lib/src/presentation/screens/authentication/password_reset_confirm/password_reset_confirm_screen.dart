@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:trocado/src/presentation/extensions/widget_extension.dart';
+import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
 import 'package:trocado/src/presentation/widgets/toast_widget.dart';
 import 'package:trocado/src/presentation/widgets/app_bar_widget.dart';
@@ -31,27 +32,27 @@ class PasswordResetConfirmScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer(
       builder: (_, ref, _) {
-        ref.listen(
-          passwordResetConfirmProvider(uid: uid, token: token),
-          (_, next) {
-            if (next.status == .success) {
-              showToastWidget(
-                context: context,
-                type: .success,
-                title: 'Senha redefinida',
-              );
-              onSuccess();
-            }
-            if (next.status == .failure) {
-              showToastWidget(
-                context: context,
-                title: 'Opps',
-                type: .failure,
-                description: next.message,
-              );
-            }
-          },
-        );
+        ref.listen(passwordResetConfirmProvider(uid: uid, token: token), (
+          _,
+          next,
+        ) {
+          if (next.status == .success) {
+            showToastWidget(
+              context: context,
+              type: .success,
+              title: 'Senha redefinida',
+            );
+            onSuccess();
+          }
+          if (next.status == .failure) {
+            showToastWidget(
+              context: context,
+              title: 'Opps',
+              type: .failure,
+              description: next.message,
+            );
+          }
+        });
 
         final state = ref.watch(
           passwordResetConfirmProvider(uid: uid, token: token),
@@ -61,7 +62,7 @@ class PasswordResetConfirmScreen extends StatelessWidget {
         );
 
         return ScaffoldWidget(
-          appBar: AppBarWidget(title: 'Criar nova senha', leading: GoBackWidget()),
+          appBar: AppBarWidget(leading: GoBackWidget()),
           child: _buildBody(context: context, state: state, notifier: notifier),
         );
       },
@@ -82,6 +83,24 @@ class PasswordResetConfirmScreen extends StatelessWidget {
             crossAxisAlignment: .start,
             children: [
               const SizedBox(height: 24.0),
+
+              Text(
+                'Criar nova senha',
+                style: context.typography.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              const SizedBox(height: 8.0),
+
+              Text(
+                'Informe sua nova senha para redefini-la.',
+                style: context.typography.bodyMedium?.copyWith(
+                  color: context.colors.onSurfaceVariant,
+                ),
+              ),
+
+              const SizedBox(height: 28.0),
 
               TextFieldWidget(
                 label: 'Nova senha',
