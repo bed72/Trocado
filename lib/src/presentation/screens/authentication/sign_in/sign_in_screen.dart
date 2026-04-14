@@ -51,12 +51,12 @@ class SignInScreen extends StatelessWidget {
     required BuildContext context,
     required SignInState state,
     required SignInNotifier notifier,
-  }) => LayoutBuilder(
-    builder: (_, constraints) => SingleChildScrollView(
-      padding: const .symmetric(horizontal: 16.0),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(minHeight: constraints.maxHeight),
-        child: IntrinsicHeight(
+  }) => CustomScrollView(
+    slivers: [
+      SliverFillRemaining(
+        hasScrollBody: false,
+        child: Padding(
+          padding: const .symmetric(horizontal: 16.0),
           child: Column(
             crossAxisAlignment: .start,
             children: [
@@ -64,10 +64,12 @@ class SignInScreen extends StatelessWidget {
 
               Text(
                 'Bem-vindo',
-                style: context.typography.headlineLarge?.copyWith(
+                style: context.typography.headlineSmall?.copyWith(
                   fontWeight: .bold,
                 ),
               ),
+
+              const SizedBox(height: 8.0),
 
               Text(
                 'Entre na sua conta para continuar',
@@ -134,7 +136,7 @@ class SignInScreen extends StatelessWidget {
           ),
         ),
       ),
-    ),
+    ],
   );
 
   void _submit(SignInNotifier notifier) {

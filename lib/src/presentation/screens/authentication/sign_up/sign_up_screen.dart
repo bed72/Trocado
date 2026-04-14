@@ -50,12 +50,12 @@ class SignUpScreen extends StatelessWidget {
     required BuildContext context,
     required SignUpState state,
     required SignUpNotifier notifier,
-  }) => LayoutBuilder(
-    builder: (_, constraints) => SingleChildScrollView(
-      padding: const .symmetric(horizontal: 16.0),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(minHeight: constraints.maxHeight),
-        child: IntrinsicHeight(
+  }) => CustomScrollView(
+    slivers: [
+      SliverFillRemaining(
+        hasScrollBody: false,
+        child: Padding(
+          padding: const .symmetric(horizontal: 16.0),
           child: Column(
             crossAxisAlignment: .start,
             children: [
@@ -63,10 +63,12 @@ class SignUpScreen extends StatelessWidget {
 
               Text(
                 'Criar sua conta',
-                style: context.typography.headlineLarge?.copyWith(
+                style: context.typography.headlineSmall?.copyWith(
                   fontWeight: .bold,
                 ),
               ),
+
+              const SizedBox(height: 8.0),
 
               Text(
                 'Preencha os dados abaixo',
@@ -105,6 +107,7 @@ class SignUpScreen extends StatelessWidget {
                 onChanged: (value) => notifier.dispatch(TermsToggled(value)),
               ),
 
+              const SizedBox(height: 16.0),
               const Spacer(),
 
               SizedBox(
@@ -134,7 +137,7 @@ class SignUpScreen extends StatelessWidget {
           ),
         ),
       ),
-    ),
+    ],
   );
 
   void _submit(SignUpNotifier notifier) {

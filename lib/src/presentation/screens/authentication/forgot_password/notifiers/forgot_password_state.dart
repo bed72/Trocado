@@ -11,20 +11,20 @@ final class ForgotPasswordState extends Equatable {
   const ForgotPasswordState({
     this.email = '',
     this.message = '',
-    this.status = ForgotPasswordStatus.initial,
     this.emailFailure,
+    this.status = .initial,
   });
 
   ForgotPasswordState copyWith({
     String? email,
     String? message,
-    ForgotPasswordStatus? status,
     String? emailFailure,
+    ForgotPasswordStatus? status,
     bool clearEmailFailure = false,
   }) => ForgotPasswordState(
     email: email ?? this.email,
-    message: message ?? this.message,
     status: status ?? this.status,
+    message: message ?? this.message,
     emailFailure: clearEmailFailure ? null : emailFailure ?? this.emailFailure,
   );
 

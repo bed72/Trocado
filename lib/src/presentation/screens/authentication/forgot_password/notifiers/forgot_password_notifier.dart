@@ -13,13 +13,14 @@ part 'forgot_password_notifier.g.dart';
 
 @riverpod
 final class ForgotPasswordNotifier extends _$ForgotPasswordNotifier {
-  late ForgotPasswordFormValidator _validator;
   late IAuthenticationRepository _repository;
+  late ForgotPasswordFormValidator _validator;
 
   @override
   ForgotPasswordState build() {
-    _validator = ref.watch(forgotPasswordFormValidatorProvider);
     _repository = ref.watch(authenticationRepositoryProvider);
+    _validator = ref.watch(forgotPasswordFormValidatorProvider);
+
     return const ForgotPasswordState();
   }
 
