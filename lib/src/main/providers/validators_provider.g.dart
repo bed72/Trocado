@@ -104,3 +104,52 @@ final class SignUpFormValidatorProvider
 
 String _$signUpFormValidatorHash() =>
     r'b8872e5b617745be6e530c4c8a299d352a79313b';
+
+@ProviderFor(forgotPasswordFormValidator)
+final forgotPasswordFormValidatorProvider =
+    ForgotPasswordFormValidatorProvider._();
+
+final class ForgotPasswordFormValidatorProvider
+    extends
+        $FunctionalProvider<
+          ForgotPasswordFormValidator,
+          ForgotPasswordFormValidator,
+          ForgotPasswordFormValidator
+        >
+    with $Provider<ForgotPasswordFormValidator> {
+  ForgotPasswordFormValidatorProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'forgotPasswordFormValidatorProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$forgotPasswordFormValidatorHash();
+
+  @$internal
+  @override
+  $ProviderElement<ForgotPasswordFormValidator> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  ForgotPasswordFormValidator create(Ref ref) {
+    return forgotPasswordFormValidator(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ForgotPasswordFormValidator value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ForgotPasswordFormValidator>(value),
+    );
+  }
+}
+
+String _$forgotPasswordFormValidatorHash() =>
+    r'04116767cab1a37131b96267c262413f221387d2';

@@ -6,6 +6,7 @@ import 'package:trocado/src/presentation/validators/terms_validation.dart';
 
 import 'package:trocado/src/presentation/screens/authentication/sign_in/validators/sign_in_form_validator.dart';
 import 'package:trocado/src/presentation/screens/authentication/sign_up/validators/sign_up_form_validator.dart';
+import 'package:trocado/src/presentation/screens/authentication/forgot_password/validators/forgot_password_form_validator.dart';
 
 part 'validators_provider.g.dart';
 
@@ -21,3 +22,7 @@ SignUpFormValidator signUpFormValidator(Ref _) => const SignUpFormValidator(
   passwordValidation: PasswordValidation(),
   termsValidation: TermsValidation(),
 );
+
+@Riverpod()
+ForgotPasswordFormValidator forgotPasswordFormValidator(Ref _) =>
+    const ForgotPasswordFormValidator(emailValidation: EmailValidation());

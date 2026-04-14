@@ -65,4 +65,14 @@ final class AuthenticationRepository implements IAuthenticationRepository {
 
     return Right(data.right.toModel());
   }
+
+  @override
+  Future<Either<Failure, void>> requestPasswordReset({
+    required String email,
+  }) async {
+    final data = await _authenticationDataSource.requestPasswordReset(
+      email: email,
+    );
+    return data.either((failure) => failure.toFailure(), (_) {});
+  }
 }

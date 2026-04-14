@@ -319,4 +319,103 @@ void main() {
       expect(data.left, isA<ServerFailure>());
     });
   });
+
+  group('requestPasswordReset', () {
+    test('returns Right on success', () async {
+      when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Right({
+          'detail':
+              'If this email is registered, a reset link has been sent.',
+        }),
+      );
+
+      final data = await repository.requestPasswordReset(
+        email: 'jane@trocado.app',
+      );
+
+      expect(data.isRight, isTrue);
+    });
+
+    test('does not call tokenDataSource.save on success', () async {
+      when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Right({
+          'detail':
+              'If this email is registered, a reset link has been sent.',
+        }),
+      );
+
+      await repository.requestPasswordReset(email: 'jane@trocado.app');
+
+      verifyNever(
+        () => tokenDataSource.save(
+          access: any(named: 'access'),
+          refresh: any(named: 'refresh'),
+        ),
+      );
+    });
+
+    test('returns Left ValidationFailure on API error', () async {
+      when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'field': 'email',
+              'code': 'invalid',
+              'message': 'Não foi possível enviar o e-mail.',
+            },
+          ],
+        }),
+      );
+
+      final data = await repository.requestPasswordReset(
+        email: 'invalid@trocado.app',
+      );
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<ValidationFailure>());
+      expect(data.left.message, 'Não foi possível enviar o e-mail.');
+    });
+
+    test('returns Left NetworkFailure on network error', () async {
+      when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'code': 'network_error',
+              'field': 'non_field_errors',
+              'message': 'Network error',
+            },
+          ],
+        }),
+      );
+
+      final data = await repository.requestPasswordReset(
+        email: 'jane@trocado.app',
+      );
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<NetworkFailure>());
+    });
+
+    test('returns Left ServerFailure on server error', () async {
+      when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'code': 'server_error',
+              'field': 'non_field_errors',
+              'message': 'Internal server error',
+            },
+          ],
+        }),
+      );
+
+      final data = await repository.requestPasswordReset(
+        email: 'jane@trocado.app',
+      );
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<ServerFailure>());
+    });
+  });
 }

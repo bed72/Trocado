@@ -6,9 +6,11 @@ import 'package:trocado/src/infrastructure/clients/http/endpoint_key.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/requests.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/sign_in_request.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/sign_up_request.dart';
+import 'package:trocado/src/infrastructure/clients/http/requests/password_reset_request.dart';
 
 import 'package:trocado/src/infrastructure/clients/http/responses/sign_in_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/sign_up_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/password_reset_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/failure/failure_response.dart';
 
 abstract interface class IRemoteAuthenticationDataSource {
@@ -21,6 +23,10 @@ abstract interface class IRemoteAuthenticationDataSource {
     required String name,
     required String email,
     required String password,
+  });
+
+  Future<Either<FailureResponse, PasswordResetResponse>> requestPasswordReset({
+    required String email,
   });
 }
 
@@ -64,5 +70,19 @@ final class RemoteAuthenticationDataSource
     );
 
     return response.either(FailureResponse.fromJson, SignUpResponse.fromJson);
+  }
+
+  @override
+  Future<Either<FailureResponse, PasswordResetResponse>> requestPasswordReset({
+    required String email,
+  }) async {
+    final response = await _client.post(
+      parameter: Requests(
+        EndpointKey.passwordResetRequest.path,
+        body: PasswordResetRequest(email: email).toJson(),
+      ),
+    );
+
+    return response.either(FailureResponse.fromJson, PasswordResetResponse.fromJson);
   }
 }

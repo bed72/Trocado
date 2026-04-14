@@ -7,6 +7,7 @@ import 'package:trocado/src/main/locations/home_location.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 import 'package:trocado/src/presentation/screens/authentication/sign_in/sign_in_screen.dart';
 import 'package:trocado/src/presentation/screens/authentication/sign_up/sign_up_location.dart';
+import 'package:trocado/src/presentation/screens/authentication/forgot_password/forgot_password_location.dart';
 
 final class SignInLocation extends Location {
   @override
@@ -18,5 +19,6 @@ final class SignInLocation extends Location {
         onSuccess: () =>
             context.navigate(HomeLocation(), root: true, replace: true),
         onSignUp: () => context.navigate(SignUpLocation()),
+        onForgotPassword: () => context.navigate(ForgotPasswordLocation()),
       );
 }

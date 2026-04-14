@@ -17,11 +17,13 @@ import 'package:trocado/src/presentation/screens/authentication/sign_in/notifier
 class SignInScreen extends StatelessWidget {
   final VoidCallback onSuccess;
   final VoidCallback onSignUp;
+  final VoidCallback onForgotPassword;
 
   const SignInScreen({
     super.key,
     required this.onSuccess,
     required this.onSignUp,
+    required this.onForgotPassword,
   });
 
   @override
@@ -98,7 +100,7 @@ class SignInScreen extends StatelessWidget {
               Align(
                 alignment: .centerRight,
                 child: ButtonWidget.text(
-                  onTap: () {},
+                  onTap: onForgotPassword,
                   label: 'Esqueci minha senha',
                 ),
               ),
