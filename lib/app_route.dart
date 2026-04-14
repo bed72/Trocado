@@ -3,6 +3,7 @@ import 'package:collection/collection.dart';
 import 'package:duck_router/duck_router.dart';
 
 import 'package:trocado/src/main/locations/splash_location.dart';
+import 'package:trocado/src/main/deep_link/deep_link_handler.dart';
 
 import 'package:trocado/src/presentation/observers/logger_navigation_observer.dart';
 
@@ -109,7 +110,10 @@ final class AppRoutes {
       _all.firstWhereOrNull((route) => route.regex.hasMatch(location));
 }
 
+final _deepLinkHandler = const DeepLinkHandler();
+
 final routerConfig = DuckRouter(
   initialLocation: SplashLocation(),
+  onDeepLink: (uri, _) => _deepLinkHandler(uri),
   navigatorObserverBuilder: (_) => [LoggerNavigatorObserver()],
 );
