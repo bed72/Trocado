@@ -418,4 +418,113 @@ void main() {
       expect(data.left, isA<ServerFailure>());
     });
   });
+
+  group('confirmPasswordReset', () {
+    test('returns Right on success', () async {
+      when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Right({
+          'detail': 'Password has been reset successfully.',
+        }),
+      );
+
+      final data = await repository.confirmPasswordReset(
+        uid: 'Mw',
+        token: 'bm7gkj-1a2b3c4d',
+        newPassword: 'NewSecure!456',
+      );
+
+      expect(data.isRight, isTrue);
+    });
+
+    test('does not call tokenDataSource.save on success', () async {
+      when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Right({
+          'detail': 'Password has been reset successfully.',
+        }),
+      );
+
+      await repository.confirmPasswordReset(
+        uid: 'Mw',
+        token: 'bm7gkj-1a2b3c4d',
+        newPassword: 'NewSecure!456',
+      );
+
+      verifyNever(
+        () => tokenDataSource.save(
+          access: any(named: 'access'),
+          refresh: any(named: 'refresh'),
+        ),
+      );
+    });
+
+    test('returns Left ValidationFailure on API error', () async {
+      when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'field': 'token',
+              'code': 'invalid',
+              'message': 'Token inválido ou expirado.',
+            },
+          ],
+        }),
+      );
+
+      final data = await repository.confirmPasswordReset(
+        uid: 'Mw',
+        token: 'expired-token',
+        newPassword: 'NewSecure!456',
+      );
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<ValidationFailure>());
+      expect(data.left.message, 'Token inválido ou expirado.');
+    });
+
+    test('returns Left NetworkFailure on network error', () async {
+      when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'code': 'network_error',
+              'field': 'non_field_errors',
+              'message': 'Network error',
+            },
+          ],
+        }),
+      );
+
+      final data = await repository.confirmPasswordReset(
+        uid: 'Mw',
+        token: 'bm7gkj-1a2b3c4d',
+        newPassword: 'NewSecure!456',
+      );
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<NetworkFailure>());
+    });
+
+    test('returns Left ServerFailure on server error', () async {
+      when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'code': 'server_error',
+              'field': 'non_field_errors',
+              'message': 'Internal server error',
+            },
+          ],
+        }),
+      );
+
+      final data = await repository.confirmPasswordReset(
+        uid: 'Mw',
+        token: 'bm7gkj-1a2b3c4d',
+        newPassword: 'NewSecure!456',
+      );
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<ServerFailure>());
+    });
+  });
 }

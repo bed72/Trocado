@@ -7,10 +7,12 @@ import 'package:trocado/src/infrastructure/clients/http/requests/requests.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/sign_in_request.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/sign_up_request.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/password_reset_request.dart';
+import 'package:trocado/src/infrastructure/clients/http/requests/password_reset_confirm_request.dart';
 
 import 'package:trocado/src/infrastructure/clients/http/responses/sign_in_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/sign_up_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/password_reset_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/password_reset_confirm_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/failure/failure_response.dart';
 
 abstract interface class IRemoteAuthenticationDataSource {
@@ -27,6 +29,12 @@ abstract interface class IRemoteAuthenticationDataSource {
 
   Future<Either<FailureResponse, PasswordResetResponse>> requestPasswordReset({
     required String email,
+  });
+
+  Future<Either<FailureResponse, PasswordResetConfirmResponse>> confirmPasswordReset({
+    required String uid,
+    required String token,
+    required String newPassword,
   });
 }
 
@@ -84,5 +92,28 @@ final class RemoteAuthenticationDataSource
     );
 
     return response.either(FailureResponse.fromJson, PasswordResetResponse.fromJson);
+  }
+
+  @override
+  Future<Either<FailureResponse, PasswordResetConfirmResponse>> confirmPasswordReset({
+    required String uid,
+    required String token,
+    required String newPassword,
+  }) async {
+    final response = await _client.post(
+      parameter: Requests(
+        EndpointKey.passwordResetConfirm.path,
+        body: PasswordResetConfirmRequest(
+          uid: uid,
+          token: token,
+          newPassword: newPassword,
+        ).toJson(),
+      ),
+    );
+
+    return response.either(
+      FailureResponse.fromJson,
+      PasswordResetConfirmResponse.fromJson,
+    );
   }
 }

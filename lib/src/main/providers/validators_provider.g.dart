@@ -153,3 +153,55 @@ final class ForgotPasswordFormValidatorProvider
 
 String _$forgotPasswordFormValidatorHash() =>
     r'04116767cab1a37131b96267c262413f221387d2';
+
+@ProviderFor(passwordResetConfirmFormValidator)
+final passwordResetConfirmFormValidatorProvider =
+    PasswordResetConfirmFormValidatorProvider._();
+
+final class PasswordResetConfirmFormValidatorProvider
+    extends
+        $FunctionalProvider<
+          PasswordResetConfirmFormValidator,
+          PasswordResetConfirmFormValidator,
+          PasswordResetConfirmFormValidator
+        >
+    with $Provider<PasswordResetConfirmFormValidator> {
+  PasswordResetConfirmFormValidatorProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'passwordResetConfirmFormValidatorProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() =>
+      _$passwordResetConfirmFormValidatorHash();
+
+  @$internal
+  @override
+  $ProviderElement<PasswordResetConfirmFormValidator> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  PasswordResetConfirmFormValidator create(Ref ref) {
+    return passwordResetConfirmFormValidator(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(PasswordResetConfirmFormValidator value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<PasswordResetConfirmFormValidator>(
+        value,
+      ),
+    );
+  }
+}
+
+String _$passwordResetConfirmFormValidatorHash() =>
+    r'8d985583eace06ce044235ba841d81ed992f10c4';

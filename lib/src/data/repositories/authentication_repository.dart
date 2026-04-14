@@ -75,4 +75,18 @@ final class AuthenticationRepository implements IAuthenticationRepository {
     );
     return data.either((failure) => failure.toFailure(), (_) {});
   }
+
+  @override
+  Future<Either<Failure, void>> confirmPasswordReset({
+    required String uid,
+    required String token,
+    required String newPassword,
+  }) async {
+    final data = await _authenticationDataSource.confirmPasswordReset(
+      uid: uid,
+      token: token,
+      newPassword: newPassword,
+    );
+    return data.either((failure) => failure.toFailure(), (_) {});
+  }
 }
