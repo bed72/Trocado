@@ -30,7 +30,7 @@ class DateScreen extends StatelessWidget {
               initialSelectedDate: .now(),
               backgroundColor: context.colors.surface,
               onSelectionChanged: (args) {
-                final date = args.value;
+                // final date = args.value;
                 // if (date is DateTime) bloc.add(ExpenseDateChanged(date));
               },
               headerStyle: DateRangePickerHeaderStyle(

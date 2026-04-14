@@ -4,11 +4,7 @@ import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
 
 import 'package:trocado/src/presentation/mixins/back_button_mixin.dart';
 
-import 'package:trocado/src/presentation/extensions/context_extension.dart';
-
 import 'package:trocado/src/presentation/widgets/app_bar_widget.dart';
-import 'package:trocado/src/presentation/widgets/empty/empty_widget.dart';
-import 'package:trocado/src/presentation/widgets/home/home_success_widget.dart';
 import 'package:trocado/src/presentation/widgets/home/home_action_button_widget.dart';
 
 class HomeScreen extends StatefulWidget {

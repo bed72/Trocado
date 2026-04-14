@@ -6,7 +6,6 @@ import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';
 import 'package:trocado/src/presentation/widgets/expense/expense_date_field_widget.dart';
 import 'package:trocado/src/presentation/widgets/expense/expense_save_button_widget.dart';
 import 'package:trocado/src/presentation/widgets/expense/expense_amount_field_widget.dart';
-import 'package:trocado/src/presentation/widgets/expense/expense_category_field_widget.dart';
 import 'package:trocado/src/presentation/widgets/expense/expense_description_field_widget.dart';
 
 class ExpenseScreen extends StatelessWidget {
