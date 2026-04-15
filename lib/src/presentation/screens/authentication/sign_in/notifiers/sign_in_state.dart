@@ -7,6 +7,7 @@ final class SignInState extends Equatable {
   final String message;
   final String password;
   final SignInStatus status;
+  final bool obscurePassword;
   final String? emailFailure;
   final String? passwordFailure;
 
@@ -15,6 +16,7 @@ final class SignInState extends Equatable {
     this.message = '',
     this.password = '',
     this.status = .initial,
+    this.obscurePassword = true,
     this.emailFailure,
     this.passwordFailure,
   });
@@ -24,6 +26,7 @@ final class SignInState extends Equatable {
     String? message,
     String? password,
     SignInStatus? status,
+    bool? obscurePassword,
     String? emailFailure,
     String? passwordFailure,
     bool clearEmailFailure = false,
@@ -33,6 +36,7 @@ final class SignInState extends Equatable {
     status: status ?? this.status,
     message: message ?? this.message,
     password: password ?? this.password,
+    obscurePassword: obscurePassword ?? this.obscurePassword,
     emailFailure: clearEmailFailure ? null : emailFailure ?? this.emailFailure,
     passwordFailure: clearPasswordFailure
         ? null
@@ -45,6 +49,7 @@ final class SignInState extends Equatable {
     status,
     message,
     password,
+    obscurePassword,
     emailFailure,
     passwordFailure,
   ];

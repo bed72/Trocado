@@ -32,6 +32,9 @@ final class SignInNotifier extends _$SignInNotifier {
       password: value,
       clearPasswordFailure: true,
     ),
+    PasswordVisibilityToggled() => state = state.copyWith(
+      obscurePassword: !state.obscurePassword,
+    ),
     SubmitPressed() => _submit(),
   };
 

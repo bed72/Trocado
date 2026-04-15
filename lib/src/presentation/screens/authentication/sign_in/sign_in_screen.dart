@@ -7,8 +7,8 @@ import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
 import 'package:trocado/src/presentation/widgets/toast_widget.dart';
 import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';
-import 'package:trocado/src/presentation/widgets/fields/text_field_widget.dart';
 import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
+import 'package:trocado/src/presentation/widgets/fields/text_field_widget.dart';
 
 import 'package:trocado/src/presentation/screens/authentication/sign_in/notifiers/sign_in_state.dart';
 import 'package:trocado/src/presentation/screens/authentication/sign_in/notifiers/sign_in_intent.dart';
@@ -21,8 +21,8 @@ class SignInScreen extends StatelessWidget {
 
   const SignInScreen({
     super.key,
-    required this.onSuccess,
     required this.onSignUp,
+    required this.onSuccess,
     required this.onForgotPassword,
   });
 
@@ -93,10 +93,16 @@ class SignInScreen extends StatelessWidget {
 
               TextFieldWidget(
                 label: 'Senha',
-                obscureText: true,
                 inputAction: .done,
                 hint: 'Digite sua senha',
                 failure: state.passwordFailure,
+                hideTrailingIconWhenEmpty: true,
+                obscureText: state.obscurePassword,
+                trailingIcon: state.obscurePassword
+                    ? Icons.visibility_outlined
+                    : Icons.visibility_off_outlined,
+                onTrailingIconTap: () =>
+                    notifier.dispatch(const PasswordVisibilityToggled()),
                 onChanged: (value) => notifier.dispatch(PasswordChanged(value)),
               ),
 

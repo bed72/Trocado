@@ -92,10 +92,16 @@ class SignUpScreen extends StatelessWidget {
 
               TextFieldWidget(
                 label: 'Senha',
-                obscureText: true,
                 inputAction: .done,
                 hint: 'Digite sua senha',
                 failure: state.passwordFailure,
+                obscureText: state.obscurePassword,
+                hideTrailingIconWhenEmpty: true,
+                trailingIcon: state.obscurePassword
+                    ? Icons.visibility_outlined
+                    : Icons.visibility_off_outlined,
+                onTrailingIconTap: () =>
+                    notifier.dispatch(const PasswordVisibilityToggled()),
                 onChanged: (value) => notifier.dispatch(PasswordChanged(value)),
               ),
 

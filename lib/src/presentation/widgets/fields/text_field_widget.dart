@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:trocado/src/presentation/widgets/bounce_widget.dart';
+
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
 class TextFieldWidget extends StatefulWidget {
@@ -15,6 +17,7 @@ class TextFieldWidget extends StatefulWidget {
   final IconData? trailingIcon;
   final TextInputType? keyboardType;
   final TextInputAction? inputAction;
+  final bool hideTrailingIconWhenEmpty;
   final VoidCallback? onTrailingIconTap;
   final ValueChanged<String>? onChanged;
   final TextEditingController? controller;
@@ -38,6 +41,7 @@ class TextFieldWidget extends StatefulWidget {
     this.absorbing = false,
     this.onTrailingIconTap,
     this.obscureText = false,
+    this.hideTrailingIconWhenEmpty = false,
   });
 
   @override
@@ -48,6 +52,7 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
   late final FocusNode _focus;
   late final TextEditingController? _controller;
 
+  bool _hasText = false;
   bool _isFocused = false;
   bool get _isFailure => widget.failure != null;
 
@@ -66,6 +71,14 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
         : null;
 
     _focus.addListener(_onFocusChange);
+
+    final effectiveController = widget.controller ?? _controller;
+    if (effectiveController != null) {
+      _hasText = effectiveController.text.isNotEmpty;
+      effectiveController.addListener(_onControllerChanged);
+    } else if (widget.initialValue != null) {
+      _hasText = widget.initialValue!.isNotEmpty;
+    }
   }
 
   @override
@@ -74,6 +87,7 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
       ..removeListener(_onFocusChange)
       ..dispose();
 
+    (widget.controller ?? _controller)?.removeListener(_onControllerChanged);
     _controller?.dispose();
 
     super.dispose();
@@ -82,6 +96,20 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
   void _onFocusChange() {
     setState(() => _isFocused = _focus.hasFocus);
     widget.onFocusChanged?.call(_focus.hasFocus);
+  }
+
+  void _onControllerChanged() {
+    final controller = widget.controller ?? _controller;
+    if (controller != null) {
+      setState(() => _hasText = controller.text.isNotEmpty);
+    }
+  }
+
+  void _onChanged(String value) {
+    if (widget.controller == null && _controller == null) {
+      setState(() => _hasText = value.isNotEmpty);
+    }
+    widget.onChanged?.call(value);
   }
 
   @override
@@ -109,10 +137,10 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
 
   TextField _buildField(Color color) => TextField(
     focusNode: _focus,
+    onChanged: _onChanged,
     enabled: widget.enabled,
     readOnly: widget.readOnly,
     textAlignVertical: .center,
-    onChanged: widget.onChanged,
     obscureText: widget.obscureText,
     keyboardType: widget.keyboardType,
     textInputAction: widget.inputAction,
@@ -140,14 +168,24 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
       enabledBorder: _outlinedBorder(
         _isFailure ? context.colors.error : context.colors.onSurfaceVariant,
       ),
-      suffixIcon: widget.trailingIcon == null
-          ? null
-          : IconButton(
-              onPressed: widget.onTrailingIconTap,
-              icon: Icon(widget.trailingIcon, color: color),
-            ),
+      suffixIcon: _buildSuffixIcon(color),
     ),
   );
+
+  Widget? _buildSuffixIcon(Color color) {
+    if (widget.trailingIcon == null) return null;
+    if (widget.hideTrailingIconWhenEmpty && !_hasText) return null;
+
+    return BounceWidget.withoutOnPress(
+      child: IconButton(
+        hoverColor: Colors.transparent,
+        splashColor: Colors.transparent,
+        onPressed: widget.onTrailingIconTap,
+        highlightColor: Colors.transparent,
+        icon: Icon(widget.trailingIcon, color: color),
+      ),
+    );
+  }
 
   Widget _buildFailure(Color color) => Row(
     spacing: 6.0,

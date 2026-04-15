@@ -4,43 +4,47 @@ enum SignUpStatus { initial, loading, success, failure }
 
 final class SignUpState extends Equatable {
   final String email;
+  final String message;
   final String password;
   final bool termsAccepted;
-  final String message;
   final SignUpStatus status;
+  final bool obscurePassword;
   final String? emailFailure;
-  final String? passwordFailure;
   final String? termsFailure;
+  final String? passwordFailure;
 
   const SignUpState({
     this.email = '',
-    this.password = '',
-    this.termsAccepted = false,
-    this.message = '',
-    this.status = SignUpStatus.initial,
     this.emailFailure,
-    this.passwordFailure,
     this.termsFailure,
+    this.message = '',
+    this.password = '',
+    this.passwordFailure,
+    this.status = .initial,
+    this.termsAccepted = false,
+    this.obscurePassword = true,
   });
 
   SignUpState copyWith({
     String? email,
+    String? message,
     String? password,
     bool? termsAccepted,
-    String? message,
-    SignUpStatus? status,
     String? emailFailure,
-    String? passwordFailure,
     String? termsFailure,
+    SignUpStatus? status,
+    bool? obscurePassword,
+    String? passwordFailure,
     bool clearEmailFailure = false,
-    bool clearPasswordFailure = false,
     bool clearTermsFailure = false,
+    bool clearPasswordFailure = false,
   }) => SignUpState(
     email: email ?? this.email,
+    status: status ?? this.status,
+    message: message ?? this.message,
     password: password ?? this.password,
     termsAccepted: termsAccepted ?? this.termsAccepted,
-    message: message ?? this.message,
-    status: status ?? this.status,
+    obscurePassword: obscurePassword ?? this.obscurePassword,
     emailFailure: clearEmailFailure ? null : emailFailure ?? this.emailFailure,
     passwordFailure: clearPasswordFailure
         ? null
@@ -51,12 +55,13 @@ final class SignUpState extends Equatable {
   @override
   List<Object?> get props => [
     email,
-    password,
-    termsAccepted,
-    message,
     status,
+    message,
+    password,
     emailFailure,
-    passwordFailure,
     termsFailure,
+    termsAccepted,
+    obscurePassword,
+    passwordFailure,
   ];
 }

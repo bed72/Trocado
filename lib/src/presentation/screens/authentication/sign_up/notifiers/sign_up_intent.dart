@@ -17,6 +17,10 @@ final class TermsToggled extends SignUpIntent {
   const TermsToggled(this.value);
 }
 
+final class PasswordVisibilityToggled extends SignUpIntent {
+  const PasswordVisibilityToggled();
+}
+
 final class SubmitPressed extends SignUpIntent {
   const SubmitPressed();
 }

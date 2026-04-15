@@ -32,6 +32,9 @@ final class SignUpNotifier extends _$SignUpNotifier {
       password: value,
       clearPasswordFailure: true,
     ),
+    PasswordVisibilityToggled() => state = state.copyWith(
+      obscurePassword: !state.obscurePassword,
+    ),
     TermsToggled(:final value) => state = state.copyWith(
       termsAccepted: value,
       clearTermsFailure: true,

@@ -103,25 +103,37 @@ class PasswordResetConfirmScreen extends StatelessWidget {
               const SizedBox(height: 28.0),
 
               TextFieldWidget(
-                obscureText: true,
                 inputAction: .next,
                 hint: 'Nova senha',
                 label: 'Nova senha',
+                hideTrailingIconWhenEmpty: true,
                 failure: state.newPasswordFailure,
+                obscureText: state.obscureNewPassword,
+                trailingIcon: state.obscureNewPassword
+                    ? Icons.visibility_outlined
+                    : Icons.visibility_off_outlined,
                 onChanged: (value) =>
                     notifier.dispatch(NewPasswordChanged(value)),
+                onTrailingIconTap: () =>
+                    notifier.dispatch(const NewPasswordVisibilityToggled()),
               ),
 
               const SizedBox(height: 12.0),
 
               TextFieldWidget(
-                label: 'Confirmar senha',
-                hint: 'Confirmar senha',
-                obscureText: true,
                 inputAction: .done,
+                hint: 'Confirmar senha',
+                label: 'Confirmar senha',
+                hideTrailingIconWhenEmpty: true,
                 failure: state.confirmPasswordFailure,
+                obscureText: state.obscureConfirmPassword,
+                trailingIcon: state.obscureConfirmPassword
+                    ? Icons.visibility_outlined
+                    : Icons.visibility_off_outlined,
                 onChanged: (value) =>
                     notifier.dispatch(ConfirmPasswordChanged(value)),
+                onTrailingIconTap: () =>
+                    notifier.dispatch(const ConfirmPasswordVisibilityToggled()),
               ),
 
               const Spacer(),

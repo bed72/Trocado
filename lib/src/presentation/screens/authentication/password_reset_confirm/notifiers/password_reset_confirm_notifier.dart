@@ -37,6 +37,12 @@ final class PasswordResetConfirmNotifier
       confirmPassword: value,
       clearConfirmPasswordFailure: true,
     ),
+    NewPasswordVisibilityToggled() => state = state.copyWith(
+      obscureNewPassword: !state.obscureNewPassword,
+    ),
+    ConfirmPasswordVisibilityToggled() => state = state.copyWith(
+      obscureConfirmPassword: !state.obscureConfirmPassword,
+    ),
     SubmitPressed() => _submit(),
   };
 
