@@ -15,7 +15,7 @@ final class SplashNotifier extends _$SplashNotifier {
   @override
   Future<SplashStatus> build() async {
     _repository = ref.watch(authenticationRepositoryProvider);
-    return _checkSession();
+    return await _checkSession();
   }
 
   Future<SplashStatus> _checkSession() async {
