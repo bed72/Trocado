@@ -41,21 +41,23 @@ final class AuthenticationInterceptor extends Interceptor {
       return handler.next(err);
     }
 
-    if (EndpointKey.isPublicPath(err.requestOptions.path)) return handler.next(err);
+    if (EndpointKey.isPublicPath(err.requestOptions.path)) {
+      return handler.next(err);
+    }
 
     try {
       final tokens = await _dataSource.get();
-      final response = await _dio.post<Map<String, dynamic>>(
+      final Response(data: data) = await _dio.post<Map<String, dynamic>>(
         EndpointKey.refreshToken.path,
         data: {'refresh': tokens.refresh},
       );
 
-      final newAccess = response.data!['access'] as String;
-      final newRefresh = response.data!['refresh'] as String;
-      await _dataSource.save(access: newAccess, refresh: newRefresh);
+      final access = data!['access'] as String;
+      final refresh = data['refresh'] as String;
+      await _dataSource.save(access: access, refresh: refresh);
 
       err.requestOptions.headers[HttpHeaders.authorizationHeader] =
-          'Bearer $newAccess';
+          'Bearer $access';
 
       handler.resolve(await _dio.fetch(err.requestOptions));
     } catch (_) {

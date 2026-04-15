@@ -64,7 +64,7 @@ final class PasswordResetConfirmNotifierProvider
 }
 
 String _$passwordResetConfirmNotifierHash() =>
-    r'747db391d2fa7eef36da9d071bc2c8cd27cba3aa';
+    r'e2ed4c6a7e4c4be39325482f730a6fa40ab1c16c';
 
 final class PasswordResetConfirmNotifierFamily extends $Family
     with

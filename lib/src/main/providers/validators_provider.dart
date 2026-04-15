@@ -1,8 +1,8 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:trocado/src/presentation/validators/email_validation.dart';
-import 'package:trocado/src/presentation/validators/password_validation.dart';
 import 'package:trocado/src/presentation/validators/terms_validation.dart';
+import 'package:trocado/src/presentation/validators/password_validation.dart';
 
 import 'package:trocado/src/presentation/screens/authentication/sign_in/validators/sign_in_form_validator.dart';
 import 'package:trocado/src/presentation/screens/authentication/sign_up/validators/sign_up_form_validator.dart';
@@ -20,8 +20,8 @@ SignInFormValidator signInFormValidator(Ref _) => const SignInFormValidator(
 @Riverpod()
 SignUpFormValidator signUpFormValidator(Ref _) => const SignUpFormValidator(
   emailValidation: EmailValidation(),
-  passwordValidation: PasswordValidation(),
   termsValidation: TermsValidation(),
+  passwordValidation: PasswordValidation(),
 );
 
 @Riverpod()

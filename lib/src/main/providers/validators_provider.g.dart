@@ -103,7 +103,7 @@ final class SignUpFormValidatorProvider
 }
 
 String _$signUpFormValidatorHash() =>
-    r'b8872e5b617745be6e530c4c8a299d352a79313b';
+    r'bae831467511f2ffd1f01aaf9924f295085791b6';
 
 @ProviderFor(forgotPasswordFormValidator)
 final forgotPasswordFormValidatorProvider =

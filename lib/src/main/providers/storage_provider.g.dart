@@ -67,7 +67,7 @@ final class LocalTokenDataSourceProvider
         argument: null,
         retry: null,
         name: r'localTokenDataSourceProvider',
-        isAutoDispose: false,
+        isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -96,4 +96,4 @@ final class LocalTokenDataSourceProvider
 }
 
 String _$localTokenDataSourceHash() =>
-    r'eb748e83f367fd6d4024036538f728859007c6b7';
+    r'e4bd19dcdfc1c778e7c6ddc397c19397d271c1ea';

@@ -10,6 +10,6 @@ part 'storage_provider.g.dart';
 IStorageClient storageClient(Ref ref) =>
     StorageClient(storage: const FlutterSecureStorage());
 
-@Riverpod(keepAlive: true)
+@Riverpod()
 ILocalTokenDataSource localTokenDataSource(Ref ref) =>
     LocalTokenDataSource(client: ref.watch(storageClientProvider));
