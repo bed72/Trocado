@@ -7,13 +7,16 @@ final class DeepLinkHandler {
 
   List<Location> call(Uri uri) => switch (uri.path) {
     '/reset-password' => _passwordResetConfirm(uri),
-    _                 => [],
+    _ => [],
   };
 
   List<Location> _passwordResetConfirm(Uri uri) {
-    final uid   = uri.queryParameters['uid']   ?? '';
+    final uid = uri.queryParameters['uid'] ?? '';
     final token = uri.queryParameters['token'] ?? '';
     if (uid.isEmpty || token.isEmpty) return [];
     return [PasswordResetConfirmLocation(uid: uid, token: token)];
   }
 }
+// adb shell am start -a android.intent.action.VIEW \                                                                                                                        
+//     -d "trocado://app/reset-password?uid=Mw\&token=bm7gkj-1a2b3c4d" \                                                                                                       
+//     br.com.bed.trocado 

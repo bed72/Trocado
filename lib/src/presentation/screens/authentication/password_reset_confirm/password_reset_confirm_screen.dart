@@ -103,9 +103,10 @@ class PasswordResetConfirmScreen extends StatelessWidget {
               const SizedBox(height: 28.0),
 
               TextFieldWidget(
-                label: 'Nova senha',
-                hint: 'Nova senha',
                 obscureText: true,
+                inputAction: .next,
+                hint: 'Nova senha',
+                label: 'Nova senha',
                 failure: state.newPasswordFailure,
                 onChanged: (value) =>
                     notifier.dispatch(NewPasswordChanged(value)),

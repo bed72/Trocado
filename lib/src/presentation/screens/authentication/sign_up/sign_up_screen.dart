@@ -81,6 +81,7 @@ class SignUpScreen extends StatelessWidget {
 
               TextFieldWidget(
                 label: 'E-mail',
+                inputAction: .next,
                 hint: 'Digite seu e-mail',
                 keyboardType: .emailAddress,
                 failure: state.emailFailure,
