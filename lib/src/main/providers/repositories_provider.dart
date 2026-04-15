@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:trocado/src/main/providers/storage_provider.dart';
 import 'package:trocado/src/main/providers/data_sources.provider.dart';
 
 import 'package:trocado/src/data/repositories/authentication_repository.dart';

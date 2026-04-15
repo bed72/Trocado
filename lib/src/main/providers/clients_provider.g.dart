@@ -47,48 +47,7 @@ final class DioProvider extends $FunctionalProvider<Dio, Dio, Dio>
   }
 }
 
-String _$dioHash() => r'30e6e30b128562eff46ffa612bf633c9125dfde5';
-
-@ProviderFor(storageClient)
-final storageClientProvider = StorageClientProvider._();
-
-final class StorageClientProvider
-    extends $FunctionalProvider<IStorageClient, IStorageClient, IStorageClient>
-    with $Provider<IStorageClient> {
-  StorageClientProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'storageClientProvider',
-        isAutoDispose: false,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$storageClientHash();
-
-  @$internal
-  @override
-  $ProviderElement<IStorageClient> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
-
-  @override
-  IStorageClient create(Ref ref) {
-    return storageClient(ref);
-  }
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(IStorageClient value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<IStorageClient>(value),
-    );
-  }
-}
-
-String _$storageClientHash() => r'4dfdbdf68f1668495a6836c3ed672d6fc8ce296a';
+String _$dioHash() => r'ee45da0ff9b5324db9038e347a3bb86480181efe';
 
 @ProviderFor(httpClient)
 final httpClientProvider = HttpClientProvider._();
