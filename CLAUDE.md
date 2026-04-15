@@ -244,20 +244,50 @@ Map<String, dynamic> _unknownError() {
 
 ### Pattern matching
 
-Usar pattern matching do Dart 3 sempre que possível: destructuring, switch expressions, record patterns.
+**Regra:** usar sempre switch expression — nunca switch statement. Isso se aplica a todo switch no projeto sem exceção.
 
 ```dart
-// destructuring em assignment
-final Response(data: data) = await _dio.get(path);
-
-// switch expression no dispatch (MVI)
+// dispatch (MVI) — switch expression
 void dispatch(XxxIntent intent) => switch (intent) {
   EmailChanged(:final value) => state = state.copyWith(email: value),
   SubmitPressed()            => _submit(),
 };
 
-// evitar if/else ou switch statement onde switch expression serve
+// ref.listen — switch expression como statement (resultado descartado)
+ref.listen(xxxProvider, (_, XxxState state) => switch (state.status) {
+  XxxStatus.success      => context.navigate(NextLocation()),
+  XxxStatus.failure      => _showError(context, state.message),
+  XxxStatus.loading ||
+  XxxStatus.initial      => null,
+});
+
+// mapeamento de failure — switch expression
+return switch (FailureCodeResponse.fromString(item.code)) {
+  .networkError => const NetworkFailure(),
+  .serverError  => const ServerFailure(),
+  .notFound     => const NotFoundFailure(),
+  _             => ValidationFailure(item.message),
+};
+
+// destructuring em assignment
+final Response(data: data) = await _dio.get(path);
+
+// evitar — switch statement
+switch (intent) {
+  case SubmitPressed():
+    _submit();
+    break;
+}
+
+// evitar — if/else onde switch expression serve
+if (status == XxxStatus.success) {
+  context.navigate(NextLocation());
+} else if (status == XxxStatus.failure) {
+  _showError(context, message);
+}
 ```
+
+Para contextos `void` (como `ref.listen`), o braço no-op usa `null` — o resultado do switch expression é descartado.
 
 ### Injeção de dependência
 

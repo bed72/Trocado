@@ -84,12 +84,12 @@ class XxxScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer(
       builder: (context, ref, _) {
-        ref.listen(xxxNotifierProvider, (_, state) {
-          if (state.status == XxxStatus.success) context.navigate(NextLocation());
-          if (state.status == XxxStatus.failure) {
-            ScaffoldMessenger.of(context)
-                .showSnackBar(SnackBar(content: Text(state.message)));
-          }
+        ref.listen(xxxProvider, (_, XxxState state) => switch (state.status) {
+          XxxStatus.success  => context.navigate(NextLocation()),
+          XxxStatus.failure  => ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(state.message))),
+          XxxStatus.loading ||
+          XxxStatus.initial  => null,
         });
 
         final status = ref.watch(
@@ -121,6 +121,7 @@ dart run build_runner build --delete-conflicting-outputs
 - Campos antes do construtor em `XxxState`
 - Zero comentários no código
 - `@riverpod` apenas no Notifier — não usar code gen em State ou Intent
+- **`switch` expression sempre** — nunca switch statement. Vale para `dispatch`, `ref.listen`, mapeamentos de failure e qualquer outro switch no projeto
 - `switch` no `dispatch` deve ser exhaustivo (cobrir todos os intents)
 - Widget filho (`XxxWidget`) não conhece Riverpod — recebe `onIntent` como callback
 - **Nunca usar `ConsumerWidget`** — sempre `StatelessWidget` + `Consumer` interno na screen

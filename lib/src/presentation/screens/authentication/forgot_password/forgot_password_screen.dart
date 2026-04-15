@@ -52,7 +52,7 @@ class ForgotPasswordScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBody({
+  CustomScrollView _buildBody({
     required BuildContext context,
     required ForgotPasswordState state,
     required ForgotPasswordNotifier notifier,

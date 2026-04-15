@@ -13,12 +13,12 @@ final class SplashNotifier extends _$SplashNotifier {
   @override
   SplashState build() {
     _repository = ref.watch(authenticationRepositoryProvider);
-    _check();
+    _isLogged();
 
     return const SplashState();
   }
 
-  Future<void> _check() async {
+  Future<void> _isLogged() async {
     final data = await _repository.checkSession();
 
     state = data.fold(

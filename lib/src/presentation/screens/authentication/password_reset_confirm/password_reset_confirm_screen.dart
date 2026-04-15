@@ -69,7 +69,7 @@ class PasswordResetConfirmScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBody({
+  CustomScrollView _buildBody({
     required BuildContext context,
     required PasswordResetConfirmState state,
     required PasswordResetConfirmNotifier notifier,

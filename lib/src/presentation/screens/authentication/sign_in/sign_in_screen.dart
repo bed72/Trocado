@@ -47,7 +47,7 @@ class SignInScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBody({
+  CustomScrollView _buildBody({
     required BuildContext context,
     required SignInState state,
     required SignInNotifier notifier,
