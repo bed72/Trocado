@@ -56,3 +56,45 @@ final class AuthenticationRepositoryProvider
 
 String _$authenticationRepositoryHash() =>
     r'694d6d8805366c5d56952b88fd4a2899b09ac962';
+
+@ProviderFor(userRepository)
+final userRepositoryProvider = UserRepositoryProvider._();
+
+final class UserRepositoryProvider
+    extends
+        $FunctionalProvider<IUserRepository, IUserRepository, IUserRepository>
+    with $Provider<IUserRepository> {
+  UserRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'userRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$userRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<IUserRepository> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  IUserRepository create(Ref ref) {
+    return userRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(IUserRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<IUserRepository>(value),
+    );
+  }
+}
+
+String _$userRepositoryHash() => r'f1cb75c5b2af70845e3e3f809b0a9b93a9e55763';

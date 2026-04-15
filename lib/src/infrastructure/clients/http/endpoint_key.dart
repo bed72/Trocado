@@ -1,4 +1,5 @@
 enum EndpointKey {
+  me('/api/v1/me'),
   signIn('/api/v1/token'),
   signUp('/api/v1/auth/register'),
   verifyToken('/api/v1/token/verify'),

@@ -59,3 +59,51 @@ final class RemoteAuthenticationDataSourceProvider
 
 String _$remoteAuthenticationDataSourceHash() =>
     r'e8ac2f5080ca4fc5fccab6e546157e2b4f69442c';
+
+@ProviderFor(remoteUserDataSource)
+final remoteUserDataSourceProvider = RemoteUserDataSourceProvider._();
+
+final class RemoteUserDataSourceProvider
+    extends
+        $FunctionalProvider<
+          IRemoteUserDataSource,
+          IRemoteUserDataSource,
+          IRemoteUserDataSource
+        >
+    with $Provider<IRemoteUserDataSource> {
+  RemoteUserDataSourceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'remoteUserDataSourceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$remoteUserDataSourceHash();
+
+  @$internal
+  @override
+  $ProviderElement<IRemoteUserDataSource> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  IRemoteUserDataSource create(Ref ref) {
+    return remoteUserDataSource(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(IRemoteUserDataSource value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<IRemoteUserDataSource>(value),
+    );
+  }
+}
+
+String _$remoteUserDataSourceHash() =>
+    r'8c43a0939a5a98f560c111373497de5db8710e4a';

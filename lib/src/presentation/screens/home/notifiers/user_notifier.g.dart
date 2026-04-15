@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'splash_notifier.dart';
+part of 'user_notifier.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,43 +9,43 @@ part of 'splash_notifier.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(SplashNotifier)
-final splashProvider = SplashNotifierProvider._();
+@ProviderFor(UserNotifier)
+final userProvider = UserNotifierProvider._();
 
-final class SplashNotifierProvider
-    extends $AsyncNotifierProvider<SplashNotifier, SplashStatus> {
-  SplashNotifierProvider._()
+final class UserNotifierProvider
+    extends $AsyncNotifierProvider<UserNotifier, UserModel> {
+  UserNotifierProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'splashProvider',
+        name: r'userProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$splashNotifierHash();
+  String debugGetCreateSourceHash() => _$userNotifierHash();
 
   @$internal
   @override
-  SplashNotifier create() => SplashNotifier();
+  UserNotifier create() => UserNotifier();
 }
 
-String _$splashNotifierHash() => r'2728778d1fccd8e96c563b7235021ec478e0cc9b';
+String _$userNotifierHash() => r'57eec008211cc2c29ba57ed938a722920ccd39f5';
 
-abstract class _$SplashNotifier extends $AsyncNotifier<SplashStatus> {
-  FutureOr<SplashStatus> build();
+abstract class _$UserNotifier extends $AsyncNotifier<UserModel> {
+  FutureOr<UserModel> build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<AsyncValue<SplashStatus>, SplashStatus>;
+    final ref = this.ref as $Ref<AsyncValue<UserModel>, UserModel>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<AsyncValue<SplashStatus>, SplashStatus>,
-              AsyncValue<SplashStatus>,
+              AnyNotifier<AsyncValue<UserModel>, UserModel>,
+              AsyncValue<UserModel>,
               Object?,
               Object?
             >;

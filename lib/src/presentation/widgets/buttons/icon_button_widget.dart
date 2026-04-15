@@ -12,6 +12,7 @@ class IconButtonWidget extends StatelessWidget {
   final double? height;
   final double? iconSize;
   final VoidCallback onPress;
+  final bool? withoutBackground;
   final BorderRadiusGeometry? borderRadius;
 
   const IconButtonWidget({
@@ -23,6 +24,7 @@ class IconButtonWidget extends StatelessWidget {
     this.height,
     this.iconSize,
     this.borderRadius,
+    this.withoutBackground,
   });
 
   @override
@@ -35,6 +37,7 @@ class IconButtonWidget extends StatelessWidget {
         height: height,
         iconSize: iconSize,
         borderRadius: borderRadius,
+        withoutBackground: withoutBackground,
         color: color ?? context.colors.primary,
       ),
     );

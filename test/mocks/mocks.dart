@@ -3,6 +3,7 @@ import 'package:mocktail/mocktail.dart';
 
 import 'package:trocado/src/application/services/money_service.dart';
 
+import 'package:trocado/src/domain/repositories/interface_user_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_authentication_repository.dart';
 
 import 'package:trocado/src/infrastructure/clients/http/http_client.dart';
@@ -19,6 +20,8 @@ final class MockLoggerClient extends Mock implements ILoggerClient {}
 final class MockMoneyService extends Mock implements IMoneyService {}
 
 final class MockStorageClient extends Mock implements IStorageClient {}
+
+final class MockUserRepository extends Mock implements IUserRepository {}
 
 final class MockHttpClientAdapter extends Mock implements HttpClientAdapter {}
 

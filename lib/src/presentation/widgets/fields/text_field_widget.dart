@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:trocado/src/presentation/widgets/bounce_widget.dart';
-
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
+import 'package:trocado/src/presentation/widgets/buttons/icon_button_widget.dart';
 
 class TextFieldWidget extends StatefulWidget {
   final String hint;
@@ -176,14 +175,11 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
     if (widget.trailingIcon == null) return null;
     if (widget.hideTrailingIconWhenEmpty && !_hasText) return null;
 
-    return BounceWidget.withoutOnPress(
-      child: IconButton(
-        hoverColor: Colors.transparent,
-        splashColor: Colors.transparent,
-        onPressed: widget.onTrailingIconTap,
-        highlightColor: Colors.transparent,
-        icon: Icon(widget.trailingIcon, color: color),
-      ),
+    return IconButtonWidget(
+      color: color,
+      withoutBackground: true,
+      icon: widget.trailingIcon!,
+      onPress: () => widget.onTrailingIconTap?.call(),
     );
   }
 
