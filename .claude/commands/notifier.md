@@ -106,6 +106,40 @@ class XxxScreen extends StatelessWidget {
 }
 ```
 
+### Variante: AsyncNotifier (inicialização automática)
+
+Quando não há interação do usuário e o estado é carregado ao montar (ex: splash, carregamento inicial de dados), usar `AsyncNotifier`. A lógica async fica em método privado:
+
+```dart
+@riverpod
+final class XxxNotifier extends _$XxxNotifier {
+  late IXxxRepository _repository;
+
+  @override
+  Future<XxxStatus> build() async {
+    _repository = ref.watch(xxxRepositoryProvider);
+    return await _load();
+  }
+
+  Future<XxxStatus> _load() async {
+    final data = await _repository.action();
+    return data.fold((_) => XxxStatus.failure, (_) => XxxStatus.success);
+  }
+}
+```
+
+Na screen, o provider retorna `AsyncValue<XxxStatus>`:
+
+```dart
+ref.listen(xxxProvider, (_, AsyncValue<XxxStatus> state) => switch (state) {
+  AsyncData(:final value) => switch (value) {
+    XxxStatus.success => navigateToHome(),
+    XxxStatus.failure => navigateToSignIn(),
+  },
+  _ => null,
+});
+```
+
 ---
 
 ## Após criar os arquivos

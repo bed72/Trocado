@@ -341,6 +341,38 @@ final class SignInNotifier extends _$SignInNotifier {
 }
 ```
 
+**Notifier com inicialização assíncrona automática** — quando não há interação do usuário e o estado é carregado ao montar (ex: splash, carregamento inicial), usar `AsyncNotifier` com `build()` async. A lógica async fica em método privado separado:
+
+```dart
+@riverpod
+final class SplashNotifier extends _$SplashNotifier {
+  late IAuthenticationRepository _repository;
+
+  @override
+  Future<SplashStatus> build() async {
+    _repository = ref.watch(authenticationRepositoryProvider);
+    return await _checkSession();
+  }
+
+  Future<SplashStatus> _checkSession() async {
+    final data = await _repository.checkSession();
+    return data.fold((_) => .unauthenticated, (_) => .authenticated);
+  }
+}
+```
+
+Na screen, o provider é `AsyncValue<T>` — usar `AsyncData` no switch do `ref.listen`:
+
+```dart
+ref.listen(splashProvider, (_, AsyncValue<SplashStatus> state) => switch (state) {
+  AsyncData(:final value) => switch (value) {
+    .authenticated   => navigateToHome(),
+    .unauthenticated => navigateToSignIn(),
+  },
+  _ => null,
+});
+```
+
 **Campos em `build()` são `late`, nunca `late final`.** O Riverpod re-executa `build()` na mesma instância quando uma dependência `ref.watch` muda — `late final` lançaria `LateInitializationError` na segunda execução.
 
 **Todas as dependências do Notifier vêm via `ref.watch` no `build()`**, incluindo validators. Nunca instanciar dependências diretamente no notifier — isso inclui `static const`. Validators são providers em `main/providers/validators_provider.dart`.
