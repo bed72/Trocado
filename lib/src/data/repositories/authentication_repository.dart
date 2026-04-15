@@ -5,6 +5,7 @@ import 'package:trocado/src/data/extensions/sign_in_response_extension.dart';
 import 'package:trocado/src/data/extensions/sign_up_response_extension.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
+
 import 'package:trocado/src/domain/models/sign_up_model.dart';
 import 'package:trocado/src/domain/models/authentication_model.dart';
 
@@ -22,6 +23,17 @@ final class AuthenticationRepository implements IAuthenticationRepository {
     required IRemoteAuthenticationDataSource authenticationDataSource,
   }) : _tokenDataSource = tokenDataSource,
        _authenticationDataSource = authenticationDataSource;
+
+  @override
+  Future<Either<Failure, void>> requestPasswordReset({
+    required String email,
+  }) async {
+    final data = await _authenticationDataSource.requestPasswordReset(
+      email: email,
+    );
+
+    return data.either((failure) => failure.toFailure(), (_) {});
+  }
 
   @override
   Future<Either<Failure, AuthenticationModel>> signIn({
@@ -48,12 +60,10 @@ final class AuthenticationRepository implements IAuthenticationRepository {
     required String email,
     required String password,
   }) async {
-    final name = email.split('@').first;
-
     final data = await _authenticationDataSource.signUp(
-      name: name,
       email: email,
       password: password,
+      name: email.split('@').first,
     );
 
     if (data.isLeft) return Left(data.left.toFailure());
@@ -67,6 +77,21 @@ final class AuthenticationRepository implements IAuthenticationRepository {
   }
 
   @override
+  Future<Either<Failure, void>> confirmPasswordReset({
+    required String uid,
+    required String token,
+    required String newPassword,
+  }) async {
+    final data = await _authenticationDataSource.confirmPasswordReset(
+      uid: uid,
+      token: token,
+      newPassword: newPassword,
+    );
+
+    return data.either((failure) => failure.toFailure(), (_) {});
+  }
+
+  @override
   Future<Either<Failure, void>> checkSession() async {
     final tokens = await _tokenDataSource.get();
     if (tokens.access == null) return Left(const UnknownFailure());
@@ -75,7 +100,6 @@ final class AuthenticationRepository implements IAuthenticationRepository {
       token: tokens.access!,
     );
     if (verify.isRight) return const Right(null);
-
     if (tokens.refresh == null) return Left(const UnknownFailure());
 
     final refresh = await _authenticationDataSource.refreshToken(
@@ -90,30 +114,7 @@ final class AuthenticationRepository implements IAuthenticationRepository {
       access: refresh.right.access,
       refresh: refresh.right.refresh,
     );
+
     return const Right(null);
-  }
-
-  @override
-  Future<Either<Failure, void>> requestPasswordReset({
-    required String email,
-  }) async {
-    final data = await _authenticationDataSource.requestPasswordReset(
-      email: email,
-    );
-    return data.either((failure) => failure.toFailure(), (_) {});
-  }
-
-  @override
-  Future<Either<Failure, void>> confirmPasswordReset({
-    required String uid,
-    required String token,
-    required String newPassword,
-  }) async {
-    final data = await _authenticationDataSource.confirmPasswordReset(
-      uid: uid,
-      token: token,
-      newPassword: newPassword,
-    );
-    return data.either((failure) => failure.toFailure(), (_) {});
   }
 }

@@ -38,7 +38,8 @@ abstract interface class IRemoteAuthenticationDataSource {
     required String email,
   });
 
-  Future<Either<FailureResponse, PasswordResetConfirmResponse>> confirmPasswordReset({
+  Future<Either<FailureResponse, PasswordResetConfirmResponse>>
+  confirmPasswordReset({
     required String uid,
     required String token,
     required String newPassword,
@@ -92,11 +93,9 @@ final class RemoteAuthenticationDataSource
     required String token,
   }) async {
     final response = await _client.post(
-      parameter: Requests(
-        EndpointKey.verifyToken.path,
-        body: {'token': token},
-      ),
+      parameter: Requests(EndpointKey.verifyToken.path, body: {'token': token}),
     );
+
     return response.either(FailureResponse.fromJson, (_) {});
   }
 
@@ -110,7 +109,11 @@ final class RemoteAuthenticationDataSource
         body: {'refresh': refresh},
       ),
     );
-    return response.either(FailureResponse.fromJson, RefreshTokenResponse.fromJson);
+
+    return response.either(
+      FailureResponse.fromJson,
+      RefreshTokenResponse.fromJson,
+    );
   }
 
   @override
@@ -124,11 +127,15 @@ final class RemoteAuthenticationDataSource
       ),
     );
 
-    return response.either(FailureResponse.fromJson, PasswordResetResponse.fromJson);
+    return response.either(
+      FailureResponse.fromJson,
+      PasswordResetResponse.fromJson,
+    );
   }
 
   @override
-  Future<Either<FailureResponse, PasswordResetConfirmResponse>> confirmPasswordReset({
+  Future<Either<FailureResponse, PasswordResetConfirmResponse>>
+  confirmPasswordReset({
     required String uid,
     required String token,
     required String newPassword,
