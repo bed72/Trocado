@@ -50,46 +50,6 @@ final class LoggerClientProvider
 
 String _$loggerClientHash() => r'7902ac4aa4ff597bc43fbb1c60899402b7598f8c';
 
-@ProviderFor(dio)
-final dioProvider = DioProvider._();
-
-final class DioProvider extends $FunctionalProvider<Dio, Dio, Dio>
-    with $Provider<Dio> {
-  DioProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'dioProvider',
-        isAutoDispose: false,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$dioHash();
-
-  @$internal
-  @override
-  $ProviderElement<Dio> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
-
-  @override
-  Dio create(Ref ref) {
-    return dio(ref);
-  }
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(Dio value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<Dio>(value),
-    );
-  }
-}
-
-String _$dioHash() => r'6d847db90ac9c4755ee6481d7af5562c88c449d3';
-
 @ProviderFor(httpClient)
 final httpClientProvider = HttpClientProvider._();
 
@@ -130,3 +90,43 @@ final class HttpClientProvider
 }
 
 String _$httpClientHash() => r'35887c386298e00b9fcfae9b178572774197a3f6';
+
+@ProviderFor(dio)
+final dioProvider = DioProvider._();
+
+final class DioProvider extends $FunctionalProvider<Dio, Dio, Dio>
+    with $Provider<Dio> {
+  DioProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'dioProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$dioHash();
+
+  @$internal
+  @override
+  $ProviderElement<Dio> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  Dio create(Ref ref) {
+    return dio(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Dio value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Dio>(value),
+    );
+  }
+}
+
+String _$dioHash() => r'6d847db90ac9c4755ee6481d7af5562c88c449d3';

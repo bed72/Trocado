@@ -12,6 +12,7 @@ import 'package:trocado/src/infrastructure/clients/http/requests/password_reset_
 import 'package:trocado/src/infrastructure/clients/http/responses/sign_in_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/sign_up_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/password_reset_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/refresh_token_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/password_reset_confirm_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/failure/failure_response.dart';
 
@@ -25,6 +26,12 @@ abstract interface class IRemoteAuthenticationDataSource {
     required String name,
     required String email,
     required String password,
+  });
+
+  Future<Either<FailureResponse, void>> verifyToken({required String token});
+
+  Future<Either<FailureResponse, RefreshTokenResponse>> refreshToken({
+    required String refresh,
   });
 
   Future<Either<FailureResponse, PasswordResetResponse>> requestPasswordReset({
@@ -78,6 +85,32 @@ final class RemoteAuthenticationDataSource
     );
 
     return response.either(FailureResponse.fromJson, SignUpResponse.fromJson);
+  }
+
+  @override
+  Future<Either<FailureResponse, void>> verifyToken({
+    required String token,
+  }) async {
+    final response = await _client.post(
+      parameter: Requests(
+        EndpointKey.verifyToken.path,
+        body: {'token': token},
+      ),
+    );
+    return response.either(FailureResponse.fromJson, (_) {});
+  }
+
+  @override
+  Future<Either<FailureResponse, RefreshTokenResponse>> refreshToken({
+    required String refresh,
+  }) async {
+    final response = await _client.post(
+      parameter: Requests(
+        EndpointKey.refreshToken.path,
+        body: {'refresh': refresh},
+      ),
+    );
+    return response.either(FailureResponse.fromJson, RefreshTokenResponse.fromJson);
   }
 
   @override

@@ -419,6 +419,86 @@ void main() {
     });
   });
 
+  group('checkSession', () {
+    test('returns Left when no tokens in storage', () async {
+      when(() => tokenDataSource.get()).thenAnswer(
+        (_) async => (access: null, refresh: null),
+      );
+
+      final data = await repository.checkSession();
+
+      expect(data.isLeft, isTrue);
+    });
+
+    test('returns Right when access token is valid', () async {
+      when(() => tokenDataSource.get()).thenAnswer(
+        (_) async => (access: 'valid_access', refresh: 'refresh_token'),
+      );
+      when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Right({}),
+      );
+
+      final data = await repository.checkSession();
+
+      expect(data.isRight, isTrue);
+    });
+
+    test('refreshes and returns Right when access expired but refresh valid', () async {
+      when(() => tokenDataSource.get()).thenAnswer(
+        (_) async => (access: 'expired_access', refresh: 'valid_refresh'),
+      );
+
+      var callCount = 0;
+      when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async {
+          callCount++;
+          if (callCount == 1) {
+            return const Left({
+              'errors': [
+                {
+                  'field': 'non_field_errors',
+                  'code': 'token_not_valid',
+                  'message': 'Token is invalid or expired.',
+                },
+              ],
+            });
+          }
+          return const Right({'access': 'new_access', 'refresh': 'new_refresh'});
+        },
+      );
+
+      final data = await repository.checkSession();
+
+      expect(data.isRight, isTrue);
+      verify(
+        () => tokenDataSource.save(access: 'new_access', refresh: 'new_refresh'),
+      ).called(1);
+    });
+
+    test('clears tokens and returns Left when both tokens are expired', () async {
+      when(() => tokenDataSource.get()).thenAnswer(
+        (_) async => (access: 'expired_access', refresh: 'expired_refresh'),
+      );
+      when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'field': 'non_field_errors',
+              'code': 'token_not_valid',
+              'message': 'Token is invalid or expired.',
+            },
+          ],
+        }),
+      );
+      when(() => tokenDataSource.clear()).thenAnswer((_) async {});
+
+      final data = await repository.checkSession();
+
+      expect(data.isLeft, isTrue);
+      verify(() => tokenDataSource.clear()).called(1);
+    });
+  });
+
   group('confirmPasswordReset', () {
     test('returns Right on success', () async {
       when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(

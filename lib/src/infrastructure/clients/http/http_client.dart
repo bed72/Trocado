@@ -72,6 +72,7 @@ final class HttpClient implements IHttpClient {
   ) async {
     try {
       final Response(data: data) = await call();
+
       return Right(data ?? {});
     } on DioException catch (exception) {
       return Left(_mapFailure(exception));
@@ -92,6 +93,7 @@ final class HttpClient implements IHttpClient {
 
   Map<String, dynamic> _mapFailure(DioException exception) {
     final response = exception.response?.data;
+
     return response is Map<String, dynamic>
         ? response
         : {

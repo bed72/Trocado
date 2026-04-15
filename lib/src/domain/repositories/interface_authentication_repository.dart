@@ -15,6 +15,8 @@ abstract interface class IAuthenticationRepository {
     required String password,
   });
 
+  Future<Either<Failure, void>> checkSession();
+
   Future<Either<Failure, void>> requestPasswordReset({required String email});
 
   Future<Either<Failure, void>> confirmPasswordReset({
