@@ -12,7 +12,7 @@ import 'package:trocado/src/infrastructure/clients/http/http_client.dart';
 import 'package:trocado/src/infrastructure/clients/logger/logger_client.dart';
 import 'package:trocado/src/infrastructure/clients/storage/storage_client.dart';
 import 'package:trocado/src/infrastructure/datasources/local/local_token_data_source.dart';
-import 'package:trocado/src/infrastructure/clients/http/interceptors/auth_interceptor.dart';
+import 'package:trocado/src/infrastructure/clients/http/interceptors/authentication_interceptor.dart';
 import 'package:trocado/src/infrastructure/clients/http/interceptors/logging_interceptor.dart';
 
 part 'clients_provider.g.dart';
@@ -24,7 +24,7 @@ Dio dio(Ref ref) {
     client: ref.watch(storageClientProvider),
   );
   dio.interceptors.addAll([
-    AuthInterceptor(
+    AuthenticationInterceptor(
       dio: dio,
       dataSource: tokenDataSource,
       onUnauthenticated: () => routerConfig.navigate(
