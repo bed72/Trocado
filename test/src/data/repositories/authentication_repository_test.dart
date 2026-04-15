@@ -475,6 +475,28 @@ void main() {
       ).called(1);
     });
 
+    test('returns Left when access is expired and refresh is null', () async {
+      when(() => tokenDataSource.get()).thenAnswer(
+        (_) async => (access: 'expired_access', refresh: null),
+      );
+      when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'field': 'non_field_errors',
+              'code': 'token_not_valid',
+              'message': 'Token is invalid or expired.',
+            },
+          ],
+        }),
+      );
+
+      final data = await repository.checkSession();
+
+      expect(data.isLeft, isTrue);
+      verifyNever(() => tokenDataSource.clear());
+    });
+
     test('clears tokens and returns Left when both tokens are expired', () async {
       when(() => tokenDataSource.get()).thenAnswer(
         (_) async => (access: 'expired_access', refresh: 'expired_refresh'),
