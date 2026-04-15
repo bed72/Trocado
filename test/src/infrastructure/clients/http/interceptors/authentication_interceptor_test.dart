@@ -1,10 +1,12 @@
-import 'dart:convert';
 import 'dart:io';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import 'package:trocado/src/infrastructure/datasources/local/local_token_data_source.dart';
 
 import 'package:trocado/src/infrastructure/clients/http/interceptors/authentication_interceptor.dart';
 
@@ -20,6 +22,7 @@ final class _CapturingAdapter implements HttpClientAdapter {
     Future<void>? cancelFuture,
   ) async {
     lastOptions = options;
+
     return ResponseBody.fromString(
       '{}',
       200,
@@ -33,7 +36,7 @@ final class _CapturingAdapter implements HttpClientAdapter {
   void close({bool force = false}) {}
 }
 
-final class _ServerErrorAdapter implements HttpClientAdapter {
+final class _ServerFailureAdapter implements HttpClientAdapter {
   @override
   Future<ResponseBody> fetch(
     RequestOptions options,
@@ -121,19 +124,19 @@ final class _RefreshFailureAdapter implements HttpClientAdapter {
 }
 
 void main() {
-  late MockTokenDataSource tokenDataSource;
   late bool onUnauthenticatedCalled;
+  late ILocalTokenDataSource dataSource;
 
   AuthenticationInterceptor buildInterceptor(Dio dio) =>
       AuthenticationInterceptor(
         dio: dio,
-        dataSource: tokenDataSource,
+        dataSource: dataSource,
         onUnauthenticated: () => onUnauthenticatedCalled = true,
       );
 
   setUp(() {
-    tokenDataSource = MockTokenDataSource();
     onUnauthenticatedCalled = false;
+    dataSource = MockTokenDataSource();
   });
 
   group('onRequest — public endpoint', () {
@@ -151,13 +154,13 @@ void main() {
         ),
         isFalse,
       );
-      verifyNever(() => tokenDataSource.get());
+      verifyNever(() => dataSource.get());
     });
   });
 
   group('onRequest — protected endpoint', () {
     test('adds Authorization header with access token', () async {
-      when(() => tokenDataSource.get()).thenAnswer(
+      when(() => dataSource.get()).thenAnswer(
         (_) async => (access: 'access_token', refresh: 'refresh_token'),
       );
 
@@ -177,13 +180,13 @@ void main() {
 
   group('onError — non-401', () {
     test('propagates error without attempting refresh', () async {
-      when(() => tokenDataSource.get()).thenAnswer(
+      when(() => dataSource.get()).thenAnswer(
         (_) async => (access: 'access_token', refresh: 'refresh_token'),
       );
 
       final dio = Dio(BaseOptions(baseUrl: 'https://api.test'));
       dio.interceptors.add(buildInterceptor(dio));
-      dio.httpClientAdapter = _ServerErrorAdapter();
+      dio.httpClientAdapter = _ServerFailureAdapter();
 
       try {
         await dio.get('/api/v1/expenses');
@@ -192,7 +195,7 @@ void main() {
       }
 
       verifyNever(
-        () => tokenDataSource.save(
+        () => dataSource.save(
           access: any(named: 'access'),
           refresh: any(named: 'refresh'),
         ),
@@ -203,10 +206,10 @@ void main() {
   group('onError — 401', () {
     test('refreshes tokens and retries request on success', () async {
       when(
-        () => tokenDataSource.get(),
+        () => dataSource.get(),
       ).thenAnswer((_) async => (access: 'old_access', refresh: 'old_refresh'));
       when(
-        () => tokenDataSource.save(
+        () => dataSource.save(
           access: any(named: 'access'),
           refresh: any(named: 'refresh'),
         ),
@@ -220,8 +223,7 @@ void main() {
 
       expect(response.statusCode, 200);
       verify(
-        () =>
-            tokenDataSource.save(access: 'new_access', refresh: 'new_refresh'),
+        () => dataSource.save(access: 'new_access', refresh: 'new_refresh'),
       ).called(1);
       expect(onUnauthenticatedCalled, isFalse);
     });
@@ -229,10 +231,10 @@ void main() {
     test(
       'clears tokens and calls onUnauthenticated on refresh failure',
       () async {
-        when(() => tokenDataSource.get()).thenAnswer(
+        when(() => dataSource.get()).thenAnswer(
           (_) async => (access: 'old_access', refresh: 'expired_refresh'),
         );
-        when(() => tokenDataSource.clear()).thenAnswer((_) async {});
+        when(() => dataSource.clear()).thenAnswer((_) async {});
 
         final dio = Dio(BaseOptions(baseUrl: 'https://api.test'));
         dio.interceptors.add(buildInterceptor(dio));
@@ -242,7 +244,7 @@ void main() {
           await dio.get('/api/v1/expenses');
         } on DioException catch (_) {}
 
-        verify(() => tokenDataSource.clear()).called(1);
+        verify(() => dataSource.clear()).called(1);
         expect(onUnauthenticatedCalled, isTrue);
       },
     );
