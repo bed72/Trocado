@@ -1,5 +1,6 @@
 import 'package:duck_router/duck_router.dart';
 
+import 'package:trocado/src/presentation/screens/authentication/sign_in/sign_in_location.dart';
 import 'package:trocado/src/presentation/screens/authentication/password_reset_confirm/password_reset_confirm_location.dart';
 
 final class DeepLinkHandler {
@@ -13,10 +14,12 @@ final class DeepLinkHandler {
   List<Location> _passwordResetConfirm(Uri uri) {
     final uid = uri.queryParameters['uid'] ?? '';
     final token = uri.queryParameters['token'] ?? '';
+
     if (uid.isEmpty || token.isEmpty) return [];
-    return [PasswordResetConfirmLocation(uid: uid, token: token)];
+
+    return [
+      SignInLocation(),
+      PasswordResetConfirmLocation(uid: uid, token: token),
+    ];
   }
 }
-// adb shell am start -a android.intent.action.VIEW \                                                                                                                        
-//     -d "trocado://app/reset-password?uid=Mw\&token=bm7gkj-1a2b3c4d" \                                                                                                       
-//     br.com.bed.trocado 
