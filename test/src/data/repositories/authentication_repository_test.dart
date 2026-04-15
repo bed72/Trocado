@@ -20,9 +20,9 @@ const _signUpSuccessJson = {
   'refresh': 'refresh-token',
   'user': {
     'id': 42,
-    'email': 'jane@trocado.app',
     'name': 'jane',
     'avatar': null,
+    'email': 'jane@trocado.app',
   },
 };
 
@@ -188,16 +188,16 @@ void main() {
       ).thenAnswer((_) async => const Right(_signUpSuccessJson));
 
       final data = await repository.signUp(
-        email: 'jane@trocado.app',
         password: 'password123',
+        email: 'jane@trocado.app',
       );
 
       expect(data.isRight, isTrue);
+      expect(data.right.user.id, 42);
+      expect(data.right.user.name, 'jane');
       expect(data.right.access, 'access-token');
       expect(data.right.refresh, 'refresh-token');
-      expect(data.right.user.id, 42);
       expect(data.right.user.email, 'jane@trocado.app');
-      expect(data.right.user.name, 'jane');
     });
 
     test('calls tokenDataSource.save with correct tokens on success', () async {
@@ -206,8 +206,8 @@ void main() {
       ).thenAnswer((_) async => const Right(_signUpSuccessJson));
 
       await repository.signUp(
-        email: 'jane@trocado.app',
         password: 'password123',
+        email: 'jane@trocado.app',
       );
 
       verify(
@@ -219,14 +219,12 @@ void main() {
     });
 
     test('does not call save on failure', () async {
-      when(
-        () => client.post(parameter: any(named: 'parameter')),
-      ).thenAnswer(
+      when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
         (_) async => const Left({
           'errors': [
             {
-              'field': 'email',
               'code': 'unique',
+              'field': 'email',
               'message': 'Este e-mail já está cadastrado.',
             },
           ],
@@ -234,8 +232,8 @@ void main() {
       );
 
       await repository.signUp(
-        email: 'jane@trocado.app',
         password: 'password123',
+        email: 'jane@trocado.app',
       );
 
       verifyNever(
@@ -247,14 +245,12 @@ void main() {
     });
 
     test('returns Left ValidationFailure on conflict', () async {
-      when(
-        () => client.post(parameter: any(named: 'parameter')),
-      ).thenAnswer(
+      when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
         (_) async => const Left({
           'errors': [
             {
-              'field': 'email',
               'code': 'unique',
+              'field': 'email',
               'message': 'Este e-mail já está cadastrado.',
             },
           ],
@@ -262,8 +258,8 @@ void main() {
       );
 
       final data = await repository.signUp(
-        email: 'jane@trocado.app',
         password: 'password123',
+        email: 'jane@trocado.app',
       );
 
       expect(data.isLeft, isTrue);
@@ -272,23 +268,21 @@ void main() {
     });
 
     test('returns Left NetworkFailure on network error', () async {
-      when(
-        () => client.post(parameter: any(named: 'parameter')),
-      ).thenAnswer(
+      when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
         (_) async => const Left({
           'errors': [
             {
               'code': 'network_error',
-              'field': 'non_field_errors',
               'message': 'Network error',
+              'field': 'non_field_errors',
             },
           ],
         }),
       );
 
       final data = await repository.signUp(
-        email: 'jane@trocado.app',
         password: 'password123',
+        email: 'jane@trocado.app',
       );
 
       expect(data.isLeft, isTrue);
@@ -296,9 +290,7 @@ void main() {
     });
 
     test('returns Left ServerFailure on server error', () async {
-      when(
-        () => client.post(parameter: any(named: 'parameter')),
-      ).thenAnswer(
+      when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
         (_) async => const Left({
           'errors': [
             {
@@ -311,8 +303,8 @@ void main() {
       );
 
       final data = await repository.signUp(
-        email: 'jane@trocado.app',
         password: 'password123',
+        email: 'jane@trocado.app',
       );
 
       expect(data.isLeft, isTrue);
@@ -324,8 +316,7 @@ void main() {
     test('returns Right on success', () async {
       when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
         (_) async => const Right({
-          'detail':
-              'If this email is registered, a reset link has been sent.',
+          'detail': 'If this email is registered, a reset link has been sent.',
         }),
       );
 
@@ -339,8 +330,7 @@ void main() {
     test('does not call tokenDataSource.save on success', () async {
       when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
         (_) async => const Right({
-          'detail':
-              'If this email is registered, a reset link has been sent.',
+          'detail': 'If this email is registered, a reset link has been sent.',
         }),
       );
 
@@ -382,8 +372,8 @@ void main() {
           'errors': [
             {
               'code': 'network_error',
-              'field': 'non_field_errors',
               'message': 'Network error',
+              'field': 'non_field_errors',
             },
           ],
         }),
@@ -421,9 +411,9 @@ void main() {
 
   group('checkSession', () {
     test('returns Left when no tokens in storage', () async {
-      when(() => tokenDataSource.get()).thenAnswer(
-        (_) async => (access: null, refresh: null),
-      );
+      when(
+        () => tokenDataSource.get(),
+      ).thenAnswer((_) async => (access: null, refresh: null));
 
       final data = await repository.checkSession();
 
@@ -434,57 +424,67 @@ void main() {
       when(() => tokenDataSource.get()).thenAnswer(
         (_) async => (access: 'valid_access', refresh: 'refresh_token'),
       );
-      when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
-        (_) async => const Right({}),
-      );
+      when(
+        () => client.post(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Right({}));
 
       final data = await repository.checkSession();
 
       expect(data.isRight, isTrue);
     });
 
-    test('refreshes and returns Right when access expired but refresh valid', () async {
-      when(() => tokenDataSource.get()).thenAnswer(
-        (_) async => (access: 'expired_access', refresh: 'valid_refresh'),
-      );
+    test(
+      'refreshes and returns Right when access expired but refresh valid',
+      () async {
+        when(() => tokenDataSource.get()).thenAnswer(
+          (_) async => (access: 'expired_access', refresh: 'valid_refresh'),
+        );
 
-      var callCount = 0;
-      when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
-        (_) async {
+        int callCount = 0;
+        when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer((
+          _,
+        ) async {
           callCount++;
           if (callCount == 1) {
             return const Left({
               'errors': [
                 {
-                  'field': 'non_field_errors',
                   'code': 'token_not_valid',
+                  'field': 'non_field_errors',
                   'message': 'Token is invalid or expired.',
                 },
               ],
             });
           }
-          return const Right({'access': 'new_access', 'refresh': 'new_refresh'});
-        },
-      );
 
-      final data = await repository.checkSession();
+          return const Right({
+            'access': 'new_access',
+            'refresh': 'new_refresh',
+          });
+        });
 
-      expect(data.isRight, isTrue);
-      verify(
-        () => tokenDataSource.save(access: 'new_access', refresh: 'new_refresh'),
-      ).called(1);
-    });
+        final data = await repository.checkSession();
+
+        expect(data.isRight, isTrue);
+        verify(
+          () => tokenDataSource.save(
+            access: 'new_access',
+            refresh: 'new_refresh',
+          ),
+        ).called(1);
+      },
+    );
 
     test('returns Left when access is expired and refresh is null', () async {
-      when(() => tokenDataSource.get()).thenAnswer(
-        (_) async => (access: 'expired_access', refresh: null),
-      );
+      when(
+        () => tokenDataSource.get(),
+      ).thenAnswer((_) async => (access: 'expired_access', refresh: null));
       when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
         (_) async => const Left({
           'errors': [
             {
-              'field': 'non_field_errors',
               'code': 'token_not_valid',
+              'field': 'non_field_errors',
               'message': 'Token is invalid or expired.',
             },
           ],
@@ -497,36 +497,38 @@ void main() {
       verifyNever(() => tokenDataSource.clear());
     });
 
-    test('clears tokens and returns Left when both tokens are expired', () async {
-      when(() => tokenDataSource.get()).thenAnswer(
-        (_) async => (access: 'expired_access', refresh: 'expired_refresh'),
-      );
-      when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
-        (_) async => const Left({
-          'errors': [
-            {
-              'field': 'non_field_errors',
-              'code': 'token_not_valid',
-              'message': 'Token is invalid or expired.',
-            },
-          ],
-        }),
-      );
-      when(() => tokenDataSource.clear()).thenAnswer((_) async {});
+    test(
+      'clears tokens and returns Left when both tokens are expired',
+      () async {
+        when(() => tokenDataSource.get()).thenAnswer(
+          (_) async => (access: 'expired_access', refresh: 'expired_refresh'),
+        );
+        when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
+          (_) async => const Left({
+            'errors': [
+              {
+                'code': 'token_not_valid',
+                'field': 'non_field_errors',
+                'message': 'Token is invalid or expired.',
+              },
+            ],
+          }),
+        );
+        when(() => tokenDataSource.clear()).thenAnswer((_) async {});
 
-      final data = await repository.checkSession();
+        final data = await repository.checkSession();
 
-      expect(data.isLeft, isTrue);
-      verify(() => tokenDataSource.clear()).called(1);
-    });
+        expect(data.isLeft, isTrue);
+        verify(() => tokenDataSource.clear()).called(1);
+      },
+    );
   });
 
   group('confirmPasswordReset', () {
     test('returns Right on success', () async {
       when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
-        (_) async => const Right({
-          'detail': 'Password has been reset successfully.',
-        }),
+        (_) async =>
+            const Right({'detail': 'Password has been reset successfully.'}),
       );
 
       final data = await repository.confirmPasswordReset(
@@ -540,9 +542,8 @@ void main() {
 
     test('does not call tokenDataSource.save on success', () async {
       when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
-        (_) async => const Right({
-          'detail': 'Password has been reset successfully.',
-        }),
+        (_) async =>
+            const Right({'detail': 'Password has been reset successfully.'}),
       );
 
       await repository.confirmPasswordReset(
@@ -589,8 +590,8 @@ void main() {
           'errors': [
             {
               'code': 'network_error',
-              'field': 'non_field_errors',
               'message': 'Network error',
+              'field': 'non_field_errors',
             },
           ],
         }),
