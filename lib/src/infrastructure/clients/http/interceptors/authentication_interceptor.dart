@@ -19,15 +19,12 @@ final class AuthenticationInterceptor extends Interceptor {
        _dataSource = dataSource,
        _onUnauthenticated = onUnauthenticated;
 
-  bool _isPublic(String path) =>
-      EndpointKey.values.any((key) => key.isPublic && path.contains(key.path));
-
   @override
   void onRequest(
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    if (_isPublic(options.path)) return handler.next(options);
+    if (EndpointKey.isPublicPath(options.path)) return handler.next(options);
 
     final tokens = await _dataSource.get();
     if (tokens.access != null) {
@@ -44,7 +41,7 @@ final class AuthenticationInterceptor extends Interceptor {
       return handler.next(err);
     }
 
-    if (_isPublic(err.requestOptions.path)) return handler.next(err);
+    if (EndpointKey.isPublicPath(err.requestOptions.path)) return handler.next(err);
 
     try {
       final tokens = await _dataSource.get();
