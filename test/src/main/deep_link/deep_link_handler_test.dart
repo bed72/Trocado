@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:trocado/src/main/deep_link/deep_link_handler.dart';
+import 'package:trocado/src/presentation/screens/authentication/sign_in/sign_in_location.dart';
 import 'package:trocado/src/presentation/screens/authentication/password_reset_confirm/password_reset_confirm_location.dart';
 
 void main() {
@@ -8,17 +9,18 @@ void main() {
 
   group('DeepLinkHandler', () {
     group('/reset-password', () {
-      test('returns PasswordResetConfirmLocation with uid and token', () {
+      test('returns [SignInLocation, PasswordResetConfirmLocation] with uid and token', () {
         final uri = Uri.parse(
           'trocado://app/reset-password?uid=Mw&token=bm7gkj-1a2b3c4d',
         );
 
         final locations = handler(uri);
 
-        expect(locations, hasLength(1));
-        expect(locations.first, isA<PasswordResetConfirmLocation>());
+        expect(locations, hasLength(2));
+        expect(locations.first, isA<SignInLocation>());
+        expect(locations.last, isA<PasswordResetConfirmLocation>());
 
-        final location = locations.first as PasswordResetConfirmLocation;
+        final location = locations.last as PasswordResetConfirmLocation;
         expect(location.uid, 'Mw');
         expect(location.token, 'bm7gkj-1a2b3c4d');
       });

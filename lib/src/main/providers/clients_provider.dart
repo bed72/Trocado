@@ -8,35 +8,24 @@ import 'package:trocado/src/main/config/app_config.dart';
 
 import 'package:trocado/src/presentation/screens/authentication/sign_in/sign_in_location.dart';
 
+import 'package:trocado/src/infrastructure/clients/http/dio_factory.dart';
 import 'package:trocado/src/infrastructure/clients/http/http_client.dart';
-import 'package:trocado/src/infrastructure/clients/logger/logger_client.dart';
 import 'package:trocado/src/infrastructure/clients/storage/storage_client.dart';
-import 'package:trocado/src/infrastructure/datasources/local/local_token_data_source.dart';
-import 'package:trocado/src/infrastructure/clients/http/interceptors/authentication_interceptor.dart';
-import 'package:trocado/src/infrastructure/clients/http/interceptors/logging_interceptor.dart';
+
+import 'package:trocado/src/main/providers/data_sources.provider.dart';
 
 part 'clients_provider.g.dart';
 
 @Riverpod(keepAlive: true)
-Dio dio(Ref ref) {
-  final dio = Dio(BaseOptions(baseUrl: AppConfig.url));
-  final tokenDataSource = LocalTokenDataSource(
-    client: ref.watch(storageClientProvider),
-  );
-  dio.interceptors.addAll([
-    AuthenticationInterceptor(
-      dio: dio,
-      dataSource: tokenDataSource,
-      onUnauthenticated: () => routerConfig.navigate(
-        root: true,
-        replace: true,
-        to: SignInLocation(),
-      ),
-    ),
-    LoggingInterceptor(logger: LoggerClient()),
-  ]);
-  return dio;
-}
+Dio dio(Ref ref) => DioFactory.create(
+  baseUrl: AppConfig.url,
+  dataSource: ref.watch(localTokenDataSourceProvider),
+  onUnauthenticated: () => routerConfig.navigate(
+    to: SignInLocation(),
+    root: true,
+    replace: true,
+  ),
+);
 
 @Riverpod(keepAlive: true)
 IStorageClient storageClient(Ref ref) =>
