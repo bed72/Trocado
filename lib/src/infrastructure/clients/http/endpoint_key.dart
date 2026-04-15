@@ -9,4 +9,14 @@ enum EndpointKey {
   const EndpointKey(this.path);
 
   final String path;
+
+  bool get isPublic => _publicEndpoints.contains(this);
+
+  static const _publicEndpoints = {
+    signIn,
+    signUp,
+    refreshToken,
+    passwordResetRequest,
+    passwordResetConfirm,
+  };
 }
