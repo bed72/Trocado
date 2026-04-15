@@ -13,7 +13,7 @@ part of 'splash_notifier.dart';
 final splashProvider = SplashNotifierProvider._();
 
 final class SplashNotifierProvider
-    extends $NotifierProvider<SplashNotifier, SplashState> {
+    extends $AsyncNotifierProvider<SplashNotifier, SplashStatus> {
   SplashNotifierProvider._()
     : super(
         from: null,
@@ -31,29 +31,21 @@ final class SplashNotifierProvider
   @$internal
   @override
   SplashNotifier create() => SplashNotifier();
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(SplashState value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<SplashState>(value),
-    );
-  }
 }
 
-String _$splashNotifierHash() => r'6e56870de3fb0d8972e9b90403f764e591b74521';
+String _$splashNotifierHash() => r'59f82019acc5a5ca078c2f1ee331f0bba8b5476c';
 
-abstract class _$SplashNotifier extends $Notifier<SplashState> {
-  SplashState build();
+abstract class _$SplashNotifier extends $AsyncNotifier<SplashStatus> {
+  FutureOr<SplashStatus> build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<SplashState, SplashState>;
+    final ref = this.ref as $Ref<AsyncValue<SplashStatus>, SplashStatus>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<SplashState, SplashState>,
-              SplashState,
+              AnyNotifier<AsyncValue<SplashStatus>, SplashStatus>,
+              AsyncValue<SplashStatus>,
               Object?,
               Object?
             >;

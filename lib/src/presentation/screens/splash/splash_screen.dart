@@ -26,10 +26,12 @@ class SplashScreen extends StatelessWidget {
       builder: (context, ref, _) {
         ref.listen(
           splashProvider,
-          (_, SplashState state) => switch (state.status) {
-            .authenticated => navigateToHome(),
-            .unauthenticated => navigateToSignIn(),
-            null => null,
+          (_, AsyncValue<SplashStatus> state) => switch (state) {
+            AsyncData(:final value) => switch (value) {
+              SplashStatus.authenticated => navigateToHome(),
+              SplashStatus.unauthenticated => navigateToSignIn(),
+            },
+            _ => null,
           },
         );
 

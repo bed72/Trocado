@@ -1,8 +1,10 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:trocado/src/main/providers/repositories_provider.dart';
-import 'package:trocado/src/presentation/screens/splash/notifiers/splash_state.dart';
+
 import 'package:trocado/src/domain/repositories/interface_authentication_repository.dart';
+
+import 'package:trocado/src/presentation/screens/splash/notifiers/splash_state.dart';
 
 part 'splash_notifier.g.dart';
 
@@ -11,18 +13,12 @@ final class SplashNotifier extends _$SplashNotifier {
   late IAuthenticationRepository _repository;
 
   @override
-  SplashState build() {
+  Future<SplashStatus> build() async {
     _repository = ref.watch(authenticationRepositoryProvider);
-    _isLogged();
-
-    return const SplashState();
-  }
-
-  Future<void> _isLogged() async {
     final data = await _repository.checkSession();
-    state = data.fold(
-      (_) => const SplashState(status: .unauthenticated),
-      (_) => const SplashState(status: .authenticated),
+    return data.fold(
+      (_) => SplashStatus.unauthenticated,
+      (_) => SplashStatus.authenticated,
     );
   }
 }
