@@ -29,7 +29,7 @@ class SplashScreen extends StatelessWidget {
           (_, SplashState state) => switch (state.status) {
             .authenticated => navigateToHome(),
             .unauthenticated => navigateToSignIn(),
-            .loading => null,
+            null => null,
           },
         );
 

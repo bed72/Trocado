@@ -20,10 +20,9 @@ final class SplashNotifier extends _$SplashNotifier {
 
   Future<void> _isLogged() async {
     final data = await _repository.checkSession();
-
     state = data.fold(
-      (_) => state.copyWith(status: .unauthenticated),
-      (_) => state.copyWith(status: .authenticated),
+      (_) => const SplashState(status: .unauthenticated),
+      (_) => const SplashState(status: .authenticated),
     );
   }
 }
