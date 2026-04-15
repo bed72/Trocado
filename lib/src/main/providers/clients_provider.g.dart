@@ -9,6 +9,47 @@ part of 'clients_provider.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
+@ProviderFor(loggerClient)
+final loggerClientProvider = LoggerClientProvider._();
+
+final class LoggerClientProvider
+    extends $FunctionalProvider<ILoggerClient, ILoggerClient, ILoggerClient>
+    with $Provider<ILoggerClient> {
+  LoggerClientProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'loggerClientProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$loggerClientHash();
+
+  @$internal
+  @override
+  $ProviderElement<ILoggerClient> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  ILoggerClient create(Ref ref) {
+    return loggerClient(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ILoggerClient value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ILoggerClient>(value),
+    );
+  }
+}
+
+String _$loggerClientHash() => r'7902ac4aa4ff597bc43fbb1c60899402b7598f8c';
+
 @ProviderFor(dio)
 final dioProvider = DioProvider._();
 
@@ -47,7 +88,7 @@ final class DioProvider extends $FunctionalProvider<Dio, Dio, Dio>
   }
 }
 
-String _$dioHash() => r'ee45da0ff9b5324db9038e347a3bb86480181efe';
+String _$dioHash() => r'6d847db90ac9c4755ee6481d7af5562c88c449d3';
 
 @ProviderFor(httpClient)
 final httpClientProvider = HttpClientProvider._();

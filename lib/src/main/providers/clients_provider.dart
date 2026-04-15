@@ -15,16 +15,16 @@ import 'package:trocado/src/infrastructure/clients/logger/logger_client.dart';
 part 'clients_provider.g.dart';
 
 @Riverpod(keepAlive: true)
-Dio dio(Ref ref) => DioFactory.create(
-  baseUrl: AppConfig.url,
-  logger: LoggerClient(),
-  dataSource: ref.watch(localTokenDataSourceProvider),
-  onUnauthenticated: () => routerConfig.navigate(
-    to: SignInLocation(),
-    root: true,
-    replace: true,
-  ),
-);
+ILoggerClient loggerClient(Ref _) => LoggerClient();
 
 @Riverpod(keepAlive: true)
 IHttpClient httpClient(Ref ref) => HttpClient(dio: ref.watch(dioProvider));
+
+@Riverpod(keepAlive: true)
+Dio dio(Ref ref) => DioFactory.create(
+  baseUrl: AppConfig.url,
+  logger: ref.watch(loggerClientProvider),
+  dataSource: ref.watch(localTokenDataSourceProvider),
+  onUnauthenticated: () =>
+      routerConfig.navigate(root: true, replace: true, to: SignInLocation()),
+);
