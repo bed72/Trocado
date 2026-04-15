@@ -37,6 +37,7 @@ dependencies:
   intl: ^0.20.2
   collection: ^1.19.1
 
+  logger: ^2.7.0
   equatable: ^2.0.8
   duck_router: ^7.3.0
   skeletonizer: ^2.1.3

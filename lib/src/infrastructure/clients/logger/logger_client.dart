@@ -1,17 +1,5 @@
+import 'package:logger/logger.dart';
 import 'package:flutter/foundation.dart';
-
-enum LoggerLevelConstant {
-  error('ERROR'),
-  debug('DEBUG'),
-  warning('WARNING'),
-  verbose('VERBOSE'),
-  information('INFO'),
-  critical('CRITICAL');
-
-  final String type;
-
-  const LoggerLevelConstant(this.type);
-}
 
 abstract interface class ILoggerClient {
   void debug(String message, {Object? error, StackTrace? stackTrace});
@@ -23,83 +11,39 @@ abstract interface class ILoggerClient {
 }
 
 final class LoggerClient implements ILoggerClient {
-  final bool showTimestamp;
-  final String defaultTitle;
-
-  LoggerClient({this.showTimestamp = true, this.defaultTitle = 'Trocado'});
-
-  @override
-  void debug(String message, {Object? error, StackTrace? stackTrace}) {
-    _log(error: error, level: .debug, message: message, stackTrace: stackTrace);
-  }
-
-  @override
-  void information(String message, {Object? error, StackTrace? stackTrace}) {
-    _log(
-      error: error,
-      message: message,
-      level: .information,
-      stackTrace: stackTrace,
-    );
-  }
+  final Logger _logger = Logger(
+    filter: kReleaseMode ? ProductionFilter() : DevelopmentFilter(),
+    printer: PrettyPrinter(
+      colors: true,
+      methodCount: 0,
+      lineLength: 80,
+      printEmojis: true,
+      errorMethodCount: 8,
+      dateTimeFormat: DateTimeFormat.onlyTimeAndSinceStart,
+    ),
+  );
 
   @override
-  void warning(String message, {Object? error, StackTrace? stackTrace}) {
-    _log(
-      error: error,
-      level: .warning,
-      message: message,
-      stackTrace: stackTrace,
-    );
-  }
+  void debug(String message, {Object? error, StackTrace? stackTrace}) =>
+      _logger.d(message, error: error, stackTrace: stackTrace);
 
   @override
-  void error(String message, {Object? error, StackTrace? stackTrace}) {
-    _log(error: error, level: .error, message: message, stackTrace: stackTrace);
-  }
+  void information(String message, {Object? error, StackTrace? stackTrace}) =>
+      _logger.i(message, error: error, stackTrace: stackTrace);
 
   @override
-  void verbose(String message, {Object? error, StackTrace? stackTrace}) {
-    _log(
-      error: error,
-      level: .verbose,
-      message: message,
-      stackTrace: stackTrace,
-    );
-  }
+  void warning(String message, {Object? error, StackTrace? stackTrace}) =>
+      _logger.w(message, error: error, stackTrace: stackTrace);
 
   @override
-  void critical(String message, {Object? error, StackTrace? stackTrace}) {
-    _log(
-      error: error,
-      level: .critical,
-      message: message,
-      stackTrace: stackTrace,
-    );
-  }
+  void error(String message, {Object? error, StackTrace? stackTrace}) =>
+      _logger.e(message, error: error, stackTrace: stackTrace);
 
-  void _log({
-    required String message,
-    required LoggerLevelConstant level,
-    Object? error,
-    StackTrace? stackTrace,
-  }) {
-    if (kReleaseMode) return;
+  @override
+  void verbose(String message, {Object? error, StackTrace? stackTrace}) =>
+      _logger.t(message, error: error, stackTrace: stackTrace);
 
-    final time = showTimestamp ? '${DateTime.now()}' : '';
-    final formatted = _format(message, error, stackTrace);
-
-    debugPrint('[$defaultTitle] [${level.type}] $time → $formatted');
-  }
-
-  String _format(String message, Object? error, StackTrace? stack) {
-    if (error == null && stack == null) return message;
-
-    final buffer = StringBuffer(message);
-
-    if (error != null) buffer.write(' | error: $error');
-    if (stack != null) buffer.write(' | stack: $stack');
-
-    return buffer.toString();
-  }
+  @override
+  void critical(String message, {Object? error, StackTrace? stackTrace}) =>
+      _logger.f(message, error: error, stackTrace: stackTrace);
 }

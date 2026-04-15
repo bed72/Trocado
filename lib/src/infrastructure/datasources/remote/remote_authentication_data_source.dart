@@ -11,10 +11,10 @@ import 'package:trocado/src/infrastructure/clients/http/requests/password_reset_
 
 import 'package:trocado/src/infrastructure/clients/http/responses/sign_in_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/sign_up_response.dart';
-import 'package:trocado/src/infrastructure/clients/http/responses/password_reset_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/refresh_token_response.dart';
-import 'package:trocado/src/infrastructure/clients/http/responses/password_reset_confirm_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/password_reset_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/failure/failure_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/password_reset_confirm_response.dart';
 
 abstract interface class IRemoteAuthenticationDataSource {
   Future<Either<FailureResponse, SignInResponse>> signIn({
