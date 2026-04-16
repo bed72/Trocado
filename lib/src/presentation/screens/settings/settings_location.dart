@@ -15,13 +15,13 @@ final class SettingsLocation extends Location {
   LocationPageBuilder get pageBuilder =>
       (context) => screenPage(
         SettingsScreen(
-          onEditProfile: _stub,
-          onNotification: _stub,
-          onSubscription: _stub,
-          onSignIn: () =>
-              context.navigate(SignInLocation(), root: true, replace: true),
+          onEditProfile: () {},
+          onNotification: () {},
+          onSubscription: () {},
+          onSignIn: () {
+            context.root();
+            context.navigate(SignInLocation(), root: true, replace: true);
+          },
         ),
       );
-
-  static void _stub() {}
 }
