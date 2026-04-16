@@ -30,11 +30,11 @@ class SignInScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer(
       builder: (_, ref, _) {
-        ref.listen(signInProvider, (_, next) {
-          if (next.status == .success) onSuccess();
-          if (next.status == .failure) {
-            _showToastWidget(context: context, message: next.message);
-          }
+        ref.listen(signInProvider, (previous, next) => switch (next.status) {
+          .success when previous?.status != .success => onSuccess(),
+          .failure when previous?.status != .failure =>
+            _showToastWidget(context: context, message: next.message),
+          _ => null,
         });
 
         final state = ref.watch(signInProvider);

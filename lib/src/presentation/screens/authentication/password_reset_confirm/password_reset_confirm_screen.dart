@@ -32,27 +32,20 @@ class PasswordResetConfirmScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer(
       builder: (_, ref, _) {
-        ref.listen(passwordResetConfirmProvider(uid: uid, token: token), (
-          _,
-          next,
-        ) {
-          if (next.status == .success) {
-            showToastWidget(
-              context: context,
-              type: .success,
-              title: 'Senha redefinida',
-            );
-            onSuccess();
-          }
-          if (next.status == .failure) {
-            showToastWidget(
+        ref.listen(
+          passwordResetConfirmProvider(uid: uid, token: token),
+          (previous, next) => switch (next.status) {
+            .success when previous?.status != .success =>
+              _onSuccess(context),
+            .failure when previous?.status != .failure => showToastWidget(
               context: context,
               title: 'Opps',
               type: .failure,
               description: next.message,
-            );
-          }
-        });
+            ),
+            _ => null,
+          },
+        );
 
         final state = ref.watch(
           passwordResetConfirmProvider(uid: uid, token: token),
@@ -154,6 +147,11 @@ class PasswordResetConfirmScreen extends StatelessWidget {
       ),
     ],
   );
+
+  void _onSuccess(BuildContext context) {
+    showToastWidget(context: context, type: .success, title: 'Senha redefinida');
+    onSuccess();
+  }
 
   void _submit(PasswordResetConfirmNotifier notifier) {
     hideKeyboard();

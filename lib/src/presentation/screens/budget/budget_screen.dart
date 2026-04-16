@@ -34,14 +34,16 @@ class BudgetScreen extends StatelessWidget {
       builder: (_, ref, _) {
         ref.listen(
           budgetProvider,
-          (_, BudgetState state) => switch (state.status) {
-            BudgetStatus.success => context.root(),
-            BudgetStatus.failure => showToastWidget(
-              context: context,
-              title: 'Opps',
-              type: .failure,
-              description: state.message,
-            ),
+          (previous, next) => switch (next.status) {
+            BudgetStatus.success when previous?.status != .success =>
+              context.root(),
+            BudgetStatus.failure when previous?.status != .failure =>
+              showToastWidget(
+                context: context,
+                title: 'Opps',
+                type: .failure,
+                description: next.message,
+              ),
             _ => null,
           },
         );
