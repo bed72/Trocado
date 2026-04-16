@@ -7,7 +7,18 @@ import 'package:trocado/src/presentation/extensions/context_extension.dart';
 import 'package:trocado/src/presentation/data/amount_presentation_data.dart';
 
 class CalculatorKeyboard extends StatelessWidget {
-  const CalculatorKeyboard({super.key});
+  final void Function(String) onDigit;
+  final VoidCallback onDelete;
+  final VoidCallback onClear;
+  final VoidCallback onSubmit;
+
+  const CalculatorKeyboard({
+    super.key,
+    required this.onDigit,
+    required this.onDelete,
+    required this.onClear,
+    required this.onSubmit,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -55,37 +66,33 @@ class CalculatorKeyboard extends StatelessWidget {
     child: _buildKey(context: context, label: label, background: background),
   );
 
+  void _onPress(AmountPresentationData data) => switch (data.action) {
+    .digit  => onDigit(data.value!),
+    .delete => onDelete(),
+    .clear  => onClear(),
+    .submit => onSubmit(),
+  };
+
   Widget _buildKey({
     required BuildContext context,
     required String label,
     Color? background,
-  }) {
-    return BounceWidget.withOnPress(
-      onPress: () {
-        final data = AmountPresentationData.map(label);
-
-        final _ = switch (data.action) {
-          .submit => context.pop(),
-          .clear => {},
-          .delete => {},
-          .digit => {},
-        };
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: context.radius.cornerRadius300,
-          color: background ?? context.colors.outlineVariant,
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: context.typography.bodyLarge?.copyWith(
-              fontWeight: FontWeight.w800,
-              color: context.colors.onSurfaceVariant.withValues(alpha: 0.8),
-            ),
+  }) => BounceWidget.withOnPress(
+    onPress: () => _onPress(AmountPresentationData.map(label)),
+    child: Container(
+      decoration: BoxDecoration(
+        borderRadius: context.radius.cornerRadius300,
+        color: background ?? context.colors.outlineVariant,
+      ),
+      child: Center(
+        child: Text(
+          label,
+          style: context.typography.bodyLarge?.copyWith(
+            fontWeight: FontWeight.w800,
+            color: context.colors.onSurfaceVariant.withValues(alpha: 0.8),
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
 }
