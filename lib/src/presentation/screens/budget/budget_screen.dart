@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trocado/src/presentation/extensions/widget_extension.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
-import 'package:trocado/src/presentation/screens/budget/notifiers/budget_state.dart';
 import 'package:trocado/src/presentation/screens/budget/notifiers/budget_intent.dart';
 import 'package:trocado/src/presentation/screens/budget/notifiers/budget_notifier.dart';
 
@@ -35,15 +34,13 @@ class BudgetScreen extends StatelessWidget {
         ref.listen(
           budgetProvider,
           (previous, next) => switch (next.status) {
-            BudgetStatus.success when previous?.status != .success =>
-              context.root(),
-            BudgetStatus.failure when previous?.status != .failure =>
-              showToastWidget(
-                context: context,
-                title: 'Opps',
-                type: .failure,
-                description: next.message,
-              ),
+            .success when previous?.status != .success => context.root(),
+            .failure when previous?.status != .failure => showToastWidget(
+              context: context,
+              title: 'Opps',
+              type: .failure,
+              description: next.message,
+            ),
             _ => null,
           },
         );
