@@ -1,5 +1,5 @@
-import 'package:logger/logger.dart';
 import 'package:flutter/foundation.dart';
+import 'package:talker_logger/talker_logger.dart';
 
 abstract interface class ILoggerClient {
   void debug(String message, {Object? error, StackTrace? stackTrace});
@@ -11,39 +11,34 @@ abstract interface class ILoggerClient {
 }
 
 final class LoggerClient implements ILoggerClient {
-  final Logger _logger = Logger(
-    filter: kReleaseMode ? ProductionFilter() : DevelopmentFilter(),
-    printer: PrettyPrinter(
-      colors: true,
-      methodCount: 0,
-      lineLength: 80,
-      printEmojis: true,
-      errorMethodCount: 8,
-      dateTimeFormat: DateTimeFormat.onlyTimeAndSinceStart,
+  final _logger = TalkerLogger(
+    settings: TalkerLoggerSettings(
+      level: kReleaseMode ? LogLevel.warning : LogLevel.verbose,
+      enableColors: true,
     ),
   );
 
   @override
   void debug(String message, {Object? error, StackTrace? stackTrace}) =>
-      _logger.d(message, error: error, stackTrace: stackTrace);
+      _logger.debug(message);
 
   @override
   void information(String message, {Object? error, StackTrace? stackTrace}) =>
-      _logger.i(message, error: error, stackTrace: stackTrace);
+      _logger.info(message);
 
   @override
   void warning(String message, {Object? error, StackTrace? stackTrace}) =>
-      _logger.w(message, error: error, stackTrace: stackTrace);
+      _logger.warning(message);
 
   @override
   void error(String message, {Object? error, StackTrace? stackTrace}) =>
-      _logger.e(message, error: error, stackTrace: stackTrace);
+      _logger.error(message);
 
   @override
   void verbose(String message, {Object? error, StackTrace? stackTrace}) =>
-      _logger.t(message, error: error, stackTrace: stackTrace);
+      _logger.verbose(message);
 
   @override
   void critical(String message, {Object? error, StackTrace? stackTrace}) =>
-      _logger.f(message, error: error, stackTrace: stackTrace);
+      _logger.critical(message);
 }

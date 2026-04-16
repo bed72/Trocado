@@ -19,6 +19,7 @@ class HomeActionButtonWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return ExpandableFab(
       distance: 66.0,
+      elevation: 0.0,
       openButtonBuilder: RotateFloatingActionButtonBuilder(
         elevation: 0.0,
         child: BounceWidget.withoutOnPress(
@@ -67,23 +68,5 @@ class HomeActionButtonWidget extends StatelessWidget {
         ),
       ],
     );
-
-    // BounceWidget.withOnPress(
-    //   onPress: onNavigateToTransaction,
-    //   child: Container(
-    //     width: 56.0,
-    //     height: 56.0,
-    //     alignment: .center,
-    //     decoration: BoxDecoration(
-    //       color: context.colors.primary,
-    //       borderRadius: context.radius.cornerRadius300,
-    //     ),
-    //     child: IconWidget(
-    //       size: 26.0,
-    //       icon: Icons.add,
-    //       color: context.colors.onPrimary,
-    //     ),
-    //   ),
-    // );
   }
 }

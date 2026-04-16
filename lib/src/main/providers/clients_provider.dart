@@ -23,7 +23,6 @@ IHttpClient httpClient(Ref ref) => HttpClient(dio: ref.watch(dioProvider));
 @Riverpod(keepAlive: true)
 Dio dio(Ref ref) => DioFactory.create(
   baseUrl: AppConfig.url,
-  logger: ref.watch(loggerClientProvider),
   dataSource: ref.watch(localTokenDataSourceProvider),
   onUnauthenticated: () =>
       routerConfig.navigate(root: true, replace: true, to: SignInLocation()),
