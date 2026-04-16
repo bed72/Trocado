@@ -23,22 +23,23 @@ class ForgotPasswordScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer(
       builder: (_, ref, _) {
-        ref.listen(forgotPasswordProvider, (previous, next) => switch (
-          next.status
-        ) {
-          .success when previous?.status != .success => showToastWidget(
-            context: context,
-            type: .success,
-            title: 'Verifique seu email',
-          ),
-          .failure when previous?.status != .failure => showToastWidget(
-            context: context,
-            title: 'Opps',
-            type: .failure,
-            description: next.message,
-          ),
-          _ => null,
-        });
+        ref.listen(
+          forgotPasswordProvider,
+          (previous, next) => switch (next.status) {
+            .success when previous?.status != .success => showToastWidget(
+              context: context,
+              type: .success,
+              title: 'Verifique seu email',
+            ),
+            .failure when previous?.status != .failure => showToastWidget(
+              context: context,
+              title: 'Opps',
+              type: .failure,
+              description: next.message,
+            ),
+            _ => null,
+          },
+        );
 
         final state = ref.watch(forgotPasswordProvider);
         final notifier = ref.read(forgotPasswordProvider.notifier);
@@ -69,7 +70,7 @@ class ForgotPasswordScreen extends StatelessWidget {
               Text(
                 'Esqueceu a senha?',
                 style: context.typography.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: .bold,
                 ),
               ),
 
