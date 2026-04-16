@@ -91,6 +91,24 @@ final class AppRoutes {
     regex: RegExp(r'^/reset-password'),
   );
 
+  static final settings = AppRoutes._(
+    path: '/settings',
+    name: 'settings-route',
+    regex: RegExp(r'^/settings$'),
+  );
+
+  static final notifications = AppRoutes._(
+    path: '/notifications',
+    name: 'notifications-route',
+    regex: RegExp(r'^/notifications$'),
+  );
+
+  static final budgetDate = AppRoutes._(
+    path: '/budget-date',
+    name: 'budget-date-route',
+    regex: RegExp(r'^/budget-date$'),
+  );
+
   static final _all = [
     date,
     exit,
@@ -102,6 +120,9 @@ final class AppRoutes {
     expense,
     category,
     calculator,
+    settings,
+    notifications,
+    budgetDate,
     forgotPassword,
     passwordResetConfirm,
   ];
