@@ -253,3 +253,51 @@ final class BudgetFormValidatorProvider
 
 String _$budgetFormValidatorHash() =>
     r'c7ac5ca75e5bbecfa628d0cb4ec69cfb2b0ddb9e';
+
+@ProviderFor(expenseFormValidator)
+final expenseFormValidatorProvider = ExpenseFormValidatorProvider._();
+
+final class ExpenseFormValidatorProvider
+    extends
+        $FunctionalProvider<
+          ExpenseFormValidator,
+          ExpenseFormValidator,
+          ExpenseFormValidator
+        >
+    with $Provider<ExpenseFormValidator> {
+  ExpenseFormValidatorProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'expenseFormValidatorProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$expenseFormValidatorHash();
+
+  @$internal
+  @override
+  $ProviderElement<ExpenseFormValidator> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  ExpenseFormValidator create(Ref ref) {
+    return expenseFormValidator(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ExpenseFormValidator value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ExpenseFormValidator>(value),
+    );
+  }
+}
+
+String _$expenseFormValidatorHash() =>
+    r'2fae434a10d62ddb8c0a848ca835aae827000aa4';

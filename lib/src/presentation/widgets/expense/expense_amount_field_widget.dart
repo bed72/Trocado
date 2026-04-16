@@ -1,23 +1,36 @@
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 
 import 'package:trocado/src/presentation/widgets/bounce_widget.dart';
 import 'package:trocado/src/presentation/widgets/fields/text_field_widget.dart';
 
 class ExpenseAmountFieldWidget extends StatelessWidget {
+  final int value;
+  final String? failure;
   final VoidCallback navigateTo;
 
-  const ExpenseAmountFieldWidget({super.key, required this.navigateTo});
+  const ExpenseAmountFieldWidget({
+    super.key,
+    required this.value,
+    required this.navigateTo,
+    this.failure,
+  });
+
+  String? get _displayValue => value > 0
+      ? NumberFormat.currency(symbol: 'R\$', locale: 'pt_BR').format(value / 100)
+      : null;
 
   @override
-  Widget build(BuildContext context) {
-    return BounceWidget.withOnPress(
-      onPress: navigateTo,
-      child: const TextFieldWidget(
-        label: 'Valor',
-        hint: 'Ex: R\$ 72.00',
-        readOnly: true,
-        absorbing: true,
-      ),
-    );
-  }
+  Widget build(BuildContext context) => BounceWidget.withOnPress(
+    onPress: navigateTo,
+    child: TextFieldWidget(
+      key: ValueKey(value),
+      label: 'Valor',
+      readOnly: true,
+      absorbing: true,
+      failure: failure,
+      hint: 'Ex: R\$ 72,00',
+      initialValue: _displayValue,
+    ),
+  );
 }

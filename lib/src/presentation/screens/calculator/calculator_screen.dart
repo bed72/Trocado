@@ -14,7 +14,9 @@ import 'package:trocado/src/presentation/screens/calculator/widgets/calculator_k
 import 'package:trocado/src/presentation/widgets/bottom-sheets/bottom_sheet_scaffold_widget.dart';
 
 class CalculatorScreen extends StatelessWidget {
-  const CalculatorScreen({super.key});
+  final void Function(int centValue)? onValueConfirmed;
+
+  const CalculatorScreen({super.key, this.onValueConfirmed});
 
   @override
   Widget build(BuildContext context) {
@@ -30,20 +32,24 @@ class CalculatorScreen extends StatelessWidget {
             if (!didPop) return;
             final centValue = ref.read(calculatorProvider).centValue;
             if (centValue > 0) {
-              ref
-                  .read(budgetProvider.notifier)
-                  .dispatch(ValueChanged(centValue));
+              if (onValueConfirmed != null) {
+                onValueConfirmed!(centValue);
+              } else {
+                ref
+                    .read(budgetProvider.notifier)
+                    .dispatch(ValueChanged(centValue));
+              }
             }
           },
           child: BottomSheetScaffoldWidget(
             title: 'Qual o valor?',
             subtitle: 'Informe o valor do orçamento.',
             child: Padding(
-              padding: const .only(top: 12.0, bottom: 20.0),
+              padding: const EdgeInsets.only(top: 12.0, bottom: 20.0),
               child: Column(
                 spacing: 16.0,
-                mainAxisSize: .min,
-                crossAxisAlignment: .start,
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CalculatorFieldWidget(displayValue: displayValue),
                   CalculatorKeyboard(

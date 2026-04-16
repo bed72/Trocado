@@ -42,7 +42,7 @@ final class CalculatorNotifierProvider
 }
 
 String _$calculatorNotifierHash() =>
-    r'a96a1e0d45461b9d7198f36542822d8b4af7ea8e';
+    r'9dc6986f75f2d35d7451e1a2074b924f91c0b7c1';
 
 abstract class _$CalculatorNotifier extends $Notifier<CalculatorState> {
   CalculatorState build();

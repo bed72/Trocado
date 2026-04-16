@@ -6,10 +6,16 @@ import 'package:trocado/src/presentation/pages/bottom_sheet_page.dart';
 import 'package:trocado/src/presentation/screens/calculator/calculator_screen.dart';
 
 final class CalculatorLocation extends Location {
+  final void Function(int centValue)? onValueConfirmed;
+
+  const CalculatorLocation({this.onValueConfirmed});
+
   @override
   String get path => AppRoutes.calculator.path;
 
   @override
-  LocationPageBuilder get pageBuilder =>
-      (_) => BottomSheetPage(builder: (context) => CalculatorScreen());
+  LocationPageBuilder get pageBuilder => (_) => BottomSheetPage(
+    builder: (context) =>
+        CalculatorScreen(onValueConfirmed: onValueConfirmed),
+  );
 }

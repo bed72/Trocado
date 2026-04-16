@@ -3,39 +3,23 @@ import 'package:flutter/material.dart';
 import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
 
 class ExpenseSaveButtonWidget extends StatelessWidget {
-  const ExpenseSaveButtonWidget({super.key});
+  final bool isLoading;
+  final VoidCallback onSave;
+
+  const ExpenseSaveButtonWidget({
+    super.key,
+    required this.isLoading,
+    required this.onSave,
+  });
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: .infinity,
-      padding: const .only(top: 16.0),
-      child: ButtonWidget.outlined(
-        label: 'Salvar',
-        isLoading: false,
-        onTap: () {},
-        // isLoading
-        //     ? null
-        //     : () {
-        //         hideKeyboard;
-        //         // bloc.add(const ExpenseFormSubmitted());
-        //       },
-      ),
-    );
-  }
-
-  // void _showToast(BuildContext context, ExpenseFormState state) =>
-  //     switch (state.status) {
-  //       .failure => showToastWidget(
-  //         context: context,
-  //         type: .failure,
-  //         title: state.message ?? 'Erro ao salvar despesa.',
-  //       ),
-  //       .success => showToastWidget(
-  //         context: context,
-  //         onClose: context.pop,
-  //         title: state.message ?? 'Despesa salva com sucesso.',
-  //       ),
-  //       _ => {},
-  //     };
+  Widget build(BuildContext context) => Container(
+    width: double.infinity,
+    padding: const EdgeInsets.only(top: 16.0),
+    child: ButtonWidget.outlined(
+      label: 'Salvar',
+      isLoading: isLoading,
+      onTap: isLoading ? null : onSave,
+    ),
+  );
 }

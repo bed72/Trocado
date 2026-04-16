@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
 import 'package:duck_router/duck_router.dart';
 
-import 'package:trocado/src/presentation/screens/splash/splash_location.dart';
 import 'package:trocado/src/main/deep_link/deep_link_handler.dart';
 
+import 'package:trocado/src/presentation/screens/splash/splash_location.dart';
 import 'package:trocado/src/presentation/observers/logger_navigation_observer.dart';
 
 @immutable
@@ -109,6 +109,12 @@ final class AppRoutes {
     regex: RegExp(r'^/budget-date$'),
   );
 
+  static final expenseDate = AppRoutes._(
+    path: '/expense-date',
+    name: 'expense-date-route',
+    regex: RegExp(r'^/expense-date$'),
+  );
+
   static final _all = [
     date,
     exit,
@@ -122,6 +128,7 @@ final class AppRoutes {
     settings,
     calculator,
     budgetDate,
+    expenseDate,
     notifications,
     forgotPassword,
     passwordResetConfirm,

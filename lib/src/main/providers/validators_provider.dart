@@ -7,11 +7,16 @@ import 'package:trocado/src/presentation/screens/budget/validators/budget_value_
 import 'package:trocado/src/presentation/screens/budget/validators/budget_description_validation.dart';
 import 'package:trocado/src/presentation/screens/budget/validators/budget_date_range_validation.dart';
 
+import 'package:trocado/src/presentation/screens/expense/validators/expense_date_validation.dart';
+import 'package:trocado/src/presentation/screens/expense/validators/expense_value_validation.dart';
+import 'package:trocado/src/presentation/screens/expense/validators/expense_description_validation.dart';
+
 import 'package:trocado/src/presentation/screens/authentication/sign_in/validators/sign_in_form_validator.dart';
 import 'package:trocado/src/presentation/screens/authentication/sign_up/validators/sign_up_form_validator.dart';
 import 'package:trocado/src/presentation/screens/authentication/forgot_password/validators/forgot_password_form_validator.dart';
 import 'package:trocado/src/presentation/screens/authentication/password_reset_confirm/validators/password_reset_confirm_form_validator.dart';
 import 'package:trocado/src/presentation/screens/budget/validators/budget_form_validator.dart';
+import 'package:trocado/src/presentation/screens/expense/validators/expense_form_validator.dart';
 
 part 'validators_provider.g.dart';
 
@@ -43,4 +48,11 @@ BudgetFormValidator budgetFormValidator(Ref _) => const BudgetFormValidator(
   valueValidation: BudgetValueValidation(),
   descriptionValidation: BudgetDescriptionValidation(),
   dateRangeValidation: BudgetDateRangeValidation(),
+);
+
+@Riverpod()
+ExpenseFormValidator expenseFormValidator(Ref _) => const ExpenseFormValidator(
+  valueValidation: ExpenseValueValidation(),
+  descriptionValidation: ExpenseDescriptionValidation(),
+  dateValidation: ExpenseDateValidation(),
 );
