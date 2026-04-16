@@ -13,8 +13,8 @@ part 'expense_notifier.g.dart';
 
 @riverpod
 final class ExpenseNotifier extends _$ExpenseNotifier {
-  late ExpenseFormValidator _validator;
   late IExpenseRepository _repository;
+  late ExpenseFormValidator _validator;
 
   @override
   ExpenseState build() {
@@ -48,8 +48,8 @@ final class ExpenseNotifier extends _$ExpenseNotifier {
     this.state = this.state.copyWith(status: .loading);
 
     final data = await _repository.create(
-      value: this.state.value,
       date: this.state.date!,
+      value: this.state.value,
       description: this.state.description,
     );
 

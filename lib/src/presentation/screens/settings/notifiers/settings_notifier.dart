@@ -24,18 +24,16 @@ final class SettingsNotifier extends _$SettingsNotifier {
   };
 
   Future<void> _logout() async {
-    if (state.status == SettingsStatus.loading) return;
+    if (state.status == .loading) return;
 
-    state = state.copyWith(status: SettingsStatus.loading);
+    state = state.copyWith(status: .loading);
 
     final data = await _repository.logout();
 
     data.fold(
-      (failure) => state = state.copyWith(
-        status: SettingsStatus.failure,
-        message: failure.message,
-      ),
-      (_) => state = state.copyWith(status: SettingsStatus.success),
+      (failure) =>
+          state = state.copyWith(status: .failure, message: failure.message),
+      (_) => state = state.copyWith(status: .success),
     );
   }
 }

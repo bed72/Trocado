@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart' hide ValueChanged;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:trocado/src/presentation/extensions/context_extension.dart';
 import 'package:trocado/src/presentation/extensions/widget_extension.dart';
+import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
+import 'package:trocado/src/presentation/widgets/toast_widget.dart';
 import 'package:trocado/src/presentation/widgets/app_bar_widget.dart';
 import 'package:trocado/src/presentation/widgets/go_back_widget.dart';
 import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';
-import 'package:trocado/src/presentation/widgets/toast_widget.dart';
 
+import 'package:trocado/src/presentation/screens/expense/notifiers/expense_state.dart';
 import 'package:trocado/src/presentation/screens/expense/notifiers/expense_intent.dart';
 import 'package:trocado/src/presentation/screens/expense/notifiers/expense_notifier.dart';
-import 'package:trocado/src/presentation/screens/expense/notifiers/expense_state.dart';
 
 import 'package:trocado/src/presentation/screens/calculator/calculator_location.dart';
 
@@ -29,18 +29,23 @@ class ExpenseScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer(
       builder: (_, ref, _) {
-        ref.listen(expenseProvider, (previous, next) => switch (next.status) {
-          ExpenseStatus.success when previous?.status != ExpenseStatus.success =>
-            context.pop(),
-          ExpenseStatus.failure when previous?.status != ExpenseStatus.failure =>
-            showToastWidget(
-              context: context,
-              title: 'Opps',
-              type: ToastConstant.failure,
-              description: next.message,
-            ),
-          _ => null,
-        });
+        ref.listen(
+          expenseProvider,
+          (previous, next) => switch (next.status) {
+            ExpenseStatus.success
+                when previous?.status != ExpenseStatus.success =>
+              context.pop(),
+            ExpenseStatus.failure
+                when previous?.status != ExpenseStatus.failure =>
+              showToastWidget(
+                context: context,
+                title: 'Opps',
+                type: ToastConstant.failure,
+                description: next.message,
+              ),
+            _ => null,
+          },
+        );
 
         final state = ref.watch(expenseProvider);
         final notifier = ref.read(expenseProvider.notifier);
