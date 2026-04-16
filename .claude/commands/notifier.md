@@ -159,6 +159,7 @@ dart run build_runner build --delete-conflicting-outputs
 - `switch` no `dispatch` deve ser exhaustivo (cobrir todos os intents)
 - Widget filho (`XxxWidget`) não conhece Riverpod — recebe `onIntent` como callback
 - **Nunca usar `ConsumerWidget`** — sempre `StatelessWidget` + `Consumer` interno na screen
+- **Nunca criar widget privado dentro de outro arquivo** (`class _XxxWidget extends StatelessWidget`) — extrair para arquivo próprio se não-trivial, ou usar método privado se trivial (ex: `Widget _placeholder() => const SizedBox(...)`)
 - **Dependências via `ref.watch` em `build()`** — repositórios, validators e demais dependências nunca instanciadas diretamente no notifier
 - **Campos de dependência são `late`, nunca `late final`** — `build()` pode ser re-executado na mesma instância quando um `ref.watch` muda; `late final` lançaria erro na segunda execução
 - Se o notifier usa um validator, ele é provido por um provider em `main/providers/validators_provider.dart`

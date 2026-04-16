@@ -14,10 +14,10 @@ final class AppWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       title: 'Trocado',
+      themeMode: .system,
       theme: Themes.light,
       darkTheme: Themes.dark,
       routerConfig: routerConfig,
-      themeMode: ThemeMode.system,
       debugShowCheckedModeBanner: kDebugMode,
       supportedLocales: const [Locale('pt', 'BR')],
       builder: (_, child) => LoadWidget(child: child),

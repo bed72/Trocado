@@ -123,6 +123,27 @@ Widgets são `StatelessWidget` puros. Apenas screens usam `Consumer` para acessa
 
 **Regra:** nunca usar `ConsumerWidget`. Sempre `StatelessWidget` + `Consumer` interno:
 
+### Widgets privados em arquivos de widget
+
+Nunca criar uma classe de widget privada dentro de outro arquivo de widget (ex: `class _FooWidget extends StatelessWidget`).
+Em vez disso:
+- Widget com corpo não-trivial → extrair para seu próprio arquivo (`foo_widget.dart`)
+- Widget trivial (ex: espaçador, placeholder fixo) → método privado que retorna o widget
+
+```dart
+// correto — widget extraído para arquivo próprio
+// settings_profile_widget.dart
+class SettingsProfileWidget extends StatelessWidget { ... }
+
+// correto — método para widget trivial
+Widget _profilePlaceholder() => const SizedBox(height: 48.0);
+
+// proibido — classe privada dentro do arquivo
+class _ProfilePlaceholder extends StatelessWidget {
+  Widget build(BuildContext context) => const SizedBox(height: 48.0);
+}
+```
+
 ```dart
 // correto
 class SignInScreen extends StatelessWidget {
