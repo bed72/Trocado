@@ -6,11 +6,11 @@ import 'package:trocado/src/main/locations/exit_location.dart';
 import 'package:trocado/src/main/locations/expense_location.dart';
 
 import 'package:trocado/src/presentation/actions/quick_action.dart';
-import 'package:trocado/src/presentation/screens/home/home_screen.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
-import 'package:trocado/src/presentation/screens/budget/budget_location.dart';
+import 'package:trocado/src/presentation/screens/home/home_screen.dart';
 import 'package:trocado/src/presentation/screens/settings/settings_location.dart';
+import 'package:trocado/src/presentation/screens/budget/locations/budget_location.dart';
 import 'package:trocado/src/presentation/screens/notifications/notifications_location.dart';
 
 final class HomeLocation extends Location {

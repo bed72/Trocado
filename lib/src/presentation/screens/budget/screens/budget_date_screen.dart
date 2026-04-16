@@ -10,15 +10,21 @@ import 'package:trocado/src/presentation/screens/budget/notifiers/budget_notifie
 import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
 import 'package:trocado/src/presentation/widgets/bottom-sheets/bottom_sheet_scaffold_widget.dart';
 
-class BudgetDateWidget extends StatelessWidget {
+class BudgetDateWidget extends StatefulWidget {
   const BudgetDateWidget({super.key});
+
+  @override
+  State<BudgetDateWidget> createState() => _BudgetDateWidgetState();
+}
+
+class _BudgetDateWidgetState extends State<BudgetDateWidget> {
+  PickerDateRange? _range;
 
   @override
   Widget build(BuildContext context) {
     return Consumer(
       builder: (_, ref, _) {
         final notifier = ref.read(budgetProvider.notifier);
-        PickerDateRange? selectedRange;
 
         return BottomSheetScaffoldWidget(
           title: 'Período',
@@ -33,13 +39,13 @@ class BudgetDateWidget extends StatelessWidget {
                 padding: const .symmetric(vertical: 16.0, horizontal: 8.0),
                 child: SfDateRangePicker(
                   view: .month,
-                  showNavigationArrow: true,
                   selectionMode: .range,
+                  showNavigationArrow: true,
                   initialDisplayDate: .now(),
                   backgroundColor: context.colors.surface,
                   onSelectionChanged: (args) {
                     if (args.value is PickerDateRange) {
-                      selectedRange = args.value;
+                      setState(() => _range = args.value);
                     }
                   },
                   headerStyle: DateRangePickerHeaderStyle(
@@ -57,15 +63,14 @@ class BudgetDateWidget extends StatelessWidget {
                 child: ButtonWidget.outlined(
                   label: 'Selecionar',
                   onTap: () {
-                    final startDate = selectedRange?.startDate;
-                    final endDate =
-                        selectedRange?.endDate ?? selectedRange?.startDate;
+                    final startDate = _range?.startDate;
+                    final endDate = _range?.endDate ?? _range?.startDate;
 
                     if (startDate != null && endDate != null) {
                       notifier.dispatch(
                         DateRangeChanged(
-                          startDate: startDate.millisecondsSinceEpoch,
                           endDate: endDate.millisecondsSinceEpoch,
+                          startDate: startDate.millisecondsSinceEpoch,
                         ),
                       );
                     }
