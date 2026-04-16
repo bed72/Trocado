@@ -119,10 +119,10 @@ final class AppRoutes {
     signUp,
     expense,
     category,
-    calculator,
     settings,
-    notifications,
+    calculator,
     budgetDate,
+    notifications,
     forgotPassword,
     passwordResetConfirm,
   ];
