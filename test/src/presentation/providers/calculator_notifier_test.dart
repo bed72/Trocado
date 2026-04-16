@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:trocado/src/application/services/money_service.dart';
 import 'package:trocado/src/main/providers/services_provider.dart';
+import 'package:trocado/src/application/services/money_service.dart';
 
 import 'package:trocado/src/presentation/screens/calculator/notifiers/calculator_state.dart';
 import 'package:trocado/src/presentation/screens/calculator/notifiers/calculator_intent.dart';
@@ -10,9 +10,7 @@ import 'package:trocado/src/presentation/screens/calculator/notifiers/calculator
 
 ProviderContainer _makeContainer() {
   final container = ProviderContainer(
-    overrides: [
-      moneyServiceProvider.overrideWithValue(MoneyService()),
-    ],
+    overrides: [moneyServiceProvider.overrideWithValue(MoneyService())],
   );
   addTearDown(container.dispose);
   container.listen(calculatorProvider, (_, _) {});
@@ -26,7 +24,7 @@ void main() {
   group('initial state', () {
     test('rawDigits is empty', () {
       final container = _makeContainer();
-      expect(container.read(calculatorProvider).rawDigits, '');
+      expect(container.read(calculatorProvider).digits, '');
     });
 
     test('displayValue is empty', () {
@@ -48,7 +46,7 @@ void main() {
           .read(calculatorProvider.notifier)
           .dispatch(const DigitPressed('8'));
 
-      expect(container.read(calculatorProvider).rawDigits, '8');
+      expect(container.read(calculatorProvider).digits, '8');
     });
 
     test('appends multiple digits sequentially', () {
@@ -59,7 +57,7 @@ void main() {
       notifier.dispatch(const DigitPressed('5'));
       notifier.dispatch(const DigitPressed('0'));
 
-      expect(container.read(calculatorProvider).rawDigits, '850');
+      expect(container.read(calculatorProvider).digits, '850');
     });
 
     test('centValue reflects rawDigits as cents', () {
@@ -109,7 +107,7 @@ void main() {
       }
       notifier.dispatch(const DigitPressed('0'));
 
-      expect(container.read(calculatorProvider).rawDigits, '123456789');
+      expect(container.read(calculatorProvider).digits, '123456789');
     });
   });
 
@@ -122,7 +120,7 @@ void main() {
       notifier.dispatch(const DigitPressed('5'));
       notifier.dispatch(const DeletePressed());
 
-      expect(container.read(calculatorProvider).rawDigits, '8');
+      expect(container.read(calculatorProvider).digits, '8');
     });
 
     test('clears displayValue when the last digit is removed', () {

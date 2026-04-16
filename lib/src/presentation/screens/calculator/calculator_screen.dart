@@ -9,8 +9,8 @@ import 'package:trocado/src/presentation/screens/budget/notifiers/budget_notifie
 import 'package:trocado/src/presentation/screens/calculator/notifiers/calculator_intent.dart';
 import 'package:trocado/src/presentation/screens/calculator/notifiers/calculator_notifier.dart';
 
-import 'package:trocado/src/presentation/widgets/calculator/calculator_field_widget.dart';
-import 'package:trocado/src/presentation/widgets/calculator/calculator_keyboard_widget.dart';
+import 'package:trocado/src/presentation/screens/calculator/widgets/calculator_field_widget.dart';
+import 'package:trocado/src/presentation/screens/calculator/widgets/calculator_keyboard_widget.dart';
 import 'package:trocado/src/presentation/widgets/bottom-sheets/bottom_sheet_scaffold_widget.dart';
 
 class CalculatorScreen extends StatelessWidget {

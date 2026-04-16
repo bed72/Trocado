@@ -22,25 +22,27 @@ final class CalculatorNotifier extends _$CalculatorNotifier {
 
   void dispatch(CalculatorIntent intent) => switch (intent) {
     DigitPressed(:final digit) => _appendDigit(digit),
-    DeletePressed()            => _deleteDigit(),
-    ClearPressed()             => state = const CalculatorState(),
+    DeletePressed() => _deleteDigit(),
+    ClearPressed() => state = const CalculatorState(),
   };
 
   void _appendDigit(String digit) {
-    if (state.rawDigits.length >= _maxDigits) return;
-    final raw = state.rawDigits + digit;
+    if (state.digits.length >= _maxDigits) return;
+    final raw = state.digits + digit;
     state = state.copyWith(
-      rawDigits: raw,
+      digits: raw,
       displayValue: _moneyService.format(int.parse(raw) / 100),
     );
   }
 
   void _deleteDigit() {
-    if (state.rawDigits.isEmpty) return;
-    final raw = state.rawDigits.substring(0, state.rawDigits.length - 1);
+    if (state.digits.isEmpty) return;
+    final raw = state.digits.substring(0, state.digits.length - 1);
     state = state.copyWith(
-      rawDigits: raw,
-      displayValue: raw.isEmpty ? '' : _moneyService.format(int.parse(raw) / 100),
+      digits: raw,
+      displayValue: raw.isEmpty
+          ? ''
+          : _moneyService.format(int.parse(raw) / 100),
     );
   }
 }

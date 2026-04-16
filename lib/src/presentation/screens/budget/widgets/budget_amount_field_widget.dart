@@ -18,8 +18,8 @@ class BudgetAmountFieldWidget extends StatelessWidget {
 
   String? get _displayValue => value > 0
       ? NumberFormat.currency(
-          locale: 'pt_BR',
           symbol: 'R\$',
+          locale: 'pt_BR',
         ).format(value / 100)
       : null;
 

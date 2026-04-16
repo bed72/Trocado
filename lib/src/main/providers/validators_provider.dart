@@ -1,7 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:trocado/src/presentation/validators/email_validation.dart';
-import 'package:trocado/src/presentation/validators/terms_validation.dart';
+import 'package:trocado/src/presentation/screens/authentication/sign_up/validators/terms_validation.dart';
 import 'package:trocado/src/presentation/validators/password_validation.dart';
 import 'package:trocado/src/presentation/screens/budget/validators/budget_value_validation.dart';
 import 'package:trocado/src/presentation/screens/budget/validators/budget_description_validation.dart';

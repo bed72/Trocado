@@ -1,24 +1,19 @@
 import 'package:equatable/equatable.dart';
 
 final class CalculatorState extends Equatable {
-  final String rawDigits;
+  final String digits;
   final String displayValue;
 
-  const CalculatorState({
-    this.rawDigits = '',
-    this.displayValue = '',
-  });
+  const CalculatorState({this.digits = '', this.displayValue = ''});
 
-  int get centValue => rawDigits.isEmpty ? 0 : int.parse(rawDigits);
+  int get centValue => digits.isEmpty ? 0 : int.parse(digits);
 
-  CalculatorState copyWith({
-    String? rawDigits,
-    String? displayValue,
-  }) => CalculatorState(
-    rawDigits: rawDigits ?? this.rawDigits,
-    displayValue: displayValue ?? this.displayValue,
-  );
+  CalculatorState copyWith({String? digits, String? displayValue}) =>
+      CalculatorState(
+        digits: digits ?? this.digits,
+        displayValue: displayValue ?? this.displayValue,
+      );
 
   @override
-  List<Object?> get props => [rawDigits, displayValue];
+  List<Object?> get props => [digits, displayValue];
 }
