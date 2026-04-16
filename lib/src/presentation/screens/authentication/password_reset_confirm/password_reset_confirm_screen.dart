@@ -87,7 +87,7 @@ class PasswordResetConfirmScreen extends StatelessWidget {
               Text(
                 'Criar nova senha',
                 style: context.typography.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: .bold,
                 ),
               ),
 

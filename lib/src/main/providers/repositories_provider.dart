@@ -4,9 +4,11 @@ import 'package:trocado/src/main/providers/storage_provider.dart';
 import 'package:trocado/src/main/providers/data_sources.provider.dart';
 
 import 'package:trocado/src/data/repositories/user_repository.dart';
+import 'package:trocado/src/data/repositories/budget_repository.dart';
 import 'package:trocado/src/data/repositories/authentication_repository.dart';
 
 import 'package:trocado/src/domain/repositories/interface_user_repository.dart';
+import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_authentication_repository.dart';
 
 part 'repositories_provider.g.dart';
@@ -23,3 +25,7 @@ IAuthenticationRepository authenticationRepository(Ref ref) =>
 @Riverpod()
 IUserRepository userRepository(Ref ref) =>
     UserRepository(dataSource: ref.watch(remoteUserDataSourceProvider));
+
+@Riverpod()
+IBudgetRepository budgetRepository(Ref ref) =>
+    BudgetRepository(dataSource: ref.watch(remoteBudgetDataSourceProvider));

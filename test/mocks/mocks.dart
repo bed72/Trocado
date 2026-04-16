@@ -4,6 +4,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:trocado/src/application/services/money_service.dart';
 
 import 'package:trocado/src/domain/repositories/interface_user_repository.dart';
+import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_authentication_repository.dart';
 
 import 'package:trocado/src/infrastructure/clients/http/http_client.dart';
@@ -29,3 +30,5 @@ final class MockTokenDataSource extends Mock implements ILocalTokenDataSource {}
 
 final class MockAuthenticationRepository extends Mock
     implements IAuthenticationRepository {}
+
+final class MockBudgetRepository extends Mock implements IBudgetRepository {}

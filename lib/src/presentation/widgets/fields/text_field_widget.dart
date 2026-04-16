@@ -116,7 +116,7 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
     final color = _color(context);
 
     return Column(
-      spacing: 6.0,
+      spacing: 4.0,
       crossAxisAlignment: .start,
       children: [
         _buildLabel(color),

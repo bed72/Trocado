@@ -61,9 +61,9 @@ class ForgotPasswordScreen extends StatelessWidget {
       SliverFillRemaining(
         hasScrollBody: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          padding: const .symmetric(horizontal: 16.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: .start,
             children: [
               const SizedBox(height: 24.0),
 
@@ -88,7 +88,7 @@ class ForgotPasswordScreen extends StatelessWidget {
               TextFieldWidget(
                 label: 'E-mail',
                 hint: 'Digite seu e-mail',
-                keyboardType: TextInputType.emailAddress,
+                keyboardType: .emailAddress,
                 failure: state.emailFailure,
                 onChanged: (value) => notifier.dispatch(EmailChanged(value)),
               ),
@@ -96,7 +96,7 @@ class ForgotPasswordScreen extends StatelessWidget {
               const Spacer(),
 
               SizedBox(
-                width: double.infinity,
+                width: .infinity,
                 child: ButtonWidget.elevated(
                   label: 'Enviar',
                   onTap: () => _submit(notifier),

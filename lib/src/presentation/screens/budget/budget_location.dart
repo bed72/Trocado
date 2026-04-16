@@ -3,7 +3,7 @@ import 'package:duck_router/duck_router.dart';
 import 'package:trocado/app_route.dart';
 
 import 'package:trocado/src/presentation/pages/screen_page.dart';
-import 'package:trocado/src/presentation/screens/budget_screen.dart';
+import 'package:trocado/src/presentation/screens/budget/budget_screen.dart';
 
 final class BudgetLocation extends Location {
   @override

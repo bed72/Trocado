@@ -205,3 +205,51 @@ final class PasswordResetConfirmFormValidatorProvider
 
 String _$passwordResetConfirmFormValidatorHash() =>
     r'8d985583eace06ce044235ba841d81ed992f10c4';
+
+@ProviderFor(budgetFormValidator)
+final budgetFormValidatorProvider = BudgetFormValidatorProvider._();
+
+final class BudgetFormValidatorProvider
+    extends
+        $FunctionalProvider<
+          BudgetFormValidator,
+          BudgetFormValidator,
+          BudgetFormValidator
+        >
+    with $Provider<BudgetFormValidator> {
+  BudgetFormValidatorProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'budgetFormValidatorProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$budgetFormValidatorHash();
+
+  @$internal
+  @override
+  $ProviderElement<BudgetFormValidator> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  BudgetFormValidator create(Ref ref) {
+    return budgetFormValidator(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(BudgetFormValidator value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<BudgetFormValidator>(value),
+    );
+  }
+}
+
+String _$budgetFormValidatorHash() =>
+    r'c7ac5ca75e5bbecfa628d0cb4ec69cfb2b0ddb9e';
