@@ -630,4 +630,77 @@ void main() {
       expect(data.left, isA<ServerFailure>());
     });
   });
+
+  group('logout', () {
+    setUp(() {
+      when(() => tokenDataSource.clear()).thenAnswer((_) async {});
+    });
+
+    test('returns Right and clears tokens on success', () async {
+      when(
+        () => tokenDataSource.get(),
+      ).thenAnswer((_) async => (access: 'access', refresh: 'refresh-token'));
+
+      when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Right({}),
+      );
+
+      final data = await repository.logout();
+
+      expect(data.isRight, isTrue);
+      verify(() => tokenDataSource.clear()).called(1);
+    });
+
+    test('clears tokens and returns Right when refresh token is null', () async {
+      when(
+        () => tokenDataSource.get(),
+      ).thenAnswer((_) async => (access: 'access', refresh: null));
+
+      final data = await repository.logout();
+
+      expect(data.isRight, isTrue);
+      verify(() => tokenDataSource.clear()).called(1);
+      verifyNever(() => client.post(parameter: any(named: 'parameter')));
+    });
+
+    test('returns Left ValidationFailure and does not clear tokens on API error', () async {
+      when(
+        () => tokenDataSource.get(),
+      ).thenAnswer((_) async => (access: 'access', refresh: 'refresh-token'));
+
+      when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {'field': null, 'code': 'invalid', 'message': 'Token inválido.'},
+          ],
+        }),
+      );
+
+      final data = await repository.logout();
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<ValidationFailure>());
+      verifyNever(() => tokenDataSource.clear());
+    });
+
+    test('returns Left NetworkFailure on network error', () async {
+      when(
+        () => tokenDataSource.get(),
+      ).thenAnswer((_) async => (access: 'access', refresh: 'refresh-token'));
+
+      when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {'code': 'network_error', 'field': 'non_field_errors', 'message': 'Network error'},
+          ],
+        }),
+      );
+
+      final data = await repository.logout();
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<NetworkFailure>());
+      verifyNever(() => tokenDataSource.clear());
+    });
+  });
 }

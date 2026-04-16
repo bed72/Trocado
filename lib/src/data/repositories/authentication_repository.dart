@@ -25,6 +25,25 @@ final class AuthenticationRepository implements IAuthenticationRepository {
        _authenticationDataSource = authenticationDataSource;
 
   @override
+  Future<Either<Failure, void>> logout() async {
+    final tokens = await _tokenDataSource.get();
+
+    if (tokens.refresh == null) {
+      await _tokenDataSource.clear();
+      return const Right(null);
+    }
+
+    final data = await _authenticationDataSource.logout(
+      refresh: tokens.refresh!,
+    );
+
+    if (data.isLeft) return Left(data.left.toFailure());
+
+    await _tokenDataSource.clear();
+    return const Right(null);
+  }
+
+  @override
   Future<Either<Failure, void>> requestPasswordReset({
     required String email,
   }) async {

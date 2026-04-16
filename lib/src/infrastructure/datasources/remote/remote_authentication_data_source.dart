@@ -17,6 +17,8 @@ import 'package:trocado/src/infrastructure/clients/http/responses/failure/failur
 import 'package:trocado/src/infrastructure/clients/http/responses/password_reset_confirm_response.dart';
 
 abstract interface class IRemoteAuthenticationDataSource {
+  Future<Either<FailureResponse, void>> logout({required String refresh});
+
   Future<Either<FailureResponse, SignInResponse>> signIn({
     required String email,
     required String password,
@@ -52,6 +54,19 @@ final class RemoteAuthenticationDataSource
 
   RemoteAuthenticationDataSource({required IHttpClient client})
     : _client = client;
+
+  @override
+  Future<Either<FailureResponse, void>> logout({
+    required String refresh,
+  }) async {
+    final response = await _client.post(
+      parameter: Requests(
+        EndpointKey.logout.path,
+        body: {'refresh': refresh},
+      ),
+    );
+    return response.either(FailureResponse.fromJson, (_) {});
+  }
 
   @override
   Future<Either<FailureResponse, SignInResponse>> signIn({

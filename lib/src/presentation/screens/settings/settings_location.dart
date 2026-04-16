@@ -10,12 +10,14 @@ final class SettingsLocation extends Location {
   String get path => AppRoutes.settings.path;
 
   @override
-  LocationPageBuilder get pageBuilder => (_) => screenPage(
-    SettingsScreen(
-      onLogout: () {},
-      onEditProfile: () {},
-      onNotification: () {},
-      onSubscription: () {},
-    ),
-  );
+  LocationPageBuilder get pageBuilder =>
+      (_) => screenPage(
+        const SettingsScreen(
+          onEditProfile: _stub,
+          onNotification: _stub,
+          onSubscription: _stub,
+        ),
+      );
+
+  static void _stub() {}
 }
