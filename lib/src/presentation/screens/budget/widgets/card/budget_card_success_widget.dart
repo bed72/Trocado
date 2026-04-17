@@ -1,10 +1,12 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
 
 import 'package:trocado/src/domain/models/active_budget_model.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
+
+import 'package:trocado/src/presentation/screens/budget/widgets/card/budget_card_label_widget.dart';
+import 'package:trocado/src/presentation/screens/budget/widgets/card/budget_progress_bar_painter.dart';
 
 class BudgetCardSuccessWidget extends StatelessWidget {
   final ActiveBudgetModel model;
@@ -18,130 +20,36 @@ class BudgetCardSuccessWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dailyBudget = _dailyBudget(model);
     final percentage = model.value > 0 ? model.totalSpent / model.value : 0.0;
-    final color = _gaugeColor(percentage: percentage, colors: context.colors);
+    final budget = format(_dailyBudget() / 100);
+    final color = _gaugeColor(percentage, context.colors);
 
     return Card(
       elevation: 0.0,
       child: Padding(
         padding: const .all(16.0),
         child: Column(
-          spacing: 16.0,
+          spacing: 10.0,
           mainAxisSize: .min,
           crossAxisAlignment: .start,
           children: [
-            _buildDailyBudgetLabel(
-              context: context,
-              color: color,
-              dailyBudget: dailyBudget,
-            ),
+            BudgetCardLabelWidget(percentage: percentage, dailyBudget: budget),
             Row(
-              spacing: 16.0,
+              crossAxisAlignment: .start,
               children: [
-                _buildGauge(
-                  context: context,
-                  color: color,
-                  percentage: percentage,
-                ),
-                Expanded(
-                  child: _buildStats(context: context, model: model),
-                ),
+                Expanded(child: _buildStats(context)),
+                _buildPercentage(context, color, percentage),
               ],
             ),
+            _buildProgressBar(context, color, percentage),
           ],
         ),
       ),
     );
   }
 
-  RichText _buildDailyBudgetLabel({
-    required BuildContext context,
-    required Color color,
-    required int dailyBudget,
-  }) => RichText(
-    text: TextSpan(
-      style: context.typography.bodyMedium?.copyWith(
-        color: context.colors.onSurfaceVariant,
-      ),
-      children: [
-        const TextSpan(text: 'Pode gastar '),
-        TextSpan(
-          text: format(dailyBudget / 100),
-          style: TextStyle(color: color, fontWeight: .bold),
-        ),
-        const TextSpan(text: ' hoje'),
-      ],
-    ),
-  );
-
-  SizedBox _buildGauge({
-    required BuildContext context,
-    required Color color,
-    required double percentage,
-  }) {
-    const size = 110.0;
-    final label = '${(percentage * 100).clamp(0, 100).toStringAsFixed(0)}%';
-
-    return SizedBox(
-      width: size,
-      height: size / 2 + 16.0,
-      child: Stack(
-        alignment: .bottomCenter,
-        children: [
-          ClipRect(
-            child: Align(
-              heightFactor: 0.5,
-              alignment: .topCenter,
-              child: SizedBox(
-                width: size,
-                height: size,
-                child: PieChart(
-                  PieChartData(
-                    sectionsSpace: 0,
-                    startDegreeOffset: 180,
-                    sections: [
-                      PieChartSectionData(
-                        color: color,
-                        radius: size / 2,
-                        showTitle: false,
-                        value: percentage.clamp(0.0, 1.0) * 100,
-                      ),
-                      PieChartSectionData(
-                        radius: size / 2,
-                        showTitle: false,
-                        value: (1 - percentage.clamp(0.0, 1.0)) * 100,
-                        color: context.colors.surfaceContainerHighest,
-                      ),
-                      PieChartSectionData(
-                        value: 100,
-                        radius: size / 2,
-                        showTitle: false,
-                        color: Colors.transparent,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Text(
-            label,
-            style: context.typography.labelLarge?.copyWith(
-              fontWeight: .bold,
-              color: context.colors.onSurface,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Column _buildStats({
-    required BuildContext context,
-    required ActiveBudgetModel model,
-  }) => Column(
-    spacing: 6.0,
+  Widget _buildStats(BuildContext context) => Column(
+    spacing: 4.0,
     crossAxisAlignment: .start,
     children: [
       Text(
@@ -168,7 +76,7 @@ class BudgetCardSuccessWidget extends StatelessWidget {
           ],
         ),
       ),
-      const SizedBox(height: 4.0),
+      const SizedBox(height: 2.0),
       Text(
         'Disponível',
         style: context.typography.labelSmall?.copyWith(
@@ -177,7 +85,7 @@ class BudgetCardSuccessWidget extends StatelessWidget {
       ),
       Text(
         format(model.remaining / 100),
-        style: context.typography.titleMedium?.copyWith(
+        style: context.typography.titleSmall?.copyWith(
           fontWeight: .bold,
           color: context.colors.primary,
         ),
@@ -185,22 +93,54 @@ class BudgetCardSuccessWidget extends StatelessWidget {
     ],
   );
 
-  int _dailyBudget(ActiveBudgetModel model) {
+  Widget _buildPercentage(
+    BuildContext context,
+    Color color,
+    double percentage,
+  ) => Column(
+    crossAxisAlignment: .end,
+    children: [
+      Text(
+        '${(percentage * 100).clamp(0, 100).toStringAsFixed(0)}%',
+        style: context.typography.headlineSmall?.copyWith(
+          color: color,
+          fontWeight: .bold,
+        ),
+      ),
+      Icon(Icons.trending_up_rounded, color: color, size: 18.0),
+    ],
+  );
+
+  Widget _buildProgressBar(
+    BuildContext context,
+    Color color,
+    double percentage,
+  ) => SizedBox(
+    height: 20.0,
+    width: .infinity,
+    child: CustomPaint(
+      painter: BudgetProgressBarPainter(
+        fillColor: color,
+        thumbColor: color,
+        percentage: .1.clamp(0.0, 1.0),
+        trackColor: color.withValues(alpha: 0.15),
+      ),
+    ),
+  );
+
+  int _dailyBudget() {
     final daysRemaining =
         DateTime.fromMillisecondsSinceEpoch(
           model.endDate,
-        ).difference(.now()).inDays +
+        ).difference(DateTime.now()).inDays +
         1;
-
     return (model.remaining / max(1, daysRemaining)).round();
   }
 
-  Color _gaugeColor({
-    required double percentage,
-    required ColorScheme colors,
-  }) => switch (percentage) {
-    < 0.7 => Colors.green,
-    < 0.9 => Colors.amber,
-    _ => colors.error,
-  };
+  Color _gaugeColor(double percentage, ColorScheme colors) =>
+      switch (percentage) {
+        < 0.7 => Colors.green,
+        < 0.9 => Colors.amber,
+        _ => colors.error,
+      };
 }
