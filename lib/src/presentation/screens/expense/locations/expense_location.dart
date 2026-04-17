@@ -4,6 +4,7 @@ import 'package:trocado/app_route.dart';
 
 import 'package:trocado/src/presentation/pages/screen_page.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
+import 'package:trocado/src/presentation/screens/calculator/calculator_location.dart';
 import 'package:trocado/src/presentation/screens/expense/screens/expense_screen.dart';
 import 'package:trocado/src/presentation/screens/expense/locations/expense_date_location.dart';
 
@@ -20,6 +21,9 @@ final class ExpenseLocation extends Location {
       (context) => screenPage(
         ExpenseScreen(
           navigateToDate: () => context.navigate(ExpenseDateLocation()),
+          navigateToCalculator: (onValueConfirmed) => context.navigate(
+            CalculatorLocation(onValueConfirmed: onValueConfirmed),
+          ),
         ),
       );
 }

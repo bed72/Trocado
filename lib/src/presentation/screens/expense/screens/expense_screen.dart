@@ -13,8 +13,6 @@ import 'package:trocado/src/presentation/screens/expense/notifiers/expense_state
 import 'package:trocado/src/presentation/screens/expense/notifiers/expense_intent.dart';
 import 'package:trocado/src/presentation/screens/expense/notifiers/expense_notifier.dart';
 
-import 'package:trocado/src/presentation/screens/calculator/calculator_location.dart';
-
 import 'package:trocado/src/presentation/screens/expense/widgets/expense_date_field_widget.dart';
 import 'package:trocado/src/presentation/screens/expense/widgets/expense_save_button_widget.dart';
 import 'package:trocado/src/presentation/screens/expense/widgets/expense_amount_field_widget.dart';
@@ -22,8 +20,13 @@ import 'package:trocado/src/presentation/screens/expense/widgets/expense_descrip
 
 class ExpenseScreen extends StatelessWidget {
   final VoidCallback navigateToDate;
+  final void Function(void Function(int)) navigateToCalculator;
 
-  const ExpenseScreen({super.key, required this.navigateToDate});
+  const ExpenseScreen({
+    super.key,
+    required this.navigateToDate,
+    required this.navigateToCalculator,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -82,11 +85,8 @@ class ExpenseScreen extends StatelessWidget {
                         ExpenseAmountFieldWidget(
                           value: state.value,
                           failure: state.valueFailure,
-                          navigateTo: () => context.navigate(
-                            CalculatorLocation(
-                              onValueConfirmed: (v) =>
-                                  notifier.dispatch(ValueChanged(v)),
-                            ),
+                          navigateTo: () => navigateToCalculator(
+                            (v) => notifier.dispatch(ValueChanged(v)),
                           ),
                         ),
                         ExpenseDateFieldWidget(
