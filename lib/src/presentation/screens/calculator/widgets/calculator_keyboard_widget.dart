@@ -4,7 +4,7 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:trocado/src/presentation/widgets/bounce_widget.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
-import 'package:trocado/src/presentation/data/amount_presentation_data.dart';
+import 'package:trocado/src/presentation/screens/calculator/data/amount_presentation_data.dart';
 
 class CalculatorKeyboard extends StatelessWidget {
   final void Function(String) onDigit;
@@ -67,9 +67,9 @@ class CalculatorKeyboard extends StatelessWidget {
   );
 
   void _onPress(AmountPresentationData data) => switch (data.action) {
-    .digit  => onDigit(data.value!),
+    .digit => onDigit(data.value!),
+    .clear => onClear(),
     .delete => onDelete(),
-    .clear  => onClear(),
     .submit => onSubmit(),
   };
 
