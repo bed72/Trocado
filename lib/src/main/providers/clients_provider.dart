@@ -24,6 +24,8 @@ IHttpClient httpClient(Ref ref) => HttpClient(dio: ref.watch(dioProvider));
 Dio dio(Ref ref) => DioFactory.create(
   baseUrl: AppConfig.url,
   dataSource: ref.watch(localTokenDataSourceProvider),
-  onUnauthenticated: () =>
-      routerConfig.navigate(root: true, replace: true, to: SignInLocation()),
+  onUnauthenticated: () {
+    routerConfig.root();
+    routerConfig.navigate(root: true, replace: true, to: SignInLocation());
+  },
 );

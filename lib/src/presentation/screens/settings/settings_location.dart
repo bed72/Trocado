@@ -18,10 +18,8 @@ final class SettingsLocation extends Location {
           onEditProfile: () {},
           onNotification: () {},
           onSubscription: () {},
-          onSignIn: () {
-            context.root();
-            context.navigate(SignInLocation(), root: true, replace: true);
-          },
+          onSignIn: () =>
+              context.clear(SignInLocation(), root: true, replace: true),
         ),
       );
 }

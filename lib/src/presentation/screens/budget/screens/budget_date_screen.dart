@@ -39,9 +39,11 @@ class _BudgetDateWidgetState extends State<BudgetDateWidget> {
                 padding: const .symmetric(vertical: 16.0, horizontal: 8.0),
                 child: SfDateRangePicker(
                   view: .month,
+                  selectionRadius: 20.0,
                   selectionMode: .range,
                   showNavigationArrow: true,
                   initialDisplayDate: .now(),
+                  selectionShape: .rectangle,
                   backgroundColor: context.colors.surface,
                   onSelectionChanged: (args) {
                     if (args.value is PickerDateRange) {

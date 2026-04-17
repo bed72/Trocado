@@ -138,10 +138,8 @@ final class AppRoutes {
       _all.firstWhereOrNull((route) => route.regex.hasMatch(location));
 }
 
-final _deepLinkHandler = const DeepLinkHandler();
-
 final routerConfig = DuckRouter(
   initialLocation: SplashLocation(),
-  onDeepLink: (uri, _) => _deepLinkHandler(uri),
+  onDeepLink: (uri, _) => const DeepLinkHandler()(uri),
   navigatorObserverBuilder: (_) => [LoggerNavigatorObserver()],
 );

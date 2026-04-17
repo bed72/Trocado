@@ -4,7 +4,7 @@ import 'package:duck_router/duck_router.dart';
 import 'package:trocado/src/presentation/themes/radius/radius_theme.dart';
 
 extension BuildContextColorExtension on BuildContext {
-  bool get isDark => Theme.of(this).brightness == Brightness.dark;
+  bool get isDark => Theme.of(this).brightness == .dark;
 
   ColorScheme get colors => Theme.of(this).colorScheme;
 }
@@ -32,6 +32,16 @@ extension BuildContextNavigatinExtension on BuildContext {
 
   void popUntil(LocationPredicate predicate) =>
       DuckRouter.of(this).popUntil(predicate);
+
+  void clear(
+    Location to, {
+    bool? replace,
+    bool? clearStack,
+    bool root = false,
+  }) {
+    this.root();
+    navigate(to, root: root, replace: replace, clearStack: clearStack);
+  }
 
   Future<T?> navigate<T extends Object?>(
     Location to, {

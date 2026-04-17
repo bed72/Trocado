@@ -6,8 +6,8 @@ import 'package:trocado/src/presentation/widgets/bounce_widget.dart';
 import 'package:trocado/src/presentation/widgets/fields/text_field_widget.dart';
 
 class BudgetDateFieldWidget extends StatelessWidget {
-  final int? startDate;
   final int? endDate;
+  final int? startDate;
   final String? failure;
   final VoidCallback navigateTo;
 
@@ -21,9 +21,10 @@ class BudgetDateFieldWidget extends StatelessWidget {
 
   String? get _displayValue {
     if (startDate == null || endDate == null) return null;
-    final end = DateTime.fromMillisecondsSinceEpoch(endDate!).format();
-    final start = DateTime.fromMillisecondsSinceEpoch(startDate!).format();
-    return '$start — $end';
+    final end = DateTime.fromMillisecondsSinceEpoch(endDate!).formatShort();
+    final start = DateTime.fromMillisecondsSinceEpoch(startDate!).formatShort();
+
+    return '$start até $end';
   }
 
   @override

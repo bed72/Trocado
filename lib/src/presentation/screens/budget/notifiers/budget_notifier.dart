@@ -13,13 +13,14 @@ part 'budget_notifier.g.dart';
 
 @riverpod
 final class BudgetNotifier extends _$BudgetNotifier {
-  late BudgetFormValidator _validator;
   late IBudgetRepository _repository;
+  late BudgetFormValidator _validator;
 
   @override
   BudgetState build() {
-    _validator = ref.watch(budgetFormValidatorProvider);
     _repository = ref.watch(budgetRepositoryProvider);
+    _validator = ref.watch(budgetFormValidatorProvider);
+
     return const BudgetState();
   }
 
@@ -47,7 +48,7 @@ final class BudgetNotifier extends _$BudgetNotifier {
 
     if (!isValid) return;
 
-    this.state = this.state.copyWith(status: BudgetStatus.loading);
+    this.state = this.state.copyWith(status: .loading);
 
     final data = await _repository.create(
       value: this.state.value,
