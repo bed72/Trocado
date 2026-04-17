@@ -15,9 +15,9 @@ class BudgetProgressBarPainter extends CustomPainter {
     required this.percentage,
   });
 
-  static const double _thumbWidth = 6.0;
-  static const double _thumbHeight = 22.0;
-  static const double _trackHeight = 16.0;
+  final double _thumbWidth = 6.0;
+  final double _thumbHeight = 22.0;
+  final double _trackHeight = 16.0;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -49,7 +49,7 @@ class BudgetProgressBarPainter extends CustomPainter {
       );
     }
 
-    if (percentage > 0.0 && percentage < 1.0) {
+    if (percentage > 0.05 && percentage < 0.99) {
       final thumbX = fillWidth.clamp(0.0, size.width);
       canvas.drawRRect(
         RRect.fromLTRBR(
@@ -57,7 +57,7 @@ class BudgetProgressBarPainter extends CustomPainter {
           centerY - _thumbHeight / 2,
           thumbX + _thumbWidth / 2,
           centerY + _thumbHeight / 2,
-          const .circular(_thumbWidth / 2),
+          .circular(_thumbWidth / 2),
         ),
         Paint()..color = thumbColor,
       );

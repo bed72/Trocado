@@ -24,41 +24,41 @@ class BudgetCardLabelWidget extends StatelessWidget {
         borderRadius: .circular(10.0),
         color: color.withValues(alpha: 0.10),
       ),
-      child: Text.rich(
-        TextSpan(
-          style: context.typography.bodySmall?.copyWith(color: color),
-          children: [
-            WidgetSpan(
-              alignment: .bottom,
-              child: Text(leading, style: context.typography.bodyMedium),
+      child: Row(
+        spacing: 8.0,
+        crossAxisAlignment: .center,
+        children: [
+          Text(leading, style: context.typography.bodyMedium),
+          Expanded(
+            child: Text.rich(
+              TextSpan(
+                style: context.typography.bodySmall?.copyWith(color: color),
+                children: [
+                  const TextSpan(text: 'Pode gastar '),
+                  TextSpan(
+                    text: dailyBudget,
+                    style: const TextStyle(fontWeight: .bold),
+                  ),
+                  const TextSpan(text: ' hoje'),
+                ],
+              ),
             ),
-            const TextSpan(text: '  Pode gastar '),
-            TextSpan(
-              text: dailyBudget,
-              style: const TextStyle(fontWeight: .bold),
-            ),
-            const TextSpan(text: ' hoje  '),
-            WidgetSpan(
-              alignment: .bottom,
-              child: Text(trailing, style: context.typography.bodyMedium),
-            ),
-          ],
-        ),
+          ),
+          Text(trailing, style: context.typography.bodyMedium),
+        ],
       ),
     );
   }
 
   (String, String) _icons() => switch (percentage) {
-    < 0.3 => ('🎯', '🌟'),
-    < 0.7 => ('😊', '👍'),
-    < 0.9 => ('⚠️', '🔶'),
-    _ => ('🚨', '❌'),
+    <= 0.4 => ('👀​', '🟢'),
+    <= 0.8 => ('👀​', '🟡'),
+    _ => ('👀​', '🔴'),
   };
 
   Color _color(ColorScheme colors) => switch (percentage) {
-    < 0.3 => Colors.teal,
-    < 0.7 => Colors.green,
-    < 0.9 => Colors.amber.shade700,
-    _ => colors.error,
+    <= 0.4 => Colors.green,
+    <= 0.8 => Color.lerp(Colors.green, Colors.amber, (percentage - 0.4) / 0.4)!,
+    _ => Color.lerp(Colors.amber, colors.error, (percentage - 0.8) / 0.2)!,
   };
 }

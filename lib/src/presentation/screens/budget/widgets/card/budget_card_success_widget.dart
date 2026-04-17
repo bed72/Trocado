@@ -22,7 +22,7 @@ class BudgetCardSuccessWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final percentage = model.value > 0 ? model.totalSpent / model.value : 0.0;
     final budget = format(_dailyBudget() / 100);
-    final color = _gaugeColor(percentage, context.colors);
+    final color = _gaugeColor(percentage: percentage, colors: context.colors);
 
     return Card(
       elevation: 0.0,
@@ -122,7 +122,7 @@ class BudgetCardSuccessWidget extends StatelessWidget {
       painter: BudgetProgressBarPainter(
         fillColor: color,
         thumbColor: color,
-        percentage: .1.clamp(0.0, 1.0),
+        percentage: percentage.clamp(0.0, 1.0),
         trackColor: color.withValues(alpha: 0.15),
       ),
     ),
@@ -137,10 +137,12 @@ class BudgetCardSuccessWidget extends StatelessWidget {
     return (model.remaining / max(1, daysRemaining)).round();
   }
 
-  Color _gaugeColor(double percentage, ColorScheme colors) =>
-      switch (percentage) {
-        < 0.7 => Colors.green,
-        < 0.9 => Colors.amber,
-        _ => colors.error,
-      };
+  Color _gaugeColor({
+    required double percentage,
+    required ColorScheme colors,
+  }) => switch (percentage) {
+    <= 0.4 => Colors.green,
+    <= 0.6 => Color.lerp(Colors.green, Colors.amber, .9)!,
+    _ => Color.lerp(Colors.amber, colors.error, .6)!,
+  };
 }
