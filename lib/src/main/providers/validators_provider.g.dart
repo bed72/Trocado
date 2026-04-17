@@ -252,7 +252,7 @@ final class BudgetFormValidatorProvider
 }
 
 String _$budgetFormValidatorHash() =>
-    r'c7ac5ca75e5bbecfa628d0cb4ec69cfb2b0ddb9e';
+    r'bfec71f009aaff26994ea27f2139f5153fbf8165';
 
 @ProviderFor(expenseFormValidator)
 final expenseFormValidatorProvider = ExpenseFormValidatorProvider._();
@@ -300,4 +300,4 @@ final class ExpenseFormValidatorProvider
 }
 
 String _$expenseFormValidatorHash() =>
-    r'2fae434a10d62ddb8c0a848ca835aae827000aa4';
+    r'f4bc7a5c7d3584b6879a98877b548c39134759a2';

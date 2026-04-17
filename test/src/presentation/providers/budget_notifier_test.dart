@@ -11,9 +11,9 @@ import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/models/budget_model.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
 
-import 'package:trocado/src/presentation/screens/budget/notifiers/budget_state.dart';
-import 'package:trocado/src/presentation/screens/budget/notifiers/budget_intent.dart';
-import 'package:trocado/src/presentation/screens/budget/notifiers/budget_notifier.dart';
+import 'package:trocado/src/presentation/screens/budget/notifiers/form/budget_form_state.dart';
+import 'package:trocado/src/presentation/screens/budget/notifiers/form/budget_form_intent.dart';
+import 'package:trocado/src/presentation/screens/budget/notifiers/form/budget_form_notifier.dart';
 import 'package:trocado/src/presentation/screens/budget/validators/budget_form_validator.dart';
 import 'package:trocado/src/presentation/screens/budget/validators/budget_value_validation.dart';
 import 'package:trocado/src/presentation/screens/budget/validators/budget_description_validation.dart';
@@ -46,8 +46,8 @@ ProviderContainer _makeContainer(IBudgetRepository repository) {
     ],
   );
   addTearDown(container.dispose);
-  container.listen(budgetProvider, (_, _) {});
-  container.read(budgetProvider);
+  container.listen(budgetFormProvider, (_, _) {});
+  container.read(budgetFormProvider);
   return container;
 }
 
@@ -63,21 +63,21 @@ void main() {
       final container = _makeContainer(repository);
 
       container
-          .read(budgetProvider.notifier)
+          .read(budgetFormProvider.notifier)
           .dispatch(const ValueChanged(100000));
 
-      expect(container.read(budgetProvider).value, 100000);
+      expect(container.read(budgetFormProvider).value, 100000);
     });
 
     test('clears valueFailure', () {
       final container = _makeContainer(repository);
-      container.read(budgetProvider.notifier).dispatch(const SubmitPressed());
+      container.read(budgetFormProvider.notifier).dispatch(const SubmitPressed());
 
       container
-          .read(budgetProvider.notifier)
+          .read(budgetFormProvider.notifier)
           .dispatch(const ValueChanged(100000));
 
-      expect(container.read(budgetProvider).valueFailure, isNull);
+      expect(container.read(budgetFormProvider).valueFailure, isNull);
     });
   });
 
@@ -86,21 +86,21 @@ void main() {
       final container = _makeContainer(repository);
 
       container
-          .read(budgetProvider.notifier)
+          .read(budgetFormProvider.notifier)
           .dispatch(const DescriptionChanged('March budget'));
 
-      expect(container.read(budgetProvider).description, 'March budget');
+      expect(container.read(budgetFormProvider).description, 'March budget');
     });
 
     test('clears descriptionFailure', () {
       final container = _makeContainer(repository);
-      container.read(budgetProvider.notifier).dispatch(const SubmitPressed());
+      container.read(budgetFormProvider.notifier).dispatch(const SubmitPressed());
 
       container
-          .read(budgetProvider.notifier)
+          .read(budgetFormProvider.notifier)
           .dispatch(const DescriptionChanged('March budget'));
 
-      expect(container.read(budgetProvider).descriptionFailure, isNull);
+      expect(container.read(budgetFormProvider).descriptionFailure, isNull);
     });
   });
 
@@ -109,26 +109,26 @@ void main() {
       final container = _makeContainer(repository);
 
       container
-          .read(budgetProvider.notifier)
+          .read(budgetFormProvider.notifier)
           .dispatch(
             const DateRangeChanged(startDate: _startDate, endDate: _endDate),
           );
 
-      expect(container.read(budgetProvider).endDate, _endDate);
-      expect(container.read(budgetProvider).startDate, _startDate);
+      expect(container.read(budgetFormProvider).endDate, _endDate);
+      expect(container.read(budgetFormProvider).startDate, _startDate);
     });
 
     test('clears dateFailure', () {
       final container = _makeContainer(repository);
-      container.read(budgetProvider.notifier).dispatch(const SubmitPressed());
+      container.read(budgetFormProvider.notifier).dispatch(const SubmitPressed());
 
       container
-          .read(budgetProvider.notifier)
+          .read(budgetFormProvider.notifier)
           .dispatch(
             const DateRangeChanged(startDate: _startDate, endDate: _endDate),
           );
 
-      expect(container.read(budgetProvider).dateFailure, isNull);
+      expect(container.read(budgetFormProvider).dateFailure, isNull);
     });
   });
 
@@ -136,9 +136,9 @@ void main() {
     test('sets validation failures when state is empty', () {
       final container = _makeContainer(repository);
 
-      container.read(budgetProvider.notifier).dispatch(const SubmitPressed());
+      container.read(budgetFormProvider.notifier).dispatch(const SubmitPressed());
 
-      final state = container.read(budgetProvider);
+      final state = container.read(budgetFormProvider);
       expect(state.valueFailure, isNotNull);
       expect(state.descriptionFailure, isNotNull);
       expect(state.dateFailure, isNotNull);
@@ -147,7 +147,7 @@ void main() {
     test('does not call repository when validation fails', () {
       final container = _makeContainer(repository);
 
-      container.read(budgetProvider.notifier).dispatch(const SubmitPressed());
+      container.read(budgetFormProvider.notifier).dispatch(const SubmitPressed());
 
       verifyNever(
         () => repository.create(
@@ -172,7 +172,7 @@ void main() {
         ).thenAnswer((_) async => const Right(_budget));
 
         final container = _makeContainer(repository);
-        final notifier = container.read(budgetProvider.notifier);
+        final notifier = container.read(budgetFormProvider.notifier);
 
         notifier.dispatch(const ValueChanged(100000));
         notifier.dispatch(const DescriptionChanged('March budget'));
@@ -183,7 +183,7 @@ void main() {
         notifier.dispatch(const SubmitPressed());
         await pumpEventQueue();
 
-        expect(container.read(budgetProvider).status, BudgetStatus.success);
+        expect(container.read(budgetFormProvider).status, BudgetFormStatus.success);
       },
     );
 
@@ -202,7 +202,7 @@ void main() {
       );
 
       final container = _makeContainer(repository);
-      final notifier = container.read(budgetProvider.notifier);
+      final notifier = container.read(budgetFormProvider.notifier);
 
       notifier.dispatch(const ValueChanged(100000));
       notifier.dispatch(const DescriptionChanged('March budget'));
@@ -213,9 +213,9 @@ void main() {
 
       await pumpEventQueue();
 
-      final state = container.read(budgetProvider);
+      final state = container.read(budgetFormProvider);
 
-      expect(state.status, BudgetStatus.failure);
+      expect(state.status, BudgetFormStatus.failure);
       expect(state.message, 'Orçamento já existe para o período.');
     });
 
@@ -230,7 +230,7 @@ void main() {
       ).thenAnswer((_) async => const Left(NetworkFailure()));
 
       final container = _makeContainer(repository);
-      final notifier = container.read(budgetProvider.notifier);
+      final notifier = container.read(budgetFormProvider.notifier);
 
       notifier.dispatch(const ValueChanged(100000));
       notifier.dispatch(const DescriptionChanged('March budget'));
@@ -241,10 +241,10 @@ void main() {
 
       await pumpEventQueue();
 
-      final state = container.read(budgetProvider);
+      final state = container.read(budgetFormProvider);
 
       expect(state.message, isNotEmpty);
-      expect(state.status, BudgetStatus.failure);
+      expect(state.status, BudgetFormStatus.failure);
     });
   });
 }

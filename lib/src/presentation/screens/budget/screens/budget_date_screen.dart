@@ -4,8 +4,8 @@ import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
-import 'package:trocado/src/presentation/screens/budget/notifiers/budget_intent.dart';
-import 'package:trocado/src/presentation/screens/budget/notifiers/budget_notifier.dart';
+import 'package:trocado/src/presentation/screens/budget/notifiers/form/budget_form_intent.dart';
+import 'package:trocado/src/presentation/screens/budget/notifiers/form/budget_form_notifier.dart';
 
 import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
 import 'package:trocado/src/presentation/widgets/bottom-sheets/bottom_sheet_scaffold_widget.dart';
@@ -24,7 +24,7 @@ class _BudgetDateWidgetState extends State<BudgetDateWidget> {
   Widget build(BuildContext context) {
     return Consumer(
       builder: (_, ref, _) {
-        final notifier = ref.read(budgetProvider.notifier);
+        final notifier = ref.read(budgetFormProvider.notifier);
 
         return BottomSheetScaffoldWidget(
           title: 'Período',

@@ -1,6 +1,6 @@
 import 'package:trocado/src/domain/validators/validation.dart';
 
-import 'package:trocado/src/presentation/screens/budget/notifiers/budget_state.dart';
+import 'package:trocado/src/presentation/screens/budget/notifiers/form/budget_form_state.dart';
 
 import 'package:trocado/src/presentation/screens/budget/validators/budget_value_validation.dart';
 import 'package:trocado/src/presentation/screens/budget/validators/budget_date_range_validation.dart';
@@ -19,7 +19,7 @@ final class BudgetFormValidator {
        _dateRangeValidation = dateRangeValidation,
        _descriptionValidation = descriptionValidation;
 
-  ({BudgetState state, bool isValid}) call(BudgetState state) {
+  ({BudgetFormState state, bool isValid}) call(BudgetFormState state) {
     final value = _valueValidation(state.value);
     final description = _descriptionValidation(state.description);
     final dateRange = _dateRangeValidation((state.startDate, state.endDate));

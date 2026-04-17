@@ -2,6 +2,7 @@ enum EndpointKey {
   me('/api/v1/me'),
   signIn('/api/v1/token'),
   budgets('/api/v1/budgets'),
+  budgetsActive('/api/v1/budgets/active'),
   expenses('/api/v1/expenses'),
   signUp('/api/v1/auth/register'),
   verifyToken('/api/v1/token/verify'),

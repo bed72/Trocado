@@ -5,26 +5,26 @@ import 'package:trocado/src/main/providers/repositories_provider.dart';
 
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
 
-import 'package:trocado/src/presentation/screens/budget/notifiers/budget_state.dart';
-import 'package:trocado/src/presentation/screens/budget/notifiers/budget_intent.dart';
+import 'package:trocado/src/presentation/screens/budget/notifiers/form/budget_form_state.dart';
+import 'package:trocado/src/presentation/screens/budget/notifiers/form/budget_form_intent.dart';
 import 'package:trocado/src/presentation/screens/budget/validators/budget_form_validator.dart';
 
-part 'budget_notifier.g.dart';
+part 'budget_form_notifier.g.dart';
 
 @riverpod
-final class BudgetNotifier extends _$BudgetNotifier {
+final class BudgetFormNotifier extends _$BudgetFormNotifier {
   late IBudgetRepository _repository;
   late BudgetFormValidator _validator;
 
   @override
-  BudgetState build() {
+  BudgetFormState build() {
     _repository = ref.watch(budgetRepositoryProvider);
     _validator = ref.watch(budgetFormValidatorProvider);
 
-    return const BudgetState();
+    return const BudgetFormState();
   }
 
-  void dispatch(BudgetIntent intent) => switch (intent) {
+  void dispatch(BudgetFormIntent intent) => switch (intent) {
     ValueChanged(:final value) => state = state.copyWith(
       value: value,
       clearValueFailure: true,

@@ -1,19 +1,19 @@
 import 'package:equatable/equatable.dart';
 
-enum BudgetStatus { initial, loading, success, failure }
+enum BudgetFormStatus { initial, loading, success, failure }
 
-final class BudgetState extends Equatable {
+final class BudgetFormState extends Equatable {
   final int value;
   final int? endDate;
   final int? startDate;
   final String message;
   final String description;
-  final BudgetStatus status;
+  final BudgetFormStatus status;
   final String? dateFailure;
   final String? valueFailure;
   final String? descriptionFailure;
 
-  const BudgetState({
+  const BudgetFormState({
     this.endDate,
     this.value = 0,
     this.startDate,
@@ -25,20 +25,20 @@ final class BudgetState extends Equatable {
     this.descriptionFailure,
   });
 
-  BudgetState copyWith({
+  BudgetFormState copyWith({
     int? value,
     int? endDate,
     int? startDate,
     String? message,
     String? description,
     String? dateFailure,
-    BudgetStatus? status,
+    BudgetFormStatus? status,
     String? valueFailure,
     String? descriptionFailure,
     bool clearDateFailure = false,
     bool clearValueFailure = false,
     bool clearDescriptionFailure = false,
-  }) => BudgetState(
+  }) => BudgetFormState(
     value: value ?? this.value,
     status: status ?? this.status,
     endDate: endDate ?? this.endDate,

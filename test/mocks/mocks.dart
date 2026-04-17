@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'package:trocado/src/application/services/money_service.dart';
+import 'package:trocado/src/domain/services/money_service.dart';
 
 import 'package:trocado/src/domain/repositories/interface_user_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';

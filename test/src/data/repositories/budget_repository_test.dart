@@ -6,6 +6,7 @@ import 'package:trocado/src/core/either/either.dart';
 import 'package:trocado/src/data/repositories/budget_repository.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
+import 'package:trocado/src/domain/models/active_budget_model.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
 
 import 'package:trocado/src/infrastructure/clients/http/http_client.dart';
@@ -20,6 +21,16 @@ const _successJson = {
   'start_date': '2026-03-01',
   'end_date': '2026-03-31',
   'description': 'March budget',
+};
+
+const _activeSuccessJson = {
+  'id': 35,
+  'value': '18000.00',
+  'start_date': '2026-04-01',
+  'end_date': '2026-04-30',
+  'description': 'Orçamento de Abril',
+  'total_spent': '120.00',
+  'remaining': '17880.00',
 };
 
 const _startDate = 1740787200000; // 2026-03-01 UTC
@@ -147,6 +158,80 @@ void main() {
         endDate: _endDate,
         description: 'March budget',
       );
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<ServerFailure>());
+    });
+  });
+
+  group('findActive', () {
+    test('returns Right with ActiveBudgetModel on success', () async {
+      when(() => client.get(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Right(_activeSuccessJson),
+      );
+
+      final data = await repository.findActive();
+
+      expect(data.isRight, isTrue);
+      expect(data.right, isA<ActiveBudgetModel?>());
+      expect(data.right!.id, 35);
+      expect(data.right!.value, 1800000);
+      expect(data.right!.totalSpent, 12000);
+      expect(data.right!.remaining, 1788000);
+    });
+
+    test('returns Right(null) on 404 — no active budget', () async {
+      when(() => client.get(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'code': 'not_found',
+              'field': 'non_field_errors',
+              'message': 'No active budget found.',
+            },
+          ],
+        }),
+      );
+
+      final data = await repository.findActive();
+
+      expect(data.isRight, isTrue);
+      expect(data.right, isNull);
+    });
+
+    test('returns Left NetworkFailure on network error', () async {
+      when(() => client.get(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'code': 'network_error',
+              'field': 'non_field_errors',
+              'message': 'Network error',
+            },
+          ],
+        }),
+      );
+
+      final data = await repository.findActive();
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<NetworkFailure>());
+    });
+
+    test('returns Left ServerFailure on server error', () async {
+      when(() => client.get(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'code': 'server_error',
+              'field': 'non_field_errors',
+              'message': 'Internal server error',
+            },
+          ],
+        }),
+      );
+
+      final data = await repository.findActive();
 
       expect(data.isLeft, isTrue);
       expect(data.left, isA<ServerFailure>());

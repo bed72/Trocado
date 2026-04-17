@@ -9,13 +9,13 @@ import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';
 import 'package:trocado/src/presentation/extensions/widget_extension.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
-import 'package:trocado/src/presentation/screens/budget/notifiers/budget_intent.dart';
-import 'package:trocado/src/presentation/screens/budget/notifiers/budget_notifier.dart';
+import 'package:trocado/src/presentation/screens/budget/notifiers/form/budget_form_intent.dart';
+import 'package:trocado/src/presentation/screens/budget/notifiers/form/budget_form_notifier.dart';
 
-import 'package:trocado/src/presentation/screens/budget/widgets/budget_date_field_widget.dart';
 import 'package:trocado/src/presentation/screens/budget/widgets/budget_save_button_widget.dart';
-import 'package:trocado/src/presentation/screens/budget/widgets/budget_amount_field_widget.dart';
-import 'package:trocado/src/presentation/screens/budget/widgets/budget_description_field_widget.dart';
+import 'package:trocado/src/presentation/screens/budget/widgets/fields/budget_date_field_widget.dart';
+import 'package:trocado/src/presentation/screens/budget/widgets/fields/budget_amount_field_widget.dart';
+import 'package:trocado/src/presentation/screens/budget/widgets/fields/budget_description_field_widget.dart';
 
 class BudgetScreen extends StatelessWidget {
   final VoidCallback navigateToDate;
@@ -32,7 +32,7 @@ class BudgetScreen extends StatelessWidget {
     return Consumer(
       builder: (_, ref, _) {
         ref.listen(
-          budgetProvider,
+          budgetFormProvider,
           (previous, next) => switch (next.status) {
             .success when previous?.status != .success => context.root(),
             .failure when previous?.status != .failure => showToastWidget(
@@ -45,8 +45,8 @@ class BudgetScreen extends StatelessWidget {
           },
         );
 
-        final state = ref.watch(budgetProvider);
-        final notifier = ref.read(budgetProvider.notifier);
+        final state = ref.watch(budgetFormProvider);
+        final notifier = ref.read(budgetFormProvider.notifier);
 
         return ScaffoldWidget(
           appBar: AppBarWidget(leading: GoBackWidget()),

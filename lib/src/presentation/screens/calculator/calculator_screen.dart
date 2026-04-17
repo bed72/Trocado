@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
-import 'package:trocado/src/presentation/screens/budget/notifiers/budget_intent.dart';
-import 'package:trocado/src/presentation/screens/budget/notifiers/budget_notifier.dart';
+import 'package:trocado/src/presentation/screens/budget/notifiers/form/budget_form_intent.dart';
+import 'package:trocado/src/presentation/screens/budget/notifiers/form/budget_form_notifier.dart';
 
 import 'package:trocado/src/presentation/screens/calculator/notifiers/calculator_intent.dart';
 import 'package:trocado/src/presentation/screens/calculator/notifiers/calculator_notifier.dart';
@@ -36,7 +36,7 @@ class CalculatorScreen extends StatelessWidget {
                 onValueConfirmed!(centValue);
               } else {
                 ref
-                    .read(budgetProvider.notifier)
+                    .read(budgetFormProvider.notifier)
                     .dispatch(ValueChanged(centValue));
               }
             }
