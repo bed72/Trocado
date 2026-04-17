@@ -8,14 +8,14 @@ class ExpenseSaveButtonWidget extends StatelessWidget {
 
   const ExpenseSaveButtonWidget({
     super.key,
-    required this.isLoading,
     required this.onSave,
+    required this.isLoading,
   });
 
   @override
   Widget build(BuildContext context) => Container(
     width: double.infinity,
-    padding: const EdgeInsets.only(top: 16.0),
+    padding: const .only(top: 16.0),
     child: ButtonWidget.outlined(
       label: 'Salvar',
       isLoading: isLoading,

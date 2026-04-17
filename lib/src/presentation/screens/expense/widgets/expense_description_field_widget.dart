@@ -14,10 +14,10 @@ class ExpenseDescriptionFieldWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => TextFieldWidget(
-    label: 'Descrição',
     hint: 'Ex: Café',
     failure: failure,
+    label: 'Descrição',
+    keyboardType: .name,
     onChanged: onChanged,
-    keyboardType: TextInputType.name,
   );
 }

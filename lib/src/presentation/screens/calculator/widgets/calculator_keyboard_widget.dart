@@ -4,7 +4,7 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:trocado/src/presentation/widgets/bounce_widget.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
-import 'package:trocado/src/presentation/screens/calculator/data/amount_presentation_data.dart';
+import 'package:trocado/src/presentation/screens/calculator/data/calculator_presentation_data.dart';
 
 class CalculatorKeyboard extends StatelessWidget {
   final void Function(String) onDigit;
@@ -66,7 +66,7 @@ class CalculatorKeyboard extends StatelessWidget {
     child: _buildKey(context: context, label: label, background: background),
   );
 
-  void _onPress(AmountPresentationData data) => switch (data.action) {
+  void _onPress(CalculatorPresentationData data) => switch (data.action) {
     .digit => onDigit(data.value!),
     .clear => onClear(),
     .delete => onDelete(),
@@ -78,7 +78,7 @@ class CalculatorKeyboard extends StatelessWidget {
     required String label,
     Color? background,
   }) => BounceWidget.withOnPress(
-    onPress: () => _onPress(AmountPresentationData.map(label)),
+    onPress: () => _onPress(CalculatorPresentationData.map(label)),
     child: Container(
       decoration: BoxDecoration(
         borderRadius: context.radius.cornerRadius300,
@@ -88,7 +88,7 @@ class CalculatorKeyboard extends StatelessWidget {
         child: Text(
           label,
           style: context.typography.bodyLarge?.copyWith(
-            fontWeight: FontWeight.w800,
+            fontWeight: .w800,
             color: context.colors.onSurfaceVariant.withValues(alpha: 0.8),
           ),
         ),

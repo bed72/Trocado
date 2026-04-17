@@ -15,10 +15,10 @@ import 'package:trocado/src/presentation/screens/expense/notifiers/expense_notif
 
 import 'package:trocado/src/presentation/screens/calculator/calculator_location.dart';
 
-import 'package:trocado/src/presentation/widgets/expense/expense_date_field_widget.dart';
-import 'package:trocado/src/presentation/widgets/expense/expense_save_button_widget.dart';
-import 'package:trocado/src/presentation/widgets/expense/expense_amount_field_widget.dart';
-import 'package:trocado/src/presentation/widgets/expense/expense_description_field_widget.dart';
+import 'package:trocado/src/presentation/screens/expense/widgets/expense_date_field_widget.dart';
+import 'package:trocado/src/presentation/screens/expense/widgets/expense_save_button_widget.dart';
+import 'package:trocado/src/presentation/screens/expense/widgets/expense_amount_field_widget.dart';
+import 'package:trocado/src/presentation/screens/expense/widgets/expense_description_field_widget.dart';
 
 class ExpenseScreen extends StatelessWidget {
   final VoidCallback navigateToDate;

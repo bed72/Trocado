@@ -13,10 +13,10 @@ class ExpenseCategoryFieldWidget extends StatelessWidget {
     return BounceWidget.withOnPress(
       onPress: navigateTo,
       child: const TextFieldWidget(
-        label: 'Categoria',
-        hint: 'Categoria',
         readOnly: true,
         absorbing: true,
+        hint: 'Categoria',
+        label: 'Categoria',
         // initialValue: category.label,
       ),
     );
