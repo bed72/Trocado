@@ -4,7 +4,7 @@ import 'package:trocado/src/presentation/widgets/app_bar_widget.dart';
 import 'package:trocado/src/presentation/widgets/go_back_widget.dart';
 import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';
 
-import 'package:trocado/src/presentation/extensions/context_extension.dart';
+import 'package:trocado/src/presentation/widgets/screen_header_widget.dart';
 
 class NotificationsScreen extends StatelessWidget {
   const NotificationsScreen({super.key});
@@ -17,19 +17,11 @@ class NotificationsScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: .start,
         children: [
-          Text(
-            'Notificações',
-            style: context.typography.headlineMedium?.copyWith(
-              fontWeight: .bold,
-            ),
+          const ScreenHeaderWidget(
+            title: 'Notificações',
+            description: 'Acompanhe os alertas e avisos da sua conta.',
           ),
-          const SizedBox(height: 8.0),
-          Text(
-            'Acompanhe os alertas e avisos da sua conta.',
-            style: context.typography.bodyMedium?.copyWith(
-              color: context.colors.onSurfaceVariant,
-            ),
-          ),
+
           const SizedBox(height: 24.0),
           const Expanded(child: Placeholder()),
         ],

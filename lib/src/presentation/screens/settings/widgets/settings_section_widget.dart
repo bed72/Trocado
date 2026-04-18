@@ -11,6 +11,7 @@ class SettingsSectionWidget extends StatelessWidget {
   Widget build(BuildContext context) => Text(
     label.toUpperCase(),
     style: context.typography.labelSmall?.copyWith(
+      fontWeight: .w600,
       letterSpacing: 1.2,
       color: context.colors.onSurfaceVariant,
     ),

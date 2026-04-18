@@ -5,15 +5,16 @@ import 'package:trocado/src/presentation/widgets/toast_widget.dart';
 import 'package:trocado/src/presentation/widgets/app_bar_widget.dart';
 import 'package:trocado/src/presentation/widgets/go_back_widget.dart';
 import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';
-
-import 'package:trocado/src/presentation/extensions/context_extension.dart';
+import 'package:trocado/src/presentation/widgets/screen_header_widget.dart';
 
 import 'package:trocado/src/presentation/screens/settings/notifiers/settings_intent.dart';
 import 'package:trocado/src/presentation/screens/settings/notifiers/settings_notifier.dart';
 
+import 'package:trocado/src/presentation/screens/settings/widgets/settings_card_widget.dart';
 import 'package:trocado/src/presentation/screens/settings/widgets/settings_item_widget.dart';
 import 'package:trocado/src/presentation/screens/settings/widgets/settings_logout_widget.dart';
 import 'package:trocado/src/presentation/screens/settings/widgets/settings_section_widget.dart';
+import 'package:trocado/src/presentation/screens/settings/widgets/settings_invite_partner_widget.dart';
 
 class SettingsScreen extends StatelessWidget {
   final VoidCallback onSignIn;
@@ -57,24 +58,25 @@ class SettingsScreen extends StatelessWidget {
             return Column(
               crossAxisAlignment: .start,
               children: [
-                Text(
-                  'Configurações',
-                  style: context.typography.headlineMedium?.copyWith(
-                    fontWeight: .bold,
-                  ),
+                const ScreenHeaderWidget(
+                  title: 'Configurações',
+                  description: 'Gerencie suas preferências.',
                 ),
+
                 const SizedBox(height: 8.0),
-                Text(
-                  'Gerencie suas preferências e dados da conta.',
-                  style: context.typography.bodyMedium?.copyWith(
-                    color: context.colors.onSurfaceVariant,
+
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: .start,
+                      children: [
+                        ..._buildCouple,
+                        ..._buildAccount,
+                        ..._buildInformation,
+                      ],
+                    ),
                   ),
                 ),
-
-                ..._buildAccount,
-                ..._buildInformation,
-
-                const Spacer(),
 
                 SettingsLogoutWidget(
                   isLoading: settingsState.status == .loading,
@@ -96,39 +98,63 @@ class SettingsScreen extends StatelessWidget {
     ],
   );
 
+  List<Widget> get _buildCouple => [
+    _buildTitleItem('Casal'),
+    const SizedBox(height: 8.0),
+    SettingsInvitePartnerWidget(onTap: () {}),
+  ];
+
   List<Widget> get _buildAccount => [
     _buildTitleItem('Conta'),
-
-    SettingsItemWidget(
-      onTap: onEditProfile,
-      label: 'Dados pessoais',
-      icon: Icons.person_outline,
-    ),
-    SettingsItemWidget(
-      label: 'Notificações',
-      onTap: onNotification,
-      icon: Icons.notifications_outlined,
-    ),
-    SettingsItemWidget(
-      isPremium: true,
-      label: 'Subscrição',
-      onTap: onSubscription,
-      icon: Icons.star_outline,
+    const SizedBox(height: 8.0),
+    SettingsCardWidget(
+      children: [
+        SettingsItemWidget(
+          onTap: onEditProfile,
+          label: 'Dados pessoais',
+          icon: Icons.person_outline,
+        ),
+        SettingsItemWidget(
+          label: 'Notificações',
+          onTap: onNotification,
+          icon: Icons.notifications_outlined,
+        ),
+        SettingsItemWidget(
+          onTap: () {},
+          label: 'Categorias',
+          icon: Icons.account_tree_outlined,
+        ),
+        SettingsItemWidget(
+          isPremium: true,
+          label: 'Subscrição',
+          onTap: onSubscription,
+          icon: Icons.star_outline,
+        ),
+      ],
     ),
   ];
 
   List<Widget> get _buildInformation => [
     _buildTitleItem('Informações'),
-    SettingsItemWidget(
-      onTap: () {},
-      label: 'Termos de uso',
-      icon: Icons.description_outlined,
+    const SizedBox(height: 8.0),
+    SettingsCardWidget(
+      children: [
+        SettingsItemWidget(
+          onTap: () {},
+          label: 'Termos de uso',
+          icon: Icons.description_outlined,
+        ),
+        SettingsItemWidget(
+          onTap: () {},
+          icon: Icons.shield_outlined,
+          label: 'Políticas de privacidade',
+        ),
+        SettingsItemWidget(
+          label: 'Ajuda',
+          onTap: () {},
+          icon: Icons.help_outline,
+        ),
+      ],
     ),
-    SettingsItemWidget(
-      onTap: () {},
-      icon: Icons.shield_outlined,
-      label: 'Políticas de privacidade',
-    ),
-    SettingsItemWidget(label: 'Ajuda', onTap: () {}, icon: Icons.help_outline),
   ];
 }
