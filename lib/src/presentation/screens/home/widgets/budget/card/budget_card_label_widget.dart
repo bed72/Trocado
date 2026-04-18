@@ -19,7 +19,7 @@ class BudgetCardLabelWidget extends StatelessWidget {
 
     return Container(
       width: .infinity,
-      padding: const .only(left: 12.0, top: 4.0, right: 12.0, bottom: 8.0),
+      padding: const .symmetric(vertical: 8.0, horizontal: 8.0),
       decoration: BoxDecoration(
         borderRadius: .circular(10.0),
         color: color.withValues(alpha: 0.10),
