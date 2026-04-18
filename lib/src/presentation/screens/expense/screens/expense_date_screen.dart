@@ -38,9 +38,11 @@ class _ExpenseDateScreenState extends State<ExpenseDateScreen> {
                 height: context.height * 0.5,
                 padding: const .symmetric(vertical: 16.0, horizontal: 8.0),
                 child: SfDateRangePicker(
-                  view: DateRangePickerView.month,
+                  view: .month,
+                  selectionRadius: 20.0,
                   selectionMode: .single,
                   showNavigationArrow: true,
+                  selectionShape: .rectangle,
                   initialDisplayDate: .now(),
                   initialSelectedDate: .now(),
                   backgroundColor: context.colors.surface,

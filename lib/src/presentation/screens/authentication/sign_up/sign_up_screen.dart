@@ -29,12 +29,17 @@ class SignUpScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer(
       builder: (_, ref, _) {
-        ref.listen(signUpProvider, (previous, next) => switch (next.status) {
-          .success when previous?.status != .success => onSuccess(),
-          .failure when previous?.status != .failure =>
-            _showToastWidget(context: context, message: next.message),
-          _ => null,
-        });
+        ref.listen(
+          signUpProvider,
+          (previous, next) => switch (next.status) {
+            .success when previous?.status != .success => onSuccess(),
+            .failure when previous?.status != .failure => _showToastWidget(
+              context: context,
+              message: next.message,
+            ),
+            _ => null,
+          },
+        );
 
         final state = ref.watch(signUpProvider);
         final notifier = ref.read(signUpProvider.notifier);
@@ -108,9 +113,9 @@ class SignUpScreen extends StatelessWidget {
               const SizedBox(height: 16.0),
 
               CheckboxWidget(
-                label: 'Aceito os termos de uso e política de privacidade',
-                checked: state.termsAccepted,
                 failure: state.termsFailure,
+                checked: state.termsAccepted,
+                label: 'Aceito os termos de uso e política de privacidade',
                 onChanged: (value) => notifier.dispatch(TermsToggled(value)),
               ),
 

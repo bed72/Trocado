@@ -5,7 +5,7 @@ import 'package:trocado/src/main/providers/repositories_provider.dart';
 import 'package:trocado/src/domain/models/active_budget_model.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
 
-part 'active_budget_notifier.g.dart';
+part '../../budget/notifiers/active_budget_notifier.g.dart';
 
 @riverpod
 final class ActiveBudgetNotifier extends _$ActiveBudgetNotifier {

@@ -8,11 +8,12 @@ import 'package:trocado/src/main/providers/services_provider.dart';
 import 'package:trocado/src/presentation/mixins/back_button_mixin.dart';
 
 import 'package:trocado/src/presentation/screens/home/notifiers/user_notifier.dart';
-import 'package:trocado/src/presentation/screens/budget/notifiers/active_budget_notifier.dart';
-import 'package:trocado/src/presentation/screens/budget/widgets/card/budget_card_widget.dart';
+import 'package:trocado/src/presentation/screens/home/notifiers/active_budget_notifier.dart';
+
+import 'package:trocado/src/presentation/screens/home/widgets/home_action_button_widget.dart';
 
 import 'package:trocado/src/presentation/screens/home/widgets/home_app_bar_widget.dart';
-import 'package:trocado/src/presentation/widgets/home/home_action_button_widget.dart';
+import 'package:trocado/src/presentation/screens/home/widgets/budget/card/budget_card_widget.dart';
 
 class HomeScreen extends StatefulWidget {
   final VoidCallback navigateToExit;
@@ -63,7 +64,7 @@ class _HomeScreenState extends State<HomeScreen>
           ),
           body: SafeArea(
             child: ListView(
-              padding: const EdgeInsets.all(16.0),
+              padding: const .all(16.0),
               children: [
                 BudgetCardWidget(
                   state: budgetState,

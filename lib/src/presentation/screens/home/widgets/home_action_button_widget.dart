@@ -62,7 +62,7 @@ class HomeActionButtonWidget extends StatelessWidget {
             child: IconWidget(
               size: 26.0,
               color: context.colors.onPrimary,
-              icon: Icons.wallet_outlined,
+              icon: Icons.savings_outlined,
             ),
           ),
         ),

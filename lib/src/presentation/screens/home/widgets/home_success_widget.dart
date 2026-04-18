@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:trocado/src/presentation/widgets/home/expense/expense_widget.dart';
+import 'package:trocado/src/presentation/screens/home/widgets/expense/expense_widget.dart';
 
 class HomeSuccessWidget extends StatelessWidget {
   final ValueChanged<int?> navigatTo;

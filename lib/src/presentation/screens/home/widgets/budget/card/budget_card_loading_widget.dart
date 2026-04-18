@@ -3,7 +3,7 @@ import 'package:skeletonizer/skeletonizer.dart';
 
 import 'package:trocado/src/domain/models/active_budget_model.dart';
 
-import 'package:trocado/src/presentation/screens/budget/widgets/card/budget_card_success_widget.dart';
+import 'package:trocado/src/presentation/screens/home/widgets/budget/card/budget_card_success_widget.dart';
 
 class BudgetCardLoadingWidget extends StatelessWidget {
   const BudgetCardLoadingWidget({super.key});

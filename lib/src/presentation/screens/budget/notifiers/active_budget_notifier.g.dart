@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'active_budget_notifier.dart';
+part of '../../home/notifiers/active_budget_notifier.dart';
 
 // **************************************************************************
 // RiverpodGenerator

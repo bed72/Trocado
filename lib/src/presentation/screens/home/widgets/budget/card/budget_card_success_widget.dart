@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:trocado/src/domain/models/active_budget_model.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
-import 'package:trocado/src/presentation/screens/budget/widgets/card/budget_card_label_widget.dart';
-import 'package:trocado/src/presentation/screens/budget/widgets/card/budget_progress_bar_painter.dart';
+import 'package:trocado/src/presentation/screens/home/widgets/budget/card/budget_card_label_widget.dart';
+import 'package:trocado/src/presentation/screens/home/widgets/budget/card/budget_progress_bar_painter.dart';
 
 class BudgetCardSuccessWidget extends StatelessWidget {
   final ActiveBudgetModel model;
@@ -20,8 +20,8 @@ class BudgetCardSuccessWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final percentage = model.value > 0 ? model.totalSpent / model.value : 0.0;
     final budget = format(_dailyBudget() / 100);
+    final percentage = model.value > 0 ? model.totalSpent / model.value : 0.0;
     final color = _gaugeColor(percentage: percentage, colors: context.colors);
 
     return Card(

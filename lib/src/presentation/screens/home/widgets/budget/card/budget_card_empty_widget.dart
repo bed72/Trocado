@@ -11,14 +11,15 @@ class BudgetCardEmptyWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 0.0,
-      child: Padding(
+      child: Container(
+        width: .infinity,
         padding: const .all(16.0),
         child: Column(
           spacing: 8.0,
           mainAxisSize: .min,
           children: [
             Icon(
-              Icons.account_balance_wallet_outlined,
+              Icons.savings_outlined,
               size: 48.0,
               color: context.colors.outline,
             ),
@@ -28,7 +29,7 @@ class BudgetCardEmptyWidget extends StatelessWidget {
                 color: context.colors.onSurfaceVariant,
               ),
             ),
-            FilledButton(
+            OutlinedButton(
               onPressed: onCreateBudget,
               child: const Text('Criar orçamento'),
             ),

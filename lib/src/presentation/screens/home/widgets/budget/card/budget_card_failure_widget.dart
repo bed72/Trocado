@@ -11,7 +11,8 @@ class BudgetCardFailureWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 0.0,
-      child: Padding(
+      child: Container(
+        width: .infinity,
         padding: const .all(16.0),
         child: Column(
           spacing: 8.0,

@@ -10,7 +10,7 @@ import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/models/active_budget_model.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
 
-import 'package:trocado/src/presentation/screens/budget/notifiers/active_budget_notifier.dart';
+import 'package:trocado/src/presentation/screens/home/notifiers/active_budget_notifier.dart';
 
 import '../../../mocks/mocks.dart';
 
@@ -39,21 +39,24 @@ void main() {
     repository = MockBudgetRepository();
   });
 
-  test('returns AsyncData with model when repository returns Right(model)', () async {
-    when(() => repository.findActive()).thenAnswer(
-      (_) async => const Right(_model),
-    );
+  test(
+    'returns AsyncData with model when repository returns Right(model)',
+    () async {
+      when(
+        () => repository.findActive(),
+      ).thenAnswer((_) async => const Right(_model));
 
-    final container = _makeContainer(repository);
-    final data = await container.read(activeBudgetProvider.future);
+      final container = _makeContainer(repository);
+      final data = await container.read(activeBudgetProvider.future);
 
-    expect(data, equals(_model));
-  });
+      expect(data, equals(_model));
+    },
+  );
 
   test('returns AsyncData(null) when repository returns Right(null)', () async {
-    when(() => repository.findActive()).thenAnswer(
-      (_) async => const Right(null),
-    );
+    when(
+      () => repository.findActive(),
+    ).thenAnswer((_) async => const Right(null));
 
     final container = _makeContainer(repository);
     final data = await container.read(activeBudgetProvider.future);
@@ -61,33 +64,39 @@ void main() {
     expect(data, isNull);
   });
 
-  test('emits AsyncError when repository returns Left(NetworkFailure)', () async {
-    when(() => repository.findActive()).thenAnswer(
-      (_) async => const Left(NetworkFailure()),
-    );
+  test(
+    'emits AsyncError when repository returns Left(NetworkFailure)',
+    () async {
+      when(
+        () => repository.findActive(),
+      ).thenAnswer((_) async => const Left(NetworkFailure()));
 
-    final container = _makeContainer(repository);
-    container.listen(activeBudgetProvider, (_, _) {});
-    container.read(activeBudgetProvider);
+      final container = _makeContainer(repository);
+      container.listen(activeBudgetProvider, (_, _) {});
+      container.read(activeBudgetProvider);
 
-    await pumpEventQueue();
+      await pumpEventQueue();
 
-    expect(container.read(activeBudgetProvider).hasError, isTrue);
-    expect(container.read(activeBudgetProvider).error, isA<NetworkFailure>());
-  });
+      expect(container.read(activeBudgetProvider).hasError, isTrue);
+      expect(container.read(activeBudgetProvider).error, isA<NetworkFailure>());
+    },
+  );
 
-  test('emits AsyncError when repository returns Left(ServerFailure)', () async {
-    when(() => repository.findActive()).thenAnswer(
-      (_) async => const Left(ServerFailure()),
-    );
+  test(
+    'emits AsyncError when repository returns Left(ServerFailure)',
+    () async {
+      when(
+        () => repository.findActive(),
+      ).thenAnswer((_) async => const Left(ServerFailure()));
 
-    final container = _makeContainer(repository);
-    container.listen(activeBudgetProvider, (_, _) {});
-    container.read(activeBudgetProvider);
+      final container = _makeContainer(repository);
+      container.listen(activeBudgetProvider, (_, _) {});
+      container.read(activeBudgetProvider);
 
-    await pumpEventQueue();
+      await pumpEventQueue();
 
-    expect(container.read(activeBudgetProvider).hasError, isTrue);
-    expect(container.read(activeBudgetProvider).error, isA<ServerFailure>());
-  });
+      expect(container.read(activeBudgetProvider).hasError, isTrue);
+      expect(container.read(activeBudgetProvider).error, isA<ServerFailure>());
+    },
+  );
 }
