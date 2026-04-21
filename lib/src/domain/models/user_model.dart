@@ -15,8 +15,8 @@ final class UserModel extends Equatable {
 
   UserModel copyWith({
     int? id,
-    String? email,
     String? name,
+    String? email,
     String? avatar,
     bool clearAvatar = false,
   }) => UserModel(
@@ -27,5 +27,5 @@ final class UserModel extends Equatable {
   );
 
   @override
-  List<Object?> get props => [id, email, name, avatar];
+  List<Object?> get props => [id, name, email, avatar];
 }

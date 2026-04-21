@@ -4,9 +4,7 @@ import 'package:trocado/src/infrastructure/clients/http/http_client.dart';
 
 import 'package:trocado/src/infrastructure/clients/http/endpoint_key.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/requests.dart';
-import 'package:trocado/src/infrastructure/clients/http/requests/sign_in_request.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/sign_up_request.dart';
-import 'package:trocado/src/infrastructure/clients/http/requests/password_reset_request.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/password_reset_confirm_request.dart';
 
 import 'package:trocado/src/infrastructure/clients/http/responses/sign_in_response.dart';
@@ -60,11 +58,9 @@ final class RemoteAuthenticationDataSource
     required String refresh,
   }) async {
     final response = await _client.post(
-      parameter: Requests(
-        EndpointKey.logout.path,
-        body: {'refresh': refresh},
-      ),
+      parameter: Requests(EndpointKey.logout.path, body: {'refresh': refresh}),
     );
+
     return response.either(FailureResponse.fromJson, (_) {});
   }
 
@@ -76,7 +72,7 @@ final class RemoteAuthenticationDataSource
     final response = await _client.post(
       parameter: Requests(
         EndpointKey.signIn.path,
-        body: SignInRequest(email: email, password: password).toJson(),
+        body: {'email': email, 'password': password},
       ),
     );
 
@@ -138,7 +134,7 @@ final class RemoteAuthenticationDataSource
     final response = await _client.post(
       parameter: Requests(
         EndpointKey.passwordResetRequest.path,
-        body: PasswordResetRequest(email: email).toJson(),
+        body: {'email': email},
       ),
     );
 

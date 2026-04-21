@@ -7,8 +7,12 @@ sealed class Failure {
   String toString() => message;
 }
 
-final class NetworkFailure extends Failure {
-  const NetworkFailure([super.message = 'Sem conexão com o servidor.']);
+final class ValidationFailure extends Failure {
+  const ValidationFailure(super.message);
+}
+
+final class UnknownFailure extends Failure {
+  const UnknownFailure([super.message = 'Falha desconhecido.']);
 }
 
 final class NotFoundFailure extends Failure {
@@ -16,17 +20,9 @@ final class NotFoundFailure extends Failure {
 }
 
 final class ServerFailure extends Failure {
-  const ServerFailure([super.message = 'Erro interno do servidor.']);
+  const ServerFailure([super.message = 'Falha interna do servidor.']);
 }
 
-final class DatabaseFailure extends Failure {
-  const DatabaseFailure([super.message = 'Erro ao acessar o banco de dados.']);
-}
-
-final class ValidationFailure extends Failure {
-  const ValidationFailure(super.message);
-}
-
-final class UnknownFailure extends Failure {
-  const UnknownFailure([super.message = 'Erro desconhecido.']);
+final class NetworkFailure extends Failure {
+  const NetworkFailure([super.message = 'Sem conexão com o servidor.']);
 }

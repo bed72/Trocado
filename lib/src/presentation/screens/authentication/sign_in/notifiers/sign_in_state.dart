@@ -25,9 +25,9 @@ final class SignInState extends Equatable {
     String? email,
     String? message,
     String? password,
+    String? emailFailure,
     SignInStatus? status,
     bool? obscurePassword,
-    String? emailFailure,
     String? passwordFailure,
     bool clearEmailFailure = false,
     bool clearPasswordFailure = false,
@@ -49,8 +49,8 @@ final class SignInState extends Equatable {
     status,
     message,
     password,
-    obscurePassword,
     emailFailure,
+    obscurePassword,
     passwordFailure,
   ];
 }

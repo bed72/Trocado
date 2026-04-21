@@ -17,12 +17,13 @@ final class CalculatorNotifier extends _$CalculatorNotifier {
   @override
   CalculatorState build() {
     _moneyService = ref.watch(moneyServiceProvider);
+
     return const CalculatorState();
   }
 
   void dispatch(CalculatorIntent intent) => switch (intent) {
-    DigitPressed(:final digit) => _appendDigit(digit),
     DeletePressed() => _deleteDigit(),
+    DigitPressed(:final digit) => _appendDigit(digit),
     ClearPressed() => state = const CalculatorState(),
   };
 

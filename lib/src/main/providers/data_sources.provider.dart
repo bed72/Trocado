@@ -14,13 +14,13 @@ IRemoteUserDataSource remoteUserDataSource(Ref ref) =>
     RemoteUserDataSource(client: ref.watch(httpClientProvider));
 
 @Riverpod()
-IRemoteAuthenticationDataSource remoteAuthenticationDataSource(Ref ref) =>
-    RemoteAuthenticationDataSource(client: ref.watch(httpClientProvider));
-
-@Riverpod()
 IRemoteBudgetDataSource remoteBudgetDataSource(Ref ref) =>
     RemoteBudgetDataSource(client: ref.watch(httpClientProvider));
 
 @Riverpod()
 IRemoteExpenseDataSource remoteExpenseDataSource(Ref ref) =>
     RemoteExpenseDataSource(client: ref.watch(httpClientProvider));
+
+@Riverpod()
+IRemoteAuthenticationDataSource remoteAuthenticationDataSource(Ref ref) =>
+    RemoteAuthenticationDataSource(client: ref.watch(httpClientProvider));

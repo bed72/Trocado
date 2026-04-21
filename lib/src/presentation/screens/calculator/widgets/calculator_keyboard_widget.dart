@@ -15,8 +15,8 @@ class CalculatorKeyboard extends StatelessWidget {
   const CalculatorKeyboard({
     super.key,
     required this.onDigit,
-    required this.onDelete,
     required this.onClear,
+    required this.onDelete,
     required this.onSubmit,
   });
 

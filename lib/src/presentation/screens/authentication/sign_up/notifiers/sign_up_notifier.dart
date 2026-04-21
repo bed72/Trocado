@@ -20,6 +20,7 @@ final class SignUpNotifier extends _$SignUpNotifier {
   SignUpState build() {
     _validator = ref.watch(signUpFormValidatorProvider);
     _repository = ref.watch(authenticationRepositoryProvider);
+
     return const SignUpState();
   }
 

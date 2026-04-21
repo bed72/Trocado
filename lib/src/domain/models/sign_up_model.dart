@@ -21,5 +21,5 @@ final class SignUpModel extends Equatable {
       );
 
   @override
-  List<Object> get props => [access, refresh, user];
+  List<Object> get props => [user, access, refresh];
 }

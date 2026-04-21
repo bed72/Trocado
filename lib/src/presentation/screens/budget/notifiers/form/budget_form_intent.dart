@@ -8,8 +8,8 @@ final class ValueChanged extends BudgetFormIntent {
 }
 
 final class DateRangeChanged extends BudgetFormIntent {
-  final int startDate;
   final int endDate;
+  final int startDate;
   const DateRangeChanged({required this.startDate, required this.endDate});
 }
 

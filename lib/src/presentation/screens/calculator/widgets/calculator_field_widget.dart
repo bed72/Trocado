@@ -11,9 +11,9 @@ class CalculatorFieldWidget extends StatelessWidget {
   Widget build(BuildContext context) => TextFieldWidget(
     key: ValueKey(displayValue),
     label: 'Valor',
-    hint: 'Ex: R\$ 1.000,00',
     readOnly: true,
     absorbing: true,
+    hint: 'Ex: R\$ 1.000,00',
     initialValue: displayValue.isEmpty ? null : displayValue,
   );
 }

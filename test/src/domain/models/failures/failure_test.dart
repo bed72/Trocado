@@ -20,11 +20,6 @@ void main() {
         expect(failure.message, isNotEmpty);
       });
 
-      test('DatabaseFailure has non-empty default message', () {
-        const failure = DatabaseFailure();
-        expect(failure.message, isNotEmpty);
-      });
-
       test('UnknownFailure has non-empty default message', () {
         const failure = UnknownFailure();
         expect(failure.message, isNotEmpty);

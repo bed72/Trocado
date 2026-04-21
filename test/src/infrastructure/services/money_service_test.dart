@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:trocado/src/domain/services/money_service.dart';
+import 'package:trocado/src/infrastructure/services/money_service.dart';
 
 void main() {
   late IMoneyService formatter;
@@ -34,4 +35,4 @@ void main() {
   });
 }
 
-String _normalize(String value) => value.replaceAll('\u00A0', ' ');
+String _normalize(String value) => value.replaceAll(' ', ' ');

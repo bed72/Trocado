@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:trocado/src/main/providers/services_provider.dart';
-import 'package:trocado/src/domain/services/money_service.dart';
+import 'package:trocado/src/infrastructure/services/money_service.dart';
 
 import 'package:trocado/src/presentation/screens/calculator/notifiers/calculator_state.dart';
 import 'package:trocado/src/presentation/screens/calculator/notifiers/calculator_intent.dart';

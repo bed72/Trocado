@@ -112,11 +112,14 @@ void _showFailureToast({
     closeButton: ToastCloseButton(showType: .none),
     borderSide: BorderSide(width: 0.0, style: .none),
     backgroundColor: context.colors.surfaceContainer,
-    icon: IconWidget(icon: Icons.error, color: context.colors.error),
+    icon: IconWidget(
+      icon: Icons.error,
+      color: context.colors.error.withValues(alpha: .8),
+    ),
     progressBarTheme: ProgressIndicatorThemeData(
       stopIndicatorRadius: 2.0,
       borderRadius: .all(.circular(2.0)),
-      color: context.colors.error.withValues(alpha: 6),
+      color: context.colors.error.withValues(alpha: .8),
       linearTrackColor: context.colors.error.withValues(alpha: .2),
     ),
     callbacks: ToastificationCallbacks(

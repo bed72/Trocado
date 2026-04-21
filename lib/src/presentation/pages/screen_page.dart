@@ -6,7 +6,7 @@ DuckPage screenPage(Widget child) => DuckPage(
   reverseTransitionDuration: const Duration(milliseconds: 300),
   transitionsBuilder: (context, animation, _, child) {
     final slideIn = Tween<Offset>(
-      end: Offset.zero,
+      end: .zero,
       begin: const Offset(1.0, 0.0),
     ).animate(CurvedAnimation(parent: animation, curve: Curves.linear));
 

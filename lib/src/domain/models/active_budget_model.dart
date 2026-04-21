@@ -3,48 +3,48 @@ import 'package:equatable/equatable.dart';
 final class ActiveBudgetModel extends Equatable {
   final int id;
   final int value;
-  final int startDate;
   final int endDate;
-  final String description;
-  final int totalSpent;
+  final int startDate;
   final int remaining;
+  final int totalSpent;
+  final String description;
 
   const ActiveBudgetModel({
     required this.id,
     required this.value,
-    required this.startDate,
     required this.endDate,
-    required this.description,
-    required this.totalSpent,
+    required this.startDate,
     required this.remaining,
+    required this.totalSpent,
+    required this.description,
   });
 
   ActiveBudgetModel copyWith({
     int? id,
     int? value,
-    int? startDate,
     int? endDate,
-    String? description,
-    int? totalSpent,
+    int? startDate,
     int? remaining,
+    int? totalSpent,
+    String? description,
   }) => ActiveBudgetModel(
     id: id ?? this.id,
     value: value ?? this.value,
-    startDate: startDate ?? this.startDate,
     endDate: endDate ?? this.endDate,
-    description: description ?? this.description,
-    totalSpent: totalSpent ?? this.totalSpent,
+    startDate: startDate ?? this.startDate,
     remaining: remaining ?? this.remaining,
+    totalSpent: totalSpent ?? this.totalSpent,
+    description: description ?? this.description,
   );
 
   @override
   List<Object?> get props => [
     id,
     value,
-    startDate,
     endDate,
-    description,
-    totalSpent,
+    startDate,
     remaining,
+    totalSpent,
+    description,
   ];
 }

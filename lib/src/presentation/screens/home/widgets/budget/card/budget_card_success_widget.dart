@@ -132,7 +132,7 @@ class BudgetCardSuccessWidget extends StatelessWidget {
     final daysRemaining =
         DateTime.fromMillisecondsSinceEpoch(
           model.endDate,
-        ).difference(DateTime.now()).inDays +
+        ).difference(.now()).inDays +
         1;
     return (model.remaining / max(1, daysRemaining)).round();
   }

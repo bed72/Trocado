@@ -8,9 +8,9 @@ final class BudgetFormState extends Equatable {
   final int? startDate;
   final String message;
   final String description;
-  final BudgetFormStatus status;
   final String? dateFailure;
   final String? valueFailure;
+  final BudgetFormStatus status;
   final String? descriptionFailure;
 
   const BudgetFormState({
@@ -32,8 +32,8 @@ final class BudgetFormState extends Equatable {
     String? message,
     String? description,
     String? dateFailure,
-    BudgetFormStatus? status,
     String? valueFailure,
+    BudgetFormStatus? status,
     String? descriptionFailure,
     bool clearDateFailure = false,
     bool clearValueFailure = false,

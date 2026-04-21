@@ -4,9 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:trocado/src/domain/models/active_budget_model.dart';
 
-import 'package:trocado/src/presentation/themes/themes.dart';
-import 'package:trocado/src/presentation/screens/home/widgets/budget/card/budget_card_widget.dart';
 import 'package:trocado/src/presentation/widgets/preview/material_preview_widget.dart';
+import 'package:trocado/src/presentation/screens/home/widgets/budget/card/budget_card_widget.dart';
 
 const _endDate = 1746057600000;
 const _startDate = 1743465600000;
@@ -14,8 +13,8 @@ const _startDate = 1743465600000;
 const _healthy = ActiveBudgetModel(
   id: 1,
   value: 300000,
-  totalSpent: 90000,
   remaining: 210000,
+  totalSpent: 90000,
   endDate: _endDate,
   startDate: _startDate,
   description: 'Orçamento mensal',

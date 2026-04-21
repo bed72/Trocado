@@ -8,9 +8,9 @@ extension ActiveBudgetResponseExtension on ActiveBudgetResponse {
     id: id,
     description: description,
     value: (double.parse(value) * 100).round(),
-    startDate: DateFormat('yyyy-MM-dd').parse(startDate).millisecondsSinceEpoch,
-    endDate: DateFormat('yyyy-MM-dd').parse(endDate).millisecondsSinceEpoch,
-    totalSpent: (double.parse(totalSpent) * 100).round(),
     remaining: (double.parse(remaining) * 100).round(),
+    totalSpent: (double.parse(totalSpent) * 100).round(),
+    endDate: DateFormat('yyyy-MM-dd').parse(endDate).millisecondsSinceEpoch,
+    startDate: DateFormat('yyyy-MM-dd').parse(startDate).millisecondsSinceEpoch,
   );
 }

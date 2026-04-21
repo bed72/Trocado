@@ -21,18 +21,18 @@ final class BottomSheetPage<T> extends DuckPage<T> {
       PageRouteBuilder<T>(
         opaque: false,
         settings: settings,
+        transitionDuration: .zero,
         maintainState: maintainState,
-        transitionDuration: Duration.zero,
+        reverseTransitionDuration: .zero,
         barrierColor: Colors.transparent,
-        reverseTransitionDuration: Duration.zero,
         pageBuilder: (context, _, _) {
           addPostFrameCallback(() {
             showModalBottomSheet<T>(
               context: context,
               useSafeArea: true,
               isScrollControlled: true,
-              backgroundColor: context.colors.surfaceContainerLowest,
               builder: (_) => builder(context),
+              backgroundColor: context.colors.surfaceContainerLowest,
             ).then((value) {
               if (context.canPop()) context.pop(value);
             });
