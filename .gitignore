@@ -72,3 +72,5 @@ pubspec.lock
 .dart_tool/
 .keys/
 .idea/
+
+prompt.md
