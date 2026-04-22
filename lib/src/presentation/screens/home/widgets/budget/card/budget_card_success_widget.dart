@@ -26,6 +26,7 @@ class BudgetCardSuccessWidget extends StatelessWidget {
 
     return Card(
       elevation: 0.0,
+      color: color.withValues(alpha: .1),
       child: Padding(
         padding: const .all(16.0),
         child: Column(
