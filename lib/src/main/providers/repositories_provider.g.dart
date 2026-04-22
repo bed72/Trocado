@@ -192,3 +192,51 @@ final class ExpenseRepositoryProvider
 }
 
 String _$expenseRepositoryHash() => r'e2a597dc9126906d2b331d2d63ed99e838e087e2';
+
+@ProviderFor(insightsRepository)
+final insightsRepositoryProvider = InsightsRepositoryProvider._();
+
+final class InsightsRepositoryProvider
+    extends
+        $FunctionalProvider<
+          IInsightsRepository,
+          IInsightsRepository,
+          IInsightsRepository
+        >
+    with $Provider<IInsightsRepository> {
+  InsightsRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'insightsRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$insightsRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<IInsightsRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  IInsightsRepository create(Ref ref) {
+    return insightsRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(IInsightsRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<IInsightsRepository>(value),
+    );
+  }
+}
+
+String _$insightsRepositoryHash() =>
+    r'902a07b8a0bb85d8e9031ef1540f15869a2ec82c';

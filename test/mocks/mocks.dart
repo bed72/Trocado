@@ -6,6 +6,7 @@ import 'package:trocado/src/domain/services/money_service.dart';
 import 'package:trocado/src/domain/repositories/interface_user_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
+import 'package:trocado/src/domain/repositories/interface_insights_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_authentication_repository.dart';
 
 import 'package:trocado/src/infrastructure/clients/http/http_client.dart';
@@ -35,3 +36,6 @@ final class MockAuthenticationRepository extends Mock
 final class MockBudgetRepository extends Mock implements IBudgetRepository {}
 
 final class MockExpenseRepository extends Mock implements IExpenseRepository {}
+
+final class MockInsightsRepository extends Mock
+    implements IInsightsRepository {}

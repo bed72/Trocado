@@ -8,12 +8,14 @@ import 'package:trocado/src/main/providers/services_provider.dart';
 import 'package:trocado/src/presentation/mixins/back_button_mixin.dart';
 
 import 'package:trocado/src/presentation/screens/home/notifiers/user_notifier.dart';
+import 'package:trocado/src/presentation/screens/home/notifiers/insights_notifier.dart';
 import 'package:trocado/src/presentation/screens/home/notifiers/active_budget_notifier.dart';
 
 import 'package:trocado/src/presentation/screens/home/widgets/home_action_button_widget.dart';
 
 import 'package:trocado/src/presentation/screens/home/widgets/home_app_bar_widget.dart';
 import 'package:trocado/src/presentation/screens/home/widgets/budget/card/budget_card_widget.dart';
+import 'package:trocado/src/presentation/screens/home/widgets/insights/insights_carousel_widget.dart';
 
 class HomeScreen extends StatefulWidget {
   final VoidCallback navigateToChat;
@@ -51,6 +53,7 @@ class _HomeScreenState extends State<HomeScreen>
     return Consumer(
       builder: (_, ref, _) {
         final userState = ref.watch(userProvider);
+        final insightsState = ref.watch(insightsProvider);
         final budgetState = ref.watch(activeBudgetProvider);
 
         return Scaffold(
@@ -67,13 +70,19 @@ class _HomeScreenState extends State<HomeScreen>
           ),
           body: SafeArea(
             child: ListView(
-              padding: const .all(16.0),
               children: [
-                BudgetCardWidget(
-                  state: budgetState,
-                  onCreateBudget: widget.navigateToBudget,
-                  format: ref.watch(moneyServiceProvider).format,
-                  onRetry: () => ref.refresh(activeBudgetProvider),
+                Padding(
+                  padding: const .all(16.0),
+                  child: BudgetCardWidget(
+                    state: budgetState,
+                    onCreateBudget: widget.navigateToBudget,
+                    format: ref.watch(moneyServiceProvider).format,
+                    onRetry: () => ref.refresh(activeBudgetProvider),
+                  ),
+                ),
+                InsightsCarouselWidget(
+                  state: insightsState,
+                  onRetry: () => ref.refresh(insightsProvider),
                 ),
               ],
             ),
