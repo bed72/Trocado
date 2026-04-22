@@ -120,11 +120,6 @@ class SettingsScreen extends StatelessWidget {
           icon: Icons.notifications_outlined,
         ),
         SettingsItemWidget(
-          onTap: () {},
-          label: 'Categorias',
-          icon: Icons.account_tree_outlined,
-        ),
-        SettingsItemWidget(
           isPremium: true,
           label: 'Subscrição',
           onTap: onSubscription,
@@ -150,8 +145,8 @@ class SettingsScreen extends StatelessWidget {
           label: 'Políticas de privacidade',
         ),
         SettingsItemWidget(
-          label: 'Ajuda',
           onTap: () {},
+          label: 'Ajuda',
           icon: Icons.help_outline,
         ),
       ],
