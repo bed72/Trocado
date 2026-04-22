@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
+import 'package:trocado/src/presentation/widgets/icons/background_icon_widget.dart';
 
 class InsightsCarouselEmptyWidget extends StatelessWidget {
   const InsightsCarouselEmptyWidget({super.key});
@@ -19,19 +20,10 @@ class InsightsCarouselEmptyWidget extends StatelessWidget {
           spacing: 12.0,
           crossAxisAlignment: .center,
           children: [
-            Container(
-              width: 48.0,
-              height: 48.0,
-              alignment: .center,
-              decoration: BoxDecoration(
-                shape: .circle,
-                color: context.colors.primary.withValues(alpha: 0.15),
-              ),
-              child: Icon(
-                Icons.lightbulb_outline,
-                size: 20.0,
-                color: context.colors.primary,
-              ),
+            BackgroundIconWidget(
+              iconSize: 20.0,
+              icon: Icons.lightbulb_outline,
+              color: context.colors.primary,
             ),
             Expanded(
               child: Column(

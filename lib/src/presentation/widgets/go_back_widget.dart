@@ -14,7 +14,6 @@ class GoBackWidget extends StatelessWidget {
       iconSize: 24.0,
       onPress: context.pop,
       icon: Icons.chevron_left,
-      borderRadius: .circular(14.0),
     );
   }
 }

@@ -1,7 +1,6 @@
 import 'package:flutter/widgets.dart';
 
 import 'package:trocado/src/presentation/widgets/icons/icon_widget.dart';
-import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
 class BackgroundIconWidget extends StatelessWidget {
   final Color color;
@@ -26,15 +25,17 @@ class BackgroundIconWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hasBackground = !(withoutBackground ?? false);
+    final isCircle = borderRadius == null;
+
     return Container(
       alignment: .center,
       width: width ?? 48.0,
       height: height ?? 48.0,
       decoration: BoxDecoration(
-        borderRadius: borderRadius ?? context.radius.cornerRadius300,
-        color: (withoutBackground ?? false)
-            ? null
-            : color.withValues(alpha: 0.2),
+        shape: isCircle ? .circle : .rectangle,
+        borderRadius: isCircle ? null : borderRadius,
+        color: hasBackground ? color.withValues(alpha: 0.2) : null,
       ),
       child: IconWidget(icon: icon, color: color, size: iconSize),
     );

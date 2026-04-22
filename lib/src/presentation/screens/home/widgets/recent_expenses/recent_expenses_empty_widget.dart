@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
+import 'package:trocado/src/presentation/widgets/icons/background_icon_widget.dart';
 
 class RecentExpensesEmptyWidget extends StatelessWidget {
   const RecentExpensesEmptyWidget({super.key});
@@ -19,19 +20,10 @@ class RecentExpensesEmptyWidget extends StatelessWidget {
           spacing: 12.0,
           crossAxisAlignment: .center,
           children: [
-            Container(
-              width: 48.0,
-              height: 48.0,
-              alignment: .center,
-              decoration: BoxDecoration(
-                shape: .circle,
-                color: context.colors.primary.withValues(alpha: 0.15),
-              ),
-              child: Icon(
-                Icons.receipt_long_outlined,
-                size: 20.0,
-                color: context.colors.primary,
-              ),
+            BackgroundIconWidget(
+              iconSize: 20.0,
+              icon: Icons.receipt_long_outlined,
+              color: context.colors.primary,
             ),
             Expanded(
               child: Column(

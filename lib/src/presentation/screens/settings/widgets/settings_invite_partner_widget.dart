@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:trocado/src/presentation/widgets/bounce_widget.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
+import 'package:trocado/src/presentation/widgets/icons/background_icon_widget.dart';
 
 class SettingsInvitePartnerWidget extends StatelessWidget {
   final VoidCallback onTap;
@@ -21,18 +22,12 @@ class SettingsInvitePartnerWidget extends StatelessWidget {
           child: Row(
             spacing: 16.0,
             children: [
-              Container(
+              BackgroundIconWidget(
                 width: 40.0,
                 height: 40.0,
-                decoration: BoxDecoration(
-                  shape: .circle,
-                  color: context.colors.primary.withValues(alpha: 0.2),
-                ),
-                child: Icon(
-                  Icons.person_add_alt,
-                  size: 20.0,
-                  color: context.colors.primary,
-                ),
+                iconSize: 20.0,
+                icon: Icons.person_add_alt,
+                color: context.colors.primary,
               ),
               Expanded(
                 child: Column(

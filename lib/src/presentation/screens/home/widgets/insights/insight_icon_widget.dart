@@ -4,6 +4,7 @@ import 'package:trocado/src/domain/models/insight/insight_type.dart';
 import 'package:trocado/src/domain/models/insight/insight_severity.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
+import 'package:trocado/src/presentation/widgets/icons/background_icon_widget.dart';
 
 class InsightIconWidget extends StatelessWidget {
   final InsightType type;
@@ -16,18 +17,11 @@ class InsightIconWidget extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 48.0,
-      height: 48.0,
-      alignment: .center,
-      decoration: BoxDecoration(
-        shape: .circle,
-        color: context.colors.primary.withValues(alpha: 0.2),
-      ),
-      child: Icon(_icon(), size: 20.0, color: context.colors.primary),
-    );
-  }
+  Widget build(BuildContext context) => BackgroundIconWidget(
+    icon: _icon(),
+    iconSize: 20.0,
+    color: context.colors.primary,
+  );
 
   IconData _icon() => switch (type) {
     .willOverspend => Icons.schedule,

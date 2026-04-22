@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
+import 'package:trocado/src/presentation/widgets/icons/background_icon_widget.dart';
 
 class InsightsCarouselFailureWidget extends StatelessWidget {
   final VoidCallback onRetry;
@@ -22,19 +23,10 @@ class InsightsCarouselFailureWidget extends StatelessWidget {
           spacing: 12.0,
           crossAxisAlignment: .center,
           children: [
-            Container(
-              width: 48.0,
-              height: 48.0,
-              alignment: .center,
-              decoration: BoxDecoration(
-                shape: .circle,
-                color: context.colors.error.withValues(alpha: 0.15),
-              ),
-              child: Icon(
-                Icons.error_outline,
-                size: 20.0,
-                color: context.colors.error,
-              ),
+            BackgroundIconWidget(
+              iconSize: 20.0,
+              icon: Icons.error_outline,
+              color: context.colors.error,
             ),
             Expanded(
               child: Column(
