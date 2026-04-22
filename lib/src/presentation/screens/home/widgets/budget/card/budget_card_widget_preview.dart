@@ -40,6 +40,16 @@ const _critical = ActiveBudgetModel(
   description: 'Orçamento mensal',
 );
 
+const _overspent = ActiveBudgetModel(
+  id: 1,
+  value: 300000,
+  remaining: -50000,
+  endDate: _endDate,
+  totalSpent: 350000,
+  startDate: _startDate,
+  description: 'Orçamento mensal',
+);
+
 String _format(double value) {
   final formatted = value.toStringAsFixed(2).replaceAll('.', ',');
   return 'R\$ $formatted';
@@ -73,6 +83,9 @@ Widget previewSuccessWarning() => _card(const AsyncData(_warning));
 
 @Preview(name: 'Success — crítico (95%)')
 Widget previewSuccessCritical() => _card(const AsyncData(_critical));
+
+@Preview(name: 'Success — estourou (117%)')
+Widget previewSuccessOverspent() => _card(const AsyncData(_overspent));
 
 @Preview(name: 'Failure')
 Widget previewFailure() => _card(AsyncError('Falha ao carregar', .empty));

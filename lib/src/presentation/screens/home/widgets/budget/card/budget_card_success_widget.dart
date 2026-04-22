@@ -33,11 +33,15 @@ class BudgetCardSuccessWidget extends StatelessWidget {
           mainAxisSize: .min,
           crossAxisAlignment: .start,
           children: [
-            BudgetCardLabelWidget(percentage: percentage, dailyBudget: budget),
+            BudgetCardLabelWidget(
+              budget: budget,
+              percentage: percentage,
+              overspent: model.remaining < 0,
+            ),
             Row(
               crossAxisAlignment: .start,
               children: [
-                Expanded(child: _buildStats(context)),
+                Expanded(child: _buildStats(context, color)),
                 _buildPercentage(context, color, percentage),
               ],
             ),
@@ -48,7 +52,7 @@ class BudgetCardSuccessWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildStats(BuildContext context) => Column(
+  Widget _buildStats(BuildContext context, Color color) => Column(
     spacing: 4.0,
     crossAxisAlignment: .start,
     children: [
@@ -83,12 +87,29 @@ class BudgetCardSuccessWidget extends StatelessWidget {
           color: context.colors.outline,
         ),
       ),
-      Text(
-        format(model.remaining / 100),
-        style: context.typography.titleSmall?.copyWith(
-          fontWeight: .bold,
-          color: context.colors.primary,
-        ),
+      Row(
+        spacing: 6.0,
+        textBaseline: .alphabetic,
+        crossAxisAlignment: .baseline,
+        children: [
+          Text(
+            format(max(0, model.remaining) / 100),
+            style: context.typography.titleSmall?.copyWith(
+              color: color,
+              fontWeight: .bold,
+            ),
+          ),
+          if (model.remaining < 0)
+            Flexible(
+              child: Text(
+                'Estourou em ${format(model.remaining.abs() / 100)}',
+                overflow: .ellipsis,
+                style: context.typography.labelSmall?.copyWith(
+                  color: context.colors.error,
+                ),
+              ),
+            ),
+        ],
       ),
     ],
   );
@@ -143,6 +164,6 @@ class BudgetCardSuccessWidget extends StatelessWidget {
   }) => switch (percentage) {
     <= 0.4 => Colors.green,
     <= 0.6 => Color.lerp(Colors.green, Colors.amber, .9)!,
-    _ => Color.lerp(Colors.amber, colors.error, .6)!,
+    _ => Color.lerp(Colors.amber, colors.error, (percentage - 0.9) / 0.6)!,
   };
 }
