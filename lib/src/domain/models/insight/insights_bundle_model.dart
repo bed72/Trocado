@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-import 'package:trocado/src/domain/models/insights/insight_model.dart';
+import 'package:trocado/src/domain/models/insight/insight_model.dart';
 
 final class InsightsBundleModel extends Equatable {
   final bool hasEnoughData;

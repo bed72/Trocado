@@ -8,7 +8,7 @@ import 'package:trocado/src/main/providers/validators_provider.dart';
 import 'package:trocado/src/main/providers/repositories_provider.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
-import 'package:trocado/src/domain/models/budget_model.dart';
+import 'package:trocado/src/domain/models/budget/budget_model.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
 
 import 'package:trocado/src/presentation/screens/budget/notifiers/form/budget_form_state.dart';
@@ -71,7 +71,9 @@ void main() {
 
     test('clears valueFailure', () {
       final container = _makeContainer(repository);
-      container.read(budgetFormProvider.notifier).dispatch(const SubmitPressed());
+      container
+          .read(budgetFormProvider.notifier)
+          .dispatch(const SubmitPressed());
 
       container
           .read(budgetFormProvider.notifier)
@@ -94,7 +96,9 @@ void main() {
 
     test('clears descriptionFailure', () {
       final container = _makeContainer(repository);
-      container.read(budgetFormProvider.notifier).dispatch(const SubmitPressed());
+      container
+          .read(budgetFormProvider.notifier)
+          .dispatch(const SubmitPressed());
 
       container
           .read(budgetFormProvider.notifier)
@@ -120,7 +124,9 @@ void main() {
 
     test('clears dateFailure', () {
       final container = _makeContainer(repository);
-      container.read(budgetFormProvider.notifier).dispatch(const SubmitPressed());
+      container
+          .read(budgetFormProvider.notifier)
+          .dispatch(const SubmitPressed());
 
       container
           .read(budgetFormProvider.notifier)
@@ -136,7 +142,9 @@ void main() {
     test('sets validation failures when state is empty', () {
       final container = _makeContainer(repository);
 
-      container.read(budgetFormProvider.notifier).dispatch(const SubmitPressed());
+      container
+          .read(budgetFormProvider.notifier)
+          .dispatch(const SubmitPressed());
 
       final state = container.read(budgetFormProvider);
       expect(state.valueFailure, isNotNull);
@@ -147,7 +155,9 @@ void main() {
     test('does not call repository when validation fails', () {
       final container = _makeContainer(repository);
 
-      container.read(budgetFormProvider.notifier).dispatch(const SubmitPressed());
+      container
+          .read(budgetFormProvider.notifier)
+          .dispatch(const SubmitPressed());
 
       verifyNever(
         () => repository.create(
@@ -183,7 +193,10 @@ void main() {
         notifier.dispatch(const SubmitPressed());
         await pumpEventQueue();
 
-        expect(container.read(budgetFormProvider).status, BudgetFormStatus.success);
+        expect(
+          container.read(budgetFormProvider).status,
+          BudgetFormStatus.success,
+        );
       },
     );
 

@@ -1,8 +1,8 @@
-import 'package:trocado/src/domain/models/insights/insight_model.dart';
-import 'package:trocado/src/domain/models/insights/insights_bundle_model.dart';
+import 'package:trocado/src/domain/models/insight/insight_model.dart';
+import 'package:trocado/src/domain/models/insight/insights_bundle_model.dart';
 
-import 'package:trocado/src/infrastructure/clients/http/responses/insights_response.dart';
-import 'package:trocado/src/infrastructure/clients/http/responses/insight_item_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/insight/insights_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/insight/insight_item_response.dart';
 
 extension InsightItemResponseExtension on InsightItemResponse {
   InsightModel toModel() => InsightModel(

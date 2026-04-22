@@ -3,8 +3,8 @@ import 'package:trocado/src/core/either/either.dart';
 import 'package:trocado/src/infrastructure/clients/http/http_client.dart';
 import 'package:trocado/src/infrastructure/clients/http/endpoint_key.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/requests.dart';
-import 'package:trocado/src/infrastructure/clients/http/responses/insights_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/failure/failure_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/insight/insights_response.dart';
 
 abstract interface class IRemoteInsightsDataSource {
   Future<Either<FailureResponse, InsightsResponse>> findAll();

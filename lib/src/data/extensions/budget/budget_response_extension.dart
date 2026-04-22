@@ -1,7 +1,7 @@
 import 'package:intl/intl.dart';
 
-import 'package:trocado/src/domain/models/budget_model.dart';
-import 'package:trocado/src/infrastructure/clients/http/responses/budget_response.dart';
+import 'package:trocado/src/domain/models/budget/budget_model.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/budget/budget_response.dart';
 
 extension BudgetResponseExtension on BudgetResponse {
   BudgetModel toModel() => BudgetModel(

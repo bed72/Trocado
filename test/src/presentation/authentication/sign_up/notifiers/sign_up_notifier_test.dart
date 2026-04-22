@@ -8,7 +8,7 @@ import 'package:trocado/src/main/providers/repositories_provider.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/models/user_model.dart';
-import 'package:trocado/src/domain/models/sign_up_model.dart';
+import 'package:trocado/src/domain/models/authentication/sign_up_model.dart';
 import 'package:trocado/src/domain/repositories/interface_authentication_repository.dart';
 
 import 'package:trocado/src/presentation/screens/authentication/sign_up/notifiers/sign_up_state.dart';

@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:trocado/src/infrastructure/clients/http/responses/refresh_token_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/authentication/refresh_token_response.dart';
 
 void main() {
   group('RefreshTokenResponse', () {

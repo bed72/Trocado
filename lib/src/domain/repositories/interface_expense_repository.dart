@@ -1,6 +1,6 @@
 import 'package:trocado/src/core/either/either.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
-import 'package:trocado/src/domain/models/expense_model.dart';
+import 'package:trocado/src/domain/models/expense/expense_model.dart';
 
 abstract interface class IExpenseRepository {
   Future<Either<Failure, ExpenseModel>> create({
@@ -8,4 +8,6 @@ abstract interface class IExpenseRepository {
     required int value,
     required String description,
   });
+
+  Future<Either<Failure, List<ExpenseModel>>> findRecent({int limit = 4});
 }

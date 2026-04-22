@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:trocado/src/domain/models/active_budget_model.dart';
+import 'package:trocado/src/domain/models/budget/active_budget_model.dart';
 
 import 'package:trocado/src/presentation/widgets/preview/material_preview_widget.dart';
 import 'package:trocado/src/presentation/screens/home/widgets/budget/card/budget_card_widget.dart';

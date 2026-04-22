@@ -2,7 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:trocado/src/main/providers/repositories_provider.dart';
 
-import 'package:trocado/src/domain/models/insights/insights_bundle_model.dart';
+import 'package:trocado/src/domain/models/insight/insights_bundle_model.dart';
 import 'package:trocado/src/domain/repositories/interface_insights_repository.dart';
 
 part 'insights_notifier.g.dart';

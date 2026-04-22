@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:trocado/src/infrastructure/clients/http/responses/password_reset_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/authentication/password_reset_response.dart';
 
 void main() {
   group('PasswordResetResponse.fromJson', () {

@@ -7,10 +7,10 @@ import 'package:trocado/src/core/either/either.dart';
 import 'package:trocado/src/main/providers/repositories_provider.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
-import 'package:trocado/src/domain/models/insights/insight_model.dart';
-import 'package:trocado/src/domain/models/insights/insight_type.dart';
-import 'package:trocado/src/domain/models/insights/insight_severity.dart';
-import 'package:trocado/src/domain/models/insights/insights_bundle_model.dart';
+import 'package:trocado/src/domain/models/insight/insight_model.dart';
+import 'package:trocado/src/domain/models/insight/insight_type.dart';
+import 'package:trocado/src/domain/models/insight/insight_severity.dart';
+import 'package:trocado/src/domain/models/insight/insights_bundle_model.dart';
 import 'package:trocado/src/domain/repositories/interface_insights_repository.dart';
 
 import 'package:trocado/src/presentation/screens/home/notifiers/insights_notifier.dart';

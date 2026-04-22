@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:trocado/src/domain/models/insights/insight_type.dart';
-import 'package:trocado/src/domain/models/insights/insight_severity.dart';
+import 'package:trocado/src/domain/models/insight/insight_type.dart';
+import 'package:trocado/src/domain/models/insight/insight_severity.dart';
 
-import 'package:trocado/src/infrastructure/clients/http/responses/insights_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/insight/insights_response.dart';
 
 import 'package:trocado/src/data/extensions/insights_response_extension.dart';
 

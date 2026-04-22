@@ -4,7 +4,7 @@ import 'package:trocado/src/data/extensions/expense_response_extension.dart';
 import 'package:trocado/src/data/extensions/failure_response_extension.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
-import 'package:trocado/src/domain/models/expense_model.dart';
+import 'package:trocado/src/domain/models/expense/expense_model.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
 import 'package:trocado/src/infrastructure/datasources/remote/remote_expense_data_source.dart';
@@ -30,6 +30,18 @@ final class ExpenseRepository implements IExpenseRepository {
     return data.either(
       (failure) => failure.toFailure(),
       (response) => response.toModel(),
+    );
+  }
+
+  @override
+  Future<Either<Failure, List<ExpenseModel>>> findRecent({
+    int limit = 6,
+  }) async {
+    final data = await _dataSource.findRecent(limit: limit);
+
+    return data.either(
+      (failure) => failure.toFailure(),
+      (response) => response.toModel(limit: limit),
     );
   }
 }

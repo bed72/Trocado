@@ -1,4 +1,4 @@
-import 'package:trocado/src/infrastructure/clients/http/responses/insight_item_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/insight/insight_item_response.dart';
 
 final class InsightsResponse {
   final List<InsightItemResponse> insights;

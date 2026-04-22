@@ -1,15 +1,21 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:trocado/src/domain/models/expense/expense_category.dart';
+
 final class ExpenseModel extends Equatable {
   final int id;
   final int date;
   final int value;
+  final int createdAt;
   final String description;
+  final ExpenseCategory category;
 
   const ExpenseModel({
     required this.id,
     required this.date,
     required this.value,
+    required this.createdAt,
+    required this.category,
     required this.description,
   });
 
@@ -17,14 +23,25 @@ final class ExpenseModel extends Equatable {
     int? id,
     int? date,
     int? value,
+    int? createdAt,
     String? description,
+    ExpenseCategory? category,
   }) => ExpenseModel(
     id: id ?? this.id,
     date: date ?? this.date,
     value: value ?? this.value,
+    category: category ?? this.category,
+    createdAt: createdAt ?? this.createdAt,
     description: description ?? this.description,
   );
 
   @override
-  List<Object?> get props => [id, value, date, description];
+  List<Object?> get props => [
+    id,
+    value,
+    date,
+    description,
+    category,
+    createdAt,
+  ];
 }

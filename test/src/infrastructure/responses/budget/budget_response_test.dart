@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:trocado/src/infrastructure/clients/http/responses/budget_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/budget/budget_response.dart';
 
 void main() {
   group('BudgetResponse.fromJson', () {

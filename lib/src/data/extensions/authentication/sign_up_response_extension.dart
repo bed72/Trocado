@@ -1,7 +1,7 @@
 import 'package:trocado/src/domain/models/user_model.dart';
-import 'package:trocado/src/domain/models/sign_up_model.dart';
+import 'package:trocado/src/domain/models/authentication/sign_up_model.dart';
 
-import 'package:trocado/src/infrastructure/clients/http/responses/sign_up_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/authentication/sign_up_response.dart';
 
 extension SignUpResponseExtension on SignUpResponse {
   SignUpModel toModel() => SignUpModel(

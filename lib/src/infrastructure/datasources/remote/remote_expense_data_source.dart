@@ -6,14 +6,19 @@ import 'package:trocado/src/infrastructure/clients/http/endpoint_key.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/requests.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/expense_request.dart';
 
-import 'package:trocado/src/infrastructure/clients/http/responses/expense_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/expense/expense_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/failure/failure_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/expense/expenses_response.dart';
 
 abstract interface class IRemoteExpenseDataSource {
   Future<Either<FailureResponse, ExpenseResponse>> create({
     required int date,
     required int value,
     required String description,
+  });
+
+  Future<Either<FailureResponse, ExpensesResponse>> findRecent({
+    required int limit,
   });
 }
 
@@ -40,5 +45,16 @@ final class RemoteExpenseDataSource implements IRemoteExpenseDataSource {
     );
 
     return response.either(FailureResponse.fromJson, ExpenseResponse.fromJson);
+  }
+
+  @override
+  Future<Either<FailureResponse, ExpensesResponse>> findRecent({
+    required int limit,
+  }) async {
+    final response = await _client.get(
+      parameter: Requests(EndpointKey.expenses.path),
+    );
+
+    return response.either(FailureResponse.fromJson, ExpensesResponse.fromJson);
   }
 }

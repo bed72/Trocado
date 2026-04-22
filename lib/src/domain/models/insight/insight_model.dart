@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 
-import 'package:trocado/src/domain/models/insights/insight_type.dart';
-import 'package:trocado/src/domain/models/insights/insight_severity.dart';
+import 'package:trocado/src/domain/models/insight/insight_type.dart';
+import 'package:trocado/src/domain/models/insight/insight_severity.dart';
 
 final class InsightModel extends Equatable {
   final InsightType type;

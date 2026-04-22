@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:trocado/src/domain/models/insights/insight_model.dart';
+import 'package:trocado/src/domain/models/insight/insight_model.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 import 'package:trocado/src/presentation/screens/home/widgets/insights/insight_icon_widget.dart';

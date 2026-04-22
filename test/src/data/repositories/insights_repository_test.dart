@@ -6,8 +6,8 @@ import 'package:trocado/src/core/either/either.dart';
 import 'package:trocado/src/data/repositories/insights_repository.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
-import 'package:trocado/src/domain/models/insights/insight_type.dart';
-import 'package:trocado/src/domain/models/insights/insight_severity.dart';
+import 'package:trocado/src/domain/models/insight/insight_type.dart';
+import 'package:trocado/src/domain/models/insight/insight_severity.dart';
 import 'package:trocado/src/domain/repositories/interface_insights_repository.dart';
 
 import 'package:trocado/src/infrastructure/clients/http/http_client.dart';

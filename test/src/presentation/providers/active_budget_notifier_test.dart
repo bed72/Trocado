@@ -7,7 +7,7 @@ import 'package:trocado/src/core/either/either.dart';
 import 'package:trocado/src/main/providers/repositories_provider.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
-import 'package:trocado/src/domain/models/active_budget_model.dart';
+import 'package:trocado/src/domain/models/budget/active_budget_model.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
 
 import 'package:trocado/src/presentation/screens/home/notifiers/active_budget_notifier.dart';

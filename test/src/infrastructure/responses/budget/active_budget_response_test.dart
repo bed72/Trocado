@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:trocado/src/domain/models/active_budget_model.dart';
-import 'package:trocado/src/infrastructure/clients/http/responses/active_budget_response.dart';
-import 'package:trocado/src/data/extensions/active_budget_response_extension.dart';
+import 'package:trocado/src/domain/models/budget/active_budget_model.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/budget/active_budget_response.dart';
+import 'package:trocado/src/data/extensions/budget/active_budget_response_extension.dart';
 
 const _json = {
   'id': 35,

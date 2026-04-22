@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:trocado/src/domain/models/insights/insight_model.dart';
-import 'package:trocado/src/domain/models/insights/insights_bundle_model.dart';
+import 'package:trocado/src/domain/models/insight/insight_model.dart';
+import 'package:trocado/src/domain/models/insight/insights_bundle_model.dart';
 
 import 'package:trocado/src/presentation/widgets/preview/material_preview_widget.dart';
 import 'package:trocado/src/presentation/screens/home/widgets/insights/insights_carousel_widget.dart';

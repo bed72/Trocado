@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:trocado/src/infrastructure/clients/http/responses/sign_up_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/authentication/sign_up_response.dart';
 
 void main() {
   group('SignUpResponse.fromJson', () {

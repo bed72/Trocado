@@ -4,8 +4,8 @@ import 'package:trocado/src/infrastructure/clients/http/http_client.dart';
 import 'package:trocado/src/infrastructure/clients/http/endpoint_key.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/requests.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/budget_request.dart';
-import 'package:trocado/src/infrastructure/clients/http/responses/budget_response.dart';
-import 'package:trocado/src/infrastructure/clients/http/responses/active_budget_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/budget/budget_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/budget/active_budget_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/failure/failure_response.dart';
 
 abstract interface class IRemoteBudgetDataSource {

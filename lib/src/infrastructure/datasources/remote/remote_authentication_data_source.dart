@@ -7,12 +7,12 @@ import 'package:trocado/src/infrastructure/clients/http/requests/requests.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/sign_up_request.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/password_reset_confirm_request.dart';
 
-import 'package:trocado/src/infrastructure/clients/http/responses/sign_in_response.dart';
-import 'package:trocado/src/infrastructure/clients/http/responses/sign_up_response.dart';
-import 'package:trocado/src/infrastructure/clients/http/responses/refresh_token_response.dart';
-import 'package:trocado/src/infrastructure/clients/http/responses/password_reset_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/authentication/sign_in_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/authentication/sign_up_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/authentication/refresh_token_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/authentication/password_reset_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/failure/failure_response.dart';
-import 'package:trocado/src/infrastructure/clients/http/responses/password_reset_confirm_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/authentication/password_reset_confirm_response.dart';
 
 abstract interface class IRemoteAuthenticationDataSource {
   Future<Either<FailureResponse, void>> logout({required String refresh});

@@ -2,7 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:trocado/src/main/providers/repositories_provider.dart';
 
-import 'package:trocado/src/domain/models/active_budget_model.dart';
+import 'package:trocado/src/domain/models/budget/active_budget_model.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
 
 part 'active_budget_notifier.g.dart';

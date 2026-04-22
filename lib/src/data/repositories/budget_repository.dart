@@ -1,13 +1,13 @@
 import 'package:trocado/src/core/either/either.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
-import 'package:trocado/src/domain/models/budget_model.dart';
-import 'package:trocado/src/domain/models/active_budget_model.dart';
+import 'package:trocado/src/domain/models/budget/budget_model.dart';
+import 'package:trocado/src/domain/models/budget/active_budget_model.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
 
-import 'package:trocado/src/data/extensions/budget_response_extension.dart';
+import 'package:trocado/src/data/extensions/budget/budget_response_extension.dart';
 import 'package:trocado/src/data/extensions/failure_response_extension.dart';
-import 'package:trocado/src/data/extensions/active_budget_response_extension.dart';
+import 'package:trocado/src/data/extensions/budget/active_budget_response_extension.dart';
 
 import 'package:trocado/src/infrastructure/datasources/remote/remote_budget_data_source.dart';
 

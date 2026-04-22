@@ -6,7 +6,7 @@ import 'package:trocado/src/core/either/either.dart';
 import 'package:trocado/src/data/repositories/budget_repository.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
-import 'package:trocado/src/domain/models/active_budget_model.dart';
+import 'package:trocado/src/domain/models/budget/active_budget_model.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
 
 import 'package:trocado/src/infrastructure/clients/http/http_client.dart';
@@ -51,9 +51,9 @@ void main() {
 
   group('create', () {
     test('returns Right with BudgetModel on success', () async {
-      when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
-        (_) async => const Right(_successJson),
-      );
+      when(
+        () => client.post(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Right(_successJson));
 
       final data = await repository.create(
         value: 100000,
@@ -166,9 +166,9 @@ void main() {
 
   group('findActive', () {
     test('returns Right with ActiveBudgetModel on success', () async {
-      when(() => client.get(parameter: any(named: 'parameter'))).thenAnswer(
-        (_) async => const Right(_activeSuccessJson),
-      );
+      when(
+        () => client.get(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Right(_activeSuccessJson));
 
       final data = await repository.findActive();
 
