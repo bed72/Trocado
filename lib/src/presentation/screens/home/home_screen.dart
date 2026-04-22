@@ -16,6 +16,7 @@ import 'package:trocado/src/presentation/screens/home/widgets/home_app_bar_widge
 import 'package:trocado/src/presentation/screens/home/widgets/budget/card/budget_card_widget.dart';
 
 class HomeScreen extends StatefulWidget {
+  final VoidCallback navigateToChat;
   final VoidCallback navigateToExit;
   final VoidCallback navigateToBudget;
   final VoidCallback navigateToSettings;
@@ -25,6 +26,7 @@ class HomeScreen extends StatefulWidget {
 
   const HomeScreen({
     super.key,
+    required this.navigateToChat,
     required this.navigateToExit,
     required this.navigateToBudget,
     required this.navigateToSettings,
@@ -59,8 +61,9 @@ class _HomeScreenState extends State<HomeScreen>
           ),
           floatingActionButtonLocation: ExpandableFab.location,
           floatingActionButton: HomeActionButtonWidget(
-            onNavigateToBudget: widget.navigateToBudget,
-            onNavigateToExpense: widget.navigateToCreateExpense,
+            onChat: widget.navigateToChat,
+            onBudget: widget.navigateToBudget,
+            onExpense: widget.navigateToCreateExpense,
           ),
           body: SafeArea(
             child: ListView(

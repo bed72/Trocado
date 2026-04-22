@@ -6,61 +6,80 @@ import 'package:trocado/src/presentation/widgets/icons/icon_widget.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
 class HomeActionButtonWidget extends StatelessWidget {
-  final VoidCallback onNavigateToBudget;
-  final VoidCallback onNavigateToExpense;
+  final VoidCallback onChat;
+  final VoidCallback onBudget;
+  final VoidCallback onExpense;
 
   const HomeActionButtonWidget({
     super.key,
-    required this.onNavigateToBudget,
-    required this.onNavigateToExpense,
+    required this.onChat,
+    required this.onBudget,
+    required this.onExpense,
   });
 
   @override
   Widget build(BuildContext context) {
     return ExpandableFab(
-      distance: 66.0,
+      distance: 80.0,
       elevation: 0.0,
       openButtonBuilder: RotateFloatingActionButtonBuilder(
         elevation: 0.0,
         child: BounceWidget.withoutOnPress(
           child: Container(
-            width: 56.0,
-            height: 56.0,
+            width: 48.0,
+            height: 48.0,
             alignment: .center,
-            child: IconWidget(size: 26.0, icon: Icons.menu),
+            child: IconWidget(size: 20.0, icon: Icons.menu),
           ),
         ),
       ),
       children: [
         BounceWidget.withOnPress(
-          onPress: onNavigateToExpense,
+          onPress: onExpense,
           child: Container(
-            width: 56.0,
-            height: 56.0,
+            width: 48.0,
+            height: 48.0,
             alignment: .center,
             decoration: BoxDecoration(
               color: context.colors.primary,
-              borderRadius: context.radius.cornerRadius300,
+              borderRadius: context.radius.cornerRadius100,
             ),
             child: IconWidget(
-              size: 26.0,
+              size: 24.0,
               color: context.colors.onPrimary,
               icon: Icons.receipt_long_outlined,
             ),
           ),
         ),
         BounceWidget.withOnPress(
-          onPress: onNavigateToBudget,
+          onPress: onChat,
           child: Container(
-            width: 56.0,
-            height: 56.0,
+            width: 48.0,
+            height: 48.0,
             alignment: .center,
             decoration: BoxDecoration(
               color: context.colors.primary,
-              borderRadius: context.radius.cornerRadius300,
+              borderRadius: context.radius.cornerRadius100,
             ),
             child: IconWidget(
-              size: 26.0,
+              size: 20.0,
+              color: context.colors.onPrimary,
+              icon: Icons.chat_sharp,
+            ),
+          ),
+        ),
+        BounceWidget.withOnPress(
+          onPress: onBudget,
+          child: Container(
+            width: 48.0,
+            height: 48.0,
+            alignment: .center,
+            decoration: BoxDecoration(
+              color: context.colors.primary,
+              borderRadius: context.radius.cornerRadius100,
+            ),
+            child: IconWidget(
+              size: 20.0,
               color: context.colors.onPrimary,
               icon: Icons.savings_outlined,
             ),
