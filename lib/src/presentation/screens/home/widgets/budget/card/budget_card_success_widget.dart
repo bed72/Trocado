@@ -3,8 +3,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import 'package:trocado/src/domain/models/active_budget_model.dart';
-import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
+import 'package:trocado/src/presentation/extensions/context_extension.dart';
 import 'package:trocado/src/presentation/screens/home/widgets/budget/card/budget_card_label_widget.dart';
 import 'package:trocado/src/presentation/screens/home/widgets/budget/card/budget_progress_bar_painter.dart';
 
