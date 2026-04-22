@@ -17,7 +17,9 @@ import 'package:trocado/src/presentation/screens/authentication/forgot_password/
 import 'package:trocado/src/presentation/screens/authentication/forgot_password/notifiers/forgot_password_notifier.dart';
 
 class ForgotPasswordScreen extends StatelessWidget {
-  const ForgotPasswordScreen({super.key});
+  final ValueChanged<String> onSuccess;
+
+  const ForgotPasswordScreen({super.key, required this.onSuccess});
 
   @override
   Widget build(BuildContext context) {
@@ -26,11 +28,7 @@ class ForgotPasswordScreen extends StatelessWidget {
         ref.listen(
           forgotPasswordProvider,
           (previous, next) => switch (next.status) {
-            .success when previous?.status != .success => showToastWidget(
-              context: context,
-              type: .success,
-              title: 'Verifique seu email',
-            ),
+            .success when previous?.status != .success => onSuccess(next.email),
             .failure when previous?.status != .failure => showToastWidget(
               context: context,
               title: 'Opps',
@@ -114,6 +112,7 @@ class ForgotPasswordScreen extends StatelessWidget {
 
   void _submit(ForgotPasswordNotifier notifier) {
     hideKeyboard();
+
     notifier.dispatch(const SubmitPressed());
   }
 }

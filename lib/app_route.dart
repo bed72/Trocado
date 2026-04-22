@@ -85,6 +85,12 @@ final class AppRoutes {
     regex: RegExp(r'^/forgot-password$'),
   );
 
+  static final forgotPasswordSuccess = AppRoutes._(
+    path: '/forgot-password-success',
+    name: 'forgot-password-success-route',
+    regex: RegExp(r'^/forgot-password-success$'),
+  );
+
   static final passwordResetConfirm = AppRoutes._(
     path: '/reset-password',
     name: 'password-reset-confirm-route',
@@ -132,6 +138,7 @@ final class AppRoutes {
     notifications,
     forgotPassword,
     passwordResetConfirm,
+    forgotPasswordSuccess,
   ];
 
   static AppRoutes? match(String location) =>
