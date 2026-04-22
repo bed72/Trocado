@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart' hide ValueChanged;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/material.dart' hide ValueChanged;
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
@@ -51,11 +51,11 @@ class CalculatorScreen extends StatelessWidget {
             title: 'Qual o valor?',
             subtitle: 'Informe o valor do orçamento.',
             child: Padding(
-              padding: const EdgeInsets.only(top: 12.0, bottom: 20.0),
+              padding: const .only(top: 12.0, bottom: 20.0),
               child: Column(
                 spacing: 16.0,
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: .min,
+                crossAxisAlignment: .start,
                 children: [
                   CalculatorFieldWidget(displayValue: displayValue),
                   CalculatorKeyboard(

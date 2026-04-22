@@ -56,19 +56,19 @@ class ExpenseScreen extends StatelessWidget {
         return ScaffoldWidget(
           appBar: AppBarWidget(leading: GoBackWidget()),
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const .all(16.0),
             child: Column(
               children: [
                 Expanded(
                   child: SingleChildScrollView(
                     child: Column(
                       spacing: 16.0,
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: .start,
                       children: [
                         Text(
                           'Nova despesa',
                           style: context.typography.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
+                            fontWeight: .bold,
                           ),
                         ),
                         Text(
@@ -86,7 +86,7 @@ class ExpenseScreen extends StatelessWidget {
                           value: state.value,
                           failure: state.valueFailure,
                           navigateTo: () => navigateToCalculator(
-                            (v) => notifier.dispatch(ValueChanged(v)),
+                            (value) => notifier.dispatch(ValueChanged(value)),
                           ),
                         ),
                         ExpenseDateFieldWidget(
@@ -99,7 +99,7 @@ class ExpenseScreen extends StatelessWidget {
                   ),
                 ),
                 ExpenseSaveButtonWidget(
-                  isLoading: state.status == ExpenseStatus.loading,
+                  isLoading: state.status == .loading,
                   onSave: () {
                     hideKeyboard();
                     notifier.dispatch(const SubmitPressed());
