@@ -24,6 +24,9 @@ class HomeActionButtonWidget extends StatelessWidget {
       elevation: 0.0,
       openButtonBuilder: RotateFloatingActionButtonBuilder(
         elevation: 0.0,
+        shape: RoundedRectangleBorder(
+          borderRadius: context.radius.cornerRadius100,
+        ),
         child: BounceWidget.withoutOnPress(
           child: Container(
             width: 48.0,
@@ -45,7 +48,7 @@ class HomeActionButtonWidget extends StatelessWidget {
               borderRadius: context.radius.cornerRadius100,
             ),
             child: IconWidget(
-              size: 24.0,
+              size: 20.0,
               color: context.colors.onPrimary,
               icon: Icons.receipt_long_outlined,
             ),

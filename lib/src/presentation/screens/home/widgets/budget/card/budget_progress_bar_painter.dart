@@ -25,7 +25,7 @@ class BudgetProgressBarPainter extends CustomPainter {
     final trackTop = centerY - _trackHeight / 2;
     final trackBottom = centerY + _trackHeight / 2;
     const roundedEnd = Radius.circular(2);
-    final roundedStart = Radius.circular(_trackHeight / 2);
+    final roundedStart = Radius.circular(_trackHeight / 3);
 
     canvas.drawRRect(
       RRect.fromLTRBR(0, trackTop, size.width, trackBottom, roundedStart),
@@ -42,9 +42,9 @@ class BudgetProgressBarPainter extends CustomPainter {
           isComplete ? size.width : max(fillWidth, _trackHeight) - 4,
           trackBottom,
           topLeft: roundedStart,
+          bottomLeft: roundedStart,
           topRight: isComplete ? roundedStart : roundedEnd,
           bottomRight: isComplete ? roundedStart : roundedEnd,
-          bottomLeft: roundedStart,
         ),
         Paint()..color = fillColor,
       );
