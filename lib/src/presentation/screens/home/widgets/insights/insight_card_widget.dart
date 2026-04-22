@@ -18,9 +18,10 @@ class InsightCardWidget extends StatelessWidget {
     return SizedBox(
       width: 300.0,
       child: Card(
+        margin: .zero,
         elevation: 0.0,
         clipBehavior: .antiAlias,
-        color: context.colors.surfaceContainerHighest,
+        // color: context.colors.surfaceContainerHighest,
         shape: RoundedRectangleBorder(
           borderRadius: context.radius.cornerRadius100,
         ),
