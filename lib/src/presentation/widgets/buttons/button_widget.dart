@@ -75,6 +75,10 @@ class ButtonWidget extends StatelessWidget {
         .text => TextButton(
           onPressed: onTap,
           style: TextButton.styleFrom(
+            padding: .zero,
+            minimumSize: .zero,
+            alignment: .centerLeft,
+            tapTargetSize: .shrinkWrap,
             overlayColor: Colors.transparent,
             backgroundColor: Colors.transparent,
           ),
