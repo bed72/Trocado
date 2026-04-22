@@ -33,23 +33,24 @@ class BudgetProgressBarPainter extends CustomPainter {
     );
 
     final fillWidth = size.width * percentage;
+    final isComplete = percentage >= 1.0;
     if (fillWidth > 0) {
       canvas.drawRRect(
         RRect.fromLTRBAndCorners(
           0,
           trackTop,
-          max(fillWidth, _trackHeight) - 4,
+          isComplete ? size.width : max(fillWidth, _trackHeight) - 4,
           trackBottom,
           topLeft: roundedStart,
-          topRight: roundedEnd,
-          bottomRight: roundedEnd,
+          topRight: isComplete ? roundedStart : roundedEnd,
+          bottomRight: isComplete ? roundedStart : roundedEnd,
           bottomLeft: roundedStart,
         ),
         Paint()..color = fillColor,
       );
     }
 
-    if (percentage > 0.05 && percentage < 0.99) {
+    if (percentage > 0.04 && percentage < 0.99) {
       final thumbX = fillWidth.clamp(0.0, size.width);
       canvas.drawRRect(
         RRect.fromLTRBR(
