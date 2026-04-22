@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
+import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
 
 class BudgetCardEmptyWidget extends StatelessWidget {
   final VoidCallback onCreateBudget;
@@ -29,10 +30,12 @@ class BudgetCardEmptyWidget extends StatelessWidget {
                 color: context.colors.onSurfaceVariant,
               ),
             ),
-            OutlinedButton(
-              onPressed: onCreateBudget,
+            const SizedBox(height: 8.0),
+            ButtonWidget.text(
+              onTap: onCreateBudget,
               child: const Text('Criar orçamento'),
             ),
+            const SizedBox(height: 16.0),
           ],
         ),
       ),
