@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:trocado/src/data/repositories/authentication_repository.dart';
 
-import 'package:trocado/src/core/either/either.dart';
+import 'package:trocado/src/domain/either/either.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/repositories/interface_authentication_repository.dart';
 
@@ -641,9 +641,9 @@ void main() {
         () => tokenDataSource.get(),
       ).thenAnswer((_) async => (access: 'access', refresh: 'refresh-token'));
 
-      when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
-        (_) async => const Right({}),
-      );
+      when(
+        () => client.post(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Right({}));
 
       final data = await repository.logout();
 
@@ -651,37 +651,43 @@ void main() {
       verify(() => tokenDataSource.clear()).called(1);
     });
 
-    test('clears tokens and returns Right when refresh token is null', () async {
-      when(
-        () => tokenDataSource.get(),
-      ).thenAnswer((_) async => (access: 'access', refresh: null));
+    test(
+      'clears tokens and returns Right when refresh token is null',
+      () async {
+        when(
+          () => tokenDataSource.get(),
+        ).thenAnswer((_) async => (access: 'access', refresh: null));
 
-      final data = await repository.logout();
+        final data = await repository.logout();
 
-      expect(data.isRight, isTrue);
-      verify(() => tokenDataSource.clear()).called(1);
-      verifyNever(() => client.post(parameter: any(named: 'parameter')));
-    });
+        expect(data.isRight, isTrue);
+        verify(() => tokenDataSource.clear()).called(1);
+        verifyNever(() => client.post(parameter: any(named: 'parameter')));
+      },
+    );
 
-    test('returns Left ValidationFailure and does not clear tokens on API error', () async {
-      when(
-        () => tokenDataSource.get(),
-      ).thenAnswer((_) async => (access: 'access', refresh: 'refresh-token'));
+    test(
+      'returns Left ValidationFailure and does not clear tokens on API error',
+      () async {
+        when(
+          () => tokenDataSource.get(),
+        ).thenAnswer((_) async => (access: 'access', refresh: 'refresh-token'));
 
-      when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
-        (_) async => const Left({
-          'errors': [
-            {'field': null, 'code': 'invalid', 'message': 'Token inválido.'},
-          ],
-        }),
-      );
+        when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
+          (_) async => const Left({
+            'errors': [
+              {'field': null, 'code': 'invalid', 'message': 'Token inválido.'},
+            ],
+          }),
+        );
 
-      final data = await repository.logout();
+        final data = await repository.logout();
 
-      expect(data.isLeft, isTrue);
-      expect(data.left, isA<ValidationFailure>());
-      verifyNever(() => tokenDataSource.clear());
-    });
+        expect(data.isLeft, isTrue);
+        expect(data.left, isA<ValidationFailure>());
+        verifyNever(() => tokenDataSource.clear());
+      },
+    );
 
     test('returns Left NetworkFailure on network error', () async {
       when(
@@ -691,7 +697,11 @@ void main() {
       when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
         (_) async => const Left({
           'errors': [
-            {'code': 'network_error', 'field': 'non_field_errors', 'message': 'Network error'},
+            {
+              'code': 'network_error',
+              'field': 'non_field_errors',
+              'message': 'Network error',
+            },
           ],
         }),
       );

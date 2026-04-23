@@ -1,4 +1,4 @@
-import 'package:trocado/src/core/either/either.dart';
+import 'package:trocado/src/domain/either/either.dart';
 
 import 'package:trocado/src/data/extensions/expense_response_extension.dart';
 import 'package:trocado/src/data/extensions/failure_response_extension.dart';

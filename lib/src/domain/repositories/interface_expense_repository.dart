@@ -1,4 +1,4 @@
-import 'package:trocado/src/core/either/either.dart';
+import 'package:trocado/src/domain/either/either.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';

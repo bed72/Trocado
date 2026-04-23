@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 
-import 'package:trocado/src/core/either/either.dart';
+import 'package:trocado/src/domain/either/either.dart';
 
 import 'package:trocado/src/infrastructure/clients/http/requests/requests.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/reponses.dart';

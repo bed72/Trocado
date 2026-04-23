@@ -1,7 +1,7 @@
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:trocado/src/core/either/either.dart';
+import 'package:trocado/src/domain/either/either.dart';
 
 import 'package:trocado/src/data/repositories/expense_repository.dart';
 
@@ -181,27 +181,30 @@ void main() {
       expect(data.right.category, ExpenseCategoryEnum.food);
     });
 
-    test('maps unknown category string to ExpenseCategoryEnum.unknown', () async {
-      when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
-        (_) async => const Right({
-          'id': 5,
-          'value': '10.00',
-          'date': '2026-03-15',
-          'category': 'travel',
-          'description': 'Uber',
-          'created_at': '2026-03-15T11:45:03.220605-03:00',
-        }),
-      );
+    test(
+      'maps unknown category string to ExpenseCategoryEnum.unknown',
+      () async {
+        when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
+          (_) async => const Right({
+            'id': 5,
+            'value': '10.00',
+            'date': '2026-03-15',
+            'category': 'travel',
+            'description': 'Uber',
+            'created_at': '2026-03-15T11:45:03.220605-03:00',
+          }),
+        );
 
-      final data = await repository.create(
-        value: 1000,
-        date: _date,
-        description: 'Uber',
-      );
+        final data = await repository.create(
+          value: 1000,
+          date: _date,
+          description: 'Uber',
+        );
 
-      expect(data.isRight, isTrue);
-      expect(data.right.category, ExpenseCategoryEnum.unknown);
-    });
+        expect(data.isRight, isTrue);
+        expect(data.right.category, ExpenseCategoryEnum.unknown);
+      },
+    );
 
     test('converts createdAt ISO string to milliseconds', () async {
       when(
@@ -428,23 +431,22 @@ void main() {
       ],
     };
 
-    test(
-      'invokes GET without any query suffix on the first page',
-      () async {
-        when(
-          () => client.get(parameter: any(named: 'parameter')),
-        ).thenAnswer((_) async => const Right(page));
+    test('invokes GET without any query suffix on the first page', () async {
+      when(
+        () => client.get(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Right(page));
 
-        await repository.findAll();
+      await repository.findAll();
 
-        final captured = verify(
-          () => client.get(parameter: captureAny(named: 'parameter')),
-        ).captured.single as Requests;
+      final captured =
+          verify(
+                () => client.get(parameter: captureAny(named: 'parameter')),
+              ).captured.single
+              as Requests;
 
-        expect(captured.path, '/api/v1/expenses');
-        expect(captured.query, isNull);
-      },
-    );
+      expect(captured.path, '/api/v1/expenses');
+      expect(captured.query, isNull);
+    });
 
     test('embeds cursor into path on subsequent pages', () async {
       when(
@@ -453,9 +455,11 @@ void main() {
 
       await repository.findAll(cursor: 'ABC');
 
-      final captured = verify(
-        () => client.get(parameter: captureAny(named: 'parameter')),
-      ).captured.single as Requests;
+      final captured =
+          verify(
+                () => client.get(parameter: captureAny(named: 'parameter')),
+              ).captured.single
+              as Requests;
 
       expect(captured.path, '/api/v1/expenses?cursor=ABC');
       expect(captured.query, isNull);
@@ -474,9 +478,11 @@ void main() {
 
       await repository.findAll(filter: filter);
 
-      final captured = verify(
-        () => client.get(parameter: captureAny(named: 'parameter')),
-      ).captured.single as Requests;
+      final captured =
+          verify(
+                () => client.get(parameter: captureAny(named: 'parameter')),
+              ).captured.single
+              as Requests;
 
       expect(
         captured.path,
@@ -500,9 +506,11 @@ void main() {
 
       await repository.findAll(filter: filter, cursor: 'NEXT');
 
-      final captured = verify(
-        () => client.get(parameter: captureAny(named: 'parameter')),
-      ).captured.single as Requests;
+      final captured =
+          verify(
+                () => client.get(parameter: captureAny(named: 'parameter')),
+              ).captured.single
+              as Requests;
 
       expect(captured.path, endsWith('&cursor=NEXT'));
       expect(captured.path, contains('eq(category,food)'));

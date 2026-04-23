@@ -1,4 +1,4 @@
-import 'package:trocado/src/core/either/either.dart';
+import 'package:trocado/src/domain/either/either.dart';
 
 import 'package:trocado/src/infrastructure/clients/http/http_client.dart';
 
