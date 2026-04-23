@@ -93,4 +93,44 @@ void main() {
       expect(b == b.copyWith(), isTrue);
     });
   });
+
+  group('normalized', () {
+    test('swaps min and max when inverted', () {
+      final filter = const ExpenseFilterModel.empty().copyWith(
+        minValue: 10000,
+        maxValue: 7200,
+      );
+
+      final normalized = filter.normalized();
+
+      expect(normalized.minValue, 7200);
+      expect(normalized.maxValue, 10000);
+    });
+
+    test('is a no-op when bounds are in order', () {
+      final filter = const ExpenseFilterModel.empty().copyWith(
+        minValue: 1000,
+        maxValue: 5000,
+      );
+
+      expect(filter.normalized(), filter);
+    });
+
+    test('is a no-op when bounds are equal', () {
+      final filter = const ExpenseFilterModel.empty().copyWith(
+        minValue: 5000,
+        maxValue: 5000,
+      );
+
+      expect(filter.normalized(), filter);
+    });
+
+    test('is a no-op when either bound is null', () {
+      final minOnly = const ExpenseFilterModel.empty().copyWith(minValue: 1000);
+      final maxOnly = const ExpenseFilterModel.empty().copyWith(maxValue: 1000);
+
+      expect(minOnly.normalized(), minOnly);
+      expect(maxOnly.normalized(), maxOnly);
+    });
+  });
 }

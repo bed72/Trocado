@@ -33,6 +33,14 @@ final class ExpenseFilterModel extends Equatable {
       description.isEmpty &&
       ordering == .dateDesc;
 
+  ExpenseFilterModel normalized() {
+    final min = minValue;
+    final max = maxValue;
+    if (min == null || max == null || min <= max) return this;
+
+    return copyWith(minValue: max, maxValue: min);
+  }
+
   ExpenseFilterModel copyWith({
     int? endDate,
     int? minValue,

@@ -40,7 +40,7 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
 
   Future<void> applyFilter(ExpenseFilterModel filter) async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() => _loadFirstPage(filter));
+    state = await AsyncValue.guard(() => _loadFirstPage(filter.normalized()));
   }
 
   void searchChanged(String description) {
