@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
-class CheckboxWidget extends StatelessWidget {
+class CheckboxFieldWidget extends StatelessWidget {
   final bool checked;
   final String label;
   final String? failure;
   final ValueChanged<bool> onChanged;
 
-  const CheckboxWidget({
+  const CheckboxFieldWidget({
     super.key,
     required this.checked,
     required this.label,
@@ -22,10 +22,7 @@ class CheckboxWidget extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     spacing: 6.0,
     crossAxisAlignment: .start,
-    children: [
-      _buildRow(context),
-      if (_isFailure) _buildFailure(context),
-    ],
+    children: [_buildRow(context), if (_isFailure) _buildFailure(context)],
   );
 
   Widget _buildRow(BuildContext context) => Row(

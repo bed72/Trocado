@@ -10,13 +10,13 @@ List<ExpenseGroup> buildExpenseGroups(
   if (items.isEmpty) return const [];
 
   final groups = <ExpenseGroup>[];
-  final reference = _atStartOfDay(now ?? DateTime.now());
+  final reference = _atStartOfDay(now ?? .now());
   String? current;
   List<ExpenseItemData> currentBucket = [];
 
   for (final item in items) {
     final day = _atStartOfDay(
-      DateTime.fromMillisecondsSinceEpoch(item.expense.createdAt),
+      .fromMillisecondsSinceEpoch(item.expense.createdAt),
     );
     final header = _headerFor(day, reference);
 

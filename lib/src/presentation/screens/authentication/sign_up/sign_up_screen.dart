@@ -8,7 +8,7 @@ import 'package:trocado/src/presentation/extensions/context_extension.dart';
 import 'package:trocado/src/presentation/widgets/toast_widget.dart';
 import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';
 import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
-import 'package:trocado/src/presentation/widgets/fields/checkbox_widget.dart';
+import 'package:trocado/src/presentation/widgets/fields/checkbox_field_widget.dart';
 import 'package:trocado/src/presentation/widgets/fields/text_field_widget.dart';
 
 import 'package:trocado/src/presentation/screens/authentication/sign_up/notifiers/sign_up_state.dart';
@@ -112,7 +112,7 @@ class SignUpScreen extends StatelessWidget {
 
               const SizedBox(height: 16.0),
 
-              CheckboxWidget(
+              CheckboxFieldWidget(
                 failure: state.termsFailure,
                 checked: state.termsAccepted,
                 label: 'Aceito os termos de uso e política de privacidade',
