@@ -90,22 +90,22 @@ class _ExpensesSearchFieldWidgetState extends State<ExpensesSearchFieldWidget> {
     onChanged: widget.onChanged,
     controller: widget.controller,
     style: context.typography.bodyMedium?.copyWith(
-      color: context.colors.onSurface,
+      color: context.colors.primary,
     ),
     decoration: InputDecoration(
       filled: true,
       isDense: true,
       hintText: 'Buscar por descrição',
-      fillColor: context.colors.surfaceContainerHigh,
+      fillColor: context.colors.primary.withValues(alpha: 0.2),
       hintStyle: context.typography.bodyMedium?.copyWith(
-        color: context.colors.onSurfaceVariant,
+        fontWeight: .w600,
+        color: context.colors.primary,
       ),
+      focusedBorder: _border(context.colors.primary),
+      border: _border(context.colors.outline.withValues(alpha: 0.4)),
       contentPadding: const .symmetric(vertical: 0, horizontal: 12.0),
-      prefixIcon: Icon(
-        Icons.search,
-        size: 18.0,
-        color: context.colors.onSurfaceVariant,
-      ),
+      enabledBorder: _border(context.colors.outline.withValues(alpha: 0.4)),
+      prefixIcon: Icon(Icons.search, size: 18.0, color: context.colors.primary),
       prefixIconConstraints: const BoxConstraints(
         minWidth: 36.0,
         minHeight: 36.0,
@@ -116,15 +116,12 @@ class _ExpensesSearchFieldWidgetState extends State<ExpensesSearchFieldWidget> {
         visualDensity: .compact,
         onPressed: _collapseAndClear,
         constraints: const BoxConstraints(minWidth: 36.0, minHeight: 36.0),
-        icon: Icon(Icons.close, color: context.colors.onSurfaceVariant),
+        icon: Icon(Icons.close, color: context.colors.primary),
       ),
       suffixIconConstraints: const BoxConstraints(
         minWidth: 36.0,
         minHeight: 36.0,
       ),
-      focusedBorder: _border(context.colors.primary),
-      border: _border(context.colors.outline.withValues(alpha: 0.4)),
-      enabledBorder: _border(context.colors.outline.withValues(alpha: 0.4)),
     ),
   );
 
