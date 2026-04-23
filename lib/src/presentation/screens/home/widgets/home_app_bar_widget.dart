@@ -37,7 +37,10 @@ class HomeAppBarWidget extends StatelessWidget implements PreferredSizeWidget {
         title: Row(
           spacing: 12.0,
           children: [
-            HomeAvatarWidget(avatar: user?.avatar),
+            HomeAvatarWidget(
+              avatar: user?.avatar,
+              name: user?.name ?? 'Carregando',
+            ),
             HomeGreetingWidget(name: user?.name ?? 'Carregando'),
           ],
         ),
