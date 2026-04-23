@@ -18,7 +18,6 @@ Consome a API REST Django.
 Clean Architecture estrita. Regra de dependência:
 
 ```
-core   ← todos
 domain ← data ← infrastructure
 domain ← presentation
 main   → tudo
@@ -26,27 +25,22 @@ main   → tudo
 
 | Camada            | Depende de                                   | Nunca conhece                       |
 |-------------------|----------------------------------------------|-------------------------------------|
-| `core/`           | nada                                         | nada                                |
-| `domain/`         | `core/`                                      | tudo exceto `core/`                 |
-| `data/`           | `domain/` + `core/` + concretos de `infrastructure/` | `presentation/`, `main/`  |
-| `infrastructure/` | `core/`                                      | `domain/`, `data/`, `presentation/` |
-| `presentation/`   | `domain/` + `core/`                          | `data/`, `infrastructure/`          |
+| `domain/`         | nada                                         | tudo exceto si mesmo                |
+| `data/`           | `domain/` + concretos de `infrastructure/`   | `presentation/`, `main/`            |
+| `infrastructure/` | nada                                         | `domain/`, `data/`, `presentation/` |
+| `presentation/`   | `domain/`                                    | `data/`, `infrastructure/`          |
 | `main/`           | tudo                                         | —                                   |
 
 ---
 
 ## Camadas
 
-### `core/` — Utilitários transversais (sem dependências)
-
-- `either/either.dart` — `Either<L, R>` importado por todas as camadas
-
-`core/` não conhece nada — é a fundação. Qualquer utilitário genuinamente transversal (sem dependência de domínio ou framework) vive aqui.
-
 ### `domain/` — Dart puro, zero Flutter
 
+- `either/either.dart` — `Either<L, R>` importado por todas as camadas (boundary type nas assinaturas de repositório)
 - `failures/failure.dart` — `sealed class Failure` (NetworkFailure, NotFoundFailure, ServerFailure, DatabaseFailure, ValidationFailure, UnknownFailure)
 - `models/` — models de domínio (definir por feature, ex: `ExpenseModel`, `CategoryModel`)
+- `enums/` — enums de domínio por feature (ex: `ExpenseCategoryEnum`, `InsightTypeEnum`)
 - `repositories/` — interfaces abstratas de repositório (ex: `IExpenseRepository`)
 - `validators/validation.dart` — `sealed class ValidationBase<T>` + interface `Validation<T>`
 
