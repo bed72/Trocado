@@ -138,7 +138,15 @@ class BudgetCardSuccessWidget extends StatelessWidget {
     required ColorScheme colors,
   }) => switch (percentage) {
     <= 0.4 => Colors.green,
-    <= 0.6 => Color.lerp(Colors.green, Colors.amber, .9)!,
-    _ => Color.lerp(Colors.amber, colors.error, (percentage - 0.9) / 0.6)!,
+    <= 0.7 => Color.lerp(
+      Colors.green,
+      Colors.orange.shade700,
+      ((percentage - 0.4) / 0.3).clamp(0.0, 1.0),
+    )!,
+    _ => Color.lerp(
+      Colors.orange.shade700,
+      colors.error,
+      ((percentage - 0.7) / 0.3).clamp(0.0, 1.0),
+    )!,
   };
 }

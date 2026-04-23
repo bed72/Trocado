@@ -17,7 +17,7 @@ class BudgetCardLabelWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = overspent ? context.colors.error : _color(context.colors);
-    final (leading, trailing) = _icons();
+    final icon = _icons();
 
     return Container(
       width: .infinity,
@@ -30,9 +30,8 @@ class BudgetCardLabelWidget extends StatelessWidget {
         spacing: 8.0,
         crossAxisAlignment: .center,
         children: [
-          Text(leading, style: context.typography.bodyMedium),
           Expanded(child: _buildMessage(context, color)),
-          Text(trailing, style: context.typography.bodyMedium),
+          Text(icon, style: context.typography.bodyMedium),
         ],
       ),
     );
@@ -50,25 +49,39 @@ class BudgetCardLabelWidget extends StatelessWidget {
           TextSpan(
             style: context.typography.bodySmall?.copyWith(color: color),
             children: [
-              const TextSpan(text: 'Pode gastar '),
+              const TextSpan(
+                text: 'Pode gastar ',
+                style: TextStyle(fontWeight: .w500),
+              ),
               TextSpan(
                 text: budget,
                 style: const TextStyle(fontWeight: .bold),
               ),
-              const TextSpan(text: ' hoje'),
+              const TextSpan(
+                text: ' hoje',
+                style: TextStyle(fontWeight: .w500),
+              ),
             ],
           ),
         );
 
-  (String, String) _icons() => switch (percentage) {
-    <= 0.4 => ('👀​', '🟢'),
-    <= 0.8 => ('👀​', '🟡'),
-    _ => ('👀​', '🔴'),
+  String _icons() => switch (percentage) {
+    <= 0.4 => '🟢',
+    <= 0.8 => '🟠',
+    _ => '🔴',
   };
 
   Color _color(ColorScheme colors) => switch (percentage) {
     <= 0.4 => Colors.green,
-    <= 0.8 => Color.lerp(Colors.green, Colors.amber, (percentage - 0.4) / 0.4)!,
-    _ => Color.lerp(Colors.amber, colors.error, (percentage - 0.9) / 0.6)!,
+    <= 0.7 => Color.lerp(
+      Colors.green,
+      Colors.orange.shade700,
+      ((percentage - 0.4) / 0.3).clamp(0.0, 1.0),
+    )!,
+    _ => Color.lerp(
+      Colors.orange.shade700,
+      colors.error,
+      ((percentage - 0.7) / 0.3).clamp(0.0, 1.0),
+    )!,
   };
 }
