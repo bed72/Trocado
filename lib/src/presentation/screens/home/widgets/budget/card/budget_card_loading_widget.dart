@@ -8,18 +8,17 @@ class BudgetCardLoadingWidget extends StatelessWidget {
   const BudgetCardLoadingWidget({super.key});
 
   @override
-  Widget build(BuildContext context) => Skeletonizer(
-    child: const BudgetCardSuccessWidget(data: _placeholder),
-  );
+  Widget build(BuildContext context) =>
+      Skeletonizer(child: const BudgetCardSuccessWidget(data: _placeholder));
 }
 
 const _placeholder = BudgetCardData(
   overspent: false,
   percentage: 0.05,
-  formattedValue: 'R\$ 18.000,00',
-  formattedRemaining: 'R\$ 16.800,00',
-  formattedOverspent: 'R\$ 0,00',
-  formattedTotalSpent: 'R\$ 1.200,00',
-  formattedDailyBudget: 'R\$ 560,00',
   formattedPercentage: '7',
+  formattedOverspent: 'R\$ 0,00',
+  formattedValue: 'R\$ 18.000,00',
+  formattedDailyBudget: 'R\$ 560,00',
+  formattedRemaining: 'R\$ 16.800,00',
+  formattedTotalSpent: 'R\$ 1.200,00',
 );

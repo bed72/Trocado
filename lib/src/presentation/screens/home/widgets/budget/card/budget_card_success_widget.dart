@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
@@ -123,12 +124,20 @@ class BudgetCardSuccessWidget extends StatelessWidget {
   Widget _buildProgressBar(BuildContext context, Color color) => SizedBox(
     height: 20.0,
     width: .infinity,
-    child: CustomPaint(
-      painter: BudgetProgressBarPainter(
-        fillColor: color,
-        thumbColor: color,
-        percentage: data.percentage.clamp(0.0, 1.0),
-        trackColor: color.withValues(alpha: 0.15),
+    child: Skeleton.replace(
+      replacement: Center(
+        child: Container(
+          height: 16.0,
+          decoration: BoxDecoration(borderRadius: .circular(16.0 / 3)),
+        ),
+      ),
+      child: CustomPaint(
+        painter: BudgetProgressBarPainter(
+          fillColor: color,
+          thumbColor: color,
+          percentage: data.percentage.clamp(0.0, 1.0),
+          trackColor: color.withValues(alpha: 0.15),
+        ),
       ),
     ),
   );
