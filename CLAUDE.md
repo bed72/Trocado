@@ -181,7 +181,11 @@ Cada feature em `lib/src/presentation/screens/<feature>/` é **autocontida**. Um
 - **View-models (data)** comuns vivem em `lib/src/presentation/data/<família>/` — mesma regra de subpasta.
 - **Extensions de apresentação** comuns (ex: `ExpenseCategoryVisualExtension` que mapeia categoria → ícone/cor/label) ficam ao lado do widget compartilhado em `presentation/widgets/<família>/`.
 
-**Exceção única — Locations:** `<feature>/<feature>_location.dart` pode importar outras Locations, mas apenas em outras Locations (tipicamente `home_location.dart` referenciando `SettingsLocation`, `BudgetLocation`, etc. para compor callbacks de navegação). A Location é o único ponto de composição do router — screens **não** importam Locations. Para navegar para outra feature, a screen recebe um `VoidCallback` (ex: `navigateToExpenses`) injetado pela própria Location.
+**Exceções narradas à regra:**
+
+1. **Locations compondo navegação** — `<feature>/<feature>_location.dart` pode importar outras Locations, mas apenas em outras Locations (tipicamente `home_location.dart` referenciando `SettingsLocation`, `BudgetLocation`, etc. para compor callbacks de navegação). Screens **não** importam Locations — recebem `VoidCallback` injetado pela Location para navegar.
+
+2. **`ref.invalidate` cross-feature após mutação** — um notifier de mutação (ex: `ExpenseNotifier`) pode importar providers de leitura de outras features para chamar `ref.invalidate(...)` na ramificação de sucesso. É o idioma canônico do Riverpod para refrescar caches compartilhados. Apenas `ref.invalidate` é permitido nesse import — qualquer outro uso (`ref.watch`, `ref.read(...).notifier.method()`, ler o state, etc.) é violação. Ver seção "Invalidação cross-feature após mutação" abaixo.
 
 ```dart
 // correto — screen não conhece outras features
@@ -205,8 +209,28 @@ context.navigate(ExpensesLocation()); // dentro da HomeScreen ❌
 
 **Checklist antes de importar entre features:**
 1. É `<feature>_location.dart` importando outra `<feature>_location.dart`? → OK.
-2. Caso contrário, o arquivo importado deveria estar em `presentation/widgets/<família>/` ou `presentation/data/<família>/`? → Mova e importe do local comum.
-3. Precisa navegar para outra feature? → Receba um callback pela Location.
+2. É um notifier de mutação importando provider de leitura de outra feature exclusivamente para `ref.invalidate(...)` em caso de sucesso? → OK.
+3. Caso contrário, o arquivo importado deveria estar em `presentation/widgets/<família>/` ou `presentation/data/<família>/`? → Mova e importe do local comum.
+4. Precisa navegar para outra feature? → Receba um callback pela Location.
+
+### Invalidação cross-feature após mutação
+
+Quando uma feature faz uma mutação (criar/editar/deletar) e outras features leem os mesmos dados em cache, o produtor usa o idioma canônico do Riverpod: `ref.invalidate(otherProvider)` na ramificação de sucesso da mutação. Riverpod re-executa `build()` do provider invalidado na próxima leitura (funciona mesmo para `@Riverpod(keepAlive: true)`).
+
+```dart
+// ExpenseNotifier — após criar com sucesso
+data.fold(
+  (failure) => this.state = this.state.copyWith(status: .failure, message: failure.message),
+  (_) {
+    ref.invalidate(expensesProvider);
+    ref.invalidate(activeBudgetProvider);
+    ref.invalidate(recentExpensesProvider);
+    this.state = this.state.copyWith(status: .success);
+  },
+);
+```
+
+**Exceção narrada à regra de encapsulamento de feature**: esse é o **único** caso em que uma feature pode importar símbolos de outra. A regra geral continua — widgets, states, intents, screens, view-models, visual extensions **nunca** atravessam fronteira de feature. `ref.invalidate` de um provider de outra feature é permitido exclusivamente para sincronizar caches após mutação. Qualquer outro uso do provider importado (ex: `ref.watch`, `ref.read(...).notifier.algumMetodo()`) é violação.
 
 ### Widget Previews
 

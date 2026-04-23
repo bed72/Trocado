@@ -3,6 +3,11 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:trocado/src/main/providers/validators_provider.dart';
 import 'package:trocado/src/main/providers/repositories_provider.dart';
 
+import 'package:trocado/src/presentation/screens/home/notifiers/active_budget_notifier.dart';
+import 'package:trocado/src/presentation/screens/home/notifiers/recent_expenses_notifier.dart';
+
+import 'package:trocado/src/presentation/screens/expenses/notifiers/expenses_notifier.dart';
+
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
 import 'package:trocado/src/presentation/screens/expense/notifiers/expense_state.dart';
@@ -58,7 +63,12 @@ final class ExpenseNotifier extends _$ExpenseNotifier {
         status: .failure,
         message: failure.message,
       ),
-      (_) => this.state = this.state.copyWith(status: .success),
+      (_) {
+        ref.invalidate(expensesProvider);
+        ref.invalidate(activeBudgetProvider);
+        ref.invalidate(recentExpensesProvider);
+        this.state = this.state.copyWith(status: .success);
+      },
     );
   }
 }

@@ -71,21 +71,24 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
 
         return RefreshIndicator(
           onRefresh: () async => ref.invalidate(expensesProvider),
-          child: CustomScrollView(
-            controller: _controller,
-            physics: const AlwaysScrollableScrollPhysics(),
-            slivers: [
-              const SliverToBoxAdapter(
-                child: Padding(
-                  padding: .symmetric(horizontal: 16.0, vertical: 8.0),
-                  child: ScreenHeaderWidget(
-                    title: 'Despesas',
-                    description: 'Acompanhe todas as suas despesas.',
+          child: Padding(
+            padding: const .only(bottom: 16.0),
+            child: CustomScrollView(
+              controller: _controller,
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: .symmetric(horizontal: 16.0, vertical: 8.0),
+                    child: ScreenHeaderWidget(
+                      title: 'Despesas',
+                      description: 'Acompanhe todas as suas despesas.',
+                    ),
                   ),
                 ),
-              ),
-              ..._contentSlivers(ref, state),
-            ],
+                ..._contentSlivers(ref, state),
+              ],
+            ),
           ),
         );
       },

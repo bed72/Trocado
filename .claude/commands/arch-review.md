@@ -44,7 +44,9 @@ Revisão de violações de Clean Architecture e SOLID para a feature: $ARGUMENTS
 - [ ] Nunca usar nomes genéricos como `helpers/` para pastas de data
 
 ### Encapsulamento entre features (screens)
-- [ ] Nenhum arquivo em `presentation/screens/<A>/` importa de `presentation/screens/<B>/` — exceto `<A>_location.dart` importando `<B>_location.dart` (compor navegação)
+- [ ] Nenhum arquivo em `presentation/screens/<A>/` importa de `presentation/screens/<B>/`. **Duas exceções narradas**:
+  - `<A>_location.dart` importando `<B>_location.dart` (compor navegação)
+  - notifier de mutação (ex: `ExpenseNotifier`) importando providers de leitura de outras features **apenas** para `ref.invalidate(...)` em caso de sucesso — qualquer outro uso do import (`ref.watch`, `ref.read.notifier.method()`, ler state) é violação
 - [ ] Widgets compartilhados entre features vivem em `presentation/widgets/<família>/` (sempre subpasta por família, nunca arquivos soltos em `widgets/`)
 - [ ] View-models compartilhados entre features vivem em `presentation/data/<família>/`
 - [ ] Screens não importam Locations — recebem `VoidCallback` injetado pela própria Location para navegar

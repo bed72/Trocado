@@ -41,7 +41,7 @@ final class ExpenseNotifierProvider
   }
 }
 
-String _$expenseNotifierHash() => r'a47adca0893b8dcd9432b218d7aac941f3612fe4';
+String _$expenseNotifierHash() => r'76754e67e349fad92d269a89a4015e9663d153d5';
 
 abstract class _$ExpenseNotifier extends $Notifier<ExpenseState> {
   ExpenseState build();
