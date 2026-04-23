@@ -1,20 +1,20 @@
 enum ExpenseCategory {
-  unknown,
   food,
-  transport,
-  shopping,
-  health,
-  housing,
   debt,
+  health,
+  unknown,
+  housing,
+  shopping,
+  transport,
   entertainment;
 
   static ExpenseCategory fromString(String? value) => switch (value) {
     'food' => .food,
-    'transport' => .transport,
-    'shopping' => .shopping,
+    'debt' => .debt,
     'health' => .health,
     'housing' => .housing,
-    'debt' => .debt,
+    'shopping' => .shopping,
+    'transport' => .transport,
     'entertainment' => .entertainment,
     _ => .unknown,
   };

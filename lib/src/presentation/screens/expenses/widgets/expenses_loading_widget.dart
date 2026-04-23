@@ -10,11 +10,14 @@ class ExpensesLoadingWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Skeletonizer(
-    child: ListView.builder(
-      itemCount: 12,
-      itemBuilder: (_, _) => const ExpenseItemWidget(
-        expense: _placeholder,
-        formattedValue: _placeholderValue,
+    child: Column(
+      mainAxisSize: .min,
+      children: .generate(
+        12,
+        (_) => const ExpenseItemWidget(
+          expense: _placeholder,
+          formattedValue: _placeholderValue,
+        ),
       ),
     ),
   );

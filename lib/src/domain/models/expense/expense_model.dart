@@ -14,8 +14,8 @@ final class ExpenseModel extends Equatable {
     required this.id,
     required this.date,
     required this.value,
-    required this.createdAt,
     required this.category,
+    required this.createdAt,
     required this.description,
   });
 

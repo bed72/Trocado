@@ -51,6 +51,7 @@ Notifier → Repository → DataSource → Client
 - [ ] Se houver formatação/transformação por service (moneyService, etc.), criar view-model em `lib/src/presentation/screens/<feature>/data/` (ex: `XxxItemData`) — o notifier injeta o service em `build()` e emite dados prontos no state; screen **nunca** lê service direto via `ref.watch`
 - [ ] Feature é autocontida: não importar widgets/notifiers/states/screens de outra feature. Se um widget ou view-model precisa ser compartilhado, mover para `lib/src/presentation/widgets/<família>/` ou `lib/src/presentation/data/<família>/` (sempre subpasta por família)
 - [ ] Navegação entre features via `VoidCallback` injetado pela Location — screen nunca importa outra `XxxLocation`
+- [ ] Criar previews em `presentation/screens/<feature>/preview/{screens,widgets,mocks}/` usando `@TrocadoPreview(group:, name:)` (de `presentation/preview/trocado_preview.dart`). Mocks reutilizáveis por múltiplas features vão para `presentation/preview/mocks/<família>/`
 - [ ] Rodar `dart run build_runner build --delete-conflicting-outputs`
 
 ### 5. Testes

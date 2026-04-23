@@ -208,6 +208,35 @@ context.navigate(ExpensesLocation()); // dentro da HomeScreen ❌
 2. Caso contrário, o arquivo importado deveria estar em `presentation/widgets/<família>/` ou `presentation/data/<família>/`? → Mova e importe do local comum.
 3. Precisa navegar para outra feature? → Receba um callback pela Location.
 
+### Widget Previews
+
+Toda feature e widget compartilhado pode ter previews usando o Widget Previewer do Flutter (`@Preview`). Nunca usar `@Preview` direto — sempre `@TrocadoPreview` (de `lib/src/presentation/preview/trocado_preview.dart`), que injeta automaticamente `MaterialPreviewWidget` + inicialização do locale `pt_BR` como wrapper. Sem isso, `DateFormat('dd/MM', 'pt_BR')` etc. quebram com `LocaleDataException`.
+
+**Layout por feature** — previews vivem em `preview/` dentro da pasta da feature, com subpastas espelhando a estrutura da feature:
+
+```
+lib/src/presentation/screens/<feature>/
+  preview/
+    screens/    → <screen>_preview.dart     (previews da screen completa)
+    widgets/    → <widget>_preview.dart     (previews de widgets da feature)
+    mocks/      → <type>_mock.dart          (builders de mock específicos da feature)
+```
+
+**Layout commons** — quando um mock ou preview serve mais de uma feature, vai para `lib/src/presentation/preview/`:
+
+```
+lib/src/presentation/preview/
+  trocado_preview.dart         → @TrocadoPreview base annotation
+  widgets/<família>/           → previews de widgets compartilhados (presentation/widgets/<família>/)
+  mocks/<família>/             → mocks cross-feature (ex: expense/expense_item_mock.dart)
+```
+
+**Regras**:
+- Sempre `@TrocadoPreview(group: 'categoria', name: 'cenário')` — o `group` organiza os cards na UI do Previewer; usar português curto (ex: `'Agrupamento'`, `'Scroll'`, `'Tail'`, `'Estados'`).
+- Mock builders públicos e bem nomeados (`expenseItemMock`, `budgetCardMock`), com API posicional-nomeada; usam `DateTime.now().subtract(ago)` para datas relativas ao runtime.
+- Cada função de preview devolve a estrutura "real" (Scaffold, CustomScrollView etc.) — o wrapper do `@TrocadoPreview` já envolve em `MaterialApp`.
+- Previews não leem providers Riverpod direto. Se a tela consome um notifier, extrair a estrutura visual num widget puro (ou um helper `_shell` local) e preview esse widget com estado mockado.
+
 ### Widgets privados em arquivos de widget
 
 Nunca criar uma classe de widget privada dentro de outro arquivo de widget (ex: `class _FooWidget extends StatelessWidget`).

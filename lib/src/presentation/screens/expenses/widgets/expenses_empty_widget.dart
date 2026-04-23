@@ -8,7 +8,7 @@ class ExpensesEmptyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.all(24.0),
+    padding: const .all(24.0),
     child: Column(
       spacing: 12.0,
       mainAxisSize: .min,

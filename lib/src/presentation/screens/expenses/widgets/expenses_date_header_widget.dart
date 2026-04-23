@@ -9,7 +9,7 @@ class ExpensesDateHeaderWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const .symmetric(horizontal: 16.0, vertical: 12.0),
+    padding: const .symmetric(vertical: 12.0, horizontal: 16.0),
     child: Text(
       label,
       style: context.typography.labelMedium?.copyWith(
