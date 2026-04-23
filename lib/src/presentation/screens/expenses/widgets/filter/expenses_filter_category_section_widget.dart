@@ -27,7 +27,7 @@ class ExpensesFilterCategorySectionWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Column(
-    spacing: 12.0,
+    spacing: 8.0,
     crossAxisAlignment: .start,
     children: [
       Text(
@@ -60,7 +60,10 @@ class ExpensesFilterCategorySectionWidget extends StatelessWidget {
       selectedColor: color.withValues(alpha: 0.15),
       backgroundColor: context.colors.surfaceContainerHighest,
       onSelected: (_) => onSelected(isSelected ? null : category),
-      side: BorderSide(color: isSelected ? color : Colors.transparent),
+      shape: RoundedRectangleBorder(
+        borderRadius: context.radius.cornerRadius050,
+        side: BorderSide(color: isSelected ? color : Colors.transparent),
+      ),
     );
   }
 }

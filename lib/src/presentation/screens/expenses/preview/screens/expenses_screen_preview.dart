@@ -57,14 +57,14 @@ Widget _listPreview(
 }) => _shell(
   slivers: [
     ExpensesListWidget(
+      onLoadMore: () {},
+      groups: buildExpenseGroups(items),
       state: ExpensesState(
         items: items,
         nextCursor: nextCursor,
         isLoadingMore: isLoadingMore,
         loadMoreFailure: loadMoreFailure,
       ),
-      groups: buildExpenseGroups(items),
-      onLoadMore: () {},
     ),
   ],
 );
@@ -263,49 +263,40 @@ Widget previewLongList() => _listPreview([
 ]);
 
 @TrocadoPreview(group: 'Tail', name: 'Carregando mais')
-Widget previewTailLoading() => _listPreview(
-  [
-    for (int i = 0; i < 6; i++)
-      expenseItemMock(
-        id: i + 1,
-        ago: Duration(days: i ~/ 2),
-        value: 50.0 + i * 12.0,
-        category: ExpenseCategory.values[i % ExpenseCategory.values.length],
-        description: 'Despesa #${i + 1}',
-      ),
-  ],
-  isLoadingMore: true,
-);
+Widget previewTailLoading() => _listPreview([
+  for (int i = 0; i < 6; i++)
+    expenseItemMock(
+      id: i + 1,
+      ago: Duration(days: i ~/ 2),
+      value: 50.0 + i * 12.0,
+      category: ExpenseCategory.values[i % ExpenseCategory.values.length],
+      description: 'Despesa #${i + 1}',
+    ),
+], isLoadingMore: true);
 
 @TrocadoPreview(group: 'Tail', name: 'Falha ao carregar mais')
-Widget previewTailFailure() => _listPreview(
-  [
-    for (int i = 0; i < 6; i++)
-      expenseItemMock(
-        id: i + 1,
-        ago: Duration(days: i ~/ 2),
-        value: 50.0 + i * 12.0,
-        category: ExpenseCategory.values[i % ExpenseCategory.values.length],
-        description: 'Despesa #${i + 1}',
-      ),
-  ],
-  loadMoreFailure: const ServerFailure(),
-);
+Widget previewTailFailure() => _listPreview([
+  for (int i = 0; i < 6; i++)
+    expenseItemMock(
+      id: i + 1,
+      ago: Duration(days: i ~/ 2),
+      value: 50.0 + i * 12.0,
+      category: ExpenseCategory.values[i % ExpenseCategory.values.length],
+      description: 'Despesa #${i + 1}',
+    ),
+], loadMoreFailure: const ServerFailure());
 
 @TrocadoPreview(group: 'Tail', name: 'Fim da lista')
-Widget previewTailEnd() => _listPreview(
-  [
-    for (int i = 0; i < 4; i++)
-      expenseItemMock(
-        id: i + 1,
-        ago: Duration(days: i),
-        value: 50.0 + i * 12.0,
-        category: ExpenseCategory.values[i % ExpenseCategory.values.length],
-        description: 'Despesa #${i + 1}',
-      ),
-  ],
-  nextCursor: null,
-);
+Widget previewTailEnd() => _listPreview([
+  for (int i = 0; i < 4; i++)
+    expenseItemMock(
+      id: i + 1,
+      ago: Duration(days: i),
+      value: 50.0 + i * 12.0,
+      category: ExpenseCategory.values[i % ExpenseCategory.values.length],
+      description: 'Despesa #${i + 1}',
+    ),
+], nextCursor: null);
 
 @TrocadoPreview(group: 'Estados', name: 'Empty')
 Widget previewEmpty() => _shell(
@@ -315,9 +306,8 @@ Widget previewEmpty() => _shell(
 );
 
 @TrocadoPreview(group: 'Estados', name: 'Loading')
-Widget previewLoading() => _shell(
-  slivers: const [SliverToBoxAdapter(child: ExpensesLoadingWidget())],
-);
+Widget previewLoading() =>
+    _shell(slivers: const [SliverToBoxAdapter(child: ExpensesLoadingWidget())]);
 
 @TrocadoPreview(group: 'Estados', name: 'Failure')
 Widget previewFailure() => _shell(

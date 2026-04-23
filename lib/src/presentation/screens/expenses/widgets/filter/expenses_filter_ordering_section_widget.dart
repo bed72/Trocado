@@ -4,6 +4,8 @@ import 'package:trocado/src/domain/models/expense/expense_ordering.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
+import 'package:trocado/src/presentation/screens/expenses/widgets/filter/expenses_filter_choice_chip_widget.dart';
+
 class ExpensesFilterOrderingSectionWidget extends StatelessWidget {
   final ExpenseOrdering selected;
   final ValueChanged<ExpenseOrdering> onSelected;
@@ -16,7 +18,7 @@ class ExpensesFilterOrderingSectionWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Column(
-    spacing: 12.0,
+    spacing: 8.0,
     crossAxisAlignment: .start,
     children: [
       Text(
@@ -27,24 +29,15 @@ class ExpensesFilterOrderingSectionWidget extends StatelessWidget {
         spacing: 8.0,
         runSpacing: 8.0,
         children: ExpenseOrdering.values
-            .map((ordering) => _chip(context, ordering))
+            .map(
+              (ordering) => ExpensesFilterChoiceChipWidget(
+                label: ordering.label,
+                isSelected: ordering == selected,
+                onTap: () => onSelected(ordering),
+              ),
+            )
             .toList(),
       ),
     ],
   );
-
-  Widget _chip(BuildContext context, ExpenseOrdering ordering) {
-    final isSelected = ordering == selected;
-
-    return ChoiceChip(
-      selected: isSelected,
-      label: Text(ordering.label),
-      onSelected: (_) => onSelected(ordering),
-      backgroundColor: context.colors.surfaceContainerHighest,
-      selectedColor: context.colors.primary.withValues(alpha: 0.15),
-      side: BorderSide(
-        color: isSelected ? context.colors.primary : Colors.transparent,
-      ),
-    );
-  }
 }

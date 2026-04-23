@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
-import 'package:trocado/src/presentation/widgets/formatters/currency_field_formatter.dart';
 import 'package:trocado/src/presentation/widgets/fields/text_field_widget.dart';
+import 'package:trocado/src/presentation/widgets/formatters/currency_field_formatter.dart';
 
 class ExpensesFilterValueSectionWidget extends StatefulWidget {
   final int? minValue;
@@ -62,7 +62,7 @@ class _ExpensesFilterValueSectionWidgetState
 
   @override
   Widget build(BuildContext context) => Column(
-    spacing: 12.0,
+    spacing: 8.0,
     crossAxisAlignment: .start,
     children: [
       Text(

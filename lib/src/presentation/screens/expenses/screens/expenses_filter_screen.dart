@@ -8,8 +8,8 @@ import 'package:trocado/src/presentation/extensions/context_extension.dart';
 import 'package:trocado/src/presentation/widgets/app_bar_widget.dart';
 import 'package:trocado/src/presentation/widgets/go_back_widget.dart';
 import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';
-import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
 import 'package:trocado/src/presentation/widgets/screen_header_widget.dart';
+import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
 
 import 'package:trocado/src/presentation/screens/date_range/screens/date_range_screen.dart';
 
@@ -60,18 +60,24 @@ class _ExpensesFilterScreenState extends State<ExpensesFilterScreen> {
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
-                    spacing: 16.0,
+                    spacing: 8.0,
                     crossAxisAlignment: .start,
                     children: [
                       const ScreenHeaderWidget(
                         title: 'Filtros',
                         description: 'Refine a lista de despesas.',
                       ),
+
+                      const SizedBox(height: 8.0),
+
                       ExpensesFilterCategorySectionWidget(
                         selected: state.draft.category,
                         onSelected: (category) =>
                             notifier.dispatch(CategorySelected(category)),
                       ),
+
+                      const SizedBox(height: 8.0),
+
                       ExpensesFilterPeriodSectionWidget(
                         endDate: state.draft.endDate,
                         startDate: state.draft.startDate,
@@ -89,6 +95,9 @@ class _ExpensesFilterScreenState extends State<ExpensesFilterScreen> {
                           }
                         },
                       ),
+
+                      const SizedBox(height: 8.0),
+
                       ExpensesFilterValueSectionWidget(
                         minValue: state.draft.minValue,
                         maxValue: state.draft.maxValue,
@@ -97,11 +106,16 @@ class _ExpensesFilterScreenState extends State<ExpensesFilterScreen> {
                         onMaxChanged: (value) =>
                             notifier.dispatch(MaxValueChanged(value)),
                       ),
+
+                      const SizedBox(height: 8.0),
+
                       ExpensesFilterOrderingSectionWidget(
                         selected: state.draft.ordering,
                         onSelected: (ordering) =>
                             notifier.dispatch(OrderingSelected(ordering)),
                       ),
+
+                      const SizedBox(height: 8.0),
                     ],
                   ),
                 ),

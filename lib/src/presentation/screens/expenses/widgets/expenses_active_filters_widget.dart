@@ -44,5 +44,9 @@ class ExpensesActiveFiltersWidget extends StatelessWidget {
         onDeleted: () => onRemove(data.kind),
         deleteIconColor: context.colors.onSurfaceVariant,
         backgroundColor: context.colors.surfaceContainerHighest,
+        shape: RoundedRectangleBorder(
+          borderRadius: context.radius.cornerRadius050,
+          side: BorderSide(color: Colors.transparent),
+        ),
       );
 }

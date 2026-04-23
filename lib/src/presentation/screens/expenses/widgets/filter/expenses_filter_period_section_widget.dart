@@ -5,6 +5,8 @@ import 'package:trocado/src/domain/models/expense/expense_period_preset.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
+import 'package:trocado/src/presentation/screens/expenses/widgets/filter/expenses_filter_choice_chip_widget.dart';
+
 class ExpensesFilterPeriodSectionWidget extends StatelessWidget {
   final int? endDate;
   final int? startDate;
@@ -21,7 +23,7 @@ class ExpensesFilterPeriodSectionWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Column(
-    spacing: 12.0,
+    spacing: 8.0,
     crossAxisAlignment: .start,
     children: [
       Text(
@@ -32,28 +34,18 @@ class ExpensesFilterPeriodSectionWidget extends StatelessWidget {
         spacing: 8.0,
         runSpacing: 8.0,
         children: ExpensePeriodPreset.values
-            .map((preset) => _chip(context, preset))
+            .map(
+              (preset) => ExpensesFilterChoiceChipWidget(
+                label: preset.label,
+                isSelected: preset == selectedPreset,
+                onTap: () => onPresetSelected(preset),
+              ),
+            )
             .toList(),
       ),
       if (startDate != null && endDate != null) _summary(context),
     ],
   );
-
-  Widget _chip(BuildContext context, ExpensePeriodPreset preset) {
-    final isSelected = preset == selectedPreset;
-
-    return ChoiceChip(
-      selected: isSelected,
-      showCheckmark: false,
-      label: Text(preset.label),
-      onSelected: (_) => onPresetSelected(preset),
-      backgroundColor: context.colors.surfaceContainerHighest,
-      selectedColor: context.colors.primary.withValues(alpha: 0.15),
-      side: BorderSide(
-        color: isSelected ? context.colors.primary : Colors.transparent,
-      ),
-    );
-  }
 
   Widget _summary(BuildContext context) {
     final format = DateFormat('dd/MM/yyyy', 'pt_BR');

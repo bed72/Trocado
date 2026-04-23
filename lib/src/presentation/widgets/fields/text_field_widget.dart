@@ -139,6 +139,7 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
 
   TextField _buildField(Color color) => TextField(
     focusNode: _focus,
+    cursorHeight: 16.0,
     onChanged: _onChanged,
     enabled: widget.enabled,
     readOnly: widget.readOnly,
@@ -153,12 +154,12 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
     decoration: InputDecoration(
       hintText: widget.hint,
       filled: _isFailure || _isFocused,
-      constraints: const .tightFor(height: 64.0),
+      constraints: const .tightFor(height: 56.0),
       errorBorder: _outlinedBorder(context.colors.error),
       focusedBorder: _outlinedBorder(context.colors.primary),
       border: _outlinedBorder(context.colors.onSurfaceVariant),
       focusedErrorBorder: _outlinedBorder(context.colors.error),
-      contentPadding: const .symmetric(horizontal: 8.0, vertical: 20.0),
+      contentPadding: const .symmetric(horizontal: 12.0, vertical: 16.0),
       hintStyle: context.typography.bodyMedium?.copyWith(
         color: color.withValues(alpha: .6),
       ),

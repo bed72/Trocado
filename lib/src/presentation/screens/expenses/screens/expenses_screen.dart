@@ -109,8 +109,8 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                 ),
                 SliverToBoxAdapter(
                   child: ExpensesActiveFiltersWidget(
-                    chips: state.value?.activeFilterChips ?? const [],
                     onRemove: notifier.removeFilter,
+                    chips: state.value?.activeFilterChips ?? const [],
                   ),
                 ),
                 ..._contentSlivers(notifier, state),

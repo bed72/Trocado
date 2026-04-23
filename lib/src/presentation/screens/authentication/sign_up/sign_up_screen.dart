@@ -131,7 +131,7 @@ class SignUpScreen extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 8.0),
+              const SizedBox(height: 16.0),
 
               Row(
                 mainAxisAlignment: .center,

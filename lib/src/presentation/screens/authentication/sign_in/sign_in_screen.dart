@@ -30,12 +30,17 @@ class SignInScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer(
       builder: (_, ref, _) {
-        ref.listen(signInProvider, (previous, next) => switch (next.status) {
-          .success when previous?.status != .success => onSuccess(),
-          .failure when previous?.status != .failure =>
-            _showToastWidget(context: context, message: next.message),
-          _ => null,
-        });
+        ref.listen(
+          signInProvider,
+          (previous, next) => switch (next.status) {
+            .success when previous?.status != .success => onSuccess(),
+            .failure when previous?.status != .failure => _showToastWidget(
+              context: context,
+              message: next.message,
+            ),
+            _ => null,
+          },
+        );
 
         final state = ref.watch(signInProvider);
         final notifier = ref.read(signInProvider.notifier);
@@ -106,6 +111,8 @@ class SignInScreen extends StatelessWidget {
                 onChanged: (value) => notifier.dispatch(PasswordChanged(value)),
               ),
 
+              const SizedBox(height: 12.0),
+
               Align(
                 alignment: .centerRight,
                 child: ButtonWidget.text(
@@ -125,7 +132,7 @@ class SignInScreen extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 8.0),
+              const SizedBox(height: 16.0),
 
               Row(
                 mainAxisAlignment: .center,
