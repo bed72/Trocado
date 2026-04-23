@@ -393,4 +393,194 @@ void main() {
       expect(data.left.message, 'Invalid limit.');
     });
   });
+
+  group('findAll', () {
+    const page = {
+      'next': 'http://api/v1/expenses?cursor=NEXT123',
+      'previous': null,
+      'results': [
+        {
+          'id': 129,
+          'value': '85.50',
+          'date': '2026-04-15',
+          'category': 'food',
+          'description': 'Cafezinho',
+          'created_at': '2026-04-22T11:45:03.220605-03:00',
+        },
+        {
+          'id': 112,
+          'value': '38.91',
+          'date': '2026-04-30',
+          'category': 'health',
+          'description': 'Farmácia',
+          'created_at': '2026-04-22T11:29:22.128274-03:00',
+        },
+        {
+          'id': 111,
+          'value': '236.66',
+          'date': '2026-04-28',
+          'category': 'shopping',
+          'description': 'Arezzo',
+          'created_at': '2026-04-22T11:29:22.126006-03:00',
+        },
+      ],
+    };
+
+    test(
+      'invokes GET without cursor query param on the first page',
+      () async {
+        when(
+          () => client.get(parameter: any(named: 'parameter')),
+        ).thenAnswer((_) async => const Right(page));
+
+        await repository.findAll();
+
+        final captured = verify(
+          () => client.get(parameter: captureAny(named: 'parameter')),
+        ).captured.single as Requests;
+
+        expect(captured.path, '/api/v1/expenses');
+        expect(captured.query, isNull);
+      },
+    );
+
+    test('invokes GET with cursor query param on subsequent pages', () async {
+      when(
+        () => client.get(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Right(page));
+
+      await repository.findAll(cursor: 'ABC');
+
+      final captured = verify(
+        () => client.get(parameter: captureAny(named: 'parameter')),
+      ).captured.single as Requests;
+
+      expect(captured.path, '/api/v1/expenses');
+      expect(captured.query, {'cursor': 'ABC'});
+    });
+
+    test('returns Right with mapped page model on success', () async {
+      when(
+        () => client.get(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Right(page));
+
+      final data = await repository.findAll();
+
+      expect(data.isRight, isTrue);
+      expect(data.right.expenses, hasLength(3));
+      expect(data.right.expenses.first.id, 129);
+      expect(data.right.expenses.first.category, ExpenseCategory.food);
+      expect(data.right.nextCursor, 'NEXT123');
+      expect(data.right.previousCursor, isNull);
+    });
+
+    test('returns Right with empty page when results is empty', () async {
+      when(() => client.get(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async =>
+            const Right({'next': null, 'previous': null, 'results': []}),
+      );
+
+      final data = await repository.findAll();
+
+      expect(data.isRight, isTrue);
+      expect(data.right.expenses, isEmpty);
+      expect(data.right.nextCursor, isNull);
+      expect(data.right.previousCursor, isNull);
+    });
+
+    test(
+      'returns Right with null cursor when next url has no cursor param',
+      () async {
+        when(() => client.get(parameter: any(named: 'parameter'))).thenAnswer(
+          (_) async => const Right({
+            'next': 'http://api/v1/expenses',
+            'previous': null,
+            'results': [],
+          }),
+        );
+
+        final data = await repository.findAll();
+
+        expect(data.isRight, isTrue);
+        expect(data.right.nextCursor, isNull);
+      },
+    );
+
+    test('returns Left NetworkFailure on network error', () async {
+      when(() => client.get(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'code': 'network_error',
+              'field': 'non_field_errors',
+              'message': 'Network error',
+            },
+          ],
+        }),
+      );
+
+      final data = await repository.findAll();
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<NetworkFailure>());
+    });
+
+    test('returns Left ServerFailure on server error', () async {
+      when(() => client.get(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'code': 'server_error',
+              'field': 'non_field_errors',
+              'message': 'Internal server error',
+            },
+          ],
+        }),
+      );
+
+      final data = await repository.findAll();
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<ServerFailure>());
+    });
+
+    test('returns Left NotFoundFailure on not_found code', () async {
+      when(() => client.get(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'code': 'not_found',
+              'field': 'non_field_errors',
+              'message': 'Not found',
+            },
+          ],
+        }),
+      );
+
+      final data = await repository.findAll();
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<NotFoundFailure>());
+    });
+
+    test('returns Left ValidationFailure on unknown code', () async {
+      when(() => client.get(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'code': 'invalid',
+              'field': 'cursor',
+              'message': 'Invalid cursor.',
+            },
+          ],
+        }),
+      );
+
+      final data = await repository.findAll(cursor: 'BROKEN');
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<ValidationFailure>());
+      expect(data.left.message, 'Invalid cursor.');
+    });
+  });
 }

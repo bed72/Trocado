@@ -159,6 +159,8 @@ dart run build_runner build --delete-conflicting-outputs
 - `switch` no `dispatch` deve ser exhaustivo (cobrir todos os intents)
 - Widget filho (`XxxWidget`) não conhece Riverpod — recebe `onIntent` como callback
 - **Nunca usar `ConsumerWidget`** — sempre `StatelessWidget` + `Consumer` interno na screen
+- **Services nunca são lidos direto na screen** — screen não chama `ref.watch` em providers de service (`moneyServiceProvider`, etc.). O notifier injeta o service em `build()` e emite no `State` um view-model com dados já prontos. View-models de uma única feature vão em `presentation/screens/<feature>/data/`; se forem consumidos por outra feature, promover para `presentation/data/<família>/` (ex: `presentation/data/expense/expense_item_data.dart`).
+- **Features são autocontidas** — notifier/state/intent/widgets de uma feature **nunca** são importados por outra feature. Widgets compartilhados vão em `presentation/widgets/<família>/`; navegação entre features é via `VoidCallback` injetado pela Location. Única exceção: `<feature>_location.dart` pode importar outras Locations.
 - **Nunca criar widget privado dentro de outro arquivo** (`class _XxxWidget extends StatelessWidget`) — extrair para arquivo próprio se não-trivial, ou usar método privado se trivial (ex: `Widget _placeholder() => const SizedBox(...)`)
 - **Dependências via `ref.watch` em `build()`** — repositórios, validators e demais dependências nunca instanciadas diretamente no notifier
 - **Campos de dependência são `late`, nunca `late final`** — `build()` pode ser re-executado na mesma instância quando um `ref.watch` muda; `late final` lançaria erro na segunda execução

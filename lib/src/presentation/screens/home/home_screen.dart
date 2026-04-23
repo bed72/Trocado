@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
 
-import 'package:trocado/src/main/providers/services_provider.dart';
-
 import 'package:trocado/src/presentation/mixins/back_button_mixin.dart';
 
 import 'package:trocado/src/presentation/screens/home/notifiers/user_notifier.dart';
@@ -23,6 +21,7 @@ class HomeScreen extends StatefulWidget {
   final VoidCallback navigateToChat;
   final VoidCallback navigateToExit;
   final VoidCallback navigateToBudget;
+  final VoidCallback navigateToExpenses;
   final VoidCallback navigateToSettings;
   final VoidCallback navigateToNotification;
   final VoidCallback navigateToCreateExpense;
@@ -33,6 +32,7 @@ class HomeScreen extends StatefulWidget {
     required this.navigateToChat,
     required this.navigateToExit,
     required this.navigateToBudget,
+    required this.navigateToExpenses,
     required this.navigateToSettings,
     required this.navigateToNotification,
     required this.navigateToCreateExpense,
@@ -58,7 +58,6 @@ class _HomeScreenState extends State<HomeScreen>
         final insightsState = ref.watch(insightsProvider);
         final budgetState = ref.watch(activeBudgetProvider);
         final recentExpensesState = ref.watch(recentExpensesProvider);
-        final moneyService = ref.watch(moneyServiceProvider);
 
         return Scaffold(
           appBar: HomeAppBarWidget(
@@ -80,7 +79,6 @@ class _HomeScreenState extends State<HomeScreen>
                   child: BudgetCardWidget(
                     state: budgetState,
                     onCreateBudget: widget.navigateToBudget,
-                    format: moneyService.format,
                     onRetry: () => ref.refresh(activeBudgetProvider),
                   ),
                 ),
@@ -90,9 +88,8 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
                 const SizedBox(height: 16.0),
                 RecentExpensesSectionWidget(
-                  moneyService: moneyService,
                   state: recentExpensesState,
-                  onSeeAll: () {},
+                  onSeeAll: widget.navigateToExpenses,
                   onRetry: () => ref.refresh(recentExpensesProvider),
                 ),
               ],

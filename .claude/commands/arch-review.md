@@ -37,6 +37,18 @@ Revisão de violações de Clean Architecture e SOLID para a feature: $ARGUMENTS
 - [ ] Notifier importa apenas interfaces de `domain/` e providers de `main/`
 - [ ] Screen não importa nada de `data/` ou `infrastructure/`
 
+### Services só via notifier — nunca direto na screen
+- [ ] Screen não chama `ref.watch`/`ref.read` em provider de service (`moneyServiceProvider`, `dateFormatterProvider`, etc.)
+- [ ] Notifier injeta o service via `ref.watch(...)` em `build()` e expõe dados prontos no `State` (view-model com valores formatados)
+- [ ] View-models específicos de uma feature vivem em `presentation/screens/<feature>/data/`; view-models compartilhados entre features vivem em `presentation/data/<família>/`
+- [ ] Nunca usar nomes genéricos como `helpers/` para pastas de data
+
+### Encapsulamento entre features (screens)
+- [ ] Nenhum arquivo em `presentation/screens/<A>/` importa de `presentation/screens/<B>/` — exceto `<A>_location.dart` importando `<B>_location.dart` (compor navegação)
+- [ ] Widgets compartilhados entre features vivem em `presentation/widgets/<família>/` (sempre subpasta por família, nunca arquivos soltos em `widgets/`)
+- [ ] View-models compartilhados entre features vivem em `presentation/data/<família>/`
+- [ ] Screens não importam Locations — recebem `VoidCallback` injetado pela própria Location para navegar
+
 ---
 
 ## Checklist — SOLID

@@ -1,28 +1,19 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 
-import 'package:trocado/src/domain/models/budget/active_budget_model.dart';
-
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
+
+import 'package:trocado/src/presentation/screens/home/data/budget_card_data.dart';
 import 'package:trocado/src/presentation/screens/home/widgets/budget/card/budget_card_label_widget.dart';
 import 'package:trocado/src/presentation/screens/home/widgets/budget/card/budget_progress_bar_painter.dart';
 
 class BudgetCardSuccessWidget extends StatelessWidget {
-  final ActiveBudgetModel model;
-  final String Function(double) format;
+  final BudgetCardData data;
 
-  const BudgetCardSuccessWidget({
-    super.key,
-    required this.model,
-    required this.format,
-  });
+  const BudgetCardSuccessWidget({super.key, required this.data});
 
   @override
   Widget build(BuildContext context) {
-    final budget = format(_dailyBudget() / 100);
-    final percentage = model.value > 0 ? model.totalSpent / model.value : 0.0;
-    final color = _gaugeColor(percentage: percentage, colors: context.colors);
+    final color = _gaugeColor(percentage: data.percentage, colors: context.colors);
 
     return Card(
       elevation: 0.0,
@@ -35,18 +26,18 @@ class BudgetCardSuccessWidget extends StatelessWidget {
           crossAxisAlignment: .start,
           children: [
             BudgetCardLabelWidget(
-              budget: budget,
-              percentage: percentage,
-              overspent: model.remaining < 0,
+              budget: data.formattedDailyBudget,
+              percentage: data.percentage,
+              overspent: data.overspent,
             ),
             Row(
               crossAxisAlignment: .start,
               children: [
                 Expanded(child: _buildStats(context, color)),
-                _buildPercentage(context, color, percentage),
+                _buildPercentage(context, color),
               ],
             ),
-            _buildProgressBar(context, color, percentage),
+            _buildProgressBar(context, color),
           ],
         ),
       ),
@@ -68,14 +59,14 @@ class BudgetCardSuccessWidget extends StatelessWidget {
           style: context.typography.bodyMedium,
           children: [
             TextSpan(
-              text: format(model.totalSpent / 100),
+              text: data.formattedTotalSpent,
               style: TextStyle(
                 fontWeight: .w600,
                 color: context.colors.onSurface,
               ),
             ),
             TextSpan(
-              text: ' / ${format(model.value / 100)}',
+              text: ' / ${data.formattedValue}',
               style: TextStyle(color: context.colors.outline),
             ),
           ],
@@ -94,16 +85,16 @@ class BudgetCardSuccessWidget extends StatelessWidget {
         crossAxisAlignment: .baseline,
         children: [
           Text(
-            format(max(0, model.remaining) / 100),
+            data.formattedRemaining,
             style: context.typography.titleSmall?.copyWith(
               color: color,
               fontWeight: .bold,
             ),
           ),
-          if (model.remaining < 0)
+          if (data.overspent)
             Flexible(
               child: Text(
-                'Estourou em ${format(model.remaining.abs() / 100)}',
+                'Estourou em ${data.formattedOverspent}',
                 overflow: .ellipsis,
                 style: context.typography.labelSmall?.copyWith(
                   color: context.colors.error,
@@ -115,15 +106,11 @@ class BudgetCardSuccessWidget extends StatelessWidget {
     ],
   );
 
-  Widget _buildPercentage(
-    BuildContext context,
-    Color color,
-    double percentage,
-  ) => Column(
+  Widget _buildPercentage(BuildContext context, Color color) => Column(
     crossAxisAlignment: .end,
     children: [
       Text(
-        '${(percentage * 100).clamp(0, 100).toStringAsFixed(0)}%',
+        '${data.formattedPercentage}%',
         style: context.typography.headlineSmall?.copyWith(
           color: color,
           fontWeight: .bold,
@@ -133,31 +120,18 @@ class BudgetCardSuccessWidget extends StatelessWidget {
     ],
   );
 
-  Widget _buildProgressBar(
-    BuildContext context,
-    Color color,
-    double percentage,
-  ) => SizedBox(
+  Widget _buildProgressBar(BuildContext context, Color color) => SizedBox(
     height: 20.0,
     width: .infinity,
     child: CustomPaint(
       painter: BudgetProgressBarPainter(
         fillColor: color,
         thumbColor: color,
-        percentage: percentage.clamp(0.0, 1.0),
+        percentage: data.percentage.clamp(0.0, 1.0),
         trackColor: color.withValues(alpha: 0.15),
       ),
     ),
   );
-
-  int _dailyBudget() {
-    final daysRemaining =
-        DateTime.fromMillisecondsSinceEpoch(
-          model.endDate,
-        ).difference(.now()).inDays +
-        1;
-    return (model.remaining / max(1, daysRemaining)).round();
-  }
 
   Color _gaugeColor({
     required double percentage,

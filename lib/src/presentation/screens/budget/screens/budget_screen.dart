@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/material.dart' hide ValueChanged;
 
 import 'package:trocado/src/presentation/widgets/toast_widget.dart';
 import 'package:trocado/src/presentation/widgets/app_bar_widget.dart';
@@ -19,7 +19,7 @@ import 'package:trocado/src/presentation/screens/budget/widgets/fields/budget_de
 
 class BudgetScreen extends StatelessWidget {
   final VoidCallback navigateToDate;
-  final VoidCallback navigateToCalculator;
+  final void Function(void Function(int centValue)) navigateToCalculator;
 
   const BudgetScreen({
     super.key,
@@ -77,7 +77,9 @@ class BudgetScreen extends StatelessWidget {
                         BudgetAmountFieldWidget(
                           value: state.value,
                           failure: state.valueFailure,
-                          navigateTo: navigateToCalculator,
+                          navigateTo: () => navigateToCalculator(
+                            (cent) => notifier.dispatch(ValueChanged(cent)),
+                          ),
                         ),
                         BudgetDescriptionFieldWidget(
                           failure: state.descriptionFailure,

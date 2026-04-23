@@ -4,9 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:trocado/src/core/either/either.dart';
 
+import 'package:trocado/src/main/providers/services_provider.dart';
 import 'package:trocado/src/main/providers/repositories_provider.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
+import 'package:trocado/src/domain/services/money_service.dart';
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
 import 'package:trocado/src/domain/models/expense/expense_category.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
@@ -34,32 +36,50 @@ const _expenses = [
   ),
 ];
 
-ProviderContainer _makeContainer(IExpenseRepository repository) {
+ProviderContainer _makeContainer({
+  required IExpenseRepository repository,
+  required IMoneyService moneyService,
+}) {
   final container = ProviderContainer(
-    overrides: [expenseRepositoryProvider.overrideWithValue(repository)],
+    overrides: [
+      moneyServiceProvider.overrideWithValue(moneyService),
+      expenseRepositoryProvider.overrideWithValue(repository),
+    ],
   );
   addTearDown(container.dispose);
   return container;
 }
 
 void main() {
+  late IMoneyService moneyService;
   late IExpenseRepository repository;
 
   setUp(() {
+    moneyService = MockMoneyService();
     repository = MockExpenseRepository();
+
+    when(() => moneyService.format(any())).thenAnswer(
+      (invocation) => 'R\$ ${invocation.positionalArguments.first}',
+    );
   });
 
   test(
-    'returns AsyncData with expenses when repository returns Right',
+    'returns AsyncData with mapped ExpenseItemData when repository returns Right',
     () async {
       when(
         () => repository.findRecent(limit: any(named: 'limit')),
       ).thenAnswer((_) async => const Right(_expenses));
 
-      final container = _makeContainer(repository);
+      final container = _makeContainer(
+        repository: repository,
+        moneyService: moneyService,
+      );
       final data = await container.read(recentExpensesProvider.future);
 
-      expect(data, equals(_expenses));
+      expect(data, hasLength(2));
+      expect(data.map((item) => item.expense), equals(_expenses));
+      expect(data.first.formattedValue, 'R\$ 85.5');
+      expect(data.last.formattedValue, 'R\$ 38.91');
     },
   );
 
@@ -68,7 +88,10 @@ void main() {
       () => repository.findRecent(limit: any(named: 'limit')),
     ).thenAnswer((_) async => const Right(<ExpenseModel>[]));
 
-    final container = _makeContainer(repository);
+    final container = _makeContainer(
+      repository: repository,
+      moneyService: moneyService,
+    );
     final data = await container.read(recentExpensesProvider.future);
 
     expect(data, isEmpty);
@@ -79,7 +102,10 @@ void main() {
       () => repository.findRecent(limit: any(named: 'limit')),
     ).thenAnswer((_) async => const Right(_expenses));
 
-    final container = _makeContainer(repository);
+    final container = _makeContainer(
+      repository: repository,
+      moneyService: moneyService,
+    );
     await container.read(recentExpensesProvider.future);
 
     verify(() => repository.findRecent()).called(1);
@@ -92,7 +118,10 @@ void main() {
         () => repository.findRecent(limit: any(named: 'limit')),
       ).thenAnswer((_) async => const Left(NetworkFailure()));
 
-      final container = _makeContainer(repository);
+      final container = _makeContainer(
+        repository: repository,
+        moneyService: moneyService,
+      );
       container.listen(recentExpensesProvider, (_, _) {});
       container.read(recentExpensesProvider);
 
@@ -113,7 +142,10 @@ void main() {
         () => repository.findRecent(limit: any(named: 'limit')),
       ).thenAnswer((_) async => const Left(ServerFailure()));
 
-      final container = _makeContainer(repository);
+      final container = _makeContainer(
+        repository: repository,
+        moneyService: moneyService,
+      );
       container.listen(recentExpensesProvider, (_, _) {});
       container.read(recentExpensesProvider);
 

@@ -13,7 +13,7 @@ part of 'active_budget_notifier.dart';
 final activeBudgetProvider = ActiveBudgetNotifierProvider._();
 
 final class ActiveBudgetNotifierProvider
-    extends $AsyncNotifierProvider<ActiveBudgetNotifier, ActiveBudgetModel?> {
+    extends $AsyncNotifierProvider<ActiveBudgetNotifier, BudgetCardData?> {
   ActiveBudgetNotifierProvider._()
     : super(
         from: null,
@@ -34,21 +34,19 @@ final class ActiveBudgetNotifierProvider
 }
 
 String _$activeBudgetNotifierHash() =>
-    r'a4081be7ebe4b387c4ed3115f88c0bdddef20f00';
+    r'6ab6b06b935a77ff9c995ab43d8d0d88d5252012';
 
-abstract class _$ActiveBudgetNotifier
-    extends $AsyncNotifier<ActiveBudgetModel?> {
-  FutureOr<ActiveBudgetModel?> build();
+abstract class _$ActiveBudgetNotifier extends $AsyncNotifier<BudgetCardData?> {
+  FutureOr<BudgetCardData?> build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref =
-        this.ref as $Ref<AsyncValue<ActiveBudgetModel?>, ActiveBudgetModel?>;
+    final ref = this.ref as $Ref<AsyncValue<BudgetCardData?>, BudgetCardData?>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<AsyncValue<ActiveBudgetModel?>, ActiveBudgetModel?>,
-              AsyncValue<ActiveBudgetModel?>,
+              AnyNotifier<AsyncValue<BudgetCardData?>, BudgetCardData?>,
+              AsyncValue<BudgetCardData?>,
               Object?,
               Object?
             >;

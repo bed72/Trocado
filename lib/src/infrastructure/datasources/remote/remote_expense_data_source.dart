@@ -20,6 +20,8 @@ abstract interface class IRemoteExpenseDataSource {
   Future<Either<FailureResponse, ExpensesResponse>> findRecent({
     required int limit,
   });
+
+  Future<Either<FailureResponse, ExpensesResponse>> findAll({String? cursor});
 }
 
 final class RemoteExpenseDataSource implements IRemoteExpenseDataSource {
@@ -53,6 +55,20 @@ final class RemoteExpenseDataSource implements IRemoteExpenseDataSource {
   }) async {
     final response = await _client.get(
       parameter: Requests(EndpointKey.expenses.path),
+    );
+
+    return response.either(FailureResponse.fromJson, ExpensesResponse.fromJson);
+  }
+
+  @override
+  Future<Either<FailureResponse, ExpensesResponse>> findAll({
+    String? cursor,
+  }) async {
+    final response = await _client.get(
+      parameter: Requests(
+        EndpointKey.expenses.path,
+        query: cursor == null ? null : {'cursor': cursor},
+      ),
     );
 
     return response.either(FailureResponse.fromJson, ExpensesResponse.fromJson);

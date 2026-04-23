@@ -2,20 +2,19 @@ import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
-import 'package:trocado/src/domain/services/money_service.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 import 'package:trocado/src/presentation/widgets/icons/background_icon_widget.dart';
-import 'package:trocado/src/presentation/screens/home/widgets/recent_expenses/expense_category_visual_extension.dart';
+import 'package:trocado/src/presentation/widgets/expense/expense_category_visual_extension.dart';
 
 class ExpenseItemWidget extends StatelessWidget {
   final ExpenseModel expense;
-  final IMoneyService moneyService;
+  final String formattedValue;
 
   const ExpenseItemWidget({
     super.key,
     required this.expense,
-    required this.moneyService,
+    required this.formattedValue,
   });
 
   @override
@@ -68,7 +67,7 @@ class ExpenseItemWidget extends StatelessWidget {
             crossAxisAlignment: .end,
             children: [
               Text(
-                moneyService.format(expense.value / 100),
+                formattedValue,
                 style: context.typography.bodyMedium?.copyWith(
                   fontWeight: .w600,
                   color: context.colors.onSurface,

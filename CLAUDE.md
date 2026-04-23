@@ -123,6 +123,91 @@ Widgets são `StatelessWidget` puros. Apenas screens usam `Consumer` para acessa
 
 **Regra:** nunca usar `ConsumerWidget`. Sempre `StatelessWidget` + `Consumer` interno:
 
+### Services nunca são lidos direto na screen
+
+Screens **nunca** chamam `ref.watch`/`ref.read` em providers de service (`moneyServiceProvider`, `dateFormatterProvider`, etc.). O notifier é a única porta: injeta o service via `ref.watch(...)` em `build()` e emite no `State` um view-model com os dados já prontos (valores formatados, labels, etc.). A screen consome apenas o estado.
+
+View-models de apresentação vivem em `lib/src/presentation/screens/<feature>/data/` quando são específicos da feature (ex: `BudgetCardData`). Se o mesmo view-model for consumido por mais de uma feature, promover para `lib/src/presentation/data/<família>/` (ex: `presentation/data/expense/expense_item_data.dart`). Nunca use nomes genéricos como `helpers/`.
+
+```dart
+// correto — notifier traz o dado formatado; screen só lê o state
+final class ExpenseItemData extends Equatable {
+  final ExpenseModel expense;
+  final String formattedValue;
+  const ExpenseItemData({required this.expense, required this.formattedValue});
+}
+
+@Riverpod(keepAlive: true)
+final class ExpensesNotifier extends _$ExpensesNotifier {
+  late IMoneyService _moneyService;
+  late IExpenseRepository _repository;
+
+  @override
+  Future<ExpensesState> build() async {
+    _moneyService = ref.watch(moneyServiceProvider);
+    _repository = ref.watch(expenseRepositoryProvider);
+    ...
+  }
+
+  ExpenseItemData _toItem(ExpenseModel expense) => ExpenseItemData(
+    expense: expense,
+    formattedValue: _moneyService.format(expense.value / 100),
+  );
+}
+
+class ExpensesScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => Consumer(
+    builder: (_, ref, _) {
+      final state = ref.watch(expensesProvider); // só o estado
+      return ...;
+    },
+  );
+}
+
+// proibido — screen lê service direto
+final moneyService = ref.watch(moneyServiceProvider); // ❌
+```
+
+
+
+### Encapsulamento entre features (screens)
+
+Cada feature em `lib/src/presentation/screens/<feature>/` é **autocontida**. Uma feature **nunca** importa widgets, notifiers, states, view-models, intents ou screens de outra feature. Essa é uma regra dura — qualquer tentativa de `import 'package:trocado/src/presentation/screens/<outra>/...'` fora das exceções abaixo é uma violação.
+
+**Como compartilhar entre features:**
+
+- **Widgets** comuns vivem em `lib/src/presentation/widgets/<família>/` — sempre com subpasta por família (`expense/`, `icons/`, `buttons/`, `fields/`, etc.), nunca arquivos soltos na raiz de `widgets/`.
+- **View-models (data)** comuns vivem em `lib/src/presentation/data/<família>/` — mesma regra de subpasta.
+- **Extensions de apresentação** comuns (ex: `ExpenseCategoryVisualExtension` que mapeia categoria → ícone/cor/label) ficam ao lado do widget compartilhado em `presentation/widgets/<família>/`.
+
+**Exceção única — Locations:** `<feature>/<feature>_location.dart` pode importar outras Locations, mas apenas em outras Locations (tipicamente `home_location.dart` referenciando `SettingsLocation`, `BudgetLocation`, etc. para compor callbacks de navegação). A Location é o único ponto de composição do router — screens **não** importam Locations. Para navegar para outra feature, a screen recebe um `VoidCallback` (ex: `navigateToExpenses`) injetado pela própria Location.
+
+```dart
+// correto — screen não conhece outras features
+class HomeScreen extends StatefulWidget {
+  final VoidCallback navigateToExpenses;
+  const HomeScreen({super.key, required this.navigateToExpenses});
+}
+
+// HomeLocation compõe a navegação
+final class HomeLocation extends Location {
+  @override
+  LocationBuilder? get builder => (context) => HomeScreen(
+    navigateToExpenses: () => context.navigate(ExpensesLocation()),
+  );
+}
+
+// proibido — screen importa Location de outra feature
+import 'package:trocado/src/presentation/screens/expenses/expenses_location.dart'; // ❌
+context.navigate(ExpensesLocation()); // dentro da HomeScreen ❌
+```
+
+**Checklist antes de importar entre features:**
+1. É `<feature>_location.dart` importando outra `<feature>_location.dart`? → OK.
+2. Caso contrário, o arquivo importado deveria estar em `presentation/widgets/<família>/` ou `presentation/data/<família>/`? → Mova e importe do local comum.
+3. Precisa navegar para outra feature? → Receba um callback pela Location.
+
 ### Widgets privados em arquivos de widget
 
 Nunca criar uma classe de widget privada dentro de outro arquivo de widget (ex: `class _FooWidget extends StatelessWidget`).

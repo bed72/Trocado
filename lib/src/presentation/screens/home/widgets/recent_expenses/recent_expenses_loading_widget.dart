@@ -1,34 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
-import 'package:trocado/src/domain/services/money_service.dart';
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
 
-import 'package:trocado/src/presentation/screens/home/widgets/recent_expenses/expense_item_widget.dart';
+import 'package:trocado/src/presentation/widgets/expense/expense_item_widget.dart';
 
 class RecentExpensesLoadingWidget extends StatelessWidget {
-  final IMoneyService moneyService;
-
-  const RecentExpensesLoadingWidget({super.key, required this.moneyService});
+  const RecentExpensesLoadingWidget({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Skeletonizer(
-      child: Column(
-        mainAxisSize: .min,
-        children: List.generate(
-          3,
-          (_) => ExpenseItemWidget(
-            expense: _placeholder,
-            moneyService: moneyService,
-          ),
+  Widget build(BuildContext context) => Skeletonizer(
+    child: Column(
+      mainAxisSize: .min,
+      children: .generate(
+        3,
+        (_) => const ExpenseItemWidget(
+          expense: _placeholder,
+          formattedValue: _placeholderValue,
         ),
       ),
-    );
-  }
+    ),
+  );
 }
 
-final _placeholder = ExpenseModel(
+const _placeholderValue = 'R\$ 000,00';
+
+const _placeholder = ExpenseModel(
   id: 0,
   date: 0,
   value: 0,

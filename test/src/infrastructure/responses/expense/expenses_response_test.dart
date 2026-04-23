@@ -38,12 +38,42 @@ void main() {
       expect(response.expenses.last.category, 'health');
     });
 
-    test('ignores next and previous fields', () {
-      expect(() => ExpensesResponse.fromJson(_json), returnsNormally);
+    test('exposes next as the raw url when provided', () {
+      final response = ExpensesResponse.fromJson(_json);
+
+      expect(response.next, 'http://api/expenses?cursor=abc');
+    });
+
+    test('exposes previous as null when the backend omits it', () {
+      final response = ExpensesResponse.fromJson(_json);
+
+      expect(response.previous, isNull);
+    });
+
+    test('exposes both cursors when both are provided', () {
+      final response = ExpensesResponse.fromJson(const {
+        'next': 'http://api/expenses?cursor=ABC',
+        'previous': 'http://api/expenses?cursor=XYZ',
+        'results': [],
+      });
+
+      expect(response.next, 'http://api/expenses?cursor=ABC');
+      expect(response.previous, 'http://api/expenses?cursor=XYZ');
+    });
+
+    test('exposes both cursors as null when both are null', () {
+      final response = ExpensesResponse.fromJson(const {
+        'next': null,
+        'previous': null,
+        'results': [],
+      });
+
+      expect(response.next, isNull);
+      expect(response.previous, isNull);
     });
 
     test('parses empty results array into empty list', () {
-      final response = ExpensesResponse.fromJson({
+      final response = ExpensesResponse.fromJson(const {
         'next': null,
         'previous': null,
         'results': [],

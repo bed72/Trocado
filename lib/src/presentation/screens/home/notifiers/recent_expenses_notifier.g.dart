@@ -13,7 +13,8 @@ part of 'recent_expenses_notifier.dart';
 final recentExpensesProvider = RecentExpensesNotifierProvider._();
 
 final class RecentExpensesNotifierProvider
-    extends $AsyncNotifierProvider<RecentExpensesNotifier, List<ExpenseModel>> {
+    extends
+        $AsyncNotifierProvider<RecentExpensesNotifier, List<ExpenseItemData>> {
   RecentExpensesNotifierProvider._()
     : super(
         from: null,
@@ -34,21 +35,25 @@ final class RecentExpensesNotifierProvider
 }
 
 String _$recentExpensesNotifierHash() =>
-    r'b50c75fa8598d4869b22f11328745b1c6b2b0f5b';
+    r'88c876013973ced9283ef344e1db6ee0d2ca1715';
 
 abstract class _$RecentExpensesNotifier
-    extends $AsyncNotifier<List<ExpenseModel>> {
-  FutureOr<List<ExpenseModel>> build();
+    extends $AsyncNotifier<List<ExpenseItemData>> {
+  FutureOr<List<ExpenseItemData>> build();
   @$mustCallSuper
   @override
   void runBuild() {
     final ref =
-        this.ref as $Ref<AsyncValue<List<ExpenseModel>>, List<ExpenseModel>>;
+        this.ref
+            as $Ref<AsyncValue<List<ExpenseItemData>>, List<ExpenseItemData>>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<AsyncValue<List<ExpenseModel>>, List<ExpenseModel>>,
-              AsyncValue<List<ExpenseModel>>,
+              AnyNotifier<
+                AsyncValue<List<ExpenseItemData>>,
+                List<ExpenseItemData>
+              >,
+              AsyncValue<List<ExpenseItemData>>,
               Object?,
               Object?
             >;

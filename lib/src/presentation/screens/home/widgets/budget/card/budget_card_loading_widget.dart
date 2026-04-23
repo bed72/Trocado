@@ -1,28 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
-import 'package:trocado/src/domain/models/budget/active_budget_model.dart';
-
+import 'package:trocado/src/presentation/screens/home/data/budget_card_data.dart';
 import 'package:trocado/src/presentation/screens/home/widgets/budget/card/budget_card_success_widget.dart';
 
 class BudgetCardLoadingWidget extends StatelessWidget {
   const BudgetCardLoadingWidget({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Skeletonizer(
-      child: BudgetCardSuccessWidget(
-        format: (_) => 'R\$ 0,00',
-        model: const ActiveBudgetModel(
-          id: 0,
-          endDate: 0,
-          startDate: 0,
-          value: 1800000,
-          remaining: 1680000,
-          totalSpent: 120000,
-          description: 'Orçamento do Mês',
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Skeletonizer(
+    child: const BudgetCardSuccessWidget(data: _placeholder),
+  );
 }
+
+const _placeholder = BudgetCardData(
+  overspent: false,
+  percentage: 0.05,
+  formattedValue: 'R\$ 18.000,00',
+  formattedRemaining: 'R\$ 16.800,00',
+  formattedOverspent: 'R\$ 0,00',
+  formattedTotalSpent: 'R\$ 1.200,00',
+  formattedDailyBudget: 'R\$ 560,00',
+  formattedPercentage: '7',
+);

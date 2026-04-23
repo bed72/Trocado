@@ -19,7 +19,9 @@ final class BudgetLocation extends Location {
       (context) => screenPage(
         BudgetScreen(
           navigateToDate: () => context.navigate(BudgetDateLocation()),
-          navigateToCalculator: () => context.navigate(CalculatorLocation()),
+          navigateToCalculator: (onValueConfirmed) => context.navigate(
+            CalculatorLocation(onValueConfirmed: onValueConfirmed),
+          ),
         ),
       );
 }

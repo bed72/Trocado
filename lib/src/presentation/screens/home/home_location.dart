@@ -4,6 +4,7 @@ import 'package:trocado/app_route.dart';
 
 import 'package:trocado/src/presentation/screens/exit/exit_location.dart';
 import 'package:trocado/src/presentation/screens/expense/locations/expense_location.dart';
+import 'package:trocado/src/presentation/screens/expenses/expenses_location.dart';
 
 import 'package:trocado/src/presentation/actions/quick_action.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
@@ -35,6 +36,7 @@ final class HomeLocation extends Location {
           context.navigate(ExpenseLocation(id: id)),
       navigateToExit: () => context.navigate(ExitLocation()),
       navigateToBudget: () => context.navigate(BudgetLocation()),
+      navigateToExpenses: () => context.navigate(ExpensesLocation()),
       navigateToSettings: () => context.navigate(SettingsLocation()),
       navigateToCreateExpense: () => context.navigate(ExpenseLocation()),
       navigateToNotification: () => context.navigate(NotificationsLocation()),

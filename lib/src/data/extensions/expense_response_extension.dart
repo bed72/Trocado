@@ -1,6 +1,7 @@
 import 'package:intl/intl.dart';
 
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
+import 'package:trocado/src/domain/models/expense/expenses_page_model.dart';
 
 import 'package:trocado/src/infrastructure/clients/http/responses/expense/expense_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/expense/expenses_response.dart';
@@ -21,5 +22,17 @@ extension ExpensesResponseExtension on ExpensesResponse {
     final items = expenses.map((item) => item.toModel()).toList();
 
     return limit == null ? items : items.take(limit).toList();
+  }
+
+  ExpensesPageModel toPageModel() => ExpensesPageModel(
+    expenses: expenses.map((item) => item.toModel()).toList(),
+    nextCursor: _cursorFrom(next),
+    previousCursor: _cursorFrom(previous),
+  );
+
+  String? _cursorFrom(String? url) {
+    if (url == null) return null;
+
+    return Uri.parse(url).queryParameters['cursor'];
   }
 }
