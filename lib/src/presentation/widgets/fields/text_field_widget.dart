@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 import 'package:trocado/src/presentation/widgets/buttons/icon_button_widget.dart';
@@ -21,6 +22,7 @@ class TextFieldWidget extends StatefulWidget {
   final ValueChanged<String>? onChanged;
   final TextEditingController? controller;
   final ValueChanged<bool>? onFocusChanged;
+  final List<TextInputFormatter>? inputFormatters;
 
   const TextFieldWidget({
     super.key,
@@ -38,6 +40,7 @@ class TextFieldWidget extends StatefulWidget {
     this.enabled = true,
     this.readOnly = false,
     this.absorbing = false,
+    this.inputFormatters,
     this.onTrailingIconTap,
     this.obscureText = false,
     this.hideTrailingIconWhenEmpty = false,
@@ -143,6 +146,7 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
     obscureText: widget.obscureText,
     keyboardType: widget.keyboardType,
     textInputAction: widget.inputAction,
+    inputFormatters: widget.inputFormatters,
     controller: widget.controller ?? _controller,
     maxLines: widget.obscureText ? 1 : widget.maxLines,
     style: context.typography.bodyMedium?.copyWith(color: color),

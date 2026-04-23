@@ -5,9 +5,16 @@ import 'package:trocado/src/presentation/extensions/context_extension.dart';
 class AppBarWidget extends StatelessWidget implements PreferredSizeWidget {
   final String? title;
   final Widget? leading;
+  final Widget? titleWidget;
   final List<Widget>? actions;
 
-  const AppBarWidget({super.key, this.title, this.leading, this.actions});
+  const AppBarWidget({
+    super.key,
+    this.title,
+    this.leading,
+    this.actions,
+    this.titleWidget,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +26,8 @@ class AppBarWidget extends StatelessWidget implements PreferredSizeWidget {
         spacing: 16.0,
         children: [
           ?leading,
-          if (title != null)
+          if (titleWidget != null) Expanded(child: titleWidget!),
+          if (titleWidget == null && title != null)
             Text(
               title!,
               style: context.typography.titleLarge?.copyWith(

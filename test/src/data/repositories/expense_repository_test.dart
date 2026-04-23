@@ -7,6 +7,8 @@ import 'package:trocado/src/data/repositories/expense_repository.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/models/expense/expense_category.dart';
+import 'package:trocado/src/domain/models/expense/expense_ordering.dart';
+import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
 import 'package:trocado/src/infrastructure/clients/http/http_client.dart';
@@ -427,7 +429,7 @@ void main() {
     };
 
     test(
-      'invokes GET without cursor query param on the first page',
+      'invokes GET without any query suffix on the first page',
       () async {
         when(
           () => client.get(parameter: any(named: 'parameter')),
@@ -444,7 +446,7 @@ void main() {
       },
     );
 
-    test('invokes GET with cursor query param on subsequent pages', () async {
+    test('embeds cursor into path on subsequent pages', () async {
       when(
         () => client.get(parameter: any(named: 'parameter')),
       ).thenAnswer((_) async => const Right(page));
@@ -455,8 +457,55 @@ void main() {
         () => client.get(parameter: captureAny(named: 'parameter')),
       ).captured.single as Requests;
 
-      expect(captured.path, '/api/v1/expenses');
-      expect(captured.query, {'cursor': 'ABC'});
+      expect(captured.path, '/api/v1/expenses?cursor=ABC');
+      expect(captured.query, isNull);
+    });
+
+    test('embeds RQL fragments and ordering when filter is set', () async {
+      when(
+        () => client.get(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Right(page));
+
+      final filter = ExpenseFilterModel(
+        category: ExpenseCategory.food,
+        minValue: 10000,
+        ordering: ExpenseOrdering.valueDesc,
+      );
+
+      await repository.findAll(filter: filter);
+
+      final captured = verify(
+        () => client.get(parameter: captureAny(named: 'parameter')),
+      ).captured.single as Requests;
+
+      expect(
+        captured.path,
+        '/api/v1/expenses?'
+        'eq(category,food)'
+        '&ge(value,100.00)'
+        '&ordering=-value'
+        '&page_size=20',
+      );
+      expect(captured.query, isNull);
+    });
+
+    test('appends cursor after filter fragments when both are set', () async {
+      when(
+        () => client.get(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Right(page));
+
+      final filter = const ExpenseFilterModel.empty().copyWith(
+        category: ExpenseCategory.food,
+      );
+
+      await repository.findAll(filter: filter, cursor: 'NEXT');
+
+      final captured = verify(
+        () => client.get(parameter: captureAny(named: 'parameter')),
+      ).captured.single as Requests;
+
+      expect(captured.path, endsWith('&cursor=NEXT'));
+      expect(captured.path, contains('eq(category,food)'));
     });
 
     test('returns Right with mapped page model on success', () async {

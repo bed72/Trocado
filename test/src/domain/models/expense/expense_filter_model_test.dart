@@ -1,0 +1,96 @@
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:trocado/src/domain/models/expense/expense_category.dart';
+import 'package:trocado/src/domain/models/expense/expense_ordering.dart';
+import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
+
+void main() {
+  group('ExpenseFilterModel', () {
+    test('empty() is fully unfiltered', () {
+      const filter = ExpenseFilterModel.empty();
+
+      expect(filter.category, isNull);
+      expect(filter.startDate, isNull);
+      expect(filter.endDate, isNull);
+      expect(filter.minValue, isNull);
+      expect(filter.maxValue, isNull);
+      expect(filter.description, isEmpty);
+      expect(filter.ordering, ExpenseOrdering.dateDesc);
+      expect(filter.isEmpty, isTrue);
+    });
+
+    test('isEmpty is false when any field is set', () {
+      expect(
+        const ExpenseFilterModel.empty()
+            .copyWith(category: ExpenseCategory.food)
+            .isEmpty,
+        isFalse,
+      );
+      expect(
+        const ExpenseFilterModel.empty()
+            .copyWith(startDate: 1)
+            .isEmpty,
+        isFalse,
+      );
+      expect(
+        const ExpenseFilterModel.empty()
+            .copyWith(ordering: ExpenseOrdering.valueDesc)
+            .isEmpty,
+        isFalse,
+      );
+      expect(
+        const ExpenseFilterModel.empty()
+            .copyWith(description: 'hello')
+            .isEmpty,
+        isFalse,
+      );
+    });
+
+    test('copyWith overrides fields individually', () {
+      const filter = ExpenseFilterModel.empty();
+
+      final updated = filter.copyWith(
+        category: ExpenseCategory.food,
+        minValue: 1000,
+      );
+
+      expect(updated.category, ExpenseCategory.food);
+      expect(updated.minValue, 1000);
+      expect(updated.maxValue, isNull);
+    });
+
+    test('copyWith clears nullable fields explicitly', () {
+      const filter = ExpenseFilterModel(
+        category: ExpenseCategory.food,
+        startDate: 100,
+        endDate: 200,
+        minValue: 1000,
+        maxValue: 5000,
+      );
+
+      final cleared = filter.copyWith(
+        clearCategory: true,
+        clearStartDate: true,
+        clearEndDate: true,
+        clearMinValue: true,
+        clearMaxValue: true,
+      );
+
+      expect(cleared.category, isNull);
+      expect(cleared.startDate, isNull);
+      expect(cleared.endDate, isNull);
+      expect(cleared.minValue, isNull);
+      expect(cleared.maxValue, isNull);
+    });
+
+    test('props cover every field', () {
+      const a = ExpenseFilterModel.empty();
+      final b = a.copyWith(description: 'x');
+      final c = a.copyWith(ordering: ExpenseOrdering.valueAsc);
+
+      expect(a == b, isFalse);
+      expect(a == c, isFalse);
+      expect(b == b.copyWith(), isTrue);
+    });
+  });
+}

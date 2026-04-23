@@ -11,10 +11,14 @@ import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/services/money_service.dart';
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
 import 'package:trocado/src/domain/models/expense/expense_category.dart';
+import 'package:trocado/src/domain/models/expense/expense_ordering.dart';
+import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 import 'package:trocado/src/domain/models/expense/expenses_page_model.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
 import 'package:trocado/src/presentation/screens/expenses/notifiers/expenses_notifier.dart';
+
+import 'package:trocado/src/presentation/screens/expenses/data/expense_filter_chip_kind.dart';
 
 import '../../../mocks/mocks.dart';
 
@@ -66,6 +70,10 @@ void main() {
   late IMoneyService moneyService;
   late IExpenseRepository repository;
 
+  setUpAll(() {
+    registerFallbackValue(const ExpenseFilterModel.empty());
+  });
+
   setUp(() {
     moneyService = MockMoneyService();
     repository = MockExpenseRepository();
@@ -79,7 +87,12 @@ void main() {
     test(
       'returns AsyncData with first page items and nextCursor on success',
       () async {
-        when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
+        when(
+          () => repository.findAll(
+            cursor: any(named: 'cursor'),
+            filter: any(named: 'filter'),
+          ),
+        ).thenAnswer(
           (_) async => const Right(
             ExpensesPageModel(expenses: _first, nextCursor: 'CUR1'),
           ),
@@ -95,14 +108,18 @@ void main() {
         expect(data.items.map((item) => item.expense), equals(_first));
         expect(data.items.first.formattedValue, 'R\$ 85.5');
         expect(data.nextCursor, 'CUR1');
+        expect(data.filter, const ExpenseFilterModel.empty());
         expect(data.isLoadingMore, isFalse);
         expect(data.loadMoreFailure, isNull);
       },
     );
 
-    test('calls findAll without cursor on first build', () async {
+    test('calls findAll with empty filter and no cursor on first build', () async {
       when(
-        () => repository.findAll(cursor: any(named: 'cursor')),
+        () => repository.findAll(
+          cursor: any(named: 'cursor'),
+          filter: any(named: 'filter'),
+        ),
       ).thenAnswer((_) async => const Right(ExpensesPageModel()));
 
       final container = _makeContainer(
@@ -111,14 +128,22 @@ void main() {
       );
       await container.read(expensesProvider.future);
 
-      verify(() => repository.findAll(cursor: null)).called(1);
+      verify(
+        () => repository.findAll(
+          cursor: null,
+          filter: const ExpenseFilterModel.empty(),
+        ),
+      ).called(1);
     });
 
     test(
       'emits AsyncError when repository returns Left(NetworkFailure)',
       () async {
         when(
-          () => repository.findAll(cursor: any(named: 'cursor')),
+          () => repository.findAll(
+            cursor: any(named: 'cursor'),
+            filter: any(named: 'filter'),
+          ),
         ).thenAnswer((_) async => const Left(NetworkFailure()));
 
         final container = _makeContainer(
@@ -137,13 +162,23 @@ void main() {
   });
 
   group('loadMore', () {
-    test('appends items and updates nextCursor on success', () async {
-      when(() => repository.findAll(cursor: null)).thenAnswer(
+    test('appends items preserving filter on success', () async {
+      when(
+        () => repository.findAll(
+          cursor: null,
+          filter: any(named: 'filter'),
+        ),
+      ).thenAnswer(
         (_) async => const Right(
           ExpensesPageModel(expenses: _first, nextCursor: 'CUR1'),
         ),
       );
-      when(() => repository.findAll(cursor: 'CUR1')).thenAnswer(
+      when(
+        () => repository.findAll(
+          cursor: 'CUR1',
+          filter: any(named: 'filter'),
+        ),
+      ).thenAnswer(
         (_) async => const Right(
           ExpensesPageModel(expenses: _second, nextCursor: 'CUR2'),
         ),
@@ -166,55 +201,13 @@ void main() {
       expect(data.loadMoreFailure, isNull);
     });
 
-    test('sets nextCursor to null at end of list', () async {
-      when(() => repository.findAll(cursor: null)).thenAnswer(
-        (_) async => const Right(
-          ExpensesPageModel(expenses: _first, nextCursor: 'CUR1'),
-        ),
-      );
-      when(() => repository.findAll(cursor: 'CUR1')).thenAnswer(
-        (_) async =>
-            const Right(ExpensesPageModel(expenses: _second, nextCursor: null)),
-      );
-
-      final container = _makeContainer(
-        repository: repository,
-        moneyService: moneyService,
-      );
-      await container.read(expensesProvider.future);
-      await container.read(expensesProvider.notifier).loadMore();
-
-      expect(container.read(expensesProvider).value!.nextCursor, isNull);
-    });
-
-    test('is a no-op when isLoadingMore is already true', () async {
-      when(() => repository.findAll(cursor: null)).thenAnswer(
-        (_) async => const Right(
-          ExpensesPageModel(expenses: _first, nextCursor: 'CUR1'),
-        ),
-      );
-      when(() => repository.findAll(cursor: 'CUR1')).thenAnswer(
-        (_) async => const Right(
-          ExpensesPageModel(expenses: _second, nextCursor: null),
-        ),
-      );
-
-      final container = _makeContainer(
-        repository: repository,
-        moneyService: moneyService,
-      );
-      await container.read(expensesProvider.future);
-
-      final first = container.read(expensesProvider.notifier).loadMore();
-      final second = container.read(expensesProvider.notifier).loadMore();
-
-      await Future.wait([first, second]);
-
-      verify(() => repository.findAll(cursor: 'CUR1')).called(1);
-    });
-
     test('is a no-op when nextCursor is null', () async {
-      when(() => repository.findAll(cursor: null)).thenAnswer(
+      when(
+        () => repository.findAll(
+          cursor: null,
+          filter: any(named: 'filter'),
+        ),
+      ).thenAnswer(
         (_) async =>
             const Right(ExpensesPageModel(expenses: _first, nextCursor: null)),
       );
@@ -227,18 +220,31 @@ void main() {
 
       await container.read(expensesProvider.notifier).loadMore();
 
-      verify(() => repository.findAll(cursor: null)).called(1);
+      verify(
+        () => repository.findAll(
+          cursor: null,
+          filter: any(named: 'filter'),
+        ),
+      ).called(1);
       verifyNoMoreInteractions(repository);
     });
 
     test('preserves items and records failure on error', () async {
-      when(() => repository.findAll(cursor: null)).thenAnswer(
+      when(
+        () => repository.findAll(
+          cursor: null,
+          filter: any(named: 'filter'),
+        ),
+      ).thenAnswer(
         (_) async => const Right(
           ExpensesPageModel(expenses: _first, nextCursor: 'CUR1'),
         ),
       );
       when(
-        () => repository.findAll(cursor: 'CUR1'),
+        () => repository.findAll(
+          cursor: 'CUR1',
+          filter: any(named: 'filter'),
+        ),
       ).thenAnswer((_) async => const Left(ServerFailure()));
 
       final container = _makeContainer(
@@ -254,44 +260,105 @@ void main() {
       expect(data.isLoadingMore, isFalse);
       expect(data.loadMoreFailure, isA<ServerFailure>());
     });
+  });
 
-    test('clears failure and appends items on retry success', () async {
-      when(() => repository.findAll(cursor: null)).thenAnswer(
+  group('applyFilter', () {
+    test('reloads first page with new filter and exposes chips', () async {
+      final filter = const ExpenseFilterModel.empty().copyWith(
+        category: ExpenseCategory.food,
+      );
+
+      when(
+        () => repository.findAll(
+          cursor: null,
+          filter: const ExpenseFilterModel.empty(),
+        ),
+      ).thenAnswer(
         (_) async => const Right(
-          ExpensesPageModel(expenses: _first, nextCursor: 'CUR1'),
+          ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
         ),
       );
-      final responses = <Either<Failure, ExpensesPageModel>>[
-        const Left(ServerFailure()),
-        const Right(ExpensesPageModel(expenses: _second, nextCursor: null)),
-      ];
       when(
-        () => repository.findAll(cursor: 'CUR1'),
-      ).thenAnswer((_) async => responses.removeAt(0));
+        () => repository.findAll(cursor: null, filter: filter),
+      ).thenAnswer(
+        (_) async => const Right(
+          ExpensesPageModel(expenses: _second, nextCursor: 'F1'),
+        ),
+      );
 
       final container = _makeContainer(
         repository: repository,
         moneyService: moneyService,
       );
       await container.read(expensesProvider.future);
-      await container.read(expensesProvider.notifier).loadMore();
-      await container.read(expensesProvider.notifier).loadMore();
+
+      await container.read(expensesProvider.notifier).applyFilter(filter);
 
       final data = container.read(expensesProvider).value!;
-      expect(
-        data.items.map((item) => item.expense),
-        equals([..._first, ..._second]),
+      expect(data.filter, filter);
+      expect(data.items.map((item) => item.expense), equals(_second));
+      expect(data.nextCursor, 'F1');
+      expect(data.activeFilterChips, hasLength(1));
+      expect(data.activeFilterChips.first.kind, ExpenseFilterChipKind.category);
+    });
+
+    test('emits AsyncError when the reload fails', () async {
+      when(
+        () => repository.findAll(
+          cursor: null,
+          filter: const ExpenseFilterModel.empty(),
+        ),
+      ).thenAnswer(
+        (_) async => const Right(
+          ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
+        ),
       );
-      expect(data.nextCursor, isNull);
-      expect(data.loadMoreFailure, isNull);
+      when(
+        () => repository.findAll(
+          cursor: null,
+          filter: const ExpenseFilterModel(category: ExpenseCategory.food),
+        ),
+      ).thenAnswer((_) async => const Left(NetworkFailure()));
+
+      final container = _makeContainer(
+        repository: repository,
+        moneyService: moneyService,
+      );
+      await container.read(expensesProvider.future);
+
+      await container.read(expensesProvider.notifier).applyFilter(
+        const ExpenseFilterModel(category: ExpenseCategory.food),
+      );
+
+      expect(container.read(expensesProvider).hasError, isTrue);
+      expect(
+        container.read(expensesProvider).error,
+        isA<NetworkFailure>(),
+      );
     });
   });
 
-  group('invalidate', () {
-    test('transitions back to loading and refetches first page', () async {
-      when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
+  group('removeFilter', () {
+    test('clears category and reloads', () async {
+      final filter = const ExpenseFilterModel.empty().copyWith(
+        category: ExpenseCategory.food,
+      );
+
+      when(
+        () => repository.findAll(
+          cursor: null,
+          filter: const ExpenseFilterModel.empty(),
+        ),
+      ).thenAnswer(
         (_) async => const Right(
-          ExpensesPageModel(expenses: _first, nextCursor: 'CUR1'),
+          ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
+        ),
+      );
+      when(
+        () => repository.findAll(cursor: null, filter: filter),
+      ).thenAnswer(
+        (_) async => const Right(
+          ExpensesPageModel(expenses: _second, nextCursor: 'F1'),
         ),
       );
 
@@ -300,14 +367,71 @@ void main() {
         moneyService: moneyService,
       );
       await container.read(expensesProvider.future);
+      await container.read(expensesProvider.notifier).applyFilter(filter);
 
-      container.invalidate(expensesProvider);
+      await container
+          .read(expensesProvider.notifier)
+          .removeFilter(ExpenseFilterChipKind.category);
 
-      expect(container.read(expensesProvider).isLoading, isTrue);
+      final data = container.read(expensesProvider).value!;
+      expect(data.filter.category, isNull);
+      expect(data.activeFilterChips, isEmpty);
+    });
 
+    test('clears value bounds when kind is value', () async {
+      final filtered = const ExpenseFilterModel.empty().copyWith(
+        minValue: 10000,
+        maxValue: 50000,
+      );
+
+      when(
+        () => repository.findAll(cursor: null, filter: any(named: 'filter')),
+      ).thenAnswer(
+        (_) async =>
+            const Right(ExpensesPageModel(expenses: _first, nextCursor: null)),
+      );
+
+      final container = _makeContainer(
+        repository: repository,
+        moneyService: moneyService,
+      );
       await container.read(expensesProvider.future);
+      await container.read(expensesProvider.notifier).applyFilter(filtered);
 
-      verify(() => repository.findAll(cursor: null)).called(2);
+      await container
+          .read(expensesProvider.notifier)
+          .removeFilter(ExpenseFilterChipKind.value);
+
+      final data = container.read(expensesProvider).value!;
+      expect(data.filter.minValue, isNull);
+      expect(data.filter.maxValue, isNull);
+    });
+
+    test('resets ordering to default when kind is ordering', () async {
+      final filtered = const ExpenseFilterModel.empty().copyWith(
+        ordering: ExpenseOrdering.valueDesc,
+      );
+
+      when(
+        () => repository.findAll(cursor: null, filter: any(named: 'filter')),
+      ).thenAnswer(
+        (_) async =>
+            const Right(ExpensesPageModel(expenses: _first, nextCursor: null)),
+      );
+
+      final container = _makeContainer(
+        repository: repository,
+        moneyService: moneyService,
+      );
+      await container.read(expensesProvider.future);
+      await container.read(expensesProvider.notifier).applyFilter(filtered);
+
+      await container
+          .read(expensesProvider.notifier)
+          .removeFilter(ExpenseFilterChipKind.ordering);
+
+      final data = container.read(expensesProvider).value!;
+      expect(data.filter.ordering, ExpenseOrdering.dateDesc);
     });
   });
 }

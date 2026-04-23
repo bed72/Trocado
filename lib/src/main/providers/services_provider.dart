@@ -7,3 +7,6 @@ part 'services_provider.g.dart';
 
 @Riverpod(keepAlive: true)
 IMoneyService moneyService(Ref _) => MoneyService();
+
+@Riverpod(keepAlive: true)
+DateTime Function() now(Ref _) => DateTime.now;

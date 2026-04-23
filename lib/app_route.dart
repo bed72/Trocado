@@ -127,6 +127,12 @@ final class AppRoutes {
     regex: RegExp(r'^/expense-date$'),
   );
 
+  static final expensesFilter = AppRoutes._(
+    path: '/expenses-filter',
+    name: 'expenses-filter-route',
+    regex: RegExp(r'^/expenses-filter$'),
+  );
+
   static final _all = [
     date,
     exit,
@@ -142,6 +148,7 @@ final class AppRoutes {
     calculator,
     budgetDate,
     expenseDate,
+    expensesFilter,
     notifications,
     forgotPassword,
     passwordResetConfirm,

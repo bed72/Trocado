@@ -1,10 +1,13 @@
 import 'package:trocado/src/core/either/either.dart';
 
+import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
+
 import 'package:trocado/src/infrastructure/clients/http/http_client.dart';
 import 'package:trocado/src/infrastructure/clients/http/endpoint_key.dart';
 
 import 'package:trocado/src/infrastructure/clients/http/requests/requests.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/expense_request.dart';
+import 'package:trocado/src/infrastructure/clients/http/requests/expense_filter_request.dart';
 
 import 'package:trocado/src/infrastructure/clients/http/responses/expense/expense_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/failure/failure_response.dart';
@@ -21,13 +24,19 @@ abstract interface class IRemoteExpenseDataSource {
     required int limit,
   });
 
-  Future<Either<FailureResponse, ExpensesResponse>> findAll({String? cursor});
+  Future<Either<FailureResponse, ExpensesResponse>> findAll({
+    String? cursor,
+    ExpenseFilterModel? filter,
+  });
 }
 
 final class RemoteExpenseDataSource implements IRemoteExpenseDataSource {
   final IHttpClient _client;
+  final ExpenseFilterRequest _rqlBuilder;
 
-  RemoteExpenseDataSource({required IHttpClient client}) : _client = client;
+  RemoteExpenseDataSource({required IHttpClient client})
+    : _client = client,
+      _rqlBuilder = const ExpenseFilterRequest();
 
   @override
   Future<Either<FailureResponse, ExpenseResponse>> create({
@@ -63,13 +72,14 @@ final class RemoteExpenseDataSource implements IRemoteExpenseDataSource {
   @override
   Future<Either<FailureResponse, ExpensesResponse>> findAll({
     String? cursor,
+    ExpenseFilterModel? filter,
   }) async {
-    final response = await _client.get(
-      parameter: Requests(
-        EndpointKey.expenses.path,
-        query: cursor == null ? null : {'cursor': cursor},
-      ),
-    );
+    final rql = _rqlBuilder.build(filter: filter, cursor: cursor);
+    final path = rql.isEmpty
+        ? EndpointKey.expenses.path
+        : '${EndpointKey.expenses.path}?$rql';
+
+    final response = await _client.get(parameter: Requests(path));
 
     return response.either(FailureResponse.fromJson, ExpensesResponse.fromJson);
   }

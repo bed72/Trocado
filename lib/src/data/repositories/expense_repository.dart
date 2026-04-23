@@ -5,6 +5,7 @@ import 'package:trocado/src/data/extensions/failure_response_extension.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
+import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 import 'package:trocado/src/domain/models/expense/expenses_page_model.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
@@ -47,8 +48,11 @@ final class ExpenseRepository implements IExpenseRepository {
   }
 
   @override
-  Future<Either<Failure, ExpensesPageModel>> findAll({String? cursor}) async {
-    final data = await _dataSource.findAll(cursor: cursor);
+  Future<Either<Failure, ExpensesPageModel>> findAll({
+    String? cursor,
+    ExpenseFilterModel? filter,
+  }) async {
+    final data = await _dataSource.findAll(cursor: cursor, filter: filter);
 
     return data.either(
       (failure) => failure.toFailure(),

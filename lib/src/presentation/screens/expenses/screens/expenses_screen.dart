@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
+
 import 'package:trocado/src/presentation/widgets/app_bar_widget.dart';
 import 'package:trocado/src/presentation/widgets/go_back_widget.dart';
 import 'package:trocado/src/presentation/widgets/screen_header_widget.dart';
@@ -14,10 +16,14 @@ import 'package:trocado/src/presentation/screens/expenses/widgets/expenses_list_
 import 'package:trocado/src/presentation/screens/expenses/widgets/expenses_empty_widget.dart';
 import 'package:trocado/src/presentation/screens/expenses/widgets/expenses_failure_widget.dart';
 import 'package:trocado/src/presentation/screens/expenses/widgets/expenses_loading_widget.dart';
+import 'package:trocado/src/presentation/screens/expenses/widgets/expenses_search_field_widget.dart';
 import 'package:trocado/src/presentation/screens/expenses/widgets/expenses_filter_button_widget.dart';
+import 'package:trocado/src/presentation/screens/expenses/widgets/expenses_active_filters_widget.dart';
 
 class ExpensesScreen extends StatefulWidget {
-  const ExpensesScreen({super.key});
+  final VoidCallback navigateToFilter;
+
+  const ExpensesScreen({super.key, required this.navigateToFilter});
 
   @override
   State<ExpensesScreen> createState() => _ExpensesScreenState();
@@ -27,17 +33,19 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
   VoidCallback _onLoadMore = () {};
 
   final double _loadMoreThreshold = 200.0;
-  final ScrollController _controller = ScrollController();
+  final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _controller.addListener(_onScroll);
+    _scrollController.addListener(_onScroll);
   }
 
   @override
   void dispose() {
-    _controller
+    _searchController.dispose();
+    _scrollController
       ..removeListener(_onScroll)
       ..dispose();
 
@@ -45,36 +53,49 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
   }
 
   void _onScroll() {
-    if (!_controller.hasClients) return;
+    if (!_scrollController.hasClients) return;
 
-    final position = _controller.position;
+    final position = _scrollController.position;
     if (position.pixels >= position.maxScrollExtent - _loadMoreThreshold) {
       _onLoadMore();
     }
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: const AppBarWidget(
-      leading: GoBackWidget(),
-      actions: [
-        Padding(
-          padding: .only(right: 16.0),
-          child: ExpensesFilterButtonWidget(),
-        ),
-      ],
-    ),
-    body: Consumer(
-      builder: (_, ref, _) {
-        final state = ref.watch(expensesProvider);
-        _onLoadMore = () => ref.read(expensesProvider.notifier).loadMore();
+  Widget build(BuildContext context) => Consumer(
+    builder: (_, ref, _) {
+      final state = ref.watch(expensesProvider);
+      final notifier = ref.read(expensesProvider.notifier);
+      _onLoadMore = notifier.loadMore;
 
-        return RefreshIndicator(
-          onRefresh: () async => ref.invalidate(expensesProvider),
+      return Scaffold(
+        appBar: AppBarWidget(
+          leading: const GoBackWidget(),
+          titleWidget: ExpensesSearchFieldWidget(
+            controller: _searchController,
+            onChanged: notifier.searchChanged,
+            onClear: () {
+              _searchController.clear();
+              notifier.searchChanged('');
+            },
+          ),
+          actions: [
+            Padding(
+              padding: const .only(right: 16.0),
+              child: ExpensesFilterButtonWidget(
+                onPress: widget.navigateToFilter,
+              ),
+            ),
+          ],
+        ),
+        body: RefreshIndicator(
+          onRefresh: () => notifier.applyFilter(
+            state.value?.filter ?? const ExpenseFilterModel.empty(),
+          ),
           child: Padding(
             padding: const .only(bottom: 16.0),
             child: CustomScrollView(
-              controller: _controller,
+              controller: _scrollController,
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
                 const SliverToBoxAdapter(
@@ -86,17 +107,23 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                     ),
                   ),
                 ),
-                ..._contentSlivers(ref, state),
+                SliverToBoxAdapter(
+                  child: ExpensesActiveFiltersWidget(
+                    chips: state.value?.activeFilterChips ?? const [],
+                    onRemove: notifier.removeFilter,
+                  ),
+                ),
+                ..._contentSlivers(notifier, state),
               ],
             ),
           ),
-        );
-      },
-    ),
+        ),
+      );
+    },
   );
 
   List<Widget> _contentSlivers(
-    WidgetRef ref,
+    ExpensesNotifier notifier,
     AsyncValue<ExpensesState> state,
   ) => switch (state) {
     AsyncLoading() => const [
@@ -106,7 +133,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
       SliverFillRemaining(
         hasScrollBody: false,
         child: ExpensesFailureWidget(
-          onRetry: () => ref.invalidate(expensesProvider),
+          onRetry: () => notifier.applyFilter(const ExpenseFilterModel.empty()),
         ),
       ),
     ],

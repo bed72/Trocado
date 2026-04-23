@@ -23,12 +23,12 @@ import 'package:trocado/src/presentation/screens/expenses/widgets/expenses_loadi
 import 'package:trocado/src/presentation/screens/expenses/widgets/expenses_filter_button_widget.dart';
 
 Widget _shell({required List<Widget> slivers}) => Scaffold(
-  appBar: const AppBarWidget(
-    leading: GoBackWidget(),
+  appBar: AppBarWidget(
+    leading: const GoBackWidget(),
     actions: [
       Padding(
-        padding: .only(right: 16.0),
-        child: ExpensesFilterButtonWidget(),
+        padding: const .only(right: 16.0),
+        child: ExpensesFilterButtonWidget(onPress: () {}),
       ),
     ],
   ),
