@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
+import 'package:trocado/src/presentation/widgets/buttons/icon_button_widget.dart';
 
-class ExpensesSearchFieldWidget extends StatelessWidget {
+class ExpensesSearchFieldWidget extends StatefulWidget {
   final VoidCallback onClear;
   final ValueChanged<String> onChanged;
   final TextEditingController controller;
@@ -15,61 +16,115 @@ class ExpensesSearchFieldWidget extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => SizedBox(
+  State<ExpensesSearchFieldWidget> createState() =>
+      _ExpensesSearchFieldWidgetState();
+}
+
+class _ExpensesSearchFieldWidgetState extends State<ExpensesSearchFieldWidget> {
+  bool _expanded = false;
+  late final FocusNode _focus;
+
+  static const _duration = Duration(milliseconds: 300);
+
+  @override
+  void initState() {
+    super.initState();
+    _focus = FocusNode();
+    _expanded = widget.controller.text.isNotEmpty;
+  }
+
+  @override
+  void dispose() {
+    _focus.dispose();
+    super.dispose();
+  }
+
+  void _expand() {
+    setState(() => _expanded = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _focus.requestFocus());
+  }
+
+  void _collapseAndClear() {
+    final hadText = widget.controller.text.isNotEmpty;
+    widget.controller.clear();
+    _focus.unfocus();
+    setState(() => _expanded = false);
+    if (hadText) widget.onClear();
+  }
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) => Align(
+      alignment: .centerRight,
+      child: AnimatedContainer(
+        height: 36.0,
+        duration: _duration,
+        curve: Curves.easeOutCubic,
+        width: _expanded ? constraints.maxWidth : 36.0,
+        child: AnimatedSwitcher(
+          duration: _duration,
+          switchInCurve: Curves.easeOutCubic,
+          switchOutCurve: Curves.easeInCubic,
+          transitionBuilder: (child, animation) =>
+              FadeTransition(opacity: animation, child: child),
+          child: _expanded ? _field(context) : _icon(context),
+        ),
+      ),
+    ),
+  );
+
+  Widget _icon(BuildContext context) => IconButtonWidget(
+    key: const ValueKey('collapsed'),
+    width: 36.0,
     height: 36.0,
-    child: TextField(
-      cursorHeight: 16.0,
-      onChanged: onChanged,
-      controller: controller,
-      textAlignVertical: .center,
-      style: context.typography.bodyMedium?.copyWith(
-        color: context.colors.onSurface,
+    iconSize: 18.0,
+    onPress: _expand,
+    icon: Icons.search,
+  );
+
+  Widget _field(BuildContext context) => TextField(
+    key: const ValueKey('expanded'),
+    focusNode: _focus,
+    cursorHeight: 16.0,
+    textAlignVertical: .center,
+    onChanged: widget.onChanged,
+    controller: widget.controller,
+    style: context.typography.bodyMedium?.copyWith(
+      color: context.colors.onSurface,
+    ),
+    decoration: InputDecoration(
+      filled: true,
+      isDense: true,
+      hintText: 'Buscar por descrição',
+      fillColor: context.colors.surfaceContainerHigh,
+      hintStyle: context.typography.bodyMedium?.copyWith(
+        color: context.colors.onSurfaceVariant,
       ),
-      decoration: InputDecoration(
-        filled: true,
-        isDense: true,
-        hintText: 'Buscar por descrição',
-        fillColor: context.colors.surfaceContainerHigh,
-        hintStyle: context.typography.bodyMedium?.copyWith(
-          color: context.colors.onSurfaceVariant,
-        ),
-        contentPadding: const .symmetric(vertical: 0, horizontal: 12.0),
-        prefixIcon: Icon(
-          Icons.search,
-          size: 18.0,
-          color: context.colors.onSurfaceVariant,
-        ),
-        prefixIconConstraints: const BoxConstraints(
-          minWidth: 36.0,
-          minHeight: 36.0,
-        ),
-        suffixIcon: ListenableBuilder(
-          listenable: controller,
-          builder: (_, _) => controller.text.isEmpty
-              ? const SizedBox.shrink()
-              : IconButton(
-                  padding: .zero,
-                  iconSize: 18.0,
-                  onPressed: onClear,
-                  visualDensity: .compact,
-                  constraints: const BoxConstraints(
-                    minWidth: 36.0,
-                    minHeight: 36.0,
-                  ),
-                  icon: Icon(
-                    Icons.close,
-                    color: context.colors.onSurfaceVariant,
-                  ),
-                ),
-        ),
-        suffixIconConstraints: const BoxConstraints(
-          minWidth: 36.0,
-          minHeight: 36.0,
-        ),
-        focusedBorder: _border(context.colors.primary),
-        border: _border(context.colors.outline.withValues(alpha: 0.4)),
-        enabledBorder: _border(context.colors.outline.withValues(alpha: 0.4)),
+      contentPadding: const .symmetric(vertical: 0, horizontal: 12.0),
+      prefixIcon: Icon(
+        Icons.search,
+        size: 18.0,
+        color: context.colors.onSurfaceVariant,
       ),
+      prefixIconConstraints: const BoxConstraints(
+        minWidth: 36.0,
+        minHeight: 36.0,
+      ),
+      suffixIcon: IconButton(
+        padding: .zero,
+        iconSize: 18.0,
+        visualDensity: .compact,
+        onPressed: _collapseAndClear,
+        constraints: const BoxConstraints(minWidth: 36.0, minHeight: 36.0),
+        icon: Icon(Icons.close, color: context.colors.onSurfaceVariant),
+      ),
+      suffixIconConstraints: const BoxConstraints(
+        minWidth: 36.0,
+        minHeight: 36.0,
+      ),
+      focusedBorder: _border(context.colors.primary),
+      border: _border(context.colors.outline.withValues(alpha: 0.4)),
+      enabledBorder: _border(context.colors.outline.withValues(alpha: 0.4)),
     ),
   );
 

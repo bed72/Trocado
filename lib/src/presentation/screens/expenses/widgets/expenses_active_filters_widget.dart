@@ -33,16 +33,30 @@ class ExpensesActiveFiltersWidget extends StatelessWidget {
 
   Widget _chip(BuildContext context, ExpenseActiveFilterChipData data) =>
       InputChip(
-        label: Text(data.label),
-        avatar: data.icon == null
-            ? null
-            : Icon(
+        elevation: 0.0,
+        labelPadding: const .only(left: 4.0, right: 4.0, bottom: 1.0),
+        label: Row(
+          spacing: 6.0,
+          mainAxisSize: .min,
+          children: [
+            if (data.icon != null)
+              Icon(
                 data.icon,
-                size: 18.0,
+                size: 16.0,
                 color: context.colors.onSurfaceVariant,
               ),
+            Text(data.label),
+          ],
+        ),
         onDeleted: () => onRemove(data.kind),
-        deleteIconColor: context.colors.onSurfaceVariant,
+        deleteIcon: Container(
+          padding: .only(top: 2.0),
+          child: Icon(
+            Icons.close,
+            size: 16.0,
+            color: context.colors.onSurfaceVariant,
+          ),
+        ),
         backgroundColor: context.colors.surfaceContainerHighest,
         shape: RoundedRectangleBorder(
           borderRadius: context.radius.cornerRadius050,
