@@ -12,14 +12,14 @@ import 'package:trocado/src/domain/models/expense/expense_model.dart';
 import 'package:trocado/src/domain/enums/expense/expense_category_enum.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
-import 'package:trocado/src/presentation/screens/expense/notifiers/expense_state.dart';
-import 'package:trocado/src/presentation/screens/expense/notifiers/expense_intent.dart';
-import 'package:trocado/src/presentation/screens/expense/notifiers/expense_notifier.dart';
+import 'package:trocado/src/presentation/ui/expense/notifiers/expense_state.dart';
+import 'package:trocado/src/presentation/ui/expense/notifiers/expense_intent.dart';
+import 'package:trocado/src/presentation/ui/expense/notifiers/expense_notifier.dart';
 
-import 'package:trocado/src/presentation/screens/expense/validators/expense_form_validator.dart';
-import 'package:trocado/src/presentation/screens/expense/validators/expense_date_validation.dart';
-import 'package:trocado/src/presentation/screens/expense/validators/expense_value_validation.dart';
-import 'package:trocado/src/presentation/screens/expense/validators/expense_description_validation.dart';
+import 'package:trocado/src/presentation/ui/expense/validators/expense_form_validator.dart';
+import 'package:trocado/src/presentation/ui/expense/validators/expense_date_validation.dart';
+import 'package:trocado/src/presentation/ui/expense/validators/expense_value_validation.dart';
+import 'package:trocado/src/presentation/ui/expense/validators/expense_description_validation.dart';
 
 import '../../../mocks/mocks.dart';
 

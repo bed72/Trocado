@@ -1,11 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:trocado/src/presentation/validators/email_validation.dart';
-import 'package:trocado/src/presentation/screens/authentication/sign_up/validators/terms_validation.dart';
+import 'package:trocado/src/presentation/ui/authentication/sign_up/validators/terms_validation.dart';
 import 'package:trocado/src/presentation/validators/password_validation.dart';
 
-import 'package:trocado/src/presentation/screens/authentication/sign_up/notifiers/sign_up_state.dart';
-import 'package:trocado/src/presentation/screens/authentication/sign_up/validators/sign_up_form_validator.dart';
+import 'package:trocado/src/presentation/ui/authentication/sign_up/notifiers/sign_up_state.dart';
+import 'package:trocado/src/presentation/ui/authentication/sign_up/validators/sign_up_form_validator.dart';
 
 void main() {
   const validator = SignUpFormValidator(

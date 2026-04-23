@@ -1,11 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:trocado/src/presentation/screens/expense/notifiers/expense_state.dart';
+import 'package:trocado/src/presentation/ui/expense/notifiers/expense_state.dart';
 
-import 'package:trocado/src/presentation/screens/expense/validators/expense_form_validator.dart';
-import 'package:trocado/src/presentation/screens/expense/validators/expense_date_validation.dart';
-import 'package:trocado/src/presentation/screens/expense/validators/expense_value_validation.dart';
-import 'package:trocado/src/presentation/screens/expense/validators/expense_description_validation.dart';
+import 'package:trocado/src/presentation/ui/expense/validators/expense_form_validator.dart';
+import 'package:trocado/src/presentation/ui/expense/validators/expense_date_validation.dart';
+import 'package:trocado/src/presentation/ui/expense/validators/expense_value_validation.dart';
+import 'package:trocado/src/presentation/ui/expense/validators/expense_description_validation.dart';
 
 const _date = 1741996800000; // 2026-03-15 UTC
 

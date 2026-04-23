@@ -12,7 +12,7 @@ import 'package:trocado/src/domain/services/money_service.dart';
 import 'package:trocado/src/domain/models/budget/active_budget_model.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
 
-import 'package:trocado/src/presentation/screens/home/notifiers/active_budget_notifier.dart';
+import 'package:trocado/src/presentation/ui/home/notifiers/active_budget_notifier.dart';
 
 import '../../../mocks/mocks.dart';
 
@@ -58,9 +58,9 @@ void main() {
     moneyService = MockMoneyService();
     repository = MockBudgetRepository();
 
-    when(() => moneyService.format(any())).thenAnswer(
-      (invocation) => 'R\$ ${invocation.positionalArguments.first}',
-    );
+    when(
+      () => moneyService.format(any()),
+    ).thenAnswer((invocation) => 'R\$ ${invocation.positionalArguments.first}');
   });
 
   test(

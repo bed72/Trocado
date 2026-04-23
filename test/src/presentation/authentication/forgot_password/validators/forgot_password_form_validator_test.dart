@@ -2,8 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:trocado/src/presentation/validators/email_validation.dart';
 
-import 'package:trocado/src/presentation/screens/authentication/forgot_password/notifiers/forgot_password_state.dart';
-import 'package:trocado/src/presentation/screens/authentication/forgot_password/validators/forgot_password_form_validator.dart';
+import 'package:trocado/src/presentation/ui/authentication/forgot_password/notifiers/forgot_password_state.dart';
+import 'package:trocado/src/presentation/ui/authentication/forgot_password/validators/forgot_password_form_validator.dart';
 
 void main() {
   const validator = ForgotPasswordFormValidator(

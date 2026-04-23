@@ -9,9 +9,9 @@ import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/models/authentication/authentication_model.dart';
 import 'package:trocado/src/domain/repositories/interface_authentication_repository.dart';
 
-import 'package:trocado/src/presentation/screens/authentication/sign_in/notifiers/sign_in_state.dart';
-import 'package:trocado/src/presentation/screens/authentication/sign_in/notifiers/sign_in_intent.dart';
-import 'package:trocado/src/presentation/screens/authentication/sign_in/notifiers/sign_in_notifier.dart';
+import 'package:trocado/src/presentation/ui/authentication/sign_in/notifiers/sign_in_state.dart';
+import 'package:trocado/src/presentation/ui/authentication/sign_in/notifiers/sign_in_intent.dart';
+import 'package:trocado/src/presentation/ui/authentication/sign_in/notifiers/sign_in_notifier.dart';
 
 import '../../../../../mocks/mocks.dart';
 

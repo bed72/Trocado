@@ -16,9 +16,9 @@ import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 import 'package:trocado/src/domain/models/expense/expenses_page_model.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
-import 'package:trocado/src/presentation/screens/expenses/notifiers/expenses_notifier.dart';
+import 'package:trocado/src/presentation/ui/expenses/notifiers/expenses_notifier.dart';
 
-import 'package:trocado/src/presentation/screens/expenses/data/expense_filter_chip_kind.dart';
+import 'package:trocado/src/presentation/ui/expenses/data/expense_filter_chip_kind.dart';
 
 import '../../../mocks/mocks.dart';
 
@@ -78,9 +78,9 @@ void main() {
     moneyService = MockMoneyService();
     repository = MockExpenseRepository();
 
-    when(() => moneyService.format(any())).thenAnswer(
-      (invocation) => 'R\$ ${invocation.positionalArguments.first}',
-    );
+    when(
+      () => moneyService.format(any()),
+    ).thenAnswer((invocation) => 'R\$ ${invocation.positionalArguments.first}');
   });
 
   group('build', () {
@@ -114,27 +114,30 @@ void main() {
       },
     );
 
-    test('calls findAll with empty filter and no cursor on first build', () async {
-      when(
-        () => repository.findAll(
-          cursor: any(named: 'cursor'),
-          filter: any(named: 'filter'),
-        ),
-      ).thenAnswer((_) async => const Right(ExpensesPageModel()));
+    test(
+      'calls findAll with empty filter and no cursor on first build',
+      () async {
+        when(
+          () => repository.findAll(
+            cursor: any(named: 'cursor'),
+            filter: any(named: 'filter'),
+          ),
+        ).thenAnswer((_) async => const Right(ExpensesPageModel()));
 
-      final container = _makeContainer(
-        repository: repository,
-        moneyService: moneyService,
-      );
-      await container.read(expensesProvider.future);
+        final container = _makeContainer(
+          repository: repository,
+          moneyService: moneyService,
+        );
+        await container.read(expensesProvider.future);
 
-      verify(
-        () => repository.findAll(
-          cursor: null,
-          filter: const ExpenseFilterModel.empty(),
-        ),
-      ).called(1);
-    });
+        verify(
+          () => repository.findAll(
+            cursor: null,
+            filter: const ExpenseFilterModel.empty(),
+          ),
+        ).called(1);
+      },
+    );
 
     test(
       'emits AsyncError when repository returns Left(NetworkFailure)',
@@ -164,10 +167,7 @@ void main() {
   group('loadMore', () {
     test('appends items preserving filter on success', () async {
       when(
-        () => repository.findAll(
-          cursor: null,
-          filter: any(named: 'filter'),
-        ),
+        () => repository.findAll(cursor: null, filter: any(named: 'filter')),
       ).thenAnswer(
         (_) async => const Right(
           ExpensesPageModel(expenses: _first, nextCursor: 'CUR1'),
@@ -203,10 +203,7 @@ void main() {
 
     test('is a no-op when nextCursor is null', () async {
       when(
-        () => repository.findAll(
-          cursor: null,
-          filter: any(named: 'filter'),
-        ),
+        () => repository.findAll(cursor: null, filter: any(named: 'filter')),
       ).thenAnswer(
         (_) async =>
             const Right(ExpensesPageModel(expenses: _first, nextCursor: null)),
@@ -221,20 +218,14 @@ void main() {
       await container.read(expensesProvider.notifier).loadMore();
 
       verify(
-        () => repository.findAll(
-          cursor: null,
-          filter: any(named: 'filter'),
-        ),
+        () => repository.findAll(cursor: null, filter: any(named: 'filter')),
       ).called(1);
       verifyNoMoreInteractions(repository);
     });
 
     test('preserves items and records failure on error', () async {
       when(
-        () => repository.findAll(
-          cursor: null,
-          filter: any(named: 'filter'),
-        ),
+        () => repository.findAll(cursor: null, filter: any(named: 'filter')),
       ).thenAnswer(
         (_) async => const Right(
           ExpensesPageModel(expenses: _first, nextCursor: 'CUR1'),
@@ -278,12 +269,9 @@ void main() {
           ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
         ),
       );
-      when(
-        () => repository.findAll(cursor: null, filter: filter),
-      ).thenAnswer(
-        (_) async => const Right(
-          ExpensesPageModel(expenses: _second, nextCursor: 'F1'),
-        ),
+      when(() => repository.findAll(cursor: null, filter: filter)).thenAnswer(
+        (_) async =>
+            const Right(ExpensesPageModel(expenses: _second, nextCursor: 'F1')),
       );
 
       final container = _makeContainer(
@@ -326,15 +314,14 @@ void main() {
       );
       await container.read(expensesProvider.future);
 
-      await container.read(expensesProvider.notifier).applyFilter(
-        const ExpenseFilterModel(category: ExpenseCategoryEnum.food),
-      );
+      await container
+          .read(expensesProvider.notifier)
+          .applyFilter(
+            const ExpenseFilterModel(category: ExpenseCategoryEnum.food),
+          );
 
       expect(container.read(expensesProvider).hasError, isTrue);
-      expect(
-        container.read(expensesProvider).error,
-        isA<NetworkFailure>(),
-      );
+      expect(container.read(expensesProvider).error, isA<NetworkFailure>());
     });
   });
 
@@ -354,12 +341,9 @@ void main() {
           ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
         ),
       );
-      when(
-        () => repository.findAll(cursor: null, filter: filter),
-      ).thenAnswer(
-        (_) async => const Right(
-          ExpensesPageModel(expenses: _second, nextCursor: 'F1'),
-        ),
+      when(() => repository.findAll(cursor: null, filter: filter)).thenAnswer(
+        (_) async =>
+            const Right(ExpensesPageModel(expenses: _second, nextCursor: 'F1')),
       );
 
       final container = _makeContainer(

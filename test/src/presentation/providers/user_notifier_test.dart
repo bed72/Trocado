@@ -6,7 +6,7 @@ import 'package:trocado/src/core/either/either.dart';
 
 import 'package:trocado/src/main/providers/repositories_provider.dart';
 
-import 'package:trocado/src/presentation/screens/home/notifiers/user_notifier.dart';
+import 'package:trocado/src/presentation/ui/home/notifiers/user_notifier.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/models/user_model.dart';

@@ -11,13 +11,13 @@ import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/models/budget/budget_model.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
 
-import 'package:trocado/src/presentation/screens/budget/notifiers/form/budget_form_state.dart';
-import 'package:trocado/src/presentation/screens/budget/notifiers/form/budget_form_intent.dart';
-import 'package:trocado/src/presentation/screens/budget/notifiers/form/budget_form_notifier.dart';
-import 'package:trocado/src/presentation/screens/budget/validators/budget_form_validator.dart';
-import 'package:trocado/src/presentation/screens/budget/validators/budget_value_validation.dart';
-import 'package:trocado/src/presentation/screens/budget/validators/budget_description_validation.dart';
-import 'package:trocado/src/presentation/screens/budget/validators/budget_date_range_validation.dart';
+import 'package:trocado/src/presentation/ui/budget/notifiers/form/budget_form_state.dart';
+import 'package:trocado/src/presentation/ui/budget/notifiers/form/budget_form_intent.dart';
+import 'package:trocado/src/presentation/ui/budget/notifiers/form/budget_form_notifier.dart';
+import 'package:trocado/src/presentation/ui/budget/validators/budget_form_validator.dart';
+import 'package:trocado/src/presentation/ui/budget/validators/budget_value_validation.dart';
+import 'package:trocado/src/presentation/ui/budget/validators/budget_description_validation.dart';
+import 'package:trocado/src/presentation/ui/budget/validators/budget_date_range_validation.dart';
 
 import '../../../mocks/mocks.dart';
 

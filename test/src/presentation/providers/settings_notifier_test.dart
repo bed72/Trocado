@@ -9,17 +9,15 @@ import 'package:trocado/src/main/providers/repositories_provider.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/repositories/interface_authentication_repository.dart';
 
-import 'package:trocado/src/presentation/screens/settings/notifiers/settings_state.dart';
-import 'package:trocado/src/presentation/screens/settings/notifiers/settings_intent.dart';
-import 'package:trocado/src/presentation/screens/settings/notifiers/settings_notifier.dart';
+import 'package:trocado/src/presentation/ui/settings/notifiers/settings_state.dart';
+import 'package:trocado/src/presentation/ui/settings/notifiers/settings_intent.dart';
+import 'package:trocado/src/presentation/ui/settings/notifiers/settings_notifier.dart';
 
 import '../../../mocks/mocks.dart';
 
 ProviderContainer _makeContainer(IAuthenticationRepository repository) {
   final container = ProviderContainer(
-    overrides: [
-      authenticationRepositoryProvider.overrideWithValue(repository),
-    ],
+    overrides: [authenticationRepositoryProvider.overrideWithValue(repository)],
   );
   addTearDown(container.dispose);
   container.listen(settingsProvider, (_, _) {});
@@ -48,9 +46,9 @@ void main() {
 
   group('dispatch — LogoutPressed', () {
     test('sets status to loading then success on successful logout', () async {
-      when(() => repository.logout()).thenAnswer(
-        (_) async => const Right(null),
-      );
+      when(
+        () => repository.logout(),
+      ).thenAnswer((_) async => const Right(null));
 
       final container = _makeContainer(repository);
       final notifier = container.read(settingsProvider.notifier);
@@ -78,9 +76,9 @@ void main() {
     });
 
     test('sets status to failure on network error', () async {
-      when(() => repository.logout()).thenAnswer(
-        (_) async => const Left(NetworkFailure()),
-      );
+      when(
+        () => repository.logout(),
+      ).thenAnswer((_) async => const Left(NetworkFailure()));
 
       final container = _makeContainer(repository);
       container.read(settingsProvider.notifier).dispatch(const LogoutPressed());

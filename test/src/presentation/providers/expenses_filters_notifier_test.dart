@@ -8,13 +8,17 @@ import 'package:trocado/src/domain/enums/expense/expense_ordering_enum.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 import 'package:trocado/src/domain/enums/expense/expense_period_preset_enum.dart';
 
-import 'package:trocado/src/presentation/screens/expenses/notifiers/expenses_filters_intent.dart';
-import 'package:trocado/src/presentation/screens/expenses/notifiers/expenses_filters_notifier.dart';
+import 'package:trocado/src/presentation/ui/expenses/notifiers/expenses_filters_intent.dart';
+import 'package:trocado/src/presentation/ui/expenses/notifiers/expenses_filters_notifier.dart';
 
 ProviderContainer _makeContainer({DateTime? now}) {
   final container = ProviderContainer(
     overrides: [
-      if (now != null) nowProvider.overrideWith((_) => () => now),
+      if (now != null)
+        nowProvider.overrideWith(
+          (_) =>
+              () => now,
+        ),
     ],
   );
   addTearDown(container.dispose);
@@ -121,10 +125,7 @@ void main() {
       notifier.dispatch(const CategorySelected(ExpenseCategoryEnum.shopping));
       notifier.dispatch(const CategorySelected(null));
 
-      expect(
-        container.read(expensesFiltersProvider).draft.category,
-        isNull,
-      );
+      expect(container.read(expensesFiltersProvider).draft.category, isNull);
     });
   });
 
@@ -182,7 +183,9 @@ void main() {
       final container = _makeContainer(now: DateTime(2026, 4, 23));
       final notifier = container.read(expensesFiltersProvider.notifier);
 
-      notifier.dispatch(const PresetSelected(ExpensePeriodPresetEnum.currentMonth));
+      notifier.dispatch(
+        const PresetSelected(ExpensePeriodPresetEnum.currentMonth),
+      );
       notifier.dispatch(const CategorySelected(ExpenseCategoryEnum.food));
       notifier.dispatch(const MinValueChanged(10000));
 

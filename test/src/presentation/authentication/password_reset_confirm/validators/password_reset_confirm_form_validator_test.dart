@@ -2,8 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:trocado/src/presentation/validators/password_validation.dart';
 
-import 'package:trocado/src/presentation/screens/authentication/password_reset_confirm/notifiers/password_reset_confirm_state.dart';
-import 'package:trocado/src/presentation/screens/authentication/password_reset_confirm/validators/password_reset_confirm_form_validator.dart';
+import 'package:trocado/src/presentation/ui/authentication/password_reset_confirm/notifiers/password_reset_confirm_state.dart';
+import 'package:trocado/src/presentation/ui/authentication/password_reset_confirm/validators/password_reset_confirm_form_validator.dart';
 
 void main() {
   const validator = PasswordResetConfirmFormValidator(

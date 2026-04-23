@@ -10,7 +10,7 @@ import 'package:trocado/src/infrastructure/clients/http/http_client.dart';
 import 'package:trocado/src/infrastructure/clients/logger/logger_client.dart';
 import 'package:trocado/src/infrastructure/clients/http/factories/dio_factory.dart';
 
-import 'package:trocado/src/presentation/screens/authentication/sign_in/sign_in_location.dart';
+import 'package:trocado/src/presentation/ui/authentication/sign_in/locations/sign_in_location.dart';
 
 part 'clients_provider.g.dart';
 

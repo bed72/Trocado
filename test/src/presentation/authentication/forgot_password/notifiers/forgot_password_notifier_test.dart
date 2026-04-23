@@ -8,9 +8,9 @@ import 'package:trocado/src/core/either/either.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/repositories/interface_authentication_repository.dart';
 
-import 'package:trocado/src/presentation/screens/authentication/forgot_password/notifiers/forgot_password_state.dart';
-import 'package:trocado/src/presentation/screens/authentication/forgot_password/notifiers/forgot_password_intent.dart';
-import 'package:trocado/src/presentation/screens/authentication/forgot_password/notifiers/forgot_password_notifier.dart';
+import 'package:trocado/src/presentation/ui/authentication/forgot_password/notifiers/forgot_password_state.dart';
+import 'package:trocado/src/presentation/ui/authentication/forgot_password/notifiers/forgot_password_intent.dart';
+import 'package:trocado/src/presentation/ui/authentication/forgot_password/notifiers/forgot_password_notifier.dart';
 
 import '../../../../../mocks/mocks.dart';
 
@@ -78,10 +78,7 @@ void main() {
       notifier.dispatch(const EmailChanged('notanemail'));
       notifier.dispatch(const SubmitPressed());
 
-      expect(
-        container.read(forgotPasswordProvider).emailFailure,
-        isNotNull,
-      );
+      expect(container.read(forgotPasswordProvider).emailFailure, isNotNull);
     });
 
     test('sets status to loading then success', () async {

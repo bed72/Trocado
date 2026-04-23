@@ -8,9 +8,9 @@ import 'package:trocado/src/core/either/either.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/repositories/interface_authentication_repository.dart';
 
-import 'package:trocado/src/presentation/screens/authentication/password_reset_confirm/notifiers/password_reset_confirm_state.dart';
-import 'package:trocado/src/presentation/screens/authentication/password_reset_confirm/notifiers/password_reset_confirm_intent.dart';
-import 'package:trocado/src/presentation/screens/authentication/password_reset_confirm/notifiers/password_reset_confirm_notifier.dart';
+import 'package:trocado/src/presentation/ui/authentication/password_reset_confirm/notifiers/password_reset_confirm_state.dart';
+import 'package:trocado/src/presentation/ui/authentication/password_reset_confirm/notifiers/password_reset_confirm_intent.dart';
+import 'package:trocado/src/presentation/ui/authentication/password_reset_confirm/notifiers/password_reset_confirm_notifier.dart';
 
 import '../../../../../mocks/mocks.dart';
 
@@ -96,26 +96,31 @@ void main() {
   });
 
   group('SubmitPressed', () {
-    test('sets newPasswordFailure and keeps status initial when password is empty', () {
-      final container = makeContainer();
+    test(
+      'sets newPasswordFailure and keeps status initial when password is empty',
+      () {
+        final container = makeContainer();
 
-      container
-          .read(passwordResetConfirmProvider(uid: _uid, token: _token).notifier)
-          .dispatch(const SubmitPressed());
+        container
+            .read(
+              passwordResetConfirmProvider(uid: _uid, token: _token).notifier,
+            )
+            .dispatch(const SubmitPressed());
 
-      final state = container.read(
-        passwordResetConfirmProvider(uid: _uid, token: _token),
-      );
-      expect(state.newPasswordFailure, isNotNull);
-      expect(state.status, PasswordResetConfirmStatus.initial);
-      verifyNever(
-        () => repository.confirmPasswordReset(
-          uid: any(named: 'uid'),
-          token: any(named: 'token'),
-          newPassword: any(named: 'newPassword'),
-        ),
-      );
-    });
+        final state = container.read(
+          passwordResetConfirmProvider(uid: _uid, token: _token),
+        );
+        expect(state.newPasswordFailure, isNotNull);
+        expect(state.status, PasswordResetConfirmStatus.initial);
+        verifyNever(
+          () => repository.confirmPasswordReset(
+            uid: any(named: 'uid'),
+            token: any(named: 'token'),
+            newPassword: any(named: 'newPassword'),
+          ),
+        );
+      },
+    );
 
     test('sets confirmPasswordFailure when passwords do not match', () {
       final container = makeContainer();

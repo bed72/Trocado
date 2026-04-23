@@ -1,7 +1,7 @@
 import 'package:duck_router/duck_router.dart';
 
-import 'package:trocado/src/presentation/screens/authentication/sign_in/sign_in_location.dart';
-import 'package:trocado/src/presentation/screens/authentication/password_reset_confirm/password_reset_confirm_location.dart';
+import 'package:trocado/src/presentation/ui/authentication/sign_in/locations/sign_in_location.dart';
+import 'package:trocado/src/presentation/ui/authentication/password_reset_confirm/locations/password_reset_confirm_location.dart';
 
 final class DeepLinkHandler {
   const DeepLinkHandler();

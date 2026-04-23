@@ -3,21 +3,21 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:trocado/src/presentation/validators/email_validation.dart';
 import 'package:trocado/src/presentation/validators/password_validation.dart';
 
-import 'package:trocado/src/presentation/screens/budget/validators/budget_form_validator.dart';
-import 'package:trocado/src/presentation/screens/budget/validators/budget_value_validation.dart';
-import 'package:trocado/src/presentation/screens/budget/validators/budget_date_range_validation.dart';
-import 'package:trocado/src/presentation/screens/budget/validators/budget_description_validation.dart';
+import 'package:trocado/src/presentation/ui/budget/validators/budget_form_validator.dart';
+import 'package:trocado/src/presentation/ui/budget/validators/budget_value_validation.dart';
+import 'package:trocado/src/presentation/ui/budget/validators/budget_date_range_validation.dart';
+import 'package:trocado/src/presentation/ui/budget/validators/budget_description_validation.dart';
 
-import 'package:trocado/src/presentation/screens/expense/validators/expense_form_validator.dart';
-import 'package:trocado/src/presentation/screens/expense/validators/expense_date_validation.dart';
-import 'package:trocado/src/presentation/screens/expense/validators/expense_value_validation.dart';
-import 'package:trocado/src/presentation/screens/expense/validators/expense_description_validation.dart';
+import 'package:trocado/src/presentation/ui/expense/validators/expense_form_validator.dart';
+import 'package:trocado/src/presentation/ui/expense/validators/expense_date_validation.dart';
+import 'package:trocado/src/presentation/ui/expense/validators/expense_value_validation.dart';
+import 'package:trocado/src/presentation/ui/expense/validators/expense_description_validation.dart';
 
-import 'package:trocado/src/presentation/screens/authentication/sign_up/validators/terms_validation.dart';
-import 'package:trocado/src/presentation/screens/authentication/sign_up/validators/sign_up_form_validator.dart';
-import 'package:trocado/src/presentation/screens/authentication/sign_in/validators/sign_in_form_validator.dart';
-import 'package:trocado/src/presentation/screens/authentication/forgot_password/validators/forgot_password_form_validator.dart';
-import 'package:trocado/src/presentation/screens/authentication/password_reset_confirm/validators/password_reset_confirm_form_validator.dart';
+import 'package:trocado/src/presentation/ui/authentication/sign_up/validators/terms_validation.dart';
+import 'package:trocado/src/presentation/ui/authentication/sign_up/validators/sign_up_form_validator.dart';
+import 'package:trocado/src/presentation/ui/authentication/sign_in/validators/sign_in_form_validator.dart';
+import 'package:trocado/src/presentation/ui/authentication/forgot_password/validators/forgot_password_form_validator.dart';
+import 'package:trocado/src/presentation/ui/authentication/password_reset_confirm/validators/password_reset_confirm_form_validator.dart';
 
 part 'validators_provider.g.dart';
 

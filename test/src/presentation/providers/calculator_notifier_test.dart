@@ -4,9 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trocado/src/main/providers/services_provider.dart';
 import 'package:trocado/src/infrastructure/services/money_service.dart';
 
-import 'package:trocado/src/presentation/screens/calculator/notifiers/calculator_state.dart';
-import 'package:trocado/src/presentation/screens/calculator/notifiers/calculator_intent.dart';
-import 'package:trocado/src/presentation/screens/calculator/notifiers/calculator_notifier.dart';
+import 'package:trocado/src/presentation/ui/calculator/notifiers/calculator_state.dart';
+import 'package:trocado/src/presentation/ui/calculator/notifiers/calculator_intent.dart';
+import 'package:trocado/src/presentation/ui/calculator/notifiers/calculator_notifier.dart';
 
 ProviderContainer _makeContainer() {
   final container = ProviderContainer(

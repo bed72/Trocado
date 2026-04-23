@@ -13,7 +13,7 @@ import 'package:trocado/src/domain/models/expense/expense_model.dart';
 import 'package:trocado/src/domain/enums/expense/expense_category_enum.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
-import 'package:trocado/src/presentation/screens/home/notifiers/recent_expenses_notifier.dart';
+import 'package:trocado/src/presentation/ui/home/notifiers/recent_expenses_notifier.dart';
 
 import '../../../mocks/mocks.dart';
 
@@ -58,9 +58,9 @@ void main() {
     moneyService = MockMoneyService();
     repository = MockExpenseRepository();
 
-    when(() => moneyService.format(any())).thenAnswer(
-      (invocation) => 'R\$ ${invocation.positionalArguments.first}',
-    );
+    when(
+      () => moneyService.format(any()),
+    ).thenAnswer((invocation) => 'R\$ ${invocation.positionalArguments.first}');
   });
 
   test(
