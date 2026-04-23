@@ -127,7 +127,7 @@ Widgets são `StatelessWidget` puros. Apenas screens usam `Consumer` para acessa
 
 Screens **nunca** chamam `ref.watch`/`ref.read` em providers de service (`moneyServiceProvider`, `dateFormatterProvider`, etc.). O notifier é a única porta: injeta o service via `ref.watch(...)` em `build()` e emite no `State` um view-model com os dados já prontos (valores formatados, labels, etc.). A screen consome apenas o estado.
 
-View-models de apresentação vivem em `lib/src/presentation/screens/<feature>/data/` quando são específicos da feature (ex: `BudgetCardData`). Se o mesmo view-model for consumido por mais de uma feature, promover para `lib/src/presentation/data/<família>/` (ex: `presentation/data/expense/expense_item_data.dart`). Nunca use nomes genéricos como `helpers/`.
+View-models de apresentação vivem em `lib/src/presentation/ui/<feature>/data/` quando são específicos da feature (ex: `BudgetCardData`). Se o mesmo view-model for consumido por mais de uma feature, promover para `lib/src/presentation/data/<família>/` (ex: `presentation/data/expense/expense_item_data.dart`). Nunca use nomes genéricos como `helpers/`.
 
 ```dart
 // correto — notifier traz o dado formatado; screen só lê o state
@@ -173,7 +173,7 @@ final moneyService = ref.watch(moneyServiceProvider); // ❌
 
 ### Encapsulamento entre features (screens)
 
-Cada feature em `lib/src/presentation/screens/<feature>/` é **autocontida**. Uma feature **nunca** importa widgets, notifiers, states, view-models, intents ou screens de outra feature. Essa é uma regra dura — qualquer tentativa de `import 'package:trocado/src/presentation/screens/<outra>/...'` fora das exceções abaixo é uma violação.
+Cada feature em `lib/src/presentation/ui/<feature>/` é **autocontida**. Uma feature **nunca** importa widgets, notifiers, states, view-models, intents ou screens de outra feature. Essa é uma regra dura — qualquer tentativa de `import 'package:trocado/src/presentation/ui/<outra>/...'` fora das exceções abaixo é uma violação.
 
 **Como compartilhar entre features:**
 
@@ -203,7 +203,7 @@ final class HomeLocation extends Location {
 }
 
 // proibido — screen importa Location de outra feature
-import 'package:trocado/src/presentation/screens/expenses/expenses_location.dart'; // ❌
+import 'package:trocado/src/presentation/ui/expenses/locations/expenses_location.dart'; // ❌
 context.navigate(ExpensesLocation()); // dentro da HomeScreen ❌
 ```
 
@@ -239,7 +239,7 @@ Toda feature e widget compartilhado pode ter previews usando o Widget Previewer 
 **Layout por feature** — previews vivem em `preview/` dentro da pasta da feature, com subpastas espelhando a estrutura da feature:
 
 ```
-lib/src/presentation/screens/<feature>/
+lib/src/presentation/ui/<feature>/
   preview/
     screens/    → <screen>_preview.dart     (previews da screen completa)
     widgets/    → <widget>_preview.dart     (previews de widgets da feature)
