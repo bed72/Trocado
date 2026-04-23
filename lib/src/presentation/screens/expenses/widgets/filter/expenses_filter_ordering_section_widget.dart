@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
-import 'package:trocado/src/domain/models/expense/expense_ordering.dart';
+import 'package:trocado/src/domain/enums/expense/expense_ordering_enum.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
 import 'package:trocado/src/presentation/screens/expenses/widgets/filter/expenses_filter_choice_chip_widget.dart';
 
 class ExpensesFilterOrderingSectionWidget extends StatelessWidget {
-  final ExpenseOrdering selected;
-  final ValueChanged<ExpenseOrdering> onSelected;
+  final ExpenseOrderingEnum selected;
+  final ValueChanged<ExpenseOrderingEnum> onSelected;
 
   const ExpensesFilterOrderingSectionWidget({
     super.key,
@@ -28,7 +28,7 @@ class ExpensesFilterOrderingSectionWidget extends StatelessWidget {
       Wrap(
         spacing: 8.0,
         runSpacing: 8.0,
-        children: ExpenseOrdering.values
+        children: ExpenseOrderingEnum.values
             .map(
               (ordering) => ExpensesFilterChoiceChipWidget(
                 label: ordering.label,

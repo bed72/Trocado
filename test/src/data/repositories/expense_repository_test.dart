@@ -6,8 +6,8 @@ import 'package:trocado/src/core/either/either.dart';
 import 'package:trocado/src/data/repositories/expense_repository.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
-import 'package:trocado/src/domain/models/expense/expense_category.dart';
-import 'package:trocado/src/domain/models/expense/expense_ordering.dart';
+import 'package:trocado/src/domain/enums/expense/expense_category_enum.dart';
+import 'package:trocado/src/domain/enums/expense/expense_ordering_enum.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
@@ -166,7 +166,7 @@ void main() {
       expect(data.left, isA<ServerFailure>());
     });
 
-    test('maps category string to ExpenseCategory enum', () async {
+    test('maps category string to ExpenseCategoryEnum value', () async {
       when(
         () => client.post(parameter: any(named: 'parameter')),
       ).thenAnswer((_) async => const Right(_successJson));
@@ -178,10 +178,10 @@ void main() {
       );
 
       expect(data.isRight, isTrue);
-      expect(data.right.category, ExpenseCategory.food);
+      expect(data.right.category, ExpenseCategoryEnum.food);
     });
 
-    test('maps unknown category string to ExpenseCategory.unknown', () async {
+    test('maps unknown category string to ExpenseCategoryEnum.unknown', () async {
       when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
         (_) async => const Right({
           'id': 5,
@@ -200,7 +200,7 @@ void main() {
       );
 
       expect(data.isRight, isTrue);
-      expect(data.right.category, ExpenseCategory.unknown);
+      expect(data.right.category, ExpenseCategoryEnum.unknown);
     });
 
     test('converts createdAt ISO string to milliseconds', () async {
@@ -467,9 +467,9 @@ void main() {
       ).thenAnswer((_) async => const Right(page));
 
       final filter = ExpenseFilterModel(
-        category: ExpenseCategory.food,
+        category: ExpenseCategoryEnum.food,
         minValue: 10000,
-        ordering: ExpenseOrdering.valueDesc,
+        ordering: ExpenseOrderingEnum.valueDesc,
       );
 
       await repository.findAll(filter: filter);
@@ -495,7 +495,7 @@ void main() {
       ).thenAnswer((_) async => const Right(page));
 
       final filter = const ExpenseFilterModel.empty().copyWith(
-        category: ExpenseCategory.food,
+        category: ExpenseCategoryEnum.food,
       );
 
       await repository.findAll(filter: filter, cursor: 'NEXT');
@@ -518,7 +518,7 @@ void main() {
       expect(data.isRight, isTrue);
       expect(data.right.expenses, hasLength(3));
       expect(data.right.expenses.first.id, 129);
-      expect(data.right.expenses.first.category, ExpenseCategory.food);
+      expect(data.right.expenses.first.category, ExpenseCategoryEnum.food);
       expect(data.right.nextCursor, 'NEXT123');
       expect(data.right.previousCursor, isNull);
     });

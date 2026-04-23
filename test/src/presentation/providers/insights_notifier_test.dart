@@ -8,8 +8,8 @@ import 'package:trocado/src/main/providers/repositories_provider.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/models/insight/insight_model.dart';
-import 'package:trocado/src/domain/models/insight/insight_type.dart';
-import 'package:trocado/src/domain/models/insight/insight_severity.dart';
+import 'package:trocado/src/domain/enums/insight/insight_type_enum.dart';
+import 'package:trocado/src/domain/enums/insight/insight_severity_enum.dart';
 import 'package:trocado/src/domain/models/insight/insights_bundle_model.dart';
 import 'package:trocado/src/domain/repositories/interface_insights_repository.dart';
 
@@ -21,8 +21,8 @@ final _bundle = InsightsBundleModel(
   insights: const [
     InsightModel(
       message: 'Housing em 56%.',
-      type: InsightType.topCategory,
-      severity: InsightSeverity.info,
+      type: InsightTypeEnum.topCategory,
+      severity: InsightSeverityEnum.info,
       data: {'category': 'housing', 'pct': 55.98},
     ),
   ],

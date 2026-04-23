@@ -1,4 +1,4 @@
-enum ExpenseCategory {
+enum ExpenseCategoryEnum {
   food,
   debt,
   health,
@@ -8,7 +8,7 @@ enum ExpenseCategory {
   transport,
   entertainment;
 
-  static ExpenseCategory fromString(String? value) => switch (value) {
+  static ExpenseCategoryEnum fromString(String? value) => switch (value) {
     'food' => .food,
     'debt' => .debt,
     'health' => .health,

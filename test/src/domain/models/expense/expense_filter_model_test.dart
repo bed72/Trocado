@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:trocado/src/domain/models/expense/expense_category.dart';
-import 'package:trocado/src/domain/models/expense/expense_ordering.dart';
+import 'package:trocado/src/domain/enums/expense/expense_category_enum.dart';
+import 'package:trocado/src/domain/enums/expense/expense_ordering_enum.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 
 void main() {
@@ -15,14 +15,14 @@ void main() {
       expect(filter.minValue, isNull);
       expect(filter.maxValue, isNull);
       expect(filter.description, isEmpty);
-      expect(filter.ordering, ExpenseOrdering.dateDesc);
+      expect(filter.ordering, ExpenseOrderingEnum.dateDesc);
       expect(filter.isEmpty, isTrue);
     });
 
     test('isEmpty is false when any field is set', () {
       expect(
         const ExpenseFilterModel.empty()
-            .copyWith(category: ExpenseCategory.food)
+            .copyWith(category: ExpenseCategoryEnum.food)
             .isEmpty,
         isFalse,
       );
@@ -34,7 +34,7 @@ void main() {
       );
       expect(
         const ExpenseFilterModel.empty()
-            .copyWith(ordering: ExpenseOrdering.valueDesc)
+            .copyWith(ordering: ExpenseOrderingEnum.valueDesc)
             .isEmpty,
         isFalse,
       );
@@ -50,18 +50,18 @@ void main() {
       const filter = ExpenseFilterModel.empty();
 
       final updated = filter.copyWith(
-        category: ExpenseCategory.food,
+        category: ExpenseCategoryEnum.food,
         minValue: 1000,
       );
 
-      expect(updated.category, ExpenseCategory.food);
+      expect(updated.category, ExpenseCategoryEnum.food);
       expect(updated.minValue, 1000);
       expect(updated.maxValue, isNull);
     });
 
     test('copyWith clears nullable fields explicitly', () {
       const filter = ExpenseFilterModel(
-        category: ExpenseCategory.food,
+        category: ExpenseCategoryEnum.food,
         startDate: 100,
         endDate: 200,
         minValue: 1000,
@@ -86,7 +86,7 @@ void main() {
     test('props cover every field', () {
       const a = ExpenseFilterModel.empty();
       final b = a.copyWith(description: 'x');
-      final c = a.copyWith(ordering: ExpenseOrdering.valueAsc);
+      final c = a.copyWith(ordering: ExpenseOrderingEnum.valueAsc);
 
       expect(a == b, isFalse);
       expect(a == c, isFalse);

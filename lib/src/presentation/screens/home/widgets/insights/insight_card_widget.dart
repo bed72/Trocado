@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:trocado/src/domain/models/insight/insight_model.dart';
-import 'package:trocado/src/domain/models/insight/insight_type.dart';
+import 'package:trocado/src/domain/enums/insight/insight_type_enum.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 import 'package:trocado/src/presentation/widgets/bottom-sheets/bottom_sheet_widget.dart';
@@ -79,7 +79,7 @@ class InsightCardWidget extends StatelessWidget {
   );
 }
 
-String titleFor(InsightType type) => switch (type) {
+String titleFor(InsightTypeEnum type) => switch (type) {
   .dailyAverage => 'Média diária',
   .willOverspend => 'Projeção de gasto',
   .topCategory => 'Categoria em destaque',

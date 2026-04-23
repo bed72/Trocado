@@ -1,12 +1,12 @@
 import 'package:equatable/equatable.dart';
 
-import 'package:trocado/src/domain/models/insight/insight_type.dart';
-import 'package:trocado/src/domain/models/insight/insight_severity.dart';
+import 'package:trocado/src/domain/enums/insight/insight_type_enum.dart';
+import 'package:trocado/src/domain/enums/insight/insight_severity_enum.dart';
 
 final class InsightModel extends Equatable {
-  final InsightType type;
+  final InsightTypeEnum type;
   final String message;
-  final InsightSeverity severity;
+  final InsightSeverityEnum severity;
   final Map<String, dynamic> data;
 
   const InsightModel({
@@ -18,8 +18,8 @@ final class InsightModel extends Equatable {
 
   InsightModel copyWith({
     String? message,
-    InsightType? type,
-    InsightSeverity? severity,
+    InsightTypeEnum? type,
+    InsightSeverityEnum? severity,
     Map<String, dynamic>? data,
   }) => InsightModel(
     type: type ?? this.type,

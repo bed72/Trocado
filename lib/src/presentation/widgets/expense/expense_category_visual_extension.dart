@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import 'package:trocado/src/domain/models/expense/expense_category.dart';
+import 'package:trocado/src/domain/enums/expense/expense_category_enum.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
-extension ExpenseCategoryVisualExtension on ExpenseCategory {
+extension ExpenseCategoryVisualExtension on ExpenseCategoryEnum {
   IconData get icon => switch (this) {
     .housing => Icons.home_outlined,
     .health => Icons.favorite_outline,

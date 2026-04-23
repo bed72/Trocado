@@ -6,8 +6,8 @@ import 'package:trocado/src/core/either/either.dart';
 import 'package:trocado/src/data/repositories/insights_repository.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
-import 'package:trocado/src/domain/models/insight/insight_type.dart';
-import 'package:trocado/src/domain/models/insight/insight_severity.dart';
+import 'package:trocado/src/domain/enums/insight/insight_type_enum.dart';
+import 'package:trocado/src/domain/enums/insight/insight_severity_enum.dart';
 import 'package:trocado/src/domain/repositories/interface_insights_repository.dart';
 
 import 'package:trocado/src/infrastructure/clients/http/http_client.dart';
@@ -60,8 +60,8 @@ void main() {
       expect(data.right.hasEnoughData, isTrue);
       expect(data.right.insights, hasLength(2));
       expect(data.right.insights.first.data['budget_pct'], 145.61);
-      expect(data.right.insights.first.severity, InsightSeverity.danger);
-      expect(data.right.insights.first.type, InsightType.budgetUtilization);
+      expect(data.right.insights.first.severity, InsightSeverityEnum.danger);
+      expect(data.right.insights.first.type, InsightTypeEnum.budgetUtilization);
     });
 
     test('returns Right with empty list when backend returns empty', () async {
@@ -99,8 +99,8 @@ void main() {
       final data = await repository.findAll();
 
       expect(data.isRight, isTrue);
-      expect(data.right.insights.first.type, InsightType.unknown);
-      expect(data.right.insights.first.severity, InsightSeverity.unknown);
+      expect(data.right.insights.first.type, InsightTypeEnum.unknown);
+      expect(data.right.insights.first.severity, InsightSeverityEnum.unknown);
     });
 
     test('returns Left NetworkFailure on network error', () async {

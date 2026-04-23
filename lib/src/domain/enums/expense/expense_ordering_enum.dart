@@ -1,4 +1,4 @@
-enum ExpenseOrdering {
+enum ExpenseOrderingEnum {
   dateAsc('date', 'Mais antigos'),
   valueAsc('value', 'Menor valor'),
   dateDesc('-date', 'Mais recentes'),
@@ -7,5 +7,5 @@ enum ExpenseOrdering {
   final String query;
   final String label;
 
-  const ExpenseOrdering(this.query, this.label);
+  const ExpenseOrderingEnum(this.query, this.label);
 }

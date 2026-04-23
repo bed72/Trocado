@@ -1,11 +1,11 @@
-enum InsightType {
+enum InsightTypeEnum {
   unknown,
   topCategory,
   dailyAverage,
   willOverspend,
   budgetUtilization;
 
-  static InsightType fromString(String? value) => switch (value) {
+  static InsightTypeEnum fromString(String? value) => switch (value) {
     'top_category' => .topCategory,
     'daily_average' => .dailyAverage,
     'will_overspend' => .willOverspend,

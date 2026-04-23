@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-import 'package:trocado/src/domain/models/expense/expense_category.dart';
+import 'package:trocado/src/domain/enums/expense/expense_category_enum.dart';
 
 final class ExpenseModel extends Equatable {
   final int id;
@@ -8,7 +8,7 @@ final class ExpenseModel extends Equatable {
   final int value;
   final int createdAt;
   final String description;
-  final ExpenseCategory category;
+  final ExpenseCategoryEnum category;
 
   const ExpenseModel({
     required this.id,
@@ -25,7 +25,7 @@ final class ExpenseModel extends Equatable {
     int? value,
     int? createdAt,
     String? description,
-    ExpenseCategory? category,
+    ExpenseCategoryEnum? category,
   }) => ExpenseModel(
     id: id ?? this.id,
     date: date ?? this.date,

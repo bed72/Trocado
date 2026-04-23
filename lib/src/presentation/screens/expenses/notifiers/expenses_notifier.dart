@@ -7,7 +7,7 @@ import 'package:trocado/src/main/providers/repositories_provider.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/services/money_service.dart';
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
-import 'package:trocado/src/domain/models/expense/expense_ordering.dart';
+import 'package:trocado/src/domain/enums/expense/expense_ordering_enum.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 import 'package:trocado/src/domain/models/expense/expenses_page_model.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
@@ -66,7 +66,7 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
         clearMaxValue: true,
       ),
       ExpenseFilterChipKind.ordering => current.copyWith(
-        ordering: ExpenseOrdering.dateDesc,
+        ordering: ExpenseOrderingEnum.dateDesc,
       ),
     };
 
@@ -154,7 +154,7 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
       );
     }
 
-    if (filter.ordering != ExpenseOrdering.dateDesc) {
+    if (filter.ordering != ExpenseOrderingEnum.dateDesc) {
       chips.add(
         ExpenseActiveFilterChipData(
           label: filter.ordering.label,

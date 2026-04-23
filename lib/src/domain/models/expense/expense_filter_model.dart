@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 
-import 'package:trocado/src/domain/models/expense/expense_category.dart';
-import 'package:trocado/src/domain/models/expense/expense_ordering.dart';
+import 'package:trocado/src/domain/enums/expense/expense_category_enum.dart';
+import 'package:trocado/src/domain/enums/expense/expense_ordering_enum.dart';
 
 final class ExpenseFilterModel extends Equatable {
   final int? endDate;
@@ -9,8 +9,8 @@ final class ExpenseFilterModel extends Equatable {
   final int? maxValue;
   final int? startDate;
   final String description;
-  final ExpenseOrdering ordering;
-  final ExpenseCategory? category;
+  final ExpenseOrderingEnum ordering;
+  final ExpenseCategoryEnum? category;
 
   const ExpenseFilterModel({
     this.endDate,
@@ -47,8 +47,8 @@ final class ExpenseFilterModel extends Equatable {
     int? maxValue,
     int? startDate,
     String? description,
-    ExpenseCategory? category,
-    ExpenseOrdering? ordering,
+    ExpenseCategoryEnum? category,
+    ExpenseOrderingEnum? ordering,
     bool clearEndDate = false,
     bool clearCategory = false,
     bool clearMinValue = false,

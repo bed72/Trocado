@@ -9,7 +9,7 @@ import 'package:trocado/src/main/providers/repositories_provider.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
-import 'package:trocado/src/domain/models/expense/expense_category.dart';
+import 'package:trocado/src/domain/enums/expense/expense_category_enum.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
 import 'package:trocado/src/presentation/screens/expense/notifiers/expense_state.dart';
@@ -31,7 +31,7 @@ const _expense = ExpenseModel(
   date: _date,
   createdAt: _date,
   description: 'Mercado',
-  category: ExpenseCategory.food,
+  category: ExpenseCategoryEnum.food,
 );
 
 ProviderContainer _makeContainer(IExpenseRepository repository) {

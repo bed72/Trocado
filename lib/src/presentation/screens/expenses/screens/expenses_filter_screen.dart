@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:trocado/src/domain/models/expense/expense_period_preset.dart';
+import 'package:trocado/src/domain/enums/expense/expense_period_preset_enum.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
@@ -84,7 +84,7 @@ class _ExpensesFilterScreenState extends State<ExpensesFilterScreen> {
                         selectedPreset: state.selectedPreset,
                         onPresetSelected: (preset) {
                           notifier.dispatch(PresetSelected(preset));
-                          if (preset == ExpensePeriodPreset.custom) {
+                          if (preset == ExpensePeriodPresetEnum.custom) {
                             widget.navigateToCustomRange(
                               initialStartDate: state.draft.startDate,
                               initialEndDate: state.draft.endDate,

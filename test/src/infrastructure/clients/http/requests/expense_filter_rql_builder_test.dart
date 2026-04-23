@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:trocado/src/domain/models/expense/expense_category.dart';
-import 'package:trocado/src/domain/models/expense/expense_ordering.dart';
+import 'package:trocado/src/domain/enums/expense/expense_category_enum.dart';
+import 'package:trocado/src/domain/enums/expense/expense_ordering_enum.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 
 import 'package:trocado/src/infrastructure/clients/http/requests/expense_filter_request.dart';
@@ -31,13 +31,13 @@ void main() {
 
     test('preserves the documented fragment ordering with all fields set', () {
       final filter = ExpenseFilterModel(
-        category: ExpenseCategory.food,
+        category: ExpenseCategoryEnum.food,
         startDate: DateTime(2026, 3, 1).millisecondsSinceEpoch,
         endDate: DateTime(2026, 3, 31).millisecondsSinceEpoch,
         minValue: 100,
         maxValue: 50000,
         description: 'Merc',
-        ordering: ExpenseOrdering.valueDesc,
+        ordering: ExpenseOrderingEnum.valueDesc,
       );
 
       final query = builder.build(filter: filter, cursor: 'abc');
@@ -74,7 +74,7 @@ void main() {
       final filter = const ExpenseFilterModel.empty().copyWith(
         minValue: 0,
         maxValue: 0,
-        category: ExpenseCategory.food,
+        category: ExpenseCategoryEnum.food,
       );
 
       final query = builder.build(filter: filter, cursor: null);
@@ -96,7 +96,7 @@ void main() {
 
     test('emits ordering even when it matches the default', () {
       final filter = const ExpenseFilterModel.empty().copyWith(
-        category: ExpenseCategory.food,
+        category: ExpenseCategoryEnum.food,
       );
 
       final query = builder.build(filter: filter, cursor: null);
@@ -114,7 +114,7 @@ void main() {
     test('trims description and skips when empty after trim', () {
       final filter = const ExpenseFilterModel.empty().copyWith(
         description: '   ',
-        category: ExpenseCategory.food,
+        category: ExpenseCategoryEnum.food,
       );
 
       final query = builder.build(filter: filter, cursor: null);

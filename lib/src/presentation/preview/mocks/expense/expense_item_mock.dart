@@ -1,5 +1,5 @@
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
-import 'package:trocado/src/domain/models/expense/expense_category.dart';
+import 'package:trocado/src/domain/enums/expense/expense_category_enum.dart';
 
 import 'package:trocado/src/presentation/data/expense/expense_item_data.dart';
 
@@ -11,7 +11,7 @@ ExpenseItemData expenseItemMock({
   required Duration ago,
   required double value,
   required String description,
-  required ExpenseCategory category,
+  required ExpenseCategoryEnum category,
 }) {
   final moment = DateTime.now().subtract(ago);
 

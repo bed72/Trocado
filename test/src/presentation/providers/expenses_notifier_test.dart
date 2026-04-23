@@ -10,8 +10,8 @@ import 'package:trocado/src/main/providers/repositories_provider.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/services/money_service.dart';
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
-import 'package:trocado/src/domain/models/expense/expense_category.dart';
-import 'package:trocado/src/domain/models/expense/expense_ordering.dart';
+import 'package:trocado/src/domain/enums/expense/expense_category_enum.dart';
+import 'package:trocado/src/domain/enums/expense/expense_ordering_enum.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 import 'package:trocado/src/domain/models/expense/expenses_page_model.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
@@ -29,7 +29,7 @@ const _first = [
     date: 1744675200000,
     createdAt: 1745332903000,
     description: 'Cafezinho',
-    category: ExpenseCategory.food,
+    category: ExpenseCategoryEnum.food,
   ),
   ExpenseModel(
     id: 2,
@@ -37,7 +37,7 @@ const _first = [
     date: 1745971200000,
     createdAt: 1745331562000,
     description: 'Farmácia',
-    category: ExpenseCategory.health,
+    category: ExpenseCategoryEnum.health,
   ),
 ];
 
@@ -48,7 +48,7 @@ const _second = [
     date: 1744500000000,
     createdAt: 1745330000000,
     description: 'Uber',
-    category: ExpenseCategory.transport,
+    category: ExpenseCategoryEnum.transport,
   ),
 ];
 
@@ -265,7 +265,7 @@ void main() {
   group('applyFilter', () {
     test('reloads first page with new filter and exposes chips', () async {
       final filter = const ExpenseFilterModel.empty().copyWith(
-        category: ExpenseCategory.food,
+        category: ExpenseCategoryEnum.food,
       );
 
       when(
@@ -316,7 +316,7 @@ void main() {
       when(
         () => repository.findAll(
           cursor: null,
-          filter: const ExpenseFilterModel(category: ExpenseCategory.food),
+          filter: const ExpenseFilterModel(category: ExpenseCategoryEnum.food),
         ),
       ).thenAnswer((_) async => const Left(NetworkFailure()));
 
@@ -327,7 +327,7 @@ void main() {
       await container.read(expensesProvider.future);
 
       await container.read(expensesProvider.notifier).applyFilter(
-        const ExpenseFilterModel(category: ExpenseCategory.food),
+        const ExpenseFilterModel(category: ExpenseCategoryEnum.food),
       );
 
       expect(container.read(expensesProvider).hasError, isTrue);
@@ -341,7 +341,7 @@ void main() {
   group('removeFilter', () {
     test('clears category and reloads', () async {
       final filter = const ExpenseFilterModel.empty().copyWith(
-        category: ExpenseCategory.food,
+        category: ExpenseCategoryEnum.food,
       );
 
       when(
@@ -409,7 +409,7 @@ void main() {
 
     test('resets ordering to default when kind is ordering', () async {
       final filtered = const ExpenseFilterModel.empty().copyWith(
-        ordering: ExpenseOrdering.valueDesc,
+        ordering: ExpenseOrderingEnum.valueDesc,
       );
 
       when(
@@ -431,7 +431,7 @@ void main() {
           .removeFilter(ExpenseFilterChipKind.ordering);
 
       final data = container.read(expensesProvider).value!;
-      expect(data.filter.ordering, ExpenseOrdering.dateDesc);
+      expect(data.filter.ordering, ExpenseOrderingEnum.dateDesc);
     });
   });
 }

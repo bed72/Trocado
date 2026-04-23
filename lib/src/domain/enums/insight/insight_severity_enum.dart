@@ -1,10 +1,10 @@
-enum InsightSeverity {
+enum InsightSeverityEnum {
   info,
   danger,
   warning,
   unknown;
 
-  static InsightSeverity fromString(String? value) => switch (value) {
+  static InsightSeverityEnum fromString(String? value) => switch (value) {
     'info' => .info,
     'danger' => .danger,
     'warning' => .warning,

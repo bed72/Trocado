@@ -10,7 +10,7 @@ import 'package:trocado/src/main/providers/repositories_provider.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/services/money_service.dart';
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
-import 'package:trocado/src/domain/models/expense/expense_category.dart';
+import 'package:trocado/src/domain/enums/expense/expense_category_enum.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
 import 'package:trocado/src/presentation/screens/home/notifiers/recent_expenses_notifier.dart';
@@ -24,7 +24,7 @@ const _expenses = [
     date: 1744675200000,
     createdAt: 1745332903000,
     description: 'Cafezinho',
-    category: ExpenseCategory.food,
+    category: ExpenseCategoryEnum.food,
   ),
   ExpenseModel(
     id: 112,
@@ -32,7 +32,7 @@ const _expenses = [
     date: 1745971200000,
     createdAt: 1745331562000,
     description: 'Farmácia',
-    category: ExpenseCategory.health,
+    category: ExpenseCategoryEnum.health,
   ),
 ];
 

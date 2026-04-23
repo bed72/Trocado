@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
-import 'package:trocado/src/domain/models/insight/insight_type.dart';
+import 'package:trocado/src/domain/enums/insight/insight_type_enum.dart';
 import 'package:trocado/src/domain/models/insight/insight_model.dart';
-import 'package:trocado/src/domain/models/insight/insight_severity.dart';
+import 'package:trocado/src/domain/enums/insight/insight_severity_enum.dart';
 
 import 'package:trocado/src/presentation/screens/home/widgets/insights/insight_card_widget.dart';
 
@@ -28,8 +28,8 @@ class InsightsCarouselLoadingWidget extends StatelessWidget {
 }
 
 const _placeholder = InsightModel(
-  type: InsightType.budgetUtilization,
-  severity: InsightSeverity.info,
+  type: InsightTypeEnum.budgetUtilization,
+  severity: InsightSeverityEnum.info,
   message: 'Carregando insight com duas linhas de texto para o skeleton.',
   data: {},
 );

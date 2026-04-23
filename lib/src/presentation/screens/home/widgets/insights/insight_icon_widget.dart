@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
-import 'package:trocado/src/domain/models/insight/insight_type.dart';
-import 'package:trocado/src/domain/models/insight/insight_severity.dart';
+import 'package:trocado/src/domain/enums/insight/insight_type_enum.dart';
+import 'package:trocado/src/domain/enums/insight/insight_severity_enum.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 import 'package:trocado/src/presentation/widgets/icons/background_icon_widget.dart';
 
 class InsightIconWidget extends StatelessWidget {
-  final InsightType type;
-  final InsightSeverity severity;
+  final InsightTypeEnum type;
+  final InsightSeverityEnum severity;
 
   const InsightIconWidget({
     super.key,

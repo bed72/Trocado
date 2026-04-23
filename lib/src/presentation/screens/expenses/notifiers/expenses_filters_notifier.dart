@@ -2,7 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:trocado/src/main/providers/services_provider.dart';
 
-import 'package:trocado/src/domain/models/expense/expense_period_preset.dart';
+import 'package:trocado/src/domain/enums/expense/expense_period_preset_enum.dart';
 
 import 'package:trocado/src/presentation/screens/expenses/notifiers/expenses_filters_state.dart';
 import 'package:trocado/src/presentation/screens/expenses/notifiers/expenses_filters_intent.dart';
@@ -33,7 +33,7 @@ final class ExpensesFiltersNotifier extends _$ExpensesFiltersNotifier {
     PresetSelected(:final preset) => _selectPreset(preset),
     CustomRangeChanged(:final startDate, :final endDate) =>
       state = state.copyWith(
-        selectedPreset: ExpensePeriodPreset.custom,
+        selectedPreset: ExpensePeriodPresetEnum.custom,
         draft: state.draft.copyWith(startDate: startDate, endDate: endDate),
       ),
     MinValueChanged(cents: final centavos) => state = state.copyWith(
@@ -54,8 +54,8 @@ final class ExpensesFiltersNotifier extends _$ExpensesFiltersNotifier {
     Cleared() => state = const ExpensesFiltersState(),
   };
 
-  void _selectPreset(ExpensePeriodPreset preset) {
-    if (preset == ExpensePeriodPreset.custom) {
+  void _selectPreset(ExpensePeriodPresetEnum preset) {
+    if (preset == ExpensePeriodPresetEnum.custom) {
       state = state.copyWith(selectedPreset: preset);
       return;
     }

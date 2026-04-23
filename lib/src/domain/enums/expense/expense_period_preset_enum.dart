@@ -1,6 +1,6 @@
 typedef ExpensePeriodRange = ({int startDate, int endDate});
 
-enum ExpensePeriodPreset {
+enum ExpensePeriodPresetEnum {
   custom('Personalizado'),
   currentMonth('Mês atual'),
   previousMonth('Mês passado'),
@@ -8,10 +8,10 @@ enum ExpensePeriodPreset {
 
   final String label;
 
-  const ExpensePeriodPreset(this.label);
+  const ExpensePeriodPresetEnum(this.label);
 
   ExpensePeriodRange toRange({required DateTime now}) => switch (this) {
-    ExpensePeriodPreset.currentMonth => (
+    ExpensePeriodPresetEnum.currentMonth => (
       startDate: DateTime(now.year, now.month, 1).millisecondsSinceEpoch,
       endDate: DateTime(
         now.year,
@@ -23,7 +23,7 @@ enum ExpensePeriodPreset {
         999,
       ).millisecondsSinceEpoch,
     ),
-    ExpensePeriodPreset.last30Days => (
+    ExpensePeriodPresetEnum.last30Days => (
       startDate: DateTime(
         now.year,
         now.month,
@@ -39,7 +39,7 @@ enum ExpensePeriodPreset {
         999,
       ).millisecondsSinceEpoch,
     ),
-    ExpensePeriodPreset.previousMonth => (
+    ExpensePeriodPresetEnum.previousMonth => (
       startDate: DateTime(now.year, now.month - 1, 1).millisecondsSinceEpoch,
       endDate: DateTime(
         now.year,
@@ -51,7 +51,7 @@ enum ExpensePeriodPreset {
         999,
       ).millisecondsSinceEpoch,
     ),
-    ExpensePeriodPreset.custom => throw UnsupportedError(
+    ExpensePeriodPresetEnum.custom => throw UnsupportedError(
       'custom preset has no implicit range — pick start/end manually',
     ),
   };

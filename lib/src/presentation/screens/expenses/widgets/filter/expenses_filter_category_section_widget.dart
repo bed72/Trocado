@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-import 'package:trocado/src/domain/models/expense/expense_category.dart';
+import 'package:trocado/src/domain/enums/expense/expense_category_enum.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 import 'package:trocado/src/presentation/widgets/expense/expense_category_visual_extension.dart';
 
 class ExpensesFilterCategorySectionWidget extends StatelessWidget {
-  final ExpenseCategory? selected;
-  final ValueChanged<ExpenseCategory?> onSelected;
+  final ExpenseCategoryEnum? selected;
+  final ValueChanged<ExpenseCategoryEnum?> onSelected;
 
   const ExpensesFilterCategorySectionWidget({
     super.key,
@@ -15,7 +15,7 @@ class ExpensesFilterCategorySectionWidget extends StatelessWidget {
     required this.onSelected,
   });
 
-  static const List<ExpenseCategory> _categories = [
+  static const List<ExpenseCategoryEnum> _categories = [
     .food,
     .debt,
     .health,
@@ -44,7 +44,7 @@ class ExpensesFilterCategorySectionWidget extends StatelessWidget {
     ],
   );
 
-  Widget _chip(BuildContext context, ExpenseCategory category) {
+  Widget _chip(BuildContext context, ExpenseCategoryEnum category) {
     final color = category.color(context);
     final isSelected = category == selected;
 

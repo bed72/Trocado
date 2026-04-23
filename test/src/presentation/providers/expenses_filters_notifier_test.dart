@@ -3,10 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:trocado/src/main/providers/services_provider.dart';
 
-import 'package:trocado/src/domain/models/expense/expense_category.dart';
-import 'package:trocado/src/domain/models/expense/expense_ordering.dart';
+import 'package:trocado/src/domain/enums/expense/expense_category_enum.dart';
+import 'package:trocado/src/domain/enums/expense/expense_ordering_enum.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
-import 'package:trocado/src/domain/models/expense/expense_period_preset.dart';
+import 'package:trocado/src/domain/enums/expense/expense_period_preset_enum.dart';
 
 import 'package:trocado/src/presentation/screens/expenses/notifiers/expenses_filters_intent.dart';
 import 'package:trocado/src/presentation/screens/expenses/notifiers/expenses_filters_notifier.dart';
@@ -36,7 +36,7 @@ void main() {
     test('seeds the draft from the provided filter', () {
       final container = _makeContainer();
       final filter = const ExpenseFilterModel.empty().copyWith(
-        category: ExpenseCategory.food,
+        category: ExpenseCategoryEnum.food,
         minValue: 10000,
       );
 
@@ -55,10 +55,10 @@ void main() {
 
       container
           .read(expensesFiltersProvider.notifier)
-          .dispatch(const PresetSelected(ExpensePeriodPreset.currentMonth));
+          .dispatch(const PresetSelected(ExpensePeriodPresetEnum.currentMonth));
 
       final state = container.read(expensesFiltersProvider);
-      expect(state.selectedPreset, ExpensePeriodPreset.currentMonth);
+      expect(state.selectedPreset, ExpensePeriodPresetEnum.currentMonth);
       expect(
         state.draft.startDate,
         DateTime(2026, 4, 1).millisecondsSinceEpoch,
@@ -74,10 +74,10 @@ void main() {
 
       container
           .read(expensesFiltersProvider.notifier)
-          .dispatch(const PresetSelected(ExpensePeriodPreset.custom));
+          .dispatch(const PresetSelected(ExpensePeriodPresetEnum.custom));
 
       final state = container.read(expensesFiltersProvider);
-      expect(state.selectedPreset, ExpensePeriodPreset.custom);
+      expect(state.selectedPreset, ExpensePeriodPresetEnum.custom);
       expect(state.draft.startDate, isNull);
       expect(state.draft.endDate, isNull);
     });
@@ -94,7 +94,7 @@ void main() {
           .dispatch(CustomRangeChanged(start, end));
 
       final state = container.read(expensesFiltersProvider);
-      expect(state.selectedPreset, ExpensePeriodPreset.custom);
+      expect(state.selectedPreset, ExpensePeriodPresetEnum.custom);
       expect(state.draft.startDate, start);
       expect(state.draft.endDate, end);
     });
@@ -106,11 +106,11 @@ void main() {
 
       container
           .read(expensesFiltersProvider.notifier)
-          .dispatch(const CategorySelected(ExpenseCategory.shopping));
+          .dispatch(const CategorySelected(ExpenseCategoryEnum.shopping));
 
       expect(
         container.read(expensesFiltersProvider).draft.category,
-        ExpenseCategory.shopping,
+        ExpenseCategoryEnum.shopping,
       );
     });
 
@@ -118,7 +118,7 @@ void main() {
       final container = _makeContainer();
       final notifier = container.read(expensesFiltersProvider.notifier);
 
-      notifier.dispatch(const CategorySelected(ExpenseCategory.shopping));
+      notifier.dispatch(const CategorySelected(ExpenseCategoryEnum.shopping));
       notifier.dispatch(const CategorySelected(null));
 
       expect(
@@ -168,11 +168,11 @@ void main() {
 
       container
           .read(expensesFiltersProvider.notifier)
-          .dispatch(const OrderingSelected(ExpenseOrdering.valueAsc));
+          .dispatch(const OrderingSelected(ExpenseOrderingEnum.valueAsc));
 
       expect(
         container.read(expensesFiltersProvider).draft.ordering,
-        ExpenseOrdering.valueAsc,
+        ExpenseOrderingEnum.valueAsc,
       );
     });
   });
@@ -182,8 +182,8 @@ void main() {
       final container = _makeContainer(now: DateTime(2026, 4, 23));
       final notifier = container.read(expensesFiltersProvider.notifier);
 
-      notifier.dispatch(const PresetSelected(ExpensePeriodPreset.currentMonth));
-      notifier.dispatch(const CategorySelected(ExpenseCategory.food));
+      notifier.dispatch(const PresetSelected(ExpensePeriodPresetEnum.currentMonth));
+      notifier.dispatch(const CategorySelected(ExpenseCategoryEnum.food));
       notifier.dispatch(const MinValueChanged(10000));
 
       notifier.dispatch(const Cleared());

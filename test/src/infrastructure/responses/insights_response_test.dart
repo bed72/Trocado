@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:trocado/src/domain/models/insight/insight_type.dart';
-import 'package:trocado/src/domain/models/insight/insight_severity.dart';
+import 'package:trocado/src/domain/enums/insight/insight_type_enum.dart';
+import 'package:trocado/src/domain/enums/insight/insight_severity_enum.dart';
 
 import 'package:trocado/src/infrastructure/clients/http/responses/insight/insights_response.dart';
 
@@ -103,13 +103,13 @@ void main() {
     test('maps all known type and severity values', () {
       final bundle = InsightsResponse.fromJson(_json).toModel();
 
-      expect(bundle.insights[3].type, InsightType.topCategory);
-      expect(bundle.insights[2].type, InsightType.dailyAverage);
-      expect(bundle.insights[3].severity, InsightSeverity.info);
-      expect(bundle.insights[1].type, InsightType.willOverspend);
-      expect(bundle.insights[0].severity, InsightSeverity.danger);
-      expect(bundle.insights[1].severity, InsightSeverity.warning);
-      expect(bundle.insights[0].type, InsightType.budgetUtilization);
+      expect(bundle.insights[3].type, InsightTypeEnum.topCategory);
+      expect(bundle.insights[2].type, InsightTypeEnum.dailyAverage);
+      expect(bundle.insights[3].severity, InsightSeverityEnum.info);
+      expect(bundle.insights[1].type, InsightTypeEnum.willOverspend);
+      expect(bundle.insights[0].severity, InsightSeverityEnum.danger);
+      expect(bundle.insights[1].severity, InsightSeverityEnum.warning);
+      expect(bundle.insights[0].type, InsightTypeEnum.budgetUtilization);
     });
 
     test('falls back to unknown for unrecognized type and severity', () {
@@ -128,8 +128,8 @@ void main() {
 
       final bundle = InsightsResponse.fromJson(json).toModel();
 
-      expect(bundle.insights.first.type, InsightType.unknown);
-      expect(bundle.insights.first.severity, InsightSeverity.unknown);
+      expect(bundle.insights.first.type, InsightTypeEnum.unknown);
+      expect(bundle.insights.first.severity, InsightSeverityEnum.unknown);
     });
 
     test('preserves data map as-is', () {

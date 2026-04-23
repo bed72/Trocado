@@ -1,7 +1,7 @@
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 
-import 'package:trocado/src/domain/models/expense/expense_period_preset.dart';
+import 'package:trocado/src/domain/enums/expense/expense_period_preset_enum.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
@@ -10,8 +10,8 @@ import 'package:trocado/src/presentation/screens/expenses/widgets/filter/expense
 class ExpensesFilterPeriodSectionWidget extends StatelessWidget {
   final int? endDate;
   final int? startDate;
-  final ExpensePeriodPreset? selectedPreset;
-  final ValueChanged<ExpensePeriodPreset> onPresetSelected;
+  final ExpensePeriodPresetEnum? selectedPreset;
+  final ValueChanged<ExpensePeriodPresetEnum> onPresetSelected;
 
   const ExpensesFilterPeriodSectionWidget({
     super.key,
@@ -33,7 +33,7 @@ class ExpensesFilterPeriodSectionWidget extends StatelessWidget {
       Wrap(
         spacing: 8.0,
         runSpacing: 8.0,
-        children: ExpensePeriodPreset.values
+        children: ExpensePeriodPresetEnum.values
             .map(
               (preset) => ExpensesFilterChoiceChipWidget(
                 label: preset.label,
