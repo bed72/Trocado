@@ -6,22 +6,30 @@ import 'package:trocado/src/presentation/pages/screen_page.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
 import 'package:trocado/src/presentation/screens/calculator/calculator_location.dart';
+import 'package:trocado/src/presentation/screens/date_range/locations/date_range_location.dart';
 
 import 'package:trocado/src/presentation/screens/budget/screens/budget_screen.dart';
-import 'package:trocado/src/presentation/screens/budget/locations/budget_date_location.dart';
 
 final class BudgetLocation extends Location {
   @override
   String get path => AppRoutes.budget.path;
 
   @override
-  LocationPageBuilder get pageBuilder =>
-      (context) => screenPage(
-        BudgetScreen(
-          navigateToDate: () => context.navigate(BudgetDateLocation()),
-          navigateToCalculator: (onValueConfirmed) => context.navigate(
-            CalculatorLocation(onValueConfirmed: onValueConfirmed),
-          ),
-        ),
-      );
+  LocationPageBuilder get pageBuilder => (context) => screenPage(
+    BudgetScreen(
+      navigateToCalculator: (onValueConfirmed) => context.navigate(
+        CalculatorLocation(onValueConfirmed: onValueConfirmed),
+      ),
+      navigateToDate:
+          ({int? initialStartDate, int? initialEndDate, required onSelected}) =>
+              context.navigate(
+                DateRangeLocation(
+                  onSelected: onSelected,
+                  initialStartDate: initialStartDate,
+                  initialEndDate: initialEndDate,
+                  subtitle: 'Selecione o período do orçamento.',
+                ),
+              ),
+    ),
+  );
 }

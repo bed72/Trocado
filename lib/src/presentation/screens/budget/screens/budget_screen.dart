@@ -9,6 +9,8 @@ import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';
 import 'package:trocado/src/presentation/extensions/widget_extension.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
+import 'package:trocado/src/presentation/screens/date_range/screens/date_range_screen.dart';
+
 import 'package:trocado/src/presentation/screens/budget/notifiers/form/budget_form_intent.dart';
 import 'package:trocado/src/presentation/screens/budget/notifiers/form/budget_form_notifier.dart';
 
@@ -18,7 +20,7 @@ import 'package:trocado/src/presentation/screens/budget/widgets/fields/budget_am
 import 'package:trocado/src/presentation/screens/budget/widgets/fields/budget_description_field_widget.dart';
 
 class BudgetScreen extends StatelessWidget {
-  final VoidCallback navigateToDate;
+  final NavigateToDateRange navigateToDate;
   final void Function(void Function(int centValue)) navigateToCalculator;
 
   const BudgetScreen({
@@ -90,7 +92,16 @@ class BudgetScreen extends StatelessWidget {
                           endDate: state.endDate,
                           startDate: state.startDate,
                           failure: state.dateFailure,
-                          navigateTo: navigateToDate,
+                          navigateTo: () => navigateToDate(
+                            initialStartDate: state.startDate,
+                            initialEndDate: state.endDate,
+                            onSelected: (start, end) => notifier.dispatch(
+                              DateRangeChanged(
+                                startDate: start,
+                                endDate: end,
+                              ),
+                            ),
+                          ),
                         ),
                       ],
                     ),

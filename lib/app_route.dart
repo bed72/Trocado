@@ -115,10 +115,10 @@ final class AppRoutes {
     regex: RegExp(r'^/notifications$'),
   );
 
-  static final budgetDate = AppRoutes._(
-    path: '/budget-date',
-    name: 'budget-date-route',
-    regex: RegExp(r'^/budget-date$'),
+  static final dateRange = AppRoutes._(
+    path: '/date-range',
+    name: 'date-range-route',
+    regex: RegExp(r'^/date-range$'),
   );
 
   static final expenseDate = AppRoutes._(
@@ -146,7 +146,7 @@ final class AppRoutes {
     category,
     settings,
     calculator,
-    budgetDate,
+    dateRange,
     expenseDate,
     expensesFilter,
     notifications,

@@ -364,89 +364,100 @@ And `selectedPreset == null`
 
 ---
 
-### Requirement: ExpensesFilterLocation + ExpensesFilterScreen — bottom-sheet via duck_router
+### Requirement: ExpensesFilterLocation + ExpensesFilterScreen — full screen via duck_router
 
-The system SHALL add a new Location at `lib/src/presentation/screens/expenses/locations/expenses_filter_location.dart` that uses the existing `BottomSheetPage` helper (same pattern as `ExpenseDateLocation`, `CalculatorLocation`, `ExitLocation`).
+The system SHALL add a new Location at `lib/src/presentation/screens/expenses/locations/expenses_filter_location.dart` that uses `screenPage` (sliding full screen, same pattern as `BudgetLocation` / `ExpenseLocation`). The filter is a full screen — **not** a bottom-sheet — so that the date-range picker, when opened, does not stack on top of a host sheet and the filter form has breathing room.
 
 ```dart
 final class ExpensesFilterLocation extends Location {
   @override
-  String get path => 'expenses-filter';
+  String get path => AppRoutes.expensesFilter.path;
 
   @override
-  LocationPageBuilder get pageBuilder =>
-      (_) => BottomSheetPage(builder: (_) => const ExpensesFilterScreen());
+  LocationPageBuilder get pageBuilder => (context) => screenPage(
+    ExpensesFilterScreen(
+      navigateToCustomRange: ({initialStartDate, initialEndDate, required onSelected}) =>
+        context.navigate(DateRangeLocation(
+          onSelected: onSelected,
+          initialStartDate: initialStartDate,
+          initialEndDate: initialEndDate,
+          subtitle: 'Selecione o período a filtrar.',
+        )),
+    ),
+  );
 }
 ```
 
-The `ExpensesFilterButtonWidget`'s `onPress` SHALL be refactored to take a `VoidCallback onPress` via its constructor (no longer owning the action). `ExpensesScreen` SHALL wire it via a callback that calls `context.navigate(ExpensesFilterLocation())`. This keeps the screen free of inter-feature Location imports and follows the existing navigation-callback pattern documented in CLAUDE.md.
+`ExpensesFilterScreen` receives a `NavigateToDateRange navigateToCustomRange` callback (see the `DateRangeScreen` requirement). `ExpensesLocation` (the host) instantiates `ExpensesFilterLocation` via the `navigateToFilter` callback wired into `ExpensesScreen`.
 
-Actually — `ExpensesFilterLocation` lives **inside the same feature** as `ExpensesScreen`, so it is allowed to be imported directly by `ExpensesScreen` (the "no cross-feature Location import" rule only applies across features). To keep things consistent with other same-feature navigation in the project (e.g. `expense_date_location.dart` imported from `expense_screen.dart`), `ExpensesScreen` SHALL import `ExpensesFilterLocation` directly and pass `() => context.navigate(ExpensesFilterLocation())` to the button.
+The `ExpensesFilterButtonWidget`'s `onPress` is a `VoidCallback` it receives from its parent; the screen does not own the navigation.
 
-#### Scenario: Tapping the filter button navigates to the bottom-sheet
+#### Scenario: Tapping the filter button navigates to the full screen
 
 Given the user is on `ExpensesScreen`
 When the filter icon is tapped
-Then `context.navigate(ExpensesFilterLocation())` SHALL be invoked
-And a modal bottom-sheet SHALL appear hosting `ExpensesFilterScreen`
+Then `ExpensesFilterLocation` SHALL be pushed with a `screenPage` slide transition
+And `ExpensesFilterScreen` SHALL render on a new screen, not on top of the list
 
 ---
 
 ### Requirement: ExpensesFilterScreen layout
 
-The system SHALL add `ExpensesFilterScreen` at `lib/src/presentation/screens/expenses/screens/expenses_filter_screen.dart` as a `StatelessWidget` whose body is a `BottomSheetScaffoldWidget` with:
+The system SHALL add `ExpensesFilterScreen` at `lib/src/presentation/screens/expenses/screens/expenses_filter_screen.dart` as a `StatefulWidget` whose body is a `ScaffoldWidget` with an `AppBarWidget(leading: GoBackWidget())`. The body uses a `Column` with an `Expanded(SingleChildScrollView(...))` for the sections and a fixed footer row for the action buttons.
 
-- `title: 'Filtros'`
-- `subtitle: 'Refine a lista de despesas'`
-- `withoutPadding: false` (default 20 px horizontal)
-- `child`: a `SingleChildScrollView` containing:
-  1. A top row with **only** a `ButtonWidget.text(label: 'Limpar tudo', onTap: …)` pinned to the right. Visible only when `ExpensesFiltersNotifier.state.draft.isEmpty == false`. Tapping dispatches `Cleared()`.
-  2. Section **"Categoria"** — a `Wrap` of category chips (one per `ExpenseCategory` value **except** `unknown` — `unknown` is a fallback and is never a user choice). Each chip SHALL use the existing `ExpenseCategoryVisualExtension` for icon/color/label. Single-select: tapping a chip selects it; tapping the already-selected chip deselects. Visual: selected chips use the category's color as background at 0.15 alpha with full-strength text/icon; unselected use `context.colors.surfaceContainerHighest` with `onSurfaceVariant`.
-  3. Section **"Período"** — a row of four preset chips (`currentMonth`, `last30Days`, `previousMonth`, `custom`) followed by a readonly summary row "`dd/MM/yyyy` – `dd/MM/yyyy`" when `draft.startDate` and `draft.endDate` are set. Tapping `custom` SHALL open the existing `SfDateRangePicker` inline (via a nested `BottomSheetScaffoldWidget` pushed as another route? — **no**: to stay within one sheet, the custom picker SHALL render inline below the preset chips only when `selectedPreset == custom`, using `SfDateRangePicker` with `selectionMode: .range`). Completing the range dispatches `CustomRangeChanged`.
-  4. Section **"Valor"** — two `TextFieldWidget`s side-by-side, one for min and one for max, with currency formatting (reuse the existing formatting pattern from the create-expense flow; the centavos value is stored in the notifier's draft). Labels "Mínimo" and "Máximo". Either field may be left empty.
-  5. Section **"Ordenação"** — four `SelectorWidget`-style radio chips (single-select, always one selected) using `ExpenseOrdering.label` for each. Default selection reflects `draft.ordering`.
-  6. A sticky footer (or the last child of the column, given the sheet height policy) with a full-width `ButtonWidget` labeled "Aplicar" that:
-     - Reads the current `draft` from `ExpensesFiltersNotifier`.
-     - Calls `context.pop()` to close the sheet.
-     - Calls `ref.read(expensesNotifierProvider.notifier).applyFilter(draft)`.
+Structure:
+- `ScreenHeaderWidget(title: 'Filtros', description: 'Refine a lista de despesas.')` at the top of the scrollable area.
+- Section **"Categoria"** — a `Wrap` of `FilterChip`s (one per `ExpenseCategory` value **except** `unknown`). Each chip uses `ExpenseCategoryVisualExtension` for icon/color/label. Single-select: tapping a chip selects it; tapping the already-selected chip deselects. `showCheckmark: false` — the selection is conveyed by background color + border. Visual: selected chips use the category's color as background at 0.15 alpha; unselected use `context.colors.surfaceContainerHighest`.
+- Section **"Período"** — a `Wrap` of four `ChoiceChip`s (`currentMonth`, `last30Days`, `previousMonth`, `custom`) plus a readonly summary row "`dd/MM/yyyy` – `dd/MM/yyyy`" when both `draft.startDate` and `draft.endDate` are set. Tapping `custom` SHALL:
+  1. Dispatch `PresetSelected(custom)` to the filters notifier.
+  2. Invoke `widget.navigateToCustomRange(initialStartDate, initialEndDate, onSelected)` where `onSelected` dispatches `CustomRangeChanged(start, end)`. The date-range picker opens as a separate bottom-sheet (`DateRangeLocation`). There is **no** inline `SfDateRangePicker` inside the filter screen.
+- Section **"Valor"** — two `TextFieldWidget`s side-by-side, one for min and one for max, with `CurrencyFieldFormatter` (Nubank-style). Labels "Mínimo" and "Máximo". Either field may be left empty.
+- Section **"Ordenação"** — four `ChoiceChip`s (single-select, always one selected) using `ExpenseOrdering.label` for each. Default selection reflects `draft.ordering`. `showCheckmark: false`.
+- Footer row (fixed, outside the scroll area) with two equal-width buttons:
+  - `ButtonWidget.outlined(label: 'Limpar tudo', onTap: isEmpty ? null : dispatch(Cleared))` — disabled visually when `draft.isEmpty` is `true`.
+  - `ButtonWidget.elevated(label: 'Aplicar', onTap: () { pop(); applyFilter(draft); })` — always enabled.
 
-Each section heading uses `context.typography.titleMedium` with `FontWeight.w600`, pt_BR copy. Spacing between sections SHALL be 16 px.
+Each section heading uses `context.typography.titleMedium` with `FontWeight.w600`, pt_BR copy. Spacing between sections is 16 px.
 
-The screen SHALL call `ref.read(expensesFiltersNotifierProvider.notifier).dispatch(InitializeFrom(currentFilter))` when mounted, where `currentFilter` comes from `ref.read(expensesNotifierProvider).valueOrNull?.filter ?? ExpenseFilterModel.empty()`.
+The screen SHALL call `ref.read(expensesFiltersProvider.notifier).dispatch(InitializeFrom(currentFilter))` once when mounted (via `Future.microtask` guarded by an `_initialized` flag), where `currentFilter` comes from `ref.read(expensesProvider).value?.filter ?? ExpenseFilterModel.empty()`.
 
 The screen SHALL follow project rules:
-- `StatelessWidget` + internal `Consumer` (never `ConsumerWidget`).
+- `StatefulWidget` + internal `Consumer` (never `ConsumerWidget`).
 - No private widget classes (`class _FooWidget`) inside this file — any non-trivial subtree extracts to its own file under `screens/expenses/widgets/filter/`.
 - Switches over `ExpenseOrdering` / `ExpensePeriodPreset` / `ExpenseCategory` SHALL be switch expressions, exhaustive.
 
-Widget files created under `screens/expenses/widgets/filter/`:
+Widget files under `screens/expenses/widgets/filter/`:
 - `expenses_filter_category_section_widget.dart`
-- `expenses_filter_period_section_widget.dart`
+- `expenses_filter_period_section_widget.dart` — **no inline picker**, no `onCustomRangeChanged` callback.
 - `expenses_filter_value_section_widget.dart`
 - `expenses_filter_ordering_section_widget.dart`
 
-Each takes its relevant slice of the draft + a callback to dispatch the corresponding intent — no direct Riverpod `ref` access inside these child widgets; the parent screen wires everything.
+Each takes its relevant slice of the draft + a callback to dispatch the corresponding intent. No direct Riverpod `ref` access inside these child widgets; the parent screen wires everything.
 
-#### Scenario: Limpar tudo only shows when draft has at least one filter
+#### Scenario: Limpar tudo is disabled when draft is empty
 
-Given the bottom-sheet opens with an empty draft
-Then the "Limpar tudo" link SHALL NOT render
+Given the filter screen opens with an empty draft
+Then the "Limpar tudo" button SHALL be rendered but disabled (`onTap: null`)
 
 Given the user selects category = food
-Then "Limpar tudo" SHALL render in the top-right of the sheet
+Then "Limpar tudo" SHALL become enabled
 
-#### Scenario: Tapping Aplicar closes the sheet and triggers the reload
+#### Scenario: Tapping Aplicar pops the screen and triggers the reload
 
 Given any draft `d`
 When the user taps "Aplicar"
-Then the sheet SHALL be popped
+Then the screen SHALL be popped
 And `ExpensesNotifier.applyFilter(d)` SHALL be called exactly once
 
-#### Scenario: Selecting custom shows the inline date-range picker
+#### Scenario: Selecting custom opens the date-range bottom-sheet
 
 Given the user taps the "Personalizado" chip
-Then an `SfDateRangePicker` (range mode) SHALL render inline below the preset chips
-And completing a range SHALL dispatch `CustomRangeChanged` with the start/end in millis
+Then `PresetSelected(custom)` SHALL be dispatched to the filters notifier
+And `navigateToCustomRange` SHALL be invoked with the current draft's `startDate`/`endDate` as initial values
+Then `DateRangeLocation` SHALL be pushed as a bottom-sheet on top of the filter screen
+When the user picks a range and taps "Selecionar"
+Then `CustomRangeChanged(start, end)` SHALL be dispatched to the filters notifier
+And the bottom-sheet SHALL be popped, leaving the filter screen visible
 
 ---
 
@@ -725,16 +736,20 @@ Out of scope for this change — project convention is notifier-level tests plus
 ## Decisions (approved)
 
 - **Single-select category**: approved. The API only supports `eq(category,X)`; multi-select is deferred.
-- **Description filter lives outside the bottom-sheet**: approved as an always-visible search field in the app bar with a 400 ms debounce.
-- **Bottom-sheet only triggers requests on "Aplicar"**: approved. Users can explore combinations inside the sheet without disturbing the list; only tapping "Aplicar" applies the draft.
+- **Description filter lives outside the filter screen**: approved as an always-visible search field in the app bar of the expenses list, with a 400 ms debounce.
+- **Filter triggers reload only on "Aplicar"**: approved. Users can explore combinations inside the filter screen without disturbing the list; only tapping "Aplicar" applies the draft.
+- **Filter is a full screen, not a bottom-sheet**: approved (post-initial-implementation). The custom date-range picker needed real estate the bottom-sheet could not provide, and stacking a second sheet on top felt clumsy. `screenPage` slide transition matches the rest of the app's editor screens.
+- **Date-range picker is a reusable bottom-sheet (`DateRangeScreen` + `DateRangeLocation`)**: approved. Extracted from the former `BudgetDateWidget` which was coupled to `budgetFormProvider`. Now accepts `onSelected`, `initialStartDate`, `initialEndDate`, `title`, `subtitle` via the Location; two current consumers (budget form + expenses filter) and ready for future features.
 - **Active-filter chip strip above the list**: approved. Rendered inside the `CustomScrollView` as a sliver between header and list.
 - **Chip groups (category / period / value / ordering)**: approved. Description is represented by the search field, not by a chip. Period is one chip spanning both bounds; value is one chip spanning both bounds.
-- **Draft filter lives in a separate notifier (`ExpensesFiltersNotifier`, MVI)**: approved. Isolates the sheet's state from the list's state.
-- **RQL is embedded in the `Requests.path`, not in `queryParameters`**: approved. Dio's default encoder breaks RQL punctuation; manual embedding is clean and pure (covered by the `ExpenseFilterRqlBuilder` tests).
+- **Draft filter lives in a separate notifier (`ExpensesFiltersNotifier`, MVI)**: approved. Isolates the filter screen's state from the list's state.
+- **RQL is embedded in the `Requests.path`, not in `queryParameters`**: approved. Dio's default encoder breaks RQL punctuation; manual embedding is clean and pure.
 - **`page_size` default = 20**: approved. The screen does not expose it to the user.
 - **Ordering default (`-date`) is still emitted on the wire when any filter is present**: approved — keeps the client's behavior explicit. Omitted when no filter is active, preserving today's paginated no-op behavior for load-more without filters.
 - **Pull-to-refresh preserves the active filter**: approved — calls `applyFilter(currentFilter)` instead of `invalidate`.
-- **Period presets**: approved — `currentMonth`, `last30Days`, `previousMonth`, `custom`. `custom` opens the range picker inline inside the same sheet (no nested sheet).
-- **Value input in centavos + pt_BR formatting**: approved. Reuses the create-expense formatting pattern.
+- **Period presets**: approved — `currentMonth`, `last30Days`, `previousMonth`, `custom`. `custom` opens `DateRangeLocation` as a modal bottom-sheet over the filter screen.
+- **Value input in centavos + pt_BR formatting**: approved. Uses `CurrencyFieldFormatter`.
 - **`now` injected via a provider for testability**: approved — adds `nowProvider` so preset ranges can be deterministically asserted.
 - **`unknown` category is never selectable**: approved. It remains a fallback for server values we don't recognize but is never offered as a filter option.
+- **Footer layout — "Limpar tudo" outlined + "Aplicar" elevated, side-by-side, equal width**: approved. Limpar is disabled (`onTap: null`) when `draft.isEmpty`; Aplicar is always enabled.
+- **Category and preset chips use `showCheckmark: false`**: approved. The selected state is already communicated by the background color + border; the Material checkmark would cover the category's identifying icon.

@@ -1,6 +1,5 @@
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
-import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 import 'package:trocado/src/domain/models/expense/expense_period_preset.dart';
 
@@ -11,7 +10,6 @@ class ExpensesFilterPeriodSectionWidget extends StatelessWidget {
   final int? startDate;
   final ExpensePeriodPreset? selectedPreset;
   final ValueChanged<ExpensePeriodPreset> onPresetSelected;
-  final void Function(int startDate, int endDate) onCustomRangeChanged;
 
   const ExpensesFilterPeriodSectionWidget({
     super.key,
@@ -19,7 +17,6 @@ class ExpensesFilterPeriodSectionWidget extends StatelessWidget {
     required this.startDate,
     required this.selectedPreset,
     required this.onPresetSelected,
-    required this.onCustomRangeChanged,
   });
 
   @override
@@ -39,7 +36,6 @@ class ExpensesFilterPeriodSectionWidget extends StatelessWidget {
             .toList(),
       ),
       if (startDate != null && endDate != null) _summary(context),
-      if (selectedPreset == .custom) _picker(context),
     ],
   );
 
@@ -48,6 +44,7 @@ class ExpensesFilterPeriodSectionWidget extends StatelessWidget {
 
     return ChoiceChip(
       selected: isSelected,
+      showCheckmark: false,
       label: Text(preset.label),
       onSelected: (_) => onPresetSelected(preset),
       backgroundColor: context.colors.surfaceContainerHighest,
@@ -70,48 +67,4 @@ class ExpensesFilterPeriodSectionWidget extends StatelessWidget {
       ),
     );
   }
-
-  Widget _picker(BuildContext context) => SizedBox(
-    height: context.height * 0.45,
-    child: SfDateRangePicker(
-      view: .month,
-      selectionMode: .range,
-      showNavigationArrow: true,
-      backgroundColor: context.colors.surface,
-      initialSelectedRange: (startDate != null && endDate != null)
-          ? PickerDateRange(
-              .fromMillisecondsSinceEpoch(startDate!),
-              .fromMillisecondsSinceEpoch(endDate!),
-            )
-          : null,
-      monthViewSettings: const DateRangePickerMonthViewSettings(
-        firstDayOfWeek: 1,
-        showTrailingAndLeadingDates: true,
-      ),
-      onSelectionChanged: (args) {
-        if (args.value is! PickerDateRange) return;
-
-        final PickerDateRange(:startDate, :endDate) =
-            args.value as PickerDateRange;
-        if (startDate == null || endDate == null) return;
-
-        onCustomRangeChanged(
-          DateTime(
-            startDate.year,
-            startDate.month,
-            startDate.day,
-          ).millisecondsSinceEpoch,
-          DateTime(
-            endDate.year,
-            endDate.month,
-            endDate.day,
-            23,
-            59,
-            59,
-            999,
-          ).millisecondsSinceEpoch,
-        );
-      },
-    ),
-  );
 }

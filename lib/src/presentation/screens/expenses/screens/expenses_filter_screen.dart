@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:trocado/src/domain/models/expense/expense_period_preset.dart';
+
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
+import 'package:trocado/src/presentation/widgets/app_bar_widget.dart';
+import 'package:trocado/src/presentation/widgets/go_back_widget.dart';
+import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';
 import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
-import 'package:trocado/src/presentation/widgets/bottom-sheets/bottom_sheet_scaffold_widget.dart';
+import 'package:trocado/src/presentation/widgets/screen_header_widget.dart';
+
+import 'package:trocado/src/presentation/screens/date_range/screens/date_range_screen.dart';
 
 import 'package:trocado/src/presentation/screens/expenses/notifiers/expenses_notifier.dart';
 import 'package:trocado/src/presentation/screens/expenses/notifiers/expenses_filters_intent.dart';
@@ -16,7 +23,9 @@ import 'package:trocado/src/presentation/screens/expenses/widgets/filter/expense
 import 'package:trocado/src/presentation/screens/expenses/widgets/filter/expenses_filter_ordering_section_widget.dart';
 
 class ExpensesFilterScreen extends StatefulWidget {
-  const ExpensesFilterScreen({super.key});
+  final NavigateToDateRange navigateToCustomRange;
+
+  const ExpensesFilterScreen({super.key, required this.navigateToCustomRange});
 
   @override
   State<ExpensesFilterScreen> createState() => _ExpensesFilterScreenState();
@@ -42,35 +51,44 @@ class _ExpensesFilterScreenState extends State<ExpensesFilterScreen> {
       final state = ref.watch(expensesFiltersProvider);
       final notifier = ref.read(expensesFiltersProvider.notifier);
 
-      return BottomSheetScaffoldWidget(
-        title: 'Filtros',
-        subtitle: 'Refine a lista de despesas',
-        child: SizedBox(
-          height: context.height * 0.85,
+      return ScaffoldWidget(
+        appBar: AppBarWidget(leading: GoBackWidget()),
+        child: Padding(
+          padding: const .all(16.0),
           child: Column(
             children: [
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
+                    spacing: 16.0,
                     crossAxisAlignment: .start,
                     children: [
-                      const SizedBox(height: 8.0),
+                      const ScreenHeaderWidget(
+                        title: 'Filtros',
+                        description: 'Refine a lista de despesas.',
+                      ),
                       ExpensesFilterCategorySectionWidget(
                         selected: state.draft.category,
                         onSelected: (category) =>
                             notifier.dispatch(CategorySelected(category)),
                       ),
-                      const SizedBox(height: 16.0),
                       ExpensesFilterPeriodSectionWidget(
                         endDate: state.draft.endDate,
                         startDate: state.draft.startDate,
                         selectedPreset: state.selectedPreset,
-                        onPresetSelected: (preset) =>
-                            notifier.dispatch(PresetSelected(preset)),
-                        onCustomRangeChanged: (start, end) =>
-                            notifier.dispatch(CustomRangeChanged(start, end)),
+                        onPresetSelected: (preset) {
+                          notifier.dispatch(PresetSelected(preset));
+                          if (preset == ExpensePeriodPreset.custom) {
+                            widget.navigateToCustomRange(
+                              initialStartDate: state.draft.startDate,
+                              initialEndDate: state.draft.endDate,
+                              onSelected: (start, end) => notifier.dispatch(
+                                CustomRangeChanged(start, end),
+                              ),
+                            );
+                          }
+                        },
                       ),
-                      const SizedBox(height: 16.0),
                       ExpensesFilterValueSectionWidget(
                         minValue: state.draft.minValue,
                         maxValue: state.draft.maxValue,
@@ -79,13 +97,11 @@ class _ExpensesFilterScreenState extends State<ExpensesFilterScreen> {
                         onMaxChanged: (value) =>
                             notifier.dispatch(MaxValueChanged(value)),
                       ),
-                      const SizedBox(height: 16.0),
                       ExpensesFilterOrderingSectionWidget(
                         selected: state.draft.ordering,
                         onSelected: (ordering) =>
                             notifier.dispatch(OrderingSelected(ordering)),
                       ),
-                      const SizedBox(height: 16.0),
                     ],
                   ),
                 ),
