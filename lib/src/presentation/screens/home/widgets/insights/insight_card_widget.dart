@@ -4,9 +4,7 @@ import 'package:trocado/src/domain/models/insight/insight_model.dart';
 import 'package:trocado/src/domain/enums/insight/insight_type_enum.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
-import 'package:trocado/src/presentation/widgets/bottom-sheets/bottom_sheet_widget.dart';
 import 'package:trocado/src/presentation/screens/home/widgets/insights/insight_icon_widget.dart';
-import 'package:trocado/src/presentation/screens/home/widgets/insights/insight_detail_sheet_widget.dart';
 
 class InsightCardWidget extends StatelessWidget {
   final InsightModel insight;
@@ -25,58 +23,48 @@ class InsightCardWidget extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: context.radius.cornerRadius100,
         ),
-        child: GestureDetector(
-          onTap: () => _openDetail(context),
-          child: Padding(
-            padding: const .all(12.0),
-            child: Row(
-              spacing: 12.0,
-              crossAxisAlignment: .center,
-              children: [
-                InsightIconWidget(
-                  type: insight.type,
-                  severity: insight.severity,
-                ),
-                Expanded(
-                  child: Column(
-                    spacing: 4.0,
-                    mainAxisSize: .min,
-                    crossAxisAlignment: .start,
-                    children: [
-                      Text(
-                        titleFor(insight.type),
-                        maxLines: 1,
-                        overflow: .ellipsis,
-                        style: context.typography.labelMedium?.copyWith(
-                          fontWeight: .w600,
-                          color: context.colors.onSurface,
-                        ),
+        child: Padding(
+          padding: const .all(12.0),
+          child: Row(
+            spacing: 12.0,
+            crossAxisAlignment: .center,
+            children: [
+              InsightIconWidget(
+                type: insight.type,
+                severity: insight.severity,
+              ),
+              Expanded(
+                child: Column(
+                  spacing: 4.0,
+                  mainAxisSize: .min,
+                  crossAxisAlignment: .start,
+                  children: [
+                    Text(
+                      titleFor(insight.type),
+                      maxLines: 1,
+                      overflow: .ellipsis,
+                      style: context.typography.labelMedium?.copyWith(
+                        fontWeight: .w600,
+                        color: context.colors.onSurface,
                       ),
-                      Text(
-                        insight.message,
-                        maxLines: 2,
-                        overflow: .ellipsis,
-                        style: context.typography.bodySmall?.copyWith(
-                          color: context.colors.onSurfaceVariant,
-                        ),
+                    ),
+                    Text(
+                      insight.message,
+                      maxLines: 2,
+                      overflow: .ellipsis,
+                      style: context.typography.bodySmall?.copyWith(
+                        color: context.colors.onSurfaceVariant,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
-
-  void _openDetail(BuildContext context) => bottomSheetScaffoldWidget<void>(
-    context: context,
-    autoResize: true,
-    title: titleFor(insight.type),
-    child: InsightDetailSheetWidget(insight: insight),
-  );
 }
 
 String titleFor(InsightTypeEnum type) => switch (type) {
