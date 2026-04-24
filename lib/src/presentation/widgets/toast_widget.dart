@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:toastification/toastification.dart';
 
-import 'package:trocado/src/presentation/widgets/icons/icon_widget.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
+import 'package:trocado/src/presentation/widgets/icons/background_icon_widget.dart';
 
 enum ToastConstant { success, failure }
 
@@ -49,7 +49,7 @@ void _showSuccessToast({
     closeButton: ToastCloseButton(showType: .none),
     borderSide: BorderSide(width: 0.0, style: .none),
     backgroundColor: context.colors.surfaceContainer,
-    icon: IconWidget(
+    icon: BackgroundIconWidget(
       color: context.colors.primary,
       icon: Icons.celebration_rounded,
     ),
@@ -72,12 +72,6 @@ void _showSuccessToast({
               color: context.colors.onSurfaceVariant.withValues(alpha: .6),
             ),
           ),
-    progressBarTheme: ProgressIndicatorThemeData(
-      stopIndicatorRadius: 2.0,
-      borderRadius: .all(.circular(2.0)),
-      color: context.colors.primary.withValues(alpha: .2),
-      linearTrackColor: context.colors.primary.withValues(alpha: .2),
-    ),
     animationBuilder: (context, animation, _, child) {
       final position =
           Tween<Offset>(end: Offset.zero, begin: const Offset(0, 1)).animate(
@@ -112,15 +106,9 @@ void _showFailureToast({
     closeButton: ToastCloseButton(showType: .none),
     borderSide: BorderSide(width: 0.0, style: .none),
     backgroundColor: context.colors.surfaceContainer,
-    icon: IconWidget(
-      icon: Icons.error,
+    icon: BackgroundIconWidget(
+      icon: Icons.error_outline_rounded,
       color: context.colors.error.withValues(alpha: .8),
-    ),
-    progressBarTheme: ProgressIndicatorThemeData(
-      stopIndicatorRadius: 2.0,
-      borderRadius: .all(.circular(2.0)),
-      color: context.colors.error.withValues(alpha: .8),
-      linearTrackColor: context.colors.error.withValues(alpha: .2),
     ),
     callbacks: ToastificationCallbacks(
       onDismissed: (_) => onClose?.call(),

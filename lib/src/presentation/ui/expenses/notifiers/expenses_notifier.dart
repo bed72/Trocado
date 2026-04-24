@@ -7,13 +7,12 @@ import 'package:trocado/src/main/providers/repositories_provider.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/services/money_service.dart';
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
-import 'package:trocado/src/domain/enums/expense/expense_ordering_enum.dart';
-import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 import 'package:trocado/src/domain/models/expense/expenses_page_model.dart';
+import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
-import 'package:trocado/src/presentation/actions/debounce_action.dart';
 import 'package:trocado/src/presentation/data/expense_item_data.dart';
+import 'package:trocado/src/presentation/actions/debounce_action.dart';
 import 'package:trocado/src/presentation/widgets/expense/expense_category_visual_extension.dart';
 
 import 'package:trocado/src/presentation/ui/expenses/notifiers/expenses_state.dart';
@@ -32,10 +31,11 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
   Future<ExpensesState> build() async {
     _moneyService = ref.watch(moneyServiceProvider);
     _repository = ref.watch(expenseRepositoryProvider);
+
     _searchDebounce = DebounceAction();
     ref.onDispose(_searchDebounce.dispose);
 
-    return await _loadFirstPage(const ExpenseFilterModel.empty());
+    return await _loadFirstPage(const .empty());
   }
 
   Future<void> applyFilter(ExpenseFilterModel filter) async {
@@ -45,27 +45,19 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
 
   void searchChanged(String description) {
     _searchDebounce(() {
-      final current = state.value?.filter ?? const ExpenseFilterModel.empty();
+      final current = state.value?.filter ?? const .empty();
       applyFilter(current.copyWith(description: description));
     });
   }
 
   Future<void> removeFilter(ExpenseFilterChipKind kind) async {
-    final current = state.value?.filter ?? const ExpenseFilterModel.empty();
+    final current = state.value?.filter ?? const .empty();
 
     final next = switch (kind) {
-      ExpenseFilterChipKind.category => current.copyWith(clearCategory: true),
-      ExpenseFilterChipKind.period => current.copyWith(
-        clearStartDate: true,
-        clearEndDate: true,
-      ),
-      ExpenseFilterChipKind.value => current.copyWith(
-        clearMinValue: true,
-        clearMaxValue: true,
-      ),
-      ExpenseFilterChipKind.ordering => current.copyWith(
-        ordering: ExpenseOrderingEnum.dateDesc,
-      ),
+      .ordering => current.copyWith(ordering: .dateDesc),
+      .category => current.copyWith(clearCategory: true),
+      .value => current.copyWith(clearMinValue: true, clearMaxValue: true),
+      .period => current.copyWith(clearEndDate: true, clearStartDate: true),
     };
 
     await applyFilter(next);
@@ -83,8 +75,8 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
     );
 
     final data = await _repository.findAll(
-      cursor: current.nextCursor,
       filter: current.filter,
+      cursor: current.nextCursor,
     );
 
     state = AsyncData(
@@ -110,8 +102,8 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
       (page) => ExpensesState(
         filter: filter,
         nextCursor: page.nextCursor,
-        items: page.expenses.map(_toItem).toList(),
         activeFilterChips: _buildChips(filter),
+        items: page.expenses.map(_toItem).toList(),
       ),
     );
   }
@@ -127,9 +119,9 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
     if (filter.category != null) {
       chips.add(
         ExpenseActiveFilterChipData(
-          label: filter.category!.label,
+          kind: .category,
           icon: filter.category!.icon,
-          kind: ExpenseFilterChipKind.category,
+          label: filter.category!.label,
         ),
       );
     }
@@ -137,8 +129,8 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
     if (filter.startDate != null || filter.endDate != null) {
       chips.add(
         ExpenseActiveFilterChipData(
+          kind: .period,
           label: _periodLabel(filter.startDate, filter.endDate),
-          kind: ExpenseFilterChipKind.period,
         ),
       );
     }
@@ -146,17 +138,17 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
     if (filter.minValue != null || filter.maxValue != null) {
       chips.add(
         ExpenseActiveFilterChipData(
+          kind: .value,
           label: _valueLabel(filter.minValue, filter.maxValue),
-          kind: ExpenseFilterChipKind.value,
         ),
       );
     }
 
-    if (filter.ordering != ExpenseOrderingEnum.dateDesc) {
+    if (filter.ordering != .dateDesc) {
       chips.add(
         ExpenseActiveFilterChipData(
+          kind: .ordering,
           label: filter.ordering.label,
-          kind: ExpenseFilterChipKind.ordering,
         ),
       );
     }
@@ -167,10 +159,10 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
   String _periodLabel(int? start, int? end) {
     final format = DateFormat('dd/MM/yyyy', 'pt_BR');
     final startLabel = start != null
-        ? format.format(DateTime.fromMillisecondsSinceEpoch(start))
+        ? format.format(.fromMillisecondsSinceEpoch(start))
         : null;
     final endLabel = end != null
-        ? format.format(DateTime.fromMillisecondsSinceEpoch(end))
+        ? format.format(.fromMillisecondsSinceEpoch(end))
         : null;
 
     if (startLabel != null && endLabel != null) {
@@ -186,6 +178,7 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
 
     if (minLabel != null && maxLabel != null) return '$minLabel – $maxLabel';
     if (minLabel != null) return '≥ $minLabel';
+
     return '≤ $maxLabel';
   }
 }

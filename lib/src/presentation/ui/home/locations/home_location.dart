@@ -32,8 +32,6 @@ final class HomeLocation extends Location {
 
     return HomeScreen(
       navigateToChat: () {},
-      navigateToChangeExpense: (id) =>
-          context.navigate(ExpenseLocation(id: id)),
       navigateToExit: () => context.navigate(ExitLocation()),
       navigateToBudget: () => context.navigate(BudgetLocation()),
       navigateToExpenses: () => context.navigate(ExpensesLocation()),

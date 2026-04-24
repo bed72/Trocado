@@ -20,6 +20,15 @@ abstract interface class IRemoteExpenseDataSource {
     required String description,
   });
 
+  Future<Either<FailureResponse, ExpenseResponse>> update({
+    required int id,
+    required int date,
+    required int value,
+    required String description,
+  });
+
+  Future<Either<FailureResponse, void>> delete({required int id});
+
   Future<Either<FailureResponse, ExpensesResponse>> findRecent({
     required int limit,
   });
@@ -32,11 +41,11 @@ abstract interface class IRemoteExpenseDataSource {
 
 final class RemoteExpenseDataSource implements IRemoteExpenseDataSource {
   final IHttpClient _client;
-  final ExpenseFilterRequest _rqlBuilder;
+  final ExpenseFilterRequest _request;
 
   RemoteExpenseDataSource({required IHttpClient client})
     : _client = client,
-      _rqlBuilder = const ExpenseFilterRequest();
+      _request = const ExpenseFilterRequest();
 
   @override
   Future<Either<FailureResponse, ExpenseResponse>> create({
@@ -59,6 +68,39 @@ final class RemoteExpenseDataSource implements IRemoteExpenseDataSource {
   }
 
   @override
+  Future<Either<FailureResponse, ExpenseResponse>> update({
+    required int id,
+    required int date,
+    required int value,
+    required String description,
+  }) async {
+    final response = await _client.patch(
+      parameter: Requests(
+        '${EndpointKey.expenses.path}/$id',
+        body: ExpenseRequest(
+          date: date,
+          value: value,
+          description: description,
+        ).toJson(),
+      ),
+    );
+
+    return response.either(FailureResponse.fromJson, ExpenseResponse.fromJson);
+  }
+
+  @override
+  Future<Either<FailureResponse, void>> delete({required int id}) async {
+    final response = await _client.delete(
+      parameter: Requests('${EndpointKey.expenses.path}/$id'),
+    );
+
+    return response.either<FailureResponse, void>(
+      FailureResponse.fromJson,
+      (_) {},
+    );
+  }
+
+  @override
   Future<Either<FailureResponse, ExpensesResponse>> findRecent({
     required int limit,
   }) async {
@@ -74,7 +116,7 @@ final class RemoteExpenseDataSource implements IRemoteExpenseDataSource {
     String? cursor,
     ExpenseFilterModel? filter,
   }) async {
-    final rql = _rqlBuilder.build(filter: filter, cursor: cursor);
+    final rql = _request.build(filter: filter, cursor: cursor);
     final path = rql.isEmpty
         ? EndpointKey.expenses.path
         : '${EndpointKey.expenses.path}?$rql';

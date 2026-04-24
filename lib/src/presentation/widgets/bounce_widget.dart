@@ -86,6 +86,7 @@ final class _BounceWithOnTapWidgetState extends State<_BounceWithOnTapWidget> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: () async => await Future.delayed(
         const Duration(milliseconds: 30),
         widget.onPress,

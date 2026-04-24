@@ -25,7 +25,6 @@ class HomeScreen extends StatefulWidget {
   final VoidCallback navigateToSettings;
   final VoidCallback navigateToNotification;
   final VoidCallback navigateToCreateExpense;
-  final ValueChanged<int?> navigateToChangeExpense;
 
   const HomeScreen({
     super.key,
@@ -36,7 +35,6 @@ class HomeScreen extends StatefulWidget {
     required this.navigateToSettings,
     required this.navigateToNotification,
     required this.navigateToCreateExpense,
-    required this.navigateToChangeExpense,
   });
 
   @override

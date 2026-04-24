@@ -10,23 +10,30 @@ part of 'expense_notifier.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(ExpenseNotifier)
-final expenseProvider = ExpenseNotifierProvider._();
+final expenseProvider = ExpenseNotifierFamily._();
 
 final class ExpenseNotifierProvider
     extends $NotifierProvider<ExpenseNotifier, ExpenseState> {
-  ExpenseNotifierProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'expenseProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
+  ExpenseNotifierProvider._({
+    required ExpenseNotifierFamily super.from,
+    required ExpenseModel? super.argument,
+  }) : super(
+         retry: null,
+         name: r'expenseProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
   String debugGetCreateSourceHash() => _$expenseNotifierHash();
+
+  @override
+  String toString() {
+    return r'expenseProvider'
+        ''
+        '($argument)';
+  }
 
   @$internal
   @override
@@ -39,12 +46,50 @@ final class ExpenseNotifierProvider
       providerOverride: $SyncValueProvider<ExpenseState>(value),
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is ExpenseNotifierProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
 }
 
-String _$expenseNotifierHash() => r'76754e67e349fad92d269a89a4015e9663d153d5';
+String _$expenseNotifierHash() => r'd5111f2bb988a34c55aed82d6befa0ae36452c19';
+
+final class ExpenseNotifierFamily extends $Family
+    with
+        $ClassFamilyOverride<
+          ExpenseNotifier,
+          ExpenseState,
+          ExpenseState,
+          ExpenseState,
+          ExpenseModel?
+        > {
+  ExpenseNotifierFamily._()
+    : super(
+        retry: null,
+        name: r'expenseProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  ExpenseNotifierProvider call(ExpenseModel? expense) =>
+      ExpenseNotifierProvider._(argument: expense, from: this);
+
+  @override
+  String toString() => r'expenseProvider';
+}
 
 abstract class _$ExpenseNotifier extends $Notifier<ExpenseState> {
-  ExpenseState build();
+  late final _$args = ref.$arg as ExpenseModel?;
+  ExpenseModel? get expense => _$args;
+
+  ExpenseState build(ExpenseModel? expense);
   @$mustCallSuper
   @override
   void runBuild() {
@@ -57,6 +102,6 @@ abstract class _$ExpenseNotifier extends $Notifier<ExpenseState> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    element.handleCreate(ref, () => build(_$args));
   }
 }

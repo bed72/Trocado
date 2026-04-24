@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'package:trocado/src/domain/models/expense/expense_model.dart';
+import 'package:trocado/src/presentation/widgets/bounce_widget.dart';
+
 import 'package:trocado/src/presentation/widgets/expense/expense_item_widget.dart';
 
 import 'package:trocado/src/presentation/ui/expenses/notifiers/expenses_state.dart';
@@ -12,12 +15,14 @@ class ExpensesListWidget extends StatelessWidget {
   final ExpensesState state;
   final VoidCallback onLoadMore;
   final List<ExpenseGroup> groups;
+  final ValueChanged<ExpenseModel> onTapExpense;
 
   const ExpensesListWidget({
     super.key,
     required this.state,
     required this.groups,
     required this.onLoadMore,
+    required this.onTapExpense,
   });
 
   @override
@@ -32,10 +37,13 @@ class ExpensesListWidget extends StatelessWidget {
           itemBuilder: (_, index) {
             final item = group.expenses[index];
 
-            return ExpenseItemWidget(
-              key: ValueKey(item.expense.id),
-              expense: item.expense,
-              formattedValue: item.formattedValue,
+            return BounceWidget.withOnPress(
+              onPress: () => onTapExpense(item.expense),
+              child: ExpenseItemWidget(
+                key: ValueKey(item.expense.id),
+                expense: item.expense,
+                formattedValue: item.formattedValue,
+              ),
             );
           },
         ),

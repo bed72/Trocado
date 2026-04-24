@@ -20,3 +20,7 @@ final class DateChanged extends ExpenseIntent {
 final class SubmitPressed extends ExpenseIntent {
   const SubmitPressed();
 }
+
+final class DeletePressed extends ExpenseIntent {
+  const DeletePressed();
+}

@@ -4,12 +4,14 @@ import 'package:trocado/src/presentation/widgets/fields/text_field_widget.dart';
 
 class ExpenseDescriptionFieldWidget extends StatelessWidget {
   final String? failure;
+  final String? initialValue;
   final ValueChanged<String> onChanged;
 
   const ExpenseDescriptionFieldWidget({
     super.key,
     required this.onChanged,
     this.failure,
+    this.initialValue,
   });
 
   @override
@@ -19,5 +21,6 @@ class ExpenseDescriptionFieldWidget extends StatelessWidget {
     label: 'Descrição',
     keyboardType: .name,
     onChanged: onChanged,
+    initialValue: initialValue,
   );
 }

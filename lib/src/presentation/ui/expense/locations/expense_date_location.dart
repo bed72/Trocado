@@ -2,14 +2,20 @@ import 'package:duck_router/duck_router.dart';
 
 import 'package:trocado/app_route.dart';
 
+import 'package:trocado/src/domain/models/expense/expense_model.dart';
+
 import 'package:trocado/src/presentation/pages/bottom_sheet_page.dart';
 import 'package:trocado/src/presentation/ui/expense/screens/expense_date_screen.dart';
 
 final class ExpenseDateLocation extends Location {
+  final ExpenseModel? expense;
+
+  const ExpenseDateLocation({this.expense});
+
   @override
   String get path => AppRoutes.expenseDate.path;
 
   @override
   LocationPageBuilder get pageBuilder =>
-      (_) => BottomSheetPage(builder: (_) => const ExpenseDateScreen());
+      (_) => BottomSheetPage(builder: (_) => ExpenseDateScreen(expense: expense));
 }

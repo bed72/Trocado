@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:trocado/src/domain/models/expense/expense_model.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 
 import 'package:trocado/src/presentation/widgets/app_bar_widget.dart';
@@ -21,9 +22,14 @@ import 'package:trocado/src/presentation/ui/expenses/widgets/expenses_filter_but
 import 'package:trocado/src/presentation/ui/expenses/widgets/expenses_active_filters_widget.dart';
 
 class ExpensesScreen extends StatefulWidget {
+  final ValueChanged<ExpenseModel> onTapExpense;
   final ValueChanged<ExpenseFilterModel> navigateToFilter;
 
-  const ExpensesScreen({super.key, required this.navigateToFilter});
+  const ExpensesScreen({
+    super.key,
+    required this.onTapExpense,
+    required this.navigateToFilter,
+  });
 
   @override
   State<ExpensesScreen> createState() => _ExpensesScreenState();
@@ -146,6 +152,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
       ExpensesListWidget(
         state: value,
         onLoadMore: _onLoadMore,
+        onTapExpense: widget.onTapExpense,
         groups: buildExpenseGroups(value.items),
       ),
     ],

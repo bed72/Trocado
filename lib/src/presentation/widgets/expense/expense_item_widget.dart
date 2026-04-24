@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
+
 import 'package:trocado/src/presentation/widgets/icons/background_icon_widget.dart';
 import 'package:trocado/src/presentation/widgets/expense/expense_category_visual_extension.dart';
 

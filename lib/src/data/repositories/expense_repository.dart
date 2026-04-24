@@ -5,8 +5,8 @@ import 'package:trocado/src/data/extensions/failure_response_extension.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
-import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 import 'package:trocado/src/domain/models/expense/expenses_page_model.dart';
+import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
 import 'package:trocado/src/infrastructure/datasources/remote/remote_expense_data_source.dart';
@@ -33,6 +33,33 @@ final class ExpenseRepository implements IExpenseRepository {
       (failure) => failure.toFailure(),
       (response) => response.toModel(),
     );
+  }
+
+  @override
+  Future<Either<Failure, ExpenseModel>> update({
+    required int id,
+    required int date,
+    required int value,
+    required String description,
+  }) async {
+    final data = await _dataSource.update(
+      id: id,
+      date: date,
+      value: value,
+      description: description,
+    );
+
+    return data.either(
+      (failure) => failure.toFailure(),
+      (response) => response.toModel(),
+    );
+  }
+
+  @override
+  Future<Either<Failure, void>> delete({required int id}) async {
+    final data = await _dataSource.delete(id: id);
+
+    return data.either<Failure, void>((failure) => failure.toFailure(), (_) {});
   }
 
   @override

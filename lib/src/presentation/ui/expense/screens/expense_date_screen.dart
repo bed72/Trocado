@@ -2,6 +2,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
+import 'package:trocado/src/domain/models/expense/expense_model.dart';
+
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
 import 'package:trocado/src/presentation/ui/expense/notifiers/expense_intent.dart';
@@ -11,7 +13,9 @@ import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
 import 'package:trocado/src/presentation/widgets/bottom-sheets/bottom_sheet_scaffold_widget.dart';
 
 class ExpenseDateScreen extends StatefulWidget {
-  const ExpenseDateScreen({super.key});
+  final ExpenseModel? expense;
+
+  const ExpenseDateScreen({super.key, this.expense});
 
   @override
   State<ExpenseDateScreen> createState() => _ExpenseDateScreenState();
@@ -24,7 +28,7 @@ class _ExpenseDateScreenState extends State<ExpenseDateScreen> {
   Widget build(BuildContext context) {
     return Consumer(
       builder: (_, ref, _) {
-        final notifier = ref.read(expenseProvider.notifier);
+        final notifier = ref.read(expenseProvider(widget.expense).notifier);
 
         return BottomSheetScaffoldWidget(
           title: 'Quando foi?',

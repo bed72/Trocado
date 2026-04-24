@@ -640,4 +640,210 @@ void main() {
       expect(data.left.message, 'Invalid cursor.');
     });
   });
+
+  group('update', () {
+    test('returns Right with ExpenseModel on 200', () async {
+      when(
+        () => client.patch(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Right(_successJson));
+
+      final data = await repository.update(
+        id: 1,
+        value: 8550,
+        date: _date,
+        description: 'Mercado',
+      );
+
+      expect(data.right.id, 1);
+      expect(data.isRight, isTrue);
+      expect(data.right.value, 8550);
+      expect(data.right.description, 'Mercado');
+    });
+
+    test('sends PATCH to /api/v1/expenses/<id>', () async {
+      when(
+        () => client.patch(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Right(_successJson));
+
+      await repository.update(
+        id: 132,
+        value: 8550,
+        date: _date,
+        description: 'Mercado',
+      );
+
+      final captured =
+          verify(
+                () => client.patch(parameter: captureAny(named: 'parameter')),
+              ).captured.single
+              as Requests;
+
+      expect(captured.path, '/api/v1/expenses/132');
+    });
+
+    test('sends body serialized via ExpenseRequest', () async {
+      when(
+        () => client.patch(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Right(_successJson));
+
+      await repository.update(
+        id: 1,
+        value: 9230,
+        date: _date,
+        description: 'Mercado',
+      );
+
+      final captured =
+          verify(
+                () => client.patch(parameter: captureAny(named: 'parameter')),
+              ).captured.single
+              as Requests;
+
+      expect(captured.body, {
+        'value': '92.30',
+        'date': '2026-03-15',
+        'description': 'Mercado',
+      });
+    });
+
+    test('returns Left(ValidationFailure) on 400 with errors body', () async {
+      when(() => client.patch(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'field': 'value',
+              'code': 'validation_error',
+              'message': 'Valor inválido.',
+            },
+          ],
+        }),
+      );
+
+      final data = await repository.update(
+        id: 1,
+        value: 0,
+        date: _date,
+        description: 'Mercado',
+      );
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<ValidationFailure>());
+      expect(data.left.message, 'Valor inválido.');
+    });
+
+    test('returns Left(NetworkFailure) on connectivity error', () async {
+      when(() => client.patch(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'code': 'network_error',
+              'field': 'non_field_errors',
+              'message': 'Network error',
+            },
+          ],
+        }),
+      );
+
+      final data = await repository.update(
+        id: 1,
+        value: 8550,
+        date: _date,
+        description: 'Mercado',
+      );
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<NetworkFailure>());
+    });
+
+    test('returns Left(ServerFailure) on 5xx', () async {
+      when(() => client.patch(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'code': 'server_error',
+              'field': 'non_field_errors',
+              'message': 'Server error',
+            },
+          ],
+        }),
+      );
+
+      final data = await repository.update(
+        id: 1,
+        value: 8550,
+        date: _date,
+        description: 'Mercado',
+      );
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<ServerFailure>());
+    });
+  });
+
+  group('delete', () {
+    test('returns Right(null) when 204 with empty body', () async {
+      when(
+        () => client.delete(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Right({}));
+
+      final data = await repository.delete(id: 132);
+
+      expect(data.isRight, isTrue);
+    });
+
+    test('sends DELETE to /api/v1/expenses/<id> with no body', () async {
+      when(
+        () => client.delete(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Right({}));
+
+      await repository.delete(id: 132);
+
+      final captured =
+          verify(
+                () => client.delete(parameter: captureAny(named: 'parameter')),
+              ).captured.single
+              as Requests;
+
+      expect(captured.path, '/api/v1/expenses/132');
+      expect(captured.body, isNull);
+    });
+
+    test('returns Left(NotFoundFailure) on 404 with errors body', () async {
+      when(() => client.delete(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'code': 'not_found',
+              'field': 'non_field_errors',
+              'message': 'Not found',
+            },
+          ],
+        }),
+      );
+
+      final data = await repository.delete(id: 999);
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<NotFoundFailure>());
+    });
+
+    test('returns Left(NetworkFailure) on connectivity error', () async {
+      when(() => client.delete(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'code': 'network_error',
+              'field': 'non_field_errors',
+              'message': 'Network error',
+            },
+          ],
+        }),
+      );
+
+      final data = await repository.delete(id: 1);
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<NetworkFailure>());
+    });
+  });
 }

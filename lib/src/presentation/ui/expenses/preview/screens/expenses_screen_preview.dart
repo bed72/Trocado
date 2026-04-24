@@ -58,6 +58,7 @@ Widget _listPreview(
   slivers: [
     ExpensesListWidget(
       onLoadMore: () {},
+      onTapExpense: (_) {},
       groups: buildExpenseGroups(items),
       state: ExpensesState(
         items: items,
