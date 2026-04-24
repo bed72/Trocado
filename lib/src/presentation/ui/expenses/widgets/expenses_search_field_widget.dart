@@ -98,7 +98,7 @@ class _ExpensesSearchFieldWidgetState extends State<ExpensesSearchFieldWidget> {
       hintText: 'Buscar por descrição',
       fillColor: context.colors.primary.withValues(alpha: 0.2),
       hintStyle: context.typography.bodyMedium?.copyWith(
-        fontWeight: .w600,
+        fontWeight: .w500,
         color: context.colors.primary,
       ),
       focusedBorder: _border(context.colors.primary),
