@@ -10,23 +10,30 @@ part of 'expenses_filters_notifier.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(ExpensesFiltersNotifier)
-final expensesFiltersProvider = ExpensesFiltersNotifierProvider._();
+final expensesFiltersProvider = ExpensesFiltersNotifierFamily._();
 
 final class ExpensesFiltersNotifierProvider
     extends $NotifierProvider<ExpensesFiltersNotifier, ExpensesFiltersState> {
-  ExpensesFiltersNotifierProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'expensesFiltersProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
+  ExpensesFiltersNotifierProvider._({
+    required ExpensesFiltersNotifierFamily super.from,
+    required ExpenseFilterModel super.argument,
+  }) : super(
+         retry: null,
+         name: r'expensesFiltersProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
   String debugGetCreateSourceHash() => _$expensesFiltersNotifierHash();
+
+  @override
+  String toString() {
+    return r'expensesFiltersProvider'
+        ''
+        '($argument)';
+  }
 
   @$internal
   @override
@@ -39,14 +46,53 @@ final class ExpensesFiltersNotifierProvider
       providerOverride: $SyncValueProvider<ExpensesFiltersState>(value),
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is ExpensesFiltersNotifierProvider &&
+        other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
 }
 
 String _$expensesFiltersNotifierHash() =>
-    r'17299eb96e64ac6111eecdd5ecfa35ef0878f781';
+    r'5dca814dba5ac986d2cd891115039a3be2e7f171';
+
+final class ExpensesFiltersNotifierFamily extends $Family
+    with
+        $ClassFamilyOverride<
+          ExpensesFiltersNotifier,
+          ExpensesFiltersState,
+          ExpensesFiltersState,
+          ExpensesFiltersState,
+          ExpenseFilterModel
+        > {
+  ExpensesFiltersNotifierFamily._()
+    : super(
+        retry: null,
+        name: r'expensesFiltersProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  ExpensesFiltersNotifierProvider call(ExpenseFilterModel seed) =>
+      ExpensesFiltersNotifierProvider._(argument: seed, from: this);
+
+  @override
+  String toString() => r'expensesFiltersProvider';
+}
 
 abstract class _$ExpensesFiltersNotifier
     extends $Notifier<ExpensesFiltersState> {
-  ExpensesFiltersState build();
+  late final _$args = ref.$arg as ExpenseFilterModel;
+  ExpenseFilterModel get seed => _$args;
+
+  ExpensesFiltersState build(ExpenseFilterModel seed);
   @$mustCallSuper
   @override
   void runBuild() {
@@ -59,6 +105,6 @@ abstract class _$ExpensesFiltersNotifier
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    element.handleCreate(ref, () => build(_$args));
   }
 }

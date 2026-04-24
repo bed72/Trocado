@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-import 'package:trocado/src/presentation/data/expense/expense_item_data.dart';
+import 'package:trocado/src/presentation/data/expense_item_data.dart';
 
 final class ExpenseGroup extends Equatable {
   final String header;

@@ -26,17 +26,17 @@ ProviderContainer _makeContainer({DateTime? now}) {
 }
 
 void main() {
-  group('initial state', () {
-    test('starts with empty draft and no preset', () {
-      final container = _makeContainer();
-      final state = container.read(expensesFiltersProvider);
+  const emptySeed = ExpenseFilterModel.empty();
 
-      expect(state.draft, const ExpenseFilterModel.empty());
+  group('initial state', () {
+    test('starts with the provided seed and no preset', () {
+      final container = _makeContainer();
+      final state = container.read(expensesFiltersProvider(emptySeed));
+
+      expect(state.draft, emptySeed);
       expect(state.selectedPreset, isNull);
     });
-  });
 
-  group('InitializeFrom', () {
     test('seeds the draft from the provided filter', () {
       final container = _makeContainer();
       final filter = const ExpenseFilterModel.empty().copyWith(
@@ -44,12 +44,10 @@ void main() {
         minValue: 10000,
       );
 
-      container
-          .read(expensesFiltersProvider.notifier)
-          .dispatch(InitializeFrom(filter));
+      final state = container.read(expensesFiltersProvider(filter));
 
-      expect(container.read(expensesFiltersProvider).draft, filter);
-      expect(container.read(expensesFiltersProvider).selectedPreset, isNull);
+      expect(state.draft, filter);
+      expect(state.selectedPreset, isNull);
     });
   });
 
@@ -58,10 +56,10 @@ void main() {
       final container = _makeContainer(now: DateTime(2026, 4, 23, 14, 30));
 
       container
-          .read(expensesFiltersProvider.notifier)
+          .read(expensesFiltersProvider(emptySeed).notifier)
           .dispatch(const PresetSelected(ExpensePeriodPresetEnum.currentMonth));
 
-      final state = container.read(expensesFiltersProvider);
+      final state = container.read(expensesFiltersProvider(emptySeed));
       expect(state.selectedPreset, ExpensePeriodPresetEnum.currentMonth);
       expect(
         state.draft.startDate,
@@ -77,10 +75,10 @@ void main() {
       final container = _makeContainer();
 
       container
-          .read(expensesFiltersProvider.notifier)
+          .read(expensesFiltersProvider(emptySeed).notifier)
           .dispatch(const PresetSelected(ExpensePeriodPresetEnum.custom));
 
-      final state = container.read(expensesFiltersProvider);
+      final state = container.read(expensesFiltersProvider(emptySeed));
       expect(state.selectedPreset, ExpensePeriodPresetEnum.custom);
       expect(state.draft.startDate, isNull);
       expect(state.draft.endDate, isNull);
@@ -94,10 +92,10 @@ void main() {
       final end = DateTime(2026, 3, 20, 23, 59, 59, 999).millisecondsSinceEpoch;
 
       container
-          .read(expensesFiltersProvider.notifier)
+          .read(expensesFiltersProvider(emptySeed).notifier)
           .dispatch(CustomRangeChanged(start, end));
 
-      final state = container.read(expensesFiltersProvider);
+      final state = container.read(expensesFiltersProvider(emptySeed));
       expect(state.selectedPreset, ExpensePeriodPresetEnum.custom);
       expect(state.draft.startDate, start);
       expect(state.draft.endDate, end);
@@ -109,57 +107,74 @@ void main() {
       final container = _makeContainer();
 
       container
-          .read(expensesFiltersProvider.notifier)
+          .read(expensesFiltersProvider(emptySeed).notifier)
           .dispatch(const CategorySelected(ExpenseCategoryEnum.shopping));
 
       expect(
-        container.read(expensesFiltersProvider).draft.category,
+        container.read(expensesFiltersProvider(emptySeed)).draft.category,
         ExpenseCategoryEnum.shopping,
       );
     });
 
     test('null clears the category', () {
       final container = _makeContainer();
-      final notifier = container.read(expensesFiltersProvider.notifier);
+      final notifier = container.read(
+        expensesFiltersProvider(emptySeed).notifier,
+      );
 
       notifier.dispatch(const CategorySelected(ExpenseCategoryEnum.shopping));
       notifier.dispatch(const CategorySelected(null));
 
-      expect(container.read(expensesFiltersProvider).draft.category, isNull);
+      expect(
+        container.read(expensesFiltersProvider(emptySeed)).draft.category,
+        isNull,
+      );
     });
   });
 
   group('MinValueChanged / MaxValueChanged', () {
     test('non-zero values are stored', () {
       final container = _makeContainer();
-      final notifier = container.read(expensesFiltersProvider.notifier);
+      final notifier = container.read(
+        expensesFiltersProvider(emptySeed).notifier,
+      );
 
       notifier.dispatch(const MinValueChanged(1500));
       notifier.dispatch(const MaxValueChanged(50000));
 
-      final draft = container.read(expensesFiltersProvider).draft;
+      final draft = container.read(expensesFiltersProvider(emptySeed)).draft;
       expect(draft.minValue, 1500);
       expect(draft.maxValue, 50000);
     });
 
     test('zero is treated as unset', () {
       final container = _makeContainer();
-      final notifier = container.read(expensesFiltersProvider.notifier);
+      final notifier = container.read(
+        expensesFiltersProvider(emptySeed).notifier,
+      );
 
       notifier.dispatch(const MinValueChanged(1500));
       notifier.dispatch(const MinValueChanged(0));
 
-      expect(container.read(expensesFiltersProvider).draft.minValue, isNull);
+      expect(
+        container.read(expensesFiltersProvider(emptySeed)).draft.minValue,
+        isNull,
+      );
     });
 
     test('null is treated as unset', () {
       final container = _makeContainer();
-      final notifier = container.read(expensesFiltersProvider.notifier);
+      final notifier = container.read(
+        expensesFiltersProvider(emptySeed).notifier,
+      );
 
       notifier.dispatch(const MaxValueChanged(1500));
       notifier.dispatch(const MaxValueChanged(null));
 
-      expect(container.read(expensesFiltersProvider).draft.maxValue, isNull);
+      expect(
+        container.read(expensesFiltersProvider(emptySeed)).draft.maxValue,
+        isNull,
+      );
     });
   });
 
@@ -168,20 +183,22 @@ void main() {
       final container = _makeContainer();
 
       container
-          .read(expensesFiltersProvider.notifier)
+          .read(expensesFiltersProvider(emptySeed).notifier)
           .dispatch(const OrderingSelected(ExpenseOrderingEnum.valueAsc));
 
       expect(
-        container.read(expensesFiltersProvider).draft.ordering,
+        container.read(expensesFiltersProvider(emptySeed)).draft.ordering,
         ExpenseOrderingEnum.valueAsc,
       );
     });
   });
 
   group('Cleared', () {
-    test('resets draft and preset', () {
+    test('resets draft and preset to empty', () {
       final container = _makeContainer(now: DateTime(2026, 4, 23));
-      final notifier = container.read(expensesFiltersProvider.notifier);
+      final notifier = container.read(
+        expensesFiltersProvider(emptySeed).notifier,
+      );
 
       notifier.dispatch(
         const PresetSelected(ExpensePeriodPresetEnum.currentMonth),
@@ -191,7 +208,7 @@ void main() {
 
       notifier.dispatch(const Cleared());
 
-      final state = container.read(expensesFiltersProvider);
+      final state = container.read(expensesFiltersProvider(emptySeed));
       expect(state.draft, const ExpenseFilterModel.empty());
       expect(state.selectedPreset, isNull);
     });

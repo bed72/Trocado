@@ -1,15 +1,9 @@
 import 'package:trocado/src/domain/enums/expense/expense_category_enum.dart';
 import 'package:trocado/src/domain/enums/expense/expense_ordering_enum.dart';
-import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 import 'package:trocado/src/domain/enums/expense/expense_period_preset_enum.dart';
 
 sealed class ExpensesFiltersIntent {
   const ExpensesFiltersIntent();
-}
-
-final class InitializeFrom extends ExpensesFiltersIntent {
-  final ExpenseFilterModel filter;
-  const InitializeFrom(this.filter);
 }
 
 final class CategorySelected extends ExpensesFiltersIntent {
@@ -34,8 +28,8 @@ final class MinValueChanged extends ExpensesFiltersIntent {
 }
 
 final class MaxValueChanged extends ExpensesFiltersIntent {
-  final int? centavos;
-  const MaxValueChanged(this.centavos);
+  final int? cents;
+  const MaxValueChanged(this.cents);
 }
 
 final class OrderingSelected extends ExpensesFiltersIntent {

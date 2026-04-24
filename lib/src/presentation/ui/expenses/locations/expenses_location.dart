@@ -16,7 +16,9 @@ final class ExpensesLocation extends Location {
   LocationPageBuilder get pageBuilder =>
       (context) => screenPage(
         ExpensesScreen(
-          navigateToFilter: () => context.navigate(ExpensesFilterLocation()),
+          navigateToFilter: (initialFilter) => context.navigate(
+            ExpensesFilterLocation(initialFilter: initialFilter),
+          ),
         ),
       );
 }

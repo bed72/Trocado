@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:trocado/src/main/providers/services_provider.dart';
 
+import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 import 'package:trocado/src/domain/enums/expense/expense_period_preset_enum.dart';
 
 import 'package:trocado/src/presentation/ui/expenses/notifiers/expenses_filters_state.dart';
@@ -14,16 +15,13 @@ final class ExpensesFiltersNotifier extends _$ExpensesFiltersNotifier {
   late DateTime Function() _now;
 
   @override
-  ExpensesFiltersState build() {
+  ExpensesFiltersState build(ExpenseFilterModel seed) {
     _now = ref.watch(nowProvider);
 
-    return const ExpensesFiltersState();
+    return ExpensesFiltersState(draft: seed);
   }
 
   void dispatch(ExpensesFiltersIntent intent) => switch (intent) {
-    InitializeFrom(:final filter) => state = ExpensesFiltersState(
-      draft: filter,
-    ),
     CategorySelected(:final category) => state = state.copyWith(
       draft: state.draft.copyWith(
         category: category,
@@ -36,16 +34,16 @@ final class ExpensesFiltersNotifier extends _$ExpensesFiltersNotifier {
         selectedPreset: ExpensePeriodPresetEnum.custom,
         draft: state.draft.copyWith(startDate: startDate, endDate: endDate),
       ),
-    MinValueChanged(cents: final centavos) => state = state.copyWith(
+    MinValueChanged(:final cents) => state = state.copyWith(
       draft: state.draft.copyWith(
-        minValue: centavos,
-        clearMinValue: centavos == null || centavos == 0,
+        minValue: cents,
+        clearMinValue: cents == null || cents == 0,
       ),
     ),
-    MaxValueChanged(:final centavos) => state = state.copyWith(
+    MaxValueChanged(:final cents) => state = state.copyWith(
       draft: state.draft.copyWith(
-        maxValue: centavos,
-        clearMaxValue: centavos == null || centavos == 0,
+        maxValue: cents,
+        clearMaxValue: cents == null || cents == 0,
       ),
     ),
     OrderingSelected(:final ordering) => state = state.copyWith(

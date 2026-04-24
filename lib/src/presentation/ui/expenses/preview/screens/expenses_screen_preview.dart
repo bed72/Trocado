@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/enums/expense/expense_category_enum.dart';
 
-import 'package:trocado/src/presentation/data/expense/expense_item_data.dart';
+import 'package:trocado/src/presentation/data/expense_item_data.dart';
 
 import 'package:trocado/src/presentation/widgets/app_bar_widget.dart';
 import 'package:trocado/src/presentation/widgets/go_back_widget.dart';
@@ -73,24 +73,24 @@ Widget _listPreview(
 Widget previewToday() => _listPreview([
   expenseItemMock(
     id: 1,
-    ago: Duration.zero,
+    ago: .zero,
     value: 85.50,
-    category: ExpenseCategoryEnum.food,
+    category: .food,
     description: 'Cafezinho com o meu amor',
   ),
   expenseItemMock(
     id: 2,
     ago: const Duration(hours: 2),
     value: 38.91,
-    category: ExpenseCategoryEnum.health,
+    category: .health,
     description: 'Farmácia',
   ),
   expenseItemMock(
     id: 3,
     ago: const Duration(hours: 6),
     value: 22.00,
-    category: ExpenseCategoryEnum.transport,
     description: 'Uber',
+    category: .transport,
   ),
 ]);
 
@@ -98,30 +98,30 @@ Widget previewToday() => _listPreview([
 Widget previewTodayAndYesterday() => _listPreview([
   expenseItemMock(
     id: 1,
-    ago: Duration.zero,
+    ago: .zero,
     value: 85.50,
-    category: ExpenseCategoryEnum.food,
+    category: .food,
     description: 'Cafezinho',
   ),
   expenseItemMock(
     id: 2,
     ago: const Duration(hours: 5),
     value: 38.91,
-    category: ExpenseCategoryEnum.shopping,
+    category: .shopping,
     description: 'Arezzo',
   ),
   expenseItemMock(
     id: 3,
     ago: const Duration(days: 1),
     value: 164.00,
-    category: ExpenseCategoryEnum.food,
+    category: .food,
     description: 'Pão de Açúcar',
   ),
   expenseItemMock(
     id: 4,
     ago: const Duration(days: 1, hours: 3),
     value: 19.24,
-    category: ExpenseCategoryEnum.transport,
+    category: .transport,
     description: 'Estacionamento',
   ),
 ]);
@@ -130,37 +130,37 @@ Widget previewTodayAndYesterday() => _listPreview([
 Widget previewWithinWeek() => _listPreview([
   expenseItemMock(
     id: 1,
-    ago: Duration.zero,
+    ago: .zero,
     value: 85.50,
-    category: ExpenseCategoryEnum.food,
+    category: .food,
     description: 'Cafezinho',
   ),
   expenseItemMock(
     id: 2,
     ago: const Duration(days: 1),
     value: 38.91,
-    category: ExpenseCategoryEnum.health,
+    category: .health,
     description: 'Farmácia',
   ),
   expenseItemMock(
     id: 3,
     ago: const Duration(days: 2),
     value: 236.66,
-    category: ExpenseCategoryEnum.shopping,
+    category: .shopping,
     description: 'Arezzo',
   ),
   expenseItemMock(
     id: 4,
     ago: const Duration(days: 4),
     value: 164.00,
-    category: ExpenseCategoryEnum.food,
+    category: .food,
     description: 'Pão de Açúcar',
   ),
   expenseItemMock(
     id: 5,
     ago: const Duration(days: 6),
     value: 19.24,
-    category: ExpenseCategoryEnum.transport,
+    category: .transport,
     description: 'Estacionamento',
   ),
 ]);
@@ -169,23 +169,23 @@ Widget previewWithinWeek() => _listPreview([
 Widget previewOlderMonth() => _listPreview([
   expenseItemMock(
     id: 1,
-    ago: const Duration(days: 30),
     value: 1200.00,
-    category: ExpenseCategoryEnum.housing,
+    category: .housing,
     description: 'Aluguel',
+    ago: const Duration(days: 30),
   ),
   expenseItemMock(
     id: 2,
-    ago: const Duration(days: 45),
     value: 89.90,
-    category: ExpenseCategoryEnum.entertainment,
     description: 'Cinema',
+    category: .entertainment,
+    ago: const Duration(days: 45),
   ),
   expenseItemMock(
     id: 3,
-    ago: const Duration(days: 60),
     value: 420.50,
-    category: ExpenseCategoryEnum.debt,
+    category: .debt,
+    ago: const Duration(days: 60),
     description: 'Cartão de crédito',
   ),
 ]);
@@ -194,58 +194,58 @@ Widget previewOlderMonth() => _listPreview([
 Widget previewAllGroups() => _listPreview([
   expenseItemMock(
     id: 1,
-    ago: Duration.zero,
+    ago: .zero,
     value: 85.50,
-    category: ExpenseCategoryEnum.food,
+    category: .food,
     description: 'Cafezinho',
   ),
   expenseItemMock(
     id: 2,
-    ago: const Duration(hours: 4),
     value: 38.91,
-    category: ExpenseCategoryEnum.health,
+    category: .health,
     description: 'Farmácia',
+    ago: const Duration(hours: 4),
   ),
   expenseItemMock(
     id: 3,
-    ago: const Duration(days: 1),
     value: 164.00,
-    category: ExpenseCategoryEnum.food,
+    category: .food,
     description: 'Mercado',
+    ago: const Duration(days: 1),
   ),
   expenseItemMock(
     id: 4,
-    ago: const Duration(days: 3),
     value: 19.24,
-    category: ExpenseCategoryEnum.transport,
     description: 'Uber',
+    category: .transport,
+    ago: const Duration(days: 3),
   ),
   expenseItemMock(
     id: 5,
-    ago: const Duration(days: 5),
     value: 50.00,
-    category: ExpenseCategoryEnum.entertainment,
+    category: .entertainment,
     description: 'Streaming',
+    ago: const Duration(days: 5),
   ),
   expenseItemMock(
     id: 6,
     ago: const Duration(days: 20),
     value: 1200.00,
-    category: ExpenseCategoryEnum.housing,
+    category: .housing,
     description: 'Aluguel',
   ),
   expenseItemMock(
     id: 7,
-    ago: const Duration(days: 40),
     value: 420.50,
-    category: ExpenseCategoryEnum.debt,
+    category: .debt,
     description: 'Cartão',
+    ago: const Duration(days: 40),
   ),
   expenseItemMock(
     id: 8,
     ago: const Duration(days: 75),
     value: 89.90,
-    category: ExpenseCategoryEnum.shopping,
+    category: .shopping,
     description: 'Sapato',
   ),
 ]);

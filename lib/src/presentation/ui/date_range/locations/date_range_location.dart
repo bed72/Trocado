@@ -3,6 +3,7 @@ import 'package:duck_router/duck_router.dart';
 import 'package:trocado/app_route.dart';
 
 import 'package:trocado/src/presentation/pages/bottom_sheet_page.dart';
+import 'package:trocado/src/presentation/data/date_range_navigation.dart';
 import 'package:trocado/src/presentation/ui/date_range/screens/date_range_screen.dart';
 
 final class DateRangeLocation extends Location {

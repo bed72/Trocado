@@ -3,7 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 
-import 'package:trocado/src/presentation/data/expense/expense_item_data.dart';
+import 'package:trocado/src/presentation/data/expense_item_data.dart';
 import 'package:trocado/src/presentation/ui/expenses/data/expense_active_filter_chip_data.dart';
 
 final class ExpensesState extends Equatable {

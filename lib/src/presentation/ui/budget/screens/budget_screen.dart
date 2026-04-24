@@ -9,7 +9,7 @@ import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';
 import 'package:trocado/src/presentation/extensions/widget_extension.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
-import 'package:trocado/src/presentation/ui/date_range/screens/date_range_screen.dart';
+import 'package:trocado/src/presentation/data/date_range_navigation.dart';
 
 import 'package:trocado/src/presentation/ui/budget/notifiers/form/budget_form_intent.dart';
 import 'package:trocado/src/presentation/ui/budget/notifiers/form/budget_form_notifier.dart';

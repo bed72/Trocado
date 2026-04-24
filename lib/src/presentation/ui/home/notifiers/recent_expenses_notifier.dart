@@ -7,7 +7,7 @@ import 'package:trocado/src/domain/services/money_service.dart';
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
-import 'package:trocado/src/presentation/data/expense/expense_item_data.dart';
+import 'package:trocado/src/presentation/data/expense_item_data.dart';
 
 part 'recent_expenses_notifier.g.dart';
 

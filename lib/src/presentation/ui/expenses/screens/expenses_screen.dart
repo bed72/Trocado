@@ -21,7 +21,7 @@ import 'package:trocado/src/presentation/ui/expenses/widgets/expenses_filter_but
 import 'package:trocado/src/presentation/ui/expenses/widgets/expenses_active_filters_widget.dart';
 
 class ExpensesScreen extends StatefulWidget {
-  final VoidCallback navigateToFilter;
+  final ValueChanged<ExpenseFilterModel> navigateToFilter;
 
   const ExpensesScreen({super.key, required this.navigateToFilter});
 
@@ -83,7 +83,9 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
             Padding(
               padding: const .only(right: 16.0),
               child: ExpensesFilterButtonWidget(
-                onPress: widget.navigateToFilter,
+                onPress: () => widget.navigateToFilter(
+                  state.value?.filter ?? const ExpenseFilterModel.empty(),
+                ),
               ),
             ),
           ],

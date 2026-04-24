@@ -3,17 +3,10 @@ import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
+import 'package:trocado/src/presentation/data/date_range_navigation.dart';
+
 import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
 import 'package:trocado/src/presentation/widgets/bottom-sheets/bottom_sheet_scaffold_widget.dart';
-
-typedef DateRangeSelected = void Function(int startDate, int endDate);
-
-typedef NavigateToDateRange =
-    void Function({
-      int? initialStartDate,
-      int? initialEndDate,
-      required DateRangeSelected onSelected,
-    });
 
 class DateRangeScreen extends StatefulWidget {
   final String title;

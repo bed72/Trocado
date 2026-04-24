@@ -13,7 +13,7 @@ import 'package:trocado/src/domain/models/expense/expenses_page_model.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
 import 'package:trocado/src/presentation/actions/debounce_action.dart';
-import 'package:trocado/src/presentation/data/expense/expense_item_data.dart';
+import 'package:trocado/src/presentation/data/expense_item_data.dart';
 import 'package:trocado/src/presentation/widgets/expense/expense_category_visual_extension.dart';
 
 import 'package:trocado/src/presentation/ui/expenses/notifiers/expenses_state.dart';

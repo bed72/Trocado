@@ -1,6 +1,6 @@
 import 'package:intl/intl.dart';
 
-import 'package:trocado/src/presentation/data/expense/expense_item_data.dart';
+import 'package:trocado/src/presentation/data/expense_item_data.dart';
 import 'package:trocado/src/presentation/ui/expenses/data/expense_group_model.dart';
 
 List<ExpenseGroup> buildExpenseGroups(
