@@ -12,7 +12,7 @@ abstract interface class IExpenseRepository {
     required String description,
   });
 
-  // TODO miotos dados
+  // TODO muitos dados
   Future<Either<Failure, ExpenseModel>> update({
     required int id,
     required int date,

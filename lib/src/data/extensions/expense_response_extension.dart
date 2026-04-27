@@ -12,8 +12,8 @@ extension ExpenseResponseExtension on ExpenseResponse {
     description: description,
     category: .fromString(category),
     value: (double.parse(value) * 100).round(),
-    date: DateFormat('yyyy-MM-dd').parse(date).millisecondsSinceEpoch,
     createdAt: DateTime.parse(createdAt).millisecondsSinceEpoch,
+    date: DateFormat('yyyy-MM-dd').parse(date).millisecondsSinceEpoch,
   );
 }
 
@@ -25,9 +25,9 @@ extension ExpensesResponseExtension on ExpensesResponse {
   }
 
   ExpensesPageModel toPageModel() => ExpensesPageModel(
-    expenses: expenses.map((item) => item.toModel()).toList(),
     nextCursor: _cursorFrom(next),
     previousCursor: _cursorFrom(previous),
+    expenses: expenses.map((item) => item.toModel()).toList(),
   );
 
   String? _cursorFrom(String? url) {
