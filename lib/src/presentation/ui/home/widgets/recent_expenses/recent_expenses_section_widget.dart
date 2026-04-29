@@ -5,7 +5,7 @@ import 'package:trocado/src/presentation/extensions/context_extension.dart';
 import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
 import 'package:trocado/src/presentation/widgets/expense/expense_item_widget.dart';
 
-import 'package:trocado/src/presentation/data/expense_item_data.dart';
+import 'package:trocado/src/presentation/data/expense_item_presentation_data.dart';
 
 import 'package:trocado/src/presentation/ui/home/widgets/recent_expenses/recent_expenses_empty_widget.dart';
 import 'package:trocado/src/presentation/ui/home/widgets/recent_expenses/recent_expenses_loading_widget.dart';
@@ -14,7 +14,7 @@ import 'package:trocado/src/presentation/ui/home/widgets/recent_expenses/recent_
 class RecentExpensesSectionWidget extends StatelessWidget {
   final VoidCallback onRetry;
   final VoidCallback onSeeAll;
-  final AsyncValue<List<ExpenseItemData>> state;
+  final AsyncValue<List<ExpenseItemPresentationData>> state;
 
   const RecentExpensesSectionWidget({
     super.key,

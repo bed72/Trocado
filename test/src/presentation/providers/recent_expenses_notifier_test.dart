@@ -64,7 +64,7 @@ void main() {
   });
 
   test(
-    'returns AsyncData with mapped ExpenseItemData when repository returns Right',
+    'returns AsyncData with mapped ExpenseItemPresentationData when repository returns Right',
     () async {
       when(
         () => repository.findRecent(limit: any(named: 'limit')),

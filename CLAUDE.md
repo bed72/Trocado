@@ -121,14 +121,19 @@ Widgets são `StatelessWidget` puros. Apenas screens usam `Consumer` para acessa
 
 Screens **nunca** chamam `ref.watch`/`ref.read` em providers de service (`moneyServiceProvider`, `dateFormatterProvider`, etc.). O notifier é a única porta: injeta o service via `ref.watch(...)` em `build()` e emite no `State` um view-model com os dados já prontos (valores formatados, labels, etc.). A screen consome apenas o estado.
 
-View-models de apresentação vivem em `lib/src/presentation/ui/<feature>/data/` quando são específicos da feature (ex: `BudgetCardData`). Se o mesmo view-model for consumido por mais de uma feature, promover para `lib/src/presentation/data/<família>/` (ex: `presentation/data/expense/expense_item_data.dart`). Nunca use nomes genéricos como `helpers/`.
+View-models de apresentação vivem em `lib/src/presentation/ui/<feature>/data/` quando são específicos da feature (ex: `BudgetCardPresentationData`). Se o mesmo view-model for consumido por mais de uma feature, promover para `lib/src/presentation/data/<família>/` (ex: `presentation/data/expense/expense_item_presentation_data.dart`). Nunca use nomes genéricos como `helpers/`.
+
+**Convenção de nome:** classe sufixada com `PresentationData`, arquivo sufixado com `_presentation_data.dart`. Nunca usar apenas `Data` ou `Model` para view-models de apresentação.
 
 ```dart
 // correto — notifier traz o dado formatado; screen só lê o state
-final class ExpenseItemData extends Equatable {
+final class ExpenseItemPresentationData extends Equatable {
   final ExpenseModel expense;
   final String formattedValue;
-  const ExpenseItemData({required this.expense, required this.formattedValue});
+  const ExpenseItemPresentationData({
+    required this.expense,
+    required this.formattedValue,
+  });
 }
 
 @Riverpod(keepAlive: true)
@@ -143,10 +148,11 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
     ...
   }
 
-  ExpenseItemData _toItem(ExpenseModel expense) => ExpenseItemData(
-    expense: expense,
-    formattedValue: _moneyService.format(expense.value / 100),
-  );
+  ExpenseItemPresentationData _toItem(ExpenseModel expense) =>
+      ExpenseItemPresentationData(
+        expense: expense,
+        formattedValue: _moneyService.format(expense.value / 100),
+      );
 }
 
 class ExpensesScreen extends StatelessWidget {

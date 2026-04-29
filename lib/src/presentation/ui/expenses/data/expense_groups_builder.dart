@@ -1,18 +1,18 @@
 import 'package:intl/intl.dart';
 
-import 'package:trocado/src/presentation/data/expense_item_data.dart';
-import 'package:trocado/src/presentation/ui/expenses/data/expense_group_model.dart';
+import 'package:trocado/src/presentation/data/expense_item_presentation_data.dart';
+import 'package:trocado/src/presentation/ui/expenses/data/expense_group_presentation_data.dart';
 
-List<ExpenseGroup> buildExpenseGroups(
-  List<ExpenseItemData> items, {
+List<ExpenseGroupPresentationData> buildExpenseGroups(
+  List<ExpenseItemPresentationData> items, {
   DateTime? now,
 }) {
   if (items.isEmpty) return const [];
 
-  final groups = <ExpenseGroup>[];
+  final groups = <ExpenseGroupPresentationData>[];
   final reference = _atStartOfDay(now ?? .now());
   String? current;
-  List<ExpenseItemData> currentBucket = [];
+  List<ExpenseItemPresentationData> currentBucket = [];
 
   for (final item in items) {
     final day = _atStartOfDay(
@@ -22,7 +22,7 @@ List<ExpenseGroup> buildExpenseGroups(
 
     if (current == null || current != header) {
       if (current != null) {
-        groups.add(ExpenseGroup(header: current, expenses: currentBucket));
+        groups.add(ExpenseGroupPresentationData(header: current, expenses: currentBucket));
       }
       current = header;
       currentBucket = [item];
@@ -32,7 +32,7 @@ List<ExpenseGroup> buildExpenseGroups(
   }
 
   if (current != null) {
-    groups.add(ExpenseGroup(header: current, expenses: currentBucket));
+    groups.add(ExpenseGroupPresentationData(header: current, expenses: currentBucket));
   }
 
   return groups;

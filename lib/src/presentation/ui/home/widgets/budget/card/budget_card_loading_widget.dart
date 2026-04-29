@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
-import 'package:trocado/src/presentation/ui/home/data/budget_card_data.dart';
+import 'package:trocado/src/presentation/ui/home/data/budget_card_presentation_data.dart';
 import 'package:trocado/src/presentation/ui/home/widgets/budget/card/budget_card_success_widget.dart';
 
 class BudgetCardLoadingWidget extends StatelessWidget {
@@ -12,7 +12,7 @@ class BudgetCardLoadingWidget extends StatelessWidget {
       Skeletonizer(child: const BudgetCardSuccessWidget(data: _placeholder));
 }
 
-const _placeholder = BudgetCardData(
+const _placeholder = BudgetCardPresentationData(
   overspent: false,
   percentage: 0.05,
   formattedPercentage: '7',

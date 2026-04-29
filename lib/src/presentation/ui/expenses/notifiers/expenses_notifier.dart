@@ -11,13 +11,13 @@ import 'package:trocado/src/domain/models/expense/expenses_page_model.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
-import 'package:trocado/src/presentation/data/expense_item_data.dart';
+import 'package:trocado/src/presentation/data/expense_item_presentation_data.dart';
 import 'package:trocado/src/presentation/actions/debounce_action.dart';
 import 'package:trocado/src/presentation/widgets/expense/expense_category_visual_extension.dart';
 
 import 'package:trocado/src/presentation/ui/expenses/notifiers/expenses_state.dart';
 import 'package:trocado/src/presentation/ui/expenses/data/expense_filter_chip_kind.dart';
-import 'package:trocado/src/presentation/ui/expenses/data/expense_active_filter_chip_data.dart';
+import 'package:trocado/src/presentation/ui/expenses/data/expense_active_filter_chip_presentation_data.dart';
 
 part 'expenses_notifier.g.dart';
 
@@ -108,17 +108,17 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
     );
   }
 
-  ExpenseItemData _toItem(ExpenseModel expense) => ExpenseItemData(
+  ExpenseItemPresentationData _toItem(ExpenseModel expense) => ExpenseItemPresentationData(
     expense: expense,
     formattedValue: _moneyService.format(expense.value / 100),
   );
 
-  List<ExpenseActiveFilterChipData> _buildChips(ExpenseFilterModel filter) {
-    final chips = <ExpenseActiveFilterChipData>[];
+  List<ExpenseActiveFilterChipPresentationData> _buildChips(ExpenseFilterModel filter) {
+    final chips = <ExpenseActiveFilterChipPresentationData>[];
 
     if (filter.category != null) {
       chips.add(
-        ExpenseActiveFilterChipData(
+        ExpenseActiveFilterChipPresentationData(
           kind: .category,
           icon: filter.category!.icon,
           label: filter.category!.label,
@@ -128,7 +128,7 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
 
     if (filter.startDate != null || filter.endDate != null) {
       chips.add(
-        ExpenseActiveFilterChipData(
+        ExpenseActiveFilterChipPresentationData(
           kind: .period,
           label: _periodLabel(filter.startDate, filter.endDate),
         ),
@@ -137,7 +137,7 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
 
     if (filter.minValue != null || filter.maxValue != null) {
       chips.add(
-        ExpenseActiveFilterChipData(
+        ExpenseActiveFilterChipPresentationData(
           kind: .value,
           label: _valueLabel(filter.minValue, filter.maxValue),
         ),
@@ -146,7 +146,7 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
 
     if (filter.ordering != .dateDesc) {
       chips.add(
-        ExpenseActiveFilterChipData(
+        ExpenseActiveFilterChipPresentationData(
           kind: .ordering,
           label: filter.ordering.label,
         ),

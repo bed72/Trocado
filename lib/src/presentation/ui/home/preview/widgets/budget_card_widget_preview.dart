@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:trocado/src/presentation/preview/trocado_preview.dart';
 
-import 'package:trocado/src/presentation/ui/home/data/budget_card_data.dart';
+import 'package:trocado/src/presentation/ui/home/data/budget_card_presentation_data.dart';
 import 'package:trocado/src/presentation/ui/home/preview/mocks/budget_card_mock.dart';
 import 'package:trocado/src/presentation/ui/home/widgets/budget/card/budget_card_widget.dart';
 
@@ -28,7 +28,7 @@ final _overspent = budgetCardMock(
   totalSpent: 350000,
 );
 
-Widget _card(AsyncValue<BudgetCardData?> state) => Scaffold(
+Widget _card(AsyncValue<BudgetCardPresentationData?> state) => Scaffold(
   body: SafeArea(
     child: Padding(
       padding: const .all(16.0),

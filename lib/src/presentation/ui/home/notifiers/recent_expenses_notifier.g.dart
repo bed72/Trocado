@@ -14,7 +14,7 @@ final recentExpensesProvider = RecentExpensesNotifierProvider._();
 
 final class RecentExpensesNotifierProvider
     extends
-        $AsyncNotifierProvider<RecentExpensesNotifier, List<ExpenseItemData>> {
+        $AsyncNotifierProvider<RecentExpensesNotifier, List<ExpenseItemPresentationData>> {
   RecentExpensesNotifierProvider._()
     : super(
         from: null,
@@ -38,22 +38,22 @@ String _$recentExpensesNotifierHash() =>
     r'88c876013973ced9283ef344e1db6ee0d2ca1715';
 
 abstract class _$RecentExpensesNotifier
-    extends $AsyncNotifier<List<ExpenseItemData>> {
-  FutureOr<List<ExpenseItemData>> build();
+    extends $AsyncNotifier<List<ExpenseItemPresentationData>> {
+  FutureOr<List<ExpenseItemPresentationData>> build();
   @$mustCallSuper
   @override
   void runBuild() {
     final ref =
         this.ref
-            as $Ref<AsyncValue<List<ExpenseItemData>>, List<ExpenseItemData>>;
+            as $Ref<AsyncValue<List<ExpenseItemPresentationData>>, List<ExpenseItemPresentationData>>;
     final element =
         ref.element
             as $ClassProviderElement<
               AnyNotifier<
-                AsyncValue<List<ExpenseItemData>>,
-                List<ExpenseItemData>
+                AsyncValue<List<ExpenseItemPresentationData>>,
+                List<ExpenseItemPresentationData>
               >,
-              AsyncValue<List<ExpenseItemData>>,
+              AsyncValue<List<ExpenseItemPresentationData>>,
               Object?,
               Object?
             >;

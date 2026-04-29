@@ -7,7 +7,7 @@ import 'package:trocado/src/domain/services/money_service.dart';
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
-import 'package:trocado/src/presentation/data/expense_item_data.dart';
+import 'package:trocado/src/presentation/data/expense_item_presentation_data.dart';
 
 part 'recent_expenses_notifier.g.dart';
 
@@ -17,14 +17,14 @@ final class RecentExpensesNotifier extends _$RecentExpensesNotifier {
   late IExpenseRepository _repository;
 
   @override
-  Future<List<ExpenseItemData>> build() async {
+  Future<List<ExpenseItemPresentationData>> build() async {
     _moneyService = ref.watch(moneyServiceProvider);
     _repository = ref.watch(expenseRepositoryProvider);
 
     return await _load();
   }
 
-  Future<List<ExpenseItemData>> _load() async {
+  Future<List<ExpenseItemPresentationData>> _load() async {
     final data = await _repository.findRecent();
 
     return data.fold(
@@ -33,7 +33,7 @@ final class RecentExpensesNotifier extends _$RecentExpensesNotifier {
     );
   }
 
-  ExpenseItemData _toItem(ExpenseModel expense) => ExpenseItemData(
+  ExpenseItemPresentationData _toItem(ExpenseModel expense) => ExpenseItemPresentationData(
     expense: expense,
     formattedValue: _moneyService.format(expense.value / 100),
   );

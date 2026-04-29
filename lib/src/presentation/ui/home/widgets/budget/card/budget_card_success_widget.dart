@@ -3,20 +3,20 @@ import 'package:skeletonizer/skeletonizer.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
-import 'package:trocado/src/presentation/ui/home/data/budget_card_data.dart';
+import 'package:trocado/src/presentation/ui/home/data/budget_card_presentation_data.dart';
 import 'package:trocado/src/presentation/ui/home/widgets/budget/card/budget_card_label_widget.dart';
 import 'package:trocado/src/presentation/ui/home/widgets/budget/card/budget_progress_bar_painter.dart';
 
 class BudgetCardSuccessWidget extends StatelessWidget {
-  final BudgetCardData data;
+  final BudgetCardPresentationData data;
 
   const BudgetCardSuccessWidget({super.key, required this.data});
 
   @override
   Widget build(BuildContext context) {
     final color = _gaugeColor(
-      percentage: data.percentage,
       colors: context.colors,
+      percentage: data.percentage,
     );
 
     return Card(
@@ -30,9 +30,9 @@ class BudgetCardSuccessWidget extends StatelessWidget {
           crossAxisAlignment: .start,
           children: [
             BudgetCardLabelWidget(
-              budget: data.formattedDailyBudget,
-              percentage: data.percentage,
               overspent: data.overspent,
+              percentage: data.percentage,
+              budget: data.formattedDailyBudget,
             ),
             Row(
               crossAxisAlignment: .start,

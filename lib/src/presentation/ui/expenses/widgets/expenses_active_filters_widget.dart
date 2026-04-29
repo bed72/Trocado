@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
 import 'package:trocado/src/presentation/ui/expenses/data/expense_filter_chip_kind.dart';
-import 'package:trocado/src/presentation/ui/expenses/data/expense_active_filter_chip_data.dart';
+import 'package:trocado/src/presentation/ui/expenses/data/expense_active_filter_chip_presentation_data.dart';
 
 class ExpensesActiveFiltersWidget extends StatelessWidget {
-  final List<ExpenseActiveFilterChipData> chips;
+  final List<ExpenseActiveFilterChipPresentationData> chips;
   final ValueChanged<ExpenseFilterChipKind> onRemove;
 
   const ExpensesActiveFiltersWidget({
@@ -31,7 +31,7 @@ class ExpensesActiveFiltersWidget extends StatelessWidget {
     );
   }
 
-  Widget _chip(BuildContext context, ExpenseActiveFilterChipData data) =>
+  Widget _chip(BuildContext context, ExpenseActiveFilterChipPresentationData data) =>
       InputChip(
         elevation: 0.0,
         labelPadding: const .only(left: 4.0, right: 4.0, bottom: 1.0),

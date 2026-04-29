@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/enums/expense/expense_category_enum.dart';
 
-import 'package:trocado/src/presentation/data/expense_item_data.dart';
+import 'package:trocado/src/presentation/data/expense_item_presentation_data.dart';
 
 import 'package:trocado/src/presentation/widgets/app_bar_widget.dart';
 import 'package:trocado/src/presentation/widgets/go_back_widget.dart';
@@ -50,7 +50,7 @@ Widget _shell({required List<Widget> slivers}) => Scaffold(
 );
 
 Widget _listPreview(
-  List<ExpenseItemData> items, {
+  List<ExpenseItemPresentationData> items, {
   bool isLoadingMore = false,
   Failure? loadMoreFailure,
   String? nextCursor = 'CUR',

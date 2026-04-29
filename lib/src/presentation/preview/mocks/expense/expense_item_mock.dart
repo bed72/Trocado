@@ -1,12 +1,12 @@
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
 import 'package:trocado/src/domain/enums/expense/expense_category_enum.dart';
 
-import 'package:trocado/src/presentation/data/expense_item_data.dart';
+import 'package:trocado/src/presentation/data/expense_item_presentation_data.dart';
 
 String formatPreviewValue(double value) =>
     'R\$ ${value.toStringAsFixed(2).replaceAll('.', ',')}';
 
-ExpenseItemData expenseItemMock({
+ExpenseItemPresentationData expenseItemMock({
   required int id,
   required Duration ago,
   required double value,
@@ -15,7 +15,7 @@ ExpenseItemData expenseItemMock({
 }) {
   final moment = DateTime.now().subtract(ago);
 
-  return ExpenseItemData(
+  return ExpenseItemPresentationData(
     expense: ExpenseModel(
       id: id,
       category: category,

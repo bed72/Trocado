@@ -3,16 +3,16 @@ import 'package:equatable/equatable.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 
-import 'package:trocado/src/presentation/data/expense_item_data.dart';
-import 'package:trocado/src/presentation/ui/expenses/data/expense_active_filter_chip_data.dart';
+import 'package:trocado/src/presentation/data/expense_item_presentation_data.dart';
+import 'package:trocado/src/presentation/ui/expenses/data/expense_active_filter_chip_presentation_data.dart';
 
 final class ExpensesState extends Equatable {
   final String? nextCursor;
   final bool isLoadingMore;
   final Failure? loadMoreFailure;
-  final List<ExpenseItemData> items;
+  final List<ExpenseItemPresentationData> items;
   final ExpenseFilterModel filter;
-  final List<ExpenseActiveFilterChipData> activeFilterChips;
+  final List<ExpenseActiveFilterChipPresentationData> activeFilterChips;
 
   const ExpensesState({
     this.nextCursor,
@@ -27,9 +27,9 @@ final class ExpensesState extends Equatable {
     String? nextCursor,
     bool? isLoadingMore,
     Failure? loadMoreFailure,
-    List<ExpenseItemData>? items,
+    List<ExpenseItemPresentationData>? items,
     ExpenseFilterModel? filter,
-    List<ExpenseActiveFilterChipData>? activeFilterChips,
+    List<ExpenseActiveFilterChipPresentationData>? activeFilterChips,
     bool clearNextCursor = false,
     bool clearLoadMoreFailure = false,
   }) => ExpensesState(

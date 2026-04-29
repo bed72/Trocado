@@ -2,11 +2,11 @@ import 'package:equatable/equatable.dart';
 
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
 
-final class ExpenseItemData extends Equatable {
+final class ExpenseItemPresentationData extends Equatable {
   final ExpenseModel expense;
   final String formattedValue;
 
-  const ExpenseItemData({
+  const ExpenseItemPresentationData({
     required this.expense,
     required this.formattedValue,
   });

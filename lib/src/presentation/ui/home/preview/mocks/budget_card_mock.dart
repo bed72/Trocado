@@ -1,11 +1,11 @@
 import 'dart:math';
 
-import 'package:trocado/src/presentation/ui/home/data/budget_card_data.dart';
+import 'package:trocado/src/presentation/ui/home/data/budget_card_presentation_data.dart';
 
 String _format(double value) =>
     'R\$ ${value.toStringAsFixed(2).replaceAll('.', ',')}';
 
-BudgetCardData budgetCardMock({
+BudgetCardPresentationData budgetCardMock({
   required int value,
   required int remaining,
   required int totalSpent,
@@ -13,7 +13,7 @@ BudgetCardData budgetCardMock({
   final percentage = value > 0 ? totalSpent / value : 0.0;
   final dailyBudget = (remaining / max(1, 7)).round();
 
-  return BudgetCardData(
+  return BudgetCardPresentationData(
     percentage: percentage,
     overspent: remaining < 0,
     formattedValue: _format(value / 100),

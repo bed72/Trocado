@@ -4,12 +4,12 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
 import 'package:trocado/src/domain/enums/expense/expense_category_enum.dart';
 
-import 'package:trocado/src/presentation/data/expense_item_data.dart';
+import 'package:trocado/src/presentation/data/expense_item_presentation_data.dart';
 
 import 'package:trocado/src/presentation/ui/expenses/data/expense_groups_builder.dart';
 
-ExpenseItemData _item({required int id, required DateTime date}) =>
-    ExpenseItemData(
+ExpenseItemPresentationData _item({required int id, required DateTime date}) =>
+    ExpenseItemPresentationData(
       expense: ExpenseModel(
         id: id,
         value: 1000,

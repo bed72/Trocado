@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-final class BudgetCardData extends Equatable {
+final class BudgetCardPresentationData extends Equatable {
   final bool overspent;
   final double percentage;
   final String formattedValue;
@@ -10,7 +10,7 @@ final class BudgetCardData extends Equatable {
   final String formattedPercentage;
   final String formattedDailyBudget;
 
-  const BudgetCardData({
+  const BudgetCardPresentationData({
     required this.overspent,
     required this.percentage,
     required this.formattedValue,
