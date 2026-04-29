@@ -20,7 +20,8 @@ import '../../../mocks/mocks.dart';
 final _bundle = InsightsBundleModel(
   insights: const [
     InsightModel(
-      message: 'Housing em 56%.',
+      title: 'Categoria em destaque',
+      description: 'Housing em 56%.',
       type: InsightTypeEnum.topCategory,
       severity: InsightSeverityEnum.info,
       data: {'category': 'housing', 'pct': 55.98},

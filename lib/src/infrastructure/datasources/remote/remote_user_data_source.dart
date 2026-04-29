@@ -3,11 +3,11 @@ import 'package:trocado/src/domain/either/either.dart';
 import 'package:trocado/src/infrastructure/clients/http/http_client.dart';
 import 'package:trocado/src/infrastructure/clients/http/endpoint_key.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/requests.dart';
-import 'package:trocado/src/infrastructure/clients/http/responses/me_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/user_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/failure/failure_response.dart';
 
 abstract interface class IRemoteUserDataSource {
-  Future<Either<FailureResponse, MeResponse>> me();
+  Future<Either<FailureResponse, UserResponse>> me();
 }
 
 final class RemoteUserDataSource implements IRemoteUserDataSource {
@@ -16,11 +16,11 @@ final class RemoteUserDataSource implements IRemoteUserDataSource {
   RemoteUserDataSource({required IHttpClient client}) : _client = client;
 
   @override
-  Future<Either<FailureResponse, MeResponse>> me() async {
+  Future<Either<FailureResponse, UserResponse>> me() async {
     final response = await _client.get(
       parameter: Requests(EndpointKey.me.path),
     );
 
-    return response.either(FailureResponse.fromJson, MeResponse.fromJson);
+    return response.either(FailureResponse.fromJson, UserResponse.fromJson);
   }
 }

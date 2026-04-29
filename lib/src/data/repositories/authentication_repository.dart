@@ -1,15 +1,10 @@
 import 'package:trocado/src/domain/either/either.dart';
-
 import 'package:trocado/src/domain/failures/failure.dart';
-
-import 'package:trocado/src/domain/models/authentication/sign_up_model.dart';
 import 'package:trocado/src/domain/models/authentication/authentication_model.dart';
+import 'package:trocado/src/domain/repositories/interface_authentication_repository.dart';
 
 import 'package:trocado/src/data/extensions/failure_response_extension.dart';
-import 'package:trocado/src/data/extensions/authentication/sign_in_response_extension.dart';
-import 'package:trocado/src/data/extensions/authentication/sign_up_response_extension.dart';
-
-import 'package:trocado/src/domain/repositories/interface_authentication_repository.dart';
+import 'package:trocado/src/data/extensions/authentication/authentication_response_extension.dart';
 
 import 'package:trocado/src/infrastructure/datasources/local/local_token_data_source.dart';
 import 'package:trocado/src/infrastructure/datasources/remote/remote_authentication_data_source.dart';
@@ -55,6 +50,21 @@ final class AuthenticationRepository implements IAuthenticationRepository {
   }
 
   @override
+  Future<Either<Failure, void>> confirmPasswordReset({
+    required String uid,
+    required String token,
+    required String newPassword,
+  }) async {
+    final data = await _authenticationDataSource.confirmPasswordReset(
+      uid: uid,
+      token: token,
+      newPassword: newPassword,
+    );
+
+    return data.either((failure) => failure.toFailure(), (_) {});
+  }
+
+  @override
   Future<Either<Failure, AuthenticationModel>> signIn({
     required String email,
     required String password,
@@ -75,7 +85,7 @@ final class AuthenticationRepository implements IAuthenticationRepository {
   }
 
   @override
-  Future<Either<Failure, SignUpModel>> signUp({
+  Future<Either<Failure, AuthenticationModel>> signUp({
     required String email,
     required String password,
   }) async {
@@ -93,21 +103,6 @@ final class AuthenticationRepository implements IAuthenticationRepository {
     );
 
     return Right(data.right.toModel());
-  }
-
-  @override
-  Future<Either<Failure, void>> confirmPasswordReset({
-    required String uid,
-    required String token,
-    required String newPassword,
-  }) async {
-    final data = await _authenticationDataSource.confirmPasswordReset(
-      uid: uid,
-      token: token,
-      newPassword: newPassword,
-    );
-
-    return data.either((failure) => failure.toFailure(), (_) {});
   }
 
   @override

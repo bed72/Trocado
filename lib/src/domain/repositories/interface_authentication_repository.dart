@@ -1,14 +1,13 @@
 import 'package:trocado/src/domain/either/either.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
-import 'package:trocado/src/domain/models/authentication/sign_up_model.dart';
 import 'package:trocado/src/domain/models/authentication/authentication_model.dart';
 
 abstract interface class IAuthenticationRepository {
   Future<Either<Failure, void>> logout();
   Future<Either<Failure, void>> checkSession();
   Future<Either<Failure, void>> requestPasswordReset({required String email});
-  Future<Either<Failure, SignUpModel>> signUp({
+  Future<Either<Failure, AuthenticationModel>> signUp({
     required String email,
     required String password,
   });

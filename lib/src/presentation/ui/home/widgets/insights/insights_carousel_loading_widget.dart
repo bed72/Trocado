@@ -30,6 +30,7 @@ class InsightsCarouselLoadingWidget extends StatelessWidget {
 const _placeholder = InsightModel(
   type: InsightTypeEnum.budgetUtilization,
   severity: InsightSeverityEnum.info,
-  message: 'Carregando insight com duas linhas de texto para o skeleton.',
+  title: 'Carregando insight',
+  description: 'Carregando insight com duas linhas de texto para o skeleton.',
   data: {},
 );

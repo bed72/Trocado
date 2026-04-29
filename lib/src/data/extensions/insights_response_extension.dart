@@ -7,7 +7,8 @@ import 'package:trocado/src/infrastructure/clients/http/responses/insight/insigh
 extension InsightItemResponseExtension on InsightItemResponse {
   InsightModel toModel() => InsightModel(
     data: data,
-    message: message,
+    title: title,
+    description: description,
     type: .fromString(type),
     severity: .fromString(severity),
   );

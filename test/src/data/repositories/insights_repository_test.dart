@@ -20,14 +20,16 @@ const _successJson = {
   'insights': [
     {
       'severity': 'danger',
-      'message': 'Usou 146%.',
+      'title': 'Estourou',
+      'description': 'Usou 146%.',
       'type': 'budget_utilization',
       'data': {'budget_pct': 145.61},
     },
     {
       'severity': 'info',
       'type': 'top_category',
-      'message': 'Housing em 56%.',
+      'title': 'Categoria em destaque',
+      'description': 'Housing em 56%.',
       'data': {'category': 'housing', 'pct': 55.98},
     },
   ],
@@ -85,7 +87,8 @@ void main() {
         (_) async => Right(<String, dynamic>{
           'insights': [
             <String, dynamic>{
-              'message': 'msg',
+              'title': 'titulo',
+              'description': 'desc',
               'severity': 'critical',
               'type': 'brand_new_type',
               'data': <String, dynamic>{},

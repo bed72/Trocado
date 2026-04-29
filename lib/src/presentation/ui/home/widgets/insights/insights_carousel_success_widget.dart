@@ -12,7 +12,7 @@ class InsightsCarouselSuccessWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 90.0,
+      height: 78.0,
       child: ListView.separated(
         scrollDirection: .horizontal,
         itemCount: bundle.insights.length,

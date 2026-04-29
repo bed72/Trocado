@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:trocado/src/domain/models/insight/insight_model.dart';
-import 'package:trocado/src/domain/enums/insight/insight_type_enum.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 import 'package:trocado/src/presentation/ui/home/widgets/insights/insight_icon_widget.dart';
@@ -14,19 +13,18 @@ class InsightCardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 300.0,
+      width: 320.0,
       child: Card(
         margin: .zero,
         elevation: 0.0,
         clipBehavior: .antiAlias,
-        // color: context.colors.surfaceContainerHighest,
         shape: RoundedRectangleBorder(
           borderRadius: context.radius.cornerRadius100,
         ),
         child: Padding(
-          padding: const .all(12.0),
+          padding: const .symmetric(vertical: 10.0, horizontal: 16.0),
           child: Row(
-            spacing: 12.0,
+            spacing: 10.0,
             crossAxisAlignment: .center,
             children: [
               InsightIconWidget(type: insight.type, severity: insight.severity),
@@ -37,7 +35,7 @@ class InsightCardWidget extends StatelessWidget {
                   crossAxisAlignment: .start,
                   children: [
                     Text(
-                      titleFor(insight.type),
+                      insight.title,
                       maxLines: 1,
                       overflow: .ellipsis,
                       style: context.typography.labelMedium?.copyWith(
@@ -46,7 +44,7 @@ class InsightCardWidget extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      insight.message,
+                      insight.description,
                       maxLines: 2,
                       overflow: .ellipsis,
                       style: context.typography.bodySmall?.copyWith(
@@ -63,11 +61,3 @@ class InsightCardWidget extends StatelessWidget {
     );
   }
 }
-
-String titleFor(InsightTypeEnum type) => switch (type) {
-  .dailyAverage => 'Média diária',
-  .willOverspend => 'Projeção de gasto',
-  .topCategory => 'Categoria em destaque',
-  .budgetUtilization => 'Uso do orçamento',
-  .unknown => 'Insight',
-};

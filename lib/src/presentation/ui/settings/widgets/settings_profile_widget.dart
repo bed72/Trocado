@@ -15,7 +15,7 @@ class SettingsProfileWidget extends StatelessWidget {
     return Row(
       spacing: 16.0,
       children: [
-        SettingsAvatarWidget(name: user.name, avatar: user.avatar),
+        SettingsAvatarWidget(name: user.name),
         Expanded(
           child: Column(
             mainAxisSize: .min,

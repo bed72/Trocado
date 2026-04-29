@@ -12,7 +12,8 @@ const _json = {
     {
       'severity': 'danger',
       'type': 'budget_utilization',
-      'message': 'Usou 146% do orçamento.',
+      'title': 'Estourou o budget',
+      'description': 'Usou 146% do orçamento.',
       'data': {
         'period_pct': 72.41,
         'budget_pct': 145.61,
@@ -23,7 +24,8 @@ const _json = {
     {
       'severity': 'warning',
       'type': 'will_overspend',
-      'message': 'No ritmo atual, estoura em 0 dias.',
+      'title': 'Vai estourar',
+      'description': 'No ritmo atual, estoura em 0 dias.',
       'data': {
         'daily_rate': 208.02,
         'budget_value': 3000,
@@ -34,14 +36,16 @@ const _json = {
     {
       'severity': 'warning',
       'type': 'daily_average',
-      'message': 'Média diária de R\$208.02.',
+      'title': 'Média diária alta',
+      'description': 'Média diária de R\$208.02.',
       'data': {'actual_daily_rate': 208.02, 'ideal_daily_rate': 103.45},
     },
     {
       'severity': 'info',
       'type': 'top_category',
+      'title': 'Categoria em destaque',
       'data': {'category': 'housing', 'pct': 55.98},
-      'message': 'Housing representa 56% dos gastos.',
+      'description': 'Housing representa 56% dos gastos.',
     },
   ],
   'has_enough_data': false,
@@ -64,14 +68,16 @@ void main() {
       expect(response.insights[0].severity, 'danger');
       expect(response.insights[0].data['budget_pct'], 145.61);
       expect(response.insights[0].type, 'budget_utilization');
-      expect(response.insights[0].message, 'Usou 146% do orçamento.');
+      expect(response.insights[0].title, 'Estourou o budget');
+      expect(response.insights[0].description, 'Usou 146% do orçamento.');
     });
 
     test('accepts unknown type and severity without throwing', () {
       final json = <String, dynamic>{
         'insights': [
           <String, dynamic>{
-            'message': 'msg',
+            'title': 'titulo',
+            'description': 'desc',
             'severity': 'critical',
             'type': 'something_new',
             'data': <String, dynamic>{},
@@ -87,7 +93,12 @@ void main() {
     test('defaults data to empty map when missing', () {
       final json = {
         'insights': [
-          {'type': 'top_category', 'severity': 'info', 'message': 'msg'},
+          {
+            'type': 'top_category',
+            'severity': 'info',
+            'title': 'titulo',
+            'description': 'desc',
+          },
         ],
         'has_enough_data': true,
         'generated_at': '2026-04-22T00:00:00Z',
@@ -96,6 +107,25 @@ void main() {
       final response = InsightsResponse.fromJson(json);
 
       expect(response.insights.first.data, isEmpty);
+    });
+
+    test('defaults title and description to empty when missing', () {
+      final json = {
+        'insights': [
+          {
+            'type': 'top_category',
+            'severity': 'info',
+            'data': <String, dynamic>{},
+          },
+        ],
+        'has_enough_data': true,
+        'generated_at': '2026-04-22T00:00:00Z',
+      };
+
+      final response = InsightsResponse.fromJson(json);
+
+      expect(response.insights.first.title, '');
+      expect(response.insights.first.description, '');
     });
   });
 
@@ -116,7 +146,8 @@ void main() {
       final json = <String, dynamic>{
         'insights': [
           <String, dynamic>{
-            'message': 'msg',
+            'title': 'titulo',
+            'description': 'desc',
             'severity': 'critical',
             'type': 'something_new',
             'data': <String, dynamic>{},
@@ -137,6 +168,13 @@ void main() {
 
       expect(bundle.insights[3].data['category'], 'housing');
       expect(bundle.insights[3].data['pct'], 55.98);
+    });
+
+    test('maps title and description to model', () {
+      final bundle = InsightsResponse.fromJson(_json).toModel();
+
+      expect(bundle.insights[0].title, 'Estourou o budget');
+      expect(bundle.insights[0].description, 'Usou 146% do orçamento.');
     });
 
     test('converts generatedAt ISO string to DateTime', () {

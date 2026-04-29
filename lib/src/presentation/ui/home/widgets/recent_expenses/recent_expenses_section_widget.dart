@@ -32,8 +32,8 @@ class RecentExpensesSectionWidget extends StatelessWidget {
       Padding(
         padding: const .symmetric(horizontal: 20.0),
         child: Row(
-          mainAxisAlignment: .spaceBetween,
           crossAxisAlignment: .center,
+          mainAxisAlignment: .spaceBetween,
           children: [
             Text(
               'Despesas recentes',

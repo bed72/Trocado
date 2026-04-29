@@ -7,8 +7,7 @@ import 'package:trocado/src/domain/either/either.dart';
 import 'package:trocado/src/main/providers/repositories_provider.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
-import 'package:trocado/src/domain/models/user_model.dart';
-import 'package:trocado/src/domain/models/authentication/sign_up_model.dart';
+import 'package:trocado/src/domain/models/authentication/authentication_model.dart';
 import 'package:trocado/src/domain/repositories/interface_authentication_repository.dart';
 
 import 'package:trocado/src/presentation/ui/authentication/sign_up/notifiers/sign_up_state.dart';
@@ -17,10 +16,9 @@ import 'package:trocado/src/presentation/ui/authentication/sign_up/notifiers/sig
 
 import '../../../../../mocks/mocks.dart';
 
-const _signUpModel = SignUpModel(
+const _authModel = AuthenticationModel(
   access: 'access-token',
   refresh: 'refresh-token',
-  user: UserModel(id: 42, name: 'jane', email: 'jane@trocado.app'),
 );
 
 void main() {
@@ -167,7 +165,7 @@ void main() {
           email: any(named: 'email'),
           password: any(named: 'password'),
         ),
-      ).thenAnswer((_) async => const Right(_signUpModel));
+      ).thenAnswer((_) async => const Right(_authModel));
 
       final container = makeContainer();
       final notifier = container.read(signUpProvider.notifier);

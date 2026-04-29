@@ -11,7 +11,8 @@ InsightsBundleModel insightsBundleMock(List<InsightModel> insights) =>
 const dangerBudgetInsightMock = InsightModel(
   severity: .danger,
   type: .budgetUtilization,
-  message: 'Que bom que budgets são só sugestões mesmo, né? Você usou 146%.',
+  title: 'Estourou o budget',
+  description: 'Que bom que budgets são só sugestões mesmo, né? Você usou 146%.',
   data: {
     'period_pct': 72.41,
     'budget_value': 3000,
@@ -23,7 +24,8 @@ const dangerBudgetInsightMock = InsightModel(
 const willOverspendInsightMock = InsightModel(
   severity: .warning,
   type: .willOverspend,
-  message: 'No ritmo atual, estoura o budget em 0 dias.',
+  title: 'Vai estourar',
+  description: 'No ritmo atual, estoura o budget em 0 dias.',
   data: {
     'budget_value': 3000,
     'daily_rate': 208.02,
@@ -35,14 +37,16 @@ const willOverspendInsightMock = InsightModel(
 const dailyAverageInsightMock = InsightModel(
   severity: .warning,
   type: .dailyAverage,
+  title: 'Média diária alta',
   data: {'actual_daily_rate': 208.02, 'ideal_daily_rate': 103.45},
-  message:
+  description:
       'Média diária de R\$208,02. O ideal seria R\$103,45. Matemática triste.',
 );
 
 const topCategoryInsightMock = InsightModel(
   severity: .info,
   type: .topCategory,
+  title: 'Categoria em destaque',
   data: {'category': 'housing', 'pct': 55.98},
-  message: 'Housing representa 56% dos seus gastos este período.',
+  description: 'Housing representa 56% dos seus gastos este período.',
 );

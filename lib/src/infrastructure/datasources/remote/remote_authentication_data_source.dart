@@ -7,22 +7,20 @@ import 'package:trocado/src/infrastructure/clients/http/requests/requests.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/sign_up_request.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/password_reset_confirm_request.dart';
 
-import 'package:trocado/src/infrastructure/clients/http/responses/authentication/sign_in_response.dart';
-import 'package:trocado/src/infrastructure/clients/http/responses/authentication/sign_up_response.dart';
-import 'package:trocado/src/infrastructure/clients/http/responses/authentication/refresh_token_response.dart';
-import 'package:trocado/src/infrastructure/clients/http/responses/authentication/password_reset_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/failure/failure_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/authentication/authentication_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/authentication/password_reset_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/authentication/password_reset_confirm_response.dart';
 
 abstract interface class IRemoteAuthenticationDataSource {
   Future<Either<FailureResponse, void>> logout({required String refresh});
 
-  Future<Either<FailureResponse, SignInResponse>> signIn({
+  Future<Either<FailureResponse, AuthenticationResponse>> signIn({
     required String email,
     required String password,
   });
 
-  Future<Either<FailureResponse, SignUpResponse>> signUp({
+  Future<Either<FailureResponse, AuthenticationResponse>> signUp({
     required String name,
     required String email,
     required String password,
@@ -30,7 +28,7 @@ abstract interface class IRemoteAuthenticationDataSource {
 
   Future<Either<FailureResponse, void>> verifyToken({required String token});
 
-  Future<Either<FailureResponse, RefreshTokenResponse>> refreshToken({
+  Future<Either<FailureResponse, AuthenticationResponse>> refreshToken({
     required String refresh,
   });
 
@@ -65,7 +63,7 @@ final class RemoteAuthenticationDataSource
   }
 
   @override
-  Future<Either<FailureResponse, SignInResponse>> signIn({
+  Future<Either<FailureResponse, AuthenticationResponse>> signIn({
     required String email,
     required String password,
   }) async {
@@ -76,11 +74,14 @@ final class RemoteAuthenticationDataSource
       ),
     );
 
-    return response.either(FailureResponse.fromJson, SignInResponse.fromJson);
+    return response.either(
+      FailureResponse.fromJson,
+      AuthenticationResponse.fromJson,
+    );
   }
 
   @override
-  Future<Either<FailureResponse, SignUpResponse>> signUp({
+  Future<Either<FailureResponse, AuthenticationResponse>> signUp({
     required String name,
     required String email,
     required String password,
@@ -96,7 +97,10 @@ final class RemoteAuthenticationDataSource
       ),
     );
 
-    return response.either(FailureResponse.fromJson, SignUpResponse.fromJson);
+    return response.either(
+      FailureResponse.fromJson,
+      AuthenticationResponse.fromJson,
+    );
   }
 
   @override
@@ -111,7 +115,7 @@ final class RemoteAuthenticationDataSource
   }
 
   @override
-  Future<Either<FailureResponse, RefreshTokenResponse>> refreshToken({
+  Future<Either<FailureResponse, AuthenticationResponse>> refreshToken({
     required String refresh,
   }) async {
     final response = await _client.post(
@@ -123,7 +127,7 @@ final class RemoteAuthenticationDataSource
 
     return response.either(
       FailureResponse.fromJson,
-      RefreshTokenResponse.fromJson,
+      AuthenticationResponse.fromJson,
     );
   }
 

@@ -19,7 +19,7 @@ class InsightIconWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) => BackgroundIconWidget(
     icon: _icon(),
-    iconSize: 20.0,
+    iconSize: 24.0,
     color: context.colors.primary,
   );
 

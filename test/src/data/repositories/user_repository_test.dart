@@ -19,7 +19,6 @@ const _meSuccessJson = {
   'id': 1,
   'email': 'jane@trocado.app',
   'name': 'Jane Doe',
-  'avatar': null,
 };
 
 const _meFailureJson = {

@@ -1,11 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:trocado/src/infrastructure/clients/http/responses/authentication/sign_in_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/authentication/authentication_response.dart';
 
 void main() {
-  group('SignInResponse.fromJson', () {
+  group('AuthenticationResponse.fromJson', () {
     test('parses access and refresh tokens', () {
-      final response = SignInResponse.fromJson({
+      final response = AuthenticationResponse.fromJson({
         'access': 'access-token',
         'refresh': 'refresh-token',
       });

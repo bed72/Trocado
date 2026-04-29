@@ -18,12 +18,6 @@ import '../../../mocks/mocks.dart';
 const _signUpSuccessJson = {
   'access': 'access-token',
   'refresh': 'refresh-token',
-  'user': {
-    'id': 42,
-    'name': 'jane',
-    'avatar': null,
-    'email': 'jane@trocado.app',
-  },
 };
 
 void main() {
@@ -182,7 +176,7 @@ void main() {
   });
 
   group('signUp', () {
-    test('returns Right with SignUpModel on success', () async {
+    test('returns Right with AuthenticationModel on success', () async {
       when(
         () => client.post(parameter: any(named: 'parameter')),
       ).thenAnswer((_) async => const Right(_signUpSuccessJson));
@@ -193,11 +187,8 @@ void main() {
       );
 
       expect(data.isRight, isTrue);
-      expect(data.right.user.id, 42);
-      expect(data.right.user.name, 'jane');
       expect(data.right.access, 'access-token');
       expect(data.right.refresh, 'refresh-token');
-      expect(data.right.user.email, 'jane@trocado.app');
     });
 
     test('calls tokenDataSource.save with correct tokens on success', () async {

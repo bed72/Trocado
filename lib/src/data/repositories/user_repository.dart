@@ -1,6 +1,6 @@
 import 'package:trocado/src/domain/either/either.dart';
 
-import 'package:trocado/src/data/extensions/me_response_extension.dart';
+import 'package:trocado/src/data/extensions/user_response_extension.dart';
 import 'package:trocado/src/data/extensions/failure_response_extension.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
