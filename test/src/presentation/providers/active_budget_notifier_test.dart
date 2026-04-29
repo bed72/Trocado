@@ -85,6 +85,71 @@ void main() {
     },
   );
 
+  test(
+    'formattedDailyBudget splits remaining across days remaining inclusively',
+    () async {
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final endDate = today.add(const Duration(days: 1));
+
+      final model = ActiveBudgetModel(
+        id: 1,
+        value: 250000,
+        description: 'Active',
+        totalSpent: 144094,
+        remaining: 105906,
+        endDate: endDate.millisecondsSinceEpoch,
+        startDate: today
+            .subtract(const Duration(days: 28))
+            .millisecondsSinceEpoch,
+      );
+
+      when(
+        () => repository.findActive(),
+      ).thenAnswer((_) async => Right(model));
+
+      final container = _makeContainer(
+        repository: repository,
+        moneyService: moneyService,
+      );
+      final data = await container.read(activeBudgetProvider.future);
+
+      expect(data!.formattedDailyBudget, 'R\$ 529.53');
+    },
+  );
+
+  test(
+    'formattedDailyBudget uses full remaining when today is the last day',
+    () async {
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+
+      final model = ActiveBudgetModel(
+        id: 2,
+        value: 250000,
+        description: 'Last day',
+        totalSpent: 144094,
+        remaining: 105906,
+        endDate: today.millisecondsSinceEpoch,
+        startDate: today
+            .subtract(const Duration(days: 29))
+            .millisecondsSinceEpoch,
+      );
+
+      when(
+        () => repository.findActive(),
+      ).thenAnswer((_) async => Right(model));
+
+      final container = _makeContainer(
+        repository: repository,
+        moneyService: moneyService,
+      );
+      final data = await container.read(activeBudgetProvider.future);
+
+      expect(data!.formattedDailyBudget, 'R\$ 1059.06');
+    },
+  );
+
   test('flags overspent and uses abs value for formattedOverspent', () async {
     when(
       () => repository.findActive(),

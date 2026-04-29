@@ -16,7 +16,7 @@ class SettingsLogoutWidget extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     width: .infinity,
     padding: const .only(top: 16.0),
-    child: ButtonWidget.outlined(
+    child: ButtonWidget.elevated(
       label: 'Sair',
       isLoading: isLoading,
       onTap: isLoading ? null : onTap,

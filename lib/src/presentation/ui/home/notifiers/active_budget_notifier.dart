@@ -52,9 +52,12 @@ final class ActiveBudgetNotifier extends _$ActiveBudgetNotifier {
     );
   }
 
-  int _daysRemaining(int endDate) =>
-      DateTime.fromMillisecondsSinceEpoch(
-        endDate,
-      ).difference(DateTime.now()).inDays +
-      1;
+  int _daysRemaining(int endDate) {
+    final now = DateTime.now();
+    final end = DateTime.fromMillisecondsSinceEpoch(endDate);
+    final today = DateTime(now.year, now.month, now.day);
+    final endDay = DateTime(end.year, end.month, end.day);
+
+    return endDay.difference(today).inDays + 1;
+  }
 }
