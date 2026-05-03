@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:intl/intl.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:trocado/src/main/providers/services_provider.dart';
@@ -43,6 +44,7 @@ final class ActiveBudgetNotifier extends _$ActiveBudgetNotifier {
     return BudgetCardPresentationData(
       percentage: percentage,
       overspent: model.remaining < 0,
+      formattedEndDate: _formatEndDate(model.endDate),
       formattedValue: _moneyService.format(model.value / 100),
       formattedDailyBudget: _moneyService.format(dailyBudget / 100),
       formattedTotalSpent: _moneyService.format(model.totalSpent / 100),
@@ -51,6 +53,9 @@ final class ActiveBudgetNotifier extends _$ActiveBudgetNotifier {
       formattedPercentage: (percentage * 100).clamp(0, 100).toStringAsFixed(0),
     );
   }
+
+  String _formatEndDate(int endDate) =>
+      DateFormat('dd/MM', 'pt_BR').format(.fromMillisecondsSinceEpoch(endDate));
 
   int _daysRemaining(int endDate) {
     final now = DateTime.now();

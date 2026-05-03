@@ -11,21 +11,25 @@ final _healthy = budgetCardMock(
   value: 300000,
   remaining: 210000,
   totalSpent: 90000,
+  formattedEndDate: '31/05',
 );
 final _warning = budgetCardMock(
   value: 300000,
   remaining: 135000,
   totalSpent: 165000,
+  formattedEndDate: '31/05',
 );
 final _critical = budgetCardMock(
   value: 300000,
   remaining: 15000,
   totalSpent: 285000,
+  formattedEndDate: '31/05',
 );
 final _overspent = budgetCardMock(
   value: 300000,
   remaining: -50000,
   totalSpent: 350000,
+  formattedEndDate: '31/05',
 );
 
 Widget _card(AsyncValue<BudgetCardPresentationData?> state) => Scaffold(

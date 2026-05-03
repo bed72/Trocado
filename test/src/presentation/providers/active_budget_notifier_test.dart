@@ -1,5 +1,7 @@
+import 'package:intl/intl.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:trocado/src/domain/either/either.dart';
@@ -19,26 +21,26 @@ import '../../../mocks/mocks.dart';
 const _model = ActiveBudgetModel(
   id: 35,
   value: 1800000,
-  startDate: 1743465600000,
-  endDate: 1746057600000,
-  description: 'Orçamento de Abril',
   totalSpent: 12000,
   remaining: 1788000,
+  endDate: 1746057600000,
+  startDate: 1743465600000,
+  description: 'Orçamento de Abril',
 );
 
 const _overspent = ActiveBudgetModel(
   id: 36,
   value: 1000000,
-  startDate: 1743465600000,
+  remaining: -500000,
+  totalSpent: 1500000,
   endDate: 1746057600000,
   description: 'Overspent',
-  totalSpent: 1500000,
-  remaining: -500000,
+  startDate: 1743465600000,
 );
 
 ProviderContainer _makeContainer({
-  required IBudgetRepository repository,
   required IMoneyService moneyService,
+  required IBudgetRepository repository,
 }) {
   final container = ProviderContainer(
     overrides: [
@@ -53,6 +55,10 @@ ProviderContainer _makeContainer({
 void main() {
   late IMoneyService moneyService;
   late IBudgetRepository repository;
+
+  setUpAll(() async {
+    await initializeDateFormatting('pt_BR');
+  });
 
   setUp(() {
     moneyService = MockMoneyService();
@@ -82,6 +88,13 @@ void main() {
       expect(data.formattedTotalSpent, 'R\$ 120.0');
       expect(data.formattedRemaining, 'R\$ 17880.0');
       expect(data.formattedOverspent, 'R\$ 17880.0');
+      expect(
+        data.formattedEndDate,
+        DateFormat(
+          'dd/MM',
+          'pt_BR',
+        ).format(DateTime.fromMillisecondsSinceEpoch(_model.endDate)),
+      );
     },
   );
 
@@ -95,18 +108,16 @@ void main() {
       final model = ActiveBudgetModel(
         id: 1,
         value: 250000,
-        description: 'Active',
-        totalSpent: 144094,
         remaining: 105906,
+        totalSpent: 144094,
+        description: 'Active',
         endDate: endDate.millisecondsSinceEpoch,
         startDate: today
             .subtract(const Duration(days: 28))
             .millisecondsSinceEpoch,
       );
 
-      when(
-        () => repository.findActive(),
-      ).thenAnswer((_) async => Right(model));
+      when(() => repository.findActive()).thenAnswer((_) async => Right(model));
 
       final container = _makeContainer(
         repository: repository,
@@ -115,6 +126,10 @@ void main() {
       final data = await container.read(activeBudgetProvider.future);
 
       expect(data!.formattedDailyBudget, 'R\$ 529.53');
+      expect(
+        data.formattedEndDate,
+        DateFormat('dd/MM', 'pt_BR').format(endDate),
+      );
     },
   );
 
@@ -127,18 +142,16 @@ void main() {
       final model = ActiveBudgetModel(
         id: 2,
         value: 250000,
-        description: 'Last day',
-        totalSpent: 144094,
         remaining: 105906,
+        totalSpent: 144094,
+        description: 'Last day',
         endDate: today.millisecondsSinceEpoch,
         startDate: today
             .subtract(const Duration(days: 29))
             .millisecondsSinceEpoch,
       );
 
-      when(
-        () => repository.findActive(),
-      ).thenAnswer((_) async => Right(model));
+      when(() => repository.findActive()).thenAnswer((_) async => Right(model));
 
       final container = _makeContainer(
         repository: repository,
@@ -147,6 +160,7 @@ void main() {
       final data = await container.read(activeBudgetProvider.future);
 
       expect(data!.formattedDailyBudget, 'R\$ 1059.06');
+      expect(data.formattedEndDate, DateFormat('dd/MM', 'pt_BR').format(today));
     },
   );
 

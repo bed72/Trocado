@@ -4,6 +4,7 @@ final class BudgetCardPresentationData extends Equatable {
   final bool overspent;
   final double percentage;
   final String formattedValue;
+  final String formattedEndDate;
   final String formattedRemaining;
   final String formattedOverspent;
   final String formattedTotalSpent;
@@ -14,6 +15,7 @@ final class BudgetCardPresentationData extends Equatable {
     required this.overspent,
     required this.percentage,
     required this.formattedValue,
+    required this.formattedEndDate,
     required this.formattedRemaining,
     required this.formattedOverspent,
     required this.formattedTotalSpent,
@@ -26,6 +28,7 @@ final class BudgetCardPresentationData extends Equatable {
     overspent,
     percentage,
     formattedValue,
+    formattedEndDate,
     formattedRemaining,
     formattedOverspent,
     formattedTotalSpent,

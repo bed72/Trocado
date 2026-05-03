@@ -34,12 +34,14 @@ class BudgetCardSuccessWidget extends StatelessWidget {
               percentage: data.percentage,
               budget: data.formattedDailyBudget,
             ),
-            Row(
-              crossAxisAlignment: .start,
-              children: [
-                Expanded(child: _buildStats(context, color)),
-                _buildPercentage(context, color),
-              ],
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: .stretch,
+                children: [
+                  Expanded(child: _buildStats(context, color)),
+                  _buildPercentage(context, color),
+                ],
+              ),
             ),
             _buildProgressBar(context, color),
           ],
@@ -112,15 +114,27 @@ class BudgetCardSuccessWidget extends StatelessWidget {
 
   Widget _buildPercentage(BuildContext context, Color color) => Column(
     crossAxisAlignment: .end,
+    mainAxisAlignment: .spaceBetween,
     children: [
+      Column(
+        crossAxisAlignment: .end,
+        children: [
+          Text(
+            '${data.formattedPercentage}%',
+            style: context.typography.headlineSmall?.copyWith(
+              color: color,
+              fontWeight: .bold,
+            ),
+          ),
+          Icon(Icons.trending_up_rounded, color: color, size: 18.0),
+        ],
+      ),
       Text(
-        '${data.formattedPercentage}%',
-        style: context.typography.headlineSmall?.copyWith(
-          color: color,
-          fontWeight: .bold,
+        'até ${data.formattedEndDate}',
+        style: context.typography.labelSmall?.copyWith(
+          color: context.colors.outline,
         ),
       ),
-      Icon(Icons.trending_up_rounded, color: color, size: 18.0),
     ],
   );
 
