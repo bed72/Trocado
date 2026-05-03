@@ -3,14 +3,16 @@ import 'package:skeletonizer/skeletonizer.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
-import 'package:trocado/src/presentation/ui/home/data/budget_card_presentation_data.dart';
-import 'package:trocado/src/presentation/ui/home/widgets/budget/card/budget_card_label_widget.dart';
-import 'package:trocado/src/presentation/ui/home/widgets/budget/card/budget_progress_bar_painter.dart';
+import 'package:trocado/src/presentation/data/budget/budget_card_presentation_data.dart';
+import 'package:trocado/src/presentation/widgets/bounce_widget.dart';
+import 'package:trocado/src/presentation/widgets/budget/card/budget_card_label_widget.dart';
+import 'package:trocado/src/presentation/widgets/budget/card/budget_progress_bar_painter.dart';
 
 class BudgetCardSuccessWidget extends StatelessWidget {
   final BudgetCardPresentationData data;
+  final VoidCallback? onTap;
 
-  const BudgetCardSuccessWidget({super.key, required this.data});
+  const BudgetCardSuccessWidget({super.key, required this.data, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +21,7 @@ class BudgetCardSuccessWidget extends StatelessWidget {
       percentage: data.percentage,
     );
 
-    return Card(
+    final card = Card(
       elevation: 0.0,
       color: color.withValues(alpha: .1),
       child: Padding(
@@ -48,6 +50,10 @@ class BudgetCardSuccessWidget extends StatelessWidget {
         ),
       ),
     );
+
+    if (onTap == null) return card;
+
+    return BounceWidget.withOnPress(onPress: onTap, child: card);
   }
 
   Widget _buildStats(BuildContext context, Color color) => Column(

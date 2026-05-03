@@ -10,7 +10,7 @@ import 'package:trocado/src/domain/services/money_service.dart';
 import 'package:trocado/src/domain/models/budget/active_budget_model.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
 
-import 'package:trocado/src/presentation/ui/home/data/budget_card_presentation_data.dart';
+import 'package:trocado/src/presentation/data/budget/budget_card_presentation_data.dart';
 
 part 'active_budget_notifier.g.dart';
 

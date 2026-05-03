@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:trocado/src/presentation/ui/home/data/budget_card_presentation_data.dart';
+import 'package:trocado/src/presentation/data/budget/budget_card_presentation_data.dart';
 
 String _format(double value) =>
     'R\$ ${value.toStringAsFixed(2).replaceAll('.', ',')}';

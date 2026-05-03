@@ -13,7 +13,7 @@ import 'package:trocado/src/presentation/ui/home/notifiers/recent_expenses_notif
 import 'package:trocado/src/presentation/ui/home/widgets/home_action_button_widget.dart';
 
 import 'package:trocado/src/presentation/ui/home/widgets/home_app_bar_widget.dart';
-import 'package:trocado/src/presentation/ui/home/widgets/budget/card/budget_card_widget.dart';
+import 'package:trocado/src/presentation/widgets/budget/card/budget_card_widget.dart';
 import 'package:trocado/src/presentation/ui/home/widgets/insights/insights_carousel_widget.dart';
 import 'package:trocado/src/presentation/ui/home/widgets/recent_expenses/recent_expenses_section_widget.dart';
 
@@ -21,6 +21,7 @@ class HomeScreen extends StatefulWidget {
   final VoidCallback navigateToChat;
   final VoidCallback navigateToExit;
   final VoidCallback navigateToBudget;
+  final VoidCallback navigateToBudgets;
   final VoidCallback navigateToExpenses;
   final VoidCallback navigateToSettings;
   final VoidCallback navigateToNotification;
@@ -31,6 +32,7 @@ class HomeScreen extends StatefulWidget {
     required this.navigateToChat,
     required this.navigateToExit,
     required this.navigateToBudget,
+    required this.navigateToBudgets,
     required this.navigateToExpenses,
     required this.navigateToSettings,
     required this.navigateToNotification,
@@ -76,6 +78,7 @@ class _HomeScreenState extends State<HomeScreen>
                   padding: const .all(16.0),
                   child: BudgetCardWidget(
                     state: budgetState,
+                    onTap: widget.navigateToBudgets,
                     onCreateBudget: widget.navigateToBudget,
                     onRetry: () => ref.refresh(activeBudgetProvider),
                   ),

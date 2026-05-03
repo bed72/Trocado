@@ -73,6 +73,12 @@ final class AppRoutes {
     regex: RegExp(r'^/budget$'),
   );
 
+  static final budgets = AppRoutes._(
+    path: '/budgets',
+    name: 'budgets-route',
+    regex: RegExp(r'^/budgets$'),
+  );
+
   static final signIn = AppRoutes._(
     path: '/sign-in',
     name: 'sign-in-route',
@@ -138,6 +144,7 @@ final class AppRoutes {
     exit,
     home,
     budget,
+    budgets,
     splash,
     signIn,
     signUp,

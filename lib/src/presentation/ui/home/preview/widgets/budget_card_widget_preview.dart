@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:trocado/src/presentation/preview/trocado_preview.dart';
 
-import 'package:trocado/src/presentation/ui/home/data/budget_card_presentation_data.dart';
+import 'package:trocado/src/presentation/data/budget/budget_card_presentation_data.dart';
 import 'package:trocado/src/presentation/ui/home/preview/mocks/budget_card_mock.dart';
-import 'package:trocado/src/presentation/ui/home/widgets/budget/card/budget_card_widget.dart';
+import 'package:trocado/src/presentation/widgets/budget/card/budget_card_widget.dart';
 
 final _healthy = budgetCardMock(
   value: 300000,
