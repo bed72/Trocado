@@ -97,7 +97,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
           ],
         ),
         body: RefreshIndicator(
-          onRefresh: () => notifier.applyFilter(
+          onRefresh: () async => notifier.applyFilter(
             state.value?.filter ?? const ExpenseFilterModel.empty(),
           ),
           child: Padding(

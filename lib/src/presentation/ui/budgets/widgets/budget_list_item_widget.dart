@@ -17,7 +17,7 @@ class BudgetListItemWidget extends StatelessWidget {
 
     return Card(
       elevation: 0.0,
-      margin: const .symmetric(horizontal: 10.0, vertical: 6.0),
+      margin: const .symmetric(horizontal: 16.0, vertical: 6.0),
       child: Padding(
         padding: const .all(16.0),
         child: Column(

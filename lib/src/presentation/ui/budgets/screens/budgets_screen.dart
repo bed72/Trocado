@@ -69,7 +69,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
               slivers: [
                 const SliverToBoxAdapter(
                   child: Padding(
-                    padding: .symmetric(horizontal: 16.0, vertical: 8.0),
+                    padding: .symmetric(horizontal: 18.0, vertical: 8.0),
                     child: ScreenHeaderWidget(
                       title: 'Orçamentos',
                       description:
@@ -108,7 +108,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
       if (value.activeCard != null)
         SliverToBoxAdapter(
           child: Padding(
-            padding: const .all(10.0),
+            padding: const .all(16.0),
             child: BudgetCardSuccessWidget(data: value.activeCard!),
           ),
         ),
