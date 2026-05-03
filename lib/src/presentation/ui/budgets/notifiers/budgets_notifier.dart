@@ -13,12 +13,13 @@ import 'package:trocado/src/domain/models/budget/budgets_page_model.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
 
 import 'package:trocado/src/presentation/data/budget/budget_card_presentation_data.dart';
+
 import 'package:trocado/src/presentation/ui/budgets/notifiers/budgets_state.dart';
 import 'package:trocado/src/presentation/ui/budgets/data/budget_item_presentation_data.dart';
 
 part 'budgets_notifier.g.dart';
 
-@Riverpod(keepAlive: true)
+@Riverpod()
 final class BudgetsNotifier extends _$BudgetsNotifier {
   late IMoneyService _moneyService;
   late IBudgetRepository _repository;
@@ -62,22 +63,19 @@ final class BudgetsNotifier extends _$BudgetsNotifier {
   Future<BudgetsState> _loadFirstPage() async {
     final data = await _repository.findAll();
 
-    return data.fold(
-      (failure) => throw failure,
-      (page) {
-        final now = DateTime.now().millisecondsSinceEpoch;
-        final active = _pickActive(page.budgets, now);
-        final remaining = active == null
-            ? page.budgets
-            : page.budgets.where((b) => b.id != active.id).toList();
+    return data.fold((failure) => throw failure, (page) {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final active = _pickActive(page.budgets, now);
+      final remaining = active == null
+          ? page.budgets
+          : page.budgets.where((b) => b.id != active.id).toList();
 
-        return BudgetsState(
-          nextCursor: page.nextCursor,
-          activeCard: active == null ? null : _toCardData(active),
-          items: remaining.map(_toItem).toList(),
-        );
-      },
-    );
+      return BudgetsState(
+        nextCursor: page.nextCursor,
+        items: remaining.map(_toItem).toList(),
+        activeCard: active == null ? null : _toCardData(active),
+      );
+    });
   }
 
   BudgetModel? _pickActive(List<BudgetModel> budgets, int now) {
@@ -91,27 +89,29 @@ final class BudgetsNotifier extends _$BudgetsNotifier {
   BudgetItemPresentationData _toItem(BudgetModel budget) =>
       BudgetItemPresentationData(
         budget: budget,
+        formattedTotalSpent: _moneyService.format(
+          (budget.totalSpent ?? 0) / 100,
+        ),
         formattedValue: _moneyService.format(budget.value / 100),
-        formattedTotalSpent: _moneyService.format((budget.totalSpent ?? 0) / 100),
-        formattedRemaining: _moneyService.format((budget.remaining ?? 0) / 100),
         formattedPeriod: _formatPeriod(budget.startDate, budget.endDate),
+        formattedRemaining: _moneyService.format((budget.remaining ?? 0) / 100),
       );
 
   BudgetCardPresentationData _toCardData(BudgetModel model) {
     final value = model.value;
     final totalSpent = model.totalSpent ?? 0;
-    final remaining = model.remaining ?? (value - totalSpent);
     final percentage = value > 0 ? totalSpent / value : 0.0;
-    final dailyBudget =
-        (remaining / max(1, _daysRemaining(model.endDate))).round();
+    final remaining = model.remaining ?? (value - totalSpent);
+    final dailyBudget = (remaining / max(1, _daysRemaining(model.endDate)))
+        .round();
 
     return BudgetCardPresentationData(
       percentage: percentage,
       overspent: remaining < 0,
       formattedEndDate: _formatEndDate(model.endDate),
       formattedValue: _moneyService.format(value / 100),
-      formattedDailyBudget: _moneyService.format(dailyBudget / 100),
       formattedTotalSpent: _moneyService.format(totalSpent / 100),
+      formattedDailyBudget: _moneyService.format(dailyBudget / 100),
       formattedOverspent: _moneyService.format(remaining.abs() / 100),
       formattedRemaining: _moneyService.format(max(0, remaining) / 100),
       formattedPercentage: (percentage * 100).clamp(0, 100).toStringAsFixed(0),
@@ -119,10 +119,11 @@ final class BudgetsNotifier extends _$BudgetsNotifier {
   }
 
   String _formatPeriod(int startMs, int endMs) {
-    final start = DateTime.fromMillisecondsSinceEpoch(startMs);
-    final end = DateTime.fromMillisecondsSinceEpoch(endMs);
     final currentYear = DateTime.now().year;
+    final end = DateTime.fromMillisecondsSinceEpoch(endMs);
+    final start = DateTime.fromMillisecondsSinceEpoch(startMs);
     final sameYear = start.year == currentYear && end.year == currentYear;
+
     final pattern = sameYear ? 'dd/MM' : 'dd/MM/yy';
     final format = DateFormat(pattern, 'pt_BR');
 

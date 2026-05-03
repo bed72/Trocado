@@ -6,29 +6,30 @@ import 'package:trocado/src/presentation/data/budget/budget_card_presentation_da
 import 'package:trocado/src/presentation/ui/budgets/data/budget_item_presentation_data.dart';
 
 final class BudgetsState extends Equatable {
-  final BudgetCardPresentationData? activeCard;
-  final List<BudgetItemPresentationData> items;
-  final String? nextCursor;
   final bool isLoadingMore;
+  final List<BudgetItemPresentationData> items;
+
+  final String? nextCursor;
   final Failure? loadMoreFailure;
+  final BudgetCardPresentationData? activeCard;
 
   const BudgetsState({
     this.activeCard,
-    this.items = const [],
     this.nextCursor,
-    this.isLoadingMore = false,
     this.loadMoreFailure,
+    this.items = const [],
+    this.isLoadingMore = false,
   });
 
   BudgetsState copyWith({
-    BudgetCardPresentationData? activeCard,
-    List<BudgetItemPresentationData>? items,
     String? nextCursor,
     bool? isLoadingMore,
     Failure? loadMoreFailure,
     bool clearActiveCard = false,
     bool clearNextCursor = false,
     bool clearLoadMoreFailure = false,
+    BudgetCardPresentationData? activeCard,
+    List<BudgetItemPresentationData>? items,
   }) => BudgetsState(
     items: items ?? this.items,
     isLoadingMore: isLoadingMore ?? this.isLoadingMore,
@@ -41,8 +42,8 @@ final class BudgetsState extends Equatable {
 
   @override
   List<Object?> get props => [
-    activeCard,
     items,
+    activeCard,
     nextCursor,
     isLoadingMore,
     loadMoreFailure,
