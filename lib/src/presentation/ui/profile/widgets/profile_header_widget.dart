@@ -15,7 +15,7 @@ class ProfileHeaderWidget extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: .center,
     children: [
-      AvatarWidget(name: user.name, size: 96.0),
+      Center(child: AvatarWidget(name: user.name, size: 72.0)),
       const SizedBox(height: 16.0),
       Text(
         user.name,

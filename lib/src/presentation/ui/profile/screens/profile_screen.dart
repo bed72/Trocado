@@ -10,8 +10,8 @@ import 'package:trocado/src/presentation/notifiers/user_notifier.dart';
 import 'package:trocado/src/presentation/widgets/app_bar_widget.dart';
 import 'package:trocado/src/presentation/widgets/go_back_widget.dart';
 import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';
-import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
 import 'package:trocado/src/presentation/widgets/screen_header_widget.dart';
+import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
 import 'package:trocado/src/presentation/widgets/dialog/confirm_dialog_widget.dart';
 
 import 'package:trocado/src/presentation/ui/profile/widgets/profile_header_widget.dart';
@@ -61,15 +61,14 @@ class ProfileScreen extends StatelessWidget {
     required UserModel user,
     required VoidCallback onDelete,
   }) => Column(
+    spacing: 24.0,
     crossAxisAlignment: .start,
     children: [
       const ScreenHeaderWidget(
         title: 'Dados pessoais',
         description: 'Gerencie as informações da sua conta.',
       ),
-      const SizedBox(height: 24.0),
       ProfileHeaderWidget(user: user),
-      const SizedBox(height: 32.0),
       ProfileFieldsCardWidget(
         children: [
           ProfileFieldItemWidget(label: 'Nome', onTap: () {}),
@@ -87,10 +86,10 @@ class ProfileScreen extends StatelessWidget {
     required VoidCallback onRetry,
   }) => Center(
     child: Column(
+      spacing: 16.0,
       mainAxisSize: .min,
       children: [
         Text(failure.message, textAlign: .center),
-        const SizedBox(height: 16.0),
         ButtonWidget.outlined(label: 'Tentar novamente', onTap: onRetry),
       ],
     ),
@@ -102,7 +101,7 @@ class ProfileScreen extends StatelessWidget {
       title: 'Apagar conta',
       confirmLabel: 'Apagar',
       description:
-          'Esta ação é irreversível. Todos os seus dados financeiros serão apagados e você não poderá recuperá-los.',
+          'Esta ação é irreversível.\n\n - Todos os seus dados financeiros serão apagados e você não poderá recuperá-los.',
     );
     if (!confirmed) return;
   }

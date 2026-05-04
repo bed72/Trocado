@@ -4,8 +4,8 @@ import 'package:trocado/src/presentation/widgets/bounce_widget.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
 class ProfileFieldItemWidget extends StatelessWidget {
-  final String label;
   final bool enabled;
+  final String label;
   final VoidCallback onTap;
 
   const ProfileFieldItemWidget({
