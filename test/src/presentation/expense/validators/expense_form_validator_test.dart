@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:trocado/src/presentation/ui/expense/notifiers/expense_state.dart';
+import 'package:trocado/src/presentation/ui/expense/notifiers/form/expense_state.dart';
 
 import 'package:trocado/src/presentation/ui/expense/validators/expense_form_validator.dart';
 import 'package:trocado/src/presentation/ui/expense/validators/expense_date_validation.dart';

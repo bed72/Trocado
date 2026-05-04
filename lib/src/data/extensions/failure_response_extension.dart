@@ -5,6 +5,8 @@ import 'package:trocado/src/infrastructure/clients/http/responses/failure/failur
 
 extension FailureResponseExtension on FailureResponse {
   Failure toFailure() {
+    if (errors.isEmpty) return const UnknownFailure();
+
     final failure = errors.first;
 
     return switch (FailureCodeResponse.fromString(failure.code ?? '')) {

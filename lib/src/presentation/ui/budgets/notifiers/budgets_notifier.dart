@@ -71,6 +71,7 @@ final class BudgetsNotifier extends _$BudgetsNotifier {
           : page.budgets.where((b) => b.id != active.id).toList();
 
       return BudgetsState(
+        activeBudget: active,
         nextCursor: page.nextCursor,
         items: remaining.map(_toItem).toList(),
         activeCard: active == null ? null : _toCardData(active),

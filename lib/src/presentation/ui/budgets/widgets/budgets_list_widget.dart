@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:trocado/src/domain/models/budget/budget_model.dart';
+
 import 'package:trocado/src/presentation/ui/budgets/notifiers/budgets_state.dart';
 import 'package:trocado/src/presentation/ui/budgets/widgets/budget_list_item_widget.dart';
 import 'package:trocado/src/presentation/ui/budgets/widgets/budgets_load_more_failure_widget.dart';
@@ -8,11 +10,13 @@ import 'package:trocado/src/presentation/ui/budgets/widgets/budgets_load_more_lo
 class BudgetsListWidget extends StatelessWidget {
   final BudgetsState state;
   final VoidCallback onLoadMore;
+  final ValueChanged<BudgetModel> onTapBudget;
 
   const BudgetsListWidget({
     super.key,
     required this.state,
     required this.onLoadMore,
+    required this.onTapBudget,
   });
 
   @override
@@ -26,6 +30,7 @@ class BudgetsListWidget extends StatelessWidget {
           return BudgetListItemWidget(
             key: ValueKey(item.budget.id),
             item: item,
+            onTap: () => onTapBudget(item.budget),
           );
         },
       ),

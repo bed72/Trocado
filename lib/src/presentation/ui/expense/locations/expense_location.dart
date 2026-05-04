@@ -2,8 +2,6 @@ import 'package:duck_router/duck_router.dart';
 
 import 'package:trocado/app_route.dart';
 
-import 'package:trocado/src/domain/models/expense/expense_model.dart';
-
 import 'package:trocado/src/presentation/pages/screen_page.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
@@ -12,9 +10,9 @@ import 'package:trocado/src/presentation/ui/expense/locations/expense_date_locat
 import 'package:trocado/src/presentation/ui/calculator/locations/calculator_location.dart';
 
 final class ExpenseLocation extends Location {
-  final ExpenseModel? expense;
+  final int? id;
 
-  const ExpenseLocation({this.expense});
+  const ExpenseLocation({this.id});
 
   @override
   String get path => AppRoutes.expense.path;
@@ -23,9 +21,9 @@ final class ExpenseLocation extends Location {
   LocationPageBuilder get pageBuilder =>
       (context) => screenPage(
         ExpenseScreen(
-          expense: expense,
+          id: id,
           navigateToDate: () =>
-              context.navigate(ExpenseDateLocation(expense: expense)),
+              context.navigate(ExpenseDateLocation(id: id)),
           navigateToCalculator: (onValueConfirmed) => context.navigate(
             CalculatorLocation(onValueConfirmed: onValueConfirmed),
           ),

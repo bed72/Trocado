@@ -10,54 +10,91 @@ part of 'budget_form_notifier.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(BudgetFormNotifier)
-final budgetFormProvider = BudgetFormNotifierProvider._();
+final budgetFormProvider = BudgetFormNotifierFamily._();
 
 final class BudgetFormNotifierProvider
-    extends $NotifierProvider<BudgetFormNotifier, BudgetFormState> {
-  BudgetFormNotifierProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'budgetFormProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
+    extends $AsyncNotifierProvider<BudgetFormNotifier, BudgetFormState> {
+  BudgetFormNotifierProvider._({
+    required BudgetFormNotifierFamily super.from,
+    required int? super.argument,
+  }) : super(
+         retry: null,
+         name: r'budgetFormProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
   String debugGetCreateSourceHash() => _$budgetFormNotifierHash();
+
+  @override
+  String toString() {
+    return r'budgetFormProvider'
+        ''
+        '($argument)';
+  }
 
   @$internal
   @override
   BudgetFormNotifier create() => BudgetFormNotifier();
 
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(BudgetFormState value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<BudgetFormState>(value),
-    );
+  @override
+  bool operator ==(Object other) {
+    return other is BudgetFormNotifierProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
   }
 }
 
 String _$budgetFormNotifierHash() =>
-    r'5d2a8d63b128426dafd7dcbbf7f8486cc8dd6d98';
+    r'e888aa31914655ec48074154e8bd330bcb9251de';
 
-abstract class _$BudgetFormNotifier extends $Notifier<BudgetFormState> {
-  BudgetFormState build();
+final class BudgetFormNotifierFamily extends $Family
+    with
+        $ClassFamilyOverride<
+          BudgetFormNotifier,
+          AsyncValue<BudgetFormState>,
+          BudgetFormState,
+          FutureOr<BudgetFormState>,
+          int?
+        > {
+  BudgetFormNotifierFamily._()
+    : super(
+        retry: null,
+        name: r'budgetFormProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  BudgetFormNotifierProvider call(int? id) =>
+      BudgetFormNotifierProvider._(argument: id, from: this);
+
+  @override
+  String toString() => r'budgetFormProvider';
+}
+
+abstract class _$BudgetFormNotifier extends $AsyncNotifier<BudgetFormState> {
+  late final _$args = ref.$arg as int?;
+  int? get id => _$args;
+
+  FutureOr<BudgetFormState> build(int? id);
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<BudgetFormState, BudgetFormState>;
+    final ref = this.ref as $Ref<AsyncValue<BudgetFormState>, BudgetFormState>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<BudgetFormState, BudgetFormState>,
-              BudgetFormState,
+              AnyNotifier<AsyncValue<BudgetFormState>, BudgetFormState>,
+              AsyncValue<BudgetFormState>,
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    element.handleCreate(ref, () => build(_$args));
   }
 }

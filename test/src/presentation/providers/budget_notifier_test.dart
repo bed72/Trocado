@@ -32,7 +32,10 @@ const _budget = BudgetModel(
   description: 'March budget',
 );
 
-ProviderContainer _makeContainer(IBudgetRepository repository) {
+Future<ProviderContainer> _makeContainer(
+  IBudgetRepository repository, {
+  int? id,
+}) async {
   final container = ProviderContainer(
     overrides: [
       budgetRepositoryProvider.overrideWithValue(repository),
@@ -46,10 +49,16 @@ ProviderContainer _makeContainer(IBudgetRepository repository) {
     ],
   );
   addTearDown(container.dispose);
-  container.listen(budgetFormProvider, (_, _) {});
-  container.read(budgetFormProvider);
+  container.listen(budgetFormProvider(id), (_, _) {});
+  await container.read(budgetFormProvider(id).future);
   return container;
 }
+
+BudgetFormState _formState(ProviderContainer container, {int? id}) =>
+    container.read(budgetFormProvider(id)).value!;
+
+BudgetFormNotifier _formNotifier(ProviderContainer container, {int? id}) =>
+    container.read(budgetFormProvider(id).notifier);
 
 void main() {
   late IBudgetRepository repository;
@@ -58,106 +67,114 @@ void main() {
     repository = MockBudgetRepository();
   });
 
+  group('build(null) — create mode', () {
+    test('returns initial state with id null', () async {
+      final container = await _makeContainer(repository);
+
+      expect(_formState(container).id, isNull);
+      expect(_formState(container).value, 0);
+    });
+  });
+
+  group('build(id) — edit mode', () {
+    test('awaits findById and returns state prefilled', () async {
+      when(
+        () => repository.findById(id: any(named: 'id')),
+      ).thenAnswer((_) async => const Right(_budget));
+
+      final container = await _makeContainer(repository, id: 1);
+
+      final state = _formState(container, id: 1);
+      expect(state.id, 1);
+      expect(state.value, 100000);
+      expect(state.endDate, _endDate);
+      expect(state.startDate, _startDate);
+      expect(state.description, 'March budget');
+    });
+  });
+
   group('dispatch — ValueChanged', () {
-    test('updates value in state', () {
-      final container = _makeContainer(repository);
+    test('updates value in state', () async {
+      final container = await _makeContainer(repository);
 
-      container
-          .read(budgetFormProvider.notifier)
-          .dispatch(const ValueChanged(100000));
+      _formNotifier(container).dispatch(const ValueChanged(100000));
 
-      expect(container.read(budgetFormProvider).value, 100000);
+      expect(_formState(container).value, 100000);
     });
 
-    test('clears valueFailure', () {
-      final container = _makeContainer(repository);
-      container
-          .read(budgetFormProvider.notifier)
-          .dispatch(const SubmitPressed());
+    test('clears valueFailure', () async {
+      final container = await _makeContainer(repository);
+      _formNotifier(container).dispatch(const SubmitPressed());
 
-      container
-          .read(budgetFormProvider.notifier)
-          .dispatch(const ValueChanged(100000));
+      _formNotifier(container).dispatch(const ValueChanged(100000));
 
-      expect(container.read(budgetFormProvider).valueFailure, isNull);
+      expect(_formState(container).valueFailure, isNull);
     });
   });
 
   group('dispatch — DescriptionChanged', () {
-    test('updates description in state', () {
-      final container = _makeContainer(repository);
+    test('updates description in state', () async {
+      final container = await _makeContainer(repository);
 
-      container
-          .read(budgetFormProvider.notifier)
-          .dispatch(const DescriptionChanged('March budget'));
+      _formNotifier(
+        container,
+      ).dispatch(const DescriptionChanged('March budget'));
 
-      expect(container.read(budgetFormProvider).description, 'March budget');
+      expect(_formState(container).description, 'March budget');
     });
 
-    test('clears descriptionFailure', () {
-      final container = _makeContainer(repository);
-      container
-          .read(budgetFormProvider.notifier)
-          .dispatch(const SubmitPressed());
+    test('clears descriptionFailure', () async {
+      final container = await _makeContainer(repository);
+      _formNotifier(container).dispatch(const SubmitPressed());
 
-      container
-          .read(budgetFormProvider.notifier)
-          .dispatch(const DescriptionChanged('March budget'));
+      _formNotifier(
+        container,
+      ).dispatch(const DescriptionChanged('March budget'));
 
-      expect(container.read(budgetFormProvider).descriptionFailure, isNull);
+      expect(_formState(container).descriptionFailure, isNull);
     });
   });
 
   group('dispatch — DateRangeChanged', () {
-    test('updates startDate and endDate in state', () {
-      final container = _makeContainer(repository);
+    test('updates startDate and endDate in state', () async {
+      final container = await _makeContainer(repository);
 
-      container
-          .read(budgetFormProvider.notifier)
-          .dispatch(
-            const DateRangeChanged(startDate: _startDate, endDate: _endDate),
-          );
+      _formNotifier(container).dispatch(
+        const DateRangeChanged(startDate: _startDate, endDate: _endDate),
+      );
 
-      expect(container.read(budgetFormProvider).endDate, _endDate);
-      expect(container.read(budgetFormProvider).startDate, _startDate);
+      expect(_formState(container).endDate, _endDate);
+      expect(_formState(container).startDate, _startDate);
     });
 
-    test('clears dateFailure', () {
-      final container = _makeContainer(repository);
-      container
-          .read(budgetFormProvider.notifier)
-          .dispatch(const SubmitPressed());
+    test('clears dateFailure', () async {
+      final container = await _makeContainer(repository);
+      _formNotifier(container).dispatch(const SubmitPressed());
 
-      container
-          .read(budgetFormProvider.notifier)
-          .dispatch(
-            const DateRangeChanged(startDate: _startDate, endDate: _endDate),
-          );
+      _formNotifier(container).dispatch(
+        const DateRangeChanged(startDate: _startDate, endDate: _endDate),
+      );
 
-      expect(container.read(budgetFormProvider).dateFailure, isNull);
+      expect(_formState(container).dateFailure, isNull);
     });
   });
 
-  group('dispatch — SubmitPressed', () {
-    test('sets validation failures when state is empty', () {
-      final container = _makeContainer(repository);
+  group('dispatch — SubmitPressed (create)', () {
+    test('sets validation failures when state is empty', () async {
+      final container = await _makeContainer(repository);
 
-      container
-          .read(budgetFormProvider.notifier)
-          .dispatch(const SubmitPressed());
+      _formNotifier(container).dispatch(const SubmitPressed());
 
-      final state = container.read(budgetFormProvider);
+      final state = _formState(container);
       expect(state.valueFailure, isNotNull);
       expect(state.descriptionFailure, isNotNull);
       expect(state.dateFailure, isNotNull);
     });
 
-    test('does not call repository when validation fails', () {
-      final container = _makeContainer(repository);
+    test('does not call repository when validation fails', () async {
+      final container = await _makeContainer(repository);
 
-      container
-          .read(budgetFormProvider.notifier)
-          .dispatch(const SubmitPressed());
+      _formNotifier(container).dispatch(const SubmitPressed());
 
       verifyNever(
         () => repository.create(
@@ -181,8 +198,8 @@ void main() {
           ),
         ).thenAnswer((_) async => const Right(_budget));
 
-        final container = _makeContainer(repository);
-        final notifier = container.read(budgetFormProvider.notifier);
+        final container = await _makeContainer(repository);
+        final notifier = _formNotifier(container);
 
         notifier.dispatch(const ValueChanged(100000));
         notifier.dispatch(const DescriptionChanged('March budget'));
@@ -193,14 +210,11 @@ void main() {
         notifier.dispatch(const SubmitPressed());
         await pumpEventQueue();
 
-        expect(
-          container.read(budgetFormProvider).status,
-          BudgetFormStatus.success,
-        );
+        expect(_formState(container).status, BudgetFormStatus.success);
       },
     );
 
-    test('sets status to failure with message on error', () async {
+    test('sets status to failure with message on validation error', () async {
       when(
         () => repository.create(
           value: any(named: 'value'),
@@ -214,8 +228,8 @@ void main() {
         ),
       );
 
-      final container = _makeContainer(repository);
-      final notifier = container.read(budgetFormProvider.notifier);
+      final container = await _makeContainer(repository);
+      final notifier = _formNotifier(container);
 
       notifier.dispatch(const ValueChanged(100000));
       notifier.dispatch(const DescriptionChanged('March budget'));
@@ -226,8 +240,7 @@ void main() {
 
       await pumpEventQueue();
 
-      final state = container.read(budgetFormProvider);
-
+      final state = _formState(container);
       expect(state.status, BudgetFormStatus.failure);
       expect(state.message, 'Orçamento já existe para o período.');
     });
@@ -242,8 +255,8 @@ void main() {
         ),
       ).thenAnswer((_) async => const Left(NetworkFailure()));
 
-      final container = _makeContainer(repository);
-      final notifier = container.read(budgetFormProvider.notifier);
+      final container = await _makeContainer(repository);
+      final notifier = _formNotifier(container);
 
       notifier.dispatch(const ValueChanged(100000));
       notifier.dispatch(const DescriptionChanged('March budget'));
@@ -254,8 +267,161 @@ void main() {
 
       await pumpEventQueue();
 
-      final state = container.read(budgetFormProvider);
+      final state = _formState(container);
+      expect(state.message, isNotEmpty);
+      expect(state.status, BudgetFormStatus.failure);
+    });
+  });
 
+  group('dispatch — SubmitPressed (update)', () {
+    test('calls repository.update with state.id when in edit mode', () async {
+      when(
+        () => repository.findById(id: any(named: 'id')),
+      ).thenAnswer((_) async => const Right(_budget));
+      when(
+        () => repository.update(
+          id: any(named: 'id'),
+          value: any(named: 'value'),
+          endDate: any(named: 'endDate'),
+          startDate: any(named: 'startDate'),
+          description: any(named: 'description'),
+        ),
+      ).thenAnswer((_) async => const Right(_budget));
+
+      final container = await _makeContainer(repository, id: 1);
+      _formNotifier(container, id: 1).dispatch(const SubmitPressed());
+
+      await pumpEventQueue();
+
+      verify(
+        () => repository.update(
+          id: 1,
+          value: 100000,
+          endDate: _endDate,
+          startDate: _startDate,
+          description: 'March budget',
+        ),
+      ).called(1);
+      verifyNever(
+        () => repository.create(
+          value: any(named: 'value'),
+          endDate: any(named: 'endDate'),
+          startDate: any(named: 'startDate'),
+          description: any(named: 'description'),
+        ),
+      );
+    });
+
+    test('sets status to success on successful update', () async {
+      when(
+        () => repository.findById(id: any(named: 'id')),
+      ).thenAnswer((_) async => const Right(_budget));
+      when(
+        () => repository.update(
+          id: any(named: 'id'),
+          value: any(named: 'value'),
+          endDate: any(named: 'endDate'),
+          startDate: any(named: 'startDate'),
+          description: any(named: 'description'),
+        ),
+      ).thenAnswer((_) async => const Right(_budget));
+
+      final container = await _makeContainer(repository, id: 1);
+      _formNotifier(container, id: 1).dispatch(const SubmitPressed());
+
+      await pumpEventQueue();
+
+      expect(_formState(container, id: 1).status, BudgetFormStatus.success);
+    });
+
+    test('preserves form fields on update failure', () async {
+      when(
+        () => repository.findById(id: any(named: 'id')),
+      ).thenAnswer((_) async => const Right(_budget));
+      when(
+        () => repository.update(
+          id: any(named: 'id'),
+          value: any(named: 'value'),
+          endDate: any(named: 'endDate'),
+          startDate: any(named: 'startDate'),
+          description: any(named: 'description'),
+        ),
+      ).thenAnswer((_) async => const Left(NetworkFailure()));
+
+      final container = await _makeContainer(repository, id: 1);
+      _formNotifier(container, id: 1).dispatch(const SubmitPressed());
+
+      await pumpEventQueue();
+
+      final state = _formState(container, id: 1);
+      expect(state.value, 100000);
+      expect(state.description, 'March budget');
+      expect(state.status, BudgetFormStatus.failure);
+    });
+  });
+
+  group('dispatch — DeletePressed', () {
+    test('is a no-op in create mode (id null)', () async {
+      final container = await _makeContainer(repository);
+
+      _formNotifier(container).dispatch(const DeletePressed());
+      await pumpEventQueue();
+
+      verifyNever(() => repository.delete(id: any(named: 'id')));
+    });
+
+    test('calls repository.delete with state.id in edit mode', () async {
+      when(
+        () => repository.findById(id: any(named: 'id')),
+      ).thenAnswer((_) async => const Right(_budget));
+      when(
+        () => repository.delete(id: any(named: 'id')),
+      ).thenAnswer((_) async => const Right(null));
+
+      final container = await _makeContainer(repository, id: 1);
+      _formNotifier(container, id: 1).dispatch(const DeletePressed());
+
+      await pumpEventQueue();
+
+      verify(() => repository.delete(id: 1)).called(1);
+    });
+
+    test(
+      'sets status to success and isDeleting back to false on success',
+      () async {
+        when(
+          () => repository.findById(id: any(named: 'id')),
+        ).thenAnswer((_) async => const Right(_budget));
+        when(
+          () => repository.delete(id: any(named: 'id')),
+        ).thenAnswer((_) async => const Right(null));
+
+        final container = await _makeContainer(repository, id: 1);
+        _formNotifier(container, id: 1).dispatch(const DeletePressed());
+
+        await pumpEventQueue();
+
+        final state = _formState(container, id: 1);
+        expect(state.isDeleting, isFalse);
+        expect(state.status, BudgetFormStatus.success);
+      },
+    );
+
+    test('sets status to failure with message on delete error', () async {
+      when(
+        () => repository.findById(id: any(named: 'id')),
+      ).thenAnswer((_) async => const Right(_budget));
+      when(
+        () => repository.delete(id: any(named: 'id')),
+      ).thenAnswer((_) async => const Left(NetworkFailure()));
+
+      final container = await _makeContainer(repository, id: 1);
+      _formNotifier(container, id: 1).dispatch(const DeletePressed());
+
+      await pumpEventQueue();
+
+      final state = _formState(container, id: 1);
+      expect(state.isDeleting, isFalse);
       expect(state.message, isNotEmpty);
       expect(state.status, BudgetFormStatus.failure);
     });

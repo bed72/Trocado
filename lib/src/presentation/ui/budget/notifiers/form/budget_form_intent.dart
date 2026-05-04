@@ -21,3 +21,7 @@ final class DescriptionChanged extends BudgetFormIntent {
 final class SubmitPressed extends BudgetFormIntent {
   const SubmitPressed();
 }
+
+final class DeletePressed extends BudgetFormIntent {
+  const DeletePressed();
+}

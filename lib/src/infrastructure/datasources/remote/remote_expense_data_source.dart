@@ -20,6 +20,8 @@ abstract interface class IRemoteExpenseDataSource {
     required String description,
   });
 
+  Future<Either<FailureResponse, ExpenseResponse>> findById({required int id});
+
   Future<Either<FailureResponse, ExpenseResponse>> update({
     required int id,
     required int date,
@@ -62,6 +64,17 @@ final class RemoteExpenseDataSource implements IRemoteExpenseDataSource {
           description: description,
         ).toJson(),
       ),
+    );
+
+    return response.either(FailureResponse.fromJson, ExpenseResponse.fromJson);
+  }
+
+  @override
+  Future<Either<FailureResponse, ExpenseResponse>> findById({
+    required int id,
+  }) async {
+    final response = await _client.get(
+      parameter: Requests('${EndpointKey.expenses.path}/$id'),
     );
 
     return response.either(FailureResponse.fromJson, ExpenseResponse.fromJson);

@@ -12,6 +12,8 @@ abstract interface class IExpenseRepository {
     required String description,
   });
 
+  Future<Either<Failure, ExpenseModel>> findById({required int id});
+
   // TODO muitos dados
   Future<Either<Failure, ExpenseModel>> update({
     required int id,

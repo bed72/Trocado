@@ -1,0 +1,121 @@
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+import 'package:trocado/src/main/providers/validators_provider.dart';
+import 'package:trocado/src/main/providers/repositories_provider.dart';
+
+import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
+
+import 'package:trocado/src/presentation/ui/home/notifiers/active_budget_notifier.dart';
+import 'package:trocado/src/presentation/ui/home/notifiers/recent_expenses_notifier.dart';
+
+import 'package:trocado/src/presentation/ui/expense/notifiers/form/expense_state.dart';
+import 'package:trocado/src/presentation/ui/expenses/notifiers/expenses_notifier.dart';
+import 'package:trocado/src/presentation/ui/expense/notifiers/form/expense_intent.dart';
+import 'package:trocado/src/presentation/ui/expense/notifiers/expense_by_id_notifier.dart';
+import 'package:trocado/src/presentation/ui/expense/validators/expense_form_validator.dart';
+
+part 'expense_notifier.g.dart';
+
+@riverpod
+final class ExpenseNotifier extends _$ExpenseNotifier {
+  late IExpenseRepository _repository;
+  late ExpenseFormValidator _validator;
+
+  @override
+  Future<ExpenseState> build(int? id) async {
+    _repository = ref.watch(expenseRepositoryProvider);
+    _validator = ref.watch(expenseFormValidatorProvider);
+
+    if (id == null) {
+      return ExpenseState(date: DateTime.now().millisecondsSinceEpoch);
+    }
+
+    final expense = await ref.watch(expenseByIdProvider(id).future);
+
+    return ExpenseState(
+      id: expense.id,
+      date: expense.date,
+      value: expense.value,
+      description: expense.description,
+    );
+  }
+
+  void dispatch(ExpenseIntent intent) => switch (intent) {
+    ValueChanged(:final value) => _mutate(
+      state.value!.copyWith(value: value, clearValueFailure: true),
+    ),
+    DescriptionChanged(:final value) => _mutate(
+      state.value!.copyWith(description: value, clearDescriptionFailure: true),
+    ),
+    DateChanged(:final date) => _mutate(
+      state.value!.copyWith(date: date, clearDateFailure: true),
+    ),
+    SubmitPressed() => _submit(),
+    DeletePressed() => _delete(),
+  };
+
+  void _mutate(ExpenseState next) => state = AsyncData(next);
+
+  Future<void> _submit() async {
+    final current = state.value!;
+    final validation = _validator(current);
+    final validated = validation.state;
+
+    _mutate(validated);
+
+    if (!validation.isValid) return;
+
+    _mutate(validated.copyWith(status: .loading));
+
+    final data = current.id == null
+        ? await _repository.create(
+            date: validated.date!,
+            value: validated.value,
+            description: validated.description,
+          )
+        : await _repository.update(
+            id: current.id!,
+            date: validated.date!,
+            value: validated.value,
+            description: validated.description,
+          );
+
+    data.fold(
+      (failure) => _mutate(
+        state.value!.copyWith(status: .failure, message: failure.message),
+      ),
+      (_) {
+        ref.invalidate(expensesProvider);
+        ref.invalidate(activeBudgetProvider);
+        ref.invalidate(recentExpensesProvider);
+        _mutate(state.value!.copyWith(status: .success));
+      },
+    );
+  }
+
+  Future<void> _delete() async {
+    final current = state.value!;
+
+    if (current.id == null) return;
+
+    _mutate(current.copyWith(isDeleting: true));
+
+    final data = await _repository.delete(id: current.id!);
+
+    data.fold(
+      (failure) => _mutate(
+        state.value!.copyWith(
+          isDeleting: false,
+          status: .failure,
+          message: failure.message,
+        ),
+      ),
+      (_) {
+        ref.invalidate(expensesProvider);
+        ref.invalidate(activeBudgetProvider);
+        ref.invalidate(recentExpensesProvider);
+        _mutate(state.value!.copyWith(isDeleting: false, status: .success));
+      },
+    );
+  }
+}

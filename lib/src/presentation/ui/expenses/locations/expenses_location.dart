@@ -19,7 +19,7 @@ final class ExpensesLocation extends Location {
       navigateToFilter: (initialFilter) =>
           context.navigate(ExpensesFilterLocation(initialFilter: initialFilter)),
       onTapExpense: (expense) =>
-          context.navigate(ExpenseLocation(expense: expense)),
+          context.navigate(ExpenseLocation(id: expense.id)),
     ),
   );
 }

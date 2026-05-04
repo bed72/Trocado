@@ -163,6 +163,22 @@ void main() {
       expect(data.isLeft, isTrue);
       expect(data.left, isA<ServerFailure>());
     });
+
+    test('returns Left UnknownFailure when errors list is empty', () async {
+      when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({'errors': <Map<String, dynamic>>[]}),
+      );
+
+      final data = await repository.create(
+        value: 100000,
+        endDate: _endDate,
+        startDate: _startDate,
+        description: 'March budget',
+      );
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<UnknownFailure>());
+    });
   });
 
   group('findActive', () {
@@ -462,5 +478,266 @@ void main() {
         expect(data.left.message, 'Algo de errado.');
       },
     );
+  });
+
+  group('findById', () {
+    test('calls GET on /api/v1/budgets/<id>', () async {
+      when(
+        () => client.get(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Right(_successJson));
+
+      await repository.findById(id: 1);
+
+      final captured =
+          verify(
+                () => client.get(parameter: captureAny(named: 'parameter')),
+              ).captured.single
+              as Requests;
+
+      expect(captured.path, '/api/v1/budgets/1');
+    });
+
+    test('returns Right with BudgetModel on success', () async {
+      when(
+        () => client.get(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Right(_successJson));
+
+      final data = await repository.findById(id: 1);
+
+      expect(data.isRight, isTrue);
+      expect(data.right.id, 1);
+      expect(data.right.value, 100000);
+    });
+
+    test('returns Left NotFoundFailure on 404', () async {
+      when(() => client.get(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'code': 'not_found',
+              'message': 'Not found',
+              'field': 'non_field_errors',
+            },
+          ],
+        }),
+      );
+
+      final data = await repository.findById(id: 999);
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<NotFoundFailure>());
+    });
+
+    test('returns Left NetworkFailure on network error', () async {
+      when(() => client.get(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'code': 'network_error',
+              'message': 'Network',
+              'field': 'non_field_errors',
+            },
+          ],
+        }),
+      );
+
+      final data = await repository.findById(id: 1);
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<NetworkFailure>());
+    });
+  });
+
+  group('update', () {
+    test('calls PATCH on /api/v1/budgets/<id>', () async {
+      when(
+        () => client.patch(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Right(_successJson));
+
+      await repository.update(
+        id: 1,
+        value: 100000,
+        endDate: _endDate,
+        startDate: _startDate,
+        description: 'March budget',
+      );
+
+      final captured =
+          verify(
+                () => client.patch(parameter: captureAny(named: 'parameter')),
+              ).captured.single
+              as Requests;
+
+      expect(captured.path, '/api/v1/budgets/1');
+      expect(captured.body, isNotNull);
+    });
+
+    test('returns Right with BudgetModel on success', () async {
+      when(
+        () => client.patch(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Right(_successJson));
+
+      final data = await repository.update(
+        id: 1,
+        value: 100000,
+        endDate: _endDate,
+        startDate: _startDate,
+        description: 'March budget',
+      );
+
+      expect(data.right.id, 1);
+      expect(data.isRight, isTrue);
+      expect(data.right.value, 100000);
+    });
+
+    test('returns Left ValidationFailure on 400 with errors body', () async {
+      when(() => client.patch(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {'code': 'invalid', 'field': 'value', 'message': 'Valor inválido.'},
+          ],
+        }),
+      );
+
+      final data = await repository.update(
+        id: 1,
+        value: -1,
+        endDate: _endDate,
+        startDate: _startDate,
+        description: 'March budget',
+      );
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<ValidationFailure>());
+      expect(data.left.message, 'Valor inválido.');
+    });
+
+    test('returns Left NetworkFailure on network error', () async {
+      when(() => client.patch(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'message': 'Network',
+              'code': 'network_error',
+              'field': 'non_field_errors',
+            },
+          ],
+        }),
+      );
+
+      final data = await repository.update(
+        id: 1,
+        value: 100000,
+        endDate: _endDate,
+        startDate: _startDate,
+        description: 'March budget',
+      );
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<NetworkFailure>());
+    });
+
+    test('returns Left ServerFailure on 5xx', () async {
+      when(() => client.patch(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'code': 'server_error',
+              'field': 'non_field_errors',
+              'message': 'Internal server error',
+            },
+          ],
+        }),
+      );
+
+      final data = await repository.update(
+        id: 1,
+        value: 100000,
+        endDate: _endDate,
+        startDate: _startDate,
+        description: 'March budget',
+      );
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<ServerFailure>());
+    });
+  });
+
+  group('delete', () {
+    test('calls DELETE on /api/v1/budgets/<id> with no body', () async {
+      when(
+        () => client.delete(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Right({}));
+
+      await repository.delete(id: 1);
+
+      final captured =
+          verify(
+                () => client.delete(parameter: captureAny(named: 'parameter')),
+              ).captured.single
+              as Requests;
+
+      expect(captured.body, isNull);
+      expect(captured.path, '/api/v1/budgets/1');
+    });
+
+    test('returns Right(null) on 204 success with empty body', () async {
+      when(
+        () => client.delete(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Right({}));
+
+      final data = await repository.delete(id: 1);
+
+      expect(data.isRight, isTrue);
+    });
+
+    test('returns Left NotFoundFailure on 404', () async {
+      when(() => client.delete(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'code': 'not_found',
+              'message': 'Not found',
+              'field': 'non_field_errors',
+            },
+          ],
+        }),
+      );
+
+      final data = await repository.delete(id: 999);
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<NotFoundFailure>());
+    });
+
+    test('returns Left NetworkFailure on network error', () async {
+      when(() => client.delete(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'code': 'network_error',
+              'message': 'Network',
+              'field': 'non_field_errors',
+            },
+          ],
+        }),
+      );
+
+      final data = await repository.delete(id: 1);
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<NetworkFailure>());
+    });
+
+    test('returns Left UnknownFailure when errors list is empty', () async {
+      when(() => client.delete(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({'errors': <Map<String, dynamic>>[]}),
+      );
+
+      final data = await repository.delete(id: 1);
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<UnknownFailure>());
+    });
   });
 }

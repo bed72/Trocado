@@ -225,6 +225,21 @@ void main() {
         ).millisecondsSinceEpoch,
       );
     });
+
+    test('returns Left UnknownFailure when errors list is empty', () async {
+      when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({'errors': <Map<String, dynamic>>[]}),
+      );
+
+      final data = await repository.create(
+        value: 8550,
+        date: _date,
+        description: 'Mercado',
+      );
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<UnknownFailure>());
+    });
   });
 
   group('findRecent', () {
@@ -283,10 +298,10 @@ void main() {
       final data = await repository.findRecent(limit: 4);
 
       expect(data.isRight, isTrue);
+      expect(data.right.last.id, 110);
       expect(data.right, hasLength(4));
       expect(data.right.first.id, 129);
       expect(data.right.first.description, 'Cafezinho');
-      expect(data.right.last.id, 110);
     });
 
     test('returns Right with actual length when fewer than limit', () async {
@@ -298,8 +313,8 @@ void main() {
             {
               'id': 1,
               'value': '10.00',
-              'date': '2026-04-15',
               'category': 'food',
+              'date': '2026-04-15',
               'description': 'Lanche',
               'created_at': '2026-04-15T12:00:00Z',
             },
@@ -321,8 +336,8 @@ void main() {
 
       final data = await repository.findRecent();
 
-      expect(data.isRight, isTrue);
       expect(data.right, isEmpty);
+      expect(data.isRight, isTrue);
     });
 
     test('returns Left NetworkFailure on network error', () async {
@@ -524,11 +539,11 @@ void main() {
       final data = await repository.findAll();
 
       expect(data.isRight, isTrue);
+      expect(data.right.nextCursor, 'NEXT123');
       expect(data.right.expenses, hasLength(3));
       expect(data.right.expenses.first.id, 129);
-      expect(data.right.expenses.first.category, ExpenseCategoryEnum.food);
-      expect(data.right.nextCursor, 'NEXT123');
       expect(data.right.previousCursor, isNull);
+      expect(data.right.expenses.first.category, ExpenseCategoryEnum.food);
     });
 
     test('returns Right with empty page when results is empty', () async {
@@ -550,9 +565,9 @@ void main() {
       () async {
         when(() => client.get(parameter: any(named: 'parameter'))).thenAnswer(
           (_) async => const Right({
-            'next': 'http://api/v1/expenses',
-            'previous': null,
             'results': [],
+            'previous': null,
+            'next': 'http://api/v1/expenses',
           }),
         );
 
@@ -569,8 +584,8 @@ void main() {
           'errors': [
             {
               'code': 'network_error',
-              'field': 'non_field_errors',
               'message': 'Network error',
+              'field': 'non_field_errors',
             },
           ],
         }),
@@ -737,8 +752,8 @@ void main() {
           'errors': [
             {
               'code': 'network_error',
-              'field': 'non_field_errors',
               'message': 'Network error',
+              'field': 'non_field_errors',
             },
           ],
         }),
@@ -761,8 +776,8 @@ void main() {
           'errors': [
             {
               'code': 'server_error',
-              'field': 'non_field_errors',
               'message': 'Server error',
+              'field': 'non_field_errors',
             },
           ],
         }),
@@ -833,14 +848,103 @@ void main() {
           'errors': [
             {
               'code': 'network_error',
-              'field': 'non_field_errors',
               'message': 'Network error',
+              'field': 'non_field_errors',
             },
           ],
         }),
       );
 
       final data = await repository.delete(id: 1);
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<NetworkFailure>());
+    });
+
+    test('returns Left UnknownFailure when errors list is empty', () async {
+      when(() => client.delete(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({'errors': <Map<String, dynamic>>[]}),
+      );
+
+      final data = await repository.delete(id: 1);
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<UnknownFailure>());
+    });
+  });
+
+  group('findById', () {
+    const successJson = {
+      'id': 132,
+      'value': '85.50',
+      'category': 'food',
+      'date': '2026-03-15',
+      'description': 'Mercado',
+      'created_at': '2026-03-15T18:30:00-03:00',
+    };
+
+    test('calls GET on /api/v1/expenses/<id>', () async {
+      when(
+        () => client.get(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Right(successJson));
+
+      await repository.findById(id: 132);
+
+      final captured =
+          verify(
+                () => client.get(parameter: captureAny(named: 'parameter')),
+              ).captured.single
+              as Requests;
+
+      expect(captured.path, '/api/v1/expenses/132');
+    });
+
+    test('returns Right with ExpenseModel on success', () async {
+      when(
+        () => client.get(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Right(successJson));
+
+      final data = await repository.findById(id: 132);
+
+      expect(data.right.id, 132);
+      expect(data.isRight, isTrue);
+      expect(data.right.value, 8550);
+      expect(data.right.description, 'Mercado');
+    });
+
+    test('returns Left NotFoundFailure on 404', () async {
+      when(() => client.get(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'code': 'not_found',
+              'message': 'Not found',
+              'field': 'non_field_errors',
+            },
+          ],
+        }),
+      );
+
+      final data = await repository.findById(id: 999);
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<NotFoundFailure>());
+    });
+
+    test('returns Left NetworkFailure on network error', () async {
+      when(() => client.get(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'message': 'Network',
+              'code': 'network_error',
+              'field': 'non_field_errors',
+            },
+          ],
+        }),
+      );
+
+      final data = await repository.findById(id: 132);
 
       expect(data.isLeft, isTrue);
       expect(data.left, isA<NetworkFailure>());

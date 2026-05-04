@@ -370,11 +370,12 @@ void main() {
         repository: repository,
         moneyService: moneyService,
       );
+      container.listen(budgetsProvider, (_, _) {});
       await container.read(budgetsProvider.future);
 
       final notifier = container.read(budgetsProvider.notifier);
       final firstCall = notifier.loadMore();
-      await Future<void>.delayed(Duration.zero);
+      await pumpEventQueue();
       await notifier.loadMore();
 
       verify(() => repository.findAll(cursor: 'CUR1')).called(1);

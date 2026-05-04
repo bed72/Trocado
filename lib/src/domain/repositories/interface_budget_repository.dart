@@ -10,10 +10,22 @@ abstract interface class IBudgetRepository {
 
   Future<Either<Failure, BudgetsPageModel>> findAll({String? cursor});
 
+  Future<Either<Failure, BudgetModel>> findById({required int id});
+
   Future<Either<Failure, BudgetModel>> create({
     required int value,
     required int endDate,
     required int startDate,
     required String description,
   });
+
+  Future<Either<Failure, BudgetModel>> update({
+    required int id,
+    required int value,
+    required int endDate,
+    required int startDate,
+    required String description,
+  });
+
+  Future<Either<Failure, void>> delete({required int id});
 }

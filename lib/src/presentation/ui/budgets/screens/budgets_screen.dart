@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:trocado/src/domain/models/budget/budget_model.dart';
+
 import 'package:trocado/src/presentation/ui/budgets/notifiers/budgets_state.dart';
 import 'package:trocado/src/presentation/ui/budgets/notifiers/budgets_notifier.dart';
 import 'package:trocado/src/presentation/ui/budgets/widgets/budgets_list_widget.dart';
@@ -14,7 +16,9 @@ import 'package:trocado/src/presentation/widgets/screen_header_widget.dart';
 import 'package:trocado/src/presentation/widgets/budget/card/budget_card_success_widget.dart';
 
 class BudgetsScreen extends StatefulWidget {
-  const BudgetsScreen({super.key});
+  final ValueChanged<BudgetModel> onTapBudget;
+
+  const BudgetsScreen({super.key, required this.onTapBudget});
 
   @override
   State<BudgetsScreen> createState() => _BudgetsScreenState();
@@ -105,14 +109,21 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
         SliverFillRemaining(hasScrollBody: false, child: BudgetsEmptyWidget()),
       ],
     AsyncData(:final BudgetsState value) => [
-      if (value.activeCard != null)
+      if (value.activeCard != null && value.activeBudget != null)
         SliverToBoxAdapter(
           child: Padding(
             padding: const .all(16.0),
-            child: BudgetCardSuccessWidget(data: value.activeCard!),
+            child: BudgetCardSuccessWidget(
+              data: value.activeCard!,
+              onTap: () => widget.onTapBudget(value.activeBudget!),
+            ),
           ),
         ),
-      BudgetsListWidget(state: value, onLoadMore: _onLoadMore),
+      BudgetsListWidget(
+        state: value,
+        onLoadMore: _onLoadMore,
+        onTapBudget: widget.onTapBudget,
+      ),
     ],
   };
 }

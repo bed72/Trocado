@@ -42,6 +42,16 @@ final class BudgetRepository implements IBudgetRepository {
   }
 
   @override
+  Future<Either<Failure, BudgetModel>> findById({required int id}) async {
+    final data = await _dataSource.findById(id: id);
+
+    return data.either(
+      (failure) => failure.toFailure(),
+      (response) => response.toModel(),
+    );
+  }
+
+  @override
   Future<Either<Failure, BudgetModel>> create({
     required int value,
     required int endDate,
@@ -59,5 +69,34 @@ final class BudgetRepository implements IBudgetRepository {
       (failure) => failure.toFailure(),
       (response) => response.toModel(),
     );
+  }
+
+  @override
+  Future<Either<Failure, BudgetModel>> update({
+    required int id,
+    required int value,
+    required int endDate,
+    required int startDate,
+    required String description,
+  }) async {
+    final data = await _dataSource.update(
+      id: id,
+      value: value,
+      endDate: endDate,
+      startDate: startDate,
+      description: description,
+    );
+
+    return data.either(
+      (failure) => failure.toFailure(),
+      (response) => response.toModel(),
+    );
+  }
+
+  @override
+  Future<Either<Failure, void>> delete({required int id}) async {
+    final data = await _dataSource.delete(id: id);
+
+    return data.either<Failure, void>((failure) => failure.toFailure(), (_) {});
   }
 }

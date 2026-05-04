@@ -20,7 +20,7 @@ final class BudgetsNotifierProvider
         argument: null,
         retry: null,
         name: r'budgetsProvider',
-        isAutoDispose: false,
+        isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -33,7 +33,7 @@ final class BudgetsNotifierProvider
   BudgetsNotifier create() => BudgetsNotifier();
 }
 
-String _$budgetsNotifierHash() => r'f8ec2be1b262bb9f9a71d6a40eda50efa5a5098d';
+String _$budgetsNotifierHash() => r'2dddc3c5295571a30f032183b51432c678e5e7c0';
 
 abstract class _$BudgetsNotifier extends $AsyncNotifier<BudgetsState> {
   FutureOr<BudgetsState> build();

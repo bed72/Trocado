@@ -1,6 +1,6 @@
 import 'package:trocado/src/domain/validators/validation.dart';
 
-import 'package:trocado/src/presentation/ui/expense/notifiers/expense_state.dart';
+import 'package:trocado/src/presentation/ui/expense/notifiers/form/expense_state.dart';
 import 'package:trocado/src/presentation/ui/expense/validators/expense_date_validation.dart';
 import 'package:trocado/src/presentation/ui/expense/validators/expense_value_validation.dart';
 import 'package:trocado/src/presentation/ui/expense/validators/expense_description_validation.dart';

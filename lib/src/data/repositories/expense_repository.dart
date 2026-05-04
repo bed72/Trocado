@@ -36,6 +36,16 @@ final class ExpenseRepository implements IExpenseRepository {
   }
 
   @override
+  Future<Either<Failure, ExpenseModel>> findById({required int id}) async {
+    final data = await _dataSource.findById(id: id);
+
+    return data.either(
+      (failure) => failure.toFailure(),
+      (response) => response.toModel(),
+    );
+  }
+
+  @override
   Future<Either<Failure, ExpenseModel>> update({
     required int id,
     required int date,

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
+import 'package:trocado/src/presentation/widgets/bounce_widget.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 import 'package:trocado/src/presentation/ui/budgets/data/budget_item_presentation_data.dart';
 
 class BudgetListItemWidget extends StatelessWidget {
   final BudgetItemPresentationData item;
+  final VoidCallback? onTap;
 
-  const BudgetListItemWidget({super.key, required this.item});
+  const BudgetListItemWidget({super.key, required this.item, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +17,7 @@ class BudgetListItemWidget extends StatelessWidget {
         ? context.colors.error
         : context.colors.onSurface;
 
-    return Card(
+    final card = Card(
       elevation: 0.0,
       margin: const .symmetric(horizontal: 16.0, vertical: 6.0),
       child: Padding(
@@ -59,6 +61,10 @@ class BudgetListItemWidget extends StatelessWidget {
         ),
       ),
     );
+
+    if (onTap == null) return card;
+
+    return BounceWidget.withOnPress(onPress: onTap, child: card);
   }
 
   Widget _row(
