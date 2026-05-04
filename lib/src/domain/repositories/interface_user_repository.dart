@@ -5,4 +5,6 @@ import 'package:trocado/src/domain/models/user_model.dart';
 
 abstract interface class IUserRepository {
   Future<Either<Failure, UserModel>> me();
+
+  Future<Either<Failure, void>> deactivate();
 }

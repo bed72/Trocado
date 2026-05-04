@@ -323,6 +323,152 @@ And no further action SHALL be triggered
 
 ---
 
+### Requirement: IUserRepository extended with deactivate
+
+The system SHALL extend `lib/src/domain/repositories/interface_user_repository.dart` with `Future<Either<Failure, void>> deactivate();`. The signature SHALL match `IExpenseRepository.delete` style (`Future<Either<Failure, void>>`, never `Unit` or `bool`).
+
+`IRemoteUserDataSource` SHALL gain `Future<Either<FailureResponse, void>> deactivate({required String refresh});` calling `_client.delete(parameter: Requests(EndpointKey.me.path, body: {'refresh': refresh}))` and mapping via `response.either(FailureResponse.fromJson, (_) {})` (the 204 body is discarded). The `refresh` token is passed as a domain primitive (`String`) — never a request DTO (CLAUDE.md datasource interface rule).
+
+`UserRepository` SHALL accept `ILocalTokenDataSource tokenDataSource` and `IRemoteUserDataSource userDataSource` via constructor (mirroring `AuthenticationRepository`). `deactivate()` SHALL:
+
+- Read `tokens.refresh` via `_tokenDataSource.get()`.
+- Return `Left(UnknownFailure())` immediately when `tokens.refresh == null` (defensive — no API call).
+- Otherwise call `_userDataSource.deactivate(refresh: tokens.refresh!)` and map via `data.either((failure) => failure.toFailure(), (_) {})`.
+
+`userRepositoryProvider` in `repositories_provider.dart` SHALL inject `localTokenDataSourceProvider` alongside the existing `remoteUserDataSourceProvider`.
+
+#### Scenario: deactivate calls DELETE /api/v1/me with refresh body
+
+Given `UserRepository.deactivate()` is invoked
+And `tokenDataSource.get()` returns `(access: 'A', refresh: 'R')`
+Then `IHttpClient.delete` SHALL be called with `Requests(path: '/api/v1/me', body: {'refresh': 'R'})`
+
+#### Scenario: deactivate short-circuits when refresh is null
+
+Given `tokenDataSource.get()` returns `(access: 'A', refresh: null)`
+When `UserRepository.deactivate()` resolves
+Then it SHALL return `Left(UnknownFailure())`
+And `IHttpClient.delete` SHALL NOT be called
+
+#### Scenario: deactivate maps NetworkFailure
+
+Given the datasource returns `Left(FailureResponse with code 'network_error')`
+When `UserRepository.deactivate()` resolves
+Then it SHALL return `Left(NetworkFailure())`
+
+#### Scenario: deactivate returns Right on 204
+
+Given the datasource returns `Right({})`
+When `UserRepository.deactivate()` resolves
+Then it SHALL return `Right(null)`
+
+---
+
+### Requirement: ProfileDetailsNotifier orchestrates deactivate flow
+
+The system SHALL create `lib/src/presentation/ui/profile/details/notifiers/profile_details_notifier.dart` as `@riverpod final class ProfileDetailsNotifier extends _$ProfileDetailsNotifier` with synchronous `build()` returning `const ProfileDetailsState()` after `ref.watch(userRepositoryProvider)`.
+
+`dispatch` SHALL be exhaustive over `ProfileDetailsIntent`. Currently only `DeactivatePressed()`.
+
+`_deactivate()` SHALL:
+
+- Return early if `state.status == ProfileDetailsStatus.loading` (re-entrancy guard).
+- Set `state.status = loading`.
+- Call `_repository.deactivate()`.
+- On `Left(failure)`: set `state.status = failure` with `state.message = failure.message`.
+- On `Right(_)`: call `ref.invalidate(userProvider)` (so the next authenticated request takes 401 and the `AuthenticationInterceptor` triggers redirect to `SignInLocation`) and set `state.status = success`.
+
+The notifier SHALL NOT navigate directly — redirect is handled by the interceptor's `_onUnauthenticated` callback wired in `clients_provider.dart`.
+
+#### Scenario: Successful deactivate invalidates userProvider
+
+Given `IUserRepository.deactivate()` returns `Right(null)`
+When `dispatch(DeactivatePressed())` resolves
+Then `ref.invalidate(userProvider)` SHALL be called
+And `state.status` SHALL equal `ProfileDetailsStatus.success`
+
+#### Scenario: Failed deactivate populates message
+
+Given `IUserRepository.deactivate()` returns `Left(ValidationFailure('Conta inválida.'))`
+When `dispatch(DeactivatePressed())` resolves
+Then `state.status` SHALL equal `ProfileDetailsStatus.failure`
+And `state.message` SHALL equal `'Conta inválida.'`
+
+#### Scenario: Re-entrant dispatch is a no-op
+
+Given `state.status == ProfileDetailsStatus.loading`
+When `dispatch(DeactivatePressed())` is called again
+Then `IUserRepository.deactivate()` SHALL be called exactly once total
+
+---
+
+### Requirement: ProfileAccountActionsWidget surfaces deactivate loading
+
+`ProfileAccountActionsWidget` SHALL accept `final bool isDeactivating;` (default `false`) named-optional.
+
+When `isDeactivating == true`:
+
+- The elevated `'Desativar'` button SHALL receive `isLoading: true`.
+- Both buttons SHALL receive `onTap: null` to prevent re-entrant taps.
+
+When `isDeactivating == false`:
+
+- Both buttons SHALL receive their respective callbacks unchanged.
+
+#### Scenario: Loading disables both buttons
+
+Given `ProfileAccountActionsWidget(isDeactivating: true, ...)`
+When the widget builds
+Then the elevated Desativar button SHALL render in loading state
+And both buttons SHALL have `onTap: null`
+
+---
+
+### Requirement: ProfileDetailsScreen wires deactivate dispatch and failure toast
+
+`ProfileDetailsScreen` SHALL `ref.watch(profileDetailsProvider)` and pass `isDeactivating: state.status == .loading` to `ProfileAccountActionsWidget`.
+
+`ref.listen(profileDetailsProvider, ...)` SHALL show a `showToastWidget(type: failure, title: 'Opps', description: state.message)` only on transitions to `ProfileDetailsStatus.failure`. Successful transitions SHALL be silent — the redirect is handled by the `AuthenticationInterceptor`.
+
+`_confirmDeactivate(context, notifier)` SHALL dispatch `DeactivatePressed()` only after `showConfirmDialog` resolves to `true`.
+
+#### Scenario: Failure shows toast
+
+Given the user confirmed deactivation
+And the API returned a failure
+When the listener observes `state.status == failure`
+Then `showToastWidget` SHALL be invoked with `type: failure` and `description: state.message`
+
+#### Scenario: Success is silent
+
+Given the user confirmed deactivation
+And the API returned 204
+When the listener observes `state.status == success`
+Then no toast SHALL be shown
+And `userProvider` SHALL be invalidated, triggering the interceptor-driven redirect
+
+---
+
+### Requirement: Deactivation redirect is delegated to AuthenticationInterceptor
+
+After a successful deactivate, the app SHALL NOT navigate directly to `SignInLocation` from the notifier or screen. Instead the redirect SHALL emerge naturally via the existing `AuthenticationInterceptor`:
+
+1. `ProfileDetailsNotifier` invalidates `userProvider`.
+2. The next authenticated request (`GET /api/v1/me`) hits the backend.
+3. The backend returns `401` because the account was deactivated.
+4. `AuthenticationInterceptor.onError` attempts a refresh — which also fails (refresh token revoked).
+5. The interceptor calls `_onUnauthenticated()` (wired in `lib/src/main/providers/clients_provider.dart` to `routerConfig.navigate(SignInLocation, root: true, replace: true)`).
+
+#### Scenario: Successful deactivate triggers eventual redirect
+
+Given the user successfully deactivated
+And `userProvider` is invalidated
+When the next authenticated request takes 401 and refresh also fails
+Then `AuthenticationInterceptor._onUnauthenticated` SHALL be invoked
+And the router SHALL replace the stack with `SignInLocation`
+
+---
+
 ### Requirement: profile feature is organised in subdirectories
 
 The system SHALL reorganise `lib/src/presentation/ui/profile/` to mirror the `lib/src/presentation/ui/authentication/` pattern — every screen of the feature lives in its own subdirectory.

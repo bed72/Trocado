@@ -155,11 +155,69 @@ A `ProfileDetailsScreen` deixa de ter um único botão "Apagar conta" no rodapé
 
 Ambos pós-confirmação são no-op nesta parte — Parte 5 plugará na API real (`IUserRepository.deactivate()` e `IUserRepository.delete()`).
 
-### Parte 5+ (placeholder)
+### Parte 5 — Desativação real via API
 
-- **Parte 5 — Edição e exclusão reais via API**: `IUserRepository.update(...)`, `IUserRepository.delete()`, `IUserRepository.deactivate()`, `UserRequest`, signOut + redirect para `SignInLocation` nos fluxos de excluir/desativar, troca dos `// TODO` nos notifiers/screen pelas chamadas reais de PATCH/DELETE.
+`DELETE /api/v1/me` desativa a conta no backend. O endpoint exige `Authorization: Bearer <access>` **e** body `{"refresh": "<refresh_token>"}` para revogação simétrica (server invalida ambos). Resposta de sucesso: 204 sem body. Resposta de falha: envelope padrão `FailureResponse` com `errors[]`.
+
+Após sucesso, o redirect para `SignInLocation` é delegado ao `AuthenticationInterceptor` existente: invalidando `userProvider` na ramificação de sucesso, a próxima requisição autenticada (refetch do `me`) toma 401, o interceptor tenta refresh, falha (token revogado), chama `_onUnauthenticated` → `routerConfig.navigate(SignInLocation, root: true, replace: true)`.
+
+#### Camadas
+
+- **Domain** (`lib/src/domain/repositories/interface_user_repository.dart`): `Future<Either<Failure, void>> deactivate();`. A assinatura permanece sem parâmetros — o repository orquestra o refresh token via `ILocalTokenDataSource`.
+- **Infrastructure** (`lib/src/infrastructure/datasources/remote/remote_user_data_source.dart`):
+  - Interface ganha `Future<Either<FailureResponse, void>> deactivate({required String refresh});` — recebe o token como primitivo de domínio (CLAUDE.md).
+  - Implementação: `_client.delete(parameter: Requests(EndpointKey.me.path, body: {'refresh': refresh}))` → `response.either(FailureResponse.fromJson, (_) {})`.
+- **Data** (`lib/src/data/repositories/user_repository.dart`):
+  - `UserRepository` ganha `ILocalTokenDataSource` no construtor (espelha `AuthenticationRepository`).
+  - `deactivate()` lê `tokens.refresh` via `_tokenDataSource.get()`. Se `refresh == null` retorna `Left(UnknownFailure())` (defensivo, sem chamar a API). Caso contrário propaga para `_userDataSource.deactivate(refresh: tokens.refresh!)` e mapeia via `data.either((failure) => failure.toFailure(), (_) {})`.
+  - `userRepositoryProvider` em `repositories_provider.dart` injeta `localTokenDataSourceProvider`.
+- **Presentation** — nova subfeature `profile/details/notifiers/`:
+  - `profile_details_state.dart` — `ProfileDetailsStatus` enum (initial/loading/success/failure) + `message`.
+  - `profile_details_intent.dart` — sealed `ProfileDetailsIntent` com `DeactivatePressed()` (Excluir entrará em parte futura).
+  - `profile_details_notifier.dart` — sync `Notifier`. `_deactivate()`:
+    1. Early-return se `status == loading`.
+    2. `status: loading`.
+    3. `await _repository.deactivate()`.
+    4. **Sucesso**: `ref.invalidate(userProvider)` → próxima request 401 → interceptor → redirect. `status: success` (sem toast).
+    5. **Falha**: `status: failure` com `message` do `Failure`.
+
+#### Tela
+
+- `ProfileAccountActionsWidget` ganha `final bool isDeactivating` (default false). Quando true: botão Desativar fica em `isLoading` e tap é desabilitado em ambos os botões.
+- `ProfileDetailsScreen` faz `ref.watch(profileDetailsProvider)` para obter o `detailsState`, passa `isDeactivating: detailsState.status == .loading` para o widget. `ref.listen` mostra toast com `state.message` quando transição para `failure`. Sucesso é silencioso — interceptor cuida do redirect.
+- `_confirmDeactivate` agora recebe o notifier e despacha `DeactivatePressed` após confirm.
+
+#### Validação do interceptor
+
+O `AuthenticationInterceptor` (`lib/src/infrastructure/clients/http/interceptors/authentication_interceptor.dart`) já lida com 401 → refresh → fallback `_onUnauthenticated` quando o refresh também falha. Já existem testes cobrindo o caminho de cleanup (`test/src/infrastructure/clients/http/interceptors/authentication_interceptor_test.dart`). Para validar este fluxo específico de desativação:
+
+- **Smoke test**: na tela, tap em Desativar → confirma → backend retorna 204 → `userProvider` invalidado → app refaz `GET /api/v1/me` → 401 (token revogado) → interceptor tenta refresh → 401 → cleanup local + redirect para `SignInLocation`.
+- **Sem smoke**: também é possível observar via logs do `LoggerNavigatorObserver` a transição `Profile → SignIn` após o invalidate.
+
+### Parte 6+ (placeholder)
+
+- **Parte 6 — Exclusão real**: `DELETE` específico para apagar conta permanentemente (path/payload a ser informado), wiring no `ProfileDetailsNotifier` com novo intent `DeletePressed`.
+- **Parte 7 — Edição real**: PATCH para nome/senha, troca dos `// TODO Parte 4` nos notifiers de Nome/Senha pelo chamado real ao `IUserRepository`.
 
 ## Scope
+
+### Em escopo (Parte 5 — atual)
+
+- `IUserRepository.deactivate()`, `IRemoteUserDataSource.deactivate()` (interface + impl) e `UserRepository.deactivate()`.
+- Nova subfeature MVI `profile/details/notifiers/` com state, intent, notifier (`@riverpod` sync `Notifier`).
+- `ProfileAccountActionsWidget` ganha flag `isDeactivating`.
+- `ProfileDetailsScreen` faz `ref.watch(profileDetailsProvider)` + `ref.listen` para toast de falha.
+- Pós-success: `ref.invalidate(userProvider)` no notifier — interceptor handles redirect.
+- Testes: 4 cenários novos para `UserRepository.deactivate` (success, NetworkFailure, NotFoundFailure, ServerFailure) + `profile_details_notifier_test.dart` cobrindo build, dispatch loading→success, invalidate userProvider, falha com message, no-op em loading.
+- `flutter analyze` zero warnings; `flutter test` passa toda a suíte.
+
+### Fora de escopo (Parte 5 — virá em partes futuras)
+
+- **Excluir conta** (path próprio a ser informado) — Parte 6.
+- **Edição de nome/senha real** — Parte 7.
+- **Toast de sucesso após desativar** — sucesso é silencioso (decisão acordada); interceptor lida com redirect.
+- **Chamada explícita ao `authenticationRepository.logout()` para limpar token** — desnecessária; o interceptor cuida do cleanup quando o refresh falhar.
+- **Caso de borda em que o backend não revoga o refresh token após DELETE /me** — assumimos que revoga; se não revogar, o usuário fica logado até o access token expirar. Será reavaliado se aparecer no smoke.
 
 ### Em escopo (Parte 4 — atual)
 

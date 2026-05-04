@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
 
 class ProfileAccountActionsWidget extends StatelessWidget {
+  final bool isDeactivating;
   final VoidCallback onDelete;
   final VoidCallback onDeactivate;
 
@@ -10,6 +11,7 @@ class ProfileAccountActionsWidget extends StatelessWidget {
     super.key,
     required this.onDelete,
     required this.onDeactivate,
+    this.isDeactivating = false,
   });
 
   @override
@@ -19,10 +21,17 @@ class ProfileAccountActionsWidget extends StatelessWidget {
       spacing: 16.0,
       children: [
         Expanded(
-          child: ButtonWidget.outlined(label: 'Excluir', onTap: onDelete),
+          child: ButtonWidget.outlined(
+            label: 'Excluir',
+            onTap: isDeactivating ? null : onDelete,
+          ),
         ),
         Expanded(
-          child: ButtonWidget.elevated(label: 'Desativar', onTap: onDeactivate),
+          child: ButtonWidget.elevated(
+            label: 'Desativar',
+            isLoading: isDeactivating,
+            onTap: isDeactivating ? null : onDeactivate,
+          ),
         ),
       ],
     ),

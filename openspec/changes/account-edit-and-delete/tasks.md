@@ -336,6 +336,90 @@ Ordem fixa: rotas → reorganização de `profile/` em subdiretórios → subfea
 
 ---
 
-## Parte 5+ — A definir
+## Parte 5 — Desativação real via API
 
-- **Parte 5** — Edição (PATCH `/api/v1/users/me`) + Excluir + Desativar reais. `IUserRepository.update`/`delete`/`deactivate`, `UserRequest`, signOut + redirect para `SignInLocation` nos fluxos destrutivos, substitui os `// TODO Parte 4` nos notifiers de Nome/Senha e os no-ops dos confirms da screen pela chamada real à API.
+Ordem fixa: domain → infrastructure → data → presentation (state/intent/notifier) → wiring (widget/screen) → code generation → tests → verificação.
+
+### 27. Domain
+
+- [ ] 27.1 Adicionar à `IUserRepository`: `Future<Either<Failure, void>> deactivate();`.
+
+### 28. Infrastructure
+
+- [ ] 28.1 Adicionar à interface `IRemoteUserDataSource`: `Future<Either<FailureResponse, void>> deactivate({required String refresh});`.
+- [ ] 28.2 Implementar `RemoteUserDataSource.deactivate({required String refresh})`:
+  ```dart
+  final response = await _client.delete(
+    parameter: Requests(EndpointKey.me.path, body: {'refresh': refresh}),
+  );
+  return response.either(FailureResponse.fromJson, (_) {});
+  ```
+
+### 29. Data
+
+- [ ] 29.1 Atualizar `UserRepository`:
+  - Construtor passa a aceitar `ILocalTokenDataSource tokenDataSource` + `IRemoteUserDataSource userDataSource` (renomear o campo `_dataSource` para `_userDataSource` por clareza, espelhando `AuthenticationRepository`).
+  - `deactivate()`:
+    ```dart
+    final tokens = await _tokenDataSource.get();
+    if (tokens.refresh == null) return const Left(UnknownFailure());
+    final data = await _userDataSource.deactivate(refresh: tokens.refresh!);
+    return data.either((failure) => failure.toFailure(), (_) {});
+    ```
+- [ ] 29.2 Atualizar `userRepositoryProvider` em `lib/src/main/providers/repositories_provider.dart` para injetar `localTokenDataSourceProvider`.
+
+### 30. Presentation — notifier `profile/details/notifiers/`
+
+- [ ] 30.1 Criar `profile_details_state.dart` — `ProfileDetailsStatus` enum (initial/loading/success/failure) + `message` + `copyWith` + `props`.
+- [ ] 30.2 Criar `profile_details_intent.dart` — sealed `ProfileDetailsIntent` com `DeactivatePressed()`.
+- [ ] 30.3 Criar `profile_details_notifier.dart` — `@riverpod final class ProfileDetailsNotifier extends _$ProfileDetailsNotifier` sync. `build` retorna `ProfileDetailsState()` e injeta `userRepository`. `dispatch` exhaustivo. `_deactivate`:
+  - Early-return se `status == loading`.
+  - `status: loading`.
+  - `await _repository.deactivate()`.
+  - **Sucesso**: `ref.invalidate(userProvider)` + `status: success`.
+  - **Falha**: `status: failure` com `message` do `Failure`.
+
+### 31. Presentation — wiring
+
+- [ ] 31.1 Atualizar `ProfileAccountActionsWidget` — adicionar `final bool isDeactivating` (default false). Quando true: passa `isLoading: true` ao botão Desativar e `onTap: null` em ambos os botões.
+- [ ] 31.2 Atualizar `ProfileDetailsScreen`:
+  - Importar `profile_details_*` (state, intent, notifier) e `toast_widget`.
+  - `Consumer` interno: `ref.listen(profileDetailsProvider)` faz toast com `state.message` quando transição para `failure`. Sucesso é silencioso.
+  - `ref.watch(profileDetailsProvider)` para obter `detailsState`; `ref.read(profileDetailsProvider.notifier)` para o dispatcher.
+  - `_buildBody` ganha `required ProfileDetailsState detailsState` e passa `isDeactivating: detailsState.status == .loading` ao widget.
+  - `_confirmDeactivate(context, notifier)` despacha `DeactivatePressed` após confirm.
+
+### 32. Code generation
+
+- [ ] 32.1 `dart run build_runner build --delete-conflicting-outputs` regenera `profile_details_notifier.g.dart`.
+
+### 33. Testes
+
+- [ ] 33.1 Estender `test/src/data/repositories/user_repository_test.dart` com `group('deactivate')` cobrindo:
+  - Right(null) quando DELETE `/api/v1/me` retorna 204 — verificar path **e** que o body envia `{'refresh': '<token>'}`.
+  - Left(UnknownFailure) quando `tokenDataSource.get()` retorna `refresh: null` — confirmar que `client.delete` **não** é chamado.
+  - Left(NetworkFailure) quando código `'network_error'`.
+  - Left(NotFoundFailure) quando código `'not_found'`.
+  - Left(ServerFailure) quando código `'server_error'`.
+  - O `setUp` mocka `ILocalTokenDataSource.get()` retornando refresh válido como default.
+- [ ] 33.2 Criar `test/src/presentation/profile/details/notifiers/profile_details_notifier_test.dart` cobrindo:
+  - `build returns initial state`.
+  - `DeactivatePressed sets status to loading then success on success`.
+  - `DeactivatePressed invalidates userProvider on success` (verifica que `repository.me` é chamado novamente após o invalidate).
+  - `DeactivatePressed sets status to failure with message on error`.
+  - `DeactivatePressed does not call repository when already loading`.
+
+### 34. Verificação Parte 5
+
+- [ ] 34.1 `flutter analyze` — zero warnings.
+- [ ] 34.2 `flutter test` — toda a suíte passa.
+- [ ] 34.3 **Smoke manual — desativar com sucesso**: tap "Desativar" → dialog → "Desativar" → backend 204 → app redireciona para `SignInLocation` automaticamente (via interceptor 401 → refresh fail → onUnauthenticated).
+- [ ] 34.4 **Smoke manual — desativar com falha de rede**: simular erro de rede → toast "Opps" com mensagem do `NetworkFailure` aparece. Botão sai do loading.
+- [ ] 34.5 **Smoke manual — botão duplo-clique**: tap rápido em "Desativar" no dialog não dispara duas chamadas (verificar via logs).
+
+---
+
+## Parte 6+ — A definir
+
+- **Parte 6** — Excluir conta (endpoint próprio TBD) — wiring no mesmo `ProfileDetailsNotifier` com novo intent `DeletePressed`.
+- **Parte 7** — Edição real de nome/senha (PATCH) — substitui os `// TODO Parte 4` nos notifiers correspondentes.
