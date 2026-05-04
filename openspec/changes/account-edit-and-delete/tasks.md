@@ -119,12 +119,13 @@ Ordem fixa: spec → mover `userProvider` para escopo shared → promover avatar
 
 ### 12. Atualizar `ProfileScreen`
 
-- [ ] 12.1 Substituir o conteúdo da Parte 1 (`ScreenHeaderWidget` + `Expanded(Placeholder())`) por:
+- [ ] 12.1 Manter o `ScreenHeaderWidget` da Parte 1 e substituir apenas o `Expanded(Placeholder())` por conteúdo real:
   - `Consumer` interno que faz `final userState = ref.watch(userProvider);`.
   - Switch sobre `AsyncValue<UserModel>`:
     - `AsyncLoading()` → `Skeletonizer(enabled: true, child: <success layout com mock UserModel>)`.
     - `AsyncError(:final error)` → `Center` com `Column` contendo `Text(failure.message)` + `ButtonWidget.outlined(label: 'Tentar novamente', onTap: () => ref.invalidate(userProvider))`. Cast `error` para `Failure` (sealed) para extrair `.message`.
-    - `AsyncData(:final value)` → `Column(crossAxisAlignment: .start)` com: `SizedBox(height: 16.0)` + `ProfileHeaderWidget(user: value)` + `SizedBox(height: 24.0)` + `ProfileFieldsCardWidget(children: [ProfileFieldItemWidget(label: 'Nome', onTap: () {}), ProfileFieldItemWidget(label: 'E-mail', enabled: false, onTap: () {}), ProfileFieldItemWidget(label: 'Senha', onTap: () {})])` + `Spacer()` + `ProfileDeleteAccountWidget(onTap: <handler de dialog>)`.
+    - `AsyncData(:final value)` → `Column(crossAxisAlignment: .start)` com: `ScreenHeaderWidget(title: 'Dados pessoais', description: 'Gerencie as informações da sua conta.')` + `SizedBox(height: 24.0)` + `ProfileHeaderWidget(user: value)` + `SizedBox(height: 32.0)` + `ProfileFieldsCardWidget(children: [ProfileFieldItemWidget(label: 'Nome', onTap: () {}), ProfileFieldItemWidget(label: 'E-mail', enabled: false, onTap: () {}), ProfileFieldItemWidget(label: 'Senha', onTap: () {})])` + `Spacer()` + `ProfileDeleteAccountWidget(onTap: <handler de dialog>)`.
+  - `_buildBody` e `_buildError` como **métodos privados** que retornam `Widget` — nunca classes privadas no arquivo (CLAUDE.md).
 - [ ] 12.2 Handler do delete account:
   ```dart
   onTap: () async {

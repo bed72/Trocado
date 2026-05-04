@@ -203,15 +203,15 @@ Then it SHALL render the letter `'K'` exactly as before the rename
 
 ### Requirement: ProfileScreen consumes userProvider via Consumer
 
-The system SHALL replace the `ScreenHeaderWidget` + `Placeholder` body from Part 1 with a `Consumer` that calls `ref.watch(userProvider)` and renders an `AsyncValue<UserModel>` switch.
+The system SHALL keep the `ScreenHeaderWidget(title: 'Dados pessoais', description: 'Gerencie as informações da sua conta.')` from Part 1 and replace only the `Placeholder` body with a `Consumer` that calls `ref.watch(userProvider)` and renders an `AsyncValue<UserModel>` switch.
 
-The screen SHALL remain a `StatelessWidget` (not `ConsumerWidget`) with an inner `Consumer` (CLAUDE.md feature rule).
+The screen SHALL remain a `StatelessWidget` (not `ConsumerWidget`) with an inner `Consumer` (CLAUDE.md feature rule). Sub-views (`_buildBody`, `_buildError`) SHALL be private methods returning `Widget`, never private classes (CLAUDE.md rule against private widget classes inside widget files).
 
 The `AsyncValue` switch SHALL handle three states:
 
 - `AsyncLoading()` → `Skeletonizer(enabled: true, child: <success layout with placeholder UserModel>)`.
 - `AsyncError(:final error)` → `Center` with the failure message and a `'Tentar novamente'` button that invalidates `userProvider`.
-- `AsyncData(:final value)` → success layout: `ProfileHeaderWidget(user: value)` + `ProfileFieldsCardWidget(children: [...])` (3 items) + `ProfileDeleteAccountWidget(onTap: ...)` at the bottom.
+- `AsyncData(:final value)` → success layout: `ScreenHeaderWidget` + `ProfileHeaderWidget(user: value)` + `ProfileFieldsCardWidget(children: [...])` (3 items) + `Spacer` + `ProfileDeleteAccountWidget(onTap: ...)` at the bottom.
 
 #### Scenario: Loading state shows skeletonized layout
 
@@ -226,11 +226,12 @@ When `ProfileScreen` builds
 Then a `'Tentar novamente'` button SHALL be present
 And tapping it SHALL invalidate `userProvider`
 
-#### Scenario: Data state renders header, three items and delete button
+#### Scenario: Data state renders screen header, profile header, three items and delete button
 
 Given `userProvider` resolves with `AsyncData(UserModel(name: 'Kevin', email: 'kevin@trocado.app'))`
 When `ProfileScreen` builds
-Then a `ProfileHeaderWidget` SHALL render the avatar, name `'Kevin'` and email `'kevin@trocado.app'`
+Then the top of the layout SHALL contain a `ScreenHeaderWidget` with `title == 'Dados pessoais'` and `description == 'Gerencie as informações da sua conta.'`
+And a `ProfileHeaderWidget` SHALL render the avatar, name `'Kevin'` and email `'kevin@trocado.app'`
 And a `ProfileFieldsCardWidget` SHALL contain three `ProfileFieldItemWidget` children with labels `'Nome'`, `'E-mail'`, `'Senha'` in that order
 And the `'E-mail'` item SHALL be disabled
 And a `ProfileDeleteAccountWidget` SHALL be rendered at the bottom
