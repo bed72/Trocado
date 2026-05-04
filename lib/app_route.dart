@@ -121,6 +121,12 @@ final class AppRoutes {
     regex: RegExp(r'^/notifications$'),
   );
 
+  static final profile = AppRoutes._(
+    path: '/profile',
+    name: 'profile-route',
+    regex: RegExp(r'^/profile$'),
+  );
+
   static final dateRange = AppRoutes._(
     path: '/date-range',
     name: 'date-range-route',
@@ -149,6 +155,7 @@ final class AppRoutes {
     signIn,
     signUp,
     expense,
+    profile,
     expenses,
     category,
     settings,

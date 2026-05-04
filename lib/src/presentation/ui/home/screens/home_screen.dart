@@ -10,10 +10,10 @@ import 'package:trocado/src/presentation/ui/home/notifiers/insights_notifier.dar
 import 'package:trocado/src/presentation/ui/home/notifiers/active_budget_notifier.dart';
 import 'package:trocado/src/presentation/ui/home/notifiers/recent_expenses_notifier.dart';
 
-import 'package:trocado/src/presentation/ui/home/widgets/home_action_button_widget.dart';
+import 'package:trocado/src/presentation/widgets/budget/card/budget_card_widget.dart';
 
 import 'package:trocado/src/presentation/ui/home/widgets/home_app_bar_widget.dart';
-import 'package:trocado/src/presentation/widgets/budget/card/budget_card_widget.dart';
+import 'package:trocado/src/presentation/ui/home/widgets/home_action_button_widget.dart';
 import 'package:trocado/src/presentation/ui/home/widgets/insights/insights_carousel_widget.dart';
 import 'package:trocado/src/presentation/ui/home/widgets/recent_expenses/recent_expenses_section_widget.dart';
 
@@ -21,6 +21,7 @@ class HomeScreen extends StatefulWidget {
   final VoidCallback navigateToChat;
   final VoidCallback navigateToExit;
   final VoidCallback navigateToBudget;
+  final VoidCallback navigateToProfile;
   final VoidCallback navigateToBudgets;
   final VoidCallback navigateToExpenses;
   final VoidCallback navigateToSettings;
@@ -32,6 +33,7 @@ class HomeScreen extends StatefulWidget {
     required this.navigateToChat,
     required this.navigateToExit,
     required this.navigateToBudget,
+    required this.navigateToProfile,
     required this.navigateToBudgets,
     required this.navigateToExpenses,
     required this.navigateToSettings,
@@ -62,6 +64,7 @@ class _HomeScreenState extends State<HomeScreen>
         return Scaffold(
           appBar: HomeAppBarWidget(
             userState: userState,
+            navigateToProfile: widget.navigateToProfile,
             navigateToSettings: widget.navigateToSettings,
             navigateToNotification: widget.navigateToNotification,
           ),

@@ -11,12 +11,14 @@ import 'package:trocado/src/presentation/ui/home/widgets/home_greeting_widget.da
 
 class HomeAppBarWidget extends StatelessWidget implements PreferredSizeWidget {
   final AsyncValue<UserModel> userState;
+  final VoidCallback navigateToProfile;
   final VoidCallback navigateToSettings;
   final VoidCallback navigateToNotification;
 
   const HomeAppBarWidget({
     super.key,
     required this.userState,
+    required this.navigateToProfile,
     required this.navigateToSettings,
     required this.navigateToNotification,
   });
@@ -37,7 +39,10 @@ class HomeAppBarWidget extends StatelessWidget implements PreferredSizeWidget {
         title: Row(
           spacing: 12.0,
           children: [
-            HomeAvatarWidget(name: user?.name ?? 'Carregando'),
+            HomeAvatarWidget(
+              onTap: navigateToProfile,
+              name: user?.name ?? 'Carregando',
+            ),
             HomeGreetingWidget(name: user?.name ?? 'Carregando'),
           ],
         ),
