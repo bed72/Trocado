@@ -133,40 +133,40 @@ Adicionar em `lib/src/main/providers/validators_provider.dart`:
 - `profileNameFormValidatorProvider` → `ProfileNameFormValidator(nameValidation: NameValidation())`.
 - `profilePasswordFormValidatorProvider` → `ProfilePasswordFormValidator(passwordValidation: PasswordValidation())`.
 
-### Parte 4 — Dual action (Desativar + Deletar) na tela de detalhes
+### Parte 4 — Dual action (Excluir + Desativar) na tela de detalhes
 
-A `ProfileDetailsScreen` deixa de ter um único botão "Apagar conta" no rodapé e passa a expor **duas ações destrutivas lado a lado** (espelhando o pattern de `BudgetEditActionsWidget` / `ExpenseEditActionsWidget`):
+A `ProfileDetailsScreen` deixa de ter um único botão "Apagar conta" no rodapé e passa a expor **duas ações lado a lado** (espelhando o pattern de `BudgetEditActionsWidget` / `ExpenseEditActionsWidget`):
 
-- **Desativar** (esquerda, `ButtonWidget.outlined`, sem ícone) — ação reversível: a conta fica oculta, dados preservados, login reativa.
-- **Deletar** (direita, `ButtonWidget.elevated`, sem ícone) — ação irreversível: dados financeiros apagados.
+- **Excluir** (esquerda, `ButtonWidget.outlined`, sem ícone) — ação irreversível: dados financeiros apagados.
+- **Desativar** (direita, `ButtonWidget.elevated`, sem ícone) — ação reversível principal: a conta fica oculta, dados preservados, login reativa.
 
 #### Substituição do widget
 
 - `profile_delete_account_widget.dart` (com `ProfileDeleteAccountWidget`) → renomeado para `profile_account_actions_widget.dart` com `ProfileAccountActionsWidget`.
 - API: `final VoidCallback onDelete;` + `final VoidCallback onDeactivate;` (ambos named-required).
-- Layout: `Padding(top: 16) → Row(spacing: 16, [Expanded(outlined Desativar), Expanded(elevated Deletar)])` — apenas labels, sem ícones.
+- Layout: `Padding(top: 16) → Row(spacing: 16, [Expanded(outlined Excluir), Expanded(elevated Desativar)])` — apenas labels, sem ícones.
 
 #### Dois dialogs no `ProfileDetailsScreen`
 
 `_buildBody` agora recebe ambos `onDelete` e `onDeactivate`. A screen ganha dois métodos `_confirmDelete` e `_confirmDeactivate`:
 
-- **Deletar** (atualizado): title `'Deletar conta'`, confirmLabel `'Deletar'`, description `'Esta ação é irreversível.\n\n - Todos os seus dados financeiros serão apagados e você não poderá recuperá-los.'`.
-- **Desativar** (novo): title `'Desativar conta'`, confirmLabel `'Desativar'`, description `'Sua conta ficará oculta e seus dados ficarão preservados. Você poderá reativá-la fazendo login novamente.'`.
+- **Excluir** (atualizado): title `'Excluir conta'`, confirmLabel `'Excluir'`, description `'Esta ação é irreversível.\n\n - Todos os seus dados financeiros serão apagados e você não poderá recuperá-los.'`.
+- **Desativar** (novo): title `'Desativar conta'`, confirmLabel `'Desativar'`, description `'Sua conta ficará desativada e seus dados ficarão preservados.\n\n - Você poderá reativá-la fazendo login novamente.'`.
 
 Ambos pós-confirmação são no-op nesta parte — Parte 5 plugará na API real (`IUserRepository.deactivate()` e `IUserRepository.delete()`).
 
 ### Parte 5+ (placeholder)
 
-- **Parte 5 — Edição e exclusão reais via API**: `IUserRepository.update(...)`, `IUserRepository.delete()`, `IUserRepository.deactivate()`, `UserRequest`, signOut + redirect para `SignInLocation` nos fluxos de delete/deactivate, troca dos `// TODO` nos notifiers/screen pelas chamadas reais de PATCH/DELETE.
+- **Parte 5 — Edição e exclusão reais via API**: `IUserRepository.update(...)`, `IUserRepository.delete()`, `IUserRepository.deactivate()`, `UserRequest`, signOut + redirect para `SignInLocation` nos fluxos de excluir/desativar, troca dos `// TODO` nos notifiers/screen pelas chamadas reais de PATCH/DELETE.
 
 ## Scope
 
 ### Em escopo (Parte 4 — atual)
 
 - Renome de `profile_delete_account_widget.dart`/`ProfileDeleteAccountWidget` para `profile_account_actions_widget.dart`/`ProfileAccountActionsWidget`.
-- Layout do widget passa de single elevated para `Row` com 2 `Expanded` (outlined Desativar + elevated Deletar) com ícones.
+- Layout do widget passa de single elevated para `Row` com 2 `Expanded` (outlined Excluir à esquerda + elevated Desativar à direita), apenas labels.
 - `ProfileDetailsScreen._buildBody` recebe `onDelete` e `onDeactivate` (ambos named-required).
-- Novos métodos `_confirmDelete` (atualizado: title/label `'Deletar'`) e `_confirmDeactivate` (novo) na screen, cada um chamando `showConfirmDialog` com texto explicando o efeito.
+- Novos métodos `_confirmDelete` (atualizado: title/label `'Excluir'`) e `_confirmDeactivate` (novo) na screen, cada um chamando `showConfirmDialog` com texto explicando o efeito.
 - Ambos pós-confirmação são no-op (Parte 5 plugará na API).
 - `flutter analyze` zero warnings; `flutter test` passa toda a suíte.
 

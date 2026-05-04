@@ -111,8 +111,8 @@ class ProfileDetailsScreen extends StatelessWidget {
   Future<void> _confirmDelete(BuildContext context) async {
     final confirmed = await showConfirmDialog(
       context: context,
-      title: 'Deletar conta',
-      confirmLabel: 'Deletar',
+      title: 'Excluir conta',
+      confirmLabel: 'Excluir',
       description:
           'Esta ação é irreversível.\n\n - Todos os seus dados financeiros serão apagados e você não poderá recuperá-los.',
     );
@@ -125,7 +125,7 @@ class ProfileDetailsScreen extends StatelessWidget {
       title: 'Desativar conta',
       confirmLabel: 'Desativar',
       description:
-          'Sua conta ficará oculta e seus dados ficarão preservados. Você poderá reativá-la fazendo login novamente.',
+          'Sua conta ficará desativada e seus dados ficarão preservados.\n\n - Você poderá reativá-la fazendo login novamente.',
     );
     if (!confirmed) return;
   }

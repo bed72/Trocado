@@ -276,8 +276,8 @@ The system SHALL create `lib/src/presentation/ui/profile/details/widgets/profile
 
 The widget SHALL render `Padding(padding: const EdgeInsets.only(top: 16.0))` containing a `Row(spacing: 16.0)` with two `Expanded` children:
 
-- Left: `ButtonWidget.outlined(label: 'Desativar', onTap: onDeactivate)` — reversible action.
-- Right: `ButtonWidget.elevated(label: 'Deletar', onTap: onDelete)` — irreversible action.
+- Left: `ButtonWidget.outlined(label: 'Excluir', onTap: onDelete)` — irreversible action.
+- Right: `ButtonWidget.elevated(label: 'Desativar', onTap: onDeactivate)` — reversible primary action.
 
 The buttons SHALL NOT render icons — only the label is shown.
 
@@ -287,7 +287,7 @@ This widget mirrors the visual pattern of `BudgetEditActionsWidget` (Row with tw
 
 `ProfileDetailsScreen` SHALL provide two private methods that invoke `showConfirmDialog`:
 
-- `_confirmDelete`: `title: 'Deletar conta'`, `confirmLabel: 'Deletar'`, description containing the explicit irreversibility wording.
+- `_confirmDelete`: `title: 'Excluir conta'`, `confirmLabel: 'Excluir'`, description containing the explicit irreversibility wording.
 - `_confirmDeactivate`: `title: 'Desativar conta'`, `confirmLabel: 'Desativar'`, description explaining that data is preserved and reactivation happens via sign-in.
 
 In Part 4 the post-confirmation action of both flows is a no-op — Part 5 wires the actual API calls.
@@ -297,14 +297,14 @@ In Part 4 the post-confirmation action of both flows is a no-op — Part 5 wires
 Given the user is on `ProfileDetailsScreen` with data loaded
 When `ProfileAccountActionsWidget` builds
 Then a `Row` with two `Expanded` children SHALL be present
-And the left child SHALL be `ButtonWidget.outlined` with label `'Desativar'`
-And the right child SHALL be `ButtonWidget.elevated` with label `'Deletar'`
+And the left child SHALL be `ButtonWidget.outlined` with label `'Excluir'`
+And the right child SHALL be `ButtonWidget.elevated` with label `'Desativar'`
 
-#### Scenario: Tap on Deletar opens deletion dialog
+#### Scenario: Tap on Excluir opens deletion dialog
 
 Given the user is on `ProfileDetailsScreen` with data loaded
-When the user taps the `'Deletar'` button
-Then `showConfirmDialog` SHALL be invoked with `title: 'Deletar conta'` and `confirmLabel: 'Deletar'`
+When the user taps the `'Excluir'` button
+Then `showConfirmDialog` SHALL be invoked with `title: 'Excluir conta'` and `confirmLabel: 'Excluir'`
 And the description SHALL contain the explicit irreversibility wording
 
 #### Scenario: Tap on Desativar opens deactivation dialog

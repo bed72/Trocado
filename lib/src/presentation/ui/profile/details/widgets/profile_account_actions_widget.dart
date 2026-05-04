@@ -19,13 +19,10 @@ class ProfileAccountActionsWidget extends StatelessWidget {
       spacing: 16.0,
       children: [
         Expanded(
-          child: ButtonWidget.outlined(
-            label: 'Desativar',
-            onTap: onDeactivate,
-          ),
+          child: ButtonWidget.outlined(label: 'Excluir', onTap: onDelete),
         ),
         Expanded(
-          child: ButtonWidget.elevated(label: 'Deletar', onTap: onDelete),
+          child: ButtonWidget.elevated(label: 'Desativar', onTap: onDeactivate),
         ),
       ],
     ),
