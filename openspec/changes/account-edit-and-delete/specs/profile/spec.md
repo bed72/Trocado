@@ -211,7 +211,7 @@ The `AsyncValue` switch SHALL handle three states:
 
 - `AsyncLoading()` → `Skeletonizer(enabled: true, child: <success layout with placeholder UserModel>)`.
 - `AsyncError(:final error)` → `Center` with the failure message and a `'Tentar novamente'` button that invalidates `userProvider`.
-- `AsyncData(:final value)` → success layout: `ScreenHeaderWidget` + `ProfileHeaderWidget(user: value)` + `ProfileFieldsCardWidget(children: [...])` (3 items) + `Spacer` + `ProfileDeleteAccountWidget(onTap: ...)` at the bottom.
+- `AsyncData(:final value)` → success layout: `ScreenHeaderWidget` + `ProfileHeaderWidget(user: value)` + `ProfileFieldsCardWidget(children: [...])` (3 items) + `Spacer` + `ProfileAccountActionsWidget(onDelete: ..., onDeactivate: ...)` at the bottom.
 
 #### Scenario: Loading state shows skeletonized layout
 
@@ -234,7 +234,7 @@ Then the top of the layout SHALL contain a `ScreenHeaderWidget` with `title == '
 And a `ProfileHeaderWidget` SHALL render the avatar, name `'Kevin'` and email `'kevin@trocado.app'`
 And a `ProfileFieldsCardWidget` SHALL contain three `ProfileFieldItemWidget` children with labels `'Nome'`, `'E-mail'`, `'Senha'` in that order
 And the `'E-mail'` item SHALL be disabled
-And a `ProfileDeleteAccountWidget` SHALL be rendered at the bottom
+And a `ProfileAccountActionsWidget` SHALL be rendered at the bottom
 
 ---
 
@@ -270,25 +270,51 @@ Then no animation SHALL occur and `callback` SHALL NOT be invoked
 
 ---
 
-### Requirement: ProfileDeleteAccountWidget triggers destructive confirmation
+### Requirement: ProfileAccountActionsWidget exposes Deactivate and Delete side-by-side
 
-The system SHALL create `lib/src/presentation/ui/profile/widgets/profile_delete_account_widget.dart` as a `StatelessWidget` with `final VoidCallback onTap;`.
+The system SHALL create `lib/src/presentation/ui/profile/details/widgets/profile_account_actions_widget.dart` (replacing the previous `profile_delete_account_widget.dart` from Part 2) as a `StatelessWidget` with `final VoidCallback onDelete;` and `final VoidCallback onDeactivate;` (both named-required).
 
-The widget SHALL render `ButtonWidget.elevated` (full width via `Container(width: double.infinity)`) with label `'Apagar conta'` and an `Icons.delete_outline` icon child, mirroring the visual pattern of `SettingsLogoutWidget`.
+The widget SHALL render `Padding(padding: const EdgeInsets.only(top: 16.0))` containing a `Row(spacing: 16.0)` with two `Expanded` children:
 
-The destructive nature of the action SHALL be communicated exclusively through the confirmation dialog (explicit irreversibility description), not via custom button coloring. The button itself SHALL NOT apply a `Theme` override.
+- Left: `ButtonWidget.outlined(label: 'Desativar', onTap: onDeactivate, child: Icon(Icons.pause_circle_outline, size: 20.0))` — reversible action.
+- Right: `ButtonWidget.elevated(label: 'Deletar', onTap: onDelete, child: Icon(Icons.delete_outline, size: 20.0))` — irreversible action.
 
-`ProfileScreen` SHALL handle the `onTap` by calling `showConfirmDialog(title: 'Apagar conta', description: 'Esta ação é irreversível. Todos os seus dados financeiros serão apagados e você não poderá recuperá-los.', confirmLabel: 'Apagar')` and SHALL only proceed with the destructive action when the dialog resolves to `true`. In Part 2 the post-confirmation action is a no-op (Part 4 wires the API call).
+The widget SHALL NOT apply a `Theme` override or custom destructive coloring — the destructive intent is communicated exclusively through the confirmation dialog text.
 
-#### Scenario: Tap opens confirmation dialog
+This widget mirrors the visual pattern of `BudgetEditActionsWidget` (Row with two `Expanded` buttons, outlined on the left, elevated on the right).
 
-Given the user is on `ProfileScreen` with data loaded
-When the user taps the `'Apagar conta'` button
-Then `showConfirmDialog` SHALL be invoked with `title: 'Apagar conta'`, `confirmLabel: 'Apagar'` and the explicit irreversibility description
+`ProfileDetailsScreen` SHALL provide two private methods that invoke `showConfirmDialog`:
+
+- `_confirmDelete`: `title: 'Deletar conta'`, `confirmLabel: 'Deletar'`, description containing the explicit irreversibility wording.
+- `_confirmDeactivate`: `title: 'Desativar conta'`, `confirmLabel: 'Desativar'`, description explaining that data is preserved and reactivation happens via sign-in.
+
+In Part 4 the post-confirmation action of both flows is a no-op — Part 5 wires the actual API calls.
+
+#### Scenario: Both buttons are rendered side by side
+
+Given the user is on `ProfileDetailsScreen` with data loaded
+When `ProfileAccountActionsWidget` builds
+Then a `Row` with two `Expanded` children SHALL be present
+And the left child SHALL be `ButtonWidget.outlined` with label `'Desativar'`
+And the right child SHALL be `ButtonWidget.elevated` with label `'Deletar'`
+
+#### Scenario: Tap on Deletar opens deletion dialog
+
+Given the user is on `ProfileDetailsScreen` with data loaded
+When the user taps the `'Deletar'` button
+Then `showConfirmDialog` SHALL be invoked with `title: 'Deletar conta'` and `confirmLabel: 'Deletar'`
+And the description SHALL contain the explicit irreversibility wording
+
+#### Scenario: Tap on Desativar opens deactivation dialog
+
+Given the user is on `ProfileDetailsScreen` with data loaded
+When the user taps the `'Desativar'` button
+Then `showConfirmDialog` SHALL be invoked with `title: 'Desativar conta'` and `confirmLabel: 'Desativar'`
+And the description SHALL explain that data is preserved and reactivation is possible by signing in again
 
 #### Scenario: Cancel does not trigger any side effect
 
-Given the confirmation dialog is open
+Given any of the two confirmation dialogs is open
 When the user taps `'Cancelar'`
 Then the dialog SHALL close
 And no further action SHALL be triggered
