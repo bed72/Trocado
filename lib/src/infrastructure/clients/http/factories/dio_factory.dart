@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
-import 'package:talker/talker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:talker_dio_logger/talker_dio_logger.dart';
+import 'package:trocado/src/infrastructure/clients/logger/logger_client.dart';
 
 import 'package:trocado/src/infrastructure/datasources/local/local_token_data_source.dart';
 
@@ -25,11 +25,7 @@ final class DioFactory {
       ),
       if (kDebugMode)
         TalkerDioLogger(
-          talker: Talker(
-            logger: TalkerLogger(
-              settings: TalkerLoggerSettings(enableColors: false),
-            ),
-          ),
+          talker: loggerClient,
           settings: const TalkerDioLoggerSettings(
             printRequestHeaders: false,
             printResponseMessage: true,

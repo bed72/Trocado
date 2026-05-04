@@ -1,5 +1,5 @@
+import 'package:talker/talker.dart';
 import 'package:flutter/foundation.dart';
-import 'package:talker_logger/talker_logger.dart';
 
 abstract interface class ILoggerClient {
   void debug(String message, {Object? error, StackTrace? stackTrace});
@@ -42,3 +42,7 @@ final class LoggerClient implements ILoggerClient {
   void critical(String message, {Object? error, StackTrace? stackTrace}) =>
       _logger.critical(message);
 }
+
+final loggerClient = Talker(
+  logger: TalkerLogger(settings: TalkerLoggerSettings(enableColors: false)),
+);
