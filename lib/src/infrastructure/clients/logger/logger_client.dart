@@ -13,7 +13,7 @@ abstract interface class ILoggerClient {
 final class LoggerClient implements ILoggerClient {
   final _logger = TalkerLogger(
     settings: TalkerLoggerSettings(
-      level: kReleaseMode ? LogLevel.warning : LogLevel.verbose,
+      level: kReleaseMode ? .warning : .verbose,
       enableColors: true,
     ),
   );
