@@ -104,7 +104,7 @@ Ordem fixa: spec → mover `userProvider` para escopo shared → promover avatar
 
 - [ ] 11.1 Criar `lib/src/presentation/ui/profile/widgets/profile_header_widget.dart`:
   - `StatelessWidget` puro recebendo `final UserModel user;` (named, required).
-  - Renderiza `Column(crossAxisAlignment: .center)` com: `AvatarWidget(name: user.name, size: 96.0)` + `SizedBox(height: 16.0)` + `Text(user.name, style: titleLarge bold)` + `SizedBox(height: 4.0)` + `Text(user.email, style: bodyMedium onSurfaceVariant)`.
+  - Renderiza `Column(crossAxisAlignment: .center)` com: `Center(child: AvatarWidget(name: user.name, size: 72.0))` + `SizedBox(height: 16.0)` + `Text(user.name, style: titleLarge bold)` + `SizedBox(height: 4.0)` + `Text(user.email, style: bodyMedium onSurfaceVariant)`.
 - [ ] 11.2 Criar `lib/src/presentation/ui/profile/widgets/profile_field_item_widget.dart`:
   - `StatelessWidget` com `final String label;`, `final VoidCallback onTap;`, `final bool enabled;` (default true).
   - Quando `enabled: true`: envolve em `BounceWidget.withOnPress(onPress: onTap)`; texto `bodyMedium`; chevron `Icons.chevron_right` color `onSurfaceVariant`.
@@ -115,7 +115,7 @@ Ordem fixa: spec → mover `userProvider` para escopo shared → promover avatar
   - Espelha `SettingsCardWidget` (container arredondado 16, `surfaceContainerLowest` background, `outlineVariant` border, `Divider(height: 1.0)` entre filhos com padding horizontal 16 nos filhos).
 - [ ] 11.4 Criar `lib/src/presentation/ui/profile/widgets/profile_delete_account_widget.dart`:
   - `StatelessWidget` com `final VoidCallback onTap;`.
-  - Renderiza `Container(width: .infinity, padding: const .only(top: 16.0))` com filho `Theme(data: Theme.of(context).copyWith(colorScheme: Theme.of(context).colorScheme.copyWith(primary: context.colors.error)), child: ButtonWidget.outlined(label: 'Apagar conta', onTap: onTap, child: const Icon(Icons.delete_outline, size: 20.0)))`.
+  - Renderiza `Container(width: .infinity, padding: const .only(top: 16.0))` com filho `ButtonWidget.elevated(label: 'Apagar conta', onTap: onTap, child: const Icon(Icons.delete_outline, size: 20.0))`. Sem `Theme` override — espelha o padrão visual de `SettingsLogoutWidget`; a destrutividade é sinalizada apenas no dialog de confirmação.
 
 ### 12. Atualizar `ProfileScreen`
 

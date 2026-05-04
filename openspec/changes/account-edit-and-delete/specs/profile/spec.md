@@ -274,9 +274,9 @@ Then no animation SHALL occur and `callback` SHALL NOT be invoked
 
 The system SHALL create `lib/src/presentation/ui/profile/widgets/profile_delete_account_widget.dart` as a `StatelessWidget` with `final VoidCallback onTap;`.
 
-The widget SHALL render `ButtonWidget.outlined` (full width via `Container(width: double.infinity)`) with label `'Apagar conta'` and an `Icons.delete_outline` icon child.
+The widget SHALL render `ButtonWidget.elevated` (full width via `Container(width: double.infinity)`) with label `'Apagar conta'` and an `Icons.delete_outline` icon child, mirroring the visual pattern of `SettingsLogoutWidget`.
 
-The button SHALL be wrapped in a `Theme` override that swaps `colorScheme.primary` for `context.colors.error`, so the outlined button surfaces the destructive color in its border, label and icon.
+The destructive nature of the action SHALL be communicated exclusively through the confirmation dialog (explicit irreversibility description), not via custom button coloring. The button itself SHALL NOT apply a `Theme` override.
 
 `ProfileScreen` SHALL handle the `onTap` by calling `showConfirmDialog(title: 'Apagar conta', description: 'Esta ação é irreversível. Todos os seus dados financeiros serão apagados e você não poderá recuperá-los.', confirmLabel: 'Apagar')` and SHALL only proceed with the destructive action when the dialog resolves to `true`. In Part 2 the post-confirmation action is a no-op (Part 4 wires the API call).
 

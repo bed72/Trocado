@@ -54,7 +54,7 @@ A `ProfileScreen` deixa de ser placeholder e vira a tela de **listagem dos campo
 - `profile_header_widget.dart` — `AvatarWidget` grande (size 96) centralizado + `Text(user.name)` em `titleLarge bold` + `Text(user.email)` em `bodyMedium onSurfaceVariant`.
 - `profile_field_item_widget.dart` — Row com label (Expanded) + chevron right, dentro de `SizedBox(height: 56)`. Quando `enabled: false`: texto cinza `onSurfaceVariant`, sem chevron, sem `BounceWidget` (não-tappable).
 - `profile_fields_card_widget.dart` — container arredondado com `outlineVariant` border, dividers entre filhos (espelha `SettingsCardWidget` sem promovê-lo — mantém encapsulamento de feature).
-- `profile_delete_account_widget.dart` — `ButtonWidget.outlined` envolvido em `Theme` override que troca `colorScheme.primary` por `colors.error`, com ícone `Icons.delete_outline` e label `'Apagar conta'`. Width full.
+- `profile_delete_account_widget.dart` — `ButtonWidget.elevated` width full com ícone `Icons.delete_outline` e label `'Apagar conta'`. A natureza destrutiva é comunicada exclusivamente pelo dialog de confirmação (descrição explícita de irreversibilidade); o botão segue o padrão visual de `SettingsLogoutWidget`.
 
 #### `ProfileScreen` consumindo `userProvider`
 
