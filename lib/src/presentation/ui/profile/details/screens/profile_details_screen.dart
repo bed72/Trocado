@@ -17,7 +17,7 @@ import 'package:trocado/src/presentation/widgets/dialog/confirm_dialog_widget.da
 import 'package:trocado/src/presentation/ui/profile/details/widgets/profile_header_widget.dart';
 import 'package:trocado/src/presentation/ui/profile/details/widgets/profile_field_item_widget.dart';
 import 'package:trocado/src/presentation/ui/profile/details/widgets/profile_fields_card_widget.dart';
-import 'package:trocado/src/presentation/ui/profile/details/widgets/profile_delete_account_widget.dart';
+import 'package:trocado/src/presentation/ui/profile/details/widgets/profile_account_actions_widget.dart';
 
 class ProfileDetailsScreen extends StatelessWidget {
   final VoidCallback onEditName;
@@ -42,6 +42,7 @@ class ProfileDetailsScreen extends StatelessWidget {
             AsyncData(:final value) => _buildBody(
               user: value,
               onDelete: () => _confirmDelete(context),
+              onDeactivate: () => _confirmDeactivate(context),
             ),
             AsyncError(:final error) => _buildError(
               failure: error is Failure ? error : const UnknownFailure(),
@@ -51,6 +52,7 @@ class ProfileDetailsScreen extends StatelessWidget {
               enabled: true,
               child: _buildBody(
                 onDelete: () {},
+                onDeactivate: () {},
                 user: UserModel(
                   id: 0,
                   name: 'Carregando',
@@ -67,6 +69,7 @@ class ProfileDetailsScreen extends StatelessWidget {
   Widget _buildBody({
     required UserModel user,
     required VoidCallback onDelete,
+    required VoidCallback onDeactivate,
   }) => Column(
     spacing: 24.0,
     crossAxisAlignment: .start,
@@ -84,7 +87,10 @@ class ProfileDetailsScreen extends StatelessWidget {
         ],
       ),
       const Spacer(),
-      ProfileDeleteAccountWidget(onTap: onDelete),
+      ProfileAccountActionsWidget(
+        onDelete: onDelete,
+        onDeactivate: onDeactivate,
+      ),
     ],
   );
 
@@ -105,10 +111,21 @@ class ProfileDetailsScreen extends StatelessWidget {
   Future<void> _confirmDelete(BuildContext context) async {
     final confirmed = await showConfirmDialog(
       context: context,
-      title: 'Apagar conta',
-      confirmLabel: 'Apagar',
+      title: 'Deletar conta',
+      confirmLabel: 'Deletar',
       description:
           'Esta ação é irreversível.\n\n - Todos os seus dados financeiros serão apagados e você não poderá recuperá-los.',
+    );
+    if (!confirmed) return;
+  }
+
+  Future<void> _confirmDeactivate(BuildContext context) async {
+    final confirmed = await showConfirmDialog(
+      context: context,
+      title: 'Desativar conta',
+      confirmLabel: 'Desativar',
+      description:
+          'Sua conta ficará oculta e seus dados ficarão preservados. Você poderá reativá-la fazendo login novamente.',
     );
     if (!confirmed) return;
   }

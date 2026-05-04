@@ -133,11 +133,51 @@ Adicionar em `lib/src/main/providers/validators_provider.dart`:
 - `profileNameFormValidatorProvider` → `ProfileNameFormValidator(nameValidation: NameValidation())`.
 - `profilePasswordFormValidatorProvider` → `ProfilePasswordFormValidator(passwordValidation: PasswordValidation())`.
 
-### Parte 4+ (placeholder)
+### Parte 4 — Dual action (Desativar + Deletar) na tela de detalhes
 
-- **Parte 4 — Exclusão + edição real**: `IUserRepository.update(...)`, `IUserRepository.delete()`, `UserRequest`, signOut + redirect para `SignInLocation` no fluxo destrutivo, troca dos `// TODO Parte 4` nos notifiers de Nome/Senha pela chamada real de PATCH.
+A `ProfileDetailsScreen` deixa de ter um único botão "Apagar conta" no rodapé e passa a expor **duas ações destrutivas lado a lado** (espelhando o pattern de `BudgetEditActionsWidget` / `ExpenseEditActionsWidget`):
+
+- **Desativar** (esquerda, `ButtonWidget.outlined`) — ação reversível: a conta fica oculta, dados preservados, login reativa.
+- **Deletar** (direita, `ButtonWidget.elevated`) — ação irreversível: dados financeiros apagados.
+
+#### Substituição do widget
+
+- `profile_delete_account_widget.dart` (com `ProfileDeleteAccountWidget`) → renomeado para `profile_account_actions_widget.dart` com `ProfileAccountActionsWidget`.
+- API: `final VoidCallback onDelete;` + `final VoidCallback onDeactivate;` (ambos named-required).
+- Layout: `Padding(top: 16) → Row(spacing: 16, [Expanded(outlined Desativar com ícone `Icons.pause_circle_outline`), Expanded(elevated Deletar com ícone `Icons.delete_outline`)])`.
+
+#### Dois dialogs no `ProfileDetailsScreen`
+
+`_buildBody` agora recebe ambos `onDelete` e `onDeactivate`. A screen ganha dois métodos `_confirmDelete` e `_confirmDeactivate`:
+
+- **Deletar** (atualizado): title `'Deletar conta'`, confirmLabel `'Deletar'`, description `'Esta ação é irreversível.\n\n - Todos os seus dados financeiros serão apagados e você não poderá recuperá-los.'`.
+- **Desativar** (novo): title `'Desativar conta'`, confirmLabel `'Desativar'`, description `'Sua conta ficará oculta e seus dados ficarão preservados. Você poderá reativá-la fazendo login novamente.'`.
+
+Ambos pós-confirmação são no-op nesta parte — Parte 5 plugará na API real (`IUserRepository.deactivate()` e `IUserRepository.delete()`).
+
+### Parte 5+ (placeholder)
+
+- **Parte 5 — Edição e exclusão reais via API**: `IUserRepository.update(...)`, `IUserRepository.delete()`, `IUserRepository.deactivate()`, `UserRequest`, signOut + redirect para `SignInLocation` nos fluxos de delete/deactivate, troca dos `// TODO` nos notifiers/screen pelas chamadas reais de PATCH/DELETE.
 
 ## Scope
+
+### Em escopo (Parte 4 — atual)
+
+- Renome de `profile_delete_account_widget.dart`/`ProfileDeleteAccountWidget` para `profile_account_actions_widget.dart`/`ProfileAccountActionsWidget`.
+- Layout do widget passa de single elevated para `Row` com 2 `Expanded` (outlined Desativar + elevated Deletar) com ícones.
+- `ProfileDetailsScreen._buildBody` recebe `onDelete` e `onDeactivate` (ambos named-required).
+- Novos métodos `_confirmDelete` (atualizado: title/label `'Deletar'`) e `_confirmDeactivate` (novo) na screen, cada um chamando `showConfirmDialog` com texto explicando o efeito.
+- Ambos pós-confirmação são no-op (Parte 5 plugará na API).
+- `flutter analyze` zero warnings; `flutter test` passa toda a suíte.
+
+### Fora de escopo (Parte 4 — virá em partes futuras)
+
+- **Endpoints reais** `DELETE /api/v1/users/me` e `POST /api/v1/users/me/deactivate` (ou similar) — Parte 5.
+- **`IUserRepository.delete()` e `IUserRepository.deactivate()`** — Parte 5.
+- **SignOut + redirect** para `SignInLocation` após confirmação — Parte 5.
+- **Loading state nos botões** durante a chamada de API — Parte 5 (adiciona `isLoading` flags).
+- **Mudança visual destrutiva** (Theme override, cor de erro) — mantemos o visual padrão; a destrutividade é comunicada exclusivamente pelo dialog.
+- **Testes da screen / widget de actions** — comportamento ainda é só wiring de `showConfirmDialog`; testes virão na Parte 5 junto com a ramificação success/failure da API.
 
 ### Em escopo (Parte 3 — atual)
 

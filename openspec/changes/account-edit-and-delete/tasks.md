@@ -303,6 +303,38 @@ Ordem fixa: rotas → reorganização de `profile/` em subdiretórios → subfea
 
 ---
 
-## Parte 4+ — A definir
+## Parte 4 — Dual action (Desativar + Deletar) na tela de detalhes
 
-- **Parte 4** — Exclusão de conta real + edição (PATCH /api/v1/users/me) + signOut + redirect. Substitui os `// TODO Parte 4` nos notifiers de Nome/Senha pela chamada real ao `IUserRepository`.
+### 24. Substituição do widget de delete
+
+- [ ] 24.1 Renomear `lib/src/presentation/ui/profile/details/widgets/profile_delete_account_widget.dart` para `profile_account_actions_widget.dart`.
+- [ ] 24.2 Reescrever a classe como `ProfileAccountActionsWidget extends StatelessWidget` com:
+  - `final VoidCallback onDelete;` + `final VoidCallback onDeactivate;` (ambos named-required, antes do construtor).
+  - Renderiza `Padding(padding: .only(top: 16.0)) → Row(spacing: 16.0)` com:
+    - Esquerda: `Expanded(child: ButtonWidget.outlined(label: 'Desativar', onTap: onDeactivate, child: Icon(Icons.pause_circle_outline, size: 20.0)))`.
+    - Direita: `Expanded(child: ButtonWidget.elevated(label: 'Deletar', onTap: onDelete, child: Icon(Icons.delete_outline, size: 20.0)))`.
+
+### 25. `ProfileDetailsScreen` ganha dois fluxos destrutivos
+
+- [ ] 25.1 Atualizar imports — trocar `profile_delete_account_widget.dart` por `profile_account_actions_widget.dart`.
+- [ ] 25.2 `_buildBody` ganha `required VoidCallback onDeactivate` (além do `onDelete` existente). Substituir `ProfileDeleteAccountWidget(onTap: onDelete)` por `ProfileAccountActionsWidget(onDelete: onDelete, onDeactivate: onDeactivate)`.
+- [ ] 25.3 Atualizar o branch `AsyncData` para passar `onDeactivate: () => _confirmDeactivate(context)`.
+- [ ] 25.4 Atualizar o branch `Skeletonizer` (loading) para passar `onDeactivate: () {}` além do `onDelete: () {}` existente.
+- [ ] 25.5 Atualizar `_confirmDelete`: trocar `title: 'Apagar conta'` → `'Deletar conta'` e `confirmLabel: 'Apagar'` → `'Deletar'`. Description permanece (irreversível).
+- [ ] 25.6 Adicionar método `_confirmDeactivate(BuildContext context)`:
+  - Chama `showConfirmDialog(context, title: 'Desativar conta', confirmLabel: 'Desativar', description: 'Sua conta ficará oculta e seus dados ficarão preservados. Você poderá reativá-la fazendo login novamente.')`.
+  - Pós-confirm: no-op (Parte 5).
+
+### 26. Verificação Parte 4
+
+- [ ] 26.1 `flutter analyze` — zero warnings.
+- [ ] 26.2 `flutter test` — toda a suíte passa.
+- [ ] 26.3 **Smoke manual — botões**: a `ProfileDetailsScreen` mostra dois botões lado a lado no rodapé (Desativar à esquerda outlined, Deletar à direita elevated, ambos com ícone).
+- [ ] 26.4 **Smoke manual — Desativar**: tap em "Desativar" abre dialog com título `'Desativar conta'` + descrição explicando reativação por login + botões `'Cancelar'` / `'Desativar'`. Cancelar fecha sem efeito. Confirm fecha (no-op).
+- [ ] 26.5 **Smoke manual — Deletar**: tap em "Deletar" abre dialog com título `'Deletar conta'` + descrição de irreversibilidade + botões `'Cancelar'` / `'Deletar'`. Cancelar fecha sem efeito. Confirm fecha (no-op).
+
+---
+
+## Parte 5+ — A definir
+
+- **Parte 5** — Edição (PATCH `/api/v1/users/me`) + Desativar + Deletar reais. `IUserRepository.update`/`delete`/`deactivate`, `UserRequest`, signOut + redirect para `SignInLocation` nos fluxos destrutivos, substitui os `// TODO Parte 4` nos notifiers de Nome/Senha e os no-ops dos confirms da screen pela chamada real à API.
