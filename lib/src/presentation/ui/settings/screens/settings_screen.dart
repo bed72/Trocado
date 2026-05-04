@@ -6,6 +6,7 @@ import 'package:trocado/src/presentation/widgets/app_bar_widget.dart';
 import 'package:trocado/src/presentation/widgets/go_back_widget.dart';
 import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';
 import 'package:trocado/src/presentation/widgets/screen_header_widget.dart';
+import 'package:trocado/src/presentation/widgets/dialog/confirm_dialog_widget.dart';
 
 import 'package:trocado/src/presentation/ui/settings/notifiers/settings_intent.dart';
 import 'package:trocado/src/presentation/ui/settings/notifiers/settings_notifier.dart';
@@ -80,7 +81,17 @@ class SettingsScreen extends StatelessWidget {
 
                 SettingsLogoutWidget(
                   isLoading: settingsState.status == .loading,
-                  onTap: () => settingsNotifier.dispatch(const LogoutPressed()),
+                  onTap: () async {
+                    final confirmed = await showConfirmDialog(
+                      context: context,
+                      confirmLabel: 'Sair',
+                      title: 'Sair da conta',
+                      description:
+                          'Você precisará entrar novamente para acessar o app.',
+                    );
+                    if (!confirmed) return;
+                    settingsNotifier.dispatch(const LogoutPressed());
+                  },
                 ),
               ],
             );
