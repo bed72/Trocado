@@ -35,13 +35,62 @@ Partes futuras (a serem adicionadas a esta mesma change):
 - **`lib/src/presentation/ui/home/locations/home_location.dart`**: importa `ProfileLocation` e injeta `navigateToProfile: () => context.navigate(ProfileLocation())` ao construir `HomeScreen`.
 - **`lib/src/presentation/ui/settings/locations/settings_location.dart`**: importa `ProfileLocation` e troca `onEditProfile: () {}` por `onEditProfile: () => context.navigate(ProfileLocation())`.
 
-### Partes 2+ (placeholder — serão detalhadas conforme implementadas)
+### Parte 2 — Listagem dos campos editáveis (Instagram-style)
 
-- **Parte 2 — Leitura**: `userProvider` já existe (em `lib/src/presentation/ui/home/notifiers/user_notifier.dart`); decidir se a `ProfileScreen` reusa esse provider ou ganha um próprio (`profileProvider`) com seu próprio cache. Exibir nome, email e demais campos do `UserModel`.
-- **Parte 3 — Edição**: novo `IUpdateUserDataSource`/`IUserRepository.update(...)`, `UserRequest`, form com validação, `ProfileNotifier` MVI.
-- **Parte 4 — Exclusão**: `IUserRepository.delete()`, confirmação destrutiva via `showConfirmDialog(...)`, signOut + redirect para `SignInLocation` em caso de sucesso.
+A `ProfileScreen` deixa de ser placeholder e vira a tela de **listagem dos campos editáveis**, no estilo Instagram (avatar grande centralizado + lista de campos navegáveis):
+
+#### Promoção do `userProvider` para escopo cross-feature
+
+- `lib/src/presentation/ui/home/notifiers/user_notifier.dart` (e `.g.dart`) **movem** para `lib/src/presentation/notifiers/user_notifier.dart`. O provider deixa de ser exclusivo da feature Home — passa a ser dado global do usuário logado, consumível por qualquer feature.
+- Imports atualizados em: `home_screen.dart`, `test/src/presentation/providers/user_notifier_test.dart`.
+
+#### Promoção do avatar para widget compartilhado
+
+- `lib/src/presentation/ui/home/widgets/home_avatar_widget.dart` **renomeia e move** para `lib/src/presentation/widgets/avatar/avatar_widget.dart`, virando `AvatarWidget` (sem prefixo de feature). API preservada (`name`, `size`, `onTap`).
+- `HomeAppBarWidget` atualizado para importar/usar `AvatarWidget`.
+
+#### Novos widgets feature-local em `profile/widgets/`
+
+- `profile_header_widget.dart` — `AvatarWidget` grande (size 96) centralizado + `Text(user.name)` em `titleLarge bold` + `Text(user.email)` em `bodyMedium onSurfaceVariant`.
+- `profile_field_item_widget.dart` — Row com label (Expanded) + chevron right, dentro de `SizedBox(height: 56)`. Quando `enabled: false`: texto cinza `onSurfaceVariant`, sem chevron, sem `BounceWidget` (não-tappable).
+- `profile_fields_card_widget.dart` — container arredondado com `outlineVariant` border, dividers entre filhos (espelha `SettingsCardWidget` sem promovê-lo — mantém encapsulamento de feature).
+- `profile_delete_account_widget.dart` — `ButtonWidget.outlined` envolvido em `Theme` override que troca `colorScheme.primary` por `colors.error`, com ícone `Icons.delete_outline` e label `'Apagar conta'`. Width full.
+
+#### `ProfileScreen` consumindo `userProvider`
+
+- Substitui o `ScreenHeaderWidget` + `Placeholder` da Parte 1 pelo layout completo.
+- `Consumer` interno faz `ref.watch(userProvider)` e renderiza switch sobre `AsyncValue<UserModel>`:
+  - `AsyncLoading` → `Skeletonizer` envolvendo o layout success com placeholders.
+  - `AsyncError(:final error)` → `Center` com mensagem do failure + botão `'Tentar novamente'` (`ref.invalidate(userProvider)`).
+  - `AsyncData(:final value)` → `ProfileHeaderWidget(user: value)` + `ProfileFieldsCardWidget(items: [...])` (3 itens) + `ProfileDeleteAccountWidget(onTap: ...)` no rodapé.
+- 3 itens no card: `'Nome'` (enabled, onTap no-op), `'E-mail'` (disabled), `'Senha'` (enabled, onTap no-op). Os onTap dos campos editáveis são placeholders nesta parte — Parte 3 vai ligá-los aos forms.
+- Click em "Apagar conta" → `showConfirmDialog(title: 'Apagar conta', description: 'Esta ação é irreversível. Todos os seus dados financeiros serão apagados e você não poderá recuperá-los.', confirmLabel: 'Apagar')` → no-op se confirmado (Parte 4 liga na API).
+
+### Partes 3+ (placeholder)
+
+- **Parte 3 — Edição**: 3 telas de form (nome, senha) navegadas a partir dos itens. Novo `IUserRepository.update(...)`, `UserRequest`, validators, `ProfileNotifier` MVI por campo.
+- **Parte 4 — Exclusão**: `IUserRepository.delete()`, signOut + redirect para `SignInLocation` na ramificação de sucesso do dialog destrutivo.
 
 ## Scope
+
+### Em escopo (Parte 2 — atual)
+
+- Mover `user_notifier.dart`/`.g.dart` para `lib/src/presentation/notifiers/`; atualizar imports em Home e teste.
+- Mover/renomear `HomeAvatarWidget` para `lib/src/presentation/widgets/avatar/avatar_widget.dart` como `AvatarWidget`; atualizar `HomeAppBarWidget`.
+- Criar 4 widgets em `lib/src/presentation/ui/profile/widgets/`: header, field item, fields card, delete account button.
+- Atualizar `ProfileScreen` para consumir `userProvider` via `Consumer` com switch sobre `AsyncValue` (loading skeletonizer / error retry / data layout completo).
+- Wiring do `showConfirmDialog` destrutivo no botão de apagar conta — pós-confirmação no-op por ora.
+- onTap dos itens "Nome" e "Senha" é no-op por ora.
+- `flutter analyze` zero warnings; `flutter test` passa toda a suíte (incluindo `user_notifier_test.dart` com novo path).
+
+### Fora de escopo (Parte 2 — virá em partes futuras)
+
+- **Tela de form** para edição de nome/senha (Parte 3).
+- **Endpoints e repository** de update/delete de user (Partes 3 e 4).
+- **Lógica real do delete** (Parte 4).
+- **Promoção de `SettingsItemWidget`/`SettingsCardWidget`** para shared — profile cria os seus próprios widgets equivalentes para preservar encapsulamento.
+- **Mudança visual no avatar da Home** — só renomeia/move o widget; a aparência permanece idêntica.
+- **Refactor de `HomeScreen`** para qualquer outra coisa além do import atualizado.
 
 ### Em escopo (Parte 1)
 

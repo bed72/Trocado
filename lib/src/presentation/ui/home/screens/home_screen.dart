@@ -5,7 +5,7 @@ import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
 
 import 'package:trocado/src/presentation/mixins/back_button_mixin.dart';
 
-import 'package:trocado/src/presentation/ui/home/notifiers/user_notifier.dart';
+import 'package:trocado/src/presentation/notifiers/user_notifier.dart';
 import 'package:trocado/src/presentation/ui/home/notifiers/insights_notifier.dart';
 import 'package:trocado/src/presentation/ui/home/notifiers/active_budget_notifier.dart';
 import 'package:trocado/src/presentation/ui/home/notifiers/recent_expenses_notifier.dart';

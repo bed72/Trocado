@@ -5,8 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trocado/src/domain/models/user_model.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
+import 'package:trocado/src/presentation/widgets/avatar/avatar_widget.dart';
 import 'package:trocado/src/presentation/widgets/buttons/icon_button_widget.dart';
-import 'package:trocado/src/presentation/ui/home/widgets/home_avatar_widget.dart';
 import 'package:trocado/src/presentation/ui/home/widgets/home_greeting_widget.dart';
 
 class HomeAppBarWidget extends StatelessWidget implements PreferredSizeWidget {
@@ -39,7 +39,7 @@ class HomeAppBarWidget extends StatelessWidget implements PreferredSizeWidget {
         title: Row(
           spacing: 12.0,
           children: [
-            HomeAvatarWidget(
+            AvatarWidget(
               onTap: navigateToProfile,
               name: user?.name ?? 'Carregando',
             ),

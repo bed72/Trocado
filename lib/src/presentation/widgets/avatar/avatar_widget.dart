@@ -4,12 +4,12 @@ import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
 import 'package:trocado/src/presentation/widgets/bounce_widget.dart';
 
-class HomeAvatarWidget extends StatelessWidget {
+class AvatarWidget extends StatelessWidget {
   final double size;
   final String name;
   final VoidCallback? onTap;
 
-  const HomeAvatarWidget({
+  const AvatarWidget({
     super.key,
     required this.name,
     this.size = 48.0,
