@@ -5,7 +5,7 @@ import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
 import 'package:trocado/src/presentation/pages/screen_page.dart';
 import 'package:trocado/src/presentation/ui/settings/screens/settings_screen.dart';
-import 'package:trocado/src/presentation/ui/profile/locations/profile_location.dart';
+import 'package:trocado/src/presentation/ui/profile/details/locations/profile_details_location.dart';
 import 'package:trocado/src/presentation/ui/authentication/sign_in/locations/sign_in_location.dart';
 
 final class SettingsLocation extends Location {
@@ -18,7 +18,7 @@ final class SettingsLocation extends Location {
         SettingsScreen(
           onNotification: () {},
           onSubscription: () {},
-          onEditProfile: () => context.navigate(ProfileLocation()),
+          onEditProfile: () => context.navigate(ProfileDetailsLocation()),
           onSignIn: () =>
               context.clear(SignInLocation(), root: true, replace: true),
         ),

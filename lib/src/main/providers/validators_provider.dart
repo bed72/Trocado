@@ -13,6 +13,10 @@ import 'package:trocado/src/presentation/ui/expense/validators/expense_date_vali
 import 'package:trocado/src/presentation/ui/expense/validators/expense_value_validation.dart';
 import 'package:trocado/src/presentation/ui/expense/validators/expense_description_validation.dart';
 
+import 'package:trocado/src/presentation/ui/profile/name/validators/name_validation.dart';
+import 'package:trocado/src/presentation/ui/profile/name/validators/profile_name_form_validator.dart';
+import 'package:trocado/src/presentation/ui/profile/password/validators/profile_password_form_validator.dart';
+
 import 'package:trocado/src/presentation/ui/authentication/sign_up/validators/terms_validation.dart';
 import 'package:trocado/src/presentation/ui/authentication/sign_up/validators/sign_up_form_validator.dart';
 import 'package:trocado/src/presentation/ui/authentication/sign_in/validators/sign_in_form_validator.dart';
@@ -57,3 +61,13 @@ ExpenseFormValidator expenseFormValidator(Ref _) => const ExpenseFormValidator(
   valueValidation: ExpenseValueValidation(),
   descriptionValidation: ExpenseDescriptionValidation(),
 );
+
+@Riverpod()
+ProfileNameFormValidator profileNameFormValidator(Ref _) =>
+    const ProfileNameFormValidator(nameValidation: NameValidation());
+
+@Riverpod()
+ProfilePasswordFormValidator profilePasswordFormValidator(Ref _) =>
+    const ProfilePasswordFormValidator(
+      passwordValidation: PasswordValidation(),
+    );

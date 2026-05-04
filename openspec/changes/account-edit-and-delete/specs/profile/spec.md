@@ -292,3 +292,173 @@ Given the confirmation dialog is open
 When the user taps `'Cancelar'`
 Then the dialog SHALL close
 And no further action SHALL be triggered
+
+---
+
+### Requirement: profile feature is organised in subdirectories
+
+The system SHALL reorganise `lib/src/presentation/ui/profile/` to mirror the `lib/src/presentation/ui/authentication/` pattern — every screen of the feature lives in its own subdirectory.
+
+The following subdirectories SHALL exist after this part:
+
+- `profile/details/` — listing screen (renamed from the root-level files of Parts 1 and 2). Contains `screens/profile_details_screen.dart`, `locations/profile_details_location.dart` and `widgets/profile_*.dart` (the four widgets created in Part 2).
+- `profile/name/` — name editing screen, with `screens/`, `locations/`, `notifiers/`, `validators/`.
+- `profile/password/` — password editing screen, with `screens/`, `locations/`, `notifiers/`, `validators/`.
+
+The class `ProfileScreen` SHALL be renamed to `ProfileDetailsScreen` and `ProfileLocation` to `ProfileDetailsLocation`. Imports in `HomeLocation` and `SettingsLocation` SHALL be updated accordingly. The route path `/profile` SHALL continue to map to `ProfileDetailsLocation` — no change to `AppRoutes.profile`.
+
+#### Scenario: Subdirectories exist
+
+Given the reorganisation is complete
+When `find lib/src/presentation/ui/profile -maxdepth 1 -mindepth 1 -type d` is executed
+Then the result SHALL list exactly three directories: `details`, `name`, `password`
+
+#### Scenario: Old paths are gone
+
+Given the reorganisation is complete
+When `find lib/src/presentation/ui/profile/screens lib/src/presentation/ui/profile/locations lib/src/presentation/ui/profile/widgets -type f 2>/dev/null` is executed
+Then the result SHALL be empty
+
+---
+
+### Requirement: AppRoutes.profileName and AppRoutes.profilePassword entries
+
+The system SHALL add `profileName` and `profilePassword` entries to `AppRoutes` in `lib/app_route.dart`:
+
+- `profileName` — `path: '/profile/name'`, `name: 'profile-name-route'`, regex `^/profile/name$`.
+- `profilePassword` — `path: '/profile/password'`, `name: 'profile-password-route'`, regex `^/profile/password$`.
+
+Both SHALL be included in `AppRoutes._all`.
+
+#### Scenario: Routes are registered
+
+Given the app starts
+Then `AppRoutes.profileName.path` SHALL equal `'/profile/name'`
+And `AppRoutes.profilePassword.path` SHALL equal `'/profile/password'`
+And both entries SHALL be present in `AppRoutes._all`
+
+---
+
+### Requirement: NameValidation enforces min 1 and max 128
+
+The system SHALL create `lib/src/presentation/ui/profile/name/validators/name_validation.dart` defining `final class NameValidation implements Validation<String>`.
+
+`NameValidation` SHALL trim the input before validating and apply the following rules in order:
+
+- empty after trim → `Invalid('Nome obrigatório')`.
+- length > 128 after trim → `Invalid('Nome deve ter no máximo 128 caracteres')`.
+- otherwise → `Valid(normalized)`.
+
+#### Scenario: Empty name is invalid
+
+Given `NameValidation()` is invoked with `'   '`
+Then it SHALL return `Invalid('Nome obrigatório')`
+
+#### Scenario: 129-character name is invalid
+
+Given `NameValidation()` is invoked with a 129-character string
+Then it SHALL return `Invalid('Nome deve ter no máximo 128 caracteres')`
+
+#### Scenario: Valid name returns trimmed value
+
+Given `NameValidation()` is invoked with `'  Kevin  '`
+Then it SHALL return `Valid('Kevin')`
+
+---
+
+### Requirement: ProfileNameNotifier is an AsyncNotifier reading userProvider
+
+The system SHALL create `ProfileNameNotifier` as `@riverpod final class ProfileNameNotifier extends _$ProfileNameNotifier` with:
+
+- `Future<ProfileNameState> build()` async, that watches `profileNameFormValidatorProvider` and `userProvider.future`, returning `ProfileNameState(name: user.name)`.
+- `dispatch(ProfileNameIntent intent)` exhaustive over `NameChanged(value)` and `SubmitPressed()`.
+- `_submit()` that validates via the form validator, propagates failures into `state`, and returns early when invalid. When valid the body SHALL contain a `// TODO Parte 4` comment and SHALL NOT call any repository in this part.
+
+`ProfileNameState` SHALL pre-fill the field on first render with the current user's name.
+
+#### Scenario: Build pre-fills with the user's current name
+
+Given `userProvider` resolves with `AsyncData(UserModel(name: 'Kevin', ...))`
+When `ProfileNameNotifier.build` resolves
+Then `state.value` SHALL equal `ProfileNameState(name: 'Kevin')`
+
+#### Scenario: Empty submit produces nameFailure
+
+Given the user clears the name field and dispatches `SubmitPressed`
+Then `state.value.nameFailure` SHALL equal `'Nome obrigatório'`
+And no repository call SHALL be made
+
+#### Scenario: Valid submit is a no-op in Part 3
+
+Given the user types a valid name and dispatches `SubmitPressed`
+Then `state.value.nameFailure` SHALL be `null`
+And no repository call SHALL be made (deferred to Part 4)
+
+---
+
+### Requirement: ProfilePasswordFormValidator validates new password and confirmation match
+
+The system SHALL create `ProfilePasswordFormValidator` mirroring `PasswordResetConfirmFormValidator`:
+
+- Validates `newPassword` via the shared `PasswordValidation` (min 8).
+- When `newPassword` is `Valid` and `confirmPassword != newPassword`, SHALL set `confirmPasswordFailure` to `'As senhas não coincidem'`.
+- `isValid` SHALL be `true` only when both checks pass.
+
+#### Scenario: Mismatched confirmation produces failure
+
+Given `state.newPassword == 'abcdefgh'` and `state.confirmPassword == 'abcdefgi'`
+When the validator is invoked
+Then `state.confirmPasswordFailure` SHALL equal `'As senhas não coincidem'`
+And `isValid` SHALL be `false`
+
+#### Scenario: Matching valid passwords pass
+
+Given `state.newPassword == 'abcdefgh'` and `state.confirmPassword == 'abcdefgh'`
+When the validator is invoked
+Then `state.newPasswordFailure` and `state.confirmPasswordFailure` SHALL be `null`
+And `isValid` SHALL be `true`
+
+---
+
+### Requirement: ProfilePasswordNotifier is a sync Notifier with five intents
+
+The system SHALL create `ProfilePasswordNotifier` as `@riverpod final class ProfilePasswordNotifier extends _$ProfilePasswordNotifier` with synchronous `build()` returning `const ProfilePasswordState()`.
+
+`dispatch` SHALL be exhaustive over: `NewPasswordChanged`, `ConfirmPasswordChanged`, `NewPasswordVisibilityToggled`, `ConfirmPasswordVisibilityToggled`, `SubmitPressed`.
+
+`_submit()` SHALL validate via `profilePasswordFormValidatorProvider`, propagate failures and return early when invalid. When valid the body SHALL contain a `// TODO Parte 4` comment and SHALL NOT call any repository in this part.
+
+#### Scenario: Toggling visibility does not affect other field
+
+Given `state.obscureNewPassword == true` and `state.obscureConfirmPassword == true`
+When `dispatch(NewPasswordVisibilityToggled())` is called
+Then `state.obscureNewPassword` SHALL become `false`
+And `state.obscureConfirmPassword` SHALL remain `true`
+
+#### Scenario: Form validator providers exist
+
+Given the validators provider file is parsed
+Then `profileNameFormValidatorProvider` and `profilePasswordFormValidatorProvider` SHALL be defined
+And both SHALL inject the appropriate `Validation` instances by default
+
+---
+
+### Requirement: ProfileDetailsScreen wires onEditName and onEditPassword
+
+The system SHALL extend `ProfileDetailsScreen` with `final VoidCallback onEditName;` and `final VoidCallback onEditPassword;` (named-required), declared before the constructor.
+
+The "Nome" `ProfileFieldItemWidget` SHALL receive `onTap: onEditName`. The "Senha" item SHALL receive `onTap: onEditPassword`. The "E-mail" item SHALL remain disabled.
+
+`ProfileDetailsLocation` SHALL inject `() => context.navigate(ProfileNameLocation())` for `onEditName` and `() => context.navigate(ProfilePasswordLocation())` for `onEditPassword`. `ProfileDetailsLocation` is the only place authorised to import `ProfileNameLocation` / `ProfilePasswordLocation` from outside their own subfeature.
+
+#### Scenario: Tapping "Nome" navigates to the name editor
+
+Given the user is on `ProfileDetailsScreen`
+When the user taps the `ProfileFieldItemWidget` with `label == 'Nome'`
+Then `DuckRouter.navigate(ProfileNameLocation())` SHALL be invoked
+
+#### Scenario: Tapping "Senha" navigates to the password editor
+
+Given the user is on `ProfileDetailsScreen`
+When the user taps the `ProfileFieldItemWidget` with `label == 'Senha'`
+Then `DuckRouter.navigate(ProfilePasswordLocation())` SHALL be invoked

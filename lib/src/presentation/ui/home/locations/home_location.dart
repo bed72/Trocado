@@ -11,7 +11,7 @@ import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
 import 'package:trocado/src/presentation/ui/home/screens/home_screen.dart';
 import 'package:trocado/src/presentation/ui/budget/locations/budget_location.dart';
-import 'package:trocado/src/presentation/ui/profile/locations/profile_location.dart';
+import 'package:trocado/src/presentation/ui/profile/details/locations/profile_details_location.dart';
 import 'package:trocado/src/presentation/ui/budgets/locations/budgets_location.dart';
 import 'package:trocado/src/presentation/ui/settings/locations/settings_location.dart';
 import 'package:trocado/src/presentation/ui/notifications/locations/notifications_location.dart';
@@ -36,7 +36,7 @@ final class HomeLocation extends Location {
       navigateToChat: () {},
       navigateToExit: () => context.navigate(ExitLocation()),
       navigateToBudget: () => context.navigate(BudgetLocation()),
-      navigateToProfile: () => context.navigate(ProfileLocation()),
+      navigateToProfile: () => context.navigate(ProfileDetailsLocation()),
       navigateToBudgets: () => context.navigate(BudgetsLocation()),
       navigateToExpenses: () => context.navigate(ExpensesLocation()),
       navigateToSettings: () => context.navigate(SettingsLocation()),

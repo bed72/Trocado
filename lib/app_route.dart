@@ -127,6 +127,18 @@ final class AppRoutes {
     regex: RegExp(r'^/profile$'),
   );
 
+  static final profileName = AppRoutes._(
+    path: '/profile/name',
+    name: 'profile-name-route',
+    regex: RegExp(r'^/profile/name$'),
+  );
+
+  static final profilePassword = AppRoutes._(
+    path: '/profile/password',
+    name: 'profile-password-route',
+    regex: RegExp(r'^/profile/password$'),
+  );
+
   static final dateRange = AppRoutes._(
     path: '/date-range',
     name: 'date-range-route',
@@ -161,10 +173,12 @@ final class AppRoutes {
     settings,
     calculator,
     dateRange,
+    profileName,
     expenseDate,
-    expensesFilter,
     notifications,
+    expensesFilter,
     forgotPassword,
+    profilePassword,
     passwordResetConfirm,
     forgotPasswordSuccess,
   ];

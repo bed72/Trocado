@@ -301,3 +301,100 @@ final class ExpenseFormValidatorProvider
 
 String _$expenseFormValidatorHash() =>
     r'f4bc7a5c7d3584b6879a98877b548c39134759a2';
+
+@ProviderFor(profileNameFormValidator)
+final profileNameFormValidatorProvider = ProfileNameFormValidatorProvider._();
+
+final class ProfileNameFormValidatorProvider
+    extends
+        $FunctionalProvider<
+          ProfileNameFormValidator,
+          ProfileNameFormValidator,
+          ProfileNameFormValidator
+        >
+    with $Provider<ProfileNameFormValidator> {
+  ProfileNameFormValidatorProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'profileNameFormValidatorProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$profileNameFormValidatorHash();
+
+  @$internal
+  @override
+  $ProviderElement<ProfileNameFormValidator> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  ProfileNameFormValidator create(Ref ref) {
+    return profileNameFormValidator(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ProfileNameFormValidator value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ProfileNameFormValidator>(value),
+    );
+  }
+}
+
+String _$profileNameFormValidatorHash() =>
+    r'96aa9e7478bd1f5c70221a660bee08d31f800120';
+
+@ProviderFor(profilePasswordFormValidator)
+final profilePasswordFormValidatorProvider =
+    ProfilePasswordFormValidatorProvider._();
+
+final class ProfilePasswordFormValidatorProvider
+    extends
+        $FunctionalProvider<
+          ProfilePasswordFormValidator,
+          ProfilePasswordFormValidator,
+          ProfilePasswordFormValidator
+        >
+    with $Provider<ProfilePasswordFormValidator> {
+  ProfilePasswordFormValidatorProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'profilePasswordFormValidatorProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$profilePasswordFormValidatorHash();
+
+  @$internal
+  @override
+  $ProviderElement<ProfilePasswordFormValidator> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  ProfilePasswordFormValidator create(Ref ref) {
+    return profilePasswordFormValidator(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ProfilePasswordFormValidator value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ProfilePasswordFormValidator>(value),
+    );
+  }
+}
+
+String _$profilePasswordFormValidatorHash() =>
+    r'51e8590b7234672c4aee15ebf1e59d0b50d3a75a';

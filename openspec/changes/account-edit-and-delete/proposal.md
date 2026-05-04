@@ -66,12 +66,100 @@ A `ProfileScreen` deixa de ser placeholder e vira a tela de **listagem dos campo
 - 3 itens no card: `'Nome'` (enabled, onTap no-op), `'E-mail'` (disabled), `'Senha'` (enabled, onTap no-op). Os onTap dos campos editáveis são placeholders nesta parte — Parte 3 vai ligá-los aos forms.
 - Click em "Apagar conta" → `showConfirmDialog(title: 'Apagar conta', description: 'Esta ação é irreversível. Todos os seus dados financeiros serão apagados e você não poderá recuperá-los.', confirmLabel: 'Apagar')` → no-op se confirmado (Parte 4 liga na API).
 
-### Partes 3+ (placeholder)
+### Parte 3 — UI dos formulários de edição (nome e senha)
 
-- **Parte 3 — Edição**: 3 telas de form (nome, senha) navegadas a partir dos itens. Novo `IUserRepository.update(...)`, `UserRequest`, validators, `ProfileNotifier` MVI por campo.
-- **Parte 4 — Exclusão**: `IUserRepository.delete()`, signOut + redirect para `SignInLocation` na ramificação de sucesso do dialog destrutivo.
+Nesta parte a `profile/` ganha duas telas de form (nome e senha) com **apenas UI + validações** — sem lógica de API, sem repository. A integração com PATCH do backend fica para a Parte 4.
+
+#### Reorganização da feature `profile/` em subdiretórios (espelho de `authentication/`)
+
+```
+profile/
+  details/        ← listing das Partes 1 e 2 (renomeado)
+    screens/      → profile_details_screen.dart    (era profile_screen.dart)
+    locations/    → profile_details_location.dart  (era profile_location.dart)
+    widgets/      → profile_header, field_item, fields_card, delete_account
+  name/
+    screens/, locations/, notifiers/, validators/
+  password/
+    screens/, locations/, notifiers/, validators/
+```
+
+Renomes de classe:
+- `ProfileScreen` → `ProfileDetailsScreen`
+- `ProfileLocation` → `ProfileDetailsLocation`
+
+A rota `/profile` continua mapeada em `ProfileDetailsLocation` — `HomeLocation` e `SettingsLocation` apenas atualizam imports e nome da classe; o caminho não muda.
+
+#### Novas rotas
+
+- `AppRoutes.profileName` → `/profile/name` (regex `^/profile/name$`).
+- `AppRoutes.profilePassword` → `/profile/password` (regex `^/profile/password$`).
+
+#### Subfeature `name/`
+
+- **Validator feature-local** `name/validators/name_validation.dart` — `NameValidation implements Validation<String>`. Min 1 (vazio → `'Nome obrigatório'`), max 128 (>128 → `'Nome deve ter no máximo 128 caracteres'`). Trim aplicado antes da checagem.
+- `name/validators/profile_name_form_validator.dart` — `ProfileNameFormValidator` recebendo `NameValidation` via construtor; método `call(state)` retorna `({state, isValid})`.
+- `name/notifiers/profile_name_state.dart` — `final String name;` + `final String? nameFailure;` + `copyWith` com `bool clearNameFailure`.
+- `name/notifiers/profile_name_intent.dart` — sealed `ProfileNameIntent` com `NameChanged(value)` + `SubmitPressed()`.
+- `name/notifiers/profile_name_notifier.dart` — `AsyncNotifier<ProfileNameState>` com `Future<ProfileNameState> build()` async que faz `await ref.watch(userProvider.future)` para pré-preencher `name: user.name`. `dispatch` exhaustivo. `_submit` apenas valida (sem API): se inválido popula failures; se válido, no-op com `// TODO Parte 4`.
+- `name/screens/profile_name_screen.dart` — `StatelessWidget` + `Consumer` switch sobre `AsyncValue<ProfileNameState>` (loading / error retry / data com form). Layout: `ScreenHeaderWidget(title: 'Nome', description: 'Atualize o seu nome de exibição.')` + `TextFieldWidget(label: 'Nome', hint: 'Nome', initialValue: state.name, failure: state.nameFailure, inputAction: .done)` + `Spacer` + `ButtonWidget.elevated(label: 'Atualizar')` no rodapé.
+- `name/locations/profile_name_location.dart` — `ProfileNameLocation extends Location`, sem parâmetros.
+
+#### Subfeature `password/`
+
+- **Sem validator novo** — reusa `PasswordValidation` compartilhado (`presentation/validators/password_validation.dart`, min 8).
+- `password/validators/profile_password_form_validator.dart` — `ProfilePasswordFormValidator` espelhando `PasswordResetConfirmFormValidator`: valida `newPassword` via `PasswordValidation`; `confirmPassword` deve coincidir com `newPassword` (`'As senhas não coincidem'`).
+- `password/notifiers/profile_password_state.dart` — `newPassword`, `confirmPassword`, `obscureNewPassword` (default true), `obscureConfirmPassword` (default true), `newPasswordFailure`, `confirmPasswordFailure`.
+- `password/notifiers/profile_password_intent.dart` — sealed com `NewPasswordChanged`, `ConfirmPasswordChanged`, `NewPasswordVisibilityToggled`, `ConfirmPasswordVisibilityToggled`, `SubmitPressed`.
+- `password/notifiers/profile_password_notifier.dart` — `Notifier<ProfilePasswordState>` (sync, sem dependência async). `_submit` valida e faz no-op com `// TODO Parte 4`.
+- `password/screens/profile_password_screen.dart` — espelha `PasswordResetConfirmScreen` (dois `TextFieldWidget` com toggle de visibilidade) com title `'Senha'`, description `'Crie uma nova senha para sua conta.'`, labels `'Nova senha'` / `'Confirmar senha'`, botão `'Atualizar'`.
+- `password/locations/profile_password_location.dart` — `ProfilePasswordLocation extends Location`, sem parâmetros.
+
+#### Wiring em `details/`
+
+- `ProfileDetailsScreen` ganha `final VoidCallback onEditName;` e `final VoidCallback onEditPassword;` (named-required).
+- Os itens "Nome" e "Senha" do card recebem esses callbacks no `onTap` (item "E-mail" continua disabled).
+- `ProfileDetailsLocation` injeta:
+  ```dart
+  onEditName: () => context.navigate(ProfileNameLocation()),
+  onEditPassword: () => context.navigate(ProfilePasswordLocation()),
+  ```
+  `ProfileDetailsLocation` é o único lugar autorizado a importar `ProfileNameLocation`/`ProfilePasswordLocation` — exceção narrada (Locations compondo navegação) preservada também entre subfeatures de `profile/`.
+
+#### Providers de form validator
+
+Adicionar em `lib/src/main/providers/validators_provider.dart`:
+
+- `profileNameFormValidatorProvider` → `ProfileNameFormValidator(nameValidation: NameValidation())`.
+- `profilePasswordFormValidatorProvider` → `ProfilePasswordFormValidator(passwordValidation: PasswordValidation())`.
+
+### Parte 4+ (placeholder)
+
+- **Parte 4 — Exclusão + edição real**: `IUserRepository.update(...)`, `IUserRepository.delete()`, `UserRequest`, signOut + redirect para `SignInLocation` no fluxo destrutivo, troca dos `// TODO Parte 4` nos notifiers de Nome/Senha pela chamada real de PATCH.
 
 ## Scope
+
+### Em escopo (Parte 3 — atual)
+
+- Reorganização de `lib/src/presentation/ui/profile/` em subdiretórios `details/`, `name/`, `password/` (espelho do padrão de `authentication/`).
+- Renome `ProfileScreen` → `ProfileDetailsScreen` e `ProfileLocation` → `ProfileDetailsLocation`. Imports em `HomeLocation` e `SettingsLocation` atualizados.
+- Novas rotas `AppRoutes.profileName` e `AppRoutes.profilePassword` registradas em `_all`.
+- `NameValidation` feature-local em `profile/name/validators/`.
+- `ProfileNameFormValidator`, state, intent, notifier (AsyncNotifier reading `userProvider`), screen e location.
+- `ProfilePasswordFormValidator` (reusa `PasswordValidation` compartilhado), state, intent, notifier (sync), screen (com toggle de visibilidade dos dois campos) e location.
+- `ProfileDetailsScreen` ganha `onEditName` / `onEditPassword` callbacks; `ProfileDetailsLocation` injeta navegação para as novas locations.
+- Providers `profileNameFormValidatorProvider` / `profilePasswordFormValidatorProvider` registrados em `validators_provider.dart`; build_runner regenera `.g.dart`.
+- `flutter analyze` zero warnings; `flutter test` passa toda a suíte.
+
+### Fora de escopo (Parte 3 — virá em partes futuras)
+
+- **Lógica de API real** — `_submit` apenas valida nesta parte; `// TODO Parte 4` marca o ponto de entrada do PATCH.
+- **Toast/navegação de feedback pós-submit** — sem simulação de sucesso ou falha conforme decisão acordada; o usuário fica na tela após submit válido sem feedback visual além do estado limpo do form.
+- **Endpoints `PATCH /api/v1/users/me`** e **`DELETE /api/v1/users/me`** — Parte 4.
+- **Toggle de visibilidade no nome** — não tem (campo não-secreto).
+- **Validação de "senha atual"** antes de trocar — fora do escopo desta parte; será reavaliada na Parte 4 conforme contrato do backend.
+- **Estados de loading/erro** no notifier de nome além do `AsyncValue` natural — Parte 4 adicionará `status: loading/success/failure` quando houver chamada de API.
+- **Testes de notifier/validator de nome e senha** — esta entrega é "apenas UI" e os notifiers atuais não têm comportamento testável além do dispatch + validação trivial; os testes virão junto com a Parte 4 (que adiciona a chamada real e toda a ramificação success/failure que vale testar).
 
 ### Em escopo (Parte 2 — atual)
 

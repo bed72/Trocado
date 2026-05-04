@@ -160,7 +160,134 @@ Ordem fixa: spec → mover `userProvider` para escopo shared → promover avatar
 
 ---
 
-## Parte 3+ — A definir
+## Parte 3 — UI dos formulários de edição (nome e senha)
 
-- **Parte 3** — Forms de edição (nome, senha).
-- **Parte 4** — Exclusão de conta real + signOut + redirect.
+Ordem fixa: rotas → reorganização de `profile/` em subdiretórios → subfeature `name/` (validator → state → intent → notifier → screen → location) → subfeature `password/` (validator → state → intent → notifier → screen → location) → providers de form validator → wiring em `details/` → code generation → verificação.
+
+### 15. Novas rotas
+
+- [ ] 15.1 Adicionar em `lib/app_route.dart`:
+  ```dart
+  static final profileName = AppRoutes._(
+    path: '/profile/name',
+    name: 'profile-name-route',
+    regex: RegExp(r'^/profile/name$'),
+  );
+
+  static final profilePassword = AppRoutes._(
+    path: '/profile/password',
+    name: 'profile-password-route',
+    regex: RegExp(r'^/profile/password$'),
+  );
+  ```
+- [ ] 15.2 Incluir `profileName` e `profilePassword` em `AppRoutes._all`.
+
+### 16. Reorganização de `profile/` em subdiretórios
+
+- [ ] 16.1 Mover `lib/src/presentation/ui/profile/screens/profile_screen.dart` para `lib/src/presentation/ui/profile/details/screens/profile_details_screen.dart`. Renomear classe `ProfileScreen` → `ProfileDetailsScreen`.
+- [ ] 16.2 Mover `lib/src/presentation/ui/profile/locations/profile_location.dart` para `lib/src/presentation/ui/profile/details/locations/profile_details_location.dart`. Renomear `ProfileLocation` → `ProfileDetailsLocation`.
+- [ ] 16.3 Mover os 4 widgets de `profile/widgets/` para `profile/details/widgets/` (paths atualizados, nomes de classe permanecem). Atualizar imports em `profile_details_screen.dart`.
+- [ ] 16.4 Atualizar imports em `lib/src/presentation/ui/home/locations/home_location.dart` e `lib/src/presentation/ui/settings/locations/settings_location.dart` — trocar `ProfileLocation` → `ProfileDetailsLocation` e o path do import.
+- [ ] 16.5 Deletar pastas vazias `profile/screens/`, `profile/locations/`, `profile/widgets/`.
+
+### 17. Subfeature `name/`
+
+- [ ] 17.1 Criar `lib/src/presentation/ui/profile/name/validators/name_validation.dart`:
+  ```dart
+  final class NameValidation implements Validation<String> {
+    const NameValidation();
+
+    static const _maxLength = 128;
+
+    @override
+    ValidationBase<String> call(String value) {
+      final normalized = value.trim();
+
+      if (normalized.isEmpty) return const Invalid('Nome obrigatório');
+      if (normalized.length > _maxLength) {
+        return const Invalid('Nome deve ter no máximo 128 caracteres');
+      }
+
+      return Valid(normalized);
+    }
+  }
+  ```
+- [ ] 17.2 Criar `lib/src/presentation/ui/profile/name/validators/profile_name_form_validator.dart` — recebe `NameValidation` via construtor; método `call(ProfileNameState state)` retorna `({state, isValid})` no padrão dos demais form validators do projeto.
+- [ ] 17.3 Criar `lib/src/presentation/ui/profile/name/notifiers/profile_name_state.dart` — `final String name;` + `final String? nameFailure;` + `copyWith({String? name, String? nameFailure, bool clearNameFailure = false})` + `props`.
+- [ ] 17.4 Criar `lib/src/presentation/ui/profile/name/notifiers/profile_name_intent.dart` — sealed `ProfileNameIntent` com `NameChanged(String value)` + `SubmitPressed()`.
+- [ ] 17.5 Criar `lib/src/presentation/ui/profile/name/notifiers/profile_name_notifier.dart`:
+  - `@riverpod` `final class ProfileNameNotifier extends _$ProfileNameNotifier`.
+  - `Future<ProfileNameState> build()` async — `_validator = ref.watch(profileNameFormValidatorProvider)` e `final user = await ref.watch(userProvider.future); return ProfileNameState(name: user.name);`.
+  - `dispatch(ProfileNameIntent intent)` exhaustivo — `NameChanged(:final value) => state = AsyncData(state.value!.copyWith(name: value, clearNameFailure: true))`, `SubmitPressed() => _submit()`.
+  - `_submit()` valida, mantém o `state` validado e retorna cedo se inválido. Se válido: `// TODO Parte 4: chamar repository.updateName(...)`.
+- [ ] 17.6 Criar `lib/src/presentation/ui/profile/name/screens/profile_name_screen.dart`:
+  - `StatelessWidget` + `Consumer` interno (jamais `ConsumerWidget`).
+  - Switch sobre `AsyncValue<ProfileNameState>`:
+    - `AsyncData(:final value)` → `_buildBody(state: value, notifier: ref.read(...))`.
+    - `AsyncError(:final error)` → `_buildError(failure: error is Failure ? error : const UnknownFailure(), onRetry: () => ref.invalidate(profileNameProvider))`.
+    - `AsyncLoading()` → `Center(child: CircularProgressIndicatorWidget(...))`.
+  - `_buildBody`: Column com `ScreenHeaderWidget(title: 'Nome', description: 'Atualize o seu nome de exibição.')` + `SizedBox(24)` + `TextFieldWidget(label: 'Nome', hint: 'Nome', inputAction: .done, initialValue: state.name, failure: state.nameFailure, onChanged: (v) => notifier.dispatch(NameChanged(v)))` + `Spacer` + `SizedBox(width: .infinity, child: ButtonWidget.elevated(label: 'Atualizar', onTap: () { hideKeyboard(); notifier.dispatch(const SubmitPressed()); }))`.
+- [ ] 17.7 Criar `lib/src/presentation/ui/profile/name/locations/profile_name_location.dart` — `ProfileNameLocation extends Location` no padrão de `ProfileDetailsLocation` (path = `AppRoutes.profileName.path`, `pageBuilder` = `screenPage(const ProfileNameScreen())`).
+
+### 18. Subfeature `password/`
+
+- [ ] 18.1 Criar `lib/src/presentation/ui/profile/password/validators/profile_password_form_validator.dart` — espelha `PasswordResetConfirmFormValidator` (reusa `PasswordValidation` compartilhado; valida `newPassword` e checa `confirmPassword == newPassword` com mensagem `'As senhas não coincidem'`).
+- [ ] 18.2 Criar `lib/src/presentation/ui/profile/password/notifiers/profile_password_state.dart` — `newPassword`, `confirmPassword`, `obscureNewPassword` (default true), `obscureConfirmPassword` (default true), `newPasswordFailure`, `confirmPasswordFailure`. `copyWith` com `bool clearNewPasswordFailure` e `bool clearConfirmPasswordFailure`. `props`.
+- [ ] 18.3 Criar `lib/src/presentation/ui/profile/password/notifiers/profile_password_intent.dart` — sealed `ProfilePasswordIntent` com `NewPasswordChanged`, `ConfirmPasswordChanged`, `NewPasswordVisibilityToggled`, `ConfirmPasswordVisibilityToggled`, `SubmitPressed`.
+- [ ] 18.4 Criar `lib/src/presentation/ui/profile/password/notifiers/profile_password_notifier.dart`:
+  - `@riverpod` `final class ProfilePasswordNotifier extends _$ProfilePasswordNotifier`.
+  - `ProfilePasswordState build()` — `_validator = ref.watch(profilePasswordFormValidatorProvider)`; retorna `const ProfilePasswordState()`.
+  - `dispatch` exhaustivo cobrindo os 5 intents.
+  - `_submit()` valida e retorna cedo se inválido. Se válido: `// TODO Parte 4: chamar repository.updatePassword(...)`.
+- [ ] 18.5 Criar `lib/src/presentation/ui/profile/password/screens/profile_password_screen.dart`:
+  - `StatelessWidget` + `Consumer`.
+  - Layout espelhando `PasswordResetConfirmScreen`: `ScreenHeaderWidget(title: 'Senha', description: 'Crie uma nova senha para sua conta.')` + `SizedBox(24)` + dois `TextFieldWidget` (Nova senha / Confirmar senha) com toggle de visibilidade via `trailingIcon` + `hideTrailingIconWhenEmpty: true` + `Spacer` + `ButtonWidget.elevated(label: 'Atualizar')`.
+- [ ] 18.6 Criar `lib/src/presentation/ui/profile/password/locations/profile_password_location.dart` — mesmo padrão de `ProfileNameLocation` apontando para `AppRoutes.profilePassword.path`.
+
+### 19. Providers de form validator
+
+- [ ] 19.1 Adicionar em `lib/src/main/providers/validators_provider.dart`:
+  ```dart
+  @Riverpod()
+  ProfileNameFormValidator profileNameFormValidator(Ref _) =>
+      const ProfileNameFormValidator(nameValidation: NameValidation());
+
+  @Riverpod()
+  ProfilePasswordFormValidator profilePasswordFormValidator(Ref _) =>
+      const ProfilePasswordFormValidator(passwordValidation: PasswordValidation());
+  ```
+- [ ] 19.2 Adicionar imports apropriados (validator + validation).
+
+### 20. Wiring em `details/`
+
+- [ ] 20.1 Atualizar `lib/src/presentation/ui/profile/details/screens/profile_details_screen.dart`:
+  - Adicionar `final VoidCallback onEditName;` e `final VoidCallback onEditPassword;` (named-required) antes do construtor.
+  - Atualizar construtor para incluir ambos.
+  - Substituir os `onTap: () {}` dos itens "Nome" e "Senha" pelos callbacks recebidos.
+- [ ] 20.2 Atualizar `lib/src/presentation/ui/profile/details/locations/profile_details_location.dart`:
+  - Importar `ProfileNameLocation` e `ProfilePasswordLocation`.
+  - Adicionar `LocationBuilder? get builder` (ou estender `pageBuilder` para receber `context`) que injeta `onEditName: () => context.navigate(ProfileNameLocation())` e `onEditPassword: () => context.navigate(ProfilePasswordLocation())`.
+
+### 21. Code generation
+
+- [ ] 21.1 Rodar `dart run build_runner build --delete-conflicting-outputs` para regenerar:
+  - `profile_name_notifier.g.dart`
+  - `profile_password_notifier.g.dart`
+  - `validators_provider.g.dart` (com os dois novos providers)
+
+### 22. Verificação Parte 3
+
+- [ ] 22.1 `flutter analyze` — zero warnings.
+- [ ] 22.2 `flutter test` — toda a suíte passa (sem testes novos).
+- [ ] 22.3 **Smoke manual — navegação**: tap em "Nome" no `ProfileDetailsScreen` abre `ProfileNameScreen` com o campo já preenchido com o nome do usuário logado. Tap em "Senha" abre `ProfilePasswordScreen` com os dois campos vazios.
+- [ ] 22.4 **Smoke manual — Nome — validação**: limpar o campo e tap "Atualizar" → mensagem `'Nome obrigatório'`. Digitar 129+ caracteres e tap "Atualizar" → `'Nome deve ter no máximo 128 caracteres'`. Digitar nome válido e tap "Atualizar" → sem feedback visual (esperado nesta parte).
+- [ ] 22.5 **Smoke manual — Senha — validação**: tap "Atualizar" com campos vazios → `'Senha obrigatória'` no primeiro campo. Digitar < 8 chars → `'Senha deve ter ao menos 8 caracteres'`. Digitar nova senha válida + confirmar diferente → `'As senhas não coincidem'`. Digitar ambas iguais e válidas → sem feedback visual.
+- [ ] 22.6 **Smoke manual — toggle de visibilidade**: nos dois campos da `ProfilePasswordScreen`, tap no ícone do olho alterna entre obscured/visible independentemente.
+- [ ] 22.7 **Smoke manual — voltar**: a partir de qualquer dos 3 fluxos (`ProfileNameScreen`, `ProfilePasswordScreen`, `ProfileDetailsScreen`) o `GoBackWidget` retorna ao stack anterior.
+- [ ] 22.8 Verificar com `find lib/src/presentation/ui/profile -type d` que existem 3 subdiretórios (`details/`, `name/`, `password/`) e nenhum diretório legado solto.
+
+---
+
+## Parte 4+ — A definir
+
+- **Parte 4** — Exclusão de conta real + edição (PATCH /api/v1/users/me) + signOut + redirect. Substitui os `// TODO Parte 4` nos notifiers de Nome/Senha pela chamada real ao `IUserRepository`.

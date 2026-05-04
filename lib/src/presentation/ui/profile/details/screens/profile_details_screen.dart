@@ -14,13 +14,20 @@ import 'package:trocado/src/presentation/widgets/screen_header_widget.dart';
 import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
 import 'package:trocado/src/presentation/widgets/dialog/confirm_dialog_widget.dart';
 
-import 'package:trocado/src/presentation/ui/profile/widgets/profile_header_widget.dart';
-import 'package:trocado/src/presentation/ui/profile/widgets/profile_field_item_widget.dart';
-import 'package:trocado/src/presentation/ui/profile/widgets/profile_fields_card_widget.dart';
-import 'package:trocado/src/presentation/ui/profile/widgets/profile_delete_account_widget.dart';
+import 'package:trocado/src/presentation/ui/profile/details/widgets/profile_header_widget.dart';
+import 'package:trocado/src/presentation/ui/profile/details/widgets/profile_field_item_widget.dart';
+import 'package:trocado/src/presentation/ui/profile/details/widgets/profile_fields_card_widget.dart';
+import 'package:trocado/src/presentation/ui/profile/details/widgets/profile_delete_account_widget.dart';
 
-class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
+class ProfileDetailsScreen extends StatelessWidget {
+  final VoidCallback onEditName;
+  final VoidCallback onEditPassword;
+
+  const ProfileDetailsScreen({
+    super.key,
+    required this.onEditName,
+    required this.onEditPassword,
+  });
 
   @override
   Widget build(BuildContext context) => ScaffoldWidget(
@@ -71,9 +78,9 @@ class ProfileScreen extends StatelessWidget {
       ProfileHeaderWidget(user: user),
       ProfileFieldsCardWidget(
         children: [
-          ProfileFieldItemWidget(label: 'Nome', onTap: () {}),
+          ProfileFieldItemWidget(label: 'Nome', onTap: onEditName),
           ProfileFieldItemWidget(label: 'E-mail', enabled: false, onTap: () {}),
-          ProfileFieldItemWidget(label: 'Senha', onTap: () {}),
+          ProfileFieldItemWidget(label: 'Senha', onTap: onEditPassword),
         ],
       ),
       const Spacer(),
