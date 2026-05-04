@@ -137,14 +137,14 @@ Adicionar em `lib/src/main/providers/validators_provider.dart`:
 
 A `ProfileDetailsScreen` deixa de ter um único botão "Apagar conta" no rodapé e passa a expor **duas ações destrutivas lado a lado** (espelhando o pattern de `BudgetEditActionsWidget` / `ExpenseEditActionsWidget`):
 
-- **Desativar** (esquerda, `ButtonWidget.outlined`) — ação reversível: a conta fica oculta, dados preservados, login reativa.
-- **Deletar** (direita, `ButtonWidget.elevated`) — ação irreversível: dados financeiros apagados.
+- **Desativar** (esquerda, `ButtonWidget.outlined`, sem ícone) — ação reversível: a conta fica oculta, dados preservados, login reativa.
+- **Deletar** (direita, `ButtonWidget.elevated`, sem ícone) — ação irreversível: dados financeiros apagados.
 
 #### Substituição do widget
 
 - `profile_delete_account_widget.dart` (com `ProfileDeleteAccountWidget`) → renomeado para `profile_account_actions_widget.dart` com `ProfileAccountActionsWidget`.
 - API: `final VoidCallback onDelete;` + `final VoidCallback onDeactivate;` (ambos named-required).
-- Layout: `Padding(top: 16) → Row(spacing: 16, [Expanded(outlined Desativar com ícone `Icons.pause_circle_outline`), Expanded(elevated Deletar com ícone `Icons.delete_outline`)])`.
+- Layout: `Padding(top: 16) → Row(spacing: 16, [Expanded(outlined Desativar), Expanded(elevated Deletar)])` — apenas labels, sem ícones.
 
 #### Dois dialogs no `ProfileDetailsScreen`
 

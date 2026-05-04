@@ -276,8 +276,10 @@ The system SHALL create `lib/src/presentation/ui/profile/details/widgets/profile
 
 The widget SHALL render `Padding(padding: const EdgeInsets.only(top: 16.0))` containing a `Row(spacing: 16.0)` with two `Expanded` children:
 
-- Left: `ButtonWidget.outlined(label: 'Desativar', onTap: onDeactivate, child: Icon(Icons.pause_circle_outline, size: 20.0))` — reversible action.
-- Right: `ButtonWidget.elevated(label: 'Deletar', onTap: onDelete, child: Icon(Icons.delete_outline, size: 20.0))` — irreversible action.
+- Left: `ButtonWidget.outlined(label: 'Desativar', onTap: onDeactivate)` — reversible action.
+- Right: `ButtonWidget.elevated(label: 'Deletar', onTap: onDelete)` — irreversible action.
+
+The buttons SHALL NOT render icons — only the label is shown.
 
 The widget SHALL NOT apply a `Theme` override or custom destructive coloring — the destructive intent is communicated exclusively through the confirmation dialog text.
 

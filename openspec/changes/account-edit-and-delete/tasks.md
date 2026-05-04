@@ -311,8 +311,9 @@ Ordem fixa: rotas → reorganização de `profile/` em subdiretórios → subfea
 - [ ] 24.2 Reescrever a classe como `ProfileAccountActionsWidget extends StatelessWidget` com:
   - `final VoidCallback onDelete;` + `final VoidCallback onDeactivate;` (ambos named-required, antes do construtor).
   - Renderiza `Padding(padding: .only(top: 16.0)) → Row(spacing: 16.0)` com:
-    - Esquerda: `Expanded(child: ButtonWidget.outlined(label: 'Desativar', onTap: onDeactivate, child: Icon(Icons.pause_circle_outline, size: 20.0)))`.
-    - Direita: `Expanded(child: ButtonWidget.elevated(label: 'Deletar', onTap: onDelete, child: Icon(Icons.delete_outline, size: 20.0)))`.
+    - Esquerda: `Expanded(child: ButtonWidget.outlined(label: 'Desativar', onTap: onDeactivate))`.
+    - Direita: `Expanded(child: ButtonWidget.elevated(label: 'Deletar', onTap: onDelete))`.
+  - Sem ícones — apenas labels.
 
 ### 25. `ProfileDetailsScreen` ganha dois fluxos destrutivos
 

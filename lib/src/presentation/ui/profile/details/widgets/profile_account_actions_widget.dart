@@ -22,15 +22,10 @@ class ProfileAccountActionsWidget extends StatelessWidget {
           child: ButtonWidget.outlined(
             label: 'Desativar',
             onTap: onDeactivate,
-            child: const Icon(Icons.pause_circle_outline, size: 20.0),
           ),
         ),
         Expanded(
-          child: ButtonWidget.elevated(
-            label: 'Deletar',
-            onTap: onDelete,
-            child: const Icon(Icons.delete_outline, size: 20.0),
-          ),
+          child: ButtonWidget.elevated(label: 'Deletar', onTap: onDelete),
         ),
       ],
     ),
