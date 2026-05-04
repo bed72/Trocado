@@ -30,8 +30,8 @@ final class ProfilePasswordFormValidator {
         Valid() => null,
         Invalid(:final message) => message,
       },
-      clearNewPasswordFailure: password is Valid,
       confirmPasswordFailure: confirmFailure,
+      clearNewPasswordFailure: password is Valid,
       clearConfirmPasswordFailure: confirmFailure == null,
     );
 

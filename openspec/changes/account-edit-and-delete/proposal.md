@@ -149,6 +149,7 @@ Adicionar em `lib/src/main/providers/validators_provider.dart`:
 - `ProfilePasswordFormValidator` (reusa `PasswordValidation` compartilhado), state, intent, notifier (sync), screen (com toggle de visibilidade dos dois campos) e location.
 - `ProfileDetailsScreen` ganha `onEditName` / `onEditPassword` callbacks; `ProfileDetailsLocation` injeta navegação para as novas locations.
 - Providers `profileNameFormValidatorProvider` / `profilePasswordFormValidatorProvider` registrados em `validators_provider.dart`; build_runner regenera `.g.dart`.
+- Testes unitários de `NameValidation`, `ProfileNameFormValidator`, `ProfilePasswordFormValidator`, `ProfileNameNotifier` (build success + dispatches) e `ProfilePasswordNotifier` (todos os 5 intents).
 - `flutter analyze` zero warnings; `flutter test` passa toda a suíte.
 
 ### Fora de escopo (Parte 3 — virá em partes futuras)
@@ -159,7 +160,7 @@ Adicionar em `lib/src/main/providers/validators_provider.dart`:
 - **Toggle de visibilidade no nome** — não tem (campo não-secreto).
 - **Validação de "senha atual"** antes de trocar — fora do escopo desta parte; será reavaliada na Parte 4 conforme contrato do backend.
 - **Estados de loading/erro** no notifier de nome além do `AsyncValue` natural — Parte 4 adicionará `status: loading/success/failure` quando houver chamada de API.
-- **Testes de notifier/validator de nome e senha** — esta entrega é "apenas UI" e os notifiers atuais não têm comportamento testável além do dispatch + validação trivial; os testes virão junto com a Parte 4 (que adiciona a chamada real e toda a ramificação success/failure que vale testar).
+- **Testes do caminho de erro do `ProfileNameNotifier`** (userProvider em `AsyncError`) — Parte 4, junto com a chamada real de API, vai estabilizar o caminho de erro completo.
 
 ### Em escopo (Parte 2 — atual)
 

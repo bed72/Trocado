@@ -275,16 +275,31 @@ Ordem fixa: rotas → reorganização de `profile/` em subdiretórios → subfea
   - `profile_password_notifier.g.dart`
   - `validators_provider.g.dart` (com os dois novos providers)
 
-### 22. Verificação Parte 3
+### 22. Testes
 
-- [ ] 22.1 `flutter analyze` — zero warnings.
-- [ ] 22.2 `flutter test` — toda a suíte passa (sem testes novos).
-- [ ] 22.3 **Smoke manual — navegação**: tap em "Nome" no `ProfileDetailsScreen` abre `ProfileNameScreen` com o campo já preenchido com o nome do usuário logado. Tap em "Senha" abre `ProfilePasswordScreen` com os dois campos vazios.
-- [ ] 22.4 **Smoke manual — Nome — validação**: limpar o campo e tap "Atualizar" → mensagem `'Nome obrigatório'`. Digitar 129+ caracteres e tap "Atualizar" → `'Nome deve ter no máximo 128 caracteres'`. Digitar nome válido e tap "Atualizar" → sem feedback visual (esperado nesta parte).
-- [ ] 22.5 **Smoke manual — Senha — validação**: tap "Atualizar" com campos vazios → `'Senha obrigatória'` no primeiro campo. Digitar < 8 chars → `'Senha deve ter ao menos 8 caracteres'`. Digitar nova senha válida + confirmar diferente → `'As senhas não coincidem'`. Digitar ambas iguais e válidas → sem feedback visual.
-- [ ] 22.6 **Smoke manual — toggle de visibilidade**: nos dois campos da `ProfilePasswordScreen`, tap no ícone do olho alterna entre obscured/visible independentemente.
-- [ ] 22.7 **Smoke manual — voltar**: a partir de qualquer dos 3 fluxos (`ProfileNameScreen`, `ProfilePasswordScreen`, `ProfileDetailsScreen`) o `GoBackWidget` retorna ao stack anterior.
-- [ ] 22.8 Verificar com `find lib/src/presentation/ui/profile -type d` que existem 3 subdiretórios (`details/`, `name/`, `password/`) e nenhum diretório legado solto.
+- [ ] 22.0 Criar `test/src/presentation/profile/name/validators/name_validation_test.dart` com 6 cenários: empty, whitespace-only, 129+ chars, 1 char, 128 chars exato, valor com espaços (validação trim).
+- [ ] 22.1 Criar `test/src/presentation/profile/name/validators/profile_name_form_validator_test.dart` com 3 cenários: empty → failure; >128 → failure; valid → clears failure + isValid true.
+- [ ] 22.2 Criar `test/src/presentation/profile/name/notifiers/profile_name_notifier_test.dart` com cenários:
+  - `build pre-fills name with the current user name` (mock userProvider via override de `userRepositoryProvider`).
+  - `starts as AsyncLoading until userProvider resolves`.
+  - `NameChanged updates name in state`.
+  - `NameChanged clears nameFailure when name changes` (após dispatch SubmitPressed que populou failure).
+  - `SubmitPressed sets nameFailure when name is empty`.
+  - `SubmitPressed clears nameFailure when name is valid`.
+- [ ] 22.3 Criar `test/src/presentation/profile/password/validators/profile_password_form_validator_test.dart` com 4 cenários: empty → newPasswordFailure; <8 chars → newPasswordFailure; mismatch → confirmPasswordFailure; valid match → isValid true.
+- [ ] 22.4 Criar `test/src/presentation/profile/password/notifiers/profile_password_notifier_test.dart` com cenários para os 5 intents (NewPasswordChanged + clear, ConfirmPasswordChanged + clear, NewPasswordVisibilityToggled isolado, ConfirmPasswordVisibilityToggled isolado, SubmitPressed empty/mismatch/valid).
+- [ ] 22.5 Convenções: descrições em inglês; mocks via interface (`late IUserRepository repository`); variáveis nunca chamadas `result`/`either`; `final` com tipo explícito quando agrega.
+
+### 23. Verificação Parte 3
+
+- [ ] 23.1 `flutter analyze` — zero warnings.
+- [ ] 23.2 `flutter test` — toda a suíte passa (incluindo os 28 novos testes de profile).
+- [ ] 23.3 **Smoke manual — navegação**: tap em "Nome" no `ProfileDetailsScreen` abre `ProfileNameScreen` com o campo já preenchido com o nome do usuário logado. Tap em "Senha" abre `ProfilePasswordScreen` com os dois campos vazios.
+- [ ] 23.4 **Smoke manual — Nome — validação**: limpar o campo e tap "Atualizar" → mensagem `'Nome obrigatório'`. Digitar 129+ caracteres e tap "Atualizar" → `'Nome deve ter no máximo 128 caracteres'`. Digitar nome válido e tap "Atualizar" → sem feedback visual (esperado nesta parte).
+- [ ] 23.5 **Smoke manual — Senha — validação**: tap "Atualizar" com campos vazios → `'Senha obrigatória'` no primeiro campo. Digitar < 8 chars → `'Senha deve ter ao menos 8 caracteres'`. Digitar nova senha válida + confirmar diferente → `'As senhas não coincidem'`. Digitar ambas iguais e válidas → sem feedback visual.
+- [ ] 23.6 **Smoke manual — toggle de visibilidade**: nos dois campos da `ProfilePasswordScreen`, tap no ícone do olho alterna entre obscured/visible independentemente.
+- [ ] 23.7 **Smoke manual — voltar**: a partir de qualquer dos 3 fluxos (`ProfileNameScreen`, `ProfilePasswordScreen`, `ProfileDetailsScreen`) o `GoBackWidget` retorna ao stack anterior.
+- [ ] 23.8 Verificar com `find lib/src/presentation/ui/profile -type d` que existem 3 subdiretórios (`details/`, `name/`, `password/`) e nenhum diretório legado solto.
 
 ---
 
