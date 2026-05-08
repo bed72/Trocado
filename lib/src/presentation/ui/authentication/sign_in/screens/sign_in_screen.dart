@@ -9,6 +9,7 @@ import 'package:trocado/src/presentation/widgets/toast_widget.dart';
 import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';
 import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
 import 'package:trocado/src/presentation/widgets/fields/text_field_widget.dart';
+import 'package:trocado/src/presentation/widgets/fields/password_field_widget.dart';
 
 import 'package:trocado/src/presentation/ui/authentication/sign_in/notifiers/sign_in_state.dart';
 import 'package:trocado/src/presentation/ui/authentication/sign_in/notifiers/sign_in_intent.dart';
@@ -63,6 +64,7 @@ class SignInScreen extends StatelessWidget {
         child: Padding(
           padding: const .symmetric(horizontal: 16.0),
           child: Column(
+            spacing: 8.0,
             crossAxisAlignment: .start,
             children: [
               const Spacer(),
@@ -74,8 +76,6 @@ class SignInScreen extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 8.0),
-
               Text(
                 'Entre na sua conta para continuar',
                 style: context.typography.bodyMedium?.copyWith(
@@ -83,7 +83,7 @@ class SignInScreen extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 28.0),
+              const SizedBox(height: 20.0),
 
               TextFieldWidget(
                 label: 'E-mail',
@@ -94,24 +94,20 @@ class SignInScreen extends StatelessWidget {
                 onChanged: (value) => notifier.dispatch(EmailChanged(value)),
               ),
 
-              const SizedBox(height: 12.0),
+              const SizedBox(height: 4.0),
 
-              TextFieldWidget(
+              PasswordFieldWidget(
                 label: 'Senha',
                 inputAction: .done,
                 hint: 'Digite sua senha',
                 failure: state.passwordFailure,
-                hideTrailingIconWhenEmpty: true,
-                obscureText: state.obscurePassword,
-                trailingIcon: state.obscurePassword
-                    ? Icons.visibility_outlined
-                    : Icons.visibility_off_outlined,
-                onTrailingIconTap: () =>
+                obscure: state.obscurePassword,
+                onToggle: () =>
                     notifier.dispatch(const PasswordVisibilityToggled()),
                 onChanged: (value) => notifier.dispatch(PasswordChanged(value)),
               ),
 
-              const SizedBox(height: 12.0),
+              const SizedBox(height: 4.0),
 
               Align(
                 alignment: .centerRight,
@@ -132,7 +128,7 @@ class SignInScreen extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 16.0),
+              const SizedBox(height: 8.0),
 
               Row(
                 mainAxisAlignment: .center,
@@ -145,7 +141,7 @@ class SignInScreen extends StatelessWidget {
                 ],
               ),
 
-              const SizedBox(height: 28.0),
+              const SizedBox(height: 20.0),
             ],
           ),
         ),

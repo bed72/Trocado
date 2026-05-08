@@ -6,9 +6,9 @@ import 'package:trocado/src/presentation/extensions/widget_extension.dart';
 import 'package:trocado/src/presentation/widgets/app_bar_widget.dart';
 import 'package:trocado/src/presentation/widgets/go_back_widget.dart';
 import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';
-import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
 import 'package:trocado/src/presentation/widgets/screen_header_widget.dart';
-import 'package:trocado/src/presentation/widgets/fields/text_field_widget.dart';
+import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
+import 'package:trocado/src/presentation/widgets/fields/password_field_widget.dart';
 
 import 'package:trocado/src/presentation/ui/profile/password/notifiers/profile_password_intent.dart';
 import 'package:trocado/src/presentation/ui/profile/password/notifiers/profile_password_notifier.dart';
@@ -38,35 +38,26 @@ class ProfilePasswordScreen extends StatelessWidget {
                 spacing: 12.0,
                 crossAxisAlignment: .start,
                 children: [
-                  TextFieldWidget(
+                  PasswordFieldWidget(
                     hint: 'Nova senha',
                     label: 'Nova senha',
                     inputAction: .next,
-                    hideTrailingIconWhenEmpty: true,
                     failure: state.newPasswordFailure,
-                    obscureText: state.obscureNewPassword,
-                    trailingIcon: state.obscureNewPassword
-                        ? Icons.visibility_outlined
-                        : Icons.visibility_off_outlined,
+                    obscure: state.obscureNewPassword,
                     onChanged: (value) =>
                         notifier.dispatch(NewPasswordChanged(value)),
-                    onTrailingIconTap: () => notifier.dispatch(
-                      const NewPasswordVisibilityToggled(),
-                    ),
+                    onToggle: () =>
+                        notifier.dispatch(const NewPasswordVisibilityToggled()),
                   ),
-                  TextFieldWidget(
+                  PasswordFieldWidget(
+                    inputAction: .done,
                     hint: 'Confirmar senha',
                     label: 'Confirmar senha',
-                    inputAction: .done,
-                    hideTrailingIconWhenEmpty: true,
                     failure: state.confirmPasswordFailure,
-                    obscureText: state.obscureConfirmPassword,
-                    trailingIcon: state.obscureConfirmPassword
-                        ? Icons.visibility_outlined
-                        : Icons.visibility_off_outlined,
+                    obscure: state.obscureConfirmPassword,
                     onChanged: (value) =>
                         notifier.dispatch(ConfirmPasswordChanged(value)),
-                    onTrailingIconTap: () => notifier.dispatch(
+                    onToggle: () => notifier.dispatch(
                       const ConfirmPasswordVisibilityToggled(),
                     ),
                   ),

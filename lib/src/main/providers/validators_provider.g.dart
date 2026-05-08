@@ -398,3 +398,51 @@ final class ProfilePasswordFormValidatorProvider
 
 String _$profilePasswordFormValidatorHash() =>
     r'51e8590b7234672c4aee15ebf1e59d0b50d3a75a';
+
+@ProviderFor(profilePurgeFormValidator)
+final profilePurgeFormValidatorProvider = ProfilePurgeFormValidatorProvider._();
+
+final class ProfilePurgeFormValidatorProvider
+    extends
+        $FunctionalProvider<
+          ProfilePurgeFormValidator,
+          ProfilePurgeFormValidator,
+          ProfilePurgeFormValidator
+        >
+    with $Provider<ProfilePurgeFormValidator> {
+  ProfilePurgeFormValidatorProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'profilePurgeFormValidatorProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$profilePurgeFormValidatorHash();
+
+  @$internal
+  @override
+  $ProviderElement<ProfilePurgeFormValidator> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  ProfilePurgeFormValidator create(Ref ref) {
+    return profilePurgeFormValidator(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ProfilePurgeFormValidator value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ProfilePurgeFormValidator>(value),
+    );
+  }
+}
+
+String _$profilePurgeFormValidatorHash() =>
+    r'822419649710b7d18a84fbcdaba3f1ce48ab45f0';

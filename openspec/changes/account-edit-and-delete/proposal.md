@@ -194,12 +194,137 @@ O `AuthenticationInterceptor` (`lib/src/infrastructure/clients/http/interceptors
 - **Smoke test**: na tela, tap em Desativar → confirma → backend retorna 204 → `userProvider` invalidado → app refaz `GET /api/v1/me` → 401 (token revogado) → interceptor tenta refresh → 401 → cleanup local + redirect para `SignInLocation`.
 - **Sem smoke**: também é possível observar via logs do `LoggerNavigatorObserver` a transição `Profile → SignIn` após o invalidate.
 
-### Parte 6+ (placeholder)
+### Parte 6 — Exclusão definitiva via API (purge)
 
-- **Parte 6 — Exclusão real**: `DELETE` específico para apagar conta permanentemente (path/payload a ser informado), wiring no `ProfileDetailsNotifier` com novo intent `DeletePressed`.
-- **Parte 7 — Edição real**: PATCH para nome/senha, troca dos `// TODO Parte 4` nos notifiers de Nome/Senha pelo chamado real ao `IUserRepository`.
+`POST /api/v1/me/purge` exclui a conta de forma definitiva. O backend exige body `{ email, password }` para confirmar a identidade — mesmo o usuário já estando autenticado por Bearer token, a senha é a porta de segurança extra. Resposta de sucesso: 204 sem body. Resposta de falha: envelope `FailureResponse` padrão. Erro conhecido relevante: `'Account must be deactivated before purge.'` (code `'invalid'`) quando a conta ainda está ativa — purge só pode rodar após `deactivate`.
+
+Fluxo UX: o botão "Excluir" do `ProfileAccountActionsWidget` deixa de abrir um `showConfirmDialog` na própria detail e passa a **navegar** para uma `ProfilePurgeScreen` dedicada. A nova tela reúne título, descrição explicando irreversibilidade, e-mail readonly do usuário logado e campo de senha. O `showConfirmDialog` final ("Tem certeza?") agora é disparado pelo botão "Excluir" da `ProfilePurgeScreen` antes do dispatch — uma porta de confirmação a mais sobre a senha já digitada.
+
+Após sucesso, o redirect para `SignInLocation` é delegado ao `AuthenticationInterceptor` exatamente como em `deactivate` (Parte 5): `ref.invalidate(userProvider)` → próxima request 401 → refresh fail → `_onUnauthenticated` → SignIn.
+
+#### Passo 0 — Extração do `PasswordFieldWidget` compartilhado
+
+O bloco "obscure + trailingIcon `visibility_outlined`/`visibility_off_outlined` + onTrailingIconTap" se repete em 5 call-sites hoje (sign_in, sign_up, password_reset_confirm ×2, profile_password ×2). Antes de adicionar o 6º consumidor (purge), extrair `PasswordFieldWidget` para `lib/src/presentation/widgets/fields/password_field_widget.dart` e migrar os call-sites existentes.
+
+API:
+
+```dart
+class PasswordFieldWidget extends StatelessWidget {
+  final String hint;
+  final String label;
+  final bool obscure;
+  final String? failure;
+  final String? initialValue;
+  final TextInputAction? inputAction;
+  final ValueChanged<String>? onChanged;
+  final VoidCallback onToggle;
+}
+```
+
+Internamente delega ao `TextFieldWidget` aplicando `obscureText: obscure`, `hideTrailingIconWhenEmpty: true`, `trailingIcon: obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined`, `onTrailingIconTap: onToggle`. Notifiers/states/intents existentes **não mudam** — `obscure*` continua no state; o intent `...VisibilityToggled` continua sendo a fonte da verdade.
+
+#### Camadas
+
+- **Domain** (`lib/src/domain/repositories/interface_user_repository.dart`): `Future<Either<Failure, void>> purge({ required String email, required String password });`. A assinatura recebe os dois primitivos do domínio — repository é stateless quanto a tokens (auth via header Bearer já é injetado pelo `AuthenticationInterceptor`).
+- **Infrastructure**:
+  - Novo `EndpointKey.purge('/api/v1/me/purge')` (não vai para `_publicEndpoints`).
+  - Novo request DTO `lib/src/infrastructure/clients/http/requests/purge_request.dart` com campos `email`/`password` e `toJson()` mapeando para `{'email': ..., 'password': ...}`.
+  - `IRemoteUserDataSource` ganha `Future<Either<FailureResponse, void>> purge({required String email, required String password});` recebendo primitivos. Implementação cria `PurgeRequest` internamente, faz `_client.post(parameter: Requests(EndpointKey.purge.path, body: ...toJson()))` e mapeia via `response.either(FailureResponse.fromJson, (_) {})`.
+- **Data** (`lib/src/data/repositories/user_repository.dart`): `purge` apenas repassa primitivos ao datasource e mapeia o `Either<FailureResponse, void>` para `Either<Failure, void>` via `failure.toFailure()`. Sem leitura de tokens.
+
+#### Subfeature `profile/purge/`
+
+Estrutura espelhando `profile/name/` e `profile/password/`:
+
+```
+profile/purge/
+  notifiers/
+    profile_purge_state.dart
+    profile_purge_intent.dart
+    profile_purge_notifier.dart
+  validators/
+    profile_purge_form_validator.dart
+  screens/
+    profile_purge_screen.dart
+  locations/
+    profile_purge_location.dart
+```
+
+- **State**: `ProfilePurgeStatus` enum (`initial/loading/success/failure`) + `password`, `obscurePassword` (default true), `passwordFailure`, `status`, `message`. `copyWith` com `clearPasswordFailure`.
+- **Intent (sealed)**: `PasswordChanged(value)`, `PasswordVisibilityToggled()`, `SubmitPressed()`.
+- **Notifier**: sync `Notifier<ProfilePurgeState>`. `build()` retorna `const ProfilePurgeState()` após `ref.watch` em `userRepositoryProvider` e `profilePurgeFormValidatorProvider`. `_submit()`:
+  1. Valida via `_validator(this.state)` e propaga state validado.
+  2. Se `!isValid`, retorna.
+  3. Early-return se já estiver em loading (re-entrancy guard).
+  4. `state.status = loading`.
+  5. Lê `final user = ref.read(userProvider).valueOrNull;`. Defensivo: se `null`, popula failure com mensagem `'Não foi possível identificar o usuário.'` e retorna.
+  6. `await _repository.purge(email: user.email, password: this.state.password)`.
+  7. **Right(_)**: `ref.invalidate(userProvider)` + `state.status = success`. Interceptor cuida do redirect.
+  8. **Left(failure)**: `state.status = failure` com `state.message = failure.message`.
+- **Validator**: `ProfilePurgeFormValidator` reusando `PasswordValidation` (min 8). Provider em `validators_provider.dart`.
+- **Screen**: `StatelessWidget` + `Consumer` interno (jamais `ConsumerWidget`). Layout — `ScaffoldWidget` + `AppBarWidget(leading: GoBackWidget())` + Padding 16 + Column(spacing 24, crossAxisAlignment .start):
+  - `ScreenHeaderWidget(title: 'Excluir conta', description: 'Esta ação é irreversível. Confirme com sua senha para excluir definitivamente sua conta e todos os dados associados.')`.
+  - `TextFieldWidget(label: 'E-mail', hint: '', initialValue: user.email, readOnly: true)` — readonly.
+  - `PasswordFieldWidget(label: 'Senha', hint: 'Digite sua senha', obscure: state.obscurePassword, onToggle: ..., failure: state.passwordFailure, onChanged: ..., inputAction: .done)`.
+  - `Spacer`.
+  - `SizedBox(width: .infinity, child: ButtonWidget.elevated(label: 'Excluir', isLoading: state.status == .loading, onTap: ...))`.
+  
+  `ref.listen(profilePurgeProvider, ...)` mostra `showToastWidget(type: failure, title: 'Opps', description: state.message)` somente em transições para failure. Sucesso é silencioso.
+  
+  `_submit(context, notifier)`:
+  - `hideKeyboard()`.
+  - `await showConfirmDialog(context, title: 'Excluir conta', confirmLabel: 'Excluir', description: 'Esta ação é irreversível.\n\n - Todos os seus dados serão apagados;\n - Você não poderá recuperar sua conta.')`.
+  - Se confirmed → `notifier.dispatch(const SubmitPressed())`.
+- **Location**: `ProfilePurgeLocation extends Location`, sem parâmetros, `path = AppRoutes.profilePurge.path`, `pageBuilder = (_) => screenPage(const ProfilePurgeScreen())`.
+
+#### Rota nova
+
+`AppRoutes.profilePurge` → `/profile/purge` (regex `^/profile/purge$`), incluída em `_all`.
+
+#### Wiring na detail
+
+- `ProfileDetailsScreen` ganha `final VoidCallback onPurge;` named-required. O método `_confirmDelete` é **removido** — o dialog de confirmação migra para a `ProfilePurgeScreen`. O `onDelete` que vai para o `ProfileAccountActionsWidget` agora chama `onPurge` direto.
+- `ProfileDetailsLocation` injeta `onPurge: () => context.navigate(ProfilePurgeLocation())` (importando a nova location — exceção narrada de Locations compondo navegação).
+- `ProfileDetailsNotifier` **não muda** — purge é encapsulada na nova subfeature.
+
+#### Defensivo: `userProvider` no notifier de purge
+
+Como o usuário só chega na `ProfilePurgeScreen` via detail (que já bloqueia em loading/error), na prática `userProvider` está sempre em `AsyncData`. Ainda assim, o notifier lê `ref.read(userProvider).valueOrNull` e trata o caso `null` como failure defensivo — protege contra deep-link futuro ou regressão na detail.
+
+### Parte 7 — Edição real de nome/senha (PATCH)
+
+Substituir os `// TODO Parte 4` em `profile_name_notifier._submit()` e `profile_password_notifier._submit()` por chamadas reais ao `IUserRepository`. Provavelmente envolve `IUserRepository.updateName` / `updatePassword`, novos endpoints `PATCH /api/v1/me` (a confirmar), DTOs e mapping. Detalhamento na própria Parte 7.
 
 ## Scope
+
+### Em escopo (Parte 6 — atual)
+
+- Extração de `PasswordFieldWidget` em `lib/src/presentation/widgets/fields/password_field_widget.dart`, delegando para `TextFieldWidget`.
+- Migração dos 5 call-sites existentes (sign_in_screen, sign_up_screen, password_reset_confirm_screen ×2 campos, profile_password_screen ×2 campos) para `PasswordFieldWidget`. Notifiers/states/intents inalterados.
+- `IUserRepository.purge({ email, password })`, `IRemoteUserDataSource.purge({ email, password })` (interface + implementação) e `UserRepository.purge`.
+- Novo `EndpointKey.purge('/api/v1/me/purge')` e `PurgeRequest` DTO.
+- Nova subfeature `profile/purge/` com state, intent, notifier (`@riverpod` sync `Notifier`), validator, screen e location.
+- Nova rota `AppRoutes.profilePurge` em `_all`.
+- `ProfileDetailsScreen` ganha `onPurge` named-required; `_confirmDelete` removido (dialog migra para `ProfilePurgeScreen`). `ProfileDetailsLocation` injeta navegação para `ProfilePurgeLocation`.
+- Email do usuário exibido readonly na `ProfilePurgeScreen` (lido do `userProvider`).
+- Showconfirm dialog de "Excluir conta" disparado pelo botão Excluir da `ProfilePurgeScreen` (depois da senha digitada). Confirm despacha `SubmitPressed`.
+- Pós-success: `ref.invalidate(userProvider)` + `status: success`. Interceptor 401 → SignIn (mesmo fluxo do deactivate).
+- Pós-failure: toast `'Opps'` com `Failure.message` via `ref.listen`.
+- Provider `profilePurgeFormValidatorProvider` em `validators_provider.dart`.
+- Testes:
+  - `user_repository_test.dart` — `group('purge')` com Right + cada Failure mapeado (Network/NotFound/Server/Validation).
+  - `profile_purge_form_validator_test.dart` — empty / <8 / valid.
+  - `profile_purge_notifier_test.dart` — build inicial, `PasswordChanged` (clear failure), `PasswordVisibilityToggled` isolado, `SubmitPressed` empty/valid/loading-guard, defensive null userProvider, repository failure com message.
+- `flutter analyze` zero warnings; `flutter test` passa toda a suíte.
+
+### Fora de escopo (Parte 6 — virá em partes futuras)
+
+- **Edição real de nome/senha** (PATCH `/api/v1/me`) — Parte 7.
+- **Reativação automática** após sucesso da purge — confiamos no fluxo natural do interceptor 401; sem navegação explícita.
+- **Estado "isActive" no `userProvider`** para desabilitar o botão Excluir antes da purge — não rola; backend mostra o erro `'Account must be deactivated before purge.'` via toast quando o usuário tenta sem ter desativado.
+- **Confirmação de e-mail digitada pelo usuário** (estilo GitHub "type your account name") — readonly do `userProvider` é suficiente, e a senha já é a porta de segurança.
+- **Toast de sucesso** após purge — silencioso, redirect via interceptor.
+- **Testes de widget para `PasswordFieldWidget`** — apenas delega para `TextFieldWidget`; cobertura visual via smoke manual nos call-sites refatorados.
 
 ### Em escopo (Parte 5 — atual)
 

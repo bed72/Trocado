@@ -40,4 +40,14 @@ final class UserRepository implements IUserRepository {
 
     return data.either((failure) => failure.toFailure(), (_) {});
   }
+
+  @override
+  Future<Either<Failure, void>> purge({
+    required String email,
+    required String password,
+  }) async {
+    final data = await _userDataSource.purge(email: email, password: password);
+
+    return data.either((failure) => failure.toFailure(), (_) {});
+  }
 }

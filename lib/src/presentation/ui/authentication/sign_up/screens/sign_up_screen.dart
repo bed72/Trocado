@@ -8,21 +8,22 @@ import 'package:trocado/src/presentation/extensions/context_extension.dart';
 import 'package:trocado/src/presentation/widgets/toast_widget.dart';
 import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';
 import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
-import 'package:trocado/src/presentation/widgets/fields/checkbox_field_widget.dart';
 import 'package:trocado/src/presentation/widgets/fields/text_field_widget.dart';
+import 'package:trocado/src/presentation/widgets/fields/checkbox_field_widget.dart';
+import 'package:trocado/src/presentation/widgets/fields/password_field_widget.dart';
 
 import 'package:trocado/src/presentation/ui/authentication/sign_up/notifiers/sign_up_state.dart';
 import 'package:trocado/src/presentation/ui/authentication/sign_up/notifiers/sign_up_intent.dart';
 import 'package:trocado/src/presentation/ui/authentication/sign_up/notifiers/sign_up_notifier.dart';
 
 class SignUpScreen extends StatelessWidget {
-  final VoidCallback onSuccess;
   final VoidCallback onSignIn;
+  final VoidCallback onSuccess;
 
   const SignUpScreen({
     super.key,
-    required this.onSuccess,
     required this.onSignIn,
+    required this.onSuccess,
   });
 
   @override
@@ -62,6 +63,7 @@ class SignUpScreen extends StatelessWidget {
         child: Padding(
           padding: const .symmetric(horizontal: 16.0),
           child: Column(
+            spacing: 8.0,
             crossAxisAlignment: .start,
             children: [
               const Spacer(),
@@ -73,8 +75,6 @@ class SignUpScreen extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 8.0),
-
               Text(
                 'Preencha os dados abaixo',
                 style: context.typography.bodyMedium?.copyWith(
@@ -82,7 +82,7 @@ class SignUpScreen extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 28.0),
+              const SizedBox(height: 20.0),
 
               TextFieldWidget(
                 label: 'E-mail',
@@ -93,24 +93,20 @@ class SignUpScreen extends StatelessWidget {
                 onChanged: (value) => notifier.dispatch(EmailChanged(value)),
               ),
 
-              const SizedBox(height: 12.0),
+              const SizedBox(height: 4.0),
 
-              TextFieldWidget(
+              PasswordFieldWidget(
                 label: 'Senha',
                 inputAction: .done,
                 hint: 'Digite sua senha',
                 failure: state.passwordFailure,
-                obscureText: state.obscurePassword,
-                hideTrailingIconWhenEmpty: true,
-                trailingIcon: state.obscurePassword
-                    ? Icons.visibility_outlined
-                    : Icons.visibility_off_outlined,
-                onTrailingIconTap: () =>
+                obscure: state.obscurePassword,
+                onToggle: () =>
                     notifier.dispatch(const PasswordVisibilityToggled()),
                 onChanged: (value) => notifier.dispatch(PasswordChanged(value)),
               ),
 
-              const SizedBox(height: 16.0),
+              const SizedBox(height: 8.0),
 
               CheckboxFieldWidget(
                 failure: state.termsFailure,
@@ -119,7 +115,6 @@ class SignUpScreen extends StatelessWidget {
                 onChanged: (value) => notifier.dispatch(TermsToggled(value)),
               ),
 
-              const SizedBox(height: 16.0),
               const Spacer(),
 
               SizedBox(
@@ -131,7 +126,7 @@ class SignUpScreen extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 16.0),
+              const SizedBox(height: 8.0),
 
               Row(
                 mainAxisAlignment: .center,
@@ -144,7 +139,7 @@ class SignUpScreen extends StatelessWidget {
                 ],
               ),
 
-              const SizedBox(height: 28.0),
+              const SizedBox(height: 20.0),
             ],
           ),
         ),

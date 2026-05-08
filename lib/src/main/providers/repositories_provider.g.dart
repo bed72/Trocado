@@ -97,7 +97,7 @@ final class UserRepositoryProvider
   }
 }
 
-String _$userRepositoryHash() => r'f1cb75c5b2af70845e3e3f809b0a9b93a9e55763';
+String _$userRepositoryHash() => r'a68168a2f6a5b8dae6b0b414e6ed72c62f937e75';
 
 @ProviderFor(budgetRepository)
 final budgetRepositoryProvider = BudgetRepositoryProvider._();

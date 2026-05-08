@@ -60,6 +60,30 @@ Esta change é **100% presentation/main**. Não toca `domain/`, `data/` nem `inf
 
 **Rationale**: o app é PT-BR-only hoje (sem `intl` configurado para mensagens, só formatação). Espelha `NotificationsScreen` que tem strings literais. Mover para i18n é trabalho separado, fora do escopo.
 
+### 7. Parte 6 — Purge dedicada por screen, não por dialog (extensão)
+
+**Decisão**: o tap em "Excluir" na `ProfileDetailsScreen` **navega** para uma `ProfilePurgeScreen` dedicada, em vez de abrir um dialog inline com campo de senha. O `showConfirmDialog` final ("Tem certeza?") é disparado **dentro** da `ProfilePurgeScreen`, depois da senha já ter sido digitada — funciona como uma porta de confirmação extra antes de mandar a request.
+
+**Rationale**: a feature `profile/` já segue o padrão "uma screen por intenção" (`details/`, `name/`, `password/`); purge se encaixa como mais uma subfeature (`purge/`). Dialog enriquecido com TextField + validação inline + estado de loading/error é incomum no projeto e teria menos espaço para a copy de irreversibilidade. A screen ainda permite o `AppBarWidget`/`GoBackWidget` natural para o usuário desistir antes do submit. Tradeoff: um clique extra (navegar → dialog → confirm) em vez de um único dialog, mas o ganho em clareza visual e consistência arquitetural compensa.
+
+### 8. Parte 6 — `PasswordFieldWidget` compartilhado em `widgets/fields/`
+
+**Decisão**: extrair `PasswordFieldWidget` para `lib/src/presentation/widgets/fields/password_field_widget.dart` antes de implementar a purge, e migrar os 5 call-sites existentes (sign_in, sign_up, password_reset_confirm ×2, profile_password ×2). Notifiers/states/intents permanecem inalterados — `obscure*` continua no state e o intent `...VisibilityToggled` continua sendo a fonte da verdade.
+
+**Rationale**: o bloco de 5+ linhas (`obscureText`, `trailingIcon` condicional, `onTrailingIconTap`) se repete idêntico em todos os call-sites. Adicionar a 6ª réplica na purge sem extrair seria criar débito no momento exato em que ele se manifesta. A API mantém `obscure: bool` + `onToggle: VoidCallback` recebidos do exterior — o widget é puramente apresentacional e não decide quando alternar a visibilidade. Tradeoff: refatorar 5 call-sites antes da feature nova adiciona um passo de regressão visual; mitigado por ser um delegate puro para `TextFieldWidget` (sem mudança de comportamento) e por já existir cobertura indireta via testes de notifier nos campos afetados.
+
+### 9. Parte 6 — `IUserRepository.purge` recebe email/password como primitivos (sem ler tokens)
+
+**Decisão**: `purge` recebe `email` e `password` via parâmetros nomeados na interface de domínio. Diferente de `deactivate` (que lê o `refresh_token` via `ILocalTokenDataSource`), `purge` **não** lê tokens — o `Authorization: Bearer <access>` é injetado pelo `AuthenticationInterceptor` automaticamente em endpoints autenticados.
+
+**Rationale**: o backend exige `email` e `password` no body como confirmação extra de identidade — esses dois primitivos vêm da camada de presentation (email lido do `userProvider`, password digitada pelo usuário) e atravessam o repositório como dados de entrada do caso de uso, não como segredo persistido. Isso simplifica o repositório e mantém a regra do CLAUDE.md de "interfaces aceitam parâmetros de domínio". `deactivate` precisa ler tokens porque o backend revoga o refresh token simetricamente — purge não tem essa simetria; o backend invalida tokens quando a conta some.
+
+### 10. Parte 6 — `userProvider` lido defensivamente em `_submit`, não no `build`
+
+**Decisão**: o `ProfilePurgeNotifier.build()` é **sync** (`Notifier<ProfilePurgeState>`, não `AsyncNotifier`) e retorna `const ProfilePurgeState()`. O email do usuário é lido on-demand dentro do `_submit` via `ref.read(userProvider).valueOrNull`. Caso o valor seja `null` (defensivo), o notifier seta `status: failure` com mensagem `'Não foi possível identificar o usuário.'` e retorna sem chamar o repositório.
+
+**Rationale**: o usuário só chega à `ProfilePurgeScreen` via `ProfileDetailsScreen`, que já bloqueia em loading/error e só renderiza o botão "Excluir" no branch `AsyncData`. Ler `userProvider` de novo no `build` da purge causaria um await redundante — e tornaria o notifier `AsyncNotifier`, exigindo um switch `AsyncValue` na screen para um caminho que nunca dispara em prática. A leitura on-demand mantém o notifier simples e adiciona a guarda defensiva apenas onde ela importa (no momento do submit). Tradeoff: futuro deep-link direto para `/profile/purge` (sem passar pela detail) cairia no caminho defensivo — aceitável; rota não é pública e a UX de "carregando user antes de mostrar form" pode ser refeita com `AsyncNotifier` quando esse cenário existir.
+
 ## Fluxos
 
 ### Avatar da Home → ProfileScreen

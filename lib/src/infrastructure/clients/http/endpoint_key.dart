@@ -1,6 +1,7 @@
 enum EndpointKey {
   me('/api/v1/me'),
   signIn('/api/v1/token'),
+  purge('/api/v1/me/purge'),
   budgets('/api/v1/budgets'),
   expenses('/api/v1/expenses'),
   insights('/api/v1/insights'),

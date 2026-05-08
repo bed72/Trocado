@@ -7,4 +7,9 @@ abstract interface class IUserRepository {
   Future<Either<Failure, UserModel>> me();
 
   Future<Either<Failure, void>> deactivate();
+
+  Future<Either<Failure, void>> purge({
+    required String email,
+    required String password,
+  });
 }

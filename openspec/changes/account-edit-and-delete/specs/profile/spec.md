@@ -636,3 +636,370 @@ Then `DuckRouter.navigate(ProfileNameLocation())` SHALL be invoked
 Given the user is on `ProfileDetailsScreen`
 When the user taps the `ProfileFieldItemWidget` with `label == 'Senha'`
 Then `DuckRouter.navigate(ProfilePasswordLocation())` SHALL be invoked
+
+---
+
+### Requirement: PasswordFieldWidget centralises the obscure-toggle pattern
+
+The system SHALL create `lib/src/presentation/widgets/fields/password_field_widget.dart` defining `class PasswordFieldWidget extends StatelessWidget` that delegates to `TextFieldWidget`.
+
+The widget API SHALL declare these fields before the constructor (CLAUDE.md member ordering):
+
+- `final String hint;`
+- `final String label;`
+- `final bool obscure;`
+- `final String? failure;`
+- `final String? initialValue;`
+- `final TextInputAction? inputAction;`
+- `final ValueChanged<String>? onChanged;`
+- `final VoidCallback onToggle;`
+
+The constructor SHALL be `const PasswordFieldWidget({ super.key, required this.hint, required this.label, required this.obscure, required this.onToggle, this.failure, this.onChanged, this.initialValue, this.inputAction });`.
+
+`build` SHALL return a `TextFieldWidget` configured with `obscureText: obscure`, `hideTrailingIconWhenEmpty: true`, `onTrailingIconTap: onToggle`, and `trailingIcon: obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined`. All other parameters SHALL be forwarded unchanged.
+
+The widget SHALL NOT own any state — `obscure` is controlled by the caller (typically a notifier with a `*VisibilityToggled` intent).
+
+The following call-sites SHALL be migrated from the inline `TextFieldWidget` pattern to `PasswordFieldWidget`:
+
+- `lib/src/presentation/ui/authentication/sign_in/screens/sign_in_screen.dart` — `'Senha'` field.
+- `lib/src/presentation/ui/authentication/sign_up/screens/sign_up_screen.dart` — `'Senha'` field.
+- `lib/src/presentation/ui/authentication/password_reset_confirm/screens/password_reset_confirm_screen.dart` — `'Nova senha'` and `'Confirmar senha'` fields.
+- `lib/src/presentation/ui/profile/password/screens/profile_password_screen.dart` — `'Nova senha'` and `'Confirmar senha'` fields.
+
+The migrated screens SHALL NOT change their notifier, state, intent, or visibility-toggle dispatch behaviour — only the widget shape is replaced.
+
+#### Scenario: Toggle icon reflects obscure state
+
+Given a `PasswordFieldWidget(obscure: true, ...)`
+When the widget builds
+Then the rendered `TextFieldWidget` SHALL receive `trailingIcon == Icons.visibility_outlined`
+
+Given a `PasswordFieldWidget(obscure: false, ...)`
+When the widget builds
+Then the rendered `TextFieldWidget` SHALL receive `trailingIcon == Icons.visibility_off_outlined`
+
+#### Scenario: Tapping the toggle icon invokes onToggle exactly once
+
+Given a `PasswordFieldWidget` rendered with `onToggle: callback`
+When the user taps the trailing visibility icon
+Then `callback` SHALL be invoked exactly once
+
+#### Scenario: All five call-sites use PasswordFieldWidget
+
+Given the migration is complete
+When `grep -n "obscureText:" lib/src/presentation/ui/authentication/sign_in/screens lib/src/presentation/ui/authentication/sign_up/screens lib/src/presentation/ui/authentication/password_reset_confirm/screens lib/src/presentation/ui/profile/password/screens` is executed
+Then there SHALL be no remaining occurrences of `obscureText:` outside `PasswordFieldWidget` in those screens
+
+---
+
+### Requirement: AppRoutes.profilePurge entry
+
+The system SHALL add a `profilePurge` entry to `AppRoutes` in `lib/app_route.dart` with `path: '/profile/purge'`, `name: 'profile-purge-route'`, and a regex matching exactly `^/profile/purge$`. The entry SHALL be included in `AppRoutes._all`.
+
+#### Scenario: Route is registered
+
+Given the app starts
+Then `AppRoutes.profilePurge.path` SHALL equal `'/profile/purge'`
+And `AppRoutes._all` SHALL contain the `profilePurge` entry
+
+---
+
+### Requirement: IUserRepository extended with purge
+
+The system SHALL extend `lib/src/domain/repositories/interface_user_repository.dart` with:
+
+```dart
+Future<Either<Failure, void>> purge({
+  required String email,
+  required String password,
+});
+```
+
+The signature SHALL accept domain primitives (`String email`, `String password`) — never an infrastructure DTO (`PurgeRequest`).
+
+`IRemoteUserDataSource` SHALL gain `Future<Either<FailureResponse, void>> purge({required String email, required String password});`. The implementation SHALL call `_client.post(parameter: Requests(EndpointKey.purge.path, body: PurgeRequest(email: email, password: password).toJson()))` and map via `response.either(FailureResponse.fromJson, (_) {})` (the 204 body is discarded).
+
+`UserRepository.purge` SHALL pass the primitives directly to the datasource and map `FailureResponse → Failure` via `failure.toFailure()`. It SHALL NOT read tokens — `Authorization` is injected by the existing `AuthenticationInterceptor` for authenticated endpoints.
+
+#### Scenario: purge calls POST /api/v1/me/purge with email and password body
+
+Given `UserRepository.purge(email: 'jane@trocado.app', password: 'MyPassword!456')` is invoked
+Then `IHttpClient.post` SHALL be called with `Requests(path: '/api/v1/me/purge', body: {'email': 'jane@trocado.app', 'password': 'MyPassword!456'})`
+
+#### Scenario: purge maps NetworkFailure
+
+Given the datasource returns `Left(FailureResponse with code 'connection_error')`
+When `UserRepository.purge(...)` resolves
+Then it SHALL return `Left(NetworkFailure())`
+
+#### Scenario: purge maps "Account must be deactivated before purge." to ValidationFailure
+
+Given the datasource returns `Left(FailureResponse with code 'invalid' and message 'Account must be deactivated before purge.')`
+When `UserRepository.purge(...)` resolves
+Then it SHALL return `Left(ValidationFailure('Account must be deactivated before purge.'))`
+
+#### Scenario: purge returns Right on 204
+
+Given the datasource returns `Right(null)`
+When `UserRepository.purge(...)` resolves
+Then it SHALL return `Right(null)`
+
+---
+
+### Requirement: PurgeRequest DTO carries email and password
+
+The system SHALL create `lib/src/infrastructure/clients/http/requests/purge_request.dart` defining:
+
+```dart
+final class PurgeRequest {
+  final String email;
+  final String password;
+
+  const PurgeRequest({required this.email, required this.password});
+
+  Map<String, dynamic> toJson() => {'email': email, 'password': password};
+}
+```
+
+The DTO SHALL live in `infrastructure/`, never crossing into `domain/` or `data/`. Only the concrete `RemoteUserDataSource.purge` implementation SHALL instantiate it.
+
+#### Scenario: toJson serialises email and password verbatim
+
+Given `PurgeRequest(email: 'jane@trocado.app', password: 'p@ss')`
+When `toJson()` is invoked
+Then the result SHALL equal `{'email': 'jane@trocado.app', 'password': 'p@ss'}`
+
+---
+
+### Requirement: ProfilePurgeFormValidator validates password length
+
+The system SHALL create `lib/src/presentation/ui/profile/purge/validators/profile_purge_form_validator.dart` defining `final class ProfilePurgeFormValidator`.
+
+The validator SHALL receive `PasswordValidation` via constructor (named-required) and expose `({ProfilePurgeState state, bool isValid}) call(ProfilePurgeState state)`.
+
+It SHALL apply `PasswordValidation` (min 8) to `state.password` and:
+
+- On `Invalid(:final message)` → set `passwordFailure: message` and `isValid: false`.
+- On `Valid()` → clear `passwordFailure` (via `clearPasswordFailure: true`) and `isValid: true`.
+
+#### Scenario: Empty password is invalid
+
+Given `state.password == ''`
+When the validator is invoked
+Then the returned `state.passwordFailure` SHALL equal `'Senha obrigatória'`
+And `isValid` SHALL be `false`
+
+#### Scenario: Short password is invalid
+
+Given `state.password == 'abc'`
+When the validator is invoked
+Then the returned `state.passwordFailure` SHALL equal `'Senha deve ter ao menos 8 caracteres'`
+And `isValid` SHALL be `false`
+
+#### Scenario: Valid password clears failure
+
+Given `state.password == 'abcdefgh'`
+When the validator is invoked
+Then the returned `state.passwordFailure` SHALL be `null`
+And `isValid` SHALL be `true`
+
+---
+
+### Requirement: ProfilePurgeNotifier orchestrates purge flow
+
+The system SHALL create `lib/src/presentation/ui/profile/purge/notifiers/profile_purge_notifier.dart` as `@riverpod final class ProfilePurgeNotifier extends _$ProfilePurgeNotifier`.
+
+`build()` SHALL be synchronous and return `const ProfilePurgeState()` after `ref.watch(userRepositoryProvider)` and `ref.watch(profilePurgeFormValidatorProvider)`.
+
+`dispatch(ProfilePurgeIntent intent)` SHALL be exhaustive over:
+
+- `PasswordChanged(:final value)` → `state = state.copyWith(password: value, clearPasswordFailure: true)`.
+- `PasswordVisibilityToggled()` → `state = state.copyWith(obscurePassword: !state.obscurePassword)`.
+- `ValidatePressed()` → `_validate()` — runs the form validator and propagates the validated `state`. Does not call the repository. Used by the screen to gate the confirm dialog (the dialog only opens when validation passes).
+- `SubmitPressed()` → `_submit()` — re-validates defensively, then performs the API call.
+
+`_submit()` SHALL:
+
+1. Validate via the form validator and propagate the validated `state` (`this.state = state`).
+2. Return early if `!isValid`.
+3. Return early if `this.state.status == ProfilePurgeStatus.loading` (re-entrancy guard).
+4. Set `this.state = this.state.copyWith(status: ProfilePurgeStatus.loading)`.
+5. Read `final user = ref.read(userProvider).valueOrNull`.
+6. If `user == null`, set `this.state = this.state.copyWith(status: ProfilePurgeStatus.failure, message: 'Não foi possível identificar o usuário.')` and return without calling the repository.
+7. Call `_repository.purge(email: user.email, password: this.state.password)`.
+8. On `Left(failure)` → `this.state = this.state.copyWith(status: failure, message: failure.message)`.
+9. On `Right(_)` → `ref.invalidate(userProvider)` and `this.state = this.state.copyWith(status: success)`.
+
+The notifier SHALL NOT navigate directly — redirect after success is delegated to the existing `AuthenticationInterceptor` (the next authenticated request after `userProvider` is invalidated will take 401, refresh will fail, and `_onUnauthenticated` will replace the stack with `SignInLocation`).
+
+#### Scenario: Successful purge invalidates userProvider
+
+Given `IUserRepository.purge(...)` returns `Right(null)`
+And `userProvider` resolves with `UserModel(email: 'jane@trocado.app')`
+When `dispatch(SubmitPressed())` resolves with `state.password == 'MyPassword!456'`
+Then `_repository.purge(email: 'jane@trocado.app', password: 'MyPassword!456')` SHALL be called
+And `ref.invalidate(userProvider)` SHALL be called
+And `state.status` SHALL equal `ProfilePurgeStatus.success`
+
+#### Scenario: Failed purge populates message
+
+Given `IUserRepository.purge(...)` returns `Left(ValidationFailure('Account must be deactivated before purge.'))`
+When `dispatch(SubmitPressed())` resolves with valid password
+Then `state.status` SHALL equal `ProfilePurgeStatus.failure`
+And `state.message` SHALL equal `'Account must be deactivated before purge.'`
+
+#### Scenario: Empty password short-circuits before repository
+
+Given `state.password == ''`
+When `dispatch(SubmitPressed())` is invoked
+Then `state.passwordFailure` SHALL equal `'Senha obrigatória'`
+And `IUserRepository.purge` SHALL NOT be called
+
+#### Scenario: Re-entrant dispatch is a no-op
+
+Given `state.status == ProfilePurgeStatus.loading`
+When `dispatch(SubmitPressed())` is called again with valid password
+Then `IUserRepository.purge` SHALL be called exactly once total
+
+#### Scenario: Null user fallback is defensive
+
+Given `userProvider` resolves with no value (`AsyncLoading` or `AsyncError` such that `valueOrNull == null`)
+When `dispatch(SubmitPressed())` resolves with valid password
+Then `IUserRepository.purge` SHALL NOT be called
+And `state.status` SHALL equal `ProfilePurgeStatus.failure`
+And `state.message` SHALL equal `'Não foi possível identificar o usuário.'`
+
+---
+
+### Requirement: ProfilePurgeScreen presents email readonly, password field and submit
+
+The system SHALL create `lib/src/presentation/ui/profile/purge/screens/profile_purge_screen.dart` as a `StatelessWidget` with `Consumer` inside (jamais `ConsumerWidget`).
+
+The screen SHALL `ref.listen(profilePurgeProvider, ...)` and call `showToastWidget(context: context, title: 'Opps', type: ToastType.failure, description: state.message)` only on transitions to `ProfilePurgeStatus.failure`. Successful transitions SHALL be silent — redirect is handled by the `AuthenticationInterceptor`.
+
+The screen SHALL render:
+
+- `ScaffoldWidget(appBar: AppBarWidget(leading: GoBackWidget()))`.
+- Body: `Padding(padding: const EdgeInsets.all(16.0), child: Column(spacing: 24.0, crossAxisAlignment: CrossAxisAlignment.start, children: [...]))`.
+- Children, in order:
+  - `ScreenHeaderWidget(title: 'Excluir conta', description: 'Esta ação é irreversível. Confirme com sua senha para excluir definitivamente sua conta e todos os dados associados.')`.
+  - `TextFieldWidget(label: 'E-mail', hint: '', initialValue: user.email, readOnly: true)` — read-only view of the logged-in user's email.
+  - `PasswordFieldWidget(label: 'Senha', hint: 'Digite sua senha', inputAction: TextInputAction.done, obscure: state.obscurePassword, onToggle: ..., failure: state.passwordFailure, onChanged: ...)`.
+  - `Spacer()`.
+  - `SizedBox(width: double.infinity, child: ButtonWidget.elevated(label: 'Excluir', isLoading: state.status == ProfilePurgeStatus.loading, onTap: ...))`.
+
+The submit handler SHALL be a private method (never a private widget class — CLAUDE.md). It SHALL validate **before** opening the confirm dialog — when validation fails, the dialog SHALL NOT open and the screen SHALL surface `passwordFailure` inline:
+
+```dart
+Future<void> _submit(
+  BuildContext context,
+  WidgetRef ref,
+  ProfilePurgeNotifier notifier,
+) async {
+  hideKeyboard();
+
+  notifier.dispatch(const ValidatePressed());
+
+  if (ref.read(profilePurgeProvider).passwordFailure != null) return;
+
+  final confirmed = await showConfirmDialog(
+    context: context,
+    title: 'Excluir conta',
+    confirmLabel: 'Excluir',
+    description:
+        'Esta ação é irreversível.\n\n - Todos os seus dados serão apagados;\n - Você não poderá recuperar sua conta.',
+  );
+  if (!confirmed) return;
+
+  notifier.dispatch(const SubmitPressed());
+}
+```
+
+#### Scenario: Email is rendered readonly from userProvider
+
+Given `userProvider` resolves with `UserModel(email: 'jane@trocado.app')`
+When `ProfilePurgeScreen` builds
+Then a `TextFieldWidget` SHALL be present with `label == 'E-mail'`, `initialValue == 'jane@trocado.app'`, and `readOnly == true`
+
+#### Scenario: Submit opens confirm dialog before dispatching
+
+Given the user typed a valid password
+When the user taps `'Excluir'`
+Then `notifier.dispatch(ValidatePressed())` SHALL be invoked first
+And `showConfirmDialog` SHALL be invoked with `title: 'Excluir conta'` and `confirmLabel: 'Excluir'`
+And `notifier.dispatch(SubmitPressed())` SHALL be invoked only after the dialog resolves to `true`
+
+#### Scenario: Invalid password blocks the confirm dialog
+
+Given the user left the password field empty (or below the minimum length)
+When the user taps `'Excluir'`
+Then `notifier.dispatch(ValidatePressed())` SHALL be invoked
+And `state.passwordFailure` SHALL surface inline in the `PasswordFieldWidget`
+And `showConfirmDialog` SHALL NOT be invoked
+And `notifier.dispatch(SubmitPressed())` SHALL NOT be invoked
+
+#### Scenario: Cancel keeps the user on the screen
+
+Given the confirm dialog is open
+When the user taps `'Cancelar'`
+Then the dialog SHALL close
+And `notifier.dispatch(SubmitPressed())` SHALL NOT be invoked
+
+#### Scenario: Failure shows toast
+
+Given the user confirmed and the API returned a failure
+When the listener observes `state.status == failure`
+Then `showToastWidget` SHALL be invoked with `type: failure` and `description: state.message`
+
+#### Scenario: Success is silent
+
+Given the user confirmed and the API returned 204
+When the listener observes `state.status == success`
+Then no toast SHALL be shown
+And `userProvider` SHALL be invalidated, triggering the interceptor-driven redirect to SignIn
+
+---
+
+### Requirement: ProfilePurgeLocation registers the purge route
+
+The system SHALL create `lib/src/presentation/ui/profile/purge/locations/profile_purge_location.dart` defining `final class ProfilePurgeLocation extends Location`.
+
+`ProfilePurgeLocation` SHALL declare:
+
+- `String get path` returning `AppRoutes.profilePurge.path`.
+- `LocationPageBuilder get pageBuilder` returning `(_) => screenPage(const ProfilePurgeScreen())`.
+
+`ProfilePurgeLocation` SHALL NOT receive any constructor parameters.
+
+#### Scenario: Location resolves the path
+
+Given `ProfilePurgeLocation()` is constructed
+Then `path` SHALL equal `'/profile/purge'`
+
+---
+
+### Requirement: ProfileDetailsScreen wires onPurge instead of inline confirm
+
+The system SHALL extend `ProfileDetailsScreen` with `final VoidCallback onPurge;` named-required, declared before the constructor next to the existing `onEditName` and `onEditPassword`.
+
+The previous `_confirmDelete` private method SHALL be removed — the destructive confirmation moves into `ProfilePurgeScreen`. The `ProfileAccountActionsWidget` SHALL receive `onDelete: onPurge` directly in the `AsyncData` branch (no intermediate dialog on the detail screen).
+
+The Skeletonizer (loading) branch SHALL keep `onDelete: () {}` to remain non-interactive while loading.
+
+`ProfileDetailsLocation` SHALL inject `onPurge: () => context.navigate(ProfilePurgeLocation())`. `ProfileDetailsLocation` is the only place authorised to import `ProfilePurgeLocation` (Locations composing navigation — documented exception in CLAUDE.md).
+
+`ProfileDetailsNotifier` SHALL NOT change — purge is fully encapsulated in the new `profile/purge/` subfeature.
+
+#### Scenario: Tapping "Excluir" navigates to the purge screen
+
+Given the user is on `ProfileDetailsScreen` with data loaded
+When the user taps the `'Excluir'` button in `ProfileAccountActionsWidget`
+Then `DuckRouter.navigate(ProfilePurgeLocation())` SHALL be invoked
+And no `showConfirmDialog` SHALL be opened on the detail screen
+
+#### Scenario: ProfileDetailsLocation imports only profile-internal locations
+
+Given the spec implementation is complete
+When `grep -n "import 'package:trocado" lib/src/presentation/ui/profile/details/locations/profile_details_location.dart` is executed
+Then the only feature locations imported SHALL be `ProfileNameLocation`, `ProfilePasswordLocation` and `ProfilePurgeLocation` (all under `profile/`)

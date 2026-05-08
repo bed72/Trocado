@@ -1,13 +1,13 @@
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:trocado/src/data/repositories/user_repository.dart';
+
 import 'package:trocado/src/domain/either/either.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/models/user_model.dart';
 import 'package:trocado/src/domain/repositories/interface_user_repository.dart';
-
-import 'package:trocado/src/data/repositories/user_repository.dart';
 
 import 'package:trocado/src/infrastructure/clients/http/http_client.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/requests.dart';
@@ -18,16 +18,16 @@ import '../../../mocks/mocks.dart';
 
 const _meSuccessJson = {
   'id': 1,
-  'email': 'jane@trocado.app',
   'name': 'Jane Doe',
+  'email': 'jane@trocado.app',
 };
 
 const _meFailureJson = {
   'errors': [
     {
-      'field': 'non_field_errors',
-      'message': 'Unauthorized',
       'code': 'server_error',
+      'message': 'Unauthorized',
+      'field': 'non_field_errors',
     },
   ],
 };
@@ -62,13 +62,13 @@ void main() {
     tokenDataSource = MockTokenDataSource();
     final userDataSource = RemoteUserDataSource(client: client);
     repository = UserRepository(
-      tokenDataSource: tokenDataSource,
       userDataSource: userDataSource,
+      tokenDataSource: tokenDataSource,
     );
 
-    when(
-      () => tokenDataSource.get(),
-    ).thenAnswer((_) async => (access: 'access-token', refresh: 'refresh-token'));
+    when(() => tokenDataSource.get()).thenAnswer(
+      (_) async => (access: 'access-token', refresh: 'refresh-token'),
+    );
 
     registerFallbackValue(const Requests('/'));
   });
@@ -129,9 +129,9 @@ void main() {
     test(
       'returns Left(UnknownFailure) when refresh token is unavailable',
       () async {
-        when(() => tokenDataSource.get()).thenAnswer(
-          (_) async => (access: 'access-token', refresh: null),
-        );
+        when(
+          () => tokenDataSource.get(),
+        ).thenAnswer((_) async => (access: 'access-token', refresh: null));
 
         final data = await repository.deactivate();
 
@@ -173,5 +173,97 @@ void main() {
       expect(data.isLeft, isTrue);
       expect(data.left, isA<ServerFailure>());
     });
+  });
+
+  group('purge', () {
+    const email = 'jane@trocado.app';
+    const password = 'MyPassword!456';
+
+    test(
+      'returns Right(null) when POST /api/v1/me/purge succeeds with email and password body',
+      () async {
+        when(
+          () => client.post(parameter: any(named: 'parameter')),
+        ).thenAnswer((_) async => const Right(<String, dynamic>{}));
+
+        final data = await repository.purge(email: email, password: password);
+
+        expect(data.isRight, isTrue);
+        verify(
+          () => client.post(
+            parameter: any(
+              named: 'parameter',
+              that: predicate<Requests>(
+                (r) =>
+                    r.path == '/api/v1/me/purge' &&
+                    r.body?['email'] == email &&
+                    r.body?['password'] == password,
+              ),
+            ),
+          ),
+        ).called(1);
+      },
+    );
+
+    test('returns Left(NetworkFailure) on network error', () async {
+      when(
+        () => client.post(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Left(_networkFailureJson));
+
+      final data = await repository.purge(email: email, password: password);
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<NetworkFailure>());
+    });
+
+    test('returns Left(NotFoundFailure) when POST returns 404', () async {
+      when(
+        () => client.post(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Left(_notFoundFailureJson));
+
+      final data = await repository.purge(email: email, password: password);
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<NotFoundFailure>());
+    });
+
+    test('returns Left(ServerFailure) when POST returns 5xx', () async {
+      when(
+        () => client.post(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Left(_meFailureJson));
+
+      final data = await repository.purge(email: email, password: password);
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<ServerFailure>());
+    });
+
+    test(
+      'returns Left(ValidationFailure) with backend message when account is still active',
+      () async {
+        const failureJson = {
+          'errors': [
+            {
+              'code': 'invalid',
+              'field': null,
+              'message': 'Account must be deactivated before purge.',
+            },
+          ],
+        };
+
+        when(
+          () => client.post(parameter: any(named: 'parameter')),
+        ).thenAnswer((_) async => const Left(failureJson));
+
+        final data = await repository.purge(email: email, password: password);
+
+        expect(data.isLeft, isTrue);
+        expect(data.left, isA<ValidationFailure>());
+        expect(
+          (data.left as ValidationFailure).message,
+          'Account must be deactivated before purge.',
+        );
+      },
+    );
   });
 }

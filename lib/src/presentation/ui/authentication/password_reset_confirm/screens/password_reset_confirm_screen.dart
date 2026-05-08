@@ -10,7 +10,7 @@ import 'package:trocado/src/presentation/widgets/app_bar_widget.dart';
 import 'package:trocado/src/presentation/widgets/go_back_widget.dart';
 import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';
 import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
-import 'package:trocado/src/presentation/widgets/fields/text_field_widget.dart';
+import 'package:trocado/src/presentation/widgets/fields/password_field_widget.dart';
 
 import 'package:trocado/src/presentation/ui/authentication/password_reset_confirm/notifiers/password_reset_confirm_state.dart';
 import 'package:trocado/src/presentation/ui/authentication/password_reset_confirm/notifiers/password_reset_confirm_intent.dart';
@@ -94,37 +94,29 @@ class PasswordResetConfirmScreen extends StatelessWidget {
 
               const SizedBox(height: 28.0),
 
-              TextFieldWidget(
+              PasswordFieldWidget(
                 inputAction: .next,
                 hint: 'Nova senha',
                 label: 'Nova senha',
-                hideTrailingIconWhenEmpty: true,
                 failure: state.newPasswordFailure,
-                obscureText: state.obscureNewPassword,
-                trailingIcon: state.obscureNewPassword
-                    ? Icons.visibility_outlined
-                    : Icons.visibility_off_outlined,
+                obscure: state.obscureNewPassword,
                 onChanged: (value) =>
                     notifier.dispatch(NewPasswordChanged(value)),
-                onTrailingIconTap: () =>
+                onToggle: () =>
                     notifier.dispatch(const NewPasswordVisibilityToggled()),
               ),
 
               const SizedBox(height: 12.0),
 
-              TextFieldWidget(
+              PasswordFieldWidget(
                 inputAction: .done,
                 hint: 'Confirmar senha',
                 label: 'Confirmar senha',
-                hideTrailingIconWhenEmpty: true,
                 failure: state.confirmPasswordFailure,
-                obscureText: state.obscureConfirmPassword,
-                trailingIcon: state.obscureConfirmPassword
-                    ? Icons.visibility_outlined
-                    : Icons.visibility_off_outlined,
+                obscure: state.obscureConfirmPassword,
                 onChanged: (value) =>
                     notifier.dispatch(ConfirmPasswordChanged(value)),
-                onTrailingIconTap: () =>
+                onToggle: () =>
                     notifier.dispatch(const ConfirmPasswordVisibilityToggled()),
               ),
 

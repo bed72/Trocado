@@ -38,9 +38,9 @@ class TextFieldWidget extends StatefulWidget {
     this.maxLines = 1,
     this.onFocusChanged,
     this.enabled = true,
+    this.inputFormatters,
     this.readOnly = false,
     this.absorbing = false,
-    this.inputFormatters,
     this.onTrailingIconTap,
     this.obscureText = false,
     this.hideTrailingIconWhenEmpty = false,
@@ -59,6 +59,9 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
   bool get _isFailure => widget.failure != null;
 
   Color _color(BuildContext context) {
+    if (!widget.enabled) {
+      return context.colors.onSurfaceVariant.withValues(alpha: .9);
+    }
     if (_isFocused) return context.colors.primary;
     if (_isFailure) return context.colors.error;
     return context.colors.onSurfaceVariant;
@@ -150,7 +153,7 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
     inputFormatters: widget.inputFormatters,
     controller: widget.controller ?? _controller,
     maxLines: widget.obscureText ? 1 : widget.maxLines,
-    style: context.typography.bodyMedium?.copyWith(color: color),
+    style: context.typography.bodyMedium?.copyWith(color: color, height: 1.0),
     decoration: InputDecoration(
       hintText: widget.hint,
       filled: _isFailure || _isFocused,
@@ -159,8 +162,9 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
       focusedBorder: _outlinedBorder(context.colors.primary),
       border: _outlinedBorder(context.colors.onSurfaceVariant),
       focusedErrorBorder: _outlinedBorder(context.colors.error),
-      contentPadding: const .symmetric(horizontal: 12.0, vertical: 16.0),
+      contentPadding: const .symmetric(horizontal: 12.0, vertical: 18.0),
       hintStyle: context.typography.bodyMedium?.copyWith(
+        height: 1.0,
         color: color.withValues(alpha: .6),
       ),
       fillColor: _isFocused

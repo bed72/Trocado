@@ -25,11 +25,13 @@ import 'package:trocado/src/presentation/ui/profile/details/widgets/profile_fiel
 import 'package:trocado/src/presentation/ui/profile/details/widgets/profile_account_actions_widget.dart';
 
 class ProfileDetailsScreen extends StatelessWidget {
+  final VoidCallback onPurge;
   final VoidCallback onEditName;
   final VoidCallback onEditPassword;
 
   const ProfileDetailsScreen({
     super.key,
+    required this.onPurge,
     required this.onEditName,
     required this.onEditPassword,
   });
@@ -42,8 +44,7 @@ class ProfileDetailsScreen extends StatelessWidget {
       child: Consumer(
         builder: (_, ref, _) {
           ref.listen(profileDetailsProvider, (previous, next) {
-            if (next.status == .failure &&
-                previous?.status != .failure) {
+            if (next.status == .failure && previous?.status != .failure) {
               showToastWidget(
                 context: context,
                 title: 'Opps',
@@ -61,7 +62,7 @@ class ProfileDetailsScreen extends StatelessWidget {
             AsyncData(:final value) => _buildBody(
               user: value,
               detailsState: detailsState,
-              onDelete: () => _confirmDelete(context),
+              onDelete: onPurge,
               onDeactivate: () => _confirmDeactivate(context, notifier),
             ),
             AsyncError(:final error) => _buildError(
@@ -131,17 +132,6 @@ class ProfileDetailsScreen extends StatelessWidget {
     ),
   );
 
-  Future<void> _confirmDelete(BuildContext context) async {
-    final confirmed = await showConfirmDialog(
-      context: context,
-      title: 'Excluir conta',
-      confirmLabel: 'Excluir',
-      description:
-          'Esta ação é irreversível.\n\n - Todos os seus dados financeiros serão apagados e você não poderá recuperá-los.',
-    );
-    if (!confirmed) return;
-  }
-
   Future<void> _confirmDeactivate(
     BuildContext context,
     ProfileDetailsNotifier notifier,
@@ -151,7 +141,7 @@ class ProfileDetailsScreen extends StatelessWidget {
       title: 'Desativar conta',
       confirmLabel: 'Desativar',
       description:
-          'Sua conta ficará desativada e seus dados ficarão preservados.\n\n - Você poderá reativá-la fazendo login novamente.',
+          'Sua conta ficará desativada e seus dados ficarão preservados por até 60 dias.\n\n - Você poderá recupera-la através do processo de reativação.',
     );
     if (!confirmed) return;
 

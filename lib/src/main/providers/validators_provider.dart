@@ -15,6 +15,7 @@ import 'package:trocado/src/presentation/ui/expense/validators/expense_descripti
 
 import 'package:trocado/src/presentation/ui/profile/name/validators/name_validation.dart';
 import 'package:trocado/src/presentation/ui/profile/name/validators/profile_name_form_validator.dart';
+import 'package:trocado/src/presentation/ui/profile/purge/validators/profile_purge_form_validator.dart';
 import 'package:trocado/src/presentation/ui/profile/password/validators/profile_password_form_validator.dart';
 
 import 'package:trocado/src/presentation/ui/authentication/sign_up/validators/terms_validation.dart';
@@ -71,3 +72,7 @@ ProfilePasswordFormValidator profilePasswordFormValidator(Ref _) =>
     const ProfilePasswordFormValidator(
       passwordValidation: PasswordValidation(),
     );
+
+@Riverpod()
+ProfilePurgeFormValidator profilePurgeFormValidator(Ref _) =>
+    const ProfilePurgeFormValidator(passwordValidation: PasswordValidation());

@@ -139,6 +139,12 @@ final class AppRoutes {
     regex: RegExp(r'^/profile/password$'),
   );
 
+  static final profilePurge = AppRoutes._(
+    path: '/profile/purge',
+    name: 'profile-purge-route',
+    regex: RegExp(r'^/profile/purge$'),
+  );
+
   static final dateRange = AppRoutes._(
     path: '/date-range',
     name: 'date-range-route',
@@ -175,6 +181,7 @@ final class AppRoutes {
     dateRange,
     profileName,
     expenseDate,
+    profilePurge,
     notifications,
     expensesFilter,
     forgotPassword,
