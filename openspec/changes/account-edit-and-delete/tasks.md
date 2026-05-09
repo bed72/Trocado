@@ -137,7 +137,7 @@ Ordem fixa: spec → mover `userProvider` para escopo shared → promover avatar
           'Esta ação é irreversível. Todos os seus dados financeiros serão apagados e você não poderá recuperá-los.',
     );
     if (!confirmed) return;
-    // Parte 5: navegar para ProfilePurgeScreen
+    // Parte 5: navegar para ProfileDeleteScreen
   }
   ```
 - [ ] 12.3 Imports agrupados (Flutter / pacotes / projeto), seguindo a convenção do projeto.
@@ -305,7 +305,7 @@ Ordem fixa: rotas → reorganização de `profile/` em subdiretórios → subfea
 
 ## Parte 4 — Renome do botão de exclusão para "Excluir conta"
 
-A `ProfileDetailsScreen` mantém o botão único de exclusão criado na Parte 2; apenas o label muda. Sem dialog de confirmação na detail — o `onTap` apenas dispara navegação para `ProfilePurgeScreen` (Parte 5).
+A `ProfileDetailsScreen` mantém o botão único de exclusão criado na Parte 2; apenas o label muda. Sem dialog de confirmação na detail — o `onTap` apenas dispara navegação para `ProfileDeleteScreen` (Parte 5).
 
 ### 24. Atualizar `ProfileDeleteAccountWidget`
 
@@ -314,7 +314,7 @@ A `ProfileDetailsScreen` mantém o botão único de exclusão criado na Parte 2;
 ### 25. Atualizar `ProfileDetailsScreen`
 
 - [ ] 25.1 `_buildBody` recebe apenas `required VoidCallback onDelete` (sem `onDeactivate`). O argumento `onDelete` é repassado para `ProfileDeleteAccountWidget(onTap: onDelete)`.
-- [ ] 25.2 No branch `AsyncData`, `onDelete` recebe o `onPurge` injetado pela Location — sem dialog inline.
+- [ ] 25.2 No branch `AsyncData`, `onDelete` é repassado direto ao `ProfileDeleteAccountWidget` — sem dialog inline.
 - [ ] 25.3 Manter o branch `Skeletonizer` (loading) com `onDelete: () {}`.
 
 ### 26. Verificação Parte 4
@@ -322,7 +322,7 @@ A `ProfileDetailsScreen` mantém o botão único de exclusão criado na Parte 2;
 - [ ] 26.1 `flutter analyze` — zero warnings.
 - [ ] 26.2 `flutter test` — toda a suíte passa.
 - [ ] 26.3 **Smoke manual — botão**: a `ProfileDetailsScreen` mostra um único botão "Excluir conta" full-width no rodapé.
-- [ ] 26.4 **Smoke manual — navegação**: tap em "Excluir conta" navega para `ProfilePurgeScreen` (sem dialog inline na detail).
+- [ ] 26.4 **Smoke manual — navegação**: tap em "Excluir conta" navega para `ProfileDeleteScreen` (sem dialog inline na detail).
 
 ---
 
@@ -357,87 +357,77 @@ Pré-requisito da Parte 5 propriamente dita. Notifiers/states/intents existentes
 
 ---
 
-## Parte 5 — Exclusão definitiva via API (purge)
+## Parte 5 — Exclusão definitiva via API
 
-Ordem fixa: domain → infrastructure → data → presentation (subfeature `profile/purge/`) → wiring (rota + detail screen + location) → code generation → tests → verificação.
+Ordem fixa: domain → infrastructure → data → presentation (subfeature `profile/delete/`) → wiring (rota + detail screen + location) → code generation → tests → verificação.
 
 ### 38. Domain
 
 - [ ] 38.1 Adicionar à `IUserRepository`:
   ```dart
-  Future<Either<Failure, void>> purge({
-    required String email,
-    required String password,
-  });
+  Future<Either<Failure, void>> delete({required String password});
   ```
+  A senha é o único primitivo de domínio que atravessa a fronteira; o refresh token é orquestrado pelo repositório.
 
 ### 39. Infrastructure
 
-- [ ] 39.1 Adicionar `EndpointKey.purge('/api/v1/me/purge')` em `lib/src/infrastructure/clients/http/endpoint_key.dart`. **Não** incluir em `_publicEndpoints`.
-- [ ] 39.2 Criar `lib/src/infrastructure/clients/http/requests/purge_request.dart`:
+- [ ] 39.1 Adicionar à interface `IRemoteUserDataSource`:
   ```dart
-  final class PurgeRequest {
-    final String email;
-    final String password;
-
-    const PurgeRequest({required this.email, required this.password});
-
-    Map<String, dynamic> toJson() => {'email': email, 'password': password};
-  }
-  ```
-- [ ] 39.3 Adicionar à interface `IRemoteUserDataSource`:
-  ```dart
-  Future<Either<FailureResponse, void>> purge({
-    required String email,
+  Future<Either<FailureResponse, void>> delete({
+    required String refresh,
     required String password,
   });
   ```
-- [ ] 39.4 Implementar `RemoteUserDataSource.purge`:
+- [ ] 39.2 Implementar `RemoteUserDataSource.delete`:
   ```dart
-  final response = await _client.post(
-    parameter: Requests(EndpointKey.purge.path,
-      body: PurgeRequest(email: email, password: password).toJson()),
+  final response = await _client.delete(
+    parameter: Requests(
+      EndpointKey.me.path,
+      body: {'refresh': refresh, 'password': password},
+    ),
   );
   return response.either(FailureResponse.fromJson, (_) {});
   ```
+  Body inline, sem DTO (mesmo padrão do antigo deactivate). `EndpointKey.me` já existe — não cria nova entrada.
 
 ### 40. Data
 
-- [ ] 40.1 Implementar `UserRepository.purge`:
-  ```dart
-  @override
-  Future<Either<Failure, void>> purge({
-    required String email,
-    required String password,
-  }) async {
-    final data = await _userDataSource.purge(email: email, password: password);
+- [ ] 40.1 Atualizar `UserRepository`:
+  - Construtor passa a aceitar `ILocalTokenDataSource tokenDataSource` + `IRemoteUserDataSource userDataSource` (espelha `AuthenticationRepository`).
+  - `delete({required String password})`:
+    ```dart
+    final tokens = await _tokenDataSource.get();
+    if (tokens.refresh == null) return const Left(UnknownFailure());
+    final data = await _userDataSource.delete(
+      refresh: tokens.refresh!,
+      password: password,
+    );
     return data.either((failure) => failure.toFailure(), (_) {});
-  }
-  ```
-  Sem leitura de tokens — `Authorization` é injetado pelo `AuthenticationInterceptor` automaticamente.
+    ```
+- [ ] 40.2 Atualizar `userRepositoryProvider` em `lib/src/main/providers/repositories_provider.dart` para injetar `localTokenDataSourceProvider` junto com `remoteUserDataSourceProvider`.
 
-### 41. Presentation — subfeature `profile/purge/`
+### 41. Presentation — subfeature `profile/delete/`
 
-- [ ] 41.1 Criar `lib/src/presentation/ui/profile/purge/notifiers/profile_purge_state.dart`:
-  - `enum ProfilePurgeStatus { initial, loading, success, failure }`.
-  - `final class ProfilePurgeState extends Equatable` com `final String password;`, `final String message;`, `final bool obscurePassword;`, `final String? passwordFailure;`, `final ProfilePurgeStatus status;`.
+- [ ] 41.1 Criar `lib/src/presentation/ui/profile/delete/notifiers/profile_delete_state.dart`:
+  - `enum ProfileDeleteStatus { initial, loading, success, failure }`.
+  - `final class ProfileDeleteState extends Equatable` com `final String password;`, `final String message;`, `final bool obscurePassword;`, `final String? passwordFailure;`, `final ProfileDeleteStatus status;`.
   - Defaults: `password = ''`, `message = ''`, `obscurePassword = true`, `passwordFailure = null`, `status = initial`.
-  - `copyWith({String? password, String? message, bool? obscurePassword, String? passwordFailure, ProfilePurgeStatus? status, bool clearPasswordFailure = false})`.
+  - `copyWith({String? password, String? message, bool? obscurePassword, String? passwordFailure, ProfileDeleteStatus? status, bool clearPasswordFailure = false})`.
   - `props = [password, message, obscurePassword, passwordFailure, status]`.
-- [ ] 41.2 Criar `lib/src/presentation/ui/profile/purge/notifiers/profile_purge_intent.dart`:
-  - `sealed class ProfilePurgeIntent { const ProfilePurgeIntent(); }`.
-  - `final class PasswordChanged extends ProfilePurgeIntent { final String value; const PasswordChanged(this.value); }`.
-  - `final class PasswordVisibilityToggled extends ProfilePurgeIntent { const PasswordVisibilityToggled(); }`.
-  - `final class ValidatePressed extends ProfilePurgeIntent { const ValidatePressed(); }` — usado pela screen para validar antes de abrir o confirm dialog.
-  - `final class SubmitPressed extends ProfilePurgeIntent { const SubmitPressed(); }`.
-- [ ] 41.3 Criar `lib/src/presentation/ui/profile/purge/validators/profile_purge_form_validator.dart`:
+- [ ] 41.2 Criar `lib/src/presentation/ui/profile/delete/notifiers/profile_delete_intent.dart`:
+  - `sealed class ProfileDeleteIntent { const ProfileDeleteIntent(); }`.
+  - `final class PasswordChanged extends ProfileDeleteIntent { final String value; const PasswordChanged(this.value); }`.
+  - `final class PasswordVisibilityToggled extends ProfileDeleteIntent { const PasswordVisibilityToggled(); }`.
+  - `final class ValidatePressed extends ProfileDeleteIntent { const ValidatePressed(); }` — usado pela screen para validar antes de abrir o confirm dialog.
+  - `final class SubmitPressed extends ProfileDeleteIntent { const SubmitPressed(); }`.
+- [ ] 41.3 Criar `lib/src/presentation/ui/profile/delete/validators/profile_delete_form_validator.dart`:
   ```dart
-  final class ProfilePurgeFormValidator {
+  final class ProfileDeleteFormValidator {
     final PasswordValidation _passwordValidation;
-    const ProfilePurgeFormValidator({required PasswordValidation passwordValidation})
+    const ProfileDeleteFormValidator({required PasswordValidation passwordValidation})
         : _passwordValidation = passwordValidation;
 
-    ({ProfilePurgeState state, bool isValid}) call(ProfilePurgeState state) {
+    ({ProfileDeleteState state, bool isValid}) call(ProfileDeleteState state) {
       final password = _passwordValidation(state.password);
       final isValid = password is Valid;
       final validated = state.copyWith(
@@ -451,11 +441,11 @@ Ordem fixa: domain → infrastructure → data → presentation (subfeature `pro
     }
   }
   ```
-- [ ] 41.4 Criar `lib/src/presentation/ui/profile/purge/notifiers/profile_purge_notifier.dart`:
-  - `@riverpod final class ProfilePurgeNotifier extends _$ProfilePurgeNotifier`.
-  - `late IUserRepository _repository; late ProfilePurgeFormValidator _validator;`.
-  - `ProfilePurgeState build() { _repository = ref.watch(userRepositoryProvider); _validator = ref.watch(profilePurgeFormValidatorProvider); return const ProfilePurgeState(); }`.
-  - `dispatch(ProfilePurgeIntent intent)` exhaustivo:
+- [ ] 41.4 Criar `lib/src/presentation/ui/profile/delete/notifiers/profile_delete_notifier.dart`:
+  - `@riverpod final class ProfileDeleteNotifier extends _$ProfileDeleteNotifier`.
+  - `late IUserRepository _repository; late ProfileDeleteFormValidator _validator;`.
+  - `ProfileDeleteState build() { _repository = ref.watch(userRepositoryProvider); _validator = ref.watch(profileDeleteFormValidatorProvider); return const ProfileDeleteState(); }`.
+  - `dispatch(ProfileDeleteIntent intent)` exhaustivo:
     - `PasswordChanged(:final value)` → `state = state.copyWith(password: value, clearPasswordFailure: true)`.
     - `PasswordVisibilityToggled()` → `state = state.copyWith(obscurePassword: !state.obscurePassword)`.
     - `ValidatePressed()` → `_validate()`.
@@ -464,25 +454,23 @@ Ordem fixa: domain → infrastructure → data → presentation (subfeature `pro
   - `Future<void> _submit()`:
     1. `final (:state, :isValid) = _validator(this.state); this.state = state;`.
     2. `if (!isValid) return;`.
-    3. `if (this.state.status == ProfilePurgeStatus.loading) return;`.
+    3. `if (this.state.status == ProfileDeleteStatus.loading) return;`.
     4. `this.state = this.state.copyWith(status: .loading);`.
-    5. `final user = ref.read(userProvider).valueOrNull;`.
-    6. `if (user == null) { this.state = this.state.copyWith(status: .failure, message: 'Não foi possível identificar o usuário.'); return; }`.
-    7. `final data = await _repository.purge(email: user.email, password: this.state.password);`.
-    8. `data.fold((failure) => this.state = this.state.copyWith(status: .failure, message: failure.message), (_) { ref.invalidate(userProvider); this.state = this.state.copyWith(status: .success); });`.
-- [ ] 41.5 Criar `lib/src/presentation/ui/profile/purge/screens/profile_purge_screen.dart`:
+    5. `final data = await _repository.delete(password: this.state.password);`.
+    6. `data.fold((failure) => this.state = this.state.copyWith(status: .failure, message: failure.message), (_) { ref.invalidate(userProvider); this.state = this.state.copyWith(status: .success); });`.
+- [ ] 41.5 Criar `lib/src/presentation/ui/profile/delete/screens/profile_delete_screen.dart`:
   - `StatelessWidget` + `Consumer` interno (jamais `ConsumerWidget`).
-  - `ref.listen(profilePurgeProvider, (previous, next) { if (next.status == .failure && previous?.status != .failure) showToastWidget(context: context, title: 'Opps', type: .failure, description: next.message); });`.
-  - Lê `final user = ref.watch(userProvider).valueOrNull` — se `null` (defensivo), renderiza `SizedBox.shrink()` ou um `Center` neutro (não esperado em prática).
-  - Lê `final state = ref.watch(profilePurgeProvider); final notifier = ref.read(profilePurgeProvider.notifier);`.
-  - Layout: `ScaffoldWidget(appBar: AppBarWidget(leading: GoBackWidget()), child: Padding(padding: const .all(16.0), child: Column(spacing: 24.0, crossAxisAlignment: .start, children: [ScreenHeaderWidget(title: 'Excluir conta', description: 'Esta ação é irreversível. Confirme com sua senha para excluir definitivamente sua conta e todos os dados associados.'), TextFieldWidget(label: 'E-mail', hint: '', initialValue: user.email, readOnly: true), PasswordFieldWidget(label: 'Senha', hint: 'Digite sua senha', inputAction: .done, obscure: state.obscurePassword, onToggle: () => notifier.dispatch(const PasswordVisibilityToggled()), failure: state.passwordFailure, onChanged: (v) => notifier.dispatch(PasswordChanged(v))), const Spacer(), SizedBox(width: .infinity, child: ButtonWidget.elevated(label: 'Excluir', isLoading: state.status == .loading, onTap: () => _submit(context, notifier)))])))`.
-  - Método privado `_submit(BuildContext context, WidgetRef ref, ProfilePurgeNotifier notifier)` — valida **antes** de abrir o dialog, abortando se inválido:
+  - `ref.listen(profileDeleteProvider, (previous, next) { if (next.status == .failure && previous?.status != .failure) showToastWidget(context: context, title: 'Opps', type: .failure, description: next.message); });`.
+  - Lê `final state = ref.watch(profileDeleteProvider); final notifier = ref.read(profileDeleteProvider.notifier);` e `final email = switch (ref.watch(userProvider)) { AsyncData(:final value) => value.email, _ => '' };` (apenas para reforço visual readonly — não atravessa o estado do notifier).
+  - Body envolto em `CustomScrollView(slivers: [SliverFillRemaining(hasScrollBody: false, child: Padding(...))])` para evitar overflow quando o teclado abre.
+  - Layout interno: `Padding(padding: const .all(16.0), child: Column(spacing: 24.0, crossAxisAlignment: .start, children: [ScreenHeaderWidget(title: 'Excluir conta', description: 'Esta ação é irreversível.\nConfirme com sua senha para excluir definitivamente sua conta e todos os dados associados.'), TextFieldWidget(label: 'E-mail', hint: '', readOnly: true, enabled: false, initialValue: email), PasswordFieldWidget(label: 'Senha', hint: 'Digite sua senha', inputAction: .done, obscure: state.obscurePassword, onToggle: () => notifier.dispatch(const PasswordVisibilityToggled()), failure: state.passwordFailure, onChanged: (v) => notifier.dispatch(PasswordChanged(v))), const Spacer(), SizedBox(width: .infinity, child: ButtonWidget.elevated(label: 'Excluir', isLoading: state.status == .loading, onTap: () => _submit(context, ref, notifier)))]))`.
+  - Método privado `_submit(BuildContext context, WidgetRef ref, ProfileDeleteNotifier notifier)` — valida **antes** de abrir o dialog, abortando se inválido:
     ```dart
     hideKeyboard();
 
     notifier.dispatch(const ValidatePressed());
 
-    if (ref.read(profilePurgeProvider).passwordFailure != null) return;
+    if (ref.read(profileDeleteProvider).passwordFailure != null) return;
 
     final confirmed = await showConfirmDialog(
       context: context,
@@ -496,15 +484,15 @@ Ordem fixa: domain → infrastructure → data → presentation (subfeature `pro
     notifier.dispatch(const SubmitPressed());
     ```
   - Sem classes privadas no arquivo — apenas métodos privados (CLAUDE.md).
-- [ ] 41.6 Criar `lib/src/presentation/ui/profile/purge/locations/profile_purge_location.dart`:
+- [ ] 41.6 Criar `lib/src/presentation/ui/profile/delete/locations/profile_delete_location.dart`:
   ```dart
-  final class ProfilePurgeLocation extends Location {
+  final class ProfileDeleteLocation extends Location {
     @override
-    String get path => AppRoutes.profilePurge.path;
+    String get path => AppRoutes.profileDelete.path;
 
     @override
     LocationPageBuilder get pageBuilder =>
-        (_) => screenPage(const ProfilePurgeScreen());
+        (_) => screenPage(const ProfileDeleteScreen());
   }
   ```
 
@@ -513,55 +501,55 @@ Ordem fixa: domain → infrastructure → data → presentation (subfeature `pro
 - [ ] 42.1 Adicionar em `lib/src/main/providers/validators_provider.dart`:
   ```dart
   @Riverpod()
-  ProfilePurgeFormValidator profilePurgeFormValidator(Ref _) =>
-      const ProfilePurgeFormValidator(passwordValidation: PasswordValidation());
+  ProfileDeleteFormValidator profileDeleteFormValidator(Ref _) =>
+      const ProfileDeleteFormValidator(passwordValidation: PasswordValidation());
   ```
-- [ ] 42.2 Adicionar import de `profile_purge_form_validator.dart`.
+- [ ] 42.2 Adicionar import de `profile_delete_form_validator.dart`.
 
 ### 43. Rota
 
 - [ ] 43.1 Adicionar em `lib/app_route.dart`:
   ```dart
-  static final profilePurge = AppRoutes._(
-    path: '/profile/purge',
-    name: 'profile-purge-route',
-    regex: RegExp(r'^/profile/purge$'),
+  static final profileDelete = AppRoutes._(
+    path: '/profile/delete',
+    name: 'profile-delete-route',
+    regex: RegExp(r'^/profile/delete$'),
   );
   ```
-- [ ] 43.2 Incluir `profilePurge` em `AppRoutes._all`.
+- [ ] 43.2 Incluir `profileDelete` em `AppRoutes._all`.
 
 ### 44. Wiring na detail
 
 - [ ] 44.1 Atualizar `lib/src/presentation/ui/profile/details/screens/profile_details_screen.dart`:
-  - Adicionar `final VoidCallback onPurge;` named-required (junto aos demais callbacks).
-  - Atualizar construtor para incluir `required this.onPurge`.
-  - Em `_buildBody`, no branch `AsyncData`, passar `onDelete: onPurge` direto (sem ir por `_confirmDelete`).
+  - Adicionar `final VoidCallback onDelete;` named-required (junto aos demais callbacks).
+  - Atualizar construtor para incluir `required this.onDelete`.
+  - Em `_buildBody`, no branch `AsyncData`, passar `onDelete: onDelete` direto (sem dialog inline).
   - Manter o branch `Skeletonizer` passando `onDelete: () {}` (no-op enquanto carrega).
-  - **Remover** o método `_confirmDelete` — o dialog de confirmação migra para `ProfilePurgeScreen`.
-  - Limpar imports não usados (`confirm_dialog_widget.dart` continua sendo usado pelo `_confirmDeactivate`, então fica).
 - [ ] 44.2 Atualizar `lib/src/presentation/ui/profile/details/locations/profile_details_location.dart`:
-  - Importar `package:trocado/src/presentation/ui/profile/purge/locations/profile_purge_location.dart`.
-  - Injetar `onPurge: () => context.navigate(ProfilePurgeLocation())` ao construir `ProfileDetailsScreen`.
+  - Importar `package:trocado/src/presentation/ui/profile/delete/locations/profile_delete_location.dart`.
+  - Injetar `onDelete: () => context.navigate(ProfileDeleteLocation())` ao construir `ProfileDetailsScreen`.
 
 ### 45. Code generation
 
 - [ ] 45.1 Rodar `dart run build_runner build --delete-conflicting-outputs` para regenerar:
-  - `profile_purge_notifier.g.dart`.
-  - `validators_provider.g.dart` (com o novo `profilePurgeFormValidatorProvider`).
+  - `profile_delete_notifier.g.dart`.
+  - `validators_provider.g.dart` (com o novo `profileDeleteFormValidatorProvider`).
 
 ### 46. Testes
 
-- [ ] 46.1 Estender `test/src/data/repositories/user_repository_test.dart` com `group('purge')` cobrindo:
-  - Right(null) quando POST `/api/v1/me/purge` retorna 204 — verificar path **e** que o body envia `{'email': '<email>', 'password': '<password>'}`.
-  - Left(NetworkFailure) quando código `'connection_error'` ou `'timeout'`.
+- [ ] 46.1 Estender `test/src/data/repositories/user_repository_test.dart` com `group('delete')` cobrindo:
+  - Right(null) quando DELETE `/api/v1/me` retorna 204 — verificar path **e** que o body envia `{'refresh': '<token>', 'password': '<password>'}`.
+  - Left(UnknownFailure) quando `tokenDataSource.get()` retorna `refresh: null` — confirmar que `client.delete` **não** é chamado.
+  - Left(NetworkFailure) quando código `'network_error'`.
   - Left(NotFoundFailure) quando código `'not_found'`.
   - Left(ServerFailure) quando código `'server_error'`.
-  - Left(ValidationFailure('Senha incorreta.')) quando código `'invalid'` com mensagem genérica do backend.
-- [ ] 46.2 Criar `test/src/presentation/profile/purge/validators/profile_purge_form_validator_test.dart` com 3 cenários:
+  - Left(ValidationFailure('Invalid credentials.')) quando código `'invalid_credentials'` com mensagem do backend.
+  - O `setUp` mocka `ILocalTokenDataSource.get()` retornando refresh válido como default.
+- [ ] 46.2 Criar `test/src/presentation/profile/delete/validators/profile_delete_form_validator_test.dart` com 3 cenários:
   - empty → `passwordFailure == 'Senha obrigatória'` e `isValid == false`.
   - <8 chars → `passwordFailure == 'Senha deve ter ao menos 8 caracteres'` e `isValid == false`.
   - 8+ chars → `passwordFailure == null` e `isValid == true`.
-- [ ] 46.3 Criar `test/src/presentation/profile/purge/notifiers/profile_purge_notifier_test.dart` cobrindo:
+- [ ] 46.3 Criar `test/src/presentation/profile/delete/notifiers/profile_delete_notifier_test.dart` cobrindo:
   - `build returns initial state`.
   - `PasswordChanged updates password and clears passwordFailure` (após dispatch SubmitPressed que populou failure).
   - `PasswordVisibilityToggled toggles obscurePassword` (default true → false → true).
@@ -569,24 +557,23 @@ Ordem fixa: domain → infrastructure → data → presentation (subfeature `pro
   - `SubmitPressed with valid password sets status to loading then success and invalidates userProvider on success`.
   - `SubmitPressed with valid password and repository failure sets status to failure with message`.
   - `SubmitPressed during loading is a no-op` (re-entrancy guard).
-  - `SubmitPressed when userProvider is null sets failure defensively with 'Não foi possível identificar o usuário.'`.
-  - Mock `IUserRepository` com `MockUserRepository` (já existe em `test/mocks/mocks.dart`); override `userProvider` com um valor de `UserModel` ou explicitamente `null` conforme o cenário.
+  - Mock `IUserRepository` com `MockUserRepository` (já existe em `test/mocks/mocks.dart`).
 - [ ] 46.4 Convenções: descrições em inglês; mocks declarados com tipo da interface (`late IUserRepository repository;`); variáveis nunca chamadas `result`/`either`; `final` com tipo explícito quando agrega legibilidade.
 
 ### 47. Verificação Parte 5
 
 - [ ] 47.1 `flutter analyze` — zero warnings.
 - [ ] 47.2 `flutter test` — toda a suíte passa.
-- [ ] 47.3 **Smoke manual — navegação**: tap em "Excluir" no `ProfileDetailsScreen` abre `ProfilePurgeScreen` com email readonly preenchido e campo senha vazio.
+- [ ] 47.3 **Smoke manual — navegação**: tap em "Excluir conta" no `ProfileDetailsScreen` abre `ProfileDeleteScreen` com email readonly preenchido (do usuário logado) e campo senha vazio.
 - [ ] 47.4 **Smoke manual — validação**: tap "Excluir" com senha vazia → `'Senha obrigatória'`. Senha < 8 chars → `'Senha deve ter ao menos 8 caracteres'`. Senha válida → abre `showConfirmDialog`.
 - [ ] 47.5 **Smoke manual — confirm dialog**: dialog tem título `'Excluir conta'`, label `'Excluir'`, descrição reforçando irreversibilidade. Cancel fecha sem efeito; confirm dispara loading no botão.
 - [ ] 47.6 **Smoke manual — sucesso**: backend 204 → `userProvider` invalidado → próxima request 401 → refresh fail → app redireciona para SignIn.
-- [ ] 47.7 **Smoke manual — falha "senha incorreta"**: digitar senha errada → toast `'Opps'` com mensagem do backend (ex: `'Senha incorreta.'`) aparece. Botão sai do loading; usuário continua na `ProfilePurgeScreen` para tentar de novo.
+- [ ] 47.7 **Smoke manual — falha "senha incorreta"**: digitar senha errada → toast `'Opps'` com mensagem do backend (ex: `'Senha incorreta.'`) aparece. Botão sai do loading; usuário continua na `ProfileDeleteScreen` para tentar de novo.
 - [ ] 47.8 **Smoke manual — falha de rede**: backend timeout → toast `'Opps'` com mensagem do `NetworkFailure`. Botão sai do loading.
 - [ ] 47.9 **Smoke manual — double-tap**: tap rápido em "Excluir" no dialog não dispara duas requests (verificar via logs).
 - [ ] 47.10 **Smoke manual — toggle de visibilidade**: tap no ícone do olho alterna entre obscured/visible no campo senha.
-- [ ] 47.11 **Smoke manual — voltar**: a partir da `ProfilePurgeScreen`, `GoBackWidget` retorna para `ProfileDetailsScreen` com state limpo.
-- [ ] 47.12 Verificar com `find lib/src/presentation/ui/profile -maxdepth 1 -type d` que `purge/` foi adicionada como 4ª subpasta junto com `details/`, `name/`, `password/`.
+- [ ] 47.11 **Smoke manual — voltar**: a partir da `ProfileDeleteScreen`, `GoBackWidget` retorna para `ProfileDetailsScreen` com state limpo.
+- [ ] 47.12 Verificar com `find lib/src/presentation/ui/profile -maxdepth 1 -type d` que `delete/` foi adicionada como 4ª subpasta junto com `details/`, `name/`, `password/`.
 
 ---
 

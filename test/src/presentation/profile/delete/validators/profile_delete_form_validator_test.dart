@@ -2,17 +2,17 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:trocado/src/presentation/validators/password_validation.dart';
 
-import 'package:trocado/src/presentation/ui/profile/purge/notifiers/profile_purge_state.dart';
-import 'package:trocado/src/presentation/ui/profile/purge/validators/profile_purge_form_validator.dart';
+import 'package:trocado/src/presentation/ui/profile/delete/notifiers/profile_delete_state.dart';
+import 'package:trocado/src/presentation/ui/profile/delete/validators/profile_delete_form_validator.dart';
 
 void main() {
-  const validator = ProfilePurgeFormValidator(
+  const validator = ProfileDeleteFormValidator(
     passwordValidation: PasswordValidation(),
   );
 
-  group('ProfilePurgeFormValidator', () {
+  group('ProfileDeleteFormValidator', () {
     test('sets passwordFailure when password is empty', () {
-      const input = ProfilePurgeState();
+      const input = ProfileDeleteState();
 
       final (:state, :isValid) = validator(input);
 
@@ -21,7 +21,7 @@ void main() {
     });
 
     test('sets passwordFailure when password is too short', () {
-      const input = ProfilePurgeState(password: 'abc');
+      const input = ProfileDeleteState(password: 'abc');
 
       final (:state, :isValid) = validator(input);
 
@@ -30,7 +30,7 @@ void main() {
     });
 
     test('returns isValid true and clears passwordFailure when valid', () {
-      const input = ProfilePurgeState(
+      const input = ProfileDeleteState(
         password: 'MyPassword!456',
         passwordFailure: 'Senha obrigatória',
       );

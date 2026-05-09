@@ -7,7 +7,7 @@ import 'package:trocado/src/presentation/extensions/context_extension.dart';
 import 'package:trocado/src/presentation/pages/screen_page.dart';
 
 import 'package:trocado/src/presentation/ui/profile/name/locations/profile_name_location.dart';
-import 'package:trocado/src/presentation/ui/profile/purge/locations/profile_purge_location.dart';
+import 'package:trocado/src/presentation/ui/profile/delete/locations/profile_delete_location.dart';
 import 'package:trocado/src/presentation/ui/profile/details/screens/profile_details_screen.dart';
 import 'package:trocado/src/presentation/ui/profile/password/locations/profile_password_location.dart';
 
@@ -18,7 +18,7 @@ final class ProfileDetailsLocation extends Location {
   @override
   LocationPageBuilder get pageBuilder => (context) => screenPage(
     ProfileDetailsScreen(
-      onPurge: () => context.navigate(ProfilePurgeLocation()),
+      onDelete: () => context.navigate(ProfileDeleteLocation()),
       onEditName: () => context.navigate(ProfileNameLocation()),
       onEditPassword: () => context.navigate(ProfilePasswordLocation()),
     ),

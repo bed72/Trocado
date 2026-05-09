@@ -276,9 +276,9 @@ The system SHALL create `lib/src/presentation/ui/profile/details/widgets/profile
 
 The widget SHALL render a `Container(width: double.infinity, padding: EdgeInsets.only(top: 16.0))` whose child is `ButtonWidget.elevated(label: 'Excluir conta', onTap: onTap)`.
 
-The button SHALL NOT render an icon — only the label is shown. The widget SHALL NOT apply any `Theme` override or custom destructive coloring — the destructive intent is communicated exclusively through the confirmation flow on the dedicated `ProfilePurgeScreen`.
+The button SHALL NOT render an icon — only the label is shown. The widget SHALL NOT apply any `Theme` override or custom destructive coloring — the destructive intent is communicated exclusively through the confirmation flow on the dedicated `ProfileDeleteScreen`.
 
-There is no in-screen confirmation dialog on `ProfileDetailsScreen` — tapping the button navigates to `ProfilePurgeScreen` (Part 5) where the user re-enters their password and confirms.
+There is no in-screen confirmation dialog on `ProfileDetailsScreen` — tapping the button navigates to `ProfileDeleteScreen` (Part 5) where the user re-enters their password and confirms.
 
 #### Scenario: Single Excluir conta button is rendered
 
@@ -287,12 +287,12 @@ When `ProfileDeleteAccountWidget` builds
 Then a single `ButtonWidget.elevated` SHALL be rendered with label `'Excluir conta'` taking the full available width
 And no other action button SHALL be present alongside it
 
-#### Scenario: Tap navigates to ProfilePurgeScreen
+#### Scenario: Tap navigates to ProfileDeleteScreen
 
 Given the user is on `ProfileDetailsScreen` with data loaded
 When the user taps the `'Excluir conta'` button
 Then the `onTap` callback SHALL be invoked
-And the callback SHALL navigate to `ProfilePurgeLocation` (wired by `ProfileDetailsLocation`)
+And the callback SHALL navigate to `ProfileDeleteLocation` (wired by `ProfileDetailsLocation`)
 
 ---
 
@@ -305,7 +305,7 @@ The following subdirectories SHALL exist after this part:
 - `profile/details/` — listing screen (renamed from the root-level files of Parts 1 and 2). Contains `screens/profile_details_screen.dart`, `locations/profile_details_location.dart` and `widgets/profile_*.dart` (the four widgets created in Part 2).
 - `profile/name/` — name editing screen, with `screens/`, `locations/`, `notifiers/`, `validators/`.
 - `profile/password/` — password editing screen, with `screens/`, `locations/`, `notifiers/`, `validators/`.
-- `profile/purge/` — account deletion screen (added in Part 5), with `screens/`, `locations/`, `notifiers/`, `validators/`.
+- `profile/delete/` — account deletion screen (added in Part 5), with `screens/`, `locations/`, `notifiers/`, `validators/`.
 
 The class `ProfileScreen` SHALL be renamed to `ProfileDetailsScreen` and `ProfileLocation` to `ProfileDetailsLocation`. Imports in `HomeLocation` and `SettingsLocation` SHALL be updated accordingly. The route path `/profile` SHALL continue to map to `ProfileDetailsLocation` — no change to `AppRoutes.profile`.
 
@@ -313,7 +313,7 @@ The class `ProfileScreen` SHALL be renamed to `ProfileDetailsScreen` and `Profil
 
 Given the reorganisation is complete
 When `find lib/src/presentation/ui/profile -maxdepth 1 -mindepth 1 -type d` is executed
-Then the result SHALL list exactly four directories: `details`, `name`, `password`, `purge`
+Then the result SHALL list exactly four directories: `details`, `name`, `password`, `delete`
 
 #### Scenario: Old paths are gone
 
@@ -521,90 +521,76 @@ Then there SHALL be no remaining occurrences of `obscureText:` outside `Password
 
 ---
 
-### Requirement: AppRoutes.profilePurge entry
+### Requirement: AppRoutes.profileDelete entry
 
-The system SHALL add a `profilePurge` entry to `AppRoutes` in `lib/app_route.dart` with `path: '/profile/purge'`, `name: 'profile-purge-route'`, and a regex matching exactly `^/profile/purge$`. The entry SHALL be included in `AppRoutes._all`.
+The system SHALL add a `profileDelete` entry to `AppRoutes` in `lib/app_route.dart` with `path: '/profile/delete'`, `name: 'profile-delete-route'`, and a regex matching exactly `^/profile/delete$`. The entry SHALL be included in `AppRoutes._all`.
 
 #### Scenario: Route is registered
 
 Given the app starts
-Then `AppRoutes.profilePurge.path` SHALL equal `'/profile/purge'`
-And `AppRoutes._all` SHALL contain the `profilePurge` entry
+Then `AppRoutes.profileDelete.path` SHALL equal `'/profile/delete'`
+And `AppRoutes._all` SHALL contain the `profileDelete` entry
 
 ---
 
-### Requirement: IUserRepository extended with purge
+### Requirement: IUserRepository extended with delete
 
 The system SHALL extend `lib/src/domain/repositories/interface_user_repository.dart` with:
 
 ```dart
-Future<Either<Failure, void>> purge({
-  required String email,
-  required String password,
-});
+Future<Either<Failure, void>> delete({required String password});
 ```
 
-The signature SHALL accept domain primitives (`String email`, `String password`) — never an infrastructure DTO (`PurgeRequest`).
+The signature SHALL accept the password as a domain primitive (`String`). The repository — not the caller — orchestrates the refresh token via `ILocalTokenDataSource`.
 
-`IRemoteUserDataSource` SHALL gain `Future<Either<FailureResponse, void>> purge({required String email, required String password});`. The implementation SHALL call `_client.post(parameter: Requests(EndpointKey.purge.path, body: PurgeRequest(email: email, password: password).toJson()))` and map via `response.either(FailureResponse.fromJson, (_) {})` (the 204 body is discarded).
+`IRemoteUserDataSource` SHALL gain `Future<Either<FailureResponse, void>> delete({required String refresh, required String password});`. The implementation SHALL call `_client.delete(parameter: Requests(EndpointKey.me.path, body: {'refresh': refresh, 'password': password}))` and map via `response.either(FailureResponse.fromJson, (_) {})` (the 204 body is discarded). The body is constructed inline — no DTO.
 
-`UserRepository.purge` SHALL pass the primitives directly to the datasource and map `FailureResponse → Failure` via `failure.toFailure()`. It SHALL NOT read tokens — `Authorization` is injected by the existing `AuthenticationInterceptor` for authenticated endpoints.
+`UserRepository.delete` SHALL accept `ILocalTokenDataSource tokenDataSource` and `IRemoteUserDataSource userDataSource` via constructor (mirroring `AuthenticationRepository`). `delete({required String password})` SHALL:
 
-#### Scenario: purge calls POST /api/v1/me/purge with email and password body
+- Read `tokens.refresh` via `_tokenDataSource.get()`.
+- Return `Left(UnknownFailure())` immediately when `tokens.refresh == null` (defensive — no API call).
+- Otherwise call `_userDataSource.delete(refresh: tokens.refresh!, password: password)` and map via `data.either((failure) => failure.toFailure(), (_) {})`.
 
-Given `UserRepository.purge(email: 'jane@trocado.app', password: 'MyPassword!456')` is invoked
-Then `IHttpClient.post` SHALL be called with `Requests(path: '/api/v1/me/purge', body: {'email': 'jane@trocado.app', 'password': 'MyPassword!456'})`
+`userRepositoryProvider` in `repositories_provider.dart` SHALL inject `localTokenDataSourceProvider` alongside `remoteUserDataSourceProvider`.
 
-#### Scenario: purge maps NetworkFailure
+#### Scenario: delete calls DELETE /api/v1/me with refresh and password body
 
-Given the datasource returns `Left(FailureResponse with code 'connection_error')`
-When `UserRepository.purge(...)` resolves
+Given `UserRepository.delete(password: 'MyPassword!456')` is invoked
+And `tokenDataSource.get()` returns `(access: 'A', refresh: 'R')`
+Then `IHttpClient.delete` SHALL be called with `Requests(path: '/api/v1/me', body: {'refresh': 'R', 'password': 'MyPassword!456'})`
+
+#### Scenario: delete short-circuits when refresh is null
+
+Given `tokenDataSource.get()` returns `(access: 'A', refresh: null)`
+When `UserRepository.delete(password: 'MyPassword!456')` resolves
+Then it SHALL return `Left(UnknownFailure())`
+And `IHttpClient.delete` SHALL NOT be called
+
+#### Scenario: delete maps NetworkFailure
+
+Given the datasource returns `Left(FailureResponse with code 'network_error')`
+When `UserRepository.delete(...)` resolves
 Then it SHALL return `Left(NetworkFailure())`
 
-#### Scenario: purge maps backend validation error to ValidationFailure
+#### Scenario: delete maps invalid_credentials to ValidationFailure
 
-Given the datasource returns `Left(FailureResponse with code 'invalid' and message 'Senha incorreta.')`
-When `UserRepository.purge(...)` resolves
-Then it SHALL return `Left(ValidationFailure('Senha incorreta.'))`
+Given the datasource returns `Left(FailureResponse with code 'invalid_credentials' and message 'Invalid credentials.')`
+When `UserRepository.delete(...)` resolves
+Then it SHALL return `Left(ValidationFailure('Invalid credentials.'))`
 
-#### Scenario: purge returns Right on 204
+#### Scenario: delete returns Right on 204
 
 Given the datasource returns `Right(null)`
-When `UserRepository.purge(...)` resolves
+When `UserRepository.delete(...)` resolves
 Then it SHALL return `Right(null)`
 
 ---
 
-### Requirement: PurgeRequest DTO carries email and password
+### Requirement: ProfileDeleteFormValidator validates password length
 
-The system SHALL create `lib/src/infrastructure/clients/http/requests/purge_request.dart` defining:
+The system SHALL create `lib/src/presentation/ui/profile/delete/validators/profile_delete_form_validator.dart` defining `final class ProfileDeleteFormValidator`.
 
-```dart
-final class PurgeRequest {
-  final String email;
-  final String password;
-
-  const PurgeRequest({required this.email, required this.password});
-
-  Map<String, dynamic> toJson() => {'email': email, 'password': password};
-}
-```
-
-The DTO SHALL live in `infrastructure/`, never crossing into `domain/` or `data/`. Only the concrete `RemoteUserDataSource.purge` implementation SHALL instantiate it.
-
-#### Scenario: toJson serialises email and password verbatim
-
-Given `PurgeRequest(email: 'jane@trocado.app', password: 'p@ss')`
-When `toJson()` is invoked
-Then the result SHALL equal `{'email': 'jane@trocado.app', 'password': 'p@ss'}`
-
----
-
-### Requirement: ProfilePurgeFormValidator validates password length
-
-The system SHALL create `lib/src/presentation/ui/profile/purge/validators/profile_purge_form_validator.dart` defining `final class ProfilePurgeFormValidator`.
-
-The validator SHALL receive `PasswordValidation` via constructor (named-required) and expose `({ProfilePurgeState state, bool isValid}) call(ProfilePurgeState state)`.
+The validator SHALL receive `PasswordValidation` via constructor (named-required) and expose `({ProfileDeleteState state, bool isValid}) call(ProfileDeleteState state)`.
 
 It SHALL apply `PasswordValidation` (min 8) to `state.password` and:
 
@@ -634,13 +620,13 @@ And `isValid` SHALL be `true`
 
 ---
 
-### Requirement: ProfilePurgeNotifier orchestrates purge flow
+### Requirement: ProfileDeleteNotifier orchestrates account deletion flow
 
-The system SHALL create `lib/src/presentation/ui/profile/purge/notifiers/profile_purge_notifier.dart` as `@riverpod final class ProfilePurgeNotifier extends _$ProfilePurgeNotifier`.
+The system SHALL create `lib/src/presentation/ui/profile/delete/notifiers/profile_delete_notifier.dart` as `@riverpod final class ProfileDeleteNotifier extends _$ProfileDeleteNotifier`.
 
-`build()` SHALL be synchronous and return `const ProfilePurgeState()` after `ref.watch(userRepositoryProvider)` and `ref.watch(profilePurgeFormValidatorProvider)`.
+`build()` SHALL be synchronous and return `const ProfileDeleteState()` after `ref.watch(userRepositoryProvider)` and `ref.watch(profileDeleteFormValidatorProvider)`.
 
-`dispatch(ProfilePurgeIntent intent)` SHALL be exhaustive over:
+`dispatch(ProfileDeleteIntent intent)` SHALL be exhaustive over:
 
 - `PasswordChanged(:final value)` → `state = state.copyWith(password: value, clearPasswordFailure: true)`.
 - `PasswordVisibilityToggled()` → `state = state.copyWith(obscurePassword: !state.obscurePassword)`.
@@ -651,71 +637,62 @@ The system SHALL create `lib/src/presentation/ui/profile/purge/notifiers/profile
 
 1. Validate via the form validator and propagate the validated `state` (`this.state = state`).
 2. Return early if `!isValid`.
-3. Return early if `this.state.status == ProfilePurgeStatus.loading` (re-entrancy guard).
-4. Set `this.state = this.state.copyWith(status: ProfilePurgeStatus.loading)`.
-5. Read `final user = ref.read(userProvider).valueOrNull`.
-6. If `user == null`, set `this.state = this.state.copyWith(status: ProfilePurgeStatus.failure, message: 'Não foi possível identificar o usuário.')` and return without calling the repository.
-7. Call `_repository.purge(email: user.email, password: this.state.password)`.
-8. On `Left(failure)` → `this.state = this.state.copyWith(status: failure, message: failure.message)`.
-9. On `Right(_)` → `ref.invalidate(userProvider)` and `this.state = this.state.copyWith(status: success)`.
+3. Return early if `this.state.status == ProfileDeleteStatus.loading` (re-entrancy guard).
+4. Set `this.state = this.state.copyWith(status: ProfileDeleteStatus.loading)`.
+5. Call `_repository.delete(password: this.state.password)`. The repository orchestrates the refresh token internally — the notifier does NOT read tokens or `userProvider`.
+6. On `Left(failure)` → `this.state = this.state.copyWith(status: failure, message: failure.message)`.
+7. On `Right(_)` → `ref.invalidate(userProvider)` and `this.state = this.state.copyWith(status: success)`.
 
-The notifier SHALL NOT navigate directly — redirect after success is delegated to the existing `AuthenticationInterceptor` (the next authenticated request after `userProvider` is invalidated will take 401, refresh will fail, and `_onUnauthenticated` will replace the stack with `SignInLocation`).
+The notifier SHALL NOT navigate directly — redirect after success is delegated to the existing `AuthenticationInterceptor` (the next authenticated request after `userProvider` is invalidated will take 401, refresh will fail because the backend blacklisted the refresh token, and `_onUnauthenticated` will replace the stack with `SignInLocation`).
 
-#### Scenario: Successful purge invalidates userProvider
+#### Scenario: Successful delete invalidates userProvider
 
-Given `IUserRepository.purge(...)` returns `Right(null)`
-And `userProvider` resolves with `UserModel(email: 'jane@trocado.app')`
+Given `IUserRepository.delete(...)` returns `Right(null)`
 When `dispatch(SubmitPressed())` resolves with `state.password == 'MyPassword!456'`
-Then `_repository.purge(email: 'jane@trocado.app', password: 'MyPassword!456')` SHALL be called
+Then `_repository.delete(password: 'MyPassword!456')` SHALL be called
 And `ref.invalidate(userProvider)` SHALL be called
-And `state.status` SHALL equal `ProfilePurgeStatus.success`
+And `state.status` SHALL equal `ProfileDeleteStatus.success`
 
-#### Scenario: Failed purge populates message
+#### Scenario: Failed delete populates message
 
-Given `IUserRepository.purge(...)` returns `Left(ValidationFailure('Senha incorreta.'))`
+Given `IUserRepository.delete(...)` returns `Left(ValidationFailure('Invalid credentials.'))`
 When `dispatch(SubmitPressed())` resolves with valid password
-Then `state.status` SHALL equal `ProfilePurgeStatus.failure`
-And `state.message` SHALL equal `'Senha incorreta.'`
+Then `state.status` SHALL equal `ProfileDeleteStatus.failure`
+And `state.message` SHALL equal `'Invalid credentials.'`
 
 #### Scenario: Empty password short-circuits before repository
 
 Given `state.password == ''`
 When `dispatch(SubmitPressed())` is invoked
 Then `state.passwordFailure` SHALL equal `'Senha obrigatória'`
-And `IUserRepository.purge` SHALL NOT be called
+And `IUserRepository.delete` SHALL NOT be called
 
 #### Scenario: Re-entrant dispatch is a no-op
 
-Given `state.status == ProfilePurgeStatus.loading`
+Given `state.status == ProfileDeleteStatus.loading`
 When `dispatch(SubmitPressed())` is called again with valid password
-Then `IUserRepository.purge` SHALL be called exactly once total
-
-#### Scenario: Null user fallback is defensive
-
-Given `userProvider` resolves with no value (`AsyncLoading` or `AsyncError` such that `valueOrNull == null`)
-When `dispatch(SubmitPressed())` resolves with valid password
-Then `IUserRepository.purge` SHALL NOT be called
-And `state.status` SHALL equal `ProfilePurgeStatus.failure`
-And `state.message` SHALL equal `'Não foi possível identificar o usuário.'`
+Then `IUserRepository.delete` SHALL be called exactly once total
 
 ---
 
-### Requirement: ProfilePurgeScreen presents email readonly, password field and submit
+### Requirement: ProfileDeleteScreen presents email readonly, password field and submit
 
-The system SHALL create `lib/src/presentation/ui/profile/purge/screens/profile_purge_screen.dart` as a `StatelessWidget` with `Consumer` inside (jamais `ConsumerWidget`).
+The system SHALL create `lib/src/presentation/ui/profile/delete/screens/profile_delete_screen.dart` as a `StatelessWidget` with `Consumer` inside (jamais `ConsumerWidget`).
 
-The screen SHALL `ref.listen(profilePurgeProvider, ...)` and call `showToastWidget(context: context, title: 'Opps', type: ToastType.failure, description: state.message)` only on transitions to `ProfilePurgeStatus.failure`. Successful transitions SHALL be silent — redirect is handled by the `AuthenticationInterceptor`.
+The screen SHALL `ref.listen(profileDeleteProvider, ...)` and call `showToastWidget(context: context, title: 'Opps', type: ToastType.failure, description: state.message)` only on transitions to `ProfileDeleteStatus.failure`. Successful transitions SHALL be silent — redirect is handled by the `AuthenticationInterceptor`.
+
+The screen SHALL read `email` from `userProvider` via a switch over `AsyncValue<UserModel>` (`AsyncData(:final value) => value.email; _ => ''`) — the email is only a visual confirmation of which account is about to be deleted; the API request itself does not include it.
 
 The screen SHALL render:
 
 - `ScaffoldWidget(appBar: AppBarWidget(leading: GoBackWidget()))`.
-- Body: `Padding(padding: const EdgeInsets.all(16.0), child: Column(spacing: 24.0, crossAxisAlignment: CrossAxisAlignment.start, children: [...]))`.
+- Body: `CustomScrollView(slivers: [SliverFillRemaining(hasScrollBody: false, child: Padding(padding: const EdgeInsets.all(16.0), child: Column(spacing: 24.0, crossAxisAlignment: CrossAxisAlignment.start, children: [...])))])` — the scroll wrapper prevents overflow when the keyboard opens.
 - Children, in order:
-  - `ScreenHeaderWidget(title: 'Excluir conta', description: 'Esta ação é irreversível. Confirme com sua senha para excluir definitivamente sua conta e todos os dados associados.')`.
-  - `TextFieldWidget(label: 'E-mail', hint: '', initialValue: user.email, readOnly: true)` — read-only view of the logged-in user's email.
+  - `ScreenHeaderWidget(title: 'Excluir conta', description: 'Esta ação é irreversível.\nConfirme com sua senha para excluir definitivamente sua conta e todos os dados associados.')`.
+  - `TextFieldWidget(label: 'E-mail', hint: '', readOnly: true, enabled: false, initialValue: email)` — read-only view of the logged-in user's email.
   - `PasswordFieldWidget(label: 'Senha', hint: 'Digite sua senha', inputAction: TextInputAction.done, obscure: state.obscurePassword, onToggle: ..., failure: state.passwordFailure, onChanged: ...)`.
   - `Spacer()`.
-  - `SizedBox(width: double.infinity, child: ButtonWidget.elevated(label: 'Excluir', isLoading: state.status == ProfilePurgeStatus.loading, onTap: ...))`.
+  - `SizedBox(width: double.infinity, child: ButtonWidget.elevated(label: 'Excluir', isLoading: state.status == ProfileDeleteStatus.loading, onTap: ...))`.
 
 The submit handler SHALL be a private method (never a private widget class — CLAUDE.md). It SHALL validate **before** opening the confirm dialog — when validation fails, the dialog SHALL NOT open and the screen SHALL surface `passwordFailure` inline:
 
@@ -723,13 +700,13 @@ The submit handler SHALL be a private method (never a private widget class — C
 Future<void> _submit(
   BuildContext context,
   WidgetRef ref,
-  ProfilePurgeNotifier notifier,
+  ProfileDeleteNotifier notifier,
 ) async {
   hideKeyboard();
 
   notifier.dispatch(const ValidatePressed());
 
-  if (ref.read(profilePurgeProvider).passwordFailure != null) return;
+  if (ref.read(profileDeleteProvider).passwordFailure != null) return;
 
   final confirmed = await showConfirmDialog(
     context: context,
@@ -743,12 +720,6 @@ Future<void> _submit(
   notifier.dispatch(const SubmitPressed());
 }
 ```
-
-#### Scenario: Email is rendered readonly from userProvider
-
-Given `userProvider` resolves with `UserModel(email: 'jane@trocado.app')`
-When `ProfilePurgeScreen` builds
-Then a `TextFieldWidget` SHALL be present with `label == 'E-mail'`, `initialValue == 'jane@trocado.app'`, and `readOnly == true`
 
 #### Scenario: Submit opens confirm dialog before dispatching
 
@@ -789,45 +760,45 @@ And `userProvider` SHALL be invalidated, triggering the interceptor-driven redir
 
 ---
 
-### Requirement: ProfilePurgeLocation registers the purge route
+### Requirement: ProfileDeleteLocation registers the delete route
 
-The system SHALL create `lib/src/presentation/ui/profile/purge/locations/profile_purge_location.dart` defining `final class ProfilePurgeLocation extends Location`.
+The system SHALL create `lib/src/presentation/ui/profile/delete/locations/profile_delete_location.dart` defining `final class ProfileDeleteLocation extends Location`.
 
-`ProfilePurgeLocation` SHALL declare:
+`ProfileDeleteLocation` SHALL declare:
 
-- `String get path` returning `AppRoutes.profilePurge.path`.
-- `LocationPageBuilder get pageBuilder` returning `(_) => screenPage(const ProfilePurgeScreen())`.
+- `String get path` returning `AppRoutes.profileDelete.path`.
+- `LocationPageBuilder get pageBuilder` returning `(_) => screenPage(const ProfileDeleteScreen())`.
 
-`ProfilePurgeLocation` SHALL NOT receive any constructor parameters.
+`ProfileDeleteLocation` SHALL NOT receive any constructor parameters.
 
 #### Scenario: Location resolves the path
 
-Given `ProfilePurgeLocation()` is constructed
-Then `path` SHALL equal `'/profile/purge'`
+Given `ProfileDeleteLocation()` is constructed
+Then `path` SHALL equal `'/profile/delete'`
 
 ---
 
-### Requirement: ProfileDetailsScreen wires onPurge instead of inline confirm
+### Requirement: ProfileDetailsScreen wires onDelete instead of inline confirm
 
-The system SHALL extend `ProfileDetailsScreen` with `final VoidCallback onPurge;` named-required, declared before the constructor next to the existing `onEditName` and `onEditPassword`.
+The system SHALL extend `ProfileDetailsScreen` with `final VoidCallback onDelete;` named-required, declared before the constructor next to the existing `onEditName` and `onEditPassword`.
 
-The previous `_confirmDelete` private method SHALL be removed — the destructive confirmation moves into `ProfilePurgeScreen`. The `ProfileAccountActionsWidget` SHALL receive `onDelete: onPurge` directly in the `AsyncData` branch (no intermediate dialog on the detail screen).
+The previous `_confirmDelete` private method SHALL be removed — the destructive confirmation moves into `ProfileDeleteScreen`. The `ProfileDeleteAccountWidget` SHALL receive `onTap: onDelete` directly in the `AsyncData` branch (no intermediate dialog on the detail screen).
 
 The Skeletonizer (loading) branch SHALL keep `onDelete: () {}` to remain non-interactive while loading.
 
-`ProfileDetailsLocation` SHALL inject `onPurge: () => context.navigate(ProfilePurgeLocation())`. `ProfileDetailsLocation` is the only place authorised to import `ProfilePurgeLocation` (Locations composing navigation — documented exception in CLAUDE.md).
+`ProfileDetailsLocation` SHALL inject `onDelete: () => context.navigate(ProfileDeleteLocation())`. `ProfileDetailsLocation` is the only place authorised to import `ProfileDeleteLocation` (Locations composing navigation — documented exception in CLAUDE.md).
 
-`ProfileDetailsNotifier` SHALL NOT change — purge is fully encapsulated in the new `profile/purge/` subfeature.
+`ProfileDetailsNotifier` SHALL NOT change — delete is fully encapsulated in the new `profile/delete/` subfeature.
 
-#### Scenario: Tapping "Excluir" navigates to the purge screen
+#### Scenario: Tapping "Excluir conta" navigates to the delete screen
 
 Given the user is on `ProfileDetailsScreen` with data loaded
 When the user taps the `'Excluir'` button in `ProfileAccountActionsWidget`
-Then `DuckRouter.navigate(ProfilePurgeLocation())` SHALL be invoked
+Then `DuckRouter.navigate(ProfileDeleteLocation())` SHALL be invoked
 And no `showConfirmDialog` SHALL be opened on the detail screen
 
 #### Scenario: ProfileDetailsLocation imports only profile-internal locations
 
 Given the spec implementation is complete
 When `grep -n "import 'package:trocado" lib/src/presentation/ui/profile/details/locations/profile_details_location.dart` is executed
-Then the only feature locations imported SHALL be `ProfileNameLocation`, `ProfilePasswordLocation` and `ProfilePurgeLocation` (all under `profile/`)
+Then the only feature locations imported SHALL be `ProfileNameLocation`, `ProfilePasswordLocation` and `ProfileDeleteLocation` (all under `profile/`)

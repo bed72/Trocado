@@ -11,6 +11,7 @@ import 'package:trocado/src/domain/repositories/interface_user_repository.dart';
 
 import 'package:trocado/src/infrastructure/clients/http/http_client.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/requests.dart';
+import 'package:trocado/src/infrastructure/datasources/local/local_token_data_source.dart';
 import 'package:trocado/src/infrastructure/datasources/remote/remote_user_data_source.dart';
 
 import '../../../mocks/mocks.dart';
@@ -54,11 +55,20 @@ const _notFoundFailureJson = {
 void main() {
   late IHttpClient client;
   late IUserRepository repository;
+  late ILocalTokenDataSource tokenDataSource;
 
   setUp(() {
     client = MockHttpClient();
+    tokenDataSource = MockTokenDataSource();
     final userDataSource = RemoteUserDataSource(client: client);
-    repository = UserRepository(userDataSource: userDataSource);
+    repository = UserRepository(
+      userDataSource: userDataSource,
+      tokenDataSource: tokenDataSource,
+    );
+
+    when(() => tokenDataSource.get()).thenAnswer(
+      (_) async => (access: 'access-token', refresh: 'refresh-token'),
+    );
 
     registerFallbackValue(const Requests('/'));
   });
@@ -90,28 +100,27 @@ void main() {
     });
   });
 
-  group('purge', () {
-    const email = 'jane@trocado.app';
+  group('delete', () {
     const password = 'MyPassword!456';
 
     test(
-      'returns Right(null) when POST /api/v1/me/purge succeeds with email and password body',
+      'returns Right(null) when DELETE /api/v1/me succeeds with refresh and password body',
       () async {
         when(
-          () => client.post(parameter: any(named: 'parameter')),
+          () => client.delete(parameter: any(named: 'parameter')),
         ).thenAnswer((_) async => const Right(<String, dynamic>{}));
 
-        final data = await repository.purge(email: email, password: password);
+        final data = await repository.delete(password: password);
 
         expect(data.isRight, isTrue);
         verify(
-          () => client.post(
+          () => client.delete(
             parameter: any(
               named: 'parameter',
               that: predicate<Requests>(
                 (r) =>
-                    r.path == '/api/v1/me/purge' &&
-                    r.body?['email'] == email &&
+                    r.path == '/api/v1/me' &&
+                    r.body?['refresh'] == 'refresh-token' &&
                     r.body?['password'] == password,
               ),
             ),
@@ -120,57 +129,79 @@ void main() {
       },
     );
 
+    test(
+      'returns Left(UnknownFailure) when refresh token is unavailable',
+      () async {
+        when(
+          () => tokenDataSource.get(),
+        ).thenAnswer((_) async => (access: 'access-token', refresh: null));
+
+        final data = await repository.delete(password: password);
+
+        expect(data.isLeft, isTrue);
+        expect(data.left, isA<UnknownFailure>());
+        verifyNever(() => client.delete(parameter: any(named: 'parameter')));
+      },
+    );
+
     test('returns Left(NetworkFailure) on network error', () async {
       when(
-        () => client.post(parameter: any(named: 'parameter')),
+        () => client.delete(parameter: any(named: 'parameter')),
       ).thenAnswer((_) async => const Left(_networkFailureJson));
 
-      final data = await repository.purge(email: email, password: password);
+      final data = await repository.delete(password: password);
 
       expect(data.isLeft, isTrue);
       expect(data.left, isA<NetworkFailure>());
     });
 
-    test('returns Left(NotFoundFailure) when POST returns 404', () async {
+    test('returns Left(NotFoundFailure) when DELETE returns 404', () async {
       when(
-        () => client.post(parameter: any(named: 'parameter')),
+        () => client.delete(parameter: any(named: 'parameter')),
       ).thenAnswer((_) async => const Left(_notFoundFailureJson));
 
-      final data = await repository.purge(email: email, password: password);
+      final data = await repository.delete(password: password);
 
       expect(data.isLeft, isTrue);
       expect(data.left, isA<NotFoundFailure>());
     });
 
-    test('returns Left(ServerFailure) when POST returns 5xx', () async {
+    test('returns Left(ServerFailure) when DELETE returns 5xx', () async {
       when(
-        () => client.post(parameter: any(named: 'parameter')),
+        () => client.delete(parameter: any(named: 'parameter')),
       ).thenAnswer((_) async => const Left(_meFailureJson));
 
-      final data = await repository.purge(email: email, password: password);
+      final data = await repository.delete(password: password);
 
       expect(data.isLeft, isTrue);
       expect(data.left, isA<ServerFailure>());
     });
 
     test(
-      'returns Left(ValidationFailure) with backend message on validation error',
+      'returns Left(ValidationFailure) with backend message on invalid credentials',
       () async {
         const failureJson = {
           'errors': [
-            {'code': 'invalid', 'field': null, 'message': 'Senha incorreta.'},
+            {
+              'code': 'invalid_credentials',
+              'field': 'password',
+              'message': 'Invalid credentials.',
+            },
           ],
         };
 
         when(
-          () => client.post(parameter: any(named: 'parameter')),
+          () => client.delete(parameter: any(named: 'parameter')),
         ).thenAnswer((_) async => const Left(failureJson));
 
-        final data = await repository.purge(email: email, password: password);
+        final data = await repository.delete(password: password);
 
         expect(data.isLeft, isTrue);
         expect(data.left, isA<ValidationFailure>());
-        expect((data.left as ValidationFailure).message, 'Senha incorreta.');
+        expect(
+          (data.left as ValidationFailure).message,
+          'Invalid credentials.',
+        );
       },
     );
   });

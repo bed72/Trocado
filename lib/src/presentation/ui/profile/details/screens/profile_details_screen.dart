@@ -19,13 +19,13 @@ import 'package:trocado/src/presentation/ui/profile/details/widgets/profile_fiel
 import 'package:trocado/src/presentation/ui/profile/details/widgets/profile_delete_account_widget.dart';
 
 class ProfileDetailsScreen extends StatelessWidget {
-  final VoidCallback onPurge;
+  final VoidCallback onDelete;
   final VoidCallback onEditName;
   final VoidCallback onEditPassword;
 
   const ProfileDetailsScreen({
     super.key,
-    required this.onPurge,
+    required this.onDelete,
     required this.onEditName,
     required this.onEditPassword,
   });
@@ -42,7 +42,7 @@ class ProfileDetailsScreen extends StatelessWidget {
           return switch (userState) {
             AsyncData(:final value) => _buildBody(
               user: value,
-              onDelete: onPurge,
+              onDelete: onDelete,
             ),
             AsyncError(:final error) => _buildError(
               failure: error is Failure ? error : const UnknownFailure(),

@@ -3,15 +3,14 @@ import 'package:trocado/src/domain/either/either.dart';
 import 'package:trocado/src/infrastructure/clients/http/http_client.dart';
 import 'package:trocado/src/infrastructure/clients/http/endpoint_key.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/requests.dart';
-import 'package:trocado/src/infrastructure/clients/http/requests/purge_request.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/user_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/failure/failure_response.dart';
 
 abstract interface class IRemoteUserDataSource {
   Future<Either<FailureResponse, UserResponse>> me();
 
-  Future<Either<FailureResponse, void>> purge({
-    required String email,
+  Future<Either<FailureResponse, void>> delete({
+    required String refresh,
     required String password,
   });
 }
@@ -31,14 +30,14 @@ final class RemoteUserDataSource implements IRemoteUserDataSource {
   }
 
   @override
-  Future<Either<FailureResponse, void>> purge({
-    required String email,
+  Future<Either<FailureResponse, void>> delete({
+    required String refresh,
     required String password,
   }) async {
-    final response = await _client.post(
+    final response = await _client.delete(
       parameter: Requests(
-        EndpointKey.purge.path,
-        body: PurgeRequest(email: email, password: password).toJson(),
+        EndpointKey.me.path,
+        body: {'refresh': refresh, 'password': password},
       ),
     );
 

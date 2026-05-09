@@ -399,50 +399,51 @@ final class ProfilePasswordFormValidatorProvider
 String _$profilePasswordFormValidatorHash() =>
     r'51e8590b7234672c4aee15ebf1e59d0b50d3a75a';
 
-@ProviderFor(profilePurgeFormValidator)
-final profilePurgeFormValidatorProvider = ProfilePurgeFormValidatorProvider._();
+@ProviderFor(profileDeleteFormValidator)
+final profileDeleteFormValidatorProvider =
+    ProfileDeleteFormValidatorProvider._();
 
-final class ProfilePurgeFormValidatorProvider
+final class ProfileDeleteFormValidatorProvider
     extends
         $FunctionalProvider<
-          ProfilePurgeFormValidator,
-          ProfilePurgeFormValidator,
-          ProfilePurgeFormValidator
+          ProfileDeleteFormValidator,
+          ProfileDeleteFormValidator,
+          ProfileDeleteFormValidator
         >
-    with $Provider<ProfilePurgeFormValidator> {
-  ProfilePurgeFormValidatorProvider._()
+    with $Provider<ProfileDeleteFormValidator> {
+  ProfileDeleteFormValidatorProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'profilePurgeFormValidatorProvider',
+        name: r'profileDeleteFormValidatorProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$profilePurgeFormValidatorHash();
+  String debugGetCreateSourceHash() => _$profileDeleteFormValidatorHash();
 
   @$internal
   @override
-  $ProviderElement<ProfilePurgeFormValidator> $createElement(
+  $ProviderElement<ProfileDeleteFormValidator> $createElement(
     $ProviderPointer pointer,
   ) => $ProviderElement(pointer);
 
   @override
-  ProfilePurgeFormValidator create(Ref ref) {
-    return profilePurgeFormValidator(ref);
+  ProfileDeleteFormValidator create(Ref ref) {
+    return profileDeleteFormValidator(ref);
   }
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(ProfilePurgeFormValidator value) {
+  Override overrideWithValue(ProfileDeleteFormValidator value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<ProfilePurgeFormValidator>(value),
+      providerOverride: $SyncValueProvider<ProfileDeleteFormValidator>(value),
     );
   }
 }
 
-String _$profilePurgeFormValidatorHash() =>
-    r'822419649710b7d18a84fbcdaba3f1ce48ab45f0';
+String _$profileDeleteFormValidatorHash() =>
+    r'fb5610c4aed70f2bca5cc4fb7bce6cad5b5fe955';

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:trocado/src/domain/models/user_model.dart';
-
 import 'package:trocado/src/presentation/notifiers/user_notifier.dart';
 import 'package:trocado/src/presentation/extensions/widget_extension.dart';
 
@@ -16,19 +14,19 @@ import 'package:trocado/src/presentation/widgets/fields/text_field_widget.dart';
 import 'package:trocado/src/presentation/widgets/fields/password_field_widget.dart';
 import 'package:trocado/src/presentation/widgets/dialog/confirm_dialog_widget.dart';
 
-import 'package:trocado/src/presentation/ui/profile/purge/notifiers/profile_purge_state.dart';
-import 'package:trocado/src/presentation/ui/profile/purge/notifiers/profile_purge_intent.dart';
-import 'package:trocado/src/presentation/ui/profile/purge/notifiers/profile_purge_notifier.dart';
+import 'package:trocado/src/presentation/ui/profile/delete/notifiers/profile_delete_state.dart';
+import 'package:trocado/src/presentation/ui/profile/delete/notifiers/profile_delete_intent.dart';
+import 'package:trocado/src/presentation/ui/profile/delete/notifiers/profile_delete_notifier.dart';
 
-class ProfilePurgeScreen extends StatelessWidget {
-  const ProfilePurgeScreen({super.key});
+class ProfileDeleteScreen extends StatelessWidget {
+  const ProfileDeleteScreen({super.key});
 
   @override
   Widget build(BuildContext context) => ScaffoldWidget(
     appBar: AppBarWidget(leading: GoBackWidget()),
     child: Consumer(
       builder: (_, ref, _) {
-        ref.listen(profilePurgeProvider, (previous, next) {
+        ref.listen(profileDeleteProvider, (previous, next) {
           if (next.status == .failure && previous?.status != .failure) {
             showToastWidget(
               context: context,
@@ -39,21 +37,20 @@ class ProfilePurgeScreen extends StatelessWidget {
           }
         });
 
-        final userState = ref.watch(userProvider);
-        final state = ref.watch(profilePurgeProvider);
-        final notifier = ref.read(profilePurgeProvider.notifier);
+        final state = ref.watch(profileDeleteProvider);
+        final notifier = ref.read(profileDeleteProvider.notifier);
+        final email = switch (ref.watch(userProvider)) {
+          AsyncData(:final value) => value.email,
+          _ => '',
+        };
 
-        if (userState case AsyncData(:final value)) {
-          return _buildBody(
-            ref: ref,
-            context: context,
-            user: value,
-            state: state,
-            notifier: notifier,
-          );
-        }
-
-        return const SizedBox.shrink();
+        return _buildBody(
+          context: context,
+          ref: ref,
+          email: email,
+          state: state,
+          notifier: notifier,
+        );
       },
     ),
   );
@@ -61,9 +58,9 @@ class ProfilePurgeScreen extends StatelessWidget {
   CustomScrollView _buildBody({
     required BuildContext context,
     required WidgetRef ref,
-    required UserModel user,
-    required ProfilePurgeState state,
-    required ProfilePurgeNotifier notifier,
+    required String email,
+    required ProfileDeleteState state,
+    required ProfileDeleteNotifier notifier,
   }) => CustomScrollView(
     slivers: [
       SliverFillRemaining(
@@ -81,10 +78,10 @@ class ProfilePurgeScreen extends StatelessWidget {
               ),
               TextFieldWidget(
                 hint: '',
-                readOnly: true,
                 enabled: false,
+                readOnly: true,
                 label: 'E-mail',
-                initialValue: user.email,
+                initialValue: email,
               ),
               PasswordFieldWidget(
                 label: 'Senha',
@@ -115,13 +112,13 @@ class ProfilePurgeScreen extends StatelessWidget {
   Future<void> _submit(
     BuildContext context,
     WidgetRef ref,
-    ProfilePurgeNotifier notifier,
+    ProfileDeleteNotifier notifier,
   ) async {
     hideKeyboard();
 
     notifier.dispatch(const ValidatePressed());
 
-    if (ref.read(profilePurgeProvider).passwordFailure != null) return;
+    if (ref.read(profileDeleteProvider).passwordFailure != null) return;
 
     final confirmed = await showConfirmDialog(
       context: context,

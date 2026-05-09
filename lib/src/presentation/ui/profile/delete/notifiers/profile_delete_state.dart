@@ -1,15 +1,15 @@
 import 'package:equatable/equatable.dart';
 
-enum ProfilePurgeStatus { initial, loading, success, failure }
+enum ProfileDeleteStatus { initial, loading, success, failure }
 
-final class ProfilePurgeState extends Equatable {
+final class ProfileDeleteState extends Equatable {
   final String message;
   final String password;
   final bool obscurePassword;
   final String? passwordFailure;
-  final ProfilePurgeStatus status;
+  final ProfileDeleteStatus status;
 
-  const ProfilePurgeState({
+  const ProfileDeleteState({
     this.password = '',
     this.message = '',
     this.passwordFailure,
@@ -17,14 +17,14 @@ final class ProfilePurgeState extends Equatable {
     this.obscurePassword = true,
   });
 
-  ProfilePurgeState copyWith({
+  ProfileDeleteState copyWith({
     String? message,
     String? password,
     bool? obscurePassword,
     String? passwordFailure,
-    ProfilePurgeStatus? status,
+    ProfileDeleteStatus? status,
     bool clearPasswordFailure = false,
-  }) => ProfilePurgeState(
+  }) => ProfileDeleteState(
     status: status ?? this.status,
     message: message ?? this.message,
     password: password ?? this.password,

@@ -60,7 +60,7 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
 
   Color _color(BuildContext context) {
     if (!widget.enabled) {
-      return context.colors.onSurfaceVariant.withValues(alpha: .9);
+      return context.colors.onSurfaceVariant.withValues(alpha: .6);
     }
     if (_isFocused) return context.colors.primary;
     if (_isFailure) return context.colors.error;
