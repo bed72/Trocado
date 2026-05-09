@@ -27,10 +27,8 @@ IAuthenticationRepository authenticationRepository(Ref ref) =>
     );
 
 @Riverpod()
-IUserRepository userRepository(Ref ref) => UserRepository(
-  userDataSource: ref.watch(remoteUserDataSourceProvider),
-  tokenDataSource: ref.watch(localTokenDataSourceProvider),
-);
+IUserRepository userRepository(Ref ref) =>
+    UserRepository(userDataSource: ref.watch(remoteUserDataSourceProvider));
 
 @Riverpod()
 IBudgetRepository budgetRepository(Ref ref) =>

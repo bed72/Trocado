@@ -191,9 +191,7 @@ void main() {
           password: any(named: 'password'),
         ),
       ).thenAnswer(
-        (_) async => const Left(
-          ValidationFailure('Account must be deactivated before purge.'),
-        ),
+        (_) async => const Left(ValidationFailure('Senha incorreta.')),
       );
 
       final container = await makeContainer();
@@ -206,7 +204,7 @@ void main() {
 
       final state = container.read(profilePurgeProvider);
       expect(state.status, ProfilePurgeStatus.failure);
-      expect(state.message, 'Account must be deactivated before purge.');
+      expect(state.message, 'Senha incorreta.');
     });
 
     test('does not call repository when already loading', () async {

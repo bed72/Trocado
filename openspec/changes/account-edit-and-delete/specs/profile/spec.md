@@ -270,202 +270,29 @@ Then no animation SHALL occur and `callback` SHALL NOT be invoked
 
 ---
 
-### Requirement: ProfileAccountActionsWidget exposes Deactivate and Delete side-by-side
+### Requirement: ProfileDeleteAccountWidget exposes a single delete action
 
-The system SHALL create `lib/src/presentation/ui/profile/details/widgets/profile_account_actions_widget.dart` (replacing the previous `profile_delete_account_widget.dart` from Part 2) as a `StatelessWidget` with `final VoidCallback onDelete;` and `final VoidCallback onDeactivate;` (both named-required).
+The system SHALL create `lib/src/presentation/ui/profile/details/widgets/profile_delete_account_widget.dart` as a `StatelessWidget` with `final VoidCallback onTap;` (named-required).
 
-The widget SHALL render `Padding(padding: const EdgeInsets.only(top: 16.0))` containing a `Row(spacing: 16.0)` with two `Expanded` children:
+The widget SHALL render a `Container(width: double.infinity, padding: EdgeInsets.only(top: 16.0))` whose child is `ButtonWidget.elevated(label: 'Excluir conta', onTap: onTap)`.
 
-- Left: `ButtonWidget.outlined(label: 'Excluir', onTap: onDelete)` — irreversible action.
-- Right: `ButtonWidget.elevated(label: 'Desativar', onTap: onDeactivate)` — reversible primary action.
+The button SHALL NOT render an icon — only the label is shown. The widget SHALL NOT apply any `Theme` override or custom destructive coloring — the destructive intent is communicated exclusively through the confirmation flow on the dedicated `ProfilePurgeScreen`.
 
-The buttons SHALL NOT render icons — only the label is shown.
+There is no in-screen confirmation dialog on `ProfileDetailsScreen` — tapping the button navigates to `ProfilePurgeScreen` (Part 5) where the user re-enters their password and confirms.
 
-The widget SHALL NOT apply a `Theme` override or custom destructive coloring — the destructive intent is communicated exclusively through the confirmation dialog text.
-
-This widget mirrors the visual pattern of `BudgetEditActionsWidget` (Row with two `Expanded` buttons, outlined on the left, elevated on the right).
-
-`ProfileDetailsScreen` SHALL provide two private methods that invoke `showConfirmDialog`:
-
-- `_confirmDelete`: `title: 'Excluir conta'`, `confirmLabel: 'Excluir'`, description containing the explicit irreversibility wording.
-- `_confirmDeactivate`: `title: 'Desativar conta'`, `confirmLabel: 'Desativar'`, description explaining that data is preserved and reactivation happens via sign-in.
-
-In Part 4 the post-confirmation action of both flows is a no-op — Part 5 wires the actual API calls.
-
-#### Scenario: Both buttons are rendered side by side
+#### Scenario: Single Excluir conta button is rendered
 
 Given the user is on `ProfileDetailsScreen` with data loaded
-When `ProfileAccountActionsWidget` builds
-Then a `Row` with two `Expanded` children SHALL be present
-And the left child SHALL be `ButtonWidget.outlined` with label `'Excluir'`
-And the right child SHALL be `ButtonWidget.elevated` with label `'Desativar'`
+When `ProfileDeleteAccountWidget` builds
+Then a single `ButtonWidget.elevated` SHALL be rendered with label `'Excluir conta'` taking the full available width
+And no other action button SHALL be present alongside it
 
-#### Scenario: Tap on Excluir opens deletion dialog
-
-Given the user is on `ProfileDetailsScreen` with data loaded
-When the user taps the `'Excluir'` button
-Then `showConfirmDialog` SHALL be invoked with `title: 'Excluir conta'` and `confirmLabel: 'Excluir'`
-And the description SHALL contain the explicit irreversibility wording
-
-#### Scenario: Tap on Desativar opens deactivation dialog
+#### Scenario: Tap navigates to ProfilePurgeScreen
 
 Given the user is on `ProfileDetailsScreen` with data loaded
-When the user taps the `'Desativar'` button
-Then `showConfirmDialog` SHALL be invoked with `title: 'Desativar conta'` and `confirmLabel: 'Desativar'`
-And the description SHALL explain that data is preserved and reactivation is possible by signing in again
-
-#### Scenario: Cancel does not trigger any side effect
-
-Given any of the two confirmation dialogs is open
-When the user taps `'Cancelar'`
-Then the dialog SHALL close
-And no further action SHALL be triggered
-
----
-
-### Requirement: IUserRepository extended with deactivate
-
-The system SHALL extend `lib/src/domain/repositories/interface_user_repository.dart` with `Future<Either<Failure, void>> deactivate();`. The signature SHALL match `IExpenseRepository.delete` style (`Future<Either<Failure, void>>`, never `Unit` or `bool`).
-
-`IRemoteUserDataSource` SHALL gain `Future<Either<FailureResponse, void>> deactivate({required String refresh});` calling `_client.delete(parameter: Requests(EndpointKey.me.path, body: {'refresh': refresh}))` and mapping via `response.either(FailureResponse.fromJson, (_) {})` (the 204 body is discarded). The `refresh` token is passed as a domain primitive (`String`) — never a request DTO (CLAUDE.md datasource interface rule).
-
-`UserRepository` SHALL accept `ILocalTokenDataSource tokenDataSource` and `IRemoteUserDataSource userDataSource` via constructor (mirroring `AuthenticationRepository`). `deactivate()` SHALL:
-
-- Read `tokens.refresh` via `_tokenDataSource.get()`.
-- Return `Left(UnknownFailure())` immediately when `tokens.refresh == null` (defensive — no API call).
-- Otherwise call `_userDataSource.deactivate(refresh: tokens.refresh!)` and map via `data.either((failure) => failure.toFailure(), (_) {})`.
-
-`userRepositoryProvider` in `repositories_provider.dart` SHALL inject `localTokenDataSourceProvider` alongside the existing `remoteUserDataSourceProvider`.
-
-#### Scenario: deactivate calls DELETE /api/v1/me with refresh body
-
-Given `UserRepository.deactivate()` is invoked
-And `tokenDataSource.get()` returns `(access: 'A', refresh: 'R')`
-Then `IHttpClient.delete` SHALL be called with `Requests(path: '/api/v1/me', body: {'refresh': 'R'})`
-
-#### Scenario: deactivate short-circuits when refresh is null
-
-Given `tokenDataSource.get()` returns `(access: 'A', refresh: null)`
-When `UserRepository.deactivate()` resolves
-Then it SHALL return `Left(UnknownFailure())`
-And `IHttpClient.delete` SHALL NOT be called
-
-#### Scenario: deactivate maps NetworkFailure
-
-Given the datasource returns `Left(FailureResponse with code 'network_error')`
-When `UserRepository.deactivate()` resolves
-Then it SHALL return `Left(NetworkFailure())`
-
-#### Scenario: deactivate returns Right on 204
-
-Given the datasource returns `Right({})`
-When `UserRepository.deactivate()` resolves
-Then it SHALL return `Right(null)`
-
----
-
-### Requirement: ProfileDetailsNotifier orchestrates deactivate flow
-
-The system SHALL create `lib/src/presentation/ui/profile/details/notifiers/profile_details_notifier.dart` as `@riverpod final class ProfileDetailsNotifier extends _$ProfileDetailsNotifier` with synchronous `build()` returning `const ProfileDetailsState()` after `ref.watch(userRepositoryProvider)`.
-
-`dispatch` SHALL be exhaustive over `ProfileDetailsIntent`. Currently only `DeactivatePressed()`.
-
-`_deactivate()` SHALL:
-
-- Return early if `state.status == ProfileDetailsStatus.loading` (re-entrancy guard).
-- Set `state.status = loading`.
-- Call `_repository.deactivate()`.
-- On `Left(failure)`: set `state.status = failure` with `state.message = failure.message`.
-- On `Right(_)`: call `ref.invalidate(userProvider)` (so the next authenticated request takes 401 and the `AuthenticationInterceptor` triggers redirect to `SignInLocation`) and set `state.status = success`.
-
-The notifier SHALL NOT navigate directly — redirect is handled by the interceptor's `_onUnauthenticated` callback wired in `clients_provider.dart`.
-
-#### Scenario: Successful deactivate invalidates userProvider
-
-Given `IUserRepository.deactivate()` returns `Right(null)`
-When `dispatch(DeactivatePressed())` resolves
-Then `ref.invalidate(userProvider)` SHALL be called
-And `state.status` SHALL equal `ProfileDetailsStatus.success`
-
-#### Scenario: Failed deactivate populates message
-
-Given `IUserRepository.deactivate()` returns `Left(ValidationFailure('Conta inválida.'))`
-When `dispatch(DeactivatePressed())` resolves
-Then `state.status` SHALL equal `ProfileDetailsStatus.failure`
-And `state.message` SHALL equal `'Conta inválida.'`
-
-#### Scenario: Re-entrant dispatch is a no-op
-
-Given `state.status == ProfileDetailsStatus.loading`
-When `dispatch(DeactivatePressed())` is called again
-Then `IUserRepository.deactivate()` SHALL be called exactly once total
-
----
-
-### Requirement: ProfileAccountActionsWidget surfaces deactivate loading
-
-`ProfileAccountActionsWidget` SHALL accept `final bool isDeactivating;` (default `false`) named-optional.
-
-When `isDeactivating == true`:
-
-- The elevated `'Desativar'` button SHALL receive `isLoading: true`.
-- Both buttons SHALL receive `onTap: null` to prevent re-entrant taps.
-
-When `isDeactivating == false`:
-
-- Both buttons SHALL receive their respective callbacks unchanged.
-
-#### Scenario: Loading disables both buttons
-
-Given `ProfileAccountActionsWidget(isDeactivating: true, ...)`
-When the widget builds
-Then the elevated Desativar button SHALL render in loading state
-And both buttons SHALL have `onTap: null`
-
----
-
-### Requirement: ProfileDetailsScreen wires deactivate dispatch and failure toast
-
-`ProfileDetailsScreen` SHALL `ref.watch(profileDetailsProvider)` and pass `isDeactivating: state.status == .loading` to `ProfileAccountActionsWidget`.
-
-`ref.listen(profileDetailsProvider, ...)` SHALL show a `showToastWidget(type: failure, title: 'Opps', description: state.message)` only on transitions to `ProfileDetailsStatus.failure`. Successful transitions SHALL be silent — the redirect is handled by the `AuthenticationInterceptor`.
-
-`_confirmDeactivate(context, notifier)` SHALL dispatch `DeactivatePressed()` only after `showConfirmDialog` resolves to `true`.
-
-#### Scenario: Failure shows toast
-
-Given the user confirmed deactivation
-And the API returned a failure
-When the listener observes `state.status == failure`
-Then `showToastWidget` SHALL be invoked with `type: failure` and `description: state.message`
-
-#### Scenario: Success is silent
-
-Given the user confirmed deactivation
-And the API returned 204
-When the listener observes `state.status == success`
-Then no toast SHALL be shown
-And `userProvider` SHALL be invalidated, triggering the interceptor-driven redirect
-
----
-
-### Requirement: Deactivation redirect is delegated to AuthenticationInterceptor
-
-After a successful deactivate, the app SHALL NOT navigate directly to `SignInLocation` from the notifier or screen. Instead the redirect SHALL emerge naturally via the existing `AuthenticationInterceptor`:
-
-1. `ProfileDetailsNotifier` invalidates `userProvider`.
-2. The next authenticated request (`GET /api/v1/me`) hits the backend.
-3. The backend returns `401` because the account was deactivated.
-4. `AuthenticationInterceptor.onError` attempts a refresh — which also fails (refresh token revoked).
-5. The interceptor calls `_onUnauthenticated()` (wired in `lib/src/main/providers/clients_provider.dart` to `routerConfig.navigate(SignInLocation, root: true, replace: true)`).
-
-#### Scenario: Successful deactivate triggers eventual redirect
-
-Given the user successfully deactivated
-And `userProvider` is invalidated
-When the next authenticated request takes 401 and refresh also fails
-Then `AuthenticationInterceptor._onUnauthenticated` SHALL be invoked
-And the router SHALL replace the stack with `SignInLocation`
+When the user taps the `'Excluir conta'` button
+Then the `onTap` callback SHALL be invoked
+And the callback SHALL navigate to `ProfilePurgeLocation` (wired by `ProfileDetailsLocation`)
 
 ---
 
@@ -478,6 +305,7 @@ The following subdirectories SHALL exist after this part:
 - `profile/details/` — listing screen (renamed from the root-level files of Parts 1 and 2). Contains `screens/profile_details_screen.dart`, `locations/profile_details_location.dart` and `widgets/profile_*.dart` (the four widgets created in Part 2).
 - `profile/name/` — name editing screen, with `screens/`, `locations/`, `notifiers/`, `validators/`.
 - `profile/password/` — password editing screen, with `screens/`, `locations/`, `notifiers/`, `validators/`.
+- `profile/purge/` — account deletion screen (added in Part 5), with `screens/`, `locations/`, `notifiers/`, `validators/`.
 
 The class `ProfileScreen` SHALL be renamed to `ProfileDetailsScreen` and `ProfileLocation` to `ProfileDetailsLocation`. Imports in `HomeLocation` and `SettingsLocation` SHALL be updated accordingly. The route path `/profile` SHALL continue to map to `ProfileDetailsLocation` — no change to `AppRoutes.profile`.
 
@@ -485,7 +313,7 @@ The class `ProfileScreen` SHALL be renamed to `ProfileDetailsScreen` and `Profil
 
 Given the reorganisation is complete
 When `find lib/src/presentation/ui/profile -maxdepth 1 -mindepth 1 -type d` is executed
-Then the result SHALL list exactly three directories: `details`, `name`, `password`
+Then the result SHALL list exactly four directories: `details`, `name`, `password`, `purge`
 
 #### Scenario: Old paths are gone
 
@@ -546,7 +374,7 @@ The system SHALL create `ProfileNameNotifier` as `@riverpod final class ProfileN
 
 - `Future<ProfileNameState> build()` async, that watches `profileNameFormValidatorProvider` and `userProvider.future`, returning `ProfileNameState(name: user.name)`.
 - `dispatch(ProfileNameIntent intent)` exhaustive over `NameChanged(value)` and `SubmitPressed()`.
-- `_submit()` that validates via the form validator, propagates failures into `state`, and returns early when invalid. When valid the body SHALL contain a `// TODO Parte 4` comment and SHALL NOT call any repository in this part.
+- `_submit()` that validates via the form validator, propagates failures into `state`, and returns early when invalid. When valid the body SHALL contain a `// TODO Parte 6` comment and SHALL NOT call any repository in this part.
 
 `ProfileNameState` SHALL pre-fill the field on first render with the current user's name.
 
@@ -566,7 +394,7 @@ And no repository call SHALL be made
 
 Given the user types a valid name and dispatches `SubmitPressed`
 Then `state.value.nameFailure` SHALL be `null`
-And no repository call SHALL be made (deferred to Part 4)
+And no repository call SHALL be made (deferred to Part 6)
 
 ---
 
@@ -600,7 +428,7 @@ The system SHALL create `ProfilePasswordNotifier` as `@riverpod final class Prof
 
 `dispatch` SHALL be exhaustive over: `NewPasswordChanged`, `ConfirmPasswordChanged`, `NewPasswordVisibilityToggled`, `ConfirmPasswordVisibilityToggled`, `SubmitPressed`.
 
-`_submit()` SHALL validate via `profilePasswordFormValidatorProvider`, propagate failures and return early when invalid. When valid the body SHALL contain a `// TODO Parte 4` comment and SHALL NOT call any repository in this part.
+`_submit()` SHALL validate via `profilePasswordFormValidatorProvider`, propagate failures and return early when invalid. When valid the body SHALL contain a `// TODO Parte 6` comment and SHALL NOT call any repository in this part.
 
 #### Scenario: Toggling visibility does not affect other field
 
@@ -733,11 +561,11 @@ Given the datasource returns `Left(FailureResponse with code 'connection_error')
 When `UserRepository.purge(...)` resolves
 Then it SHALL return `Left(NetworkFailure())`
 
-#### Scenario: purge maps "Account must be deactivated before purge." to ValidationFailure
+#### Scenario: purge maps backend validation error to ValidationFailure
 
-Given the datasource returns `Left(FailureResponse with code 'invalid' and message 'Account must be deactivated before purge.')`
+Given the datasource returns `Left(FailureResponse with code 'invalid' and message 'Senha incorreta.')`
 When `UserRepository.purge(...)` resolves
-Then it SHALL return `Left(ValidationFailure('Account must be deactivated before purge.'))`
+Then it SHALL return `Left(ValidationFailure('Senha incorreta.'))`
 
 #### Scenario: purge returns Right on 204
 
@@ -844,10 +672,10 @@ And `state.status` SHALL equal `ProfilePurgeStatus.success`
 
 #### Scenario: Failed purge populates message
 
-Given `IUserRepository.purge(...)` returns `Left(ValidationFailure('Account must be deactivated before purge.'))`
+Given `IUserRepository.purge(...)` returns `Left(ValidationFailure('Senha incorreta.'))`
 When `dispatch(SubmitPressed())` resolves with valid password
 Then `state.status` SHALL equal `ProfilePurgeStatus.failure`
-And `state.message` SHALL equal `'Account must be deactivated before purge.'`
+And `state.message` SHALL equal `'Senha incorreta.'`
 
 #### Scenario: Empty password short-circuits before repository
 

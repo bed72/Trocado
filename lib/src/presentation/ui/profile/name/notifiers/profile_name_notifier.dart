@@ -34,6 +34,6 @@ final class ProfileNameNotifier extends _$ProfileNameNotifier {
     this.state = AsyncData(state);
 
     if (!isValid) return;
-    // TODO Parte 4: chamar repository.updateName(name: this.state.value!.name)
+    // TODO Parte 6: chamar repository.updateName(name: this.state.value!.name)
   }
 }

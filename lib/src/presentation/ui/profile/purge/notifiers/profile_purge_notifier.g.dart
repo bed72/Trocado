@@ -42,7 +42,7 @@ final class ProfilePurgeNotifierProvider
 }
 
 String _$profilePurgeNotifierHash() =>
-    r'ef629bf77c686b43f683d11fd9b32b1aa7aa7f07';
+    r'aa09a32bbe04a85553f26e29053df5aed0416d28';
 
 abstract class _$ProfilePurgeNotifier extends $Notifier<ProfilePurgeState> {
   ProfilePurgeState build();

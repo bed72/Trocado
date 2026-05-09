@@ -137,7 +137,7 @@ Ordem fixa: spec → mover `userProvider` para escopo shared → promover avatar
           'Esta ação é irreversível. Todos os seus dados financeiros serão apagados e você não poderá recuperá-los.',
     );
     if (!confirmed) return;
-    // Parte 4: dispatch DeleteAccountPressed
+    // Parte 5: navegar para ProfilePurgeScreen
   }
   ```
 - [ ] 12.3 Imports agrupados (Flutter / pacotes / projeto), seguindo a convenção do projeto.
@@ -219,7 +219,7 @@ Ordem fixa: rotas → reorganização de `profile/` em subdiretórios → subfea
   - `@riverpod` `final class ProfileNameNotifier extends _$ProfileNameNotifier`.
   - `Future<ProfileNameState> build()` async — `_validator = ref.watch(profileNameFormValidatorProvider)` e `final user = await ref.watch(userProvider.future); return ProfileNameState(name: user.name);`.
   - `dispatch(ProfileNameIntent intent)` exhaustivo — `NameChanged(:final value) => state = AsyncData(state.value!.copyWith(name: value, clearNameFailure: true))`, `SubmitPressed() => _submit()`.
-  - `_submit()` valida, mantém o `state` validado e retorna cedo se inválido. Se válido: `// TODO Parte 4: chamar repository.updateName(...)`.
+  - `_submit()` valida, mantém o `state` validado e retorna cedo se inválido. Se válido: `// TODO Parte 6: chamar repository.updateName(...)`.
 - [ ] 17.6 Criar `lib/src/presentation/ui/profile/name/screens/profile_name_screen.dart`:
   - `StatelessWidget` + `Consumer` interno (jamais `ConsumerWidget`).
   - Switch sobre `AsyncValue<ProfileNameState>`:
@@ -238,7 +238,7 @@ Ordem fixa: rotas → reorganização de `profile/` em subdiretórios → subfea
   - `@riverpod` `final class ProfilePasswordNotifier extends _$ProfilePasswordNotifier`.
   - `ProfilePasswordState build()` — `_validator = ref.watch(profilePasswordFormValidatorProvider)`; retorna `const ProfilePasswordState()`.
   - `dispatch` exhaustivo cobrindo os 5 intents.
-  - `_submit()` valida e retorna cedo se inválido. Se válido: `// TODO Parte 4: chamar repository.updatePassword(...)`.
+  - `_submit()` valida e retorna cedo se inválido. Se válido: `// TODO Parte 6: chamar repository.updatePassword(...)`.
 - [ ] 18.5 Criar `lib/src/presentation/ui/profile/password/screens/profile_password_screen.dart`:
   - `StatelessWidget` + `Consumer`.
   - Layout espelhando `PasswordResetConfirmScreen`: `ScreenHeaderWidget(title: 'Senha', description: 'Crie uma nova senha para sua conta.')` + `SizedBox(24)` + dois `TextFieldWidget` (Nova senha / Confirmar senha) com toggle de visibilidade via `trailingIcon` + `hideTrailingIconWhenEmpty: true` + `Spacer` + `ButtonWidget.elevated(label: 'Atualizar')`.
@@ -303,125 +303,32 @@ Ordem fixa: rotas → reorganização de `profile/` em subdiretórios → subfea
 
 ---
 
-## Parte 4 — Dual action (Excluir + Desativar) na tela de detalhes
+## Parte 4 — Renome do botão de exclusão para "Excluir conta"
 
-### 24. Substituição do widget de delete
+A `ProfileDetailsScreen` mantém o botão único de exclusão criado na Parte 2; apenas o label muda. Sem dialog de confirmação na detail — o `onTap` apenas dispara navegação para `ProfilePurgeScreen` (Parte 5).
 
-- [ ] 24.1 Renomear `lib/src/presentation/ui/profile/details/widgets/profile_delete_account_widget.dart` para `profile_account_actions_widget.dart`.
-- [ ] 24.2 Reescrever a classe como `ProfileAccountActionsWidget extends StatelessWidget` com:
-  - `final VoidCallback onDelete;` + `final VoidCallback onDeactivate;` (ambos named-required, antes do construtor).
-  - Renderiza `Padding(padding: .only(top: 16.0)) → Row(spacing: 16.0)` com:
-    - Esquerda: `Expanded(child: ButtonWidget.outlined(label: 'Excluir', onTap: onDelete))`.
-    - Direita: `Expanded(child: ButtonWidget.elevated(label: 'Desativar', onTap: onDeactivate))`.
-  - Sem ícones — apenas labels.
+### 24. Atualizar `ProfileDeleteAccountWidget`
 
-### 25. `ProfileDetailsScreen` ganha dois fluxos destrutivos
+- [ ] 24.1 Em `lib/src/presentation/ui/profile/details/widgets/profile_delete_account_widget.dart`, garantir que o botão use `ButtonWidget.elevated(label: 'Excluir conta', onTap: onTap)` — full-width, sem ícone.
 
-- [ ] 25.1 Atualizar imports — trocar `profile_delete_account_widget.dart` por `profile_account_actions_widget.dart`.
-- [ ] 25.2 `_buildBody` ganha `required VoidCallback onDeactivate` (além do `onDelete` existente). Substituir `ProfileDeleteAccountWidget(onTap: onDelete)` por `ProfileAccountActionsWidget(onDelete: onDelete, onDeactivate: onDeactivate)`.
-- [ ] 25.3 Atualizar o branch `AsyncData` para passar `onDeactivate: () => _confirmDeactivate(context)`.
-- [ ] 25.4 Atualizar o branch `Skeletonizer` (loading) para passar `onDeactivate: () {}` além do `onDelete: () {}` existente.
-- [ ] 25.5 Atualizar `_confirmDelete`: trocar `title: 'Apagar conta'` → `'Excluir conta'` e `confirmLabel: 'Apagar'` → `'Excluir'`. Description permanece (irreversível).
-- [ ] 25.6 Adicionar método `_confirmDeactivate(BuildContext context)`:
-  - Chama `showConfirmDialog(context, title: 'Desativar conta', confirmLabel: 'Desativar', description: 'Sua conta ficará desativada e seus dados ficarão preservados.\n\n - Você poderá reativá-la fazendo login novamente.')`.
-  - Pós-confirm: no-op (Parte 5).
+### 25. Atualizar `ProfileDetailsScreen`
+
+- [ ] 25.1 `_buildBody` recebe apenas `required VoidCallback onDelete` (sem `onDeactivate`). O argumento `onDelete` é repassado para `ProfileDeleteAccountWidget(onTap: onDelete)`.
+- [ ] 25.2 No branch `AsyncData`, `onDelete` recebe o `onPurge` injetado pela Location — sem dialog inline.
+- [ ] 25.3 Manter o branch `Skeletonizer` (loading) com `onDelete: () {}`.
 
 ### 26. Verificação Parte 4
 
 - [ ] 26.1 `flutter analyze` — zero warnings.
 - [ ] 26.2 `flutter test` — toda a suíte passa.
-- [ ] 26.3 **Smoke manual — botões**: a `ProfileDetailsScreen` mostra dois botões lado a lado no rodapé (Excluir à esquerda outlined, Desativar à direita elevated, sem ícones).
-- [ ] 26.4 **Smoke manual — Desativar**: tap em "Desativar" abre dialog com título `'Desativar conta'` + descrição explicando reativação por login + botões `'Cancelar'` / `'Desativar'`. Cancelar fecha sem efeito. Confirm fecha (no-op).
-- [ ] 26.5 **Smoke manual — Excluir**: tap em "Excluir" abre dialog com título `'Excluir conta'` + descrição de irreversibilidade + botões `'Cancelar'` / `'Excluir'`. Cancelar fecha sem efeito. Confirm fecha (no-op).
+- [ ] 26.3 **Smoke manual — botão**: a `ProfileDetailsScreen` mostra um único botão "Excluir conta" full-width no rodapé.
+- [ ] 26.4 **Smoke manual — navegação**: tap em "Excluir conta" navega para `ProfilePurgeScreen` (sem dialog inline na detail).
 
 ---
 
-## Parte 5 — Desativação real via API
+## Parte 5 (passo 0) — Extrair `PasswordFieldWidget` compartilhado
 
-Ordem fixa: domain → infrastructure → data → presentation (state/intent/notifier) → wiring (widget/screen) → code generation → tests → verificação.
-
-### 27. Domain
-
-- [ ] 27.1 Adicionar à `IUserRepository`: `Future<Either<Failure, void>> deactivate();`.
-
-### 28. Infrastructure
-
-- [ ] 28.1 Adicionar à interface `IRemoteUserDataSource`: `Future<Either<FailureResponse, void>> deactivate({required String refresh});`.
-- [ ] 28.2 Implementar `RemoteUserDataSource.deactivate({required String refresh})`:
-  ```dart
-  final response = await _client.delete(
-    parameter: Requests(EndpointKey.me.path, body: {'refresh': refresh}),
-  );
-  return response.either(FailureResponse.fromJson, (_) {});
-  ```
-
-### 29. Data
-
-- [ ] 29.1 Atualizar `UserRepository`:
-  - Construtor passa a aceitar `ILocalTokenDataSource tokenDataSource` + `IRemoteUserDataSource userDataSource` (renomear o campo `_dataSource` para `_userDataSource` por clareza, espelhando `AuthenticationRepository`).
-  - `deactivate()`:
-    ```dart
-    final tokens = await _tokenDataSource.get();
-    if (tokens.refresh == null) return const Left(UnknownFailure());
-    final data = await _userDataSource.deactivate(refresh: tokens.refresh!);
-    return data.either((failure) => failure.toFailure(), (_) {});
-    ```
-- [ ] 29.2 Atualizar `userRepositoryProvider` em `lib/src/main/providers/repositories_provider.dart` para injetar `localTokenDataSourceProvider`.
-
-### 30. Presentation — notifier `profile/details/notifiers/`
-
-- [ ] 30.1 Criar `profile_details_state.dart` — `ProfileDetailsStatus` enum (initial/loading/success/failure) + `message` + `copyWith` + `props`.
-- [ ] 30.2 Criar `profile_details_intent.dart` — sealed `ProfileDetailsIntent` com `DeactivatePressed()`.
-- [ ] 30.3 Criar `profile_details_notifier.dart` — `@riverpod final class ProfileDetailsNotifier extends _$ProfileDetailsNotifier` sync. `build` retorna `ProfileDetailsState()` e injeta `userRepository`. `dispatch` exhaustivo. `_deactivate`:
-  - Early-return se `status == loading`.
-  - `status: loading`.
-  - `await _repository.deactivate()`.
-  - **Sucesso**: `ref.invalidate(userProvider)` + `status: success`.
-  - **Falha**: `status: failure` com `message` do `Failure`.
-
-### 31. Presentation — wiring
-
-- [ ] 31.1 Atualizar `ProfileAccountActionsWidget` — adicionar `final bool isDeactivating` (default false). Quando true: passa `isLoading: true` ao botão Desativar e `onTap: null` em ambos os botões.
-- [ ] 31.2 Atualizar `ProfileDetailsScreen`:
-  - Importar `profile_details_*` (state, intent, notifier) e `toast_widget`.
-  - `Consumer` interno: `ref.listen(profileDetailsProvider)` faz toast com `state.message` quando transição para `failure`. Sucesso é silencioso.
-  - `ref.watch(profileDetailsProvider)` para obter `detailsState`; `ref.read(profileDetailsProvider.notifier)` para o dispatcher.
-  - `_buildBody` ganha `required ProfileDetailsState detailsState` e passa `isDeactivating: detailsState.status == .loading` ao widget.
-  - `_confirmDeactivate(context, notifier)` despacha `DeactivatePressed` após confirm.
-
-### 32. Code generation
-
-- [ ] 32.1 `dart run build_runner build --delete-conflicting-outputs` regenera `profile_details_notifier.g.dart`.
-
-### 33. Testes
-
-- [ ] 33.1 Estender `test/src/data/repositories/user_repository_test.dart` com `group('deactivate')` cobrindo:
-  - Right(null) quando DELETE `/api/v1/me` retorna 204 — verificar path **e** que o body envia `{'refresh': '<token>'}`.
-  - Left(UnknownFailure) quando `tokenDataSource.get()` retorna `refresh: null` — confirmar que `client.delete` **não** é chamado.
-  - Left(NetworkFailure) quando código `'network_error'`.
-  - Left(NotFoundFailure) quando código `'not_found'`.
-  - Left(ServerFailure) quando código `'server_error'`.
-  - O `setUp` mocka `ILocalTokenDataSource.get()` retornando refresh válido como default.
-- [ ] 33.2 Criar `test/src/presentation/profile/details/notifiers/profile_details_notifier_test.dart` cobrindo:
-  - `build returns initial state`.
-  - `DeactivatePressed sets status to loading then success on success`.
-  - `DeactivatePressed invalidates userProvider on success` (verifica que `repository.me` é chamado novamente após o invalidate).
-  - `DeactivatePressed sets status to failure with message on error`.
-  - `DeactivatePressed does not call repository when already loading`.
-
-### 34. Verificação Parte 5
-
-- [ ] 34.1 `flutter analyze` — zero warnings.
-- [ ] 34.2 `flutter test` — toda a suíte passa.
-- [ ] 34.3 **Smoke manual — desativar com sucesso**: tap "Desativar" → dialog → "Desativar" → backend 204 → app redireciona para `SignInLocation` automaticamente (via interceptor 401 → refresh fail → onUnauthenticated).
-- [ ] 34.4 **Smoke manual — desativar com falha de rede**: simular erro de rede → toast "Opps" com mensagem do `NetworkFailure` aparece. Botão sai do loading.
-- [ ] 34.5 **Smoke manual — botão duplo-clique**: tap rápido em "Desativar" no dialog não dispara duas chamadas (verificar via logs).
-
----
-
-## Parte 6 (passo 0) — Extrair `PasswordFieldWidget` compartilhado
-
-Pré-requisito da Parte 6 propriamente dita. Notifiers/states/intents existentes **não mudam** — só as screens trocam o bloco repetido por `PasswordFieldWidget(...)`.
+Pré-requisito da Parte 5 propriamente dita. Notifiers/states/intents existentes **não mudam** — só as screens trocam o bloco repetido por `PasswordFieldWidget(...)`.
 
 ### 35. Criar `PasswordFieldWidget`
 
@@ -450,7 +357,7 @@ Pré-requisito da Parte 6 propriamente dita. Notifiers/states/intents existentes
 
 ---
 
-## Parte 6 — Exclusão definitiva via API (purge)
+## Parte 5 — Exclusão definitiva via API (purge)
 
 Ordem fixa: domain → infrastructure → data → presentation (subfeature `profile/purge/`) → wiring (rota + detail screen + location) → code generation → tests → verificação.
 
@@ -649,7 +556,7 @@ Ordem fixa: domain → infrastructure → data → presentation (subfeature `pro
   - Left(NetworkFailure) quando código `'connection_error'` ou `'timeout'`.
   - Left(NotFoundFailure) quando código `'not_found'`.
   - Left(ServerFailure) quando código `'server_error'`.
-  - Left(ValidationFailure('Account must be deactivated before purge.')) quando código `'invalid'` com essa mensagem.
+  - Left(ValidationFailure('Senha incorreta.')) quando código `'invalid'` com mensagem genérica do backend.
 - [ ] 46.2 Criar `test/src/presentation/profile/purge/validators/profile_purge_form_validator_test.dart` com 3 cenários:
   - empty → `passwordFailure == 'Senha obrigatória'` e `isValid == false`.
   - <8 chars → `passwordFailure == 'Senha deve ter ao menos 8 caracteres'` e `isValid == false`.
@@ -666,15 +573,15 @@ Ordem fixa: domain → infrastructure → data → presentation (subfeature `pro
   - Mock `IUserRepository` com `MockUserRepository` (já existe em `test/mocks/mocks.dart`); override `userProvider` com um valor de `UserModel` ou explicitamente `null` conforme o cenário.
 - [ ] 46.4 Convenções: descrições em inglês; mocks declarados com tipo da interface (`late IUserRepository repository;`); variáveis nunca chamadas `result`/`either`; `final` com tipo explícito quando agrega legibilidade.
 
-### 47. Verificação Parte 6
+### 47. Verificação Parte 5
 
 - [ ] 47.1 `flutter analyze` — zero warnings.
 - [ ] 47.2 `flutter test` — toda a suíte passa.
 - [ ] 47.3 **Smoke manual — navegação**: tap em "Excluir" no `ProfileDetailsScreen` abre `ProfilePurgeScreen` com email readonly preenchido e campo senha vazio.
 - [ ] 47.4 **Smoke manual — validação**: tap "Excluir" com senha vazia → `'Senha obrigatória'`. Senha < 8 chars → `'Senha deve ter ao menos 8 caracteres'`. Senha válida → abre `showConfirmDialog`.
 - [ ] 47.5 **Smoke manual — confirm dialog**: dialog tem título `'Excluir conta'`, label `'Excluir'`, descrição reforçando irreversibilidade. Cancel fecha sem efeito; confirm dispara loading no botão.
-- [ ] 47.6 **Smoke manual — sucesso**: backend 204 → `userProvider` invalidado → próxima request 401 → refresh fail → app redireciona para SignIn (mesmo comportamento do deactivate).
-- [ ] 47.7 **Smoke manual — falha "deactivate before purge"**: chamar purge sem ter desativado → toast `'Opps'` com mensagem `'Account must be deactivated before purge.'` aparece. Botão sai do loading; usuário continua na `ProfilePurgeScreen` para tentar de novo.
+- [ ] 47.6 **Smoke manual — sucesso**: backend 204 → `userProvider` invalidado → próxima request 401 → refresh fail → app redireciona para SignIn.
+- [ ] 47.7 **Smoke manual — falha "senha incorreta"**: digitar senha errada → toast `'Opps'` com mensagem do backend (ex: `'Senha incorreta.'`) aparece. Botão sai do loading; usuário continua na `ProfilePurgeScreen` para tentar de novo.
 - [ ] 47.8 **Smoke manual — falha de rede**: backend timeout → toast `'Opps'` com mensagem do `NetworkFailure`. Botão sai do loading.
 - [ ] 47.9 **Smoke manual — double-tap**: tap rápido em "Excluir" no dialog não dispara duas requests (verificar via logs).
 - [ ] 47.10 **Smoke manual — toggle de visibilidade**: tap no ícone do olho alterna entre obscured/visible no campo senha.
@@ -683,6 +590,6 @@ Ordem fixa: domain → infrastructure → data → presentation (subfeature `pro
 
 ---
 
-## Parte 7+ — A definir
+## Parte 6+ — A definir
 
-- **Parte 7** — Edição real de nome/senha (PATCH) — substitui os `// TODO Parte 4` nos notifiers correspondentes.
+- **Parte 6** — Edição real de nome/senha (PATCH) — substitui os `// TODO Parte 6` nos notifiers correspondentes.

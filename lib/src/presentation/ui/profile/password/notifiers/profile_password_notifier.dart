@@ -42,6 +42,6 @@ final class ProfilePasswordNotifier extends _$ProfilePasswordNotifier {
     this.state = state;
 
     if (!isValid) return;
-    // TODO Parte 4: chamar repository.updatePassword(password: this.state.newPassword)
+    // TODO Parte 6: chamar repository.updatePassword(password: this.state.newPassword)
   }
 }

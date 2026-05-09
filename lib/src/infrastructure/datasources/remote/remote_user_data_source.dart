@@ -10,8 +10,6 @@ import 'package:trocado/src/infrastructure/clients/http/responses/failure/failur
 abstract interface class IRemoteUserDataSource {
   Future<Either<FailureResponse, UserResponse>> me();
 
-  Future<Either<FailureResponse, void>> deactivate({required String refresh});
-
   Future<Either<FailureResponse, void>> purge({
     required String email,
     required String password,
@@ -30,17 +28,6 @@ final class RemoteUserDataSource implements IRemoteUserDataSource {
     );
 
     return response.either(FailureResponse.fromJson, UserResponse.fromJson);
-  }
-
-  @override
-  Future<Either<FailureResponse, void>> deactivate({
-    required String refresh,
-  }) async {
-    final response = await _client.delete(
-      parameter: Requests(EndpointKey.me.path, body: {'refresh': refresh}),
-    );
-
-    return response.either(FailureResponse.fromJson, (_) {});
   }
 
   @override

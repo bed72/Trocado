@@ -19,65 +19,73 @@ class ProfilePasswordScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ScaffoldWidget(
     appBar: AppBarWidget(leading: GoBackWidget()),
-    child: Padding(
-      padding: const .all(16.0),
-      child: Consumer(
-        builder: (_, ref, _) {
-          final state = ref.watch(profilePasswordProvider);
-          final notifier = ref.read(profilePasswordProvider.notifier);
+    child: Consumer(
+      builder: (_, ref, _) {
+        final state = ref.watch(profilePasswordProvider);
+        final notifier = ref.read(profilePasswordProvider.notifier);
 
-          return Column(
-            spacing: 24.0,
-            crossAxisAlignment: .start,
-            children: [
-              const ScreenHeaderWidget(
-                title: 'Senha',
-                description: 'Crie uma nova senha para sua conta.',
-              ),
-              Column(
-                spacing: 12.0,
-                crossAxisAlignment: .start,
-                children: [
-                  PasswordFieldWidget(
-                    hint: 'Nova senha',
-                    label: 'Nova senha',
-                    inputAction: .next,
-                    failure: state.newPasswordFailure,
-                    obscure: state.obscureNewPassword,
-                    onChanged: (value) =>
-                        notifier.dispatch(NewPasswordChanged(value)),
-                    onToggle: () =>
-                        notifier.dispatch(const NewPasswordVisibilityToggled()),
-                  ),
-                  PasswordFieldWidget(
-                    inputAction: .done,
-                    hint: 'Confirmar senha',
-                    label: 'Confirmar senha',
-                    failure: state.confirmPasswordFailure,
-                    obscure: state.obscureConfirmPassword,
-                    onChanged: (value) =>
-                        notifier.dispatch(ConfirmPasswordChanged(value)),
-                    onToggle: () => notifier.dispatch(
-                      const ConfirmPasswordVisibilityToggled(),
+        return CustomScrollView(
+          slivers: [
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: Padding(
+                padding: const .all(16.0),
+                child: Column(
+                  spacing: 24.0,
+                  crossAxisAlignment: .start,
+                  children: [
+                    const ScreenHeaderWidget(
+                      title: 'Senha',
+                      description: 'Crie uma nova senha para sua conta.',
                     ),
-                  ),
-                ],
-              ),
-              const Spacer(),
-              SizedBox(
-                width: .infinity,
-                child: ButtonWidget.elevated(
-                  label: 'Atualizar',
-                  onTap: () {
-                    hideKeyboard();
-                    notifier.dispatch(const SubmitPressed());
-                  },
+                    Column(
+                      spacing: 12.0,
+                      crossAxisAlignment: .start,
+                      children: [
+                        PasswordFieldWidget(
+                          hint: 'Nova senha',
+                          label: 'Nova senha',
+                          inputAction: .next,
+                          failure: state.newPasswordFailure,
+                          obscure: state.obscureNewPassword,
+                          onChanged: (value) =>
+                              notifier.dispatch(NewPasswordChanged(value)),
+                          onToggle: () => notifier.dispatch(
+                            const NewPasswordVisibilityToggled(),
+                          ),
+                        ),
+                        PasswordFieldWidget(
+                          inputAction: .done,
+                          hint: 'Confirmar senha',
+                          label: 'Confirmar senha',
+                          failure: state.confirmPasswordFailure,
+                          obscure: state.obscureConfirmPassword,
+                          onChanged: (value) =>
+                              notifier.dispatch(ConfirmPasswordChanged(value)),
+                          onToggle: () => notifier.dispatch(
+                            const ConfirmPasswordVisibilityToggled(),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Spacer(),
+                    SizedBox(
+                      width: .infinity,
+                      child: ButtonWidget.elevated(
+                        label: 'Atualizar',
+                        onTap: () {
+                          hideKeyboard();
+                          notifier.dispatch(const SubmitPressed());
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          );
-        },
-      ),
+            ),
+          ],
+        );
+      },
     ),
   );
 }
