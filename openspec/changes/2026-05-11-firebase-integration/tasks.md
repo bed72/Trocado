@@ -300,3 +300,126 @@ Ordem fixa: pubspec → wrapper → provider → main.dart → verificação + s
 - [ ] 5.5 **Smoke Android**: `flutter run -d <android-device>`. Token deve aparecer no log do talker (algo como `FCM token: f8a3b...`).
 - [ ] 5.6 **Smoke iOS**: `flutter run -d <ios-device>`. Log esperado: `FCM token: (null)` (Push capability não ligada nesta parte; comportamento documentado).
 - [ ] 5.7 **Smoke push opcional (Android)**: copiar o token do log, em `console.firebase.google.com → Trocado → Messaging`, criar "Notificação de teste", colar o token, enviar. App em foreground não exibe nada (sem handler), mas confirma que o pipe Console → device existe.
+
+---
+
+## Parte 4 — App Check
+
+Ordem fixa: pubspec → wrapper → interceptor → DioFactory → providers → main.dart → testes → verificação + smoke.
+
+### 1. pubspec
+
+- [ ] 1.1 `flutter pub add firebase_app_check`. Confirmar entrada no `pubspec.yaml`.
+- [ ] 1.2 `flutter pub get` sem warnings.
+
+### 2. Wrapper `AppCheckClient`
+
+- [ ] 2.1 Criar pasta `lib/src/infrastructure/clients/app_check/`.
+- [ ] 2.2 Criar `lib/src/infrastructure/clients/app_check/app_check_client.dart`:
+  ```dart
+  import 'package:flutter/foundation.dart';
+  import 'package:firebase_app_check/firebase_app_check.dart';
+
+  abstract interface class IAppCheckClient {
+    Future<void> activate();
+    Future<String?> getToken();
+  }
+
+  final class AppCheckClient implements IAppCheckClient {
+    @override
+    Future<void> activate() => FirebaseAppCheck.instance.activate(
+      androidProvider: kDebugMode
+          ? AndroidProvider.debug
+          : AndroidProvider.playIntegrity,
+      appleProvider: kDebugMode
+          ? AppleProvider.debug
+          : AppleProvider.appAttest,
+    );
+
+    @override
+    Future<String?> getToken() => FirebaseAppCheck.instance.getToken();
+  }
+  ```
+
+### 3. Interceptor `AppCheckInterceptor`
+
+- [ ] 3.1 Criar `lib/src/infrastructure/clients/http/interceptors/app_check_interceptor.dart`:
+  ```dart
+  import 'package:dio/dio.dart';
+
+  import 'package:trocado/src/infrastructure/clients/app_check/app_check_client.dart';
+
+  final class AppCheckInterceptor extends Interceptor {
+    final IAppCheckClient _appCheckClient;
+
+    AppCheckInterceptor({required IAppCheckClient appCheckClient})
+        : _appCheckClient = appCheckClient;
+
+    @override
+    void onRequest(
+      RequestOptions options,
+      RequestInterceptorHandler handler,
+    ) async {
+      try {
+        final token = await _appCheckClient.getToken();
+        if (token != null) {
+          options.headers['X-Firebase-AppCheck'] = token;
+        }
+      } catch (_) {}
+
+      handler.next(options);
+    }
+  }
+  ```
+
+### 4. `DioFactory.create()` — novo parâmetro + interceptor
+
+- [ ] 4.1 Atualizar `lib/src/infrastructure/clients/http/factories/dio_factory.dart`:
+  - Adicionar import `app_check_client.dart` e `app_check_interceptor.dart`.
+  - Adicionar parâmetro nomeado-obrigatório `required IAppCheckClient appCheckClient` em `create()`.
+  - Adicionar `AppCheckInterceptor(appCheckClient: appCheckClient)` **antes** do `AuthenticationInterceptor` na lista `dio.interceptors.addAll([...])`.
+
+### 5. Providers
+
+- [ ] 5.1 Em `lib/src/main/providers/clients_provider.dart`:
+  - Adicionar import `app_check_client.dart`.
+  - Adicionar provider `appCheckClient` entre `firebaseClient` e `messagingClient`:
+    ```dart
+    @Riverpod(keepAlive: true)
+    IAppCheckClient appCheckClient(Ref _) => AppCheckClient();
+    ```
+  - Atualizar provider `dio` para passar `appCheckClient: ref.watch(appCheckClientProvider)` no `DioFactory.create(...)`.
+- [ ] 5.2 `dart run build_runner build --delete-conflicting-outputs`.
+- [ ] 5.3 Verificar `clients_provider.g.dart` tem `appCheckClientProvider`.
+
+### 6. `main.dart` — ativar antes de outros serviços Firebase
+
+- [ ] 6.1 Adicionar em `lib/main.dart`, entre `firebaseClient.initialize()` e a leitura de `crashClient`:
+  ```dart
+  await container.read(appCheckClientProvider).activate();
+  ```
+
+### 7. Testes
+
+- [ ] 7.1 Adicionar em `test/mocks/mocks.dart` (na ordem alfabética do arquivo):
+  ```dart
+  import 'package:trocado/src/infrastructure/clients/app_check/app_check_client.dart';
+
+  final class MockAppCheckClient extends Mock implements IAppCheckClient {}
+  ```
+- [ ] 7.2 Criar `test/src/infrastructure/clients/http/interceptors/app_check_interceptor_test.dart` cobrindo:
+  - `injects X-Firebase-AppCheck header when token is returned` — `when(() => client.getToken()).thenAnswer((_) async => 'abc')` → header `'abc'`.
+  - `proceeds without header when token is null` — token null → headers sem `X-Firebase-AppCheck`.
+  - `proceeds without header when getToken throws` — `thenThrow` → request segue sem header.
+- [ ] 7.3 Descrições em inglês conforme convenção.
+
+### 8. Verificação
+
+- [ ] 8.1 `flutter analyze` — zero warnings.
+- [ ] 8.2 `flutter test` — toda a suíte passa (incluindo os 3 testes novos do interceptor).
+- [ ] 8.3 Grep: `package:firebase_app_check/` aparece **apenas** em `app_check_client.dart`.
+- [ ] 8.4 Grep: `FirebaseAppCheck.instance` aparece **apenas** em `app_check_client.dart`.
+- [ ] 8.5 **Smoke Android**: `flutter run -d <android-emulator>`. Log deve mostrar `Enter this debug secret into the allow list...` com UUID. App boota; login flow funciona.
+- [ ] 8.6 **Smoke iOS**: idem no simulador.
+- [ ] 8.7 (opcional) **Inspeção de header**: temporariamente ligar `printRequestHeaders: true` em `TalkerDioLogger` (em `dio_factory.dart`), refazer alguma request, confirmar `X-Firebase-AppCheck` no log. **Reverter** o `printRequestHeaders: true` antes do commit.
+- [ ] 8.8 (opcional, recomendado) Registrar os UUIDs Android + iOS no Console: `App Check → Apps → ⋮ → Manage debug tokens`.

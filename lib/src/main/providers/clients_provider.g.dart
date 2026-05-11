@@ -92,6 +92,48 @@ final class FirebaseClientProvider
 
 String _$firebaseClientHash() => r'06082cdd5367a01594ca031cc58c722469298144';
 
+@ProviderFor(appCheckClient)
+final appCheckClientProvider = AppCheckClientProvider._();
+
+final class AppCheckClientProvider
+    extends
+        $FunctionalProvider<IAppCheckClient, IAppCheckClient, IAppCheckClient>
+    with $Provider<IAppCheckClient> {
+  AppCheckClientProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'appCheckClientProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$appCheckClientHash();
+
+  @$internal
+  @override
+  $ProviderElement<IAppCheckClient> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  IAppCheckClient create(Ref ref) {
+    return appCheckClient(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(IAppCheckClient value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<IAppCheckClient>(value),
+    );
+  }
+}
+
+String _$appCheckClientHash() => r'5aca6d5696397b7d48912c571bd2a7167ae31399';
+
 @ProviderFor(messagingClient)
 final messagingClientProvider = MessagingClientProvider._();
 
@@ -258,4 +300,4 @@ final class DioProvider extends $FunctionalProvider<Dio, Dio, Dio>
   }
 }
 
-String _$dioHash() => r'f590bd85f47d67691df949308996f5c2860773ea';
+String _$dioHash() => r'ddf19c1d67a22f7bceb6db8a331ef820fd9bb604';

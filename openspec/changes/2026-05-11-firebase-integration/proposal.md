@@ -355,19 +355,205 @@ Trade-off: o pipe iOS fica "meio-pronto" — token Android funciona, token iOS �
 2. `flutter run -d <ios-device>` — observar console. Deve aparecer: `FCM token: (null)` (sem capability; comportamento esperado).
 3. **Teste manual de push (opcional)**: pegar o token Android logado, ir em [Console → Trocado → Messaging → Nova campanha → Notificação de teste](https://console.firebase.google.com), colar o token, enviar. Sem handler ainda, mas confirma que o pipe Console → device funciona.
 
-### Parte 4 — App Check (esboço)
+### Parte 4 — App Check
 
-- Dep `firebase_app_check`.
-- `lib/src/infrastructure/clients/app_check/app_check_client.dart` — `IAppCheckClient` com `Future<void> activate()` e `Future<String?> getToken()`. Impl delega para `FirebaseAppCheck.instance`.
-- Providers configurados em `activate()` por modo de build (`kDebugMode`):
-  - **Debug** (`kDebugMode == true`): `androidProvider: AndroidProvider.debug`, `appleProvider: AppleProvider.debug`. O Debug Provider imprime um UUID no console que o usuário precisa registrar manualmente no Firebase Console (em **App Check → Apps → Manage debug tokens**) para que o token seja aceito.
-  - **Release**: `androidProvider: AndroidProvider.playIntegrity`, `appleProvider: AppleProvider.appAttest`. Play Integrity é o sucessor do SafetyNet (deprecated em 2024); App Attest exige iOS 14+ (já garantido pelo Flutter SDK `^3.10.0`).
-- Inicialização em `main.dart` **depois** de `Firebase.initializeApp` e **antes** de `runApp`.
-- Novo interceptor Dio `lib/src/infrastructure/clients/http/interceptors/app_check_interceptor.dart` — `AppCheckInterceptor extends Interceptor` que injeta header `X-Firebase-AppCheck: <token>` em `onRequest`. Token obtido via `IAppCheckClient.getToken()`. Se o token vier `null` (provider sem rede, debug provider não autorizado), a request segue sem o header — o backend decide aceitar ou rejeitar.
-- `lib/src/infrastructure/clients/http/factories/dio_factory.dart` adiciona o `AppCheckInterceptor` **antes** do `AuthenticationInterceptor` (ordem: App Check protege também endpoints públicos como sign-in/sign-up, então vem primeiro).
-- Sem validação no backend ainda — o header chega no Django mas é ignorado. Quando o backend ligar a validação, o app **não muda**. Trade-off aceito no `design.md`.
+A Parte 3 entregou FCM. As 3 pernas do Firebase (Crashlytics observabilidade, Messaging push, **App Check gate de identidade**) ainda têm a terceira em aberto. Esta parte fecha:
+
+1. SDK `firebase_app_check` adicionado e ativado no boot **antes** de outros serviços Firebase (Crashlytics não exige, mas FCM `getToken()` chama Firebase Installations, que **é** App Check-protected).
+2. Provider de attestation: **Play Integrity** (Android release), **App Attest** (iOS release), **Debug Provider** (kDebugMode em ambos).
+3. Token App Check injetado em header `X-Firebase-AppCheck` em **toda** request HTTP via interceptor Dio.
+4. Backend Django ignora o header por ora — Trocado fica pronto para quando o backend ligar a validação (change separada do lado backend).
+
+#### Nova dependência
+
+`pubspec.yaml`, seção `dependencies`:
+
+```yaml
+firebase_app_check: ^0.4.x.x  # versão exata pinada via `flutter pub add firebase_app_check`
+```
+
+#### Wrapper `IAppCheckClient` / `AppCheckClient`
+
+A estratégia de providers (`debug` vs `playIntegrity` / `appAttest`) é **encapsulada dentro do wrapper** — `main.dart` apenas chama `activate()` sem decidir provider. Isso esconde os tipos `AndroidProvider` / `AppleProvider` do `firebase_app_check` no único arquivo que importa o SDK.
+
+- `lib/src/infrastructure/clients/app_check/app_check_client.dart`:
+
+  ```dart
+  import 'package:flutter/foundation.dart';
+  import 'package:firebase_app_check/firebase_app_check.dart';
+
+  abstract interface class IAppCheckClient {
+    Future<void> activate();
+    Future<String?> getToken();
+  }
+
+  final class AppCheckClient implements IAppCheckClient {
+    @override
+    Future<void> activate() => FirebaseAppCheck.instance.activate(
+      providerAndroid: kDebugMode
+          ? AndroidDebugProvider()
+          : AndroidPlayIntegrityProvider(),
+      providerApple: kDebugMode
+          ? AppleDebugProvider()
+          : AppleAppAttestProvider(),
+    );
+
+    @override
+    Future<String?> getToken() => FirebaseAppCheck.instance.getToken();
+  }
+  ```
+
+  Em `firebase_app_check ^0.4.4`, os parâmetros `androidProvider` / `appleProvider` (que recebiam enums `AndroidProvider.debug`, etc.) foram deprecados em favor de `providerAndroid` / `providerApple`, que recebem instâncias de classes concretas (`AndroidDebugProvider()`, `AndroidPlayIntegrityProvider()`, `AppleDebugProvider()`, `AppleAppAttestProvider()`). O wrapper usa o API moderno.
+
+#### Provider Riverpod
+
+Em `clients_provider.dart`, entre `firebaseClient` e `messagingClient`:
+
+```dart
+@Riverpod(keepAlive: true)
+IAppCheckClient appCheckClient(Ref _) => AppCheckClient();
+```
+
+E o `dio` provider passa a injetar o cliente no factory (próxima seção).
+
+#### Novo interceptor Dio `AppCheckInterceptor`
+
+- `lib/src/infrastructure/clients/http/interceptors/app_check_interceptor.dart`:
+
+  ```dart
+  import 'package:dio/dio.dart';
+
+  import 'package:trocado/src/infrastructure/clients/app_check/app_check_client.dart';
+
+  final class AppCheckInterceptor extends Interceptor {
+    final IAppCheckClient _appCheckClient;
+
+    AppCheckInterceptor({required IAppCheckClient appCheckClient})
+        : _appCheckClient = appCheckClient;
+
+    @override
+    void onRequest(
+      RequestOptions options,
+      RequestInterceptorHandler handler,
+    ) async {
+      try {
+        final token = await _appCheckClient.getToken();
+        if (token != null) {
+          options.headers['X-Firebase-AppCheck'] = token;
+        }
+      } catch (_) {}
+
+      handler.next(options);
+    }
+  }
+  ```
+
+  O `catch (_)` vazio é intencional: falha de App Check (token expirou, rede off, debug provider não-autorizado ainda) **não** bloqueia a request — segue sem o header, e o backend decide aceitar ou rejeitar. Hoje aceita (validação não está ligada); amanhã pode rejeitar com 401 e o `AuthenticationInterceptor` cuida do refresh / logout.
+
+#### `DioFactory.create()` — interceptor adicionado **antes** do AuthenticationInterceptor
+
+`AppCheckInterceptor` precisa rodar antes do `AuthenticationInterceptor` por dois motivos:
+1. Endpoints públicos (sign-in, sign-up) também são App Check-protegidos — o token deve ser injetado mesmo quando o usuário não está autenticado.
+2. Convenção: middleware de identidade do device vem antes de middleware de identidade do usuário.
+
+`DioFactory.create()` ganha novo parâmetro nomeado-obrigatório `IAppCheckClient appCheckClient` e adiciona o interceptor na frente da lista (`AppCheckInterceptor` antes de `AuthenticationInterceptor`).
+
+#### `clients_provider.dart` — `dio` provider passa o `appCheckClient`
+
+O provider `dio` recebe a nova dependência via `ref.watch`:
+
+```dart
+@Riverpod(keepAlive: true)
+Dio dio(Ref ref) => DioFactory.create(
+  baseUrl: AppConfig.url,
+  dataSource: ref.watch(localTokenDataSourceProvider),
+  appCheckClient: ref.watch(appCheckClientProvider),
+  onUnauthenticated: () { ... },
+);
+```
+
+#### `main.dart` — ativação antes de qualquer outro serviço Firebase
+
+App Check **precisa** estar ativo antes de qualquer chamada que dispare Firebase Installations (que inclui FCM `getToken()`). Ordem final do `main()`:
+
+```dart
+WidgetsFlutterBinding.ensureInitialized();
+
+final container = ProviderContainer(observers: [stateObserver]);
+
+await container.read(firebaseClientProvider).initialize();
+await container.read(appCheckClientProvider).activate();   // ← novo
+
+final crashClient = container.read(crashClientProvider);
+FlutterError.onError = crashClient.recordFlutterError;
+PlatformDispatcher.instance.onError = (e, s) { ... };
+
+unawaited(_logFcmToken(container));
+
+runApp(...);
+```
+
+#### Debug Provider — fluxo de registro de token
+
+Em debug, o SDK imprime no log algo como:
+
+```
+Enter this debug secret into the allow list in the Firebase Console for your project: 12345678-abcd-...
+```
+
+O usuário precisa:
+1. Copiar o UUID do log.
+2. Ir em `console.firebase.google.com → Trocado → App Check → Apps → (Android ou iOS) → ⋮ → Manage debug tokens`.
+3. Adicionar o token com um nome reconhecível (ex: "Gabriel iPhone debug").
+
+Sem esse registro, o backend Firebase rejeita os tokens emitidos pelo Debug Provider. Como nesta parte **nenhum serviço backend valida**, o registro é apenas pra evitar warnings — não bloqueia smoke da Parte 4.
+
+#### iOS App Attest entitlement — **não** adicionado nesta parte
+
+Para release em iOS com `AppleProvider.appAttest`, o `Runner.entitlements` precisa do entitlement `com.apple.developer.devicecheck.appattest-environment` (valor `development` ou `production`), **e** o provisioning profile precisa incluir a capability "App Attest" no Apple Developer Portal.
+
+**Decisão**: não adicionar o entitlement nesta parte. iOS em debug usa Debug Provider (sem exigência). Release com App Attest fica para a primeira release que efetivamente fizer App Check enforcement — aí o entitlement, o provisioning profile e a APNs auth key viram pacote junto.
+
+#### SHA-256 release no Console (Android) — fora de escopo
+
+Play Integrity em release exige o SHA-256 do keystore de release cadastrado no Console (`App Check → Apps → Android → Manage signing certificates`). Como Parte 4 entrega o pipe e a Debug Provider já cobre dev, o cadastro do SHA-256 release fica para quando o time efetivamente fizer o primeiro release com App Check ligado no backend.
+
+#### Smoke de verificação
+
+1. `flutter run -d <android-emulator>` — boot deve completar; log do Talker deve mostrar a linha `Enter this debug secret into the allow list...` com um UUID. Login flow continua funcionando (App Check não bloqueia request porque backend não valida).
+2. `flutter run -d <ios-simulator>` — idem, UUID iOS impresso no console.
+3. **Inspeção de header (opcional)**: ligar `TalkerDioLogger` com `printRequestHeaders: true` temporariamente, refazer uma request qualquer, confirmar que o header `X-Firebase-AppCheck: <token>` aparece. Reverter o `printRequestHeaders: true` após confirmar.
+4. (opcional, mas recomendado) registrar os 2 UUIDs no Firebase Console para evitar warnings de "tokens rejeitados" em logs futuros.
 
 ## Scope
+
+### Em escopo (Parte 4 — atual)
+
+- Dependência `firebase_app_check` adicionada ao `pubspec.yaml`.
+- `lib/src/infrastructure/clients/app_check/app_check_client.dart` com `IAppCheckClient` (2 métodos: `activate()` + `getToken()`) + `AppCheckClient`. A impl encapsula a estratégia de providers via `kDebugMode` — debug usa `AndroidProvider.debug` / `AppleProvider.debug`, release usa `AndroidProvider.playIntegrity` / `AppleProvider.appAttest`.
+- `appCheckClientProvider` adicionado em `clients_provider.dart` entre `firebaseClient` e `messagingClient`.
+- `lib/src/infrastructure/clients/http/interceptors/app_check_interceptor.dart` com `AppCheckInterceptor` que injeta header `X-Firebase-AppCheck` em `onRequest` via `IAppCheckClient.getToken()`. Token nulo ou exception → request segue sem header (try-catch swallow).
+- `DioFactory.create()` ganha parâmetro nomeado-obrigatório `IAppCheckClient appCheckClient` e adiciona `AppCheckInterceptor` antes de `AuthenticationInterceptor` na lista de interceptors.
+- `dio` provider em `clients_provider.dart` passa `appCheckClient: ref.watch(appCheckClientProvider)` para o factory.
+- `lib/main.dart` ganha `await container.read(appCheckClientProvider).activate();` entre `firebaseClient.initialize()` e as bridges de Crashlytics — App Check precisa estar ativo antes do FCM `getToken()` da Parte 3.
+- Build_runner regenera `clients_provider.g.dart`.
+- Teste novo `test/src/infrastructure/clients/http/interceptors/app_check_interceptor_test.dart` cobrindo: token retornado → header presente; token null → sem header; `getToken` lança → sem header. Mock em `IAppCheckClient`.
+- `MockAppCheckClient extends Mock implements IAppCheckClient` adicionado em `test/mocks/mocks.dart`.
+- `flutter analyze` zero warnings; `flutter test` passa toda a suíte.
+- **Smoke Android**: UUID de debug impresso no log na boot. **Smoke iOS**: idem. **Smoke header (opcional)**: ativando `printRequestHeaders` temporário no `TalkerDioLogger`, confirmar que `X-Firebase-AppCheck` aparece nos requests.
+
+### Fora de escopo (Parte 4 — virá em partes futuras)
+
+- **Validação no backend Django** — o header chega mas não é validado. Backend ligar validação é change separada (não esta).
+- **iOS App Attest entitlement** (`com.apple.developer.devicecheck.appattest-environment`) — fica para a primeira release que efetivamente exigir App Attest em iOS.
+- **iOS provisioning profile com capability "App Attest"** — junto com o entitlement acima.
+- **SHA-256 release Android cadastrado no Console** (necessário pra Play Integrity em release) — quando primeiro release com App Check enforcement chegar.
+- **APNs auth key no Firebase Console** — fora; é problema da change de push real (não desta).
+- **Registro dos UUIDs de debug no Console** — passo manual recomendado mas não bloqueia smoke; cada dev registra o próprio device.
+- **Token refresh proativo** — `FirebaseAppCheck.instance.setTokenAutoRefreshEnabled(true)` é o default; não precisamos ativar nada. Stream `onTokenChange` fica fora — não há use case ainda.
+- **Header em endpoints que não vão pra `AppConfig.url`** — `AppCheckInterceptor` está anexado a um único `Dio` instance. Se o app criar outro client futuramente, ele não terá o header automaticamente. Aceitável; revisitar quando o cenário aparecer.
+- **Testes do `AppCheckClient` wrapper** — delegate puro (mesmo padrão de `CrashClient` / `MessagingClient`), sem teste.
+- **`enforce` em outros serviços Firebase** (Firestore, Storage, Cloud Functions) — não usamos esses serviços.
 
 ### Em escopo (Parte 3 — atual)
 

@@ -13,6 +13,7 @@ Future<void> main() async {
 
   final container = ProviderContainer(observers: [stateObserver]);
   await container.read(firebaseClientProvider).initialize();
+  await container.read(appCheckClientProvider).activate();
 
   final crashClient = container.read(crashClientProvider);
 

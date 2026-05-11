@@ -221,7 +221,78 @@ Capability deve ser ligada **junto** com (a) `requestPermission()`, (b) `AppDele
 
 **Rationale**: `MessagingClient.getToken()` é delegate puro pra `FirebaseMessaging.instance.getToken()`. Testar exige mockear o singleton estático — frágil e tautológico. Regressão real detectada via smoke (token aparece no log Android).
 
-### 22. Não introduzir Firebase Analytics nesta change
+### 22. Parte 4 — Estratégia de providers (`debug` vs `playIntegrity`/`appAttest`) encapsulada no wrapper
+
+**Decisão (Parte 4)**: `AppCheckClient.activate()` decide internamente qual provider usar baseado em `kDebugMode`. `main.dart` chama `activate()` sem parametrizar.
+
+**Rationale**: tipos `AndroidProvider` e `AppleProvider` vêm de `package:firebase_app_check/...` — se a interface `IAppCheckClient.activate()` aceitasse esses tipos como parâmetros, o caller (composition root) teria que importar `firebase_app_check`, vazando o SDK pra fora de `infrastructure/clients/app_check/`. O ponto do wrapper é isolar o SDK; deixar a decisão de provider dentro dele preserva esse isolamento.
+
+**Trade-off**: se um dia precisarmos overridar o provider em testes (ex: forçar debug em release para canary), o wrapper precisa expor a configuração. Aceitável adiar — não há caso de uso atual, e ampliar a interface depois é uma linha de código.
+
+### 23. Parte 4 — `AppCheck.activate()` antes de qualquer outro serviço Firebase
+
+**Decisão (Parte 4)**: a ordem em `main()` fica:
+1. `Firebase.initializeApp` (Parte 1)
+2. `AppCheck.activate` (Parte 4) ← **novo**
+3. Crashlytics bridges (Parte 2)
+4. FCM `getToken()` (Parte 3) ← consumidor de App Check
+5. `runApp`
+
+**Rationale**: FCM `getToken()` chama Firebase Installations sob o capô, que é App Check-protected. Se App Check não estiver ativo, Installations pode rejeitar o request quando o backend ligar enforcement — e fica chato debug porque o erro aparece em momento aparentemente desconexo. Ativar App Check antes de qualquer outro serviço Firebase é a recomendação oficial do FlutterFire e elimina toda essa classe de bug.
+
+**Trade-off**: `activate()` adiciona ~50-200ms ao boot (depending on Play Integrity / App Attest cold start). É `await`-ado (não `unawaited`) porque os serviços subsequentes dependem dele. Custo aceitável — boot já tem `Firebase.initializeApp` (~100ms) e o tempo até `runApp` continua sub-segundo.
+
+### 24. Parte 4 — `AppCheckInterceptor` antes do `AuthenticationInterceptor`
+
+**Decisão (Parte 4)**: na lista de interceptors do `DioFactory.create()`, `AppCheckInterceptor` vem **antes** do `AuthenticationInterceptor`.
+
+**Rationale**: dois motivos.
+
+(1) Endpoints públicos (sign-in, sign-up — definidos em `EndpointKey.isPublicPath`) bypassam o `AuthenticationInterceptor` (a header `Authorization: Bearer` só é injetada em endpoints autenticados). Mas eles devem ter `X-Firebase-AppCheck` mesmo assim — App Check é gate de identidade do **device**, não do usuário. Atacante criando contas em massa via script sem App Check é exatamente o cenário que essa parte protege. Logo App Check tem que rodar antes do early-return do AuthenticationInterceptor.
+
+(2) Convenção: middleware de identidade do device vem antes de identidade do usuário (mesma ordem que cloud platforms tipicamente seguem — TLS → WAF → rate-limit por IP → auth de aplicação → auth de usuário).
+
+**Trade-off**: `getToken()` é chamado em **toda** request, mesmo as públicas. O SDK do `firebase_app_check` cacheia o token internamente (~1h de TTL), então o custo real após o primeiro fetch é uma leitura em memória. Aceitável.
+
+### 25. Parte 4 — Token nulo / exception → request segue sem header (não bloqueia)
+
+**Decisão (Parte 4)**: se `IAppCheckClient.getToken()` retorna `null` ou lança, o `AppCheckInterceptor` engole silenciosamente e a request segue sem o header.
+
+**Rationale**: App Check é um gate de **defesa em profundidade**, não um gate primário. Se ele falhar no client (rede momentaneamente off, provider rate-limited, debug token não-registrado, App Attest API temporariamente fora), a request ainda tem Bearer auth do `AuthenticationInterceptor` — o backend recebe a request e decide. O backend é a autoridade final: hoje aceita, amanhã pode rejeitar com 401, e o app trata como qualquer outro 401.
+
+Bloquear localmente seria pior: usuário com rede instável ficaria com app travado em "checking..." sem feedback útil, quando a request normal teria 90% de chance de sucesso (apenas o flag App Check faltando).
+
+**Trade-off**: ataques sofisticados podem tentar forçar falha local de App Check para bypassar o header. Aceitável — quando o backend ligar enforcement, ele rejeita request sem header igualzinho a token inválido. Defesa fica no backend, onde deve estar.
+
+### 26. Parte 4 — Debug Provider em `kDebugMode`; release providers em release builds
+
+**Decisão (Parte 4)**: `kDebugMode == true` → `AndroidProvider.debug` + `AppleProvider.debug`. Caso contrário → `AndroidProvider.playIntegrity` + `AppleProvider.appAttest`.
+
+**Rationale**: providers de produção (Play Integrity, App Attest) **não funcionam** em emuladores Android sem Play Services, simuladores iOS, ou builds sem signing release. Tentar usar Play Integrity em `flutter run` no Android Studio emulator quebra com erro genérico de "Integrity API not available". Debug Provider existe exatamente pra cobrir esses cenários — gera tokens de teste que o Firebase backend aceita **se o UUID estiver registrado no Console**.
+
+Usar `kDebugMode` como switch acopla a decisão ao tipo de build, que é a discriminação correta. `flutter build apk --release` ou `flutter build ios --release` automaticamente desativam `kDebugMode` e ligam os providers de produção. CI pode rodar release builds sem precisar manipular env vars.
+
+**Trade-off**: TestFlight builds (com signing real mas via debug build no Xcode) ficam com Debug Provider — mas TestFlight builds são quase sempre release builds. Edge case raro.
+
+### 27. Parte 4 — iOS App Attest entitlement **não** adicionado nesta parte
+
+**Decisão (Parte 4)**: `Runner.entitlements` **não** ganha `com.apple.developer.devicecheck.appattest-environment` nesta parte. Provisioning profile no Apple Developer Portal **não** é alterado.
+
+**Rationale**: mesma lógica da decisão #18 (Push capability deferred): ligar entitlement isolado sem um caso de uso real (App Attest enforcement do backend) cria estado intermediário esquisito. Pior: entitlement exige update do provisioning profile, que é trabalho manual no Developer Portal + re-download em todos os devs + re-distribuição do profile. Custo alto pra zero ganho enquanto backend não valida.
+
+iOS em debug (Debug Provider) **não** exige o entitlement — o Debug Provider usa a API privada do FlutterFire para emitir tokens locais. Para release com App Attest real, entitlement + provisioning entram juntos na primeira change que efetivamente ligar enforcement.
+
+**Trade-off**: primeira release que exigir App Attest vai ter um setup iOS extra (entitlement + profile). Aceitável — esse trabalho fica concentrado no momento em que ele importa.
+
+### 28. Parte 4 — Teste do `AppCheckInterceptor`; sem teste do wrapper
+
+**Decisão (Parte 4)**: criar `test/src/infrastructure/clients/http/interceptors/app_check_interceptor_test.dart` cobrindo 3 cenários (token, null, throw). **Não** criar teste do `AppCheckClient` wrapper.
+
+**Rationale**: o interceptor **tem lógica condicional** (`if (token != null)` + try-catch swallow) — vale teste. O `AppCheckClient` é delegate puro (mesma lógica das decisões #8/#16/#21). Mock em `IAppCheckClient`, instanciar interceptor, montar `RequestOptions` + `RequestInterceptorHandler` fakes, exercitar `onRequest`, verificar headers.
+
+**Trade-off**: `MockAppCheckClient` é mais um mock em `test/mocks/mocks.dart` — boilerplate pequeno, aceitável.
+
+### 29. Não introduzir Firebase Analytics nesta change
 
 **Decisão**: Analytics (mesmo que habilitado no Console na fase 0.2) **não é integrado** ao app em nenhuma das 4 partes.
 
