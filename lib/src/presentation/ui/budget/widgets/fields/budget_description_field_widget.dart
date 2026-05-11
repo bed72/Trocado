@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import 'package:trocado/src/presentation/widgets/fields/text_field_widget.dart';
 
@@ -20,6 +21,8 @@ class BudgetDescriptionFieldWidget extends StatelessWidget {
     label: 'Descrição',
     onChanged: onChanged,
     initialValue: initialValue,
-    hint: 'Ex: Orçamento de Março',
+    hint: 'Ex: Orçamento de ${getCurrentMonth()}',
   );
+
+  String getCurrentMonth() => DateFormat('MMMM', 'pt_BR').format(.now());
 }

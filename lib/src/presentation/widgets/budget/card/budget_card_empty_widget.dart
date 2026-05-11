@@ -11,6 +11,7 @@ class BudgetCardEmptyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      margin: .zero,
       elevation: 0.0,
       child: Container(
         width: .infinity,
@@ -18,7 +19,9 @@ class BudgetCardEmptyWidget extends StatelessWidget {
         child: Column(
           spacing: 8.0,
           mainAxisSize: .min,
+          crossAxisAlignment: .center,
           children: [
+            const SizedBox(height: 6.0),
             Icon(
               Icons.savings_outlined,
               size: 48.0,

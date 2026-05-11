@@ -9,9 +9,9 @@ import 'package:trocado/src/presentation/widgets/budget/card/budget_card_failure
 import 'package:trocado/src/presentation/widgets/budget/card/budget_card_success_widget.dart';
 
 class BudgetCardWidget extends StatelessWidget {
+  final VoidCallback? onTap;
   final VoidCallback onRetry;
   final VoidCallback onCreateBudget;
-  final VoidCallback? onTap;
   final AsyncValue<BudgetCardPresentationData?> state;
 
   const BudgetCardWidget({
