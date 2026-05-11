@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,5 +22,23 @@ Future<void> main() async {
     return true;
   };
 
+  unawaited(_logFcmToken(container));
+
   runApp(UncontrolledProviderScope(container: container, child: AppWidget()));
+}
+
+// TODO: Migrate to SplashScreen
+Future<void> _logFcmToken(ProviderContainer container) async {
+  final logger = container.read(loggerClientProvider);
+
+  try {
+    final token = await container.read(messagingClientProvider).getToken();
+    logger.information('FCM token: ${token ?? '(null)'}');
+  } catch (error, stackTrace) {
+    logger.error(
+      'Failed to retrieve FCM token',
+      error: error,
+      stackTrace: stackTrace,
+    );
+  }
 }

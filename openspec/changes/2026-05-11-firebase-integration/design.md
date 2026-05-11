@@ -177,7 +177,51 @@ A (b) é estritamente menos código, mais explícita (o bridge é uma linha vis�
 
 Se `logger_client_test.dart` não existe hoje, **não** criar nesta parte — manter consistência com a decisão original de não testar wrappers.
 
-### 17. Não introduzir Firebase Analytics nesta change
+### 17. Parte 3 — Token FCM logado em `main.dart`, **não** em notifier de auth
+
+**Decisão (Parte 3)**: `_logFcmToken(container)` é chamado em `main.dart` após as bridges de Crashlytics, com `unawaited(...)`. **Não** vai dentro de `SignInNotifier._submit` nem `SignUpNotifier._submit`.
+
+**Rationale**: o esboço original mencionava "ramificação Right de SignInNotifier". Implementar assim violaria a regra de dependência do CLAUDE.md — notifiers vivem em `presentation/`, que depende exclusivamente de `domain/`. Ler `messagingClientProvider` (que retorna `IMessagingClient` de `infrastructure/`) dentro de notifier criaria import direto de `presentation → infrastructure`, contornando a camada de domain. `main.dart` é o único composition root autorizado a tocar infrastructure direto.
+
+Timing: token FCM é por-device, não por-usuário. Buscar no boot é equivalente a buscar pós-auth — o token é o mesmo. Quando o backend ligar o endpoint para receber tokens, aí faz sentido relocar pra pós-auth (porque a request precisa do JWT do usuário no header). Por ora, boot é mais simples e respeita a arquitetura.
+
+**Trade-off**: o token é loggado **toda vez** que o app boota. Cada chamada é cheap (FCM cacheia local; só o primeiro boot real exige round-trip). Esse log pode ser uma anomalia visual no talker mas não tem custo real.
+
+### 18. Parte 3 — iOS Push capability **não** adicionada; `MessagingClient` absorve o erro conhecido
+
+**Decisão (Parte 3)**: o entitlement `aps-environment` (capability "Push Notifications") **não** é adicionado ao `Runner.entitlements`. iOS sem capability lança `FirebaseException(code: 'apns-token-not-set')` em `getToken()` — o wrapper `MessagingClient` captura esse código específico e devolve `null` para o caller, que loga `"FCM token: (null)"` discretamente.
+
+**Aprendizado**: o esboço inicial assumiu que iOS retornaria `null` puro; a realidade é throw. Descoberto no smoke da Parte 3 (stack trace gigante via bridge Crashlytics). Spec corrigida para refletir o comportamento real e o filtro no wrapper.
+
+**Rationale**: ligar a capability isolada cria estado intermediário esquisito — TestFlight mostra "Push Notifications" como Capability ativa, mas o app não pede permissão, não exibe notificação, não roteia tap. Reviewer da Apple, dev futuro ou suporte vão se perguntar "por que está ligada se não funciona?". Pior, em ambientes onde o Trocado for assinado com provisioning profile que **não** inclui Push Notifications (alguns dev profiles), o build de release pode quebrar de surpresa.
+
+Capability deve ser ligada **junto** com (a) `requestPermission()`, (b) `AppDelegate.swift` overrides pra UNUserNotificationCenter, (c) handlers de payload, (d) APNs key no Console. Tudo numa change unificada — escopo de "ligar push em iOS de verdade".
+
+**Trade-off**: iOS na Parte 3 é "meio-pronto" — só Android tem token logado. Aceitável: o objetivo dessa parte é validar o SDK rodando, não tokens de produção iOS. Quando o backend ligar e a change de push iOS chegar, o pipe iOS fica completo no mesmo momento que ele passa a importar.
+
+### 19. Parte 3 — `unawaited(...)` em vez de `await` para não bloquear o boot
+
+**Decisão (Parte 3)**: `_logFcmToken` é disparado via `unawaited(...)` (do `dart:async`), não `await`-ado em `main()`.
+
+**Rationale**: o token é informativo (log); o app não depende dele pra renderizar. Aguardar resolve algo entre 100ms (cache hit) e alguns segundos (cold start sem rede); fazer o splash esperar isso é regressão de UX por nada. Se a chamada falha (rede off, FCM rate-limited), o try-catch interno loga via `logger.error` (que pelo bridge Parte 2 vai pro Crashlytics como não-fatal). Erros não-tratados que escapem do try-catch caem no `PlatformDispatcher.onError` bridge da Parte 2 — duplo safety net.
+
+**Trade-off**: o linter `unawaited_futures` poderia reclamar; usar `unawaited(...)` da `dart:async` é exatamente o idioma canônico que silencia o warning sem suprimir nada legítimo.
+
+### 20. Parte 3 — Sem `onTokenRefresh`, sem topics, sem handlers
+
+**Decisão (Parte 3)**: `IMessagingClient` expõe **só** `getToken()`. Não há `subscribeToTopic`, `unsubscribeFromTopic`, `onTokenRefresh` stream, `onMessage` handler, nada disso.
+
+**Rationale**: cada uma dessas APIs corresponde a uma feature de produto (segmentação por topic, manter o backend atualizado quando o token rota, exibir notificação em foreground). Adicionar interface sem caso de uso real gera código não-exercitado = surface de bug. Quando cada feature for necessária, a interface ganha o método junto com a impl + os call-sites + o teste — change atômica.
+
+**Trade-off**: ampliar `IMessagingClient` no futuro vai exigir editar duas linhas (interface + impl) por método. Aceitável; é menos custo que arrastar interface inflada desde o início.
+
+### 21. Parte 3 — Sem testes unitários para `MessagingClient`
+
+**Decisão (Parte 3)**: nada em `test/src/infrastructure/clients/messaging/`. Wrapper trivial — mesmo argumento das decisões #8 (FirebaseClient) e #16 (CrashClient).
+
+**Rationale**: `MessagingClient.getToken()` é delegate puro pra `FirebaseMessaging.instance.getToken()`. Testar exige mockear o singleton estático — frágil e tautológico. Regressão real detectada via smoke (token aparece no log Android).
+
+### 22. Não introduzir Firebase Analytics nesta change
 
 **Decisão**: Analytics (mesmo que habilitado no Console na fase 0.2) **não é integrado** ao app em nenhuma das 4 partes.
 

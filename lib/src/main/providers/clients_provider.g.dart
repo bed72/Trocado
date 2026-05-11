@@ -9,6 +9,47 @@ part of 'clients_provider.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
+@ProviderFor(crashClient)
+final crashClientProvider = CrashClientProvider._();
+
+final class CrashClientProvider
+    extends $FunctionalProvider<ICrashClient, ICrashClient, ICrashClient>
+    with $Provider<ICrashClient> {
+  CrashClientProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'crashClientProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$crashClientHash();
+
+  @$internal
+  @override
+  $ProviderElement<ICrashClient> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  ICrashClient create(Ref ref) {
+    return crashClient(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ICrashClient value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ICrashClient>(value),
+    );
+  }
+}
+
+String _$crashClientHash() => r'cc00645b500413ed56199772796834bcc84635c5';
+
 @ProviderFor(firebaseClient)
 final firebaseClientProvider = FirebaseClientProvider._();
 
@@ -51,46 +92,51 @@ final class FirebaseClientProvider
 
 String _$firebaseClientHash() => r'06082cdd5367a01594ca031cc58c722469298144';
 
-@ProviderFor(crashClient)
-final crashClientProvider = CrashClientProvider._();
+@ProviderFor(messagingClient)
+final messagingClientProvider = MessagingClientProvider._();
 
-final class CrashClientProvider
-    extends $FunctionalProvider<ICrashClient, ICrashClient, ICrashClient>
-    with $Provider<ICrashClient> {
-  CrashClientProvider._()
+final class MessagingClientProvider
+    extends
+        $FunctionalProvider<
+          IMessagingClient,
+          IMessagingClient,
+          IMessagingClient
+        >
+    with $Provider<IMessagingClient> {
+  MessagingClientProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'crashClientProvider',
+        name: r'messagingClientProvider',
         isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$crashClientHash();
+  String debugGetCreateSourceHash() => _$messagingClientHash();
 
   @$internal
   @override
-  $ProviderElement<ICrashClient> $createElement($ProviderPointer pointer) =>
+  $ProviderElement<IMessagingClient> $createElement($ProviderPointer pointer) =>
       $ProviderElement(pointer);
 
   @override
-  ICrashClient create(Ref ref) {
-    return crashClient(ref);
+  IMessagingClient create(Ref ref) {
+    return messagingClient(ref);
   }
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(ICrashClient value) {
+  Override overrideWithValue(IMessagingClient value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<ICrashClient>(value),
+      providerOverride: $SyncValueProvider<IMessagingClient>(value),
     );
   }
 }
 
-String _$crashClientHash() => r'cc00645b500413ed56199772796834bcc84635c5';
+String _$messagingClientHash() => r'd088880587fa615ed0aba668bcfe26c5000b8cf9';
 
 @ProviderFor(loggerClient)
 final loggerClientProvider = LoggerClientProvider._();
@@ -131,7 +177,7 @@ final class LoggerClientProvider
   }
 }
 
-String _$loggerClientHash() => r'60df5685f3b96773ed98b184611422f1ea274591';
+String _$loggerClientHash() => r'2be11abe88454b9fa3f542dc62623c6c60920aef';
 
 @ProviderFor(httpClient)
 final httpClientProvider = HttpClientProvider._();

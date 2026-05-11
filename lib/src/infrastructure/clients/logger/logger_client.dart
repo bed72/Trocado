@@ -16,7 +16,7 @@ final class LoggerClient implements ILoggerClient {
   final ICrashClient _client;
   final _logger = TalkerLogger(
     settings: TalkerLoggerSettings(
-      enableColors: true,
+      enableColors: false,
       level: kReleaseMode ? .warning : .verbose,
     ),
   );

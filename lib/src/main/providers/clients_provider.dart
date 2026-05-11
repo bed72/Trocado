@@ -10,6 +10,7 @@ import 'package:trocado/src/infrastructure/clients/http/http_client.dart';
 import 'package:trocado/src/infrastructure/clients/crash/crash_client.dart';
 import 'package:trocado/src/infrastructure/clients/logger/logger_client.dart';
 import 'package:trocado/src/infrastructure/clients/firebase/firebase_client.dart';
+import 'package:trocado/src/infrastructure/clients/messaging/messaging_client.dart';
 import 'package:trocado/src/infrastructure/clients/http/factories/dio_factory.dart';
 
 import 'package:trocado/src/presentation/ui/authentication/sign_in/locations/sign_in_location.dart';
@@ -17,10 +18,13 @@ import 'package:trocado/src/presentation/ui/authentication/sign_in/locations/sig
 part 'clients_provider.g.dart';
 
 @Riverpod(keepAlive: true)
+ICrashClient crashClient(Ref _) => CrashClient();
+
+@Riverpod(keepAlive: true)
 IFirebaseClient firebaseClient(Ref _) => FirebaseClient();
 
 @Riverpod(keepAlive: true)
-ICrashClient crashClient(Ref _) => CrashClient();
+IMessagingClient messagingClient(Ref _) => MessagingClient();
 
 @Riverpod(keepAlive: true)
 ILoggerClient loggerClient(Ref ref) =>

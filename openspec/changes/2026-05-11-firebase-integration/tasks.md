@@ -234,3 +234,69 @@ Ordem fixa: pubspec → wrapper → refactor do `LoggerClient` → providers →
 - [ ] 9.6 **Smoke release — iOS**: idem em device real iOS (simulator não dispara o crash handler nativo).
 - [ ] 9.7 Esperar 5-15 min e confirmar no Console (`console.firebase.google.com → Trocado → Crashlytics`) que o crash de teste aparece com stack trace e device info.
 - [ ] 9.8 **Remover o botão de teste** antes de commitar. Confirmar via grep que `FirebaseCrashlytics.instance.crash()` não aparece em nenhum lugar de `lib/`.
+
+---
+
+## Parte 3 — Cloud Messaging mínimo
+
+Ordem fixa: pubspec → wrapper → provider → main.dart → verificação + smoke.
+
+### 1. pubspec
+
+- [ ] 1.1 `flutter pub add firebase_messaging`. Confirmar entrada no `pubspec.yaml`.
+- [ ] 1.2 `flutter pub get` sem warnings.
+
+### 2. Wrapper `MessagingClient`
+
+- [ ] 2.1 Criar pasta `lib/src/infrastructure/clients/messaging/`.
+- [ ] 2.2 Criar `lib/src/infrastructure/clients/messaging/messaging_client.dart`:
+  ```dart
+  import 'package:firebase_messaging/firebase_messaging.dart';
+
+  abstract interface class IMessagingClient {
+    Future<String?> getToken();
+  }
+
+  final class MessagingClient implements IMessagingClient {
+    @override
+    Future<String?> getToken() => FirebaseMessaging.instance.getToken();
+  }
+  ```
+
+### 3. Provider
+
+- [ ] 3.1 Em `lib/src/main/providers/clients_provider.dart`, adicionar import `messaging_client.dart` e o provider entre `crashClientProvider` e `loggerClientProvider`:
+  ```dart
+  @Riverpod(keepAlive: true)
+  IMessagingClient messagingClient(Ref _) => MessagingClient();
+  ```
+- [ ] 3.2 `dart run build_runner build --delete-conflicting-outputs`.
+- [ ] 3.3 Verificar `clients_provider.g.dart` tem `messagingClientProvider`.
+
+### 4. `main.dart` — fire-and-forget log do token
+
+- [ ] 4.1 Adicionar `import 'dart:async';` no topo de `lib/main.dart`.
+- [ ] 4.2 Adicionar função privada após o `main()`:
+  ```dart
+  Future<void> _logFcmToken(ProviderContainer container) async {
+    final logger = container.read(loggerClientProvider);
+
+    try {
+      final token = await container.read(messagingClientProvider).getToken();
+      logger.information('FCM token: ${token ?? '(null)'}');
+    } catch (error, stackTrace) {
+      logger.error('Failed to retrieve FCM token', error: error, stackTrace: stackTrace);
+    }
+  }
+  ```
+- [ ] 4.3 Adicionar `unawaited(_logFcmToken(container));` em `main()` depois das bridges de Crashlytics, antes de `runApp`.
+
+### 5. Verificação
+
+- [ ] 5.1 `flutter analyze` — zero warnings.
+- [ ] 5.2 `flutter test` — toda a suíte passa.
+- [ ] 5.3 Grep: `package:firebase_messaging/` aparece **apenas** em `messaging_client.dart`.
+- [ ] 5.4 Grep: `FirebaseMessaging.instance` aparece **apenas** em `messaging_client.dart`.
+- [ ] 5.5 **Smoke Android**: `flutter run -d <android-device>`. Token deve aparecer no log do talker (algo como `FCM token: f8a3b...`).
+- [ ] 5.6 **Smoke iOS**: `flutter run -d <ios-device>`. Log esperado: `FCM token: (null)` (Push capability não ligada nesta parte; comportamento documentado).
+- [ ] 5.7 **Smoke push opcional (Android)**: copiar o token do log, em `console.firebase.google.com → Trocado → Messaging`, criar "Notificação de teste", colar o token, enviar. App em foreground não exibe nada (sem handler), mas confirma que o pipe Console → device existe.

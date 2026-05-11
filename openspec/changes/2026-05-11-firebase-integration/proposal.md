@@ -252,13 +252,108 @@ Diferente da Parte 1 (que só verifica boot OK), Parte 2 exige verificar que o c
 
 **iOS** — nenhuma mudança em `AppDelegate.swift` ou `project.pbxproj`. O plugin `firebase_crashlytics` injeta o run-script de upload de dSYM automaticamente via FlutterFire. Sem ação manual.
 
-### Parte 3 — Cloud Messaging mínimo (esboço)
+### Parte 3 — Cloud Messaging mínimo
 
-- Dep `firebase_messaging`.
-- `lib/src/infrastructure/clients/messaging/messaging_client.dart` — `IMessagingClient` com `Future<String?> getToken()`. Impl delega para `FirebaseMessaging.instance.getToken()`.
-- Chamada do `getToken()` na ramificação Right de `SignInNotifier._submit` e `SignUpNotifier._submit`, com o token loggado via `ILoggerClient.information('FCM token: $token')`. **Nenhuma chamada de API** — o backend Django ainda não tem endpoint para receber FCM token.
-- **Sem permissão pedida**. Em iOS, sem permissão não há push visível, mas o token é gerado mesmo assim (necessário para futuras notificações silenciosas e para o backend pré-registrar o device quando ele for ligado). Pedido formal de permissão fica para change futura, quando houver notificação real para exibir.
-- Provider `messagingClientProvider` em `clients_provider.dart`.
+A Parte 2 entregou Crashlytics. O app captura crashes mas **ainda não tem canal push** — não consegue lembrar o usuário de nada, receber alerta de gasto do parceiro, ou notificar fim de ciclo de orçamento. Esta parte estabelece o **pipe mínimo** do FCM:
+
+1. SDK do `firebase_messaging` inicializado (automático ao adicionar a dep + plugin GoogleService já configurado na Parte 1).
+2. Token FCM do device obtido via `IMessagingClient.getToken()` no boot.
+3. Token logado via `ILoggerClient.information(...)` — útil para (a) confirmar visualmente que o pipe funciona durante dev, (b) testar push manualmente via Firebase Console (campo "Adicionar mensagem de teste" aceita um token).
+
+**Fora de escopo desta parte**: pedido de permissão de notificação, registro do token no backend, handling de payload (foreground/background/terminated), tap → deep link, local notifications, channels Android, override em `AppDelegate.swift`. Cada uma vira uma change própria quando houver caso de uso real.
+
+#### Nova dependência
+
+`pubspec.yaml`, seção `dependencies`:
+
+```yaml
+firebase_messaging: ^16.x.x  # versão exata pinada via `flutter pub add firebase_messaging`
+```
+
+#### Wrapper `IMessagingClient` / `MessagingClient`
+
+- `lib/src/infrastructure/clients/messaging/messaging_client.dart`:
+
+  ```dart
+  import 'package:firebase_core/firebase_core.dart';
+  import 'package:firebase_messaging/firebase_messaging.dart';
+
+  abstract interface class IMessagingClient {
+    Future<String?> getToken();
+  }
+
+  final class MessagingClient implements IMessagingClient {
+    @override
+    Future<String?> getToken() async {
+      try {
+        return await FirebaseMessaging.instance.getToken();
+      } on FirebaseException catch (exception) {
+        if (exception.code == 'apns-token-not-set') return null;
+        rethrow;
+      }
+    }
+  }
+  ```
+
+  Single-method interface. A impl trata especificamente o caso `apns-token-not-set` (iOS sem Push capability — comportamento conhecido e esperado nesta parte) retornando `null`, para que o caller logue `"(null)"` em vez de tratar como falha. Qualquer outro `FirebaseException` é rethrow — sobe pro try-catch do caller e vai pro Crashlytics como erro real.
+
+#### Provider Riverpod
+
+Em `clients_provider.dart`, entre `crashClient` e `loggerClient`:
+
+```dart
+@Riverpod(keepAlive: true)
+IMessagingClient messagingClient(Ref _) => MessagingClient();
+```
+
+Build_runner regenera o `.g.dart`.
+
+#### Boot-time logging em `main.dart`
+
+O token é obtido no boot via `ProviderContainer.read`, **não** dentro de notifiers de auth. Razão: notifiers vivem em `presentation/`, que pelo CLAUDE.md depende só de `domain/` — instanciar provider de `messagingClient` (infrastructure) dentro de notifier quebraria a regra. `main.dart` (composition root) é o único lugar autorizado a tocar infrastructure direto. O esboço inicial mencionava "ramificação Right de SignInNotifier" — descartado por essa razão.
+
+Após as bridges de Crashlytics (Parte 2), antes de `runApp`:
+
+```dart
+unawaited(_logFcmToken(container));
+
+runApp(...);
+```
+
+E a função-helper, no mesmo arquivo:
+
+```dart
+Future<void> _logFcmToken(ProviderContainer container) async {
+  final logger = container.read(loggerClientProvider);
+
+  try {
+    final token = await container.read(messagingClientProvider).getToken();
+    logger.information('FCM token: ${token ?? '(null)'}');
+  } catch (error, stackTrace) {
+    logger.error('Failed to retrieve FCM token', error: error, stackTrace: stackTrace);
+  }
+}
+```
+
+`unawaited(...)` (`import 'dart:async'`) é o idioma canônico do Dart para "fire-and-forget" sem warning de linter. A obtenção do token não bloqueia o boot — splash não atrasa por causa do FCM. Erros de fetch caem no `logger.error()` que pelo bridge da Parte 2 já reporta no Crashlytics como não-fatal.
+
+#### iOS — Push Notifications capability **não** adicionada nesta parte
+
+Em iOS, `FirebaseMessaging.instance.getToken()` exige a capability **Push Notifications** ligada no Xcode (entitlement `aps-environment`). Sem isso, o SDK lança `FirebaseException(code: 'apns-token-not-set')` (não retorna null, contrariando o esboço inicial). O `MessagingClient` filtra esse código específico e devolve `null` para o caller — log final fica `"FCM token: (null)"`, sem stack trace no Crashlytics.
+
+**Decisão**: não adicionar a capability na Parte 3. iOS vai logar `(null)` até a change futura que introduzir notificação real ligar a capability junto com o restante (request de permissão, handling de payload, `AppDelegate.swift` overrides, APNs auth key no Console).
+
+Trade-off: o pipe iOS fica "meio-pronto" — token Android funciona, token iOS é `(null)`. Aceitável porque (a) o objetivo dessa parte é validar o SDK rodando e o pipe Android, não tokens iOS de produção; (b) ligar capability isolada sem o resto do handling de push significa shipar pro TestFlight um app com "Push" marcado nas Capabilities mas que não faz nada visível — confuso pra quem revisar.
+
+#### Android — sem setup nativo adicional
+
+`firebase_messaging` no Android usa Firebase Installations sob o capô para gerar o token. Nenhuma capability, nenhum manifest, nenhum channel necessário pra apenas obter o token. Permissão `POST_NOTIFICATIONS` (Android 13+) **não** é exigida para `getToken()` — só para exibir notificação.
+
+#### Smoke de verificação
+
+1. `flutter run -d <android-device>` — observar logcat / talker output. Deve aparecer: `FCM token: f8a3b...XYZ` (longo string ~150 chars).
+2. `flutter run -d <ios-device>` — observar console. Deve aparecer: `FCM token: (null)` (sem capability; comportamento esperado).
+3. **Teste manual de push (opcional)**: pegar o token Android logado, ir em [Console → Trocado → Messaging → Nova campanha → Notificação de teste](https://console.firebase.google.com), colar o token, enviar. Sem handler ainda, mas confirma que o pipe Console → device funciona.
 
 ### Parte 4 — App Check (esboço)
 
@@ -273,6 +368,33 @@ Diferente da Parte 1 (que só verifica boot OK), Parte 2 exige verificar que o c
 - Sem validação no backend ainda — o header chega no Django mas é ignorado. Quando o backend ligar a validação, o app **não muda**. Trade-off aceito no `design.md`.
 
 ## Scope
+
+### Em escopo (Parte 3 — atual)
+
+- Dependência `firebase_messaging` adicionada ao `pubspec.yaml`.
+- `lib/src/infrastructure/clients/messaging/messaging_client.dart` com `IMessagingClient` (single-method `getToken()`) + `MessagingClient` (delegate puro pra `FirebaseMessaging.instance.getToken()`).
+- `messagingClientProvider` adicionado em `clients_provider.dart` entre `crashClientProvider` e `loggerClientProvider`. Build_runner regenera `.g.dart`.
+- `lib/main.dart` ganha:
+  - `import 'dart:async'` (para `unawaited`).
+  - Função privada `_logFcmToken(ProviderContainer container)` que faz `getToken()` num try-catch, logando sucesso via `logger.information('FCM token: $token')` e falha via `logger.error(..., error: e, stackTrace: s)`.
+  - `unawaited(_logFcmToken(container));` antes do `runApp`.
+- `flutter analyze` zero warnings; `flutter test` passa toda a suíte.
+- **Smoke Android**: token impresso no log. **Smoke iOS**: `(null)` esperado (sem Push capability nesta parte).
+
+### Fora de escopo (Parte 3 — virá em partes futuras)
+
+- **iOS Push Notifications capability** (`aps-environment` entitlement) — fica para change que introduzir notificação real.
+- **Pedido de permissão de notificação** (iOS `requestPermission`, Android 13+ `POST_NOTIFICATIONS`) — fica pra mesma change futura.
+- **Endpoint backend** `POST /api/v1/me/fcm-token` — backend Django não tem ainda; quando existir, mudar `_logFcmToken` para `_registerFcmToken` chamando `IUserRepository.registerFcmToken(...)`. **Não é esta change**.
+- **Handling de payload**: `FirebaseMessaging.onMessage` (foreground), `FirebaseMessaging.onBackgroundMessage` (background isolate), `FirebaseMessaging.onMessageOpenedApp` (tap quando app suspenso/morto) — fora.
+- **Local notifications** (exibir notif quando app em foreground via `flutter_local_notifications`) — fora.
+- **Notification icon / notification channel Android / sound config** — fora.
+- **Override `AppDelegate.swift`** (`UNUserNotificationCenter.current().delegate`, swizzling config, etc.) — fora.
+- **Deep link routing a partir de tap em notification** — fora.
+- **APNs auth key no Console Firebase** (necessário pra Apple aceitar push em produção) — fora; quando capability for ligada, configurar.
+- **`FirebaseMessaging.instance.onTokenRefresh`** stream — fora; será relevante quando token for enviado pro backend.
+- **Topics** (subscribe/unsubscribe a `FirebaseMessaging.instance.subscribeToTopic`) — fora.
+- **Testes unitários do `MessagingClient`** — wrapper trivial (decisão #16 aplicada), sem cobertura nova.
 
 ### Em escopo (Parte 2 — atual)
 
