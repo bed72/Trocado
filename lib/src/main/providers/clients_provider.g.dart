@@ -50,6 +50,48 @@ final class LoggerClientProvider
 
 String _$loggerClientHash() => r'7902ac4aa4ff597bc43fbb1c60899402b7598f8c';
 
+@ProviderFor(firebaseClient)
+final firebaseClientProvider = FirebaseClientProvider._();
+
+final class FirebaseClientProvider
+    extends
+        $FunctionalProvider<IFirebaseClient, IFirebaseClient, IFirebaseClient>
+    with $Provider<IFirebaseClient> {
+  FirebaseClientProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'firebaseClientProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$firebaseClientHash();
+
+  @$internal
+  @override
+  $ProviderElement<IFirebaseClient> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  IFirebaseClient create(Ref ref) {
+    return firebaseClient(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(IFirebaseClient value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<IFirebaseClient>(value),
+    );
+  }
+}
+
+String _$firebaseClientHash() => r'06082cdd5367a01594ca031cc58c722469298144';
+
 @ProviderFor(httpClient)
 final httpClientProvider = HttpClientProvider._();
 

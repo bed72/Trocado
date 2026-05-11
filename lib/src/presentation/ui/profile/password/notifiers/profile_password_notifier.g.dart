@@ -35,7 +35,7 @@ final class ProfilePasswordNotifierProvider
 }
 
 String _$profilePasswordNotifierHash() =>
-    r'aa04396c432bd0ef93cf2d1937cb63dff8b15821';
+    r'390b68e73794e108cd9cc4b7207006a9d277c389';
 
 abstract class _$ProfilePasswordNotifier
     extends $AsyncNotifier<ProfilePasswordState> {

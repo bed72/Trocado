@@ -1,0 +1,14 @@
+import 'package:firebase_core/firebase_core.dart';
+
+import 'package:trocado/firebase_options.dart';
+
+abstract interface class IFirebaseClient {
+  Future<void> initialize();
+}
+
+final class FirebaseClient implements IFirebaseClient {
+  @override
+  Future<void> initialize() async {
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  }
+}
