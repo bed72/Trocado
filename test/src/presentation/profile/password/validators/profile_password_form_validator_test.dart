@@ -63,8 +63,8 @@ void main() {
       final (:state, :isValid) = validator(input);
 
       expect(isValid, isTrue);
-      expect(state.currentPasswordFailure, isNull);
       expect(state.newPasswordFailure, isNull);
+      expect(state.currentPasswordFailure, isNull);
     });
   });
 }
