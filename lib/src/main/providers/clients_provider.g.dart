@@ -9,47 +9,6 @@ part of 'clients_provider.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(loggerClient)
-final loggerClientProvider = LoggerClientProvider._();
-
-final class LoggerClientProvider
-    extends $FunctionalProvider<ILoggerClient, ILoggerClient, ILoggerClient>
-    with $Provider<ILoggerClient> {
-  LoggerClientProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'loggerClientProvider',
-        isAutoDispose: false,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$loggerClientHash();
-
-  @$internal
-  @override
-  $ProviderElement<ILoggerClient> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
-
-  @override
-  ILoggerClient create(Ref ref) {
-    return loggerClient(ref);
-  }
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(ILoggerClient value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<ILoggerClient>(value),
-    );
-  }
-}
-
-String _$loggerClientHash() => r'7902ac4aa4ff597bc43fbb1c60899402b7598f8c';
-
 @ProviderFor(firebaseClient)
 final firebaseClientProvider = FirebaseClientProvider._();
 
@@ -91,6 +50,88 @@ final class FirebaseClientProvider
 }
 
 String _$firebaseClientHash() => r'06082cdd5367a01594ca031cc58c722469298144';
+
+@ProviderFor(crashClient)
+final crashClientProvider = CrashClientProvider._();
+
+final class CrashClientProvider
+    extends $FunctionalProvider<ICrashClient, ICrashClient, ICrashClient>
+    with $Provider<ICrashClient> {
+  CrashClientProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'crashClientProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$crashClientHash();
+
+  @$internal
+  @override
+  $ProviderElement<ICrashClient> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  ICrashClient create(Ref ref) {
+    return crashClient(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ICrashClient value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ICrashClient>(value),
+    );
+  }
+}
+
+String _$crashClientHash() => r'cc00645b500413ed56199772796834bcc84635c5';
+
+@ProviderFor(loggerClient)
+final loggerClientProvider = LoggerClientProvider._();
+
+final class LoggerClientProvider
+    extends $FunctionalProvider<ILoggerClient, ILoggerClient, ILoggerClient>
+    with $Provider<ILoggerClient> {
+  LoggerClientProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'loggerClientProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$loggerClientHash();
+
+  @$internal
+  @override
+  $ProviderElement<ILoggerClient> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  ILoggerClient create(Ref ref) {
+    return loggerClient(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ILoggerClient value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ILoggerClient>(value),
+    );
+  }
+}
+
+String _$loggerClientHash() => r'60df5685f3b96773ed98b184611422f1ea274591';
 
 @ProviderFor(httpClient)
 final httpClientProvider = HttpClientProvider._();

@@ -118,21 +118,139 @@ Trocamos `ProviderScope` por `ProviderContainer` + `UncontrolledProviderScope` p
 
 `google-services.json` (Android) e `GoogleService-Info.plist` (iOS) **são commitados** ao repo. Justificativa: as "API keys" dentro deles não são secrets — documentação oficial do Firebase confirma que esses identificadores são públicos por design; a segurança vem das Security Rules dos services consumidos + App Check (Parte 4). Trade-off completo no `design.md`.
 
-### Parte 2 — Crashlytics (esboço, escopo final virá quando a Parte 1 estiver mergeada)
+### Parte 2 — Crashlytics
 
-- Dep `firebase_crashlytics`.
-- `lib/src/infrastructure/clients/crash/crash_client.dart` — `ICrashClient` com `recordError({required Object error, required StackTrace stackTrace, bool fatal})` e `recordFlutterError(FlutterErrorDetails details)`. Impl delega para `FirebaseCrashlytics.instance`.
-- Bridge em `main.dart` (depois do `firebase_core.initialize()`):
+A Parte 1 entregou Firebase Core inicializado. Crashes nativos (NDK / iOS native) **ainda não são reportados** — Crashlytics SDK precisa ser ligado pra isso. Erros Dart não-fatais (uncaught Future, FlutterError, exceções loggadas via `talker`) também passam batido. Esta parte fecha as três pontas:
+
+1. **Crashes nativos** — automaticamente capturados pelo `firebase_crashlytics` plugin assim que o SDK é inicializado. Zero código Flutter envolvido.
+2. **Erros Dart uncaught** — `FlutterError.onError` (erros do framework / build phase) e `PlatformDispatcher.instance.onError` (erros assíncronos não-tratados, isolates) redirecionados pro `CrashClient` em `main.dart`.
+3. **Erros Dart explicitamente loggados** — `LoggerClient.error()` e `LoggerClient.critical()` (já recebem `Object? error` + `StackTrace? stackTrace` como parâmetros opcionais que hoje são ignorados) passam a chamar `_crashClient.recordError(..., fatal: false)` quando os dois parâmetros são não-nulos.
+
+#### Nova dependência
+
+`pubspec.yaml`, seção `dependencies`:
+
+```yaml
+firebase_crashlytics: ^5.x.x  # versão exata pinada via `flutter pub add firebase_crashlytics`
+```
+
+#### Wrapper `ICrashClient` / `CrashClient`
+
+- `lib/src/infrastructure/clients/crash/crash_client.dart` — interface + impl no mesmo arquivo, padrão de `FirebaseClient`:
+
   ```dart
-  FlutterError.onError = crashClient.recordFlutterError;
-  PlatformDispatcher.instance.onError = (error, stack) {
-    crashClient.recordError(error: error, stackTrace: stack, fatal: true);
-    return true;
-  };
+  abstract interface class ICrashClient {
+    Future<void> recordError({
+      required Object error,
+      required StackTrace stackTrace,
+      bool fatal = false,
+    });
+
+    Future<void> recordFlutterError(FlutterErrorDetails details);
+  }
+
+  final class CrashClient implements ICrashClient {
+    @override
+    Future<void> recordError({
+      required Object error,
+      required StackTrace stackTrace,
+      bool fatal = false,
+    }) =>
+        FirebaseCrashlytics.instance.recordError(error, stackTrace, fatal: fatal);
+
+    @override
+    Future<void> recordFlutterError(FlutterErrorDetails details) =>
+        FirebaseCrashlytics.instance.recordFlutterError(details);
+  }
   ```
-- Bridge `talker` → Crashlytics: classe `CrashTalkerObserver implements TalkerObserver` que escuta `onError` / `onException` e chama `_crashClient.recordError(..., fatal: false)`. Anexado ao `talker` em `LoggerClient`.
-- Provider `crashClientProvider` em `clients_provider.dart`.
-- **Sem `setUserIdentifier`** nesta parte — crashes ficam anônimos. Identificação por usuário é decisão de privacidade que precisa ser feita à parte (opt-in em Settings, LGPD compliance) — fica para change separada.
+
+  Delegate puro — toda a lógica (rate limiting, batching, retry offline) é responsabilidade do SDK do Crashlytics.
+
+#### `LoggerClient` ganha dependência em `ICrashClient`
+
+- Construtor de `LoggerClient` passa a aceitar `required ICrashClient crashClient`. Campo `_crashClient` antes do construtor (ordenação CLAUDE.md).
+- Os métodos `error()` e `critical()` (e **somente** esses dois) ficam:
+  ```dart
+  @override
+  void error(String message, {Object? error, StackTrace? stackTrace}) {
+    _logger.error(message);
+    if (error != null && stackTrace != null) {
+      _crashClient.recordError(error: error, stackTrace: stackTrace, fatal: false);
+    }
+  }
+  ```
+- Métodos `debug()`, `verbose()`, `information()`, `warning()` **não** reportam — semanticamente são "estados interessantes", não falhas.
+- `_crashClient.recordError` é fire-and-forget (não-bloqueante) — o método `error()` continua síncrono pra preservar a interface `ILoggerClient`.
+
+#### Bridge em `main.dart`
+
+Depois de `firebaseClient.initialize()`, antes de `runApp`:
+
+```dart
+final crashClient = container.read(crashClientProvider);
+
+FlutterError.onError = crashClient.recordFlutterError;
+PlatformDispatcher.instance.onError = (error, stack) {
+  crashClient.recordError(error: error, stackTrace: stack, fatal: true);
+  return true;
+};
+```
+
+`fatal: true` no `PlatformDispatcher` porque erros assíncronos não-tratados são por definição falhas catastróficas (futures que ninguém pegou). `FlutterError.onError` usa o método `recordFlutterError` que já é marcado como `fatal: false` pelo SDK (build phase errors raramente travam o app).
+
+#### Providers em `clients_provider.dart`
+
+A ordem dos providers no arquivo passa a ser:
+
+```dart
+@Riverpod(keepAlive: true)
+IFirebaseClient firebaseClient(Ref _) => FirebaseClient();
+
+@Riverpod(keepAlive: true)
+ICrashClient crashClient(Ref _) => CrashClient();
+
+@Riverpod(keepAlive: true)
+ILoggerClient loggerClient(Ref ref) =>
+    LoggerClient(crashClient: ref.watch(crashClientProvider));
+
+@Riverpod(keepAlive: true)
+IHttpClient httpClient(Ref ref) => HttpClient(dio: ref.watch(dioProvider));
+```
+
+`loggerClient` deixa de ser `Ref _` (ignorado) e passa a usar `Ref ref` pra ler `crashClientProvider`. Build_runner regenera o `.g.dart`.
+
+#### Decisões de privacidade
+
+- **Sem `setUserIdentifier`** — crashes ficam anônimos (Crashlytics não recebe `user.id`, `email`, `name` nem nada que identifique a pessoa). Identificação por usuário precisa de opt-in explícito em Settings (LGPD); fica para change dedicada.
+- **Sem `setCustomKey`** com campos do app (saldo, número de orçamentos, etc.) — qualquer dado financeiro é PII implícita.
+- **Crashlytics ligado em debug também** — coleta acontece nos dois modos. Isso permite verificar via smoke que o pipeline funciona durante desenvolvimento. Crashes em debug aparecem no Console misturados com release; aceitável porque (a) volume de debug é baixo, (b) Console permite filtrar por versão da build se necessário.
+
+#### Smoke de verificação
+
+Diferente da Parte 1 (que só verifica boot OK), Parte 2 exige verificar que o crash chega no Console:
+
+1. Adicionar **temporariamente** um botão em alguma screen (ex: Home) que chama `FirebaseCrashlytics.instance.crash()` no `onTap`. **Não commitar esse botão.**
+2. Rodar `flutter run --release` em device real (debug builds não disparam o crash handler do mesmo jeito).
+3. Tocar no botão — app fecha.
+4. Reabrir o app — Crashlytics envia o report acumulado.
+5. Aguardar 5-15 min e checar `console.firebase.google.com → Crashlytics → Issues` no projeto Trocado.
+6. Crash deve aparecer com stack trace deobfuscado e info de device.
+7. Remover o botão de teste antes do commit.
+
+#### Configuração nativa adicional
+
+**Android** — necessário aplicar o plugin Gradle do Crashlytics para upload automático de mapping files de R8/ProGuard em release:
+
+- `android/settings.gradle.kts`, bloco `plugins`, adicionar abaixo do `google-services`:
+  ```kotlin
+  id("com.google.firebase.crashlytics") version "3.x.x" apply false
+  ```
+- `android/app/build.gradle.kts`, bloco `plugins`, adicionar abaixo do `google-services`:
+  ```kotlin
+  id("com.google.firebase.crashlytics")
+  ```
+
+**iOS** — nenhuma mudança em `AppDelegate.swift` ou `project.pbxproj`. O plugin `firebase_crashlytics` injeta o run-script de upload de dSYM automaticamente via FlutterFire. Sem ação manual.
 
 ### Parte 3 — Cloud Messaging mínimo (esboço)
 
@@ -155,6 +273,39 @@ Trocamos `ProviderScope` por `ProviderContainer` + `UncontrolledProviderScope` p
 - Sem validação no backend ainda — o header chega no Django mas é ignorado. Quando o backend ligar a validação, o app **não muda**. Trade-off aceito no `design.md`.
 
 ## Scope
+
+### Em escopo (Parte 2 — atual)
+
+- Dependência `firebase_crashlytics` adicionada ao `pubspec.yaml`.
+- `lib/src/infrastructure/clients/crash/crash_client.dart` com `ICrashClient` + `CrashClient` (interface de 2 métodos: `recordError({error, stackTrace, fatal})` + `recordFlutterError(details)`).
+- `LoggerClient` refatorado: ganha `final ICrashClient _crashClient;` antes do construtor; construtor passa a aceitar `required ICrashClient crashClient`; métodos `error()` e `critical()` chamam `_crashClient.recordError(..., fatal: false)` quando `error` e `stackTrace` são ambos não-nulos.
+- `crashClientProvider` adicionado em `clients_provider.dart` entre `firebaseClientProvider` e `loggerClientProvider`. `loggerClientProvider` deixa de ser `Ref _` e passa a injetar `crashClient` via `ref.watch`.
+- Build_runner regenera `clients_provider.g.dart`.
+- `lib/main.dart` ganha, depois de `await container.read(firebaseClientProvider).initialize()`:
+  ```dart
+  final crashClient = container.read(crashClientProvider);
+  FlutterError.onError = crashClient.recordFlutterError;
+  PlatformDispatcher.instance.onError = (error, stack) {
+    crashClient.recordError(error: error, stackTrace: stack, fatal: true);
+    return true;
+  };
+  ```
+- `android/settings.gradle.kts` ganha `id("com.google.firebase.crashlytics") version "3.x.x" apply false`.
+- `android/app/build.gradle.kts` ganha `id("com.google.firebase.crashlytics")`.
+- Testes do `LoggerClient` (se existirem) atualizados para injetar `MockCrashClient` no construtor.
+- `flutter analyze` zero warnings; `flutter test` passa toda a suíte.
+- **Smoke manual — Android e iOS em release**: botão temporário disparando `FirebaseCrashlytics.instance.crash()`; reabrir app; crash aparece em `console.firebase.google.com → Crashlytics → Issues` em 5-15 min.
+
+### Fora de escopo (Parte 2 — virá em partes futuras)
+
+- **`setUserIdentifier`** — crashes ficam anônimos. Identificação por usuário precisa de opt-in em Settings + revisão LGPD; change dedicada.
+- **`setCustomKey`** com saldo/orçamento/qualquer dado financeiro — PII implícita.
+- **Análise / triagem de crashes** — Console do Firebase é o destino; alertas Slack/email ficam para change futura.
+- **Filtros por versão de build, regiões, devices** — configuração no próprio Console quando começar a ter volume real.
+- **Mapping files de release Android** — o plugin Crashlytics faz upload automático; configuração custom (variantes de flavor, regions de build) fica para change que introduzir flavors.
+- **`recordError` em catch blocks específicos do app** — Parte 2 só liga o pipe (bridge automático via `LoggerClient.error()`). Refatorar try-catch espalhados pelo código pra logar via `_logger.error(..., error: e, stackTrace: s)` é decisão case-by-case, não esta change.
+- **Testes unitários do `CrashClient`** — wrapper trivial sem lógica testável (delega 100% para `FirebaseCrashlytics.instance`); cobertura via smoke release nos dois OSes.
+- **FCM** (Parte 3) e **App Check** (Parte 4) — partes seguintes.
 
 ### Em escopo (Parte 1 — atual)
 

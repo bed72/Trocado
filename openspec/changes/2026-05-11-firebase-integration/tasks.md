@@ -113,3 +113,124 @@ Ordem fixa: console + CLI (manual, pré-implementação) → pubspec → wrapper
 - [ ] 8.4 **Smoke manual — iOS**: `flutter run -d <ios-simulator>`. App boota sem crash. Xcode console mostra `Configuring the default app`. Login flow continua funcionando (regressão).
 - [ ] 8.5 Confirmar via grep que `Firebase.initializeApp` aparece **apenas** em `firebase_client.dart` — nunca em `main.dart` direto.
 - [ ] 8.6 Confirmar via grep que nenhum arquivo fora de `lib/src/infrastructure/clients/firebase/` importa `package:firebase_core/firebase_core.dart`.
+
+---
+
+## Parte 2 — Crashlytics
+
+Ordem fixa: pubspec → wrapper → refactor do `LoggerClient` → providers → main.dart → plugin Gradle Crashlytics → verificação + smoke release.
+
+### 1. pubspec
+
+- [ ] 1.1 `flutter pub add firebase_crashlytics`. Confirmar que `pubspec.yaml` ganhou a entrada.
+- [ ] 1.2 `flutter pub get` sem warnings.
+
+### 2. Wrapper `CrashClient`
+
+- [ ] 2.1 Criar pasta `lib/src/infrastructure/clients/crash/`.
+- [ ] 2.2 Criar `lib/src/infrastructure/clients/crash/crash_client.dart`:
+  ```dart
+  import 'package:flutter/foundation.dart';
+  import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+
+  abstract interface class ICrashClient {
+    Future<void> recordError({
+      required Object error,
+      required StackTrace stackTrace,
+      bool fatal = false,
+    });
+
+    Future<void> recordFlutterError(FlutterErrorDetails details);
+  }
+
+  final class CrashClient implements ICrashClient {
+    @override
+    Future<void> recordError({
+      required Object error,
+      required StackTrace stackTrace,
+      bool fatal = false,
+    }) =>
+        FirebaseCrashlytics.instance.recordError(error, stackTrace, fatal: fatal);
+
+    @override
+    Future<void> recordFlutterError(FlutterErrorDetails details) =>
+        FirebaseCrashlytics.instance.recordFlutterError(details);
+  }
+  ```
+
+### 3. Refactor `LoggerClient`
+
+- [ ] 3.1 Atualizar `lib/src/infrastructure/clients/logger/logger_client.dart`:
+  - Adicionar import `crash_client.dart`.
+  - Adicionar campo `final ICrashClient _crashClient;` antes do `_logger` (ordenação CLAUDE.md).
+  - Construtor: `LoggerClient({required ICrashClient crashClient}) : _crashClient = crashClient;` (substitui o construtor default sem args).
+  - Atualizar `error()` e `critical()` para chamar `_crashClient.recordError(error: error, stackTrace: stackTrace, fatal: false)` quando `error != null && stackTrace != null`.
+  - Não tocar em `debug()`, `verbose()`, `information()`, `warning()`.
+- [ ] 3.2 Verificar que `ILoggerClient` (interface) **não muda** — só a impl.
+
+### 4. Providers
+
+- [ ] 4.1 Em `lib/src/main/providers/clients_provider.dart`:
+  - Adicionar import `crash_client.dart`.
+  - Adicionar `crashClientProvider` entre `firebaseClientProvider` e `loggerClientProvider`:
+    ```dart
+    @Riverpod(keepAlive: true)
+    ICrashClient crashClient(Ref _) => CrashClient();
+    ```
+  - Atualizar `loggerClient` provider: trocar `Ref _` por `Ref ref` e injetar:
+    ```dart
+    @Riverpod(keepAlive: true)
+    ILoggerClient loggerClient(Ref ref) =>
+        LoggerClient(crashClient: ref.watch(crashClientProvider));
+    ```
+- [ ] 4.2 `dart run build_runner build --delete-conflicting-outputs`.
+- [ ] 4.3 Verificar `clients_provider.g.dart` tem `crashClientProvider`.
+
+### 5. `main.dart` — bridges de erro
+
+- [ ] 5.1 Atualizar `lib/main.dart` adicionando, depois de `await container.read(firebaseClientProvider).initialize()`:
+  ```dart
+  final crashClient = container.read(crashClientProvider);
+
+  FlutterError.onError = crashClient.recordFlutterError;
+  PlatformDispatcher.instance.onError = (error, stack) {
+    crashClient.recordError(error: error, stackTrace: stack, fatal: true);
+    return true;
+  };
+  ```
+- [ ] 5.2 Importar `dart:ui` (para `PlatformDispatcher`) se não estiver no arquivo.
+
+### 6. Android — plugin Gradle Crashlytics
+
+- [ ] 6.1 Em `android/settings.gradle.kts`, dentro do bloco `plugins`, abaixo da linha `id("com.google.gms.google-services") ...`, adicionar:
+  ```kotlin
+  id("com.google.firebase.crashlytics") version "3.x.x" apply false
+  ```
+  - Versão exata: olhar [release atual](https://firebase.google.com/docs/crashlytics/get-started?platform=android) no momento da implementação.
+- [ ] 6.2 Em `android/app/build.gradle.kts`, dentro do bloco `plugins`, abaixo de `id("com.google.gms.google-services")`, adicionar:
+  ```kotlin
+  id("com.google.firebase.crashlytics")
+  ```
+- [ ] 6.3 Confirmar `flutter build apk --debug` completa sem erro.
+
+### 7. iOS — verificar (nada manual)
+
+- [ ] 7.1 Abrir `ios/Runner.xcworkspace` no Xcode, confirmar que o plugin `firebase_crashlytics` apareceu em Pods. Sem mudanças em `AppDelegate.swift`.
+- [ ] 7.2 `flutter build ios --debug --no-codesign` completa sem erro.
+
+### 8. Testes
+
+- [ ] 8.1 `test/src/infrastructure/clients/logger/logger_client_test.dart` (se existir): atualizar para injetar `MockCrashClient` no construtor. Se não existir, **não** criar — sem cobertura nova (wrapper trivial).
+- [ ] 8.2 Procurar testes que instanciam `LoggerClient()` direto (sem provider): `grep -rn 'LoggerClient(' test/`. Cada call-site precisa receber `crashClient: MockCrashClient()`.
+- [ ] 8.3 Procurar testes que dependem de `loggerClientProvider`: usam override do Riverpod com mock — não devem precisar de mudança.
+
+### 9. Verificação
+
+- [ ] 9.1 `flutter analyze` — zero warnings.
+- [ ] 9.2 `flutter test` — toda a suíte passa.
+- [ ] 9.3 Confirmar via grep que `package:firebase_crashlytics/` é importado **apenas** em `crash_client.dart`.
+- [ ] 9.4 Confirmar via grep que `FirebaseCrashlytics.instance` aparece **apenas** em `crash_client.dart`.
+- [ ] 9.5 **Smoke release — Android**: build release `flutter run --release -d <android-device>`. Adicionar botão temporário em alguma screen disparando `FirebaseCrashlytics.instance.crash()`. Tap → app fecha. Reabrir → crash sobe.
+- [ ] 9.6 **Smoke release — iOS**: idem em device real iOS (simulator não dispara o crash handler nativo).
+- [ ] 9.7 Esperar 5-15 min e confirmar no Console (`console.firebase.google.com → Trocado → Crashlytics`) que o crash de teste aparece com stack trace e device info.
+- [ ] 9.8 **Remover o botão de teste** antes de commitar. Confirmar via grep que `FirebaseCrashlytics.instance.crash()` não aparece em nenhum lugar de `lib/`.

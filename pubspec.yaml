@@ -59,6 +59,7 @@ dependencies:
   syncfusion_flutter_datepicker: ^33.2.4
   
   firebase_core: ^4.7.0
+  firebase_crashlytics: ^5.2.1
 
 dev_dependencies:
   flutter_test:

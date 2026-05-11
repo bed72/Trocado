@@ -1,6 +1,8 @@
 import 'package:talker/talker.dart';
 import 'package:flutter/foundation.dart';
 
+import 'package:trocado/src/infrastructure/clients/crash/crash_client.dart';
+
 abstract interface class ILoggerClient {
   void debug(String message, {Object? error, StackTrace? stackTrace});
   void error(String message, {Object? error, StackTrace? stackTrace});
@@ -11,12 +13,15 @@ abstract interface class ILoggerClient {
 }
 
 final class LoggerClient implements ILoggerClient {
+  final ICrashClient _client;
   final _logger = TalkerLogger(
     settings: TalkerLoggerSettings(
-      level: kReleaseMode ? .warning : .verbose,
       enableColors: true,
+      level: kReleaseMode ? .warning : .verbose,
     ),
   );
+
+  LoggerClient({required ICrashClient client}) : _client = client;
 
   @override
   void debug(String message, {Object? error, StackTrace? stackTrace}) =>
@@ -31,16 +36,24 @@ final class LoggerClient implements ILoggerClient {
       _logger.warning(message);
 
   @override
-  void error(String message, {Object? error, StackTrace? stackTrace}) =>
-      _logger.error(message);
+  void error(String message, {Object? error, StackTrace? stackTrace}) {
+    _logger.error(message);
+    if (error != null && stackTrace != null) {
+      _client.recordError(error: error, stackTrace: stackTrace);
+    }
+  }
 
   @override
   void verbose(String message, {Object? error, StackTrace? stackTrace}) =>
       _logger.verbose(message);
 
   @override
-  void critical(String message, {Object? error, StackTrace? stackTrace}) =>
-      _logger.critical(message);
+  void critical(String message, {Object? error, StackTrace? stackTrace}) {
+    _logger.critical(message);
+    if (error != null && stackTrace != null) {
+      _client.recordError(error: error, stackTrace: stackTrace);
+    }
+  }
 }
 
 final loggerClient = Talker(
