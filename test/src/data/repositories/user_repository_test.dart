@@ -209,33 +209,36 @@ void main() {
   group('updateName', () {
     const name = 'Jane Smith';
 
-    test('returns Right(UserModel) and sends only the name in the body', () async {
-      when(
-        () => client.patch(parameter: any(named: 'parameter')),
-      ).thenAnswer((_) async => const Right(_meSuccessJson));
+    test(
+      'returns Right(UserModel) and sends only the name in the body',
+      () async {
+        when(
+          () => client.patch(parameter: any(named: 'parameter')),
+        ).thenAnswer((_) async => const Right(_meSuccessJson));
 
-      final data = await repository.updateName(name: name);
+        final data = await repository.updateName(name: name);
 
-      expect(data.isRight, isTrue);
-      expect(
-        data.right,
-        const UserModel(id: 1, email: 'jane@trocado.app', name: 'Jane Doe'),
-      );
-      verify(
-        () => client.patch(
-          parameter: any(
-            named: 'parameter',
-            that: predicate<Requests>(
-              (r) =>
-                  r.path == '/api/v1/me' &&
-                  r.body?['name'] == name &&
-                  !(r.body?.containsKey('current_password') ?? false) &&
-                  !(r.body?.containsKey('new_password') ?? false),
+        expect(data.isRight, isTrue);
+        expect(
+          data.right,
+          const UserModel(id: 1, email: 'jane@trocado.app', name: 'Jane Doe'),
+        );
+        verify(
+          () => client.patch(
+            parameter: any(
+              named: 'parameter',
+              that: predicate<Requests>(
+                (r) =>
+                    r.path == '/api/v1/me' &&
+                    r.body?['name'] == name &&
+                    !(r.body?.containsKey('current_password') ?? false) &&
+                    !(r.body?.containsKey('new_password') ?? false),
+              ),
             ),
           ),
-        ),
-      ).called(1);
-    });
+        ).called(1);
+      },
+    );
 
     test('returns Left(NetworkFailure) on network error', () async {
       when(
@@ -297,8 +300,8 @@ void main() {
   });
 
   group('updatePassword', () {
-    const currentPassword = 'OldPassword!123';
     const newPassword = 'NewSecure!456';
+    const currentPassword = 'OldPassword!123';
 
     test(
       'returns Right(UserModel) and sends current and new password without name',
@@ -308,18 +311,14 @@ void main() {
         ).thenAnswer((_) async => const Right(_meSuccessJson));
 
         final data = await repository.updatePassword(
-          currentPassword: currentPassword,
           newPassword: newPassword,
+          currentPassword: currentPassword,
         );
 
         expect(data.isRight, isTrue);
         expect(
           data.right,
-          const UserModel(
-            id: 1,
-            email: 'jane@trocado.app',
-            name: 'Jane Doe',
-          ),
+          const UserModel(id: 1, email: 'jane@trocado.app', name: 'Jane Doe'),
         );
         verify(
           () => client.patch(
@@ -344,8 +343,8 @@ void main() {
       ).thenAnswer((_) async => const Left(_networkFailureJson));
 
       final data = await repository.updatePassword(
-        currentPassword: currentPassword,
         newPassword: newPassword,
+        currentPassword: currentPassword,
       );
 
       expect(data.isLeft, isTrue);
@@ -358,8 +357,8 @@ void main() {
       ).thenAnswer((_) async => const Left(_notFoundFailureJson));
 
       final data = await repository.updatePassword(
-        currentPassword: currentPassword,
         newPassword: newPassword,
+        currentPassword: currentPassword,
       );
 
       expect(data.isLeft, isTrue);
@@ -372,8 +371,8 @@ void main() {
       ).thenAnswer((_) async => const Left(_meFailureJson));
 
       final data = await repository.updatePassword(
-        currentPassword: currentPassword,
         newPassword: newPassword,
+        currentPassword: currentPassword,
       );
 
       expect(data.isLeft, isTrue);
@@ -398,8 +397,8 @@ void main() {
         ).thenAnswer((_) async => const Left(failureJson));
 
         final data = await repository.updatePassword(
-          currentPassword: currentPassword,
           newPassword: newPassword,
+          currentPassword: currentPassword,
         );
 
         expect(data.isLeft, isTrue);

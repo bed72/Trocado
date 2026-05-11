@@ -49,31 +49,34 @@ void main() {
       );
     });
 
-    test('clears currentPasswordFailure when current password changes', () async {
-      final container = await makeContainer();
-      final notifier = container.read(profilePasswordProvider.notifier);
+    test(
+      'clears currentPasswordFailure when current password changes',
+      () async {
+        final container = await makeContainer();
+        final notifier = container.read(profilePasswordProvider.notifier);
 
-      notifier.dispatch(const SubmitPressed());
-      expect(
-        container
-            .read(profilePasswordProvider)
-            .asData
-            ?.value
-            .currentPasswordFailure,
-        isNotNull,
-      );
+        notifier.dispatch(const SubmitPressed());
+        expect(
+          container
+              .read(profilePasswordProvider)
+              .asData
+              ?.value
+              .currentPasswordFailure,
+          isNotNull,
+        );
 
-      notifier.dispatch(const CurrentPasswordChanged('OldPassword!123'));
+        notifier.dispatch(const CurrentPasswordChanged('OldPassword!123'));
 
-      expect(
-        container
-            .read(profilePasswordProvider)
-            .asData
-            ?.value
-            .currentPasswordFailure,
-        isNull,
-      );
-    });
+        expect(
+          container
+              .read(profilePasswordProvider)
+              .asData
+              ?.value
+              .currentPasswordFailure,
+          isNull,
+        );
+      },
+    );
   });
 
   group('NewPasswordChanged', () {
@@ -193,28 +196,31 @@ void main() {
   });
 
   group('SubmitPressed', () {
-    test('sets currentPasswordFailure when current password is empty', () async {
-      final container = await makeContainer();
-      final notifier = container.read(profilePasswordProvider.notifier);
+    test(
+      'sets currentPasswordFailure when current password is empty',
+      () async {
+        final container = await makeContainer();
+        final notifier = container.read(profilePasswordProvider.notifier);
 
-      notifier.dispatch(const NewPasswordChanged('NewSecure!456'));
-      notifier.dispatch(const SubmitPressed());
+        notifier.dispatch(const NewPasswordChanged('NewSecure!456'));
+        notifier.dispatch(const SubmitPressed());
 
-      expect(
-        container
-            .read(profilePasswordProvider)
-            .asData
-            ?.value
-            .currentPasswordFailure,
-        isNotNull,
-      );
-      verifyNever(
-        () => repository.updatePassword(
-          currentPassword: any(named: 'currentPassword'),
-          newPassword: any(named: 'newPassword'),
-        ),
-      );
-    });
+        expect(
+          container
+              .read(profilePasswordProvider)
+              .asData
+              ?.value
+              .currentPasswordFailure,
+          isNotNull,
+        );
+        verifyNever(
+          () => repository.updatePassword(
+            currentPassword: any(named: 'currentPassword'),
+            newPassword: any(named: 'newPassword'),
+          ),
+        );
+      },
+    );
 
     test('sets newPasswordFailure when new password is empty', () async {
       final container = await makeContainer();
@@ -271,36 +277,33 @@ void main() {
       },
     );
 
-    test(
-      'sets status to failure with message when repository fails',
-      () async {
-        when(
-          () => repository.updatePassword(
-            currentPassword: any(named: 'currentPassword'),
-            newPassword: any(named: 'newPassword'),
-          ),
-        ).thenAnswer(
-          (_) async => const Left(ValidationFailure('Senha incorreta.')),
-        );
+    test('sets status to failure with message when repository fails', () async {
+      when(
+        () => repository.updatePassword(
+          newPassword: any(named: 'newPassword'),
+          currentPassword: any(named: 'currentPassword'),
+        ),
+      ).thenAnswer(
+        (_) async => const Left(ValidationFailure('Senha incorreta.')),
+      );
 
-        final container = await makeContainer();
-        final notifier = container.read(profilePasswordProvider.notifier);
+      final container = await makeContainer();
+      final notifier = container.read(profilePasswordProvider.notifier);
 
-        notifier.dispatch(const CurrentPasswordChanged('OldPassword!123'));
-        notifier.dispatch(const NewPasswordChanged('NewSecure!456'));
-        notifier.dispatch(const SubmitPressed());
+      notifier.dispatch(const CurrentPasswordChanged('OldPassword!123'));
+      notifier.dispatch(const NewPasswordChanged('NewSecure!456'));
+      notifier.dispatch(const SubmitPressed());
 
-        await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
 
-        expect(
-          container.read(profilePasswordProvider).asData?.value.status,
-          ProfilePasswordStatus.failure,
-        );
-        expect(
-          container.read(profilePasswordProvider).asData?.value.message,
-          'Senha incorreta.',
-        );
-      },
-    );
+      expect(
+        container.read(profilePasswordProvider).asData?.value.status,
+        ProfilePasswordStatus.failure,
+      );
+      expect(
+        container.read(profilePasswordProvider).asData?.value.message,
+        'Senha incorreta.',
+      );
+    });
   });
 }
