@@ -2,13 +2,12 @@ import 'package:duck_router/duck_router.dart';
 
 import 'package:trocado/app_route.dart';
 
+import 'package:trocado/src/presentation/pages/screen_page.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
-import 'package:trocado/src/presentation/pages/screen_page.dart';
-
 import 'package:trocado/src/presentation/ui/profile/name/locations/profile_name_location.dart';
-import 'package:trocado/src/presentation/ui/profile/delete/locations/profile_delete_location.dart';
 import 'package:trocado/src/presentation/ui/profile/details/screens/profile_details_screen.dart';
+import 'package:trocado/src/presentation/ui/profile/delete/locations/profile_delete_location.dart';
 import 'package:trocado/src/presentation/ui/profile/password/locations/profile_password_location.dart';
 
 final class ProfileDetailsLocation extends Location {
@@ -16,11 +15,14 @@ final class ProfileDetailsLocation extends Location {
   String get path => AppRoutes.profile.path;
 
   @override
-  LocationPageBuilder get pageBuilder => (context) => screenPage(
-    ProfileDetailsScreen(
-      onDelete: () => context.navigate(ProfileDeleteLocation()),
-      onEditName: () => context.navigate(ProfileNameLocation()),
-      onEditPassword: () => context.navigate(ProfilePasswordLocation()),
-    ),
-  );
+  LocationPageBuilder get pageBuilder =>
+      (context) => screenPage(
+        ProfileDetailsScreen(
+          onDelete: () => context.navigate(ProfileDeleteLocation()),
+          onEditName: () =>
+              context.navigate(ProfileNameLocation(onSuccess: context.pop)),
+          onEditPassword: () =>
+              context.navigate(ProfilePasswordLocation(onSuccess: context.pop)),
+        ),
+      );
 }

@@ -1,6 +1,11 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:trocado/src/main/providers/repositories_provider.dart';
 import 'package:trocado/src/main/providers/validators_provider.dart';
+
+import 'package:trocado/src/domain/repositories/interface_user_repository.dart';
+
+import 'package:trocado/src/presentation/notifiers/user_notifier.dart';
 
 import 'package:trocado/src/presentation/ui/profile/password/notifiers/profile_password_state.dart';
 import 'package:trocado/src/presentation/ui/profile/password/notifiers/profile_password_intent.dart';
@@ -10,38 +15,62 @@ part 'profile_password_notifier.g.dart';
 
 @riverpod
 final class ProfilePasswordNotifier extends _$ProfilePasswordNotifier {
+  late IUserRepository _repository;
   late ProfilePasswordFormValidator _validator;
 
   @override
-  ProfilePasswordState build() {
+  Future<ProfilePasswordState> build() async {
+    _repository = ref.watch(userRepositoryProvider);
     _validator = ref.watch(profilePasswordFormValidatorProvider);
 
     return const ProfilePasswordState();
   }
 
   void dispatch(ProfilePasswordIntent intent) => switch (intent) {
-    NewPasswordChanged(:final value) => state = state.copyWith(
-      newPassword: value,
-      clearNewPasswordFailure: true,
+    CurrentPasswordChanged(:final value) => state = AsyncData(
+      state.value!.copyWith(
+        currentPassword: value,
+        clearCurrentPasswordFailure: true,
+      ),
     ),
-    ConfirmPasswordChanged(:final value) => state = state.copyWith(
-      confirmPassword: value,
-      clearConfirmPasswordFailure: true,
+    NewPasswordChanged(:final value) => state = AsyncData(
+      state.value!.copyWith(newPassword: value, clearNewPasswordFailure: true),
     ),
-    NewPasswordVisibilityToggled() => state = state.copyWith(
-      obscureNewPassword: !state.obscureNewPassword,
+    CurrentPasswordVisibilityToggled() => state = AsyncData(
+      state.value!.copyWith(
+        obscureCurrentPassword: !state.value!.obscureCurrentPassword,
+      ),
     ),
-    ConfirmPasswordVisibilityToggled() => state = state.copyWith(
-      obscureConfirmPassword: !state.obscureConfirmPassword,
+    NewPasswordVisibilityToggled() => state = AsyncData(
+      state.value!.copyWith(
+        obscureNewPassword: !state.value!.obscureNewPassword,
+      ),
     ),
     SubmitPressed() => _submit(),
   };
 
-  void _submit() {
-    final (:state, :isValid) = _validator(this.state);
-    this.state = state;
+  Future<void> _submit() async {
+    final (state: validated, :isValid) = _validator(state.value!);
+    state = AsyncData(validated);
 
     if (!isValid) return;
-    // TODO Parte 6: chamar repository.updatePassword(password: this.state.newPassword)
+    if (validated.status == .loading) return;
+
+    state = AsyncData(validated.copyWith(status: .loading));
+
+    final data = await _repository.updatePassword(
+      newPassword: validated.newPassword,
+      currentPassword: validated.currentPassword,
+    );
+
+    data.fold(
+      (failure) => state = AsyncData(
+        state.value!.copyWith(status: .failure, message: failure.message),
+      ),
+      (_) {
+        ref.invalidate(userProvider);
+        state = AsyncData(state.value!.copyWith(status: .success));
+      },
+    );
   }
 }

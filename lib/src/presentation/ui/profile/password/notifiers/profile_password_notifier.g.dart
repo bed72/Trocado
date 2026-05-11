@@ -13,7 +13,8 @@ part of 'profile_password_notifier.dart';
 final profilePasswordProvider = ProfilePasswordNotifierProvider._();
 
 final class ProfilePasswordNotifierProvider
-    extends $NotifierProvider<ProfilePasswordNotifier, ProfilePasswordState> {
+    extends
+        $AsyncNotifierProvider<ProfilePasswordNotifier, ProfilePasswordState> {
   ProfilePasswordNotifierProvider._()
     : super(
         from: null,
@@ -31,31 +32,28 @@ final class ProfilePasswordNotifierProvider
   @$internal
   @override
   ProfilePasswordNotifier create() => ProfilePasswordNotifier();
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(ProfilePasswordState value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<ProfilePasswordState>(value),
-    );
-  }
 }
 
 String _$profilePasswordNotifierHash() =>
-    r'7b5d7141fcfe67ecd3217f05474d8003fc6f8db2';
+    r'aa04396c432bd0ef93cf2d1937cb63dff8b15821';
 
 abstract class _$ProfilePasswordNotifier
-    extends $Notifier<ProfilePasswordState> {
-  ProfilePasswordState build();
+    extends $AsyncNotifier<ProfilePasswordState> {
+  FutureOr<ProfilePasswordState> build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<ProfilePasswordState, ProfilePasswordState>;
+    final ref =
+        this.ref
+            as $Ref<AsyncValue<ProfilePasswordState>, ProfilePasswordState>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<ProfilePasswordState, ProfilePasswordState>,
-              ProfilePasswordState,
+              AnyNotifier<
+                AsyncValue<ProfilePasswordState>,
+                ProfilePasswordState
+              >,
+              AsyncValue<ProfilePasswordState>,
               Object?,
               Object?
             >;

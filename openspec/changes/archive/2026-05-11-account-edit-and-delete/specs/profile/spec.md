@@ -802,3 +802,362 @@ And no `showConfirmDialog` SHALL be opened on the detail screen
 Given the spec implementation is complete
 When `grep -n "import 'package:trocado" lib/src/presentation/ui/profile/details/locations/profile_details_location.dart` is executed
 Then the only feature locations imported SHALL be `ProfileNameLocation`, `ProfilePasswordLocation` and `ProfileDeleteLocation` (all under `profile/`)
+
+---
+
+### Requirement: IUserRepository extended with updateName and updatePassword
+
+The system SHALL extend `lib/src/domain/repositories/interface_user_repository.dart` with two methods that both return `UserModel` on success:
+
+```dart
+Future<Either<Failure, UserModel>> updateName({required String name});
+
+Future<Either<Failure, UserModel>> updatePassword({
+  required String currentPassword,
+  required String newPassword,
+});
+```
+
+`IRemoteUserDataSource` SHALL gain a single method reflecting the API shape:
+
+```dart
+Future<Either<FailureResponse, UserResponse>> update({
+  String? name,
+  String? currentPassword,
+  String? newPassword,
+});
+```
+
+`RemoteUserDataSource.update` SHALL call `_client.patch(parameter: Requests(EndpointKey.me.path, body: <map>))` where `<map>` is built inline with conditional spreads, omitting any field whose value is `null`:
+
+```dart
+body: {
+  if (name != null) 'name': name,
+  if (currentPassword != null) 'current_password': currentPassword,
+  if (newPassword != null) 'new_password': newPassword,
+},
+```
+
+It SHALL map the response via `response.either(FailureResponse.fromJson, UserResponse.fromJson)`. No DTO SHALL be introduced for the request body.
+
+`UserRepository.updateName({name})` SHALL call `_userDataSource.update(name: name)` and map via `data.either((failure) => failure.toFailure(), (response) => response.toModel())`. `UserRepository.updatePassword({currentPassword, newPassword})` SHALL call `_userDataSource.update(currentPassword: ..., newPassword: ...)` with identical mapping. Both methods SHALL reuse `UserResponseExtension.toModel()` and `FailureResponseExtension.toFailure()` — no new extension SHALL be introduced.
+
+#### Scenario: updateName calls PATCH /api/v1/me with name only
+
+Given `UserRepository.updateName(name: 'Jane Smith')` is invoked
+Then `IHttpClient.patch` SHALL be called with `Requests(path: '/api/v1/me', body: {'name': 'Jane Smith'})`
+And the `current_password` and `new_password` keys SHALL NOT be present in the body
+
+#### Scenario: updatePassword calls PATCH /api/v1/me with both password fields
+
+Given `UserRepository.updatePassword(currentPassword: 'OldPassword!123', newPassword: 'NewSecure!456')` is invoked
+Then `IHttpClient.patch` SHALL be called with `Requests(path: '/api/v1/me', body: {'current_password': 'OldPassword!123', 'new_password': 'NewSecure!456'})`
+And the `name` key SHALL NOT be present in the body
+
+#### Scenario: updateName returns Right(UserModel) on 200
+
+Given the datasource returns `Right(UserResponse(id: 1, name: 'Jane Smith', email: 'jane@trocado.app'))`
+When `UserRepository.updateName(name: 'Jane Smith')` resolves
+Then it SHALL return `Right(UserModel(id: 1, name: 'Jane Smith', email: 'jane@trocado.app'))`
+
+#### Scenario: updatePassword maps invalid_credentials to ValidationFailure
+
+Given the datasource returns `Left(FailureResponse with code 'invalid_credentials' and message 'Senha incorreta.')`
+When `UserRepository.updatePassword(...)` resolves
+Then it SHALL return `Left(ValidationFailure('Senha incorreta.'))`
+
+#### Scenario: updateName maps network errors to NetworkFailure
+
+Given the datasource returns `Left(FailureResponse with code 'connection_error')`
+When `UserRepository.updateName(...)` resolves
+Then it SHALL return `Left(NetworkFailure())`
+
+---
+
+### Requirement: ProfileNameState gains submit status and message
+
+The system SHALL extend `lib/src/presentation/ui/profile/name/notifiers/profile_name_state.dart` with:
+
+- A top-level `enum ProfileNameStatus { initial, loading, success, failure }`.
+- A new field `final String message;` (default `''`) declared before the constructor.
+- A new field `final ProfileNameStatus status;` (default `ProfileNameStatus.initial`) declared before the constructor.
+
+The constructor, `copyWith` and `props` SHALL all be updated to include the new fields. `copyWith` SHALL accept `String? message` and `ProfileNameStatus? status` (no clear-flags — both default to the current value when omitted).
+
+#### Scenario: Default state has initial status and empty message
+
+Given `const ProfileNameState()`
+Then `status` SHALL equal `ProfileNameStatus.initial`
+And `message` SHALL equal `''`
+
+---
+
+### Requirement: ProfileNameNotifier calls repository on valid submit
+
+The system SHALL extend `ProfileNameNotifier`:
+
+- Add `late IUserRepository _repository;` declared before `_validator`.
+- In `build()`, call `_repository = ref.watch(userRepositoryProvider);` before reading `userProvider.future`.
+- Convert `_submit` to `Future<void> _submit() async` with the following logic in order:
+
+  1. `final (state: validated, :isValid) = _validator(this.state.value!);`
+  2. `this.state = AsyncData(validated);`
+  3. `if (!isValid) return;`
+  4. `if (validated.status == ProfileNameStatus.loading) return;` (re-entrancy guard)
+  5. `this.state = AsyncData(validated.copyWith(status: ProfileNameStatus.loading));`
+  6. `final data = await _repository.updateName(name: validated.name);`
+  7. `data.fold((failure) => state = AsyncData(state.value!.copyWith(status: ProfileNameStatus.failure, message: failure.message)), (_) { ref.invalidate(userProvider); state = AsyncData(state.value!.copyWith(status: ProfileNameStatus.success)); });`
+
+The `// TODO Parte 6` comment SHALL be removed.
+
+#### Scenario: Valid submit calls repository and reaches success
+
+Given the user dispatched a valid `NameChanged('Jane')` and `userProvider` resolved with a valid user
+When `dispatch(SubmitPressed())` resolves with `_repository.updateName(...)` returning `Right(UserModel)`
+Then `_repository.updateName(name: 'Jane')` SHALL be called exactly once
+And `ref.invalidate(userProvider)` SHALL be called
+And `state.value!.status` SHALL equal `ProfileNameStatus.success`
+
+#### Scenario: Repository failure populates status and message
+
+Given a valid name is set
+When `dispatch(SubmitPressed())` resolves with `_repository.updateName(...)` returning `Left(ServerFailure())`
+Then `state.value!.status` SHALL equal `ProfileNameStatus.failure`
+And `state.value!.message` SHALL equal the failure's `message`
+
+#### Scenario: Invalid submit does not call repository
+
+Given the user dispatched `NameChanged('')`
+When `dispatch(SubmitPressed())` runs
+Then `state.value!.nameFailure` SHALL equal `'Nome obrigatório'`
+And `_repository.updateName` SHALL NOT be called
+
+#### Scenario: Re-entrant submit is a no-op
+
+Given `state.value!.status == ProfileNameStatus.loading`
+When `dispatch(SubmitPressed())` runs again with valid input
+Then `_repository.updateName` SHALL be called exactly once total
+
+---
+
+### Requirement: ProfilePasswordState reshape — current/new only
+
+The system SHALL refactor `lib/src/presentation/ui/profile/password/notifiers/profile_password_state.dart` to model only the two fields needed by the API:
+
+- A top-level `enum ProfilePasswordStatus { initial, loading, success, failure }`.
+- Fields declared before the constructor: `final String currentPassword;` (default `''`), `final String newPassword;` (default `''`), `final bool obscureCurrentPassword;` (default `true`), `final bool obscureNewPassword;` (default `true`), `final String? currentPasswordFailure;`, `final String? newPasswordFailure;`, `final String message;` (default `''`), `final ProfilePasswordStatus status;` (default `ProfilePasswordStatus.initial`).
+- The previous fields `confirmPassword`, `confirmPasswordFailure`, `obscureConfirmPassword` SHALL be removed.
+- `copyWith` SHALL accept `String? currentPassword`, `String? newPassword`, `bool? obscureCurrentPassword`, `bool? obscureNewPassword`, `String? currentPasswordFailure`, `String? newPasswordFailure`, `String? message`, `ProfilePasswordStatus? status`, `bool clearCurrentPasswordFailure = false`, `bool clearNewPasswordFailure = false` — and SHALL NOT accept any `confirm*` parameter or `clearConfirmPasswordFailure`.
+- `props` SHALL reflect the new field list.
+
+#### Scenario: Default state matches new shape
+
+Given `const ProfilePasswordState()`
+Then `currentPassword` SHALL equal `''` and `newPassword` SHALL equal `''`
+And both `obscureCurrentPassword` and `obscureNewPassword` SHALL be `true`
+And `status` SHALL equal `ProfilePasswordStatus.initial`
+
+---
+
+### Requirement: ProfilePasswordIntent — current replaces confirm
+
+The system SHALL replace `ConfirmPasswordChanged(value)` with `CurrentPasswordChanged(value)` and `ConfirmPasswordVisibilityToggled()` with `CurrentPasswordVisibilityToggled()` in `lib/src/presentation/ui/profile/password/notifiers/profile_password_intent.dart`.
+
+The intent hierarchy SHALL be sealed and contain exactly: `CurrentPasswordChanged(String value)`, `NewPasswordChanged(String value)`, `CurrentPasswordVisibilityToggled()`, `NewPasswordVisibilityToggled()`, `SubmitPressed()`.
+
+#### Scenario: Confirm intents are gone
+
+Given the implementation is complete
+When `grep -rn "ConfirmPasswordChanged\|ConfirmPasswordVisibilityToggled" lib/src/presentation/ui/profile/password/` is executed
+Then there SHALL be no matches
+
+---
+
+### Requirement: ProfilePasswordFormValidator validates current and new without match
+
+The system SHALL refactor `ProfilePasswordFormValidator` to validate **two independent** password fields:
+
+- `currentPassword` via the shared `PasswordValidation` (min 8) → on `Invalid`, populates `currentPasswordFailure`; on `Valid`, clears it via `clearCurrentPasswordFailure: true`.
+- `newPassword` via the shared `PasswordValidation` (min 8) → on `Invalid`, populates `newPasswordFailure`; on `Valid`, clears it via `clearNewPasswordFailure: true`.
+
+`isValid` SHALL be `true` only when **both** validations return `Valid`. The validator SHALL NOT compare `newPassword` to any confirmation field — no `'As senhas não coincidem'` message SHALL be emitted.
+
+#### Scenario: Both passwords valid passes
+
+Given `state.currentPassword == 'OldPass!123'` and `state.newPassword == 'NewPass!456'`
+When the validator is invoked
+Then `currentPasswordFailure` and `newPasswordFailure` SHALL be `null`
+And `isValid` SHALL be `true`
+
+#### Scenario: Empty current produces currentPasswordFailure
+
+Given `state.currentPassword == ''` and `state.newPassword == 'NewPass!456'`
+When the validator is invoked
+Then `state.currentPasswordFailure` SHALL equal `'Senha obrigatória'`
+And `isValid` SHALL be `false`
+
+#### Scenario: Short new password produces newPasswordFailure
+
+Given `state.currentPassword == 'OldPass!123'` and `state.newPassword == 'short'`
+When the validator is invoked
+Then `state.newPasswordFailure` SHALL equal `'Senha deve ter ao menos 8 caracteres'`
+And `isValid` SHALL be `false`
+
+---
+
+### Requirement: ProfilePasswordNotifier migrates to AsyncNotifier with repository
+
+The system SHALL migrate `ProfilePasswordNotifier` from synchronous `Notifier<ProfilePasswordState>` to `AsyncNotifier`:
+
+- `Future<ProfilePasswordState> build() async` returns `const ProfilePasswordState()`. There is no `await` in the body — the async signature aligns the dispatch/submit pattern with `ProfileNameNotifier`.
+- Dependencies: `late IUserRepository _repository;` and `late ProfilePasswordFormValidator _validator;`, both initialised via `ref.watch` in `build()`.
+- `dispatch(ProfilePasswordIntent intent)` SHALL be exhaustive and update the state via `state = AsyncData(state.value!.copyWith(...))`:
+  - `CurrentPasswordChanged(:final value)` → `copyWith(currentPassword: value, clearCurrentPasswordFailure: true)`.
+  - `NewPasswordChanged(:final value)` → `copyWith(newPassword: value, clearNewPasswordFailure: true)`.
+  - `CurrentPasswordVisibilityToggled()` → `copyWith(obscureCurrentPassword: !state.value!.obscureCurrentPassword)`.
+  - `NewPasswordVisibilityToggled()` → `copyWith(obscureNewPassword: !state.value!.obscureNewPassword)`.
+  - `SubmitPressed()` → `_submit()`.
+- `Future<void> _submit() async` SHALL mirror the shape used in `ProfileNameNotifier`:
+  1. Run the validator and propagate validated state via `state = AsyncData(validated)`.
+  2. Return if `!isValid`.
+  3. Return if `validated.status == ProfilePasswordStatus.loading` (re-entrancy guard).
+  4. `state = AsyncData(validated.copyWith(status: ProfilePasswordStatus.loading))`.
+  5. `await _repository.updatePassword(currentPassword: validated.currentPassword, newPassword: validated.newPassword)`.
+  6. `fold` → failure: `state = AsyncData(state.value!.copyWith(status: ProfilePasswordStatus.failure, message: failure.message))`; success: `ref.invalidate(userProvider); state = AsyncData(state.value!.copyWith(status: ProfilePasswordStatus.success))`.
+- The `// TODO Parte 6` comment SHALL be removed.
+
+#### Scenario: Valid submit calls updatePassword and reaches success
+
+Given the user dispatched `CurrentPasswordChanged('OldPass!123')` and `NewPasswordChanged('NewPass!456')`
+When `dispatch(SubmitPressed())` resolves with `_repository.updatePassword(...)` returning `Right(UserModel)`
+Then `_repository.updatePassword(currentPassword: 'OldPass!123', newPassword: 'NewPass!456')` SHALL be called exactly once
+And `ref.invalidate(userProvider)` SHALL be called
+And `state.value!.status` SHALL equal `ProfilePasswordStatus.success`
+
+#### Scenario: Repository failure populates status and message
+
+Given valid `currentPassword` and `newPassword`
+When `dispatch(SubmitPressed())` resolves with `_repository.updatePassword(...)` returning `Left(ValidationFailure('Senha incorreta.'))`
+Then `state.value!.status` SHALL equal `ProfilePasswordStatus.failure`
+And `state.value!.message` SHALL equal `'Senha incorreta.'`
+
+#### Scenario: Visibility toggles are independent
+
+Given `state.value!.obscureCurrentPassword == true` and `state.value!.obscureNewPassword == true`
+When `dispatch(CurrentPasswordVisibilityToggled())` runs
+Then `state.value!.obscureCurrentPassword` SHALL become `false`
+And `state.value!.obscureNewPassword` SHALL remain `true`
+
+---
+
+### Requirement: ProfileNameScreen receives onSuccess and reacts to status
+
+The system SHALL extend `ProfileNameScreen` with `final VoidCallback onSuccess;` named-required declared before the constructor.
+
+Inside the `Consumer`, the screen SHALL `ref.listen(profileNameProvider, ...)` and:
+
+- On transition to `state.value?.status == ProfileNameStatus.failure` (and previous status was different) → call `showToastWidget(context: context, title: 'Opps', type: ToastType.failure, description: state.value?.message ?? '')`.
+- On transition to `state.value?.status == ProfileNameStatus.success` (and previous status was different) → call `onSuccess()`.
+
+The "Atualizar" button SHALL be `ButtonWidget.elevated(label: 'Atualizar', isLoading: state.status == ProfileNameStatus.loading, onTap: ...)`. The screen SHALL remain a `StatelessWidget` with an inner `Consumer` (never `ConsumerWidget`).
+
+#### Scenario: Success calls onSuccess exactly once per transition
+
+Given the notifier transitions from `loading` to `success`
+When the listener observes the change
+Then `onSuccess()` SHALL be invoked exactly once
+And no toast SHALL be shown
+
+#### Scenario: Failure shows the toast with the failure message
+
+Given the notifier transitions from `loading` to `failure` with `message == 'Server error'`
+When the listener observes the change
+Then `showToastWidget` SHALL be invoked with `title: 'Opps'`, `type: ToastType.failure`, `description: 'Server error'`
+And `onSuccess()` SHALL NOT be invoked
+
+#### Scenario: Loading status drives button isLoading
+
+Given `state.value!.status == ProfileNameStatus.loading`
+When the screen builds
+Then `ButtonWidget.elevated` SHALL receive `isLoading: true`
+
+---
+
+### Requirement: ProfilePasswordScreen is rebuilt with two fields and onSuccess
+
+The system SHALL rebuild `lib/src/presentation/ui/profile/password/screens/profile_password_screen.dart`:
+
+- Add `final VoidCallback onSuccess;` named-required.
+- Build via `switch (ref.watch(profilePasswordProvider))`:
+  - `AsyncData(:final value)` → `_buildBody(state: value, notifier: ref.read(profilePasswordProvider.notifier))`.
+  - `AsyncError(:final error)` → `_buildError(failure: error is Failure ? error : const UnknownFailure(), onRetry: () => ref.invalidate(profilePasswordProvider))` mirroring `ProfileNameScreen`.
+  - `_` → `const Center(child: CircularProgressIndicatorWidget())`.
+- `ref.listen(profilePasswordProvider, ...)` SHALL fire `showToastWidget(title: 'Opps', type: ToastType.failure, description: state.value?.message ?? '')` on transition to `failure` and `onSuccess()` on transition to `success`.
+- `_buildBody` SHALL be a private method (never a private class) and return a `CustomScrollView` with `SliverFillRemaining(hasScrollBody: false, child: Padding(padding: const EdgeInsets.all(16.0), child: Column(spacing: 24.0, crossAxisAlignment: CrossAxisAlignment.start, children: [...])))`.
+- The column children, in order, SHALL be:
+  - `ScreenHeaderWidget(title: 'Senha', description: 'Crie uma nova senha para sua conta.')`.
+  - A nested `Column(spacing: 12.0, crossAxisAlignment: CrossAxisAlignment.start)` containing exactly two `PasswordFieldWidget`:
+    - `PasswordFieldWidget(label: 'Senha atual', hint: 'Digite sua senha atual', inputAction: TextInputAction.next, failure: state.currentPasswordFailure, obscure: state.obscureCurrentPassword, onChanged: (v) => notifier.dispatch(CurrentPasswordChanged(v)), onToggle: () => notifier.dispatch(const CurrentPasswordVisibilityToggled()))`.
+    - `PasswordFieldWidget(label: 'Nova senha', hint: 'Digite a nova senha', inputAction: TextInputAction.done, failure: state.newPasswordFailure, obscure: state.obscureNewPassword, onChanged: (v) => notifier.dispatch(NewPasswordChanged(v)), onToggle: () => notifier.dispatch(const NewPasswordVisibilityToggled()))`.
+  - `const Spacer()`.
+  - `SizedBox(width: double.infinity, child: ButtonWidget.elevated(label: 'Atualizar', isLoading: state.status == ProfilePasswordStatus.loading, onTap: () { hideKeyboard(); notifier.dispatch(const SubmitPressed()); }))`.
+
+The screen SHALL NOT reference `confirmPassword`, `confirmPasswordFailure`, `obscureConfirmPassword`, `ConfirmPasswordChanged` or `ConfirmPasswordVisibilityToggled` — any leftover from the previous part is a violation.
+
+#### Scenario: Two password fields are rendered
+
+Given the user opens `ProfilePasswordScreen`
+When the screen builds with `AsyncData(ProfilePasswordState())`
+Then the `Column` SHALL contain exactly two `PasswordFieldWidget` widgets
+And their labels SHALL be `'Senha atual'` and `'Nova senha'` in that order
+And there SHALL be no field labelled `'Confirmar senha'`
+
+#### Scenario: Success navigates back via onSuccess
+
+Given the notifier transitions to `ProfilePasswordStatus.success`
+When the listener observes the change
+Then `onSuccess()` SHALL be invoked exactly once
+
+---
+
+### Requirement: ProfileNameLocation and ProfilePasswordLocation accept onSuccess
+
+The system SHALL extend both `ProfileNameLocation` and `ProfilePasswordLocation` with a named-required `VoidCallback onSuccess` constructor parameter.
+
+```dart
+final class ProfileNameLocation extends Location {
+  final VoidCallback onSuccess;
+  const ProfileNameLocation({required this.onSuccess});
+
+  @override
+  String get path => AppRoutes.profileName.path;
+
+  @override
+  LocationPageBuilder get pageBuilder =>
+      (_) => screenPage(ProfileNameScreen(onSuccess: onSuccess));
+}
+```
+
+The same shape SHALL apply to `ProfilePasswordLocation` (pointing to `AppRoutes.profilePassword.path` and constructing `ProfilePasswordScreen(onSuccess: onSuccess)`).
+
+`ProfileDetailsLocation.pageBuilder` SHALL pass `onSuccess: () => context.pop()` when constructing both `ProfileNameLocation(...)` and `ProfilePasswordLocation(...)`. `ProfileDetailsLocation` SHALL remain the only place importing `ProfileNameLocation` and `ProfilePasswordLocation` (Locations composing navigation — the documented exception in CLAUDE.md).
+
+#### Scenario: Pop closes the editor on success
+
+Given the user is on `ProfileNameScreen` (or `ProfilePasswordScreen`)
+When the notifier transitions to `success`
+Then `context.pop()` SHALL be invoked exactly once
+And the user SHALL land back on `ProfileDetailsScreen` with the freshly invalidated `userProvider`
+
+---
+
+### Requirement: No Parte 6 TODOs remain after implementation
+
+The system SHALL remove the placeholders `// TODO Parte 6: chamar repository.updateName(...)` and `// TODO Parte 6: chamar repository.updatePassword(...)` from the notifiers, replacing them with the actual repository calls described above.
+
+#### Scenario: No TODOs left
+
+Given the implementation is complete
+When `grep -rn "TODO Parte 6" lib/` is executed
+Then the result SHALL be empty
+

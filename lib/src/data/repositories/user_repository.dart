@@ -43,4 +43,30 @@ final class UserRepository implements IUserRepository {
 
     return data.either((failure) => failure.toFailure(), (_) {});
   }
+
+  @override
+  Future<Either<Failure, UserModel>> updateName({required String name}) async {
+    final data = await _userDataSource.update(name: name);
+
+    return data.either(
+      (failure) => failure.toFailure(),
+      (response) => response.toModel(),
+    );
+  }
+
+  @override
+  Future<Either<Failure, UserModel>> updatePassword({
+    required String newPassword,
+    required String currentPassword,
+  }) async {
+    final data = await _userDataSource.update(
+      newPassword: newPassword,
+      currentPassword: currentPassword,
+    );
+
+    return data.either(
+      (failure) => failure.toFailure(),
+      (response) => response.toModel(),
+    );
+  }
 }

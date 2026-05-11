@@ -14,25 +14,22 @@ final class ProfilePasswordFormValidator {
   ({ProfilePasswordState state, bool isValid}) call(
     ProfilePasswordState state,
   ) {
-    final password = _passwordValidation(state.newPassword);
+    final newPassword = _passwordValidation(state.newPassword);
+    final currentPassword = _passwordValidation(state.currentPassword);
 
-    final confirmFailure = switch (password) {
-      Invalid() => null,
-      Valid() when state.confirmPassword != state.newPassword =>
-        'As senhas não coincidem',
-      Valid() => null,
-    };
-
-    final isValid = password is Valid && confirmFailure == null;
+    final isValid = currentPassword is Valid && newPassword is Valid;
 
     final validated = state.copyWith(
-      newPasswordFailure: switch (password) {
+      currentPasswordFailure: switch (currentPassword) {
         Valid() => null,
         Invalid(:final message) => message,
       },
-      confirmPasswordFailure: confirmFailure,
-      clearNewPasswordFailure: password is Valid,
-      clearConfirmPasswordFailure: confirmFailure == null,
+      newPasswordFailure: switch (newPassword) {
+        Valid() => null,
+        Invalid(:final message) => message,
+      },
+      clearCurrentPasswordFailure: currentPassword is Valid,
+      clearNewPasswordFailure: newPassword is Valid,
     );
 
     return (state: validated, isValid: isValid);

@@ -577,6 +577,237 @@ Ordem fixa: domain → infrastructure → data → presentation (subfeature `pro
 
 ---
 
-## Parte 6+ — A definir
+## Parte 6 — Edição real de nome/senha (PATCH)
 
-- **Parte 6** — Edição real de nome/senha (PATCH) — substitui os `// TODO Parte 6` nos notifiers correspondentes.
+Ordem fixa: domain → infrastructure → data → presentation (state/intent/validator/notifier nas duas subfeatures + reshape da `ProfilePasswordScreen`) → wiring (locations + `onSuccess` callback) → code generation → testes → verificação.
+
+### 48. Domain
+
+- [ ] 48.1 Adicionar à `IUserRepository` em `lib/src/domain/repositories/interface_user_repository.dart`:
+  ```dart
+  Future<Either<Failure, UserModel>> updateName({required String name});
+
+  Future<Either<Failure, UserModel>> updatePassword({
+    required String currentPassword,
+    required String newPassword,
+  });
+  ```
+  Ambas devolvem `UserModel` (a API retorna `{id, name, email}` no sucesso). Não há novo enum/sealed novo no domínio.
+
+### 49. Infrastructure
+
+- [ ] 49.1 Adicionar à interface `IRemoteUserDataSource` em `lib/src/infrastructure/datasources/remote/remote_user_data_source.dart`:
+  ```dart
+  Future<Either<FailureResponse, UserResponse>> update({
+    String? name,
+    String? currentPassword,
+    String? newPassword,
+  });
+  ```
+  Um único método (espelha o endpoint único PATCH `/api/v1/me`). Todos os campos opcionais — o repositório monta a chamada conforme a intenção.
+- [ ] 49.2 Implementar `RemoteUserDataSource.update`:
+  ```dart
+  final response = await _client.patch(
+    parameter: Requests(
+      EndpointKey.me.path,
+      body: {
+        if (name != null) 'name': name,
+        if (currentPassword != null) 'current_password': currentPassword,
+        if (newPassword != null) 'new_password': newPassword,
+      },
+    ),
+  );
+
+  return response.either(FailureResponse.fromJson, UserResponse.fromJson);
+  ```
+  Body inline com map literal usando spread condicional — sem DTO (espelha o padrão do `delete`). `EndpointKey.me` já existe. `UserResponse` já existe.
+
+### 50. Data
+
+- [ ] 50.1 Em `lib/src/data/repositories/user_repository.dart`, adicionar `updateName`:
+  ```dart
+  @override
+  Future<Either<Failure, UserModel>> updateName({required String name}) async {
+    final data = await _userDataSource.update(name: name);
+
+    return data.either(
+      (failure) => failure.toFailure(),
+      (response) => response.toModel(),
+    );
+  }
+  ```
+- [ ] 50.2 Adicionar `updatePassword`:
+  ```dart
+  @override
+  Future<Either<Failure, UserModel>> updatePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final data = await _userDataSource.update(
+      currentPassword: currentPassword,
+      newPassword: newPassword,
+    );
+
+    return data.either(
+      (failure) => failure.toFailure(),
+      (response) => response.toModel(),
+    );
+  }
+  ```
+  Reusa `UserResponseExtension.toModel()` e `FailureResponseExtension.toFailure()` existentes — nenhuma extension nova.
+
+### 51. Presentation — subfeature `profile/name/`
+
+- [ ] 51.1 Atualizar `lib/src/presentation/ui/profile/name/notifiers/profile_name_state.dart` adicionando o status do submit:
+  - Novo `enum ProfileNameStatus { initial, loading, success, failure }` no topo do arquivo.
+  - Campos novos antes do construtor: `final String message;` (default `''`) e `final ProfileNameStatus status;` (default `.initial`).
+  - Atualizar construtor, `copyWith` e `props` para incluir os novos campos.
+- [ ] 51.2 Atualizar `lib/src/presentation/ui/profile/name/notifiers/profile_name_notifier.dart`:
+  - Importar `repositories_provider.dart` e `interface_user_repository.dart`.
+  - Adicionar `late IUserRepository _repository;` (antes do `_validator`, seguindo a ordenação de membros).
+  - Em `build()`, antes de retornar: `_repository = ref.watch(userRepositoryProvider);`.
+  - Trocar `void _submit()` por `Future<void> _submit() async {...}`:
+    1. `final (state: validated, :isValid) = _validator(this.state.value!);`
+    2. `this.state = AsyncData(validated);`
+    3. `if (!isValid) return;`
+    4. `if (validated.status == ProfileNameStatus.loading) return;` (re-entrancy guard)
+    5. `this.state = AsyncData(validated.copyWith(status: .loading));`
+    6. `final data = await _repository.updateName(name: validated.name);`
+    7. `data.fold((failure) => state = AsyncData(state.value!.copyWith(status: .failure, message: failure.message)), (_) { ref.invalidate(userProvider); state = AsyncData(state.value!.copyWith(status: .success)); });`
+  - Remover o `// TODO Parte 6`.
+
+### 52. Presentation — subfeature `profile/password/`
+
+- [ ] 52.1 Refazer `lib/src/presentation/ui/profile/password/notifiers/profile_password_state.dart`:
+  - Novo `enum ProfilePasswordStatus { initial, loading, success, failure }`.
+  - Campos antes do construtor: `currentPassword` (`String`, default `''`), `newPassword` (`String`, default `''`), `obscureCurrentPassword` (`bool`, default `true`), `obscureNewPassword` (`bool`, default `true`), `currentPasswordFailure` (`String?`), `newPasswordFailure` (`String?`), `message` (`String`, default `''`), `status` (`ProfilePasswordStatus`, default `.initial`).
+  - **Drop**: `confirmPassword`, `confirmPasswordFailure`, `obscureConfirmPassword`.
+  - `copyWith` com flags `clearCurrentPasswordFailure` e `clearNewPasswordFailure` (drop `clearConfirmPasswordFailure`).
+  - `props` reflete os novos campos.
+- [ ] 52.2 Refazer `lib/src/presentation/ui/profile/password/notifiers/profile_password_intent.dart`:
+  - **Substituir** `ConfirmPasswordChanged(value)` por `CurrentPasswordChanged(value)`.
+  - **Substituir** `ConfirmPasswordVisibilityToggled()` por `CurrentPasswordVisibilityToggled()`.
+  - Manter `NewPasswordChanged(value)`, `NewPasswordVisibilityToggled()`, `SubmitPressed()`.
+- [ ] 52.3 Refazer `lib/src/presentation/ui/profile/password/validators/profile_password_form_validator.dart`:
+  - Validar `currentPassword` via `PasswordValidation` (min 8) → popula `currentPasswordFailure`.
+  - Validar `newPassword` via `PasswordValidation` (min 8) → popula `newPasswordFailure`.
+  - Drop a checagem `confirmPassword != newPassword` e a mensagem `'As senhas não coincidem'`.
+  - `isValid` é `true` somente quando ambas validações são `Valid`.
+- [ ] 52.4 Migrar `lib/src/presentation/ui/profile/password/notifiers/profile_password_notifier.dart` para `AsyncNotifier`:
+  - Assinatura: `Future<ProfilePasswordState> build() async`.
+  - `build()` retorna `const ProfilePasswordState()` (não há nada para preloadar — `await` serve só para alinhar o padrão de submit assíncrono).
+  - Dependências: `late IUserRepository _repository;` + `late ProfilePasswordFormValidator _validator;`.
+  - `dispatch(ProfilePasswordIntent intent)` atualiza via `state = AsyncData(state.value!.copyWith(...))` em cada branch:
+    - `CurrentPasswordChanged(:final value)` → `copyWith(currentPassword: value, clearCurrentPasswordFailure: true)`.
+    - `NewPasswordChanged(:final value)` → `copyWith(newPassword: value, clearNewPasswordFailure: true)`.
+    - `CurrentPasswordVisibilityToggled()` → `copyWith(obscureCurrentPassword: !state.value!.obscureCurrentPassword)`.
+    - `NewPasswordVisibilityToggled()` → `copyWith(obscureNewPassword: !state.value!.obscureNewPassword)`.
+    - `SubmitPressed()` → `_submit()`.
+  - `Future<void> _submit() async` espelha o do name: valida; early-return se inválido; re-entrancy guard via `state.value!.status == .loading`; `state = AsyncData(state.value!.copyWith(status: .loading))`; `await _repository.updatePassword(currentPassword: state.value!.currentPassword, newPassword: state.value!.newPassword);`; `fold` → failure popula `status .failure` + `message`; success → `ref.invalidate(userProvider)` + `status .success`.
+  - Remover o `// TODO Parte 6`.
+
+### 53. Presentation — screens
+
+- [ ] 53.1 Atualizar `lib/src/presentation/ui/profile/name/screens/profile_name_screen.dart`:
+  - Adicionar `final VoidCallback onSuccess;` named-required antes do construtor.
+  - Construtor: `const ProfileNameScreen({ super.key, required this.onSuccess });`.
+  - Dentro do `Consumer` (antes do `switch`), adicionar:
+    ```dart
+    ref.listen(profileNameProvider, (previous, next) {
+      final previousStatus = previous?.value?.status;
+      final nextStatus = next.value?.status;
+      if (nextStatus == ProfileNameStatus.failure &&
+          previousStatus != ProfileNameStatus.failure) {
+        showToastWidget(
+          context: context,
+          title: 'Opps',
+          type: ToastType.failure,
+          description: next.value?.message ?? '',
+        );
+      }
+      if (nextStatus == ProfileNameStatus.success &&
+          previousStatus != ProfileNameStatus.success) {
+        onSuccess();
+      }
+    });
+    ```
+  - No `_buildBody`, trocar `ButtonWidget.elevated(label: 'Atualizar', onTap: ...)` por `ButtonWidget.elevated(label: 'Atualizar', isLoading: state.status == ProfileNameStatus.loading, onTap: ...)`.
+  - Imports novos: `toast_widget.dart`.
+  - Não usar `widget.onSuccess` (StatelessWidget — o callback está disponível via `this`).
+- [ ] 53.2 Refazer `lib/src/presentation/ui/profile/password/screens/profile_password_screen.dart`:
+  - Adicionar `final VoidCallback onSuccess;` named-required.
+  - Refletir mudança do notifier para `AsyncNotifier` — `switch (ref.watch(profilePasswordProvider))` com três braços: `AsyncData(:final value)` → `_buildBody(state: value, notifier: ref.read(profilePasswordProvider.notifier))`, `AsyncError` → `_buildError(...)` (mesma forma do `profile_name_screen.dart`), `_` → `const Center(child: CircularProgressIndicatorWidget())`.
+  - `ref.listen(profilePasswordProvider, ...)` idêntico ao do name (toast em failure, `onSuccess()` em success).
+  - Body interno usando `CustomScrollView` + `SliverFillRemaining(hasScrollBody: false)` para evitar overflow com o teclado (espelha `ProfileDeleteScreen` / `ProfileNameScreen`).
+  - Renderiza, em ordem dentro de `Column(spacing: 24.0, crossAxisAlignment: .start)`:
+    - `ScreenHeaderWidget(title: 'Senha', description: 'Crie uma nova senha para sua conta.')`.
+    - `Column(spacing: 12.0, crossAxisAlignment: .start, children: [...])` com **dois** `PasswordFieldWidget`:
+      - `PasswordFieldWidget(label: 'Senha atual', hint: 'Digite sua senha atual', inputAction: .next, failure: state.currentPasswordFailure, obscure: state.obscureCurrentPassword, onChanged: (v) => notifier.dispatch(CurrentPasswordChanged(v)), onToggle: () => notifier.dispatch(const CurrentPasswordVisibilityToggled()))`.
+      - `PasswordFieldWidget(label: 'Nova senha', hint: 'Digite a nova senha', inputAction: .done, failure: state.newPasswordFailure, obscure: state.obscureNewPassword, onChanged: (v) => notifier.dispatch(NewPasswordChanged(v)), onToggle: () => notifier.dispatch(const NewPasswordVisibilityToggled()))`.
+    - `const Spacer()`.
+    - `SizedBox(width: .infinity, child: ButtonWidget.elevated(label: 'Atualizar', isLoading: state.status == ProfilePasswordStatus.loading, onTap: () { hideKeyboard(); notifier.dispatch(const SubmitPressed()); }))`.
+  - Drop campo "Confirmar senha" e qualquer referência a `ConfirmPasswordChanged`/`ConfirmPasswordVisibilityToggled`/`confirmPasswordFailure`/`obscureConfirmPassword`.
+
+### 54. Wiring — Locations propagam `onSuccess`
+
+- [ ] 54.1 Atualizar `lib/src/presentation/ui/profile/name/locations/profile_name_location.dart`:
+  - Adicionar `final VoidCallback onSuccess;` antes da declaração do override de `path`.
+  - Construtor: `const ProfileNameLocation({required this.onSuccess});`.
+  - `pageBuilder` passa a ser `(_) => screenPage(ProfileNameScreen(onSuccess: onSuccess))`.
+- [ ] 54.2 Idem `lib/src/presentation/ui/profile/password/locations/profile_password_location.dart` — `ProfilePasswordLocation({required this.onSuccess})` + `screenPage(ProfilePasswordScreen(onSuccess: onSuccess))`.
+- [ ] 54.3 Atualizar `lib/src/presentation/ui/profile/details/locations/profile_details_location.dart`:
+  - Em `pageBuilder`, trocar `ProfileNameLocation()` por `ProfileNameLocation(onSuccess: () => context.pop())` e idem para `ProfilePasswordLocation`.
+
+### 55. Code generation
+
+- [ ] 55.1 Rodar `dart run build_runner build --delete-conflicting-outputs` para regenerar:
+  - `profile_name_notifier.g.dart` (a forma do build não muda, mas o conteúdo do notifier sim — re-gerar por garantia).
+  - `profile_password_notifier.g.dart` (assinatura mudou para `Future<...>`).
+
+### 56. Testes
+
+- [ ] 56.1 Em `test/src/data/repositories/user_repository_test.dart`, adicionar `group('updateName')` com cenários:
+  - Right(UserModel) quando PATCH `/api/v1/me` retorna `{id, name, email}` — verificar payload `{'name': 'Jane Smith'}` (sem `current_password`/`new_password`).
+  - Left(NetworkFailure) quando código `'connection_error'`.
+  - Left(NotFoundFailure) quando código `'not_found'`.
+  - Left(ServerFailure) quando código `'server_error'`.
+  - Left(ValidationFailure('mensagem')) quando código desconhecido com mensagem do backend.
+- [ ] 56.2 Adicionar `group('updatePassword')` no mesmo arquivo com cenários equivalentes:
+  - Right(UserModel) — verificar payload `{'current_password': 'OldPassword!123', 'new_password': 'NewSecure!456'}` (sem `name`).
+  - Quatro failures mapeadas (Network/NotFound/Server/Validation).
+- [ ] 56.3 Atualizar `test/src/presentation/profile/name/notifiers/profile_name_notifier_test.dart`:
+  - Acrescentar mock `late IUserRepository repository;` no `setUp`.
+  - Override de `userRepositoryProvider` no `ProviderContainer` retornando o mock.
+  - Manter os cenários atuais (build pre-fills, NameChanged, SubmitPressed empty, valid clears failure).
+  - **Adicionar** cenários novos:
+    - `SubmitPressed with valid name calls repository and sets status success`.
+    - `SubmitPressed with valid name and repository failure sets status failure with message`.
+    - `SubmitPressed with valid name invalidates userProvider on success`.
+    - `SubmitPressed with invalid name does not call repository`.
+    - `SubmitPressed during loading is a no-op` (re-entrancy guard).
+  - Variáveis nunca chamadas `result` ou `either` (CLAUDE.md). Mocks declarados com o tipo da interface.
+- [ ] 56.4 Refazer `test/src/presentation/profile/password/validators/profile_password_form_validator_test.dart`:
+  - Drop cenário "mismatch → confirmPasswordFailure".
+  - Manter/adicionar: empty currentPassword → `currentPasswordFailure == 'Senha obrigatória'`; empty newPassword → `newPasswordFailure == 'Senha obrigatória'`; <8 chars em qualquer um → failure correspondente; ambos válidos → `isValid == true` e ambas failures `null`.
+- [ ] 56.5 Atualizar `test/src/presentation/profile/password/notifiers/profile_password_notifier_test.dart`:
+  - Mock `IUserRepository` (já existe `MockUserRepository` em `test/mocks/mocks.dart` — verificar).
+  - Substituir intents de `Confirm*` por `Current*` em todos os cenários.
+  - Migrar para `AsyncNotifier` — testes inspecionam `state.value!` em vez de `state`.
+  - Adicionar cenários de submit: valid → loading então success + repository chamado com `currentPassword`/`newPassword` corretos; valid + repository failure → status failure + message; invalid → não chama repository; re-entrancy guard.
+  - Convenções: descrições em inglês; mocks via interface; variáveis nunca `result`/`either`.
+
+### 57. Verificação Parte 6
+
+- [ ] 57.1 `flutter analyze` — zero warnings.
+- [ ] 57.2 `flutter test` — toda a suíte passa (incluindo os novos cenários de repository e notifier).
+- [ ] 57.3 **Smoke manual — Nome — sucesso**: na `ProfileDetailsScreen`, tap em "Nome" → `ProfileNameScreen` com o campo já preenchido → trocar para "Kevin Editado" → tap "Atualizar" → botão entra em loading → request 200 → screen volta para `ProfileDetailsScreen` automaticamente → header e item "Nome" refletem o novo valor.
+- [ ] 57.4 **Smoke manual — Nome — falha de validação local**: limpar o campo → tap "Atualizar" → failure inline `'Nome obrigatório'`; o botão **não** entra em loading e nenhuma request é feita.
+- [ ] 57.5 **Smoke manual — Nome — falha do backend**: simular 500 ou `validation_error` → toast `'Opps'` com mensagem do backend; botão sai do loading; usuário continua na screen.
+- [ ] 57.6 **Smoke manual — Senha — sucesso**: tap em "Senha" → `ProfilePasswordScreen` com dois campos vazios ("Senha atual" + "Nova senha") → preencher ambos válidos → tap "Atualizar" → loading → 200 → volta para `ProfileDetailsScreen` (sem toast de sucesso).
+- [ ] 57.7 **Smoke manual — Senha — falha de validação local**: tap "Atualizar" com ambos vazios → failures inline em ambos os campos; sem request; sem loading.
+- [ ] 57.8 **Smoke manual — Senha — falha do backend (senha atual errada)**: digitar `current_password` incorreta + nova válida → tap "Atualizar" → toast `'Opps'` com a mensagem do backend (ex: `'Senha incorreta.'`); usuário continua na screen.
+- [ ] 57.9 **Smoke manual — Senha — falha de rede**: backend timeout → toast `'Opps'` com mensagem do `NetworkFailure`; botão sai do loading.
+- [ ] 57.10 **Smoke manual — Senha — toggle de visibilidade**: tap no olho dos dois campos alterna obscured/visible independentemente.
+- [ ] 57.11 **Smoke manual — re-entrância**: durante loading, tap repetido em "Atualizar" não dispara segunda request (verificar via logs).
+- [ ] 57.12 Verificar com grep que nenhum `// TODO Parte 6` permanece:
+  - `grep -rn "TODO Parte 6" lib/` retorna vazio.

@@ -1,52 +1,64 @@
 import 'package:equatable/equatable.dart';
 
+enum ProfilePasswordStatus { initial, loading, success, failure }
+
 final class ProfilePasswordState extends Equatable {
+  final String message;
   final String newPassword;
-  final String confirmPassword;
+  final String currentPassword;
   final bool obscureNewPassword;
-  final bool obscureConfirmPassword;
   final String? newPasswordFailure;
-  final String? confirmPasswordFailure;
+  final bool obscureCurrentPassword;
+  final ProfilePasswordStatus status;
+  final String? currentPasswordFailure;
 
   const ProfilePasswordState({
+    this.message = '',
     this.newPassword = '',
-    this.confirmPassword = '',
-    this.obscureNewPassword = true,
-    this.obscureConfirmPassword = true,
+    this.status = .initial,
     this.newPasswordFailure,
-    this.confirmPasswordFailure,
+    this.currentPassword = '',
+    this.currentPasswordFailure,
+    this.obscureNewPassword = true,
+    this.obscureCurrentPassword = true,
   });
 
   ProfilePasswordState copyWith({
+    String? message,
     String? newPassword,
-    String? confirmPassword,
+    String? currentPassword,
     bool? obscureNewPassword,
-    bool? obscureConfirmPassword,
     String? newPasswordFailure,
-    String? confirmPasswordFailure,
+    bool? obscureCurrentPassword,
+    ProfilePasswordStatus? status,
+    String? currentPasswordFailure,
     bool clearNewPasswordFailure = false,
-    bool clearConfirmPasswordFailure = false,
+    bool clearCurrentPasswordFailure = false,
   }) => ProfilePasswordState(
+    status: status ?? this.status,
+    message: message ?? this.message,
     newPassword: newPassword ?? this.newPassword,
-    confirmPassword: confirmPassword ?? this.confirmPassword,
+    currentPassword: currentPassword ?? this.currentPassword,
     obscureNewPassword: obscureNewPassword ?? this.obscureNewPassword,
-    obscureConfirmPassword:
-        obscureConfirmPassword ?? this.obscureConfirmPassword,
+    obscureCurrentPassword:
+        obscureCurrentPassword ?? this.obscureCurrentPassword,
     newPasswordFailure: clearNewPasswordFailure
         ? null
         : newPasswordFailure ?? this.newPasswordFailure,
-    confirmPasswordFailure: clearConfirmPasswordFailure
+    currentPasswordFailure: clearCurrentPasswordFailure
         ? null
-        : confirmPasswordFailure ?? this.confirmPasswordFailure,
+        : currentPasswordFailure ?? this.currentPasswordFailure,
   );
 
   @override
   List<Object?> get props => [
+    status,
+    message,
     newPassword,
-    confirmPassword,
+    currentPassword,
     obscureNewPassword,
-    obscureConfirmPassword,
     newPasswordFailure,
-    confirmPasswordFailure,
+    obscureCurrentPassword,
+    currentPasswordFailure,
   ];
 }

@@ -84,6 +84,54 @@ Esta change é **100% presentation/main**. Não toca `domain/`, `data/` nem `inf
 
 **Rationale**: como o repositório passou a aceitar só `password`, o notifier não precisa mais buscar o email do usuário no `userProvider`. Isso elimina a guarda defensiva contra `valueOrNull == null` e o caminho de erro "Não foi possível identificar o usuário." — agora o único caminho de falha é o repositório (`Failure.message`). Mantém o notifier mínimo, sem switch `AsyncValue` no estado. A screen ainda lê o `userProvider` por conta própria (switch sobre `AsyncValue` com fallback `''`) para mostrar o email readonly como reforço visual de "qual conta vai sumir", mas isso não atravessa o estado do notifier.
 
+### 11. Parte 6 — Um endpoint na API, dois métodos no domínio
+
+**Decisão**: `IUserRepository` expõe dois métodos (`updateName`, `updatePassword`) mas `IRemoteUserDataSource` expõe um único método `update({String? name, String? currentPassword, String? newPassword})` que reflete a forma real da API (`PATCH /api/v1/me` com body parcial).
+
+**Rationale**: domínio expressa **intenção** — "atualizar nome" e "atualizar senha" são casos de uso distintos, com inputs e validações distintas. Fundi-los em um único `update({name?, currentPassword?, newPassword?})` no domínio forçaria os callers a passar `null` explicitamente e perderia o contrato. Já o datasource é puro mapeamento HTTP — espelhar a forma da API mantém a infra honesta e o repositório monta o payload conforme a intenção.
+
+**Trade-off**: o caller no repositório precisa lembrar de passar **só** os campos da intenção (ex: `updateName` não envia `currentPassword: null` no spread — passa simplesmente `update(name: name)` e o datasource usa `if (currentPassword != null)` para omitir). Mitigação: o body inline do datasource já filtra `null`s via spread condicional (`if (... != null) 'x': x`), então não vaza chave nula para a API.
+
+### 12. Parte 6 — Status do submit dentro do state, não no `AsyncValue<T>` externo
+
+**Decisão**: tanto `ProfileNameNotifier` (já `AsyncNotifier`) quanto `ProfilePasswordNotifier` (migra para `AsyncNotifier` na Parte 6) representam o estado do submit via `enum XxxStatus { initial, loading, success, failure }` + `String message` **dentro** do `T`, não via `AsyncLoading()`/`AsyncError()` no envelope externo.
+
+**Rationale**: o `AsyncValue<T>` externo já cobre o build phase (`build()` async preloadando `userProvider` no name; sem preload no password mas mantendo a assinatura async). Misturar o submit phase no mesmo envelope quebraria a semântica — um `AsyncLoading()` durante submit faria a tela inteira renderizar o branch de loading (perder o form), e um `AsyncError()` cairia no `_buildError(Tentar novamente)` que é o caminho de erro de **leitura**, não de **escrita**. O status interno dá controle granular: loading aparece só no botão (`isLoading: state.status == .loading`), failure dispara toast e mantém o form preenchido para o usuário corrigir.
+
+**Trade-off**: ter dois sistemas de status sobrepostos (`AsyncValue<T>` externo + enum interno) tem alguma redundância conceitual. Mitigação: padrão consistente em todo o profile (name, password, delete — todos com `enum *Status` no state); a separação read-vs-write é o motor da decisão e fica explícita na própria estrutura.
+
+### 13. Parte 6 — `ProfilePasswordNotifier` migra para `AsyncNotifier` mesmo sem preload
+
+**Decisão**: `ProfilePasswordNotifier.build()` passa de sync (`ProfilePasswordState build()` → `const ProfilePasswordState()`) para async (`Future<ProfilePasswordState> build() async` → `const ProfilePasswordState()`). Sem `await` no corpo do build — a forma async serve só para alinhar o padrão.
+
+**Rationale**: a alternativa seria manter o notifier sync e ter inconsistência entre name (AsyncNotifier) e password (Notifier). O custo de migrar é baixo (todas as referências a `state` na screen e nos testes passam por `state.value!`), e o ganho é uniformidade: ambas as screens fazem o mesmo `switch (ref.watch(...))` com `AsyncData/AsyncError/_`, ambos os dispatches navegam o `state` via `AsyncData(state.value!.copyWith(...))`.
+
+**Trade-off**: `state.value!` introduz não-nulabilidade implícita — em teoria o `value` é `null` durante o brief gap entre `build()` retornar e o framework propagar. Na prática, `AsyncNotifier` resolve `build()` no construtor antes de qualquer `dispatch` ser disparado pela UI, então o `!` é seguro. Para evitar acidentes, todas as escritas em `state` durante `dispatch` se apoiam em `state.value!.copyWith(...)`.
+
+### 14. Parte 6 — Navegação de volta via callback `onSuccess` injetado pela Location
+
+**Decisão**: `ProfileNameScreen` e `ProfilePasswordScreen` recebem `final VoidCallback onSuccess;` named-required via construtor. A `ProfileDetailsLocation` injeta `onSuccess: () => context.pop()` ao construir `ProfileNameLocation(onSuccess: ...)` e `ProfilePasswordLocation(onSuccess: ...)`. As screens disparam `onSuccess()` via `ref.listen` na transição para `status: .success`.
+
+**Rationale**: respeita a regra de encapsulamento de feature (CLAUDE.md) — o notifier não conhece `BuildContext` nem `DuckRouter`, e a screen não importa Locations de outras subfeatures. A composição da navegação fica concentrada na `ProfileDetailsLocation` (que já é a porta de orquestração das três subfeatures de profile).
+
+**Trade-off**: a screen ganha um `VoidCallback` extra no construtor (mais um named-required). Aceitável — é a mesma forma já usada em `HomeScreen`, `ProfileDetailsScreen`, etc. e mantém a navegação fora do notifier.
+
+### 15. Parte 6 — `current_password` substitui `confirm_password` no form de senha
+
+**Decisão**: a `ProfilePasswordScreen` é refeita com 2 campos — "Senha atual" + "Nova senha", sem campo de confirmação. O validador deixa de checar `confirmPassword != newPassword`; o backend que reautentica via `current_password`.
+
+**Rationale**: a API exige `current_password` (porta de segurança contra trocas indevidas — o app não precisa repetir essa porta). Pedir três campos de senha (atual + nova + confirmação) seria hostil e a confirmação não adiciona segurança real, só ergonomia contra digitação. Mantemos a ergonomia via toggle de visibilidade em ambos os campos novos.
+
+**Trade-off**: o usuário perde a rede de segurança contra typo na "nova senha" — se digitar errado, vai descobrir só ao tentar fazer login depois. Mitigação: o toggle de visibilidade no campo "Nova senha" permite verificar visualmente antes de submeter; o usuário também pode usar o fluxo de "Esqueci minha senha" para recuperar via email.
+
+### 16. Parte 6 — Toast genérico em vez de roteamento por `field`
+
+**Decisão**: em falha, a screen mostra `showToastWidget(title: 'Opps', type: failure, description: state.message)` usando apenas `Failure.message` — sem mapear `FailureResponse.errors[].field` para failures por campo no state.
+
+**Rationale**: simplicidade. O caminho de erro mais comum (`current_password` incorreta) já é claro pela mensagem do backend (ex: `'Senha incorreta.'`). Adicionar mapeamento por field aqui exigiria expandir `Failure` com um tipo "field-scoped" ou interceptar `FailureResponse` antes do mapeamento — mudança grande para um único caso de uso. Mantemos o padrão consistente com `ProfileDeleteScreen` (que também usa toast genérico). Se a UX provar insuficiente, dá para evoluir depois sem ruptura.
+
+**Trade-off**: usuário vê o toast em vez de um failure inline grudado ao campo "Senha atual". Aceitável — a mensagem do toast já carrega o contexto, e o form mantém os campos preenchidos para correção imediata.
+
 ## Fluxos
 
 ### Avatar da Home → ProfileScreen

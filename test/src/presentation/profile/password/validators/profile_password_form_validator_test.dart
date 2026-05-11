@@ -11,48 +11,60 @@ void main() {
   );
 
   group('ProfilePasswordFormValidator', () {
-    test('sets newPasswordFailure when password is empty', () {
+    test('sets currentPasswordFailure when current password is empty', () {
+      const input = ProfilePasswordState(newPassword: 'NewSecure!456');
+
+      final (:state, :isValid) = validator(input);
+
+      expect(isValid, isFalse);
+      expect(state.newPasswordFailure, isNull);
+      expect(state.currentPasswordFailure, isNotNull);
+    });
+
+    test('sets newPasswordFailure when new password is empty', () {
+      const input = ProfilePasswordState(currentPassword: 'OldPassword!123');
+
+      final (:state, :isValid) = validator(input);
+
+      expect(isValid, isFalse);
+      expect(state.newPasswordFailure, isNotNull);
+      expect(state.currentPasswordFailure, isNull);
+    });
+
+    test('sets newPasswordFailure when new password is too short', () {
+      const input = ProfilePasswordState(
+        newPassword: 'abc123',
+        currentPassword: 'OldPassword!123',
+      );
+
+      final (:state, :isValid) = validator(input);
+
+      expect(isValid, isFalse);
+      expect(state.newPasswordFailure, isNotNull);
+      expect(state.currentPasswordFailure, isNull);
+    });
+
+    test('sets both failures when both passwords are invalid', () {
       const input = ProfilePasswordState();
 
       final (:state, :isValid) = validator(input);
 
       expect(isValid, isFalse);
       expect(state.newPasswordFailure, isNotNull);
+      expect(state.currentPasswordFailure, isNotNull);
     });
 
-    test('sets newPasswordFailure when password is too short', () {
-      const input = ProfilePasswordState(newPassword: 'abc123');
-
-      final (:state, :isValid) = validator(input);
-
-      expect(isValid, isFalse);
-      expect(state.newPasswordFailure, isNotNull);
-    });
-
-    test('sets confirmPasswordFailure when passwords do not match', () {
+    test('returns isValid true when both passwords are valid', () {
       const input = ProfilePasswordState(
         newPassword: 'NewSecure!456',
-        confirmPassword: 'Different!789',
-      );
-
-      final (:state, :isValid) = validator(input);
-
-      expect(isValid, isFalse);
-      expect(state.newPasswordFailure, isNull);
-      expect(state.confirmPasswordFailure, 'As senhas não coincidem');
-    });
-
-    test('returns isValid true when passwords are valid and match', () {
-      const input = ProfilePasswordState(
-        newPassword: 'NewSecure!456',
-        confirmPassword: 'NewSecure!456',
+        currentPassword: 'OldPassword!123',
       );
 
       final (:state, :isValid) = validator(input);
 
       expect(isValid, isTrue);
+      expect(state.currentPasswordFailure, isNull);
       expect(state.newPasswordFailure, isNull);
-      expect(state.confirmPasswordFailure, isNull);
     });
   });
 }

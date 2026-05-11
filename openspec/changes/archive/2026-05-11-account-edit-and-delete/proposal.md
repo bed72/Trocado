@@ -14,7 +14,7 @@ Partes futuras (a serem adicionadas a esta mesma change):
 - **Parte 3** — formulário de edição de dados pessoais (PATCH no backend).
 - **Parte 4** — atualização do label do botão de exclusão (renome para `'Excluir conta'`) sem dialog inline.
 - **Parte 5** — exclusão definitiva via API (`DELETE /api/v1/me`) em screen dedicada com re-confirmação por senha.
-- **Parte 6** — edição real de nome/senha (PATCH `/api/v1/me`).
+- **Parte 6** — edição real de nome/senha via `PATCH /api/v1/me` com `AsyncNotifier` em ambas as subfeatures, toast genérico em falha e navegação automática de volta para `ProfileDetailsScreen` no sucesso. A `ProfilePasswordScreen` é refeita com 2 campos (`Senha atual` + `Nova senha`), sem confirmação.
 
 ## What
 
@@ -239,9 +239,137 @@ profile/delete/
 
 ### Parte 6 — Edição real de nome/senha (PATCH)
 
-Substituir os `// TODO Parte 6` em `profile_name_notifier._submit()` e `profile_password_notifier._submit()` por chamadas reais ao `IUserRepository`. Provavelmente envolve `IUserRepository.updateName` / `updatePassword`, novos endpoints `PATCH /api/v1/me` (a confirmar), DTOs e mapping. Detalhamento na própria Parte 6.
+`PATCH /api/v1/me` atualiza a conta do usuário autenticado. O backend expõe **um único endpoint** com body parcial: `{name?, current_password?, new_password?}` — campos que vierem são atualizados. Resposta de sucesso: `200` com `UserResponse {id, name, email}`. Resposta de falha: envelope `FailureResponse` padrão (`{errors: [{field, message, code}]}`).
+
+Substituir os `// TODO Parte 6` em `profile_name_notifier._submit()` e `profile_password_notifier._submit()` por chamadas reais ao `IUserRepository`. A tela de senha é **refeita** — passa a ter apenas dois campos ("Senha atual" + "Nova senha"), sem confirmação (a confirmação `confirm_password` deixa de existir porque a API exige `current_password` em vez disso, e exigir três campos de senha é hostil ao usuário).
+
+Fluxo UX:
+
+- **Nome**: usuário entra na `ProfileNameScreen` (pré-preenchida via `userProvider`), edita, tap "Atualizar" → loading no botão → 200 → toast silencioso, navega de volta para `ProfileDetailsScreen` (que re-lê o `userProvider` invalidado e mostra o novo nome).
+- **Senha**: idem, mas com 2 campos novos. Sem toast de sucesso, sem dialog de confirmação extra (a senha atual já é a porta de segurança).
+- **Falha** (em ambas): toast genérico `'Opps'` com `Failure.message` via `ref.listen` na transição para `status: .failure` (mesmo padrão do `ProfileDeleteScreen`).
+
+#### Camadas
+
+- **Domain** (`lib/src/domain/repositories/interface_user_repository.dart`): adiciona dois métodos que devolvem `UserModel` na ramificação `Right`:
+  - `Future<Either<Failure, UserModel>> updateName({required String name});`
+  - `Future<Either<Failure, UserModel>> updatePassword({required String currentPassword, required String newPassword});`
+  Domínio expressa **intenção** (atualizar nome vs atualizar senha); o fato de ambas hits o mesmo endpoint é detalhe de infra.
+- **Infrastructure** (`lib/src/infrastructure/datasources/remote/remote_user_data_source.dart`):
+  - `IRemoteUserDataSource` ganha um único método `Future<Either<FailureResponse, UserResponse>> update({String? name, String? currentPassword, String? newPassword});` — todos os parâmetros opcionais, refletindo a forma da API.
+  - Implementação: `_client.patch(parameter: Requests(EndpointKey.me.path, body: {if (name != null) 'name': name, if (currentPassword != null) 'current_password': currentPassword, if (newPassword != null) 'new_password': newPassword}))` → `response.either(FailureResponse.fromJson, UserResponse.fromJson)`. Body inline com spread condicional (sem DTO, espelha o padrão do `delete`).
+  - `UserResponse` já existe (`{id, name, email}`) — sem mudança.
+- **Data** (`lib/src/data/repositories/user_repository.dart`):
+  - `UserRepository.updateName({name})` chama `_userDataSource.update(name: name)` e mapeia via `data.either((failure) => failure.toFailure(), (response) => response.toModel())`. Reusa `UserResponseExtension.toModel()` e `FailureResponseExtension.toFailure()` existentes.
+  - `UserRepository.updatePassword({currentPassword, newPassword})` idem, chamando `_userDataSource.update(currentPassword: ..., newPassword: ...)`.
+
+#### Notifiers — Async em ambos, status interno
+
+Tanto `ProfileNameNotifier` (já é `AsyncNotifier`) quanto `ProfilePasswordNotifier` (migra de `Notifier` síncrono para `AsyncNotifier`) seguem o mesmo padrão de submit:
+
+```dart
+Future<void> _submit() async {
+  final (state: validated, :isValid) = _validator(this.state.value!);
+  this.state = AsyncData(validated);
+
+  if (!isValid) return;
+  if (validated.status == .loading) return; // re-entrancy guard
+
+  this.state = AsyncData(validated.copyWith(status: .loading));
+
+  final data = await _repository.updateName(name: validated.name);
+
+  data.fold(
+    (failure) => state = AsyncData(
+      state.value!.copyWith(status: .failure, message: failure.message),
+    ),
+    (_) {
+      ref.invalidate(userProvider);
+      state = AsyncData(state.value!.copyWith(status: .success));
+    },
+  );
+}
+```
+
+O `AsyncValue<T>` externo cobre o build phase (preload do `userProvider` no name; sem nada para preload no password — `build()` é `async` apenas para alinhar o padrão). O submit phase é representado **dentro** do `T` via `enum XxxStatus { initial, loading, success, failure }` + `String message`. Loading aparece no botão (`ButtonWidget.elevated(isLoading: state.status == .loading)`), exatamente como no `ProfileDeleteScreen`.
+
+#### Reshape da `ProfilePasswordScreen`
+
+- **Drop**: `confirmPassword`, `confirmPasswordFailure`, `obscureConfirmPassword` no state; `ConfirmPasswordChanged`/`ConfirmPasswordVisibilityToggled` nos intents; validação `confirmPassword != newPassword` no validator; segundo `PasswordFieldWidget` ("Confirmar senha") na screen.
+- **Add**: `currentPassword`, `currentPasswordFailure`, `obscureCurrentPassword`, `message`, `status` no state; `CurrentPasswordChanged`/`CurrentPasswordVisibilityToggled` nos intents; validação `PasswordValidation` no `currentPassword`; primeiro `PasswordFieldWidget` ("Senha atual") na screen.
+- **Mantém**: `newPassword`, `newPasswordFailure`, `obscureNewPassword` no state; `NewPasswordChanged`/`NewPasswordVisibilityToggled`/`SubmitPressed` nos intents; segundo `PasswordFieldWidget` ("Nova senha").
+
+#### Navegação de volta — callback `onSuccess`
+
+`ProfileNameScreen` e `ProfilePasswordScreen` ganham `final VoidCallback onSuccess;` named-required. Locations passam `onSuccess: () => context.pop()` na `ProfileDetailsLocation.pageBuilder`. Em ambas as screens, `ref.listen` dispara `onSuccess()` na transição para `status: .success`. Isso mantém o notifier fora da navegação (CLAUDE.md) e permite que `ProfileDetailsLocation` continue sendo o único lugar que conhece as Locations filhas.
+
+### Parte 6 — referência completa do contrato
+
+**Endpoint**: `PATCH /api/v1/me`
+
+**Headers**: `Authorization: Bearer <access>` (injetado pelo `AuthenticationInterceptor`), `Content-Type: application/json`.
+
+**Body** (todos opcionais — a API aceita atualização parcial):
+
+```json
+{
+  "name": "Jane Smith",
+  "current_password": "OldPassword!123",
+  "new_password": "NewSecure!456"
+}
+```
+
+**Resposta sucesso (200)**:
+
+```json
+{
+  "id": 1,
+  "email": "jane@trocado.app",
+  "name": "Jane Smith"
+}
+```
+
+**Resposta falha**: envelope padrão `FailureResponse`:
+
+```json
+{
+  "errors": [
+    { "field": "current_password", "message": "Senha incorreta.", "code": "invalid_credentials" }
+  ]
+}
+```
+
+O app **não mapeia `field` para failures por campo** — o toast genérico (Opção A) usa apenas `Failure.message` (mesmo padrão de `ProfileDeleteScreen`).
 
 ## Scope
+
+### Em escopo (Parte 6 — atual)
+
+- `IUserRepository.updateName({name})` e `IUserRepository.updatePassword({currentPassword, newPassword})` (interface + impl). Ambos devolvem `UserModel` na ramificação `Right`.
+- `IRemoteUserDataSource.update({name?, currentPassword?, newPassword?})` (interface + impl) chamando `_client.patch(EndpointKey.me.path)` com body inline (spread condicional, sem DTO) e mapeando para `UserResponse.fromJson`.
+- `ProfileNameState` ganha `enum ProfileNameStatus` + campos `status` e `message`. `ProfileNameNotifier._submit` deixa de ser no-op e chama `_repository.updateName(...)` com re-entrancy guard, invalidação de `userProvider` no sucesso e propagação de `Failure.message` na falha.
+- `ProfilePasswordState` refeito: drop `confirmPassword`/`confirmPasswordFailure`/`obscureConfirmPassword`; add `currentPassword`/`currentPasswordFailure`/`obscureCurrentPassword` + `enum ProfilePasswordStatus` + `message` + `status`.
+- `ProfilePasswordIntent`: substituir `ConfirmPasswordChanged`/`ConfirmPasswordVisibilityToggled` por `CurrentPasswordChanged`/`CurrentPasswordVisibilityToggled`. Manter `NewPasswordChanged`/`NewPasswordVisibilityToggled`/`SubmitPressed`.
+- `ProfilePasswordFormValidator`: valida `currentPassword` e `newPassword` via `PasswordValidation`; drop a checagem de match.
+- `ProfilePasswordNotifier` migra para `AsyncNotifier` (`Future<ProfilePasswordState> build()`). `_submit` chama `_repository.updatePassword(...)` com re-entrancy guard, invalidação de `userProvider` no sucesso e propagação de `Failure.message` na falha.
+- `ProfileNameScreen` e `ProfilePasswordScreen` ganham `final VoidCallback onSuccess;` named-required. `ref.listen` dispara `onSuccess()` em transição para `success` e `showToastWidget(type: failure, title: 'Opps', description: state.message)` em transição para `failure`. `ButtonWidget.elevated` com `isLoading: state.status == .loading`. `ProfilePasswordScreen` é refeita com 2 `PasswordFieldWidget` ("Senha atual" + "Nova senha"), sem o campo de confirmação.
+- `ProfileNameLocation` e `ProfilePasswordLocation` aceitam `onSuccess` via construtor. `ProfileDetailsLocation` injeta `onSuccess: () => context.pop()` em ambas.
+- Testes:
+  - `user_repository_test.dart` — `group('updateName')` (Right + 4 failures) e `group('updatePassword')` (Right + 4 failures), verificando payload PATCH em cada caso.
+  - `profile_password_form_validator_test.dart` — redo sem match; cobre empty currentPassword, empty newPassword, ambos válidos.
+  - `profile_name_notifier_test.dart` — cenários de submit success/failure/invalid/re-entrant + invalidação do `userProvider` no sucesso.
+  - `profile_password_notifier_test.dart` — substituir intents de `Confirm*` por `Current*` + cenários de submit equivalentes ao name + migração para inspeção via `state.value!`.
+- `flutter analyze` zero warnings; `flutter test` passa toda a suíte; nenhum `// TODO Parte 6` permanece em `lib/`.
+
+### Fora de escopo (Parte 6 — virá em partes futuras)
+
+- **Atualização atômica de nome + senha numa única request** — embora a API aceite, o app dispara cada operação em sua própria screen.
+- **Mapeamento de `field` do `FailureResponse` para failures por campo** — decisão tomada para usar toast genérico (Opção A); o `field` é ignorado pelo app.
+- **Toast de sucesso** — sucesso é silencioso e a screen volta para `ProfileDetailsScreen` automaticamente.
+- **Confirm dialog antes do submit** — a senha atual já é a porta de reautenticação suficiente; não há `showConfirmDialog` extra.
+- **Edição de e-mail** — o campo continua disabled (Parte 2); decidir separadamente se/como suportar (exige verificação por link, fluxo distinto).
+- **Atualização do avatar/foto** — fora do escopo da change inteira.
+- **Validações adicionais** (ex: força da senha além de min 8, listas de senhas vazadas, complexidade) — `PasswordValidation` existente já é a fonte da verdade.
 
 ### Em escopo (Parte 5 — atual)
 

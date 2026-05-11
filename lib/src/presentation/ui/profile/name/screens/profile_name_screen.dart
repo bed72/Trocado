@@ -5,6 +5,7 @@ import 'package:trocado/src/domain/failures/failure.dart';
 
 import 'package:trocado/src/presentation/extensions/widget_extension.dart';
 
+import 'package:trocado/src/presentation/widgets/toast_widget.dart';
 import 'package:trocado/src/presentation/widgets/app_bar_widget.dart';
 import 'package:trocado/src/presentation/widgets/go_back_widget.dart';
 import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';
@@ -18,22 +19,44 @@ import 'package:trocado/src/presentation/ui/profile/name/notifiers/profile_name_
 import 'package:trocado/src/presentation/ui/profile/name/notifiers/profile_name_notifier.dart';
 
 class ProfileNameScreen extends StatelessWidget {
-  const ProfileNameScreen({super.key});
+  final VoidCallback onSuccess;
+
+  const ProfileNameScreen({super.key, required this.onSuccess});
 
   @override
   Widget build(BuildContext context) => ScaffoldWidget(
     appBar: AppBarWidget(leading: GoBackWidget()),
     child: Consumer(
-      builder: (_, ref, _) => switch (ref.watch(profileNameProvider)) {
-        AsyncData(:final value) => _buildBody(
-          state: value,
-          notifier: ref.read(profileNameProvider.notifier),
-        ),
-        AsyncError(:final error) => _buildError(
-          failure: error is Failure ? error : const UnknownFailure(),
-          onRetry: () => ref.invalidate(profileNameProvider),
-        ),
-        _ => const Center(child: CircularProgressIndicatorWidget()),
+      builder: (_, ref, _) {
+        ref.listen(profileNameProvider, (previous, next) {
+          final previousStatus = previous?.value?.status;
+          final nextStatus = next.value?.status;
+
+          if (nextStatus == .failure && previousStatus != .failure) {
+            showToastWidget(
+              context: context,
+              title: 'Opps',
+              type: .failure,
+              description: next.value?.message ?? '',
+            );
+          }
+
+          if (nextStatus == .success && previousStatus != .success) {
+            onSuccess();
+          }
+        });
+
+        return switch (ref.watch(profileNameProvider)) {
+          AsyncData(:final value) => _buildBody(
+            state: value,
+            notifier: ref.read(profileNameProvider.notifier),
+          ),
+          AsyncError(:final error) => _buildError(
+            failure: error is Failure ? error : const UnknownFailure(),
+            onRetry: () => ref.invalidate(profileNameProvider),
+          ),
+          _ => const Center(child: CircularProgressIndicatorWidget()),
+        };
       },
     ),
   );
@@ -68,6 +91,7 @@ class ProfileNameScreen extends StatelessWidget {
                 width: .infinity,
                 child: ButtonWidget.elevated(
                   label: 'Atualizar',
+                  isLoading: state.status == .loading,
                   onTap: () {
                     hideKeyboard();
                     notifier.dispatch(const SubmitPressed());

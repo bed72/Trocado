@@ -5,9 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trocado/src/main/providers/repositories_provider.dart';
 
 import 'package:trocado/src/domain/either/either.dart';
+import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/models/user_model.dart';
 import 'package:trocado/src/domain/repositories/interface_user_repository.dart';
 
+import 'package:trocado/src/presentation/ui/profile/name/notifiers/profile_name_state.dart';
 import 'package:trocado/src/presentation/ui/profile/name/notifiers/profile_name_intent.dart';
 import 'package:trocado/src/presentation/ui/profile/name/notifiers/profile_name_notifier.dart';
 
@@ -91,29 +93,69 @@ void main() {
   });
 
   group('SubmitPressed', () {
-    test('sets nameFailure when name is empty', () async {
+    test(
+      'sets nameFailure and does not call repository when name is empty',
+      () async {
+        final container = await makeContainer();
+        final notifier = container.read(profileNameProvider.notifier);
+
+        notifier.dispatch(const NameChanged(''));
+        notifier.dispatch(const SubmitPressed());
+
+        expect(
+          container.read(profileNameProvider).asData?.value.nameFailure,
+          'Nome obrigatório',
+        );
+        verifyNever(() => repository.updateName(name: any(named: 'name')));
+      },
+    );
+
+    test('calls repository and reaches success when name is valid', () async {
+      when(
+        () => repository.updateName(name: any(named: 'name')),
+      ).thenAnswer((_) async => const Right(_user));
+
       final container = await makeContainer();
       final notifier = container.read(profileNameProvider.notifier);
 
-      notifier.dispatch(const NameChanged(''));
+      final statuses = <ProfileNameStatus>[];
+      container.listen(profileNameProvider, (_, next) {
+        final status = next.asData?.value.status;
+        if (status != null) statuses.add(status);
+      });
+
+      notifier.dispatch(const NameChanged('Kevin'));
       notifier.dispatch(const SubmitPressed());
 
-      expect(
-        container.read(profileNameProvider).asData?.value.nameFailure,
-        'Nome obrigatório',
-      );
+      await Future<void>.delayed(Duration.zero);
+
+      verify(() => repository.updateName(name: 'Kevin')).called(1);
+      expect(statuses, contains(ProfileNameStatus.loading));
+      expect(statuses, contains(ProfileNameStatus.success));
     });
 
-    test('clears nameFailure when name is valid', () async {
+    test('sets status to failure with message when repository fails', () async {
+      when(
+        () => repository.updateName(name: any(named: 'name')),
+      ).thenAnswer(
+        (_) async => const Left(ServerFailure()),
+      );
+
       final container = await makeContainer();
       final notifier = container.read(profileNameProvider.notifier);
 
       notifier.dispatch(const NameChanged('Kevin'));
       notifier.dispatch(const SubmitPressed());
 
+      await Future<void>.delayed(Duration.zero);
+
       expect(
-        container.read(profileNameProvider).asData?.value.nameFailure,
-        isNull,
+        container.read(profileNameProvider).asData?.value.status,
+        ProfileNameStatus.failure,
+      );
+      expect(
+        container.read(profileNameProvider).asData?.value.message,
+        const ServerFailure().message,
       );
     });
   });

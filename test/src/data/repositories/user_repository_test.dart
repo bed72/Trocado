@@ -205,4 +205,207 @@ void main() {
       },
     );
   });
+
+  group('updateName', () {
+    const name = 'Jane Smith';
+
+    test('returns Right(UserModel) and sends only the name in the body', () async {
+      when(
+        () => client.patch(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Right(_meSuccessJson));
+
+      final data = await repository.updateName(name: name);
+
+      expect(data.isRight, isTrue);
+      expect(
+        data.right,
+        const UserModel(id: 1, email: 'jane@trocado.app', name: 'Jane Doe'),
+      );
+      verify(
+        () => client.patch(
+          parameter: any(
+            named: 'parameter',
+            that: predicate<Requests>(
+              (r) =>
+                  r.path == '/api/v1/me' &&
+                  r.body?['name'] == name &&
+                  !(r.body?.containsKey('current_password') ?? false) &&
+                  !(r.body?.containsKey('new_password') ?? false),
+            ),
+          ),
+        ),
+      ).called(1);
+    });
+
+    test('returns Left(NetworkFailure) on network error', () async {
+      when(
+        () => client.patch(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Left(_networkFailureJson));
+
+      final data = await repository.updateName(name: name);
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<NetworkFailure>());
+    });
+
+    test('returns Left(NotFoundFailure) when PATCH returns 404', () async {
+      when(
+        () => client.patch(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Left(_notFoundFailureJson));
+
+      final data = await repository.updateName(name: name);
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<NotFoundFailure>());
+    });
+
+    test('returns Left(ServerFailure) when PATCH returns 5xx', () async {
+      when(
+        () => client.patch(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Left(_meFailureJson));
+
+      final data = await repository.updateName(name: name);
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<ServerFailure>());
+    });
+
+    test(
+      'returns Left(ValidationFailure) with backend message on validation errors',
+      () async {
+        const failureJson = {
+          'errors': [
+            {
+              'code': 'validation_error',
+              'field': 'name',
+              'message': 'Nome inválido.',
+            },
+          ],
+        };
+
+        when(
+          () => client.patch(parameter: any(named: 'parameter')),
+        ).thenAnswer((_) async => const Left(failureJson));
+
+        final data = await repository.updateName(name: name);
+
+        expect(data.isLeft, isTrue);
+        expect(data.left, isA<ValidationFailure>());
+        expect((data.left as ValidationFailure).message, 'Nome inválido.');
+      },
+    );
+  });
+
+  group('updatePassword', () {
+    const currentPassword = 'OldPassword!123';
+    const newPassword = 'NewSecure!456';
+
+    test(
+      'returns Right(UserModel) and sends current and new password without name',
+      () async {
+        when(
+          () => client.patch(parameter: any(named: 'parameter')),
+        ).thenAnswer((_) async => const Right(_meSuccessJson));
+
+        final data = await repository.updatePassword(
+          currentPassword: currentPassword,
+          newPassword: newPassword,
+        );
+
+        expect(data.isRight, isTrue);
+        expect(
+          data.right,
+          const UserModel(
+            id: 1,
+            email: 'jane@trocado.app',
+            name: 'Jane Doe',
+          ),
+        );
+        verify(
+          () => client.patch(
+            parameter: any(
+              named: 'parameter',
+              that: predicate<Requests>(
+                (r) =>
+                    r.path == '/api/v1/me' &&
+                    r.body?['current_password'] == currentPassword &&
+                    r.body?['new_password'] == newPassword &&
+                    !(r.body?.containsKey('name') ?? false),
+              ),
+            ),
+          ),
+        ).called(1);
+      },
+    );
+
+    test('returns Left(NetworkFailure) on network error', () async {
+      when(
+        () => client.patch(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Left(_networkFailureJson));
+
+      final data = await repository.updatePassword(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      );
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<NetworkFailure>());
+    });
+
+    test('returns Left(NotFoundFailure) when PATCH returns 404', () async {
+      when(
+        () => client.patch(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Left(_notFoundFailureJson));
+
+      final data = await repository.updatePassword(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      );
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<NotFoundFailure>());
+    });
+
+    test('returns Left(ServerFailure) when PATCH returns 5xx', () async {
+      when(
+        () => client.patch(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Left(_meFailureJson));
+
+      final data = await repository.updatePassword(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      );
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<ServerFailure>());
+    });
+
+    test(
+      'returns Left(ValidationFailure) with backend message on invalid credentials',
+      () async {
+        const failureJson = {
+          'errors': [
+            {
+              'code': 'invalid_credentials',
+              'field': 'current_password',
+              'message': 'Senha incorreta.',
+            },
+          ],
+        };
+
+        when(
+          () => client.patch(parameter: any(named: 'parameter')),
+        ).thenAnswer((_) async => const Left(failureJson));
+
+        final data = await repository.updatePassword(
+          currentPassword: currentPassword,
+          newPassword: newPassword,
+        );
+
+        expect(data.isLeft, isTrue);
+        expect(data.left, isA<ValidationFailure>());
+        expect((data.left as ValidationFailure).message, 'Senha incorreta.');
+      },
+    );
+  });
 }

@@ -13,6 +13,12 @@ abstract interface class IRemoteUserDataSource {
     required String refresh,
     required String password,
   });
+
+  Future<Either<FailureResponse, UserResponse>> update({
+    String? name,
+    String? newPassword,
+    String? currentPassword,
+  });
 }
 
 final class RemoteUserDataSource implements IRemoteUserDataSource {
@@ -42,5 +48,25 @@ final class RemoteUserDataSource implements IRemoteUserDataSource {
     );
 
     return response.either(FailureResponse.fromJson, (_) {});
+  }
+
+  @override
+  Future<Either<FailureResponse, UserResponse>> update({
+    String? name,
+    String? newPassword,
+    String? currentPassword,
+  }) async {
+    final response = await _client.patch(
+      parameter: Requests(
+        EndpointKey.me.path,
+        body: {
+          'name': ?name,
+          'new_password': ?newPassword,
+          'current_password': ?currentPassword,
+        },
+      ),
+    );
+
+    return response.either(FailureResponse.fromJson, UserResponse.fromJson);
   }
 }
