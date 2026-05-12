@@ -23,6 +23,7 @@ part 'repositories_provider.g.dart';
 IAuthenticationRepository authenticationRepository(Ref ref) =>
     AuthenticationRepository(
       tokenDataSource: ref.watch(localTokenDataSourceProvider),
+      notificationRepository: ref.watch(notificationRepositoryProvider),
       authenticationDataSource: ref.watch(
         remoteAuthenticationDataSourceProvider,
       ),

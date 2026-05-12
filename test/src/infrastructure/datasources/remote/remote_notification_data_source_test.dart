@@ -82,4 +82,61 @@ void main() {
       expect(data.left.errors.first.code, 'network_error');
     });
   });
+
+  group('revokeToken', () {
+    test('returns Right without DELETE when token is null', () async {
+      when(() => messagingClient.getToken()).thenAnswer((_) async => null);
+
+      final data = await dataSource.revokeToken();
+
+      expect(data.isRight, isTrue);
+      verifyNever(() => httpClient.delete(parameter: any(named: 'parameter')));
+    });
+
+    test('DELETEs with body containing only token on 2xx', () async {
+      when(
+        () => messagingClient.getToken(),
+      ).thenAnswer((_) async => 'fcm-token-abc');
+      when(
+        () => httpClient.delete(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Right({}));
+
+      final data = await dataSource.revokeToken();
+
+      expect(data.isRight, isTrue);
+      final captured =
+          verify(
+                () => httpClient.delete(
+                  parameter: captureAny(named: 'parameter'),
+                ),
+              ).captured.single
+              as Requests;
+      expect(captured.path, '/api/v1/me/fcm-token');
+      expect(captured.body, {'token': 'fcm-token-abc'});
+    });
+
+    test('returns Left with FailureResponse on backend error', () async {
+      when(
+        () => messagingClient.getToken(),
+      ).thenAnswer((_) async => 'fcm-token-abc');
+      when(
+        () => httpClient.delete(parameter: any(named: 'parameter')),
+      ).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'code': 'network_error',
+              'message': 'Network error',
+              'field': 'non_field_errors',
+            },
+          ],
+        }),
+      );
+
+      final data = await dataSource.revokeToken();
+
+      expect(data.isLeft, isTrue);
+      expect(data.left.errors.first.code, 'network_error');
+    });
+  });
 }

@@ -76,4 +76,50 @@ void main() {
       expect(data.left.message, 'Invalid FCM token.');
     });
   });
+
+  group('revokeToken', () {
+    test('returns Right when datasource succeeds', () async {
+      when(
+        () => dataSource.revokeToken(),
+      ).thenAnswer((_) async => const Right(null));
+
+      final data = await repository.revokeToken();
+
+      expect(data.isRight, isTrue);
+    });
+
+    test('returns Left NetworkFailure on network error', () async {
+      when(() => dataSource.revokeToken()).thenAnswer(
+        (_) async => Left(_failure('network_error', 'Network error')),
+      );
+
+      final data = await repository.revokeToken();
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<NetworkFailure>());
+    });
+
+    test('returns Left ServerFailure on server error', () async {
+      when(() => dataSource.revokeToken()).thenAnswer(
+        (_) async => Left(_failure('server_error', 'Internal server error')),
+      );
+
+      final data = await repository.revokeToken();
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<ServerFailure>());
+    });
+
+    test('returns Left ValidationFailure on unknown code', () async {
+      when(() => dataSource.revokeToken()).thenAnswer(
+        (_) async => Left(_failure('invalid', 'Invalid FCM token.')),
+      );
+
+      final data = await repository.revokeToken();
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<ValidationFailure>());
+      expect(data.left.message, 'Invalid FCM token.');
+    });
+  });
 }

@@ -18,4 +18,11 @@ final class NotificationRepository implements INotificationRepository {
 
     return data.either((failure) => failure.toFailure(), (_) {});
   }
+
+  @override
+  Future<Either<Failure, void>> revokeToken() async {
+    final data = await _dataSource.revokeToken();
+
+    return data.either((failure) => failure.toFailure(), (_) {});
+  }
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -5,6 +7,7 @@ import 'package:trocado/src/data/repositories/authentication_repository.dart';
 
 import 'package:trocado/src/domain/either/either.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
+import 'package:trocado/src/domain/repositories/interface_notification_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_authentication_repository.dart';
 
 import 'package:trocado/src/infrastructure/clients/http/http_client.dart';
@@ -24,18 +27,25 @@ void main() {
   late IHttpClient client;
   late IAuthenticationRepository repository;
   late ILocalTokenDataSource tokenDataSource;
+  late INotificationRepository notificationRepository;
   late IRemoteAuthenticationDataSource authenticationDataSource;
 
   setUp(() {
     client = MockHttpClient();
     tokenDataSource = MockTokenDataSource();
+    notificationRepository = MockNotificationRepository();
     authenticationDataSource = RemoteAuthenticationDataSource(client: client);
     repository = AuthenticationRepository(
       tokenDataSource: tokenDataSource,
+      notificationRepository: notificationRepository,
       authenticationDataSource: authenticationDataSource,
     );
 
     registerFallbackValue(const Requests('/'));
+
+    when(
+      () => notificationRepository.revokeToken(),
+    ).thenAnswer((_) async => const Right(null));
 
     when(
       () => tokenDataSource.save(
@@ -702,6 +712,67 @@ void main() {
       expect(data.isLeft, isTrue);
       expect(data.left, isA<NetworkFailure>());
       verifyNever(() => tokenDataSource.clear());
+    });
+
+    test('calls revokeToken once on successful logout', () async {
+      when(
+        () => tokenDataSource.get(),
+      ).thenAnswer((_) async => (access: 'access', refresh: 'refresh-token'));
+      when(
+        () => client.post(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Right({}));
+
+      await repository.logout();
+
+      verify(() => notificationRepository.revokeToken()).called(1);
+    });
+
+    test('calls revokeToken once when refresh token is null', () async {
+      when(
+        () => tokenDataSource.get(),
+      ).thenAnswer((_) async => (access: 'access', refresh: null));
+
+      await repository.logout();
+
+      verify(() => notificationRepository.revokeToken()).called(1);
+    });
+
+    test('calls revokeToken once even when signOut returns error', () async {
+      when(
+        () => tokenDataSource.get(),
+      ).thenAnswer((_) async => (access: 'access', refresh: 'refresh-token'));
+      when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {'field': null, 'code': 'invalid', 'message': 'Token inválido.'},
+          ],
+        }),
+      );
+
+      await repository.logout();
+
+      verify(() => notificationRepository.revokeToken()).called(1);
+    });
+
+    test('slow revokeToken does not block logout return', () async {
+      final completer = Completer<Either<Failure, void>>();
+      when(
+        () => notificationRepository.revokeToken(),
+      ).thenAnswer((_) => completer.future);
+      when(
+        () => tokenDataSource.get(),
+      ).thenAnswer((_) async => (access: 'access', refresh: 'refresh-token'));
+      when(
+        () => client.post(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Right({}));
+
+      final data = await repository.logout();
+
+      expect(data.isRight, isTrue);
+      expect(completer.isCompleted, isFalse);
+      verify(() => notificationRepository.revokeToken()).called(1);
+
+      completer.complete(const Right(null));
     });
   });
 }

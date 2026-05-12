@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:trocado/src/domain/either/either.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/models/authentication/authentication_model.dart';
+import 'package:trocado/src/domain/repositories/interface_notification_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_authentication_repository.dart';
 
 import 'package:trocado/src/data/extensions/failure_response_extension.dart';
@@ -11,16 +14,21 @@ import 'package:trocado/src/infrastructure/datasources/remote/remote_authenticat
 
 final class AuthenticationRepository implements IAuthenticationRepository {
   final ILocalTokenDataSource _tokenDataSource;
+  final INotificationRepository _notificationRepository;
   final IRemoteAuthenticationDataSource _authenticationDataSource;
 
   AuthenticationRepository({
     required ILocalTokenDataSource tokenDataSource,
+    required INotificationRepository notificationRepository,
     required IRemoteAuthenticationDataSource authenticationDataSource,
   }) : _tokenDataSource = tokenDataSource,
+       _notificationRepository = notificationRepository,
        _authenticationDataSource = authenticationDataSource;
 
   @override
   Future<Either<Failure, void>> logout() async {
+    unawaited(_notificationRepository.revokeToken());
+
     final tokens = await _tokenDataSource.get();
 
     if (tokens.refresh == null) {
