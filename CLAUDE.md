@@ -13,6 +13,38 @@ Consome a API REST Django.
 - **equatable** — igualdade em modelos de domínio
 - **intl** — formatação de moeda e datas em `pt_BR`
 
+## Releases
+
+Releases Android são automatizadas via GitHub Action **`Android release`** (`.github/workflows/android-release.yml`). iOS continua manual (até virar spec própria).
+
+### Fluxo
+
+1. **Bumpar versão**: PR mudando `pubspec.yaml` linha `version: X.Y.Z+N`. Merge na `main`. Versão é single source of truth — `android/version.properties` **não controla** mais o versionName/versionCode (só NDK + SDK pins).
+2. **Disparar a action**:
+   ```bash
+   gh workflow run android-release.yml
+   ```
+   ou via UI: `github.com/bed72/Trocado → Actions → Android release → Run workflow → main`.
+3. **Aguardar a action** (~10-15min). Output: AAB em draft no Play Console + tag `vX.Y.Z+N` no commit.
+4. **Rollout manual**: `play.google.com/console → Trocado → Testing → Internal testing → Review release → Start rollout`. Sem isso, testers não recebem.
+
+### Pré-requisitos (one-time)
+- 6 secrets no GitHub: `TROCADO_KEYSTORE_BASE64`, `TROCADO_KEY_ALIAS`, `TROCADO_KEY_PASSWORD`, `TROCADO_STORE_PASSWORD`, `PLAY_SERVICE_ACCOUNT_JSON`, `BASE_URL`.
+- App `br.com.bed.trocado` criada no Play Console com pelo menos 1 release manual inicial.
+- SHA-256 do keystore release registrada em Firebase App Check (Play Integrity provider).
+
+### Dev local — build release
+
+Pra buildar release localmente (smoke):
+
+```bash
+# Copia o keystore pra .keys/trocado.jks (gitignored), ou exporta TROCADO_KEYSTORE_PATH apontando pra outro path absoluto.
+export TROCADO_KEY_ALIAS=trocado
+export TROCADO_KEY_PASSWORD=<senha-da-key>
+export TROCADO_STORE_PASSWORD=<senha-do-keystore>
+flutter build appbundle --release --dart-define=BASE_URL=<url>
+```
+
 ## Arquitetura
 
 Clean Architecture estrita. Regra de dependência:

@@ -20,10 +20,8 @@ if (localPropertiesFile.exists()) {
     }
 }
 
-val flutterVersionName: String? = localProperties.getProperty("trocado.versionName")
 var flutterNdkVersion: String = localProperties.getProperty("trocado.ndkVersion") ?: "29.0.14206865"
 val flutterMinSdk: Int? = localProperties.getProperty("trocado.minSdk")?.toInt()
-val flutterVersionCode: Int? = localProperties.getProperty("trocado.versionCode")?.toInt()
 val flutterAndroidSkd: Int? = localProperties.getProperty("trocado.androidSdkVersion")?.toInt()
 
 android {
@@ -45,14 +43,12 @@ android {
     defaultConfig {
         minSdk = flutterMinSdk
         targetSdk = flutterAndroidSkd
-        versionName = flutterVersionName
-        versionCode = flutterVersionCode
         applicationId = "br.com.bed.trocado"
     }
 
     signingConfigs {
         create("release") {
-            storeFile = file("/home/bed/Documentos/Code/keys/trocado.jks")
+            storeFile = file(System.getenv("TROCADO_KEYSTORE_PATH") ?: "../../.keys/trocado.jks")
             keyAlias = System.getenv("TROCADO_KEY_ALIAS")
             keyPassword = System.getenv("TROCADO_KEY_PASSWORD")
             storePassword = System.getenv("TROCADO_STORE_PASSWORD")
