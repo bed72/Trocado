@@ -301,4 +301,4 @@ final class RemoteNotificationDataSourceProvider
 }
 
 String _$remoteNotificationDataSourceHash() =>
-    r'49b981792308b6ddc8d08d2b0ad4f94bd2f8b075';
+    r'48615074dfecf484bb8773c22693205d3d9cc428';

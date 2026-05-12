@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 
 abstract interface class IAppCheckClient {
-  Future<void> activate();
+  Future<void> initialize();
   Future<String?> getToken();
 }
 
@@ -11,7 +11,7 @@ final class AppCheckClient implements IAppCheckClient {
   Future<String?> getToken() => FirebaseAppCheck.instance.getToken();
 
   @override
-  Future<void> activate() => FirebaseAppCheck.instance.activate(
+  Future<void> initialize() => FirebaseAppCheck.instance.activate(
     providerAndroid: kDebugMode
         ? AndroidDebugProvider()
         : AndroidPlayIntegrityProvider(),
