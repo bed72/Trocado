@@ -44,6 +44,8 @@ android {
         minSdk = flutterMinSdk
         targetSdk = flutterAndroidSkd
         applicationId = "br.com.bed.trocado"
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
     }
 
     signingConfigs {
