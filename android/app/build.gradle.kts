@@ -63,14 +63,14 @@ android {
         debug {
             isDebuggable = true
             isMinifyEnabled = false
-            isShrinkResources = false
+            isShrinkResources = true
             signingConfig = signingConfigs.getByName("debug")
         }
 
         getByName("profile") {
             isDebuggable = true
             isMinifyEnabled = false
-            isShrinkResources = false
+            isShrinkResources = true
             signingConfig = signingConfigs.getByName("debug")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
@@ -84,16 +84,8 @@ android {
     }
 }
 
-configurations {
-    debugImplementation {
-        exclude(group = "io.objectbox", module = "objectbox-android")
-    }
-}
-
 dependencies {
     implementation("androidx.core:core-splashscreen:1.2.0")
-
-    debugImplementation("io.objectbox:objectbox-android-objectbrowser:5.1.0")
 }
 
 flutter {
