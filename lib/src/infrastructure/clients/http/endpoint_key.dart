@@ -6,6 +6,7 @@ enum EndpointKey {
   insights('/api/v1/insights'),
   logout('/api/v1/auth/logout'),
   signUp('/api/v1/auth/register'),
+  fcmToken('/api/v1/me/fcm-token'),
   verifyToken('/api/v1/token/verify'),
   refreshToken('/api/v1/token/refresh'),
   budgetsActive('/api/v1/budgets/active'),

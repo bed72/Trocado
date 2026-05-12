@@ -251,3 +251,54 @@ final class RemoteAuthenticationDataSourceProvider
 
 String _$remoteAuthenticationDataSourceHash() =>
     r'e8ac2f5080ca4fc5fccab6e546157e2b4f69442c';
+
+@ProviderFor(remoteNotificationDataSource)
+final remoteNotificationDataSourceProvider =
+    RemoteNotificationDataSourceProvider._();
+
+final class RemoteNotificationDataSourceProvider
+    extends
+        $FunctionalProvider<
+          IRemoteNotificationDataSource,
+          IRemoteNotificationDataSource,
+          IRemoteNotificationDataSource
+        >
+    with $Provider<IRemoteNotificationDataSource> {
+  RemoteNotificationDataSourceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'remoteNotificationDataSourceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$remoteNotificationDataSourceHash();
+
+  @$internal
+  @override
+  $ProviderElement<IRemoteNotificationDataSource> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  IRemoteNotificationDataSource create(Ref ref) {
+    return remoteNotificationDataSource(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(IRemoteNotificationDataSource value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<IRemoteNotificationDataSource>(
+        value,
+      ),
+    );
+  }
+}
+
+String _$remoteNotificationDataSourceHash() =>
+    r'49b981792308b6ddc8d08d2b0ad4f94bd2f8b075';

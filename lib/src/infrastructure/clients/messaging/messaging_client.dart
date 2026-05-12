@@ -1,18 +1,22 @@
-import 'package:firebase_core/firebase_core.dart';
+import 'dart:io';
+
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 abstract interface class IMessagingClient {
+  String get platform;
   Future<String?> getToken();
 }
 
 final class MessagingClient implements IMessagingClient {
   @override
+  String get platform => Platform.isIOS ? 'ios' : 'android';
+
+  @override
   Future<String?> getToken() async {
     try {
       return await FirebaseMessaging.instance.getToken();
-    } on FirebaseException catch (exception) {
-      if (exception.code == 'apns-token-not-set') return null;
-      rethrow;
+    } catch (_) {
+      return null;
     }
   }
 }

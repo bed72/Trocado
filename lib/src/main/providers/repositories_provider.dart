@@ -7,12 +7,14 @@ import 'package:trocado/src/data/repositories/user_repository.dart';
 import 'package:trocado/src/data/repositories/budget_repository.dart';
 import 'package:trocado/src/data/repositories/expense_repository.dart';
 import 'package:trocado/src/data/repositories/insights_repository.dart';
+import 'package:trocado/src/data/repositories/notification_repository.dart';
 import 'package:trocado/src/data/repositories/authentication_repository.dart';
 
 import 'package:trocado/src/domain/repositories/interface_user_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_insights_repository.dart';
+import 'package:trocado/src/domain/repositories/interface_notification_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_authentication_repository.dart';
 
 part 'repositories_provider.g.dart';
@@ -31,6 +33,12 @@ IUserRepository userRepository(Ref ref) => UserRepository(
   userDataSource: ref.watch(remoteUserDataSourceProvider),
   tokenDataSource: ref.watch(localTokenDataSourceProvider),
 );
+
+@Riverpod()
+INotificationRepository notificationRepository(Ref ref) =>
+    NotificationRepository(
+      dataSource: ref.watch(remoteNotificationDataSourceProvider),
+    );
 
 @Riverpod()
 IBudgetRepository budgetRepository(Ref ref) =>

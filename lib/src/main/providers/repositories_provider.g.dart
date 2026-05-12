@@ -240,3 +240,51 @@ final class InsightsRepositoryProvider
 
 String _$insightsRepositoryHash() =>
     r'902a07b8a0bb85d8e9031ef1540f15869a2ec82c';
+
+@ProviderFor(notificationRepository)
+final notificationRepositoryProvider = NotificationRepositoryProvider._();
+
+final class NotificationRepositoryProvider
+    extends
+        $FunctionalProvider<
+          INotificationRepository,
+          INotificationRepository,
+          INotificationRepository
+        >
+    with $Provider<INotificationRepository> {
+  NotificationRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'notificationRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$notificationRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<INotificationRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  INotificationRepository create(Ref ref) {
+    return notificationRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(INotificationRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<INotificationRepository>(value),
+    );
+  }
+}
+
+String _$notificationRepositoryHash() =>
+    r'1a3d1356a6c1c1d74acb2d1166d4d6b086672ca4';
