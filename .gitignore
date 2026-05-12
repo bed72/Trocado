@@ -72,5 +72,7 @@ pubspec.lock
 .dart_tool/
 .keys/
 .idea/
+.DS_Store
+**/.DS_Store
 
 prompt.md
