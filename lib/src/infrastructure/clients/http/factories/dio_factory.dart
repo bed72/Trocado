@@ -31,9 +31,9 @@ final class DioFactory {
         TalkerDioLogger(
           talker: loggerClient,
           settings: const TalkerDioLoggerSettings(
-            printRequestHeaders: true, // TODO desativar
-            printResponseMessage: true,
-            printResponseHeaders: false,
+            printRequestHeaders: kDebugMode,
+            printResponseMessage: kDebugMode,
+            printResponseHeaders: kDebugMode,
           ),
         ),
     ]);

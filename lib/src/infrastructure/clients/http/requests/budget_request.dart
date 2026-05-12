@@ -15,12 +15,12 @@ final class BudgetRequest {
 
   Map<String, dynamic> toJson() => {
     'value': (value / 100).toStringAsFixed(2),
-    'start_date': DateFormat('yyyy-MM-dd').format(
-      DateTime.fromMillisecondsSinceEpoch(startDate),
-    ),
-    'end_date': DateFormat('yyyy-MM-dd').format(
-      DateTime.fromMillisecondsSinceEpoch(endDate),
-    ),
+    'start_date': DateFormat(
+      'yyyy-MM-dd',
+    ).format(.fromMillisecondsSinceEpoch(startDate)),
+    'end_date': DateFormat(
+      'yyyy-MM-dd',
+    ).format(.fromMillisecondsSinceEpoch(endDate)),
     'description': description,
   };
 }

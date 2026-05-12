@@ -9,6 +9,8 @@ abstract interface class IFirebaseClient {
 final class FirebaseClient implements IFirebaseClient {
   @override
   Future<void> initialize() async {
-    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
   }
 }
