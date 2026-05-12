@@ -9,6 +9,7 @@ enum EndpointKey {
   fcmToken('/api/v1/me/fcm-token'),
   verifyToken('/api/v1/token/verify'),
   refreshToken('/api/v1/token/refresh'),
+  notifications('/api/v1/notifications'),
   budgetsActive('/api/v1/budgets/active'),
   passwordResetConfirm('/api/v1/auth/password/reset'),
   passwordResetRequest('/api/v1/auth/password/request');

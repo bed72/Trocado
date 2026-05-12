@@ -8,10 +8,14 @@ import 'package:trocado/src/infrastructure/clients/http/requests/requests.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/fcm_token_request.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/fcm_token_delete_request.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/failure/failure_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/notification/notifications_response.dart';
 
 abstract interface class IRemoteNotificationDataSource {
   Future<Either<FailureResponse, void>> revokeToken();
   Future<Either<FailureResponse, void>> registerToken();
+  Future<Either<FailureResponse, NotificationsResponse>> findAll({
+    String? cursor,
+  });
 }
 
 final class RemoteNotificationDataSource
@@ -41,6 +45,22 @@ final class RemoteNotificationDataSource
     );
 
     return response.either(FailureResponse.fromJson, (_) {});
+  }
+
+  @override
+  Future<Either<FailureResponse, NotificationsResponse>> findAll({
+    String? cursor,
+  }) async {
+    final path = cursor == null
+        ? EndpointKey.notifications.path
+        : '${EndpointKey.notifications.path}?cursor=$cursor';
+
+    final response = await _httpClient.get(parameter: Requests(path));
+
+    return response.either(
+      FailureResponse.fromJson,
+      NotificationsResponse.fromJson,
+    );
   }
 
   @override

@@ -8,6 +8,8 @@ import 'package:trocado/src/domain/repositories/interface_notification_repositor
 import 'package:trocado/src/data/repositories/notification_repository.dart';
 
 import 'package:trocado/src/infrastructure/clients/http/responses/failure/failure_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/notification/notification_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/notification/notifications_response.dart';
 import 'package:trocado/src/infrastructure/datasources/remote/remote_notification_data_source.dart';
 
 import '../../../mocks/mocks.dart';
@@ -120,6 +122,85 @@ void main() {
       expect(data.isLeft, isTrue);
       expect(data.left, isA<ValidationFailure>());
       expect(data.left.message, 'Invalid FCM token.');
+    });
+  });
+
+  group('findAll', () {
+    test('returns Right with NotificationsPageModel on success', () async {
+      when(() => dataSource.findAll(cursor: any(named: 'cursor'))).thenAnswer(
+        (_) async => Right(
+          NotificationsResponse(
+            next: 'http://api.example.org/?cursor=next-token',
+            previous: null,
+            notifications: [
+              NotificationResponse(
+                id: 1,
+                type: 'shared_expense_created',
+                title: 'Nova despesa',
+                description: 'Desc',
+                createdAt: '2026-05-11T14:30:00Z',
+              ),
+            ],
+          ),
+        ),
+      );
+
+      final data = await repository.findAll();
+
+      expect(data.isRight, isTrue);
+      expect(data.right.nextCursor, 'next-token');
+      expect(data.right.notifications, hasLength(1));
+      expect(data.right.notifications.first.id, 1);
+    });
+
+    test('propagates cursor to datasource', () async {
+      when(() => dataSource.findAll(cursor: any(named: 'cursor'))).thenAnswer(
+        (_) async => const Right(
+          NotificationsResponse(
+            next: null,
+            previous: null,
+            notifications: [],
+          ),
+        ),
+      );
+
+      await repository.findAll(cursor: 'abc');
+
+      verify(() => dataSource.findAll(cursor: 'abc')).called(1);
+    });
+
+    test('returns Left NetworkFailure on network error', () async {
+      when(() => dataSource.findAll(cursor: any(named: 'cursor'))).thenAnswer(
+        (_) async => Left(_failure('network_error', 'Network error')),
+      );
+
+      final data = await repository.findAll();
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<NetworkFailure>());
+    });
+
+    test('returns Left ServerFailure on server error', () async {
+      when(() => dataSource.findAll(cursor: any(named: 'cursor'))).thenAnswer(
+        (_) async => Left(_failure('server_error', 'Internal server error')),
+      );
+
+      final data = await repository.findAll();
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<ServerFailure>());
+    });
+
+    test('returns Left ValidationFailure on unknown code', () async {
+      when(() => dataSource.findAll(cursor: any(named: 'cursor'))).thenAnswer(
+        (_) async => Left(_failure('invalid', 'Invalid cursor.')),
+      );
+
+      final data = await repository.findAll();
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<ValidationFailure>());
+      expect(data.left.message, 'Invalid cursor.');
     });
   });
 }

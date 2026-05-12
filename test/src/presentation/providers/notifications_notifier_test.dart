@@ -1,0 +1,204 @@
+import 'package:mocktail/mocktail.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:trocado/src/main/providers/repositories_provider.dart';
+
+import 'package:trocado/src/domain/either/either.dart';
+import 'package:trocado/src/domain/failures/failure.dart';
+import 'package:trocado/src/domain/enums/notification/notification_type_enum.dart';
+import 'package:trocado/src/domain/models/notification/notification_model.dart';
+import 'package:trocado/src/domain/models/notification/notifications_page_model.dart';
+import 'package:trocado/src/domain/repositories/interface_notification_repository.dart';
+
+import 'package:trocado/src/presentation/ui/notifications/notifiers/notifications_notifier.dart';
+
+import '../../../mocks/mocks.dart';
+
+const _first = [
+  NotificationModel(
+    id: 1,
+    type: NotificationTypeEnum.sharedExpenseCreated,
+    title: 'Nova despesa',
+    description: 'Gabriel registrou R\$ 85,50.',
+    createdAt: 1747000000000,
+  ),
+  NotificationModel(
+    id: 2,
+    type: NotificationTypeEnum.budgetEightyPercent,
+    title: 'Orçamento 80%',
+    description: 'Atenção.',
+    createdAt: 1746990000000,
+  ),
+];
+
+const _second = [
+  NotificationModel(
+    id: 3,
+    type: NotificationTypeEnum.unknown,
+    title: 'Aviso',
+    description: 'Algo.',
+    createdAt: 1746000000000,
+  ),
+];
+
+ProviderContainer _makeContainer(INotificationRepository repository) {
+  final container = ProviderContainer(
+    overrides: [
+      notificationRepositoryProvider.overrideWithValue(repository),
+    ],
+  );
+  addTearDown(container.dispose);
+  return container;
+}
+
+void main() {
+  late INotificationRepository repository;
+
+  setUp(() {
+    repository = MockNotificationRepository();
+  });
+
+  group('build', () {
+    test('AsyncData with first page items and nextCursor on success',
+        () async {
+      when(
+        () => repository.findAll(cursor: any(named: 'cursor')),
+      ).thenAnswer(
+        (_) async => const Right(
+          NotificationsPageModel(notifications: _first, nextCursor: 'CUR1'),
+        ),
+      );
+
+      final container = _makeContainer(repository);
+      container.listen(notificationsProvider, (_, _) {});
+      final state = await container.read(notificationsProvider.future);
+
+      expect(state.items.map((item) => item.id), [1, 2]);
+      expect(state.nextCursor, 'CUR1');
+      expect(state.isLoadingMore, isFalse);
+      expect(state.loadMoreFailure, isNull);
+
+      verify(() => repository.findAll(cursor: null)).called(1);
+    });
+
+    test('AsyncError when repository returns Left', () async {
+      when(
+        () => repository.findAll(cursor: any(named: 'cursor')),
+      ).thenAnswer((_) async => Left(const NetworkFailure()));
+
+      final container = _makeContainer(repository);
+      container.listen(notificationsProvider, (_, _) {});
+      container.read(notificationsProvider);
+
+      await pumpEventQueue();
+
+      final state = container.read(notificationsProvider);
+      expect(state.hasError, isTrue);
+      expect(state.error, isA<NetworkFailure>());
+    });
+  });
+
+  group('loadMore', () {
+    test('appends next page items and updates cursor', () async {
+      when(
+        () => repository.findAll(cursor: any(named: 'cursor')),
+      ).thenAnswer((invocation) async {
+        final cursor = invocation.namedArguments[#cursor];
+        if (cursor == null) {
+          return const Right(
+            NotificationsPageModel(notifications: _first, nextCursor: 'CUR1'),
+          );
+        }
+        return const Right(
+          NotificationsPageModel(notifications: _second, nextCursor: null),
+        );
+      });
+
+      final container = _makeContainer(repository);
+      container.listen(notificationsProvider, (_, _) {});
+      await container.read(notificationsProvider.future);
+
+      await container.read(notificationsProvider.notifier).loadMore();
+
+      final state = container.read(notificationsProvider).value!;
+      expect(state.items.map((item) => item.id), [1, 2, 3]);
+      expect(state.nextCursor, isNull);
+      expect(state.isLoadingMore, isFalse);
+    });
+
+    test('no-op when nextCursor is null', () async {
+      when(
+        () => repository.findAll(cursor: any(named: 'cursor')),
+      ).thenAnswer(
+        (_) async => const Right(
+          NotificationsPageModel(notifications: _first, nextCursor: null),
+        ),
+      );
+
+      final container = _makeContainer(repository);
+      container.listen(notificationsProvider, (_, _) {});
+      await container.read(notificationsProvider.future);
+
+      await container.read(notificationsProvider.notifier).loadMore();
+
+      verify(() => repository.findAll(cursor: null)).called(1);
+      verifyNever(() => repository.findAll(cursor: 'CUR1'));
+    });
+
+    test('sets loadMoreFailure on Left without losing items', () async {
+      when(
+        () => repository.findAll(cursor: any(named: 'cursor')),
+      ).thenAnswer((invocation) async {
+        final cursor = invocation.namedArguments[#cursor];
+        if (cursor == null) {
+          return const Right(
+            NotificationsPageModel(notifications: _first, nextCursor: 'CUR1'),
+          );
+        }
+        return Left(const NetworkFailure());
+      });
+
+      final container = _makeContainer(repository);
+      container.listen(notificationsProvider, (_, _) {});
+      await container.read(notificationsProvider.future);
+
+      await container.read(notificationsProvider.notifier).loadMore();
+
+      final state = container.read(notificationsProvider).value!;
+      expect(state.items.map((item) => item.id), [1, 2]);
+      expect(state.nextCursor, 'CUR1');
+      expect(state.isLoadingMore, isFalse);
+      expect(state.loadMoreFailure, isA<NetworkFailure>());
+    });
+  });
+
+  group('refresh', () {
+    test('reloads the first page from scratch', () async {
+      var callCount = 0;
+      when(
+        () => repository.findAll(cursor: any(named: 'cursor')),
+      ).thenAnswer((_) async {
+        callCount++;
+        if (callCount == 1) {
+          return const Right(
+            NotificationsPageModel(notifications: _first, nextCursor: 'CUR1'),
+          );
+        }
+        return const Right(
+          NotificationsPageModel(notifications: _second, nextCursor: null),
+        );
+      });
+
+      final container = _makeContainer(repository);
+      container.listen(notificationsProvider, (_, _) {});
+      await container.read(notificationsProvider.future);
+
+      await container.read(notificationsProvider.notifier).refresh();
+
+      final state = container.read(notificationsProvider).value!;
+      expect(state.items.map((item) => item.id), [3]);
+      expect(state.nextCursor, isNull);
+    });
+  });
+}

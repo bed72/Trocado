@@ -139,4 +139,70 @@ void main() {
       expect(data.left.errors.first.code, 'network_error');
     });
   });
+
+  group('findAll', () {
+    test('GETs without cursor on first page', () async {
+      when(
+        () => httpClient.get(parameter: any(named: 'parameter')),
+      ).thenAnswer(
+        (_) async => const Right({
+          'next': null,
+          'previous': null,
+          'results': <Map<String, dynamic>>[],
+        }),
+      );
+
+      final data = await dataSource.findAll();
+
+      expect(data.isRight, isTrue);
+      final captured =
+          verify(
+                () => httpClient.get(parameter: captureAny(named: 'parameter')),
+              ).captured.single
+              as Requests;
+      expect(captured.path, '/api/v1/notifications');
+    });
+
+    test('GETs with cursor as query param on subsequent page', () async {
+      when(
+        () => httpClient.get(parameter: any(named: 'parameter')),
+      ).thenAnswer(
+        (_) async => const Right({
+          'next': null,
+          'previous': null,
+          'results': <Map<String, dynamic>>[],
+        }),
+      );
+
+      await dataSource.findAll(cursor: 'abc123');
+
+      final captured =
+          verify(
+                () => httpClient.get(parameter: captureAny(named: 'parameter')),
+              ).captured.single
+              as Requests;
+      expect(captured.path, '/api/v1/notifications?cursor=abc123');
+    });
+
+    test('returns Left with FailureResponse on backend error', () async {
+      when(
+        () => httpClient.get(parameter: any(named: 'parameter')),
+      ).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'code': 'network_error',
+              'message': 'Network error',
+              'field': 'non_field_errors',
+            },
+          ],
+        }),
+      );
+
+      final data = await dataSource.findAll();
+
+      expect(data.isLeft, isTrue);
+      expect(data.left.errors.first.code, 'network_error');
+    });
+  });
 }
