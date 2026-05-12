@@ -18,13 +18,13 @@ part 'sign_up_notifier.g.dart';
 final class SignUpNotifier extends _$SignUpNotifier {
   late SignUpFormValidator _validator;
   late INotificationRepository _notificationRepository;
-  late IAuthenticationRepository _repository;
+  late IAuthenticationRepository _authenticationRepository;
 
   @override
   SignUpState build() {
     _validator = ref.watch(signUpFormValidatorProvider);
     _notificationRepository = ref.watch(notificationRepositoryProvider);
-    _repository = ref.watch(authenticationRepositoryProvider);
+    _authenticationRepository = ref.watch(authenticationRepositoryProvider);
 
     return const SignUpState();
   }
@@ -56,7 +56,7 @@ final class SignUpNotifier extends _$SignUpNotifier {
 
     this.state = this.state.copyWith(status: .loading);
 
-    final data = await _repository.signUp(
+    final data = await _authenticationRepository.signUp(
       email: this.state.email,
       password: this.state.password,
     );
