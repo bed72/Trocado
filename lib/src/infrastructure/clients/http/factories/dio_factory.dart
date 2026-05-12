@@ -31,7 +31,7 @@ final class DioFactory {
         TalkerDioLogger(
           talker: loggerClient,
           settings: const TalkerDioLoggerSettings(
-            printRequestHeaders: false,
+            printRequestHeaders: true, // TODO desativar
             printResponseMessage: true,
             printResponseHeaders: false,
           ),
