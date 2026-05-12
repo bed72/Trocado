@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +10,7 @@ import 'package:trocado/src/main/providers/repositories_provider.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/models/authentication/authentication_model.dart';
+import 'package:trocado/src/domain/repositories/interface_notification_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_authentication_repository.dart';
 
 import 'package:trocado/src/presentation/ui/authentication/sign_up/notifiers/sign_up_state.dart';
@@ -23,15 +26,22 @@ const _authModel = AuthenticationModel(
 
 void main() {
   late IAuthenticationRepository repository;
+  late INotificationRepository notificationRepository;
 
   setUp(() {
     repository = MockAuthenticationRepository();
+    notificationRepository = MockNotificationRepository();
+
+    when(
+      () => notificationRepository.registerToken(),
+    ).thenAnswer((_) async => const Right(null));
   });
 
   ProviderContainer makeContainer() {
     final container = ProviderContainer(
       overrides: [
         authenticationRepositoryProvider.overrideWithValue(repository),
+        notificationRepositoryProvider.overrideWithValue(notificationRepository),
       ],
     );
     addTearDown(container.dispose);
@@ -205,6 +215,88 @@ void main() {
       final state = container.read(signUpProvider);
       expect(state.status, SignUpStatus.failure);
       expect(state.message, 'Este e-mail já está cadastrado.');
+    });
+  });
+
+  group('FCM token registration', () {
+    test('successful sign up triggers registerToken once', () async {
+      when(
+        () => repository.signUp(
+          email: any(named: 'email'),
+          password: any(named: 'password'),
+        ),
+      ).thenAnswer((_) async => const Right(_authModel));
+
+      final container = makeContainer();
+      final notifier = container.read(signUpProvider.notifier);
+
+      notifier.dispatch(const EmailChanged('jane@trocado.app'));
+      notifier.dispatch(const PasswordChanged('secret123'));
+      notifier.dispatch(const TermsToggled(true));
+      notifier.dispatch(const SubmitPressed());
+      await Future<void>.delayed(Duration.zero);
+
+      expect(container.read(signUpProvider).status, SignUpStatus.success);
+      verify(() => notificationRepository.registerToken()).called(1);
+    });
+
+    test('failed sign up does NOT trigger registerToken', () async {
+      when(
+        () => repository.signUp(
+          email: any(named: 'email'),
+          password: any(named: 'password'),
+        ),
+      ).thenAnswer(
+        (_) async =>
+            const Left(ValidationFailure('Este e-mail já está cadastrado.')),
+      );
+
+      final container = makeContainer();
+      final notifier = container.read(signUpProvider.notifier);
+
+      notifier.dispatch(const EmailChanged('jane@trocado.app'));
+      notifier.dispatch(const PasswordChanged('secret123'));
+      notifier.dispatch(const TermsToggled(true));
+      notifier.dispatch(const SubmitPressed());
+      await Future<void>.delayed(Duration.zero);
+
+      expect(container.read(signUpProvider).status, SignUpStatus.failure);
+      verifyNever(() => notificationRepository.registerToken());
+    });
+
+    test('invalid form does NOT trigger registerToken', () {
+      final container = makeContainer();
+
+      container.read(signUpProvider.notifier).dispatch(const SubmitPressed());
+
+      verifyNever(() => notificationRepository.registerToken());
+    });
+
+    test('slow registerToken does not block transition to success', () async {
+      final completer = Completer<Either<Failure, void>>();
+      when(
+        () => notificationRepository.registerToken(),
+      ).thenAnswer((_) => completer.future);
+      when(
+        () => repository.signUp(
+          email: any(named: 'email'),
+          password: any(named: 'password'),
+        ),
+      ).thenAnswer((_) async => const Right(_authModel));
+
+      final container = makeContainer();
+      final notifier = container.read(signUpProvider.notifier);
+
+      notifier.dispatch(const EmailChanged('jane@trocado.app'));
+      notifier.dispatch(const PasswordChanged('secret123'));
+      notifier.dispatch(const TermsToggled(true));
+      notifier.dispatch(const SubmitPressed());
+      await Future<void>.delayed(Duration.zero);
+
+      expect(container.read(signUpProvider).status, SignUpStatus.success);
+      expect(completer.isCompleted, isFalse);
+
+      completer.complete(const Right(null));
     });
   });
 }

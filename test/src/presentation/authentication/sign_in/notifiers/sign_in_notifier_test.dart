@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +9,7 @@ import 'package:trocado/src/main/providers/repositories_provider.dart';
 import 'package:trocado/src/domain/either/either.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/models/authentication/authentication_model.dart';
+import 'package:trocado/src/domain/repositories/interface_notification_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_authentication_repository.dart';
 
 import 'package:trocado/src/presentation/ui/authentication/sign_in/notifiers/sign_in_state.dart';
@@ -17,15 +20,22 @@ import '../../../../../mocks/mocks.dart';
 
 void main() {
   late IAuthenticationRepository repository;
+  late INotificationRepository notificationRepository;
 
   setUp(() {
     repository = MockAuthenticationRepository();
+    notificationRepository = MockNotificationRepository();
+
+    when(
+      () => notificationRepository.registerToken(),
+    ).thenAnswer((_) async => const Right(null));
   });
 
   ProviderContainer makeContainer() {
     final container = ProviderContainer(
       overrides: [
         authenticationRepositoryProvider.overrideWithValue(repository),
+        notificationRepositoryProvider.overrideWithValue(notificationRepository),
       ],
     );
     addTearDown(container.dispose);
@@ -240,6 +250,92 @@ void main() {
 
         expect(container.read(signInProvider).status, SignInStatus.initial);
       });
+    });
+  });
+
+  group('FCM token registration', () {
+    test('successful sign in triggers registerToken once', () async {
+      when(
+        () => repository.signIn(
+          email: any(named: 'email'),
+          password: any(named: 'password'),
+        ),
+      ).thenAnswer(
+        (_) async => const Right(
+          AuthenticationModel(access: 'access-token', refresh: 'refresh-token'),
+        ),
+      );
+
+      final container = makeContainer();
+      final notifier = container.read(signInProvider.notifier);
+
+      notifier.dispatch(const EmailChanged('jane@trocado.app'));
+      notifier.dispatch(const PasswordChanged('secret123'));
+      notifier.dispatch(const SubmitPressed());
+      await Future<void>.delayed(Duration.zero);
+
+      expect(container.read(signInProvider).status, SignInStatus.success);
+      verify(() => notificationRepository.registerToken()).called(1);
+    });
+
+    test('failed sign in does NOT trigger registerToken', () async {
+      when(
+        () => repository.signIn(
+          email: any(named: 'email'),
+          password: any(named: 'password'),
+        ),
+      ).thenAnswer(
+        (_) async => const Left(ValidationFailure('Credenciais inválidas')),
+      );
+
+      final container = makeContainer();
+      final notifier = container.read(signInProvider.notifier);
+
+      notifier.dispatch(const EmailChanged('jane@trocado.app'));
+      notifier.dispatch(const PasswordChanged('secret123'));
+      notifier.dispatch(const SubmitPressed());
+      await Future<void>.delayed(Duration.zero);
+
+      expect(container.read(signInProvider).status, SignInStatus.failure);
+      verifyNever(() => notificationRepository.registerToken());
+    });
+
+    test('invalid form does NOT trigger registerToken', () {
+      final container = makeContainer();
+
+      container.read(signInProvider.notifier).dispatch(const SubmitPressed());
+
+      verifyNever(() => notificationRepository.registerToken());
+    });
+
+    test('slow registerToken does not block transition to success', () async {
+      final completer = Completer<Either<Failure, void>>();
+      when(
+        () => notificationRepository.registerToken(),
+      ).thenAnswer((_) => completer.future);
+      when(
+        () => repository.signIn(
+          email: any(named: 'email'),
+          password: any(named: 'password'),
+        ),
+      ).thenAnswer(
+        (_) async => const Right(
+          AuthenticationModel(access: 'access-token', refresh: 'refresh-token'),
+        ),
+      );
+
+      final container = makeContainer();
+      final notifier = container.read(signInProvider.notifier);
+
+      notifier.dispatch(const EmailChanged('jane@trocado.app'));
+      notifier.dispatch(const PasswordChanged('secret123'));
+      notifier.dispatch(const SubmitPressed());
+      await Future<void>.delayed(Duration.zero);
+
+      expect(container.read(signInProvider).status, SignInStatus.success);
+      expect(completer.isCompleted, isFalse);
+
+      completer.complete(const Right(null));
     });
   });
 }

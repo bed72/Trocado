@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:trocado/src/main/providers/validators_provider.dart';
 import 'package:trocado/src/main/providers/repositories_provider.dart';
 
+import 'package:trocado/src/domain/repositories/interface_notification_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_authentication_repository.dart';
 
 import 'package:trocado/src/presentation/ui/authentication/sign_up/notifiers/sign_up_state.dart';
@@ -14,11 +17,13 @@ part 'sign_up_notifier.g.dart';
 @riverpod
 final class SignUpNotifier extends _$SignUpNotifier {
   late SignUpFormValidator _validator;
+  late INotificationRepository _notificationRepository;
   late IAuthenticationRepository _repository;
 
   @override
   SignUpState build() {
     _validator = ref.watch(signUpFormValidatorProvider);
+    _notificationRepository = ref.watch(notificationRepositoryProvider);
     _repository = ref.watch(authenticationRepositoryProvider);
 
     return const SignUpState();
@@ -61,7 +66,10 @@ final class SignUpNotifier extends _$SignUpNotifier {
         status: .failure,
         message: failure.message,
       ),
-      (_) => this.state = this.state.copyWith(status: .success),
+      (_) {
+        unawaited(_notificationRepository.registerToken());
+        this.state = this.state.copyWith(status: .success);
+      },
     );
   }
 }
