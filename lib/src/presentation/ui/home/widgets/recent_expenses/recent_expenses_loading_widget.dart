@@ -13,7 +13,7 @@ class RecentExpensesLoadingWidget extends StatelessWidget {
     child: Column(
       mainAxisSize: .min,
       children: .generate(
-        3,
+        6,
         (_) => const ExpenseItemWidget(
           expense: _placeholder,
           formattedDate: _placeholderDate,
