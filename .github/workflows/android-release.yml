@@ -10,7 +10,7 @@ jobs:
   release:
     name: Build, ship, tag
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - name: Checkout main
         uses: actions/checkout@v6
@@ -30,7 +30,12 @@ jobs:
               content = f.read()
           m = re.search(r'^version:\s*(\d+)\.(\d+)\.(\d+)\+(\d+)\s*$', content, re.MULTILINE)
           if not m:
-              print('::error file=pubspec.yaml::version line missing or malformed (expected `version: X.Y.Z+N`).', file=sys.stderr)
+              print(
+                  '::error file=pubspec.yaml::version line missing or malformed '
+                  '(expected `version: X.Y.Z+N`). Open a PR to bump pubspec.yaml '
+                  'and merge before dispatching this workflow.',
+                  file=sys.stderr,
+              )
               sys.exit(1)
           major, minor, patch, code = (int(g) for g in m.groups())
           version_name = f'{major}.{minor}.{patch}'
@@ -76,7 +81,7 @@ jobs:
           cache: true
 
       - name: Set up Gradle cache
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Accept Android SDK licenses
         run: yes | flutter doctor --android-licenses >/dev/null 2>&1 || true
@@ -93,7 +98,7 @@ jobs:
           echo "NDK version pinned to: $ver"
 
       - name: Cache Android NDK
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ env.ANDROID_HOME }}/ndk/${{ steps.ndk-version.outputs.ndk_version }}
           key: ndk-${{ runner.os }}-${{ steps.ndk-version.outputs.ndk_version }}
@@ -112,7 +117,7 @@ jobs:
 
       - name: Cache Firebase CLI install
         id: firebase-cli-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.npm
@@ -148,13 +153,17 @@ jobs:
 
       - name: Build signed AAB
         id: build
-        timeout-minutes: 20
+        timeout-minutes: 30
         env:
           TROCADO_KEYSTORE_PATH: ${{ github.workspace }}/.keys/trocado.jks
           TROCADO_KEY_ALIAS: ${{ secrets.TROCADO_KEY_ALIAS }}
           TROCADO_KEY_PASSWORD: ${{ secrets.TROCADO_KEY_PASSWORD }}
           TROCADO_STORE_PASSWORD: ${{ secrets.TROCADO_STORE_PASSWORD }}
         run: |
+          echo "::group::Runner resources"
+          echo "cores: $(nproc)"
+          free -h
+          echo "::endgroup::"
           start=$(date +%s)
           flutter build appbundle --release \
             --obfuscate \
@@ -163,7 +172,9 @@ jobs:
           end=$(date +%s)
           echo "build_duration_seconds=$((end - start))" >> "$GITHUB_OUTPUT"
           aab_path=build/app/outputs/bundle/release/app-release.aab
+          aab_size_bytes=$(stat -c %s "$aab_path")
           aab_size_human=$(du -h "$aab_path" | cut -f1)
+          echo "aab_size_bytes=$aab_size_bytes" >> "$GITHUB_OUTPUT"
           echo "aab_size_human=$aab_size_human" >> "$GITHUB_OUTPUT"
           echo "AAB built in $((end - start))s, size $aab_size_human"
 
