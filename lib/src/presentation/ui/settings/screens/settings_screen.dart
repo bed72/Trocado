@@ -125,11 +125,7 @@ class SettingsScreen extends StatelessWidget {
           label: 'Dados pessoais',
           icon: Icons.person_outline,
         ),
-        SettingsItemWidget(
-          label: 'Notificações',
-          onTap: onNotification,
-          icon: Icons.notifications_outlined,
-        ),
+
         SettingsItemWidget(
           isPremium: true,
           label: 'Subscrição',
