@@ -16,6 +16,8 @@ import 'package:trocado/src/domain/repositories/interface_budget_repository.dart
 
 import 'package:trocado/src/presentation/data/budget/budget_card_presentation_data.dart';
 
+import 'package:trocado/src/presentation/ui/home/notifiers/active_budget_notifier.dart';
+
 import 'package:trocado/src/presentation/ui/budgets/notifiers/budgets_state.dart';
 import 'package:trocado/src/presentation/ui/budgets/data/budget_item_presentation_data.dart';
 
@@ -36,6 +38,35 @@ final class BudgetsNotifier extends _$BudgetsNotifier {
     _dateFormatter = ref.watch(dateFormatterServiceProvider);
 
     return await _loadFirstPage();
+  }
+
+  Future<void> deleteById(int id) async {
+    final current = state.value;
+    if (current == null) return;
+
+    final originalIndex = current.items.indexWhere(
+      (item) => item.budget.id == id,
+    );
+    if (originalIndex < 0) return;
+
+    final originalItem = current.items[originalIndex];
+    final newItems = [...current.items]..removeAt(originalIndex);
+
+    state = AsyncData(
+      current.copyWith(items: newItems, clearDeleteFailure: true),
+    );
+
+    final data = await _repository.delete(id: id);
+
+    data.fold((Failure failure) {
+      final restored = [...state.value!.items];
+      final insertAt = originalIndex.clamp(0, restored.length);
+      restored.insert(insertAt, originalItem);
+
+      state = AsyncData(
+        state.value!.copyWith(items: restored, deleteFailure: failure),
+      );
+    }, (_) => ref.invalidate(activeBudgetProvider));
   }
 
   Future<void> loadMore() async {
@@ -118,10 +149,10 @@ final class BudgetsNotifier extends _$BudgetsNotifier {
     return BudgetCardPresentationData(
       percentage: percentage,
       overspent: remaining < 0,
-      formattedEndDate: _dateFormatter.formatDayMonth(model.endDate),
       formattedValue: _moneyService.format(value / 100),
       formattedTotalSpent: _moneyService.format(totalSpent / 100),
       formattedDailyBudget: _moneyService.format(dailyBudget / 100),
+      formattedEndDate: _dateFormatter.formatDayMonth(model.endDate),
       formattedOverspent: _moneyService.format(remaining.abs() / 100),
       formattedRemaining: _moneyService.format(max(0, remaining) / 100),
       formattedPercentage: (percentage * 100).clamp(0, 100).toStringAsFixed(0),

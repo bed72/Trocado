@@ -2,26 +2,25 @@ import 'package:flutter/material.dart';
 
 import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
 
-class ExpenseSaveButtonWidget extends StatelessWidget {
+class FormSubmitButtonWidget extends StatelessWidget {
   final String label;
   final bool isLoading;
-  final VoidCallback onSave;
+  final VoidCallback onTap;
 
-  const ExpenseSaveButtonWidget({
+  const FormSubmitButtonWidget({
     super.key,
     required this.label,
-    required this.onSave,
+    required this.onTap,
     required this.isLoading,
   });
 
   @override
-  Widget build(BuildContext context) => Container(
+  Widget build(BuildContext context) => SizedBox(
     width: double.infinity,
-    padding: const .only(top: 16.0),
-    child: ButtonWidget.outlined(
+    child: ButtonWidget.elevated(
       label: label,
       isLoading: isLoading,
-      onTap: isLoading ? null : onSave,
+      onTap: isLoading ? null : onTap,
     ),
   );
 }

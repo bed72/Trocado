@@ -11,7 +11,7 @@ import 'package:trocado/src/presentation/widgets/app_bar_widget.dart';
 import 'package:trocado/src/presentation/widgets/go_back_widget.dart';
 import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';
 import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
-import 'package:trocado/src/presentation/widgets/dialog/confirm_dialog_widget.dart';
+import 'package:trocado/src/presentation/widgets/buttons/form_submit_button_widget.dart';
 import 'package:trocado/src/presentation/widgets/circular_progress_indicator_widget.dart';
 
 import 'package:trocado/src/presentation/ui/budget/notifiers/budget_by_id_notifier.dart';
@@ -19,8 +19,6 @@ import 'package:trocado/src/presentation/ui/budget/notifiers/form/budget_form_st
 import 'package:trocado/src/presentation/ui/budget/notifiers/form/budget_form_intent.dart';
 import 'package:trocado/src/presentation/ui/budget/notifiers/form/budget_form_notifier.dart';
 
-import 'package:trocado/src/presentation/ui/budget/widgets/budget_save_button_widget.dart';
-import 'package:trocado/src/presentation/ui/budget/widgets/budget_edit_actions_widget.dart';
 import 'package:trocado/src/presentation/ui/budget/widgets/fields/budget_date_field_widget.dart';
 import 'package:trocado/src/presentation/ui/budget/widgets/fields/budget_amount_field_widget.dart';
 import 'package:trocado/src/presentation/ui/budget/widgets/fields/budget_description_field_widget.dart';
@@ -151,8 +149,8 @@ class BudgetScreen extends StatelessWidget {
                     failure: state.dateFailure,
                     displayValue: state.formattedPeriod,
                     navigateTo: () => navigateToDate(
-                      initialStartDate: state.startDate,
                       initialEndDate: state.endDate,
+                      initialStartDate: state.startDate,
                       onSelected: (start, end) => notifier.dispatch(
                         DateRangeChanged(startDate: start, endDate: end),
                       ),
@@ -162,35 +160,17 @@ class BudgetScreen extends StatelessWidget {
               ),
             ),
           ),
-          if (isEditing)
-            BudgetEditActionsWidget(
+          Padding(
+            padding: const .only(top: 16.0),
+            child: FormSubmitButtonWidget(
               isLoading: state.status == .loading,
-              isDeleting: state.isDeleting,
-              onUpdate: () {
-                hideKeyboard();
-                notifier.dispatch(const SubmitPressed());
-              },
-              onDelete: () async {
-                hideKeyboard();
-                final confirmed = await showConfirmDialog(
-                  context: context,
-                  confirmLabel: 'Excluir',
-                  title: 'Excluir orçamento',
-                  description: 'Esta ação não pode ser desfeita.',
-                );
-                if (!confirmed) return;
-                notifier.dispatch(const DeletePressed());
-              },
-            )
-          else
-            BudgetSaveButtonWidget(
-              label: 'Cadastrar',
-              isLoading: state.status == .loading,
-              onSave: () {
+              label: isEditing ? 'Atualizar' : 'Cadastrar',
+              onTap: () {
                 hideKeyboard();
                 notifier.dispatch(const SubmitPressed());
               },
             ),
+          ),
         ],
       ),
     );

@@ -12,6 +12,7 @@ import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';
 import 'package:trocado/src/presentation/widgets/screen_header_widget.dart';
 import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
 import 'package:trocado/src/presentation/widgets/fields/password_field_widget.dart';
+import 'package:trocado/src/presentation/widgets/buttons/form_submit_button_widget.dart';
 import 'package:trocado/src/presentation/widgets/circular_progress_indicator_widget.dart';
 
 import 'package:trocado/src/presentation/ui/profile/password/notifiers/profile_password_state.dart';
@@ -109,16 +110,13 @@ class ProfilePasswordScreen extends StatelessWidget {
                 ],
               ),
               const Spacer(),
-              SizedBox(
-                width: .infinity,
-                child: ButtonWidget.elevated(
-                  label: 'Atualizar',
-                  isLoading: state.status == .loading,
-                  onTap: () {
-                    hideKeyboard();
-                    notifier.dispatch(const SubmitPressed());
-                  },
-                ),
+              FormSubmitButtonWidget(
+                label: 'Atualizar',
+                isLoading: state.status == .loading,
+                onTap: () {
+                  hideKeyboard();
+                  notifier.dispatch(const SubmitPressed());
+                },
               ),
             ],
           ),

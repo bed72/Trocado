@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 
+import 'package:trocado/src/presentation/widgets/toast_widget.dart';
 import 'package:trocado/src/presentation/widgets/app_bar_widget.dart';
 import 'package:trocado/src/presentation/widgets/go_back_widget.dart';
 import 'package:trocado/src/presentation/widgets/screen_header_widget.dart';
@@ -68,6 +69,21 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
   @override
   Widget build(BuildContext context) => Consumer(
     builder: (_, ref, _) {
+      ref.listen(expensesProvider, (previous, next) {
+        final nextDeleteFailure = next.value?.deleteFailure;
+        final previousDeleteFailure = previous?.value?.deleteFailure;
+
+        if (nextDeleteFailure != null &&
+            nextDeleteFailure != previousDeleteFailure) {
+          showToastWidget(
+            context: context,
+            title: 'Opps',
+            type: .failure,
+            description: nextDeleteFailure.message,
+          );
+        }
+      });
+
       final state = ref.watch(expensesProvider);
       final notifier = ref.read(expensesProvider.notifier);
       _onLoadMore = notifier.loadMore;
@@ -150,6 +166,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
         state: value,
         groups: value.groups,
         onLoadMore: _onLoadMore,
+        onDelete: notifier.deleteById,
         onTapExpense: widget.onTapExpense,
       ),
     ],

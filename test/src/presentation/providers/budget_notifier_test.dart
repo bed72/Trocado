@@ -9,17 +9,17 @@ import 'package:trocado/src/main/providers/validators_provider.dart';
 import 'package:trocado/src/main/providers/repositories_provider.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
-import 'package:trocado/src/domain/services/date_formatter_service.dart';
 import 'package:trocado/src/domain/models/budget/budget_model.dart';
+import 'package:trocado/src/domain/services/date_formatter_service.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
 
 import 'package:trocado/src/presentation/ui/budget/notifiers/form/budget_form_state.dart';
-import 'package:trocado/src/presentation/ui/budget/notifiers/form/budget_form_intent.dart';
-import 'package:trocado/src/presentation/ui/budget/notifiers/form/budget_form_notifier.dart';
 import 'package:trocado/src/presentation/ui/budget/validators/budget_form_validator.dart';
+import 'package:trocado/src/presentation/ui/budget/notifiers/form/budget_form_intent.dart';
 import 'package:trocado/src/presentation/ui/budget/validators/budget_value_validation.dart';
-import 'package:trocado/src/presentation/ui/budget/validators/budget_description_validation.dart';
+import 'package:trocado/src/presentation/ui/budget/notifiers/form/budget_form_notifier.dart';
 import 'package:trocado/src/presentation/ui/budget/validators/budget_date_range_validation.dart';
+import 'package:trocado/src/presentation/ui/budget/validators/budget_description_validation.dart';
 
 import '../../../mocks/mocks.dart';
 
@@ -364,73 +364,6 @@ void main() {
       final state = _formState(container, id: 1);
       expect(state.value, 100000);
       expect(state.description, 'March budget');
-      expect(state.status, BudgetFormStatus.failure);
-    });
-  });
-
-  group('dispatch — DeletePressed', () {
-    test('is a no-op in create mode (id null)', () async {
-      final container = await _makeContainer(repository);
-
-      _formNotifier(container).dispatch(const DeletePressed());
-      await pumpEventQueue();
-
-      verifyNever(() => repository.delete(id: any(named: 'id')));
-    });
-
-    test('calls repository.delete with state.id in edit mode', () async {
-      when(
-        () => repository.findById(id: any(named: 'id')),
-      ).thenAnswer((_) async => const Right(_budget));
-      when(
-        () => repository.delete(id: any(named: 'id')),
-      ).thenAnswer((_) async => const Right(null));
-
-      final container = await _makeContainer(repository, id: 1);
-      _formNotifier(container, id: 1).dispatch(const DeletePressed());
-
-      await pumpEventQueue();
-
-      verify(() => repository.delete(id: 1)).called(1);
-    });
-
-    test(
-      'sets status to success and isDeleting back to false on success',
-      () async {
-        when(
-          () => repository.findById(id: any(named: 'id')),
-        ).thenAnswer((_) async => const Right(_budget));
-        when(
-          () => repository.delete(id: any(named: 'id')),
-        ).thenAnswer((_) async => const Right(null));
-
-        final container = await _makeContainer(repository, id: 1);
-        _formNotifier(container, id: 1).dispatch(const DeletePressed());
-
-        await pumpEventQueue();
-
-        final state = _formState(container, id: 1);
-        expect(state.isDeleting, isFalse);
-        expect(state.status, BudgetFormStatus.success);
-      },
-    );
-
-    test('sets status to failure with message on delete error', () async {
-      when(
-        () => repository.findById(id: any(named: 'id')),
-      ).thenAnswer((_) async => const Right(_budget));
-      when(
-        () => repository.delete(id: any(named: 'id')),
-      ).thenAnswer((_) async => const Left(NetworkFailure()));
-
-      final container = await _makeContainer(repository, id: 1);
-      _formNotifier(container, id: 1).dispatch(const DeletePressed());
-
-      await pumpEventQueue();
-
-      final state = _formState(container, id: 1);
-      expect(state.isDeleting, isFalse);
-      expect(state.message, isNotEmpty);
       expect(state.status, BudgetFormStatus.failure);
     });
   });

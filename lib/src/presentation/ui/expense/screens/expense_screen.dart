@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart' hide ValueChanged;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:trocado/src/presentation/extensions/widget_extension.dart';
+import 'package:trocado/src/presentation/extensions/context_extension.dart';
+
 import 'package:trocado/src/presentation/widgets/toast_widget.dart';
 import 'package:trocado/src/presentation/widgets/app_bar_widget.dart';
 import 'package:trocado/src/presentation/widgets/go_back_widget.dart';
 import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';
 import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
-import 'package:trocado/src/presentation/widgets/dialog/confirm_dialog_widget.dart';
+import 'package:trocado/src/presentation/widgets/buttons/form_submit_button_widget.dart';
 import 'package:trocado/src/presentation/widgets/circular_progress_indicator_widget.dart';
-
-import 'package:trocado/src/presentation/extensions/widget_extension.dart';
-import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
 import 'package:trocado/src/presentation/ui/expense/notifiers/form/expense_state.dart';
 import 'package:trocado/src/presentation/ui/expense/notifiers/form/expense_intent.dart';
@@ -18,9 +18,7 @@ import 'package:trocado/src/presentation/ui/expense/notifiers/form/expense_notif
 import 'package:trocado/src/presentation/ui/expense/notifiers/expense_by_id_notifier.dart';
 
 import 'package:trocado/src/presentation/ui/expense/widgets/expense_date_field_widget.dart';
-import 'package:trocado/src/presentation/ui/expense/widgets/expense_save_button_widget.dart';
 import 'package:trocado/src/presentation/ui/expense/widgets/expense_amount_field_widget.dart';
-import 'package:trocado/src/presentation/ui/expense/widgets/expense_edit_actions_widget.dart';
 import 'package:trocado/src/presentation/ui/expense/widgets/expense_description_field_widget.dart';
 
 class ExpenseScreen extends StatelessWidget {
@@ -142,42 +140,24 @@ class ExpenseScreen extends StatelessWidget {
                   ),
                   ExpenseDateFieldWidget(
                     failure: state.dateFailure,
-                    displayValue: state.formattedDate,
                     navigateTo: navigateToDate,
+                    displayValue: state.formattedDate,
                   ),
                 ],
               ),
             ),
           ),
-          if (isEditing)
-            ExpenseEditActionsWidget(
+          Padding(
+            padding: const .only(top: 16.0),
+            child: FormSubmitButtonWidget(
               isLoading: state.status == .loading,
-              isDeleting: state.isDeleting,
-              onUpdate: () {
-                hideKeyboard();
-                notifier.dispatch(const SubmitPressed());
-              },
-              onDelete: () async {
-                hideKeyboard();
-                final confirmed = await showConfirmDialog(
-                  context: context,
-                  confirmLabel: 'Excluir',
-                  title: 'Excluir despesa',
-                  description: 'Esta ação não pode ser desfeita.',
-                );
-                if (!confirmed) return;
-                notifier.dispatch(const DeletePressed());
-              },
-            )
-          else
-            ExpenseSaveButtonWidget(
-              label: 'Cadastrar',
-              isLoading: state.status == .loading,
-              onSave: () {
+              label: isEditing ? 'Atualizar' : 'Cadastrar',
+              onTap: () {
                 hideKeyboard();
                 notifier.dispatch(const SubmitPressed());
               },
             ),
+          ),
         ],
       ),
     );

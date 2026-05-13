@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
-import 'package:trocado/src/presentation/widgets/bounce_widget.dart';
 
+import 'package:trocado/src/presentation/extensions/context_extension.dart';
+import 'package:trocado/src/presentation/widgets/dialog/confirm_dialog_widget.dart';
 import 'package:trocado/src/presentation/widgets/expense/expense_item_widget.dart';
+import 'package:trocado/src/presentation/widgets/swipe/swipe_actions_background_widget.dart';
 
 import 'package:trocado/src/presentation/ui/expenses/notifiers/expenses_state.dart';
 import 'package:trocado/src/presentation/ui/expenses/data/expense_group_presentation_data.dart';
@@ -15,6 +17,7 @@ import 'package:trocado/src/presentation/ui/expenses/widgets/expenses_load_more_
 class ExpensesListWidget extends StatelessWidget {
   final ExpensesState state;
   final VoidCallback onLoadMore;
+  final ValueChanged<int> onDelete;
   final ValueChanged<ExpenseModel> onTapExpense;
   final List<ExpenseGroupPresentationData> groups;
 
@@ -22,6 +25,7 @@ class ExpensesListWidget extends StatelessWidget {
     super.key,
     required this.state,
     required this.groups,
+    required this.onDelete,
     required this.onLoadMore,
     required this.onTapExpense,
   });
@@ -38,10 +42,35 @@ class ExpensesListWidget extends StatelessWidget {
           itemBuilder: (_, index) {
             final item = group.expenses[index];
 
-            return BounceWidget.withOnPress(
-              onPress: () => onTapExpense(item.expense),
+            return Dismissible(
+              key: ValueKey(item.expense.id),
+              direction: DismissDirection.horizontal,
+              background: SwipeActionsBackgroundWidget.leading(
+                icon: Icons.edit_outlined,
+                color: context.colors.primary,
+                iconColor: context.colors.onPrimary,
+              ),
+              secondaryBackground: SwipeActionsBackgroundWidget.trailing(
+                icon: Icons.delete_outline,
+                color: context.colors.error,
+                iconColor: context.colors.onError,
+              ),
+              confirmDismiss: (direction) async {
+                if (direction == .startToEnd) {
+                  onTapExpense(item.expense);
+                  return false;
+                }
+
+                return await showConfirmDialog(
+                  context: context,
+                  confirmLabel: 'Excluir',
+                  title: 'Excluir despesa',
+                  description:
+                      'Esta ação vai excluir a despesa e não pode ser desfeita.',
+                );
+              },
+              onDismissed: (_) => onDelete(item.expense.id),
               child: ExpenseItemWidget(
-                key: ValueKey(item.expense.id),
                 expense: item.expense,
                 formattedDate: item.formattedDate,
                 formattedTime: item.formattedTime,

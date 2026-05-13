@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 
-import 'package:trocado/src/presentation/widgets/bounce_widget.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 import 'package:trocado/src/presentation/ui/budgets/data/budget_item_presentation_data.dart';
 
 class BudgetListItemWidget extends StatelessWidget {
   final BudgetItemPresentationData item;
-  final VoidCallback? onTap;
 
-  const BudgetListItemWidget({super.key, required this.item, this.onTap});
+  const BudgetListItemWidget({super.key, required this.item});
 
   @override
   Widget build(BuildContext context) {
@@ -17,54 +15,46 @@ class BudgetListItemWidget extends StatelessWidget {
         ? context.colors.error
         : context.colors.onSurface;
 
-    final card = Card(
-      elevation: 0.0,
-      margin: const .symmetric(horizontal: 16.0, vertical: 6.0),
-      child: Padding(
-        padding: const .all(16.0),
-        child: Column(
-          spacing: 8.0,
-          mainAxisSize: .min,
-          crossAxisAlignment: .start,
-          children: [
-            Row(
-              crossAxisAlignment: .center,
-              children: [
-                Expanded(
-                  child: Text(
-                    item.budget.description,
-                    overflow: .ellipsis,
-                    style: context.typography.titleMedium?.copyWith(
-                      fontWeight: .w600,
-                      color: context.colors.onSurface,
-                    ),
+    return Padding(
+      padding: const .symmetric(horizontal: 16.0, vertical: 12.0),
+      child: Column(
+        spacing: 8.0,
+        mainAxisSize: .min,
+        crossAxisAlignment: .start,
+        children: [
+          Row(
+            crossAxisAlignment: .center,
+            children: [
+              Expanded(
+                child: Text(
+                  item.budget.description,
+                  overflow: .ellipsis,
+                  style: context.typography.titleMedium?.copyWith(
+                    fontWeight: .w600,
+                    color: context.colors.onSurface,
                   ),
                 ),
-                const SizedBox(width: 8.0),
-                Text(
-                  item.formattedPeriod,
-                  style: context.typography.labelSmall?.copyWith(
-                    color: context.colors.outline,
-                  ),
+              ),
+              const SizedBox(width: 8.0),
+              Text(
+                item.formattedPeriod,
+                style: context.typography.labelSmall?.copyWith(
+                  color: context.colors.outline,
                 ),
-              ],
-            ),
-            _row(context, 'Valor', item.formattedValue),
-            _row(context, 'Gasto', item.formattedTotalSpent),
-            _row(
-              context,
-              'Saldo',
-              item.formattedRemaining,
-              valueColor: remainingColor,
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+          _row(context, 'Valor', item.formattedValue),
+          _row(context, 'Gasto', item.formattedTotalSpent),
+          _row(
+            context,
+            'Saldo',
+            item.formattedRemaining,
+            valueColor: remainingColor,
+          ),
+        ],
       ),
     );
-
-    if (onTap == null) return card;
-
-    return BounceWidget.withOnPress(onPress: onTap, child: card);
   }
 
   Widget _row(

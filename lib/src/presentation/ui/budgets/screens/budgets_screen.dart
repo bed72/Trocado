@@ -10,6 +10,7 @@ import 'package:trocado/src/presentation/ui/budgets/widgets/budgets_empty_widget
 import 'package:trocado/src/presentation/ui/budgets/widgets/budgets_failure_widget.dart';
 import 'package:trocado/src/presentation/ui/budgets/widgets/budgets_loading_widget.dart';
 
+import 'package:trocado/src/presentation/widgets/toast_widget.dart';
 import 'package:trocado/src/presentation/widgets/app_bar_widget.dart';
 import 'package:trocado/src/presentation/widgets/go_back_widget.dart';
 import 'package:trocado/src/presentation/widgets/screen_header_widget.dart';
@@ -57,6 +58,21 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
   @override
   Widget build(BuildContext context) => Consumer(
     builder: (_, ref, _) {
+      ref.listen(budgetsProvider, (previous, next) {
+        final nextDeleteFailure = next.value?.deleteFailure;
+        final previousDeleteFailure = previous?.value?.deleteFailure;
+
+        if (nextDeleteFailure != null &&
+            nextDeleteFailure != previousDeleteFailure) {
+          showToastWidget(
+            context: context,
+            title: 'Opps',
+            type: .failure,
+            description: nextDeleteFailure.message,
+          );
+        }
+      });
+
       final state = ref.watch(budgetsProvider);
       final notifier = ref.read(budgetsProvider.notifier);
       _onLoadMore = notifier.loadMore;
@@ -123,6 +139,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
         state: value,
         onLoadMore: _onLoadMore,
         onTapBudget: widget.onTapBudget,
+        onDelete: ref.read(budgetsProvider.notifier).deleteById,
       ),
     ],
   };

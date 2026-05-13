@@ -8,17 +8,20 @@ import 'package:trocado/src/main/providers/services_provider.dart';
 import 'package:trocado/src/main/providers/repositories_provider.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
+
 import 'package:trocado/src/domain/services/money_service.dart';
 import 'package:trocado/src/domain/services/date_formatter_service.dart';
+
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
+import 'package:trocado/src/domain/models/expense/expenses_page_model.dart';
+import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
+
 import 'package:trocado/src/domain/enums/expense/expense_category_enum.dart';
 import 'package:trocado/src/domain/enums/expense/expense_ordering_enum.dart';
-import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
-import 'package:trocado/src/domain/models/expense/expenses_page_model.dart';
+
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
 import 'package:trocado/src/presentation/ui/expenses/notifiers/expenses_notifier.dart';
-
 import 'package:trocado/src/presentation/ui/expenses/data/expense_filter_chip_kind.dart';
 
 import '../../../mocks/mocks.dart';
@@ -421,6 +424,85 @@ void main() {
 
       final data = container.read(expensesProvider).value!;
       expect(data.filter.ordering, ExpenseOrderingEnum.dateDesc);
+    });
+  });
+
+  group('deleteById', () {
+    test('removes item optimistically and calls repository.delete', () async {
+      when(
+        () => repository.findAll(
+          filter: any(named: 'filter'),
+          cursor: any(named: 'cursor'),
+        ),
+      ).thenAnswer(
+        (_) async => const Right(ExpensesPageModel(expenses: _first)),
+      );
+      when(
+        () => repository.delete(id: any(named: 'id')),
+      ).thenAnswer((_) async => const Right(null));
+
+      final container = _makeContainer(
+        moneyService: moneyService,
+        repository: repository,
+        dateFormatter: dateFormatter,
+      );
+
+      await container.read(expensesProvider.future);
+      await container.read(expensesProvider.notifier).deleteById(1);
+
+      final data = container.read(expensesProvider).value!;
+      expect(data.items.map((item) => item.expense.id), [2]);
+      expect(data.deleteFailure, isNull);
+      verify(() => repository.delete(id: 1)).called(1);
+    });
+
+    test('restores item and sets deleteFailure on failure', () async {
+      when(
+        () => repository.findAll(
+          filter: any(named: 'filter'),
+          cursor: any(named: 'cursor'),
+        ),
+      ).thenAnswer(
+        (_) async => const Right(ExpensesPageModel(expenses: _first)),
+      );
+      when(
+        () => repository.delete(id: any(named: 'id')),
+      ).thenAnswer((_) async => const Left(NetworkFailure()));
+
+      final container = _makeContainer(
+        moneyService: moneyService,
+        repository: repository,
+        dateFormatter: dateFormatter,
+      );
+
+      await container.read(expensesProvider.future);
+      await container.read(expensesProvider.notifier).deleteById(1);
+
+      final data = container.read(expensesProvider).value!;
+      expect(data.items.map((item) => item.expense.id), [1, 2]);
+      expect(data.deleteFailure, isA<NetworkFailure>());
+    });
+
+    test('is a no-op when id is not in state', () async {
+      when(
+        () => repository.findAll(
+          filter: any(named: 'filter'),
+          cursor: any(named: 'cursor'),
+        ),
+      ).thenAnswer(
+        (_) async => const Right(ExpensesPageModel(expenses: _first)),
+      );
+
+      final container = _makeContainer(
+        moneyService: moneyService,
+        repository: repository,
+        dateFormatter: dateFormatter,
+      );
+
+      await container.read(expensesProvider.future);
+      await container.read(expensesProvider.notifier).deleteById(999);
+
+      verifyNever(() => repository.delete(id: any(named: 'id')));
     });
   });
 }

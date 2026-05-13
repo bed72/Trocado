@@ -10,11 +10,10 @@ import 'package:trocado/src/domain/repositories/interface_budget_repository.dart
 import 'package:trocado/src/presentation/ui/home/notifiers/active_budget_notifier.dart';
 
 import 'package:trocado/src/presentation/ui/budgets/notifiers/budgets_notifier.dart';
-
 import 'package:trocado/src/presentation/ui/budget/notifiers/budget_by_id_notifier.dart';
 import 'package:trocado/src/presentation/ui/budget/notifiers/form/budget_form_state.dart';
-import 'package:trocado/src/presentation/ui/budget/notifiers/form/budget_form_intent.dart';
 import 'package:trocado/src/presentation/ui/budget/validators/budget_form_validator.dart';
+import 'package:trocado/src/presentation/ui/budget/notifiers/form/budget_form_intent.dart';
 
 part 'budget_form_notifier.g.dart';
 
@@ -69,7 +68,6 @@ final class BudgetFormNotifier extends _$BudgetFormNotifier {
       state.value!.copyWith(description: value, clearDescriptionFailure: true),
     ),
     SubmitPressed() => _submit(),
-    DeletePressed() => _delete(),
   };
 
   void _mutate(BudgetFormState next) => state = AsyncData(next);
@@ -83,7 +81,7 @@ final class BudgetFormNotifier extends _$BudgetFormNotifier {
 
     if (!validation.isValid) return;
 
-    _mutate(validated.copyWith(status: BudgetFormStatus.loading));
+    _mutate(validated.copyWith(status: .loading));
 
     final data = current.id == null
         ? await _repository.create(
@@ -102,40 +100,12 @@ final class BudgetFormNotifier extends _$BudgetFormNotifier {
 
     data.fold(
       (failure) => _mutate(
-        state.value!.copyWith(
-          status: BudgetFormStatus.failure,
-          message: failure.message,
-        ),
+        state.value!.copyWith(status: .failure, message: failure.message),
       ),
       (_) {
         ref.invalidate(budgetsProvider);
         ref.invalidate(activeBudgetProvider);
-        _mutate(state.value!.copyWith(status: BudgetFormStatus.success));
-      },
-    );
-  }
-
-  Future<void> _delete() async {
-    final current = state.value!;
-
-    if (current.id == null) return;
-
-    _mutate(current.copyWith(isDeleting: true));
-
-    final data = await _repository.delete(id: current.id!);
-
-    data.fold(
-      (failure) => _mutate(
-        state.value!.copyWith(
-          status: .failure,
-          isDeleting: false,
-          message: failure.message,
-        ),
-      ),
-      (_) {
-        ref.invalidate(budgetsProvider);
-        ref.invalidate(activeBudgetProvider);
-        _mutate(state.value!.copyWith(status: .success, isDeleting: false));
+        _mutate(state.value!.copyWith(status: .success));
       },
     );
   }

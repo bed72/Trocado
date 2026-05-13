@@ -66,7 +66,6 @@ final class ExpenseNotifier extends _$ExpenseNotifier {
       ),
     ),
     SubmitPressed() => _submit(),
-    DeletePressed() => _delete(),
   };
 
   void _mutate(ExpenseState next) => state = AsyncData(next);
@@ -80,7 +79,7 @@ final class ExpenseNotifier extends _$ExpenseNotifier {
 
     if (!validation.isValid) return;
 
-    _mutate(validated.copyWith(status: ExpenseStatus.loading));
+    _mutate(validated.copyWith(status: .loading));
 
     final data = current.id == null
         ? await _repository.create(
@@ -97,42 +96,13 @@ final class ExpenseNotifier extends _$ExpenseNotifier {
 
     data.fold(
       (failure) => _mutate(
-        state.value!.copyWith(
-          status: ExpenseStatus.failure,
-          message: failure.message,
-        ),
+        state.value!.copyWith(status: .failure, message: failure.message),
       ),
       (_) {
         ref.invalidate(expensesProvider);
         ref.invalidate(activeBudgetProvider);
         ref.invalidate(recentExpensesProvider);
-        _mutate(state.value!.copyWith(status: ExpenseStatus.success));
-      },
-    );
-  }
-
-  Future<void> _delete() async {
-    final current = state.value!;
-
-    if (current.id == null) return;
-
-    _mutate(current.copyWith(isDeleting: true));
-
-    final data = await _repository.delete(id: current.id!);
-
-    data.fold(
-      (failure) => _mutate(
-        state.value!.copyWith(
-          status: .failure,
-          isDeleting: false,
-          message: failure.message,
-        ),
-      ),
-      (_) {
-        ref.invalidate(expensesProvider);
-        ref.invalidate(activeBudgetProvider);
-        ref.invalidate(recentExpensesProvider);
-        _mutate(state.value!.copyWith(status: .success, isDeleting: false));
+        _mutate(state.value!.copyWith(status: .success));
       },
     );
   }

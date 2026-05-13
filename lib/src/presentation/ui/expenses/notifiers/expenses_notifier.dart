@@ -17,9 +17,12 @@ import 'package:trocado/src/presentation/actions/debounce_action.dart';
 import 'package:trocado/src/presentation/data/expense_item_presentation_data.dart';
 import 'package:trocado/src/presentation/widgets/expense/expense_category_visual_extension.dart';
 
+import 'package:trocado/src/presentation/ui/home/notifiers/active_budget_notifier.dart';
+import 'package:trocado/src/presentation/ui/home/notifiers/recent_expenses_notifier.dart';
+
 import 'package:trocado/src/presentation/ui/expenses/notifiers/expenses_state.dart';
-import 'package:trocado/src/presentation/ui/expenses/data/expense_filter_chip_kind.dart';
 import 'package:trocado/src/presentation/ui/expenses/data/expense_groups_builder.dart';
+import 'package:trocado/src/presentation/ui/expenses/data/expense_filter_chip_kind.dart';
 import 'package:trocado/src/presentation/ui/expenses/data/expense_active_filter_chip_presentation_data.dart';
 
 part 'expenses_notifier.g.dart';
@@ -68,6 +71,49 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
     await applyFilter(next);
   }
 
+  Future<void> deleteById(int id) async {
+    final current = state.value;
+    if (current == null) return;
+
+    final originalIndex = current.items.indexWhere(
+      (item) => item.expense.id == id,
+    );
+    if (originalIndex < 0) return;
+
+    final originalItem = current.items[originalIndex];
+    final newItems = [...current.items]..removeAt(originalIndex);
+
+    state = AsyncData(
+      current.copyWith(
+        items: newItems,
+        clearDeleteFailure: true,
+        groups: buildExpenseGroups(newItems, dateFormatter: _dateFormatter),
+      ),
+    );
+
+    final data = await _repository.delete(id: id);
+
+    data.fold(
+      (Failure failure) {
+        final restored = [...state.value!.items];
+        final insertAt = originalIndex.clamp(0, restored.length);
+        restored.insert(insertAt, originalItem);
+
+        state = AsyncData(
+          state.value!.copyWith(
+            items: restored,
+            deleteFailure: failure,
+            groups: buildExpenseGroups(restored, dateFormatter: _dateFormatter),
+          ),
+        );
+      },
+      (_) {
+        ref.invalidate(activeBudgetProvider);
+        ref.invalidate(recentExpensesProvider);
+      },
+    );
+  }
+
   Future<void> loadMore() async {
     final current = state.value;
 
@@ -95,8 +141,8 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
             isLoadingMore: false,
             clearLoadMoreFailure: true,
             nextCursor: page.nextCursor,
-            groups: buildExpenseGroups(items, dateFormatter: _dateFormatter),
             clearNextCursor: page.nextCursor == null,
+            groups: buildExpenseGroups(items, dateFormatter: _dateFormatter),
           );
         },
       ),

@@ -10,6 +10,7 @@ import 'package:trocado/src/presentation/ui/expenses/data/expense_active_filter_
 final class ExpensesState extends Equatable {
   final String? nextCursor;
   final bool isLoadingMore;
+  final Failure? deleteFailure;
   final Failure? loadMoreFailure;
   final ExpenseFilterModel filter;
   final List<ExpenseItemPresentationData> items;
@@ -18,6 +19,7 @@ final class ExpensesState extends Equatable {
 
   const ExpensesState({
     this.nextCursor,
+    this.deleteFailure,
     this.loadMoreFailure,
     this.items = const [],
     this.groups = const [],
@@ -29,9 +31,11 @@ final class ExpensesState extends Equatable {
   ExpensesState copyWith({
     String? nextCursor,
     bool? isLoadingMore,
+    Failure? deleteFailure,
     Failure? loadMoreFailure,
     ExpenseFilterModel? filter,
     bool clearNextCursor = false,
+    bool clearDeleteFailure = false,
     bool clearLoadMoreFailure = false,
     List<ExpenseItemPresentationData>? items,
     List<ExpenseGroupPresentationData>? groups,
@@ -43,6 +47,9 @@ final class ExpensesState extends Equatable {
     isLoadingMore: isLoadingMore ?? this.isLoadingMore,
     activeFilterChips: activeFilterChips ?? this.activeFilterChips,
     nextCursor: clearNextCursor ? null : nextCursor ?? this.nextCursor,
+    deleteFailure: clearDeleteFailure
+        ? null
+        : deleteFailure ?? this.deleteFailure,
     loadMoreFailure: clearLoadMoreFailure
         ? null
         : loadMoreFailure ?? this.loadMoreFailure,
@@ -55,6 +62,7 @@ final class ExpensesState extends Equatable {
     filter,
     nextCursor,
     isLoadingMore,
+    deleteFailure,
     loadMoreFailure,
     activeFilterChips,
   ];

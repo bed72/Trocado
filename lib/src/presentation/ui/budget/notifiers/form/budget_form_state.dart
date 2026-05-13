@@ -8,7 +8,6 @@ final class BudgetFormState extends Equatable {
   final int? endDate;
   final int? startDate;
   final String message;
-  final bool isDeleting;
   final String description;
   final String? dateFailure;
   final String? valueFailure;
@@ -28,7 +27,6 @@ final class BudgetFormState extends Equatable {
     this.formattedPeriod,
     this.description = '',
     this.status = .initial,
-    this.isDeleting = false,
     this.descriptionFailure,
     this.descriptionHint = '',
   });
@@ -39,7 +37,6 @@ final class BudgetFormState extends Equatable {
     int? endDate,
     int? startDate,
     String? message,
-    bool? isDeleting,
     String? description,
     String? dateFailure,
     String? valueFailure,
@@ -57,7 +54,6 @@ final class BudgetFormState extends Equatable {
     endDate: endDate ?? this.endDate,
     message: message ?? this.message,
     startDate: startDate ?? this.startDate,
-    isDeleting: isDeleting ?? this.isDeleting,
     description: description ?? this.description,
     descriptionHint: descriptionHint ?? this.descriptionHint,
     formattedPeriod: formattedPeriod ?? this.formattedPeriod,
@@ -76,7 +72,6 @@ final class BudgetFormState extends Equatable {
     endDate,
     message,
     startDate,
-    isDeleting,
     description,
     dateFailure,
     valueFailure,

@@ -473,4 +473,83 @@ void main() {
       verify(() => repository.findAll(cursor: null)).called(2);
     });
   });
+
+  group('deleteById', () {
+    test('removes item optimistically and calls repository.delete', () async {
+      when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
+        (_) async => Right(
+          BudgetsPageModel(
+            budgets: [_activeBudget(), _pastBudget(), _olderBudget()],
+            nextCursor: null,
+          ),
+        ),
+      );
+      when(
+        () => repository.delete(id: any(named: 'id')),
+      ).thenAnswer((_) async => const Right(null));
+
+      final container = _makeContainer(
+        repository: repository,
+        moneyService: moneyService,
+        dateFormatter: dateFormatter,
+      );
+
+      await container.read(budgetsProvider.future);
+      await container.read(budgetsProvider.notifier).deleteById(2);
+
+      final data = container.read(budgetsProvider).value!;
+      expect(data.items.map((item) => item.budget.id), [3]);
+      expect(data.deleteFailure, isNull);
+      verify(() => repository.delete(id: 2)).called(1);
+    });
+
+    test('restores item and sets deleteFailure on failure', () async {
+      when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
+        (_) async => Right(
+          BudgetsPageModel(
+            budgets: [_activeBudget(), _pastBudget(), _olderBudget()],
+            nextCursor: null,
+          ),
+        ),
+      );
+      when(
+        () => repository.delete(id: any(named: 'id')),
+      ).thenAnswer((_) async => const Left(NetworkFailure()));
+
+      final container = _makeContainer(
+        repository: repository,
+        moneyService: moneyService,
+        dateFormatter: dateFormatter,
+      );
+
+      await container.read(budgetsProvider.future);
+      await container.read(budgetsProvider.notifier).deleteById(2);
+
+      final data = container.read(budgetsProvider).value!;
+      expect(data.items.map((item) => item.budget.id), [2, 3]);
+      expect(data.deleteFailure, isA<NetworkFailure>());
+    });
+
+    test('is a no-op when id is not in state', () async {
+      when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
+        (_) async => Right(
+          BudgetsPageModel(
+            budgets: [_activeBudget(), _pastBudget()],
+            nextCursor: null,
+          ),
+        ),
+      );
+
+      final container = _makeContainer(
+        repository: repository,
+        moneyService: moneyService,
+        dateFormatter: dateFormatter,
+      );
+
+      await container.read(budgetsProvider.future);
+      await container.read(budgetsProvider.notifier).deleteById(999);
+
+      verifyNever(() => repository.delete(id: any(named: 'id')));
+    });
+  });
 }

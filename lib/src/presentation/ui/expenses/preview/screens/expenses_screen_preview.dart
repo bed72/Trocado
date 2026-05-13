@@ -67,6 +67,7 @@ Widget _listPreview(
     slivers: [
       ExpensesListWidget(
         groups: groups,
+        onDelete: (_) {},
         onLoadMore: () {},
         onTapExpense: (_) {},
         state: ExpensesState(
@@ -280,8 +281,8 @@ Widget previewTailLoading() => _listPreview([
   for (int i = 0; i < 6; i++)
     expenseItemMock(
       id: i + 1,
-      ago: Duration(days: i ~/ 2),
       value: 50.0 + i * 12.0,
+      ago: Duration(days: i ~/ 2),
       category:
           ExpenseCategoryEnum.values[i % ExpenseCategoryEnum.values.length],
       description: 'Despesa #${i + 1}',
