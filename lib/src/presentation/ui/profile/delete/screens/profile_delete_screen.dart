@@ -96,7 +96,7 @@ class ProfileDeleteScreen extends StatelessWidget {
               const Spacer(),
               SizedBox(
                 width: .infinity,
-                child: ButtonWidget.elevated(
+                child: ButtonWidget.danger(
                   label: 'Excluir',
                   isLoading: state.status == .loading,
                   onTap: () => _submit(context, ref, notifier),

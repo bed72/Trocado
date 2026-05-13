@@ -7,16 +7,19 @@ Future<bool> showConfirmDialog({
   required BuildContext context,
   required String title,
   required String description,
+  bool isDestructive = true,
   String denyLabel = 'Cancelar',
   String confirmLabel = 'Confirmar',
 }) async {
   final data = await showDialog<bool>(
     context: context,
+    barrierColor: Colors.black.withValues(alpha: 0.7),
     builder: (_) => ConfirmDialogWidget(
       title: title,
       denyLabel: denyLabel,
       description: description,
       confirmLabel: confirmLabel,
+      isDestructive: isDestructive,
     ),
   );
 
@@ -27,12 +30,14 @@ class ConfirmDialogWidget extends StatelessWidget {
   final String title;
   final String denyLabel;
   final String description;
+  final bool isDestructive;
   final String confirmLabel;
 
   const ConfirmDialogWidget({
     super.key,
     required this.title,
     required this.description,
+    this.isDestructive = true,
     this.denyLabel = 'Cancelar',
     this.confirmLabel = 'Confirmar',
   });
@@ -67,10 +72,15 @@ class ConfirmDialogWidget extends StatelessWidget {
           ),
 
           Expanded(
-            child: ButtonWidget.elevated(
-              label: confirmLabel,
-              onTap: () => context.pop(true),
-            ),
+            child: isDestructive
+                ? ButtonWidget.danger(
+                    label: confirmLabel,
+                    onTap: () => context.pop(true),
+                  )
+                : ButtonWidget.elevated(
+                    label: confirmLabel,
+                    onTap: () => context.pop(true),
+                  ),
           ),
         ],
       ),
