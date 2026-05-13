@@ -9,6 +9,7 @@ import 'package:trocado/src/main/providers/repositories_provider.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/services/money_service.dart';
+import 'package:trocado/src/domain/services/date_formatter_service.dart';
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
 import 'package:trocado/src/domain/enums/expense/expense_category_enum.dart';
 import 'package:trocado/src/domain/enums/expense/expense_ordering_enum.dart';
@@ -26,18 +27,18 @@ const _first = [
   ExpenseModel(
     id: 1,
     value: 8550,
+    category: .food,
     date: 1744675200000,
     createdAt: 1745332903000,
     description: 'Cafezinho',
-    category: ExpenseCategoryEnum.food,
   ),
   ExpenseModel(
     id: 2,
     value: 3891,
+    category: .health,
     date: 1745971200000,
-    createdAt: 1745331562000,
     description: 'Farmácia',
-    category: ExpenseCategoryEnum.health,
+    createdAt: 1745331562000,
   ),
 ];
 
@@ -46,20 +47,22 @@ const _second = [
     id: 3,
     value: 2000,
     date: 1744500000000,
-    createdAt: 1745330000000,
     description: 'Uber',
-    category: ExpenseCategoryEnum.transport,
+    category: .transport,
+    createdAt: 1745330000000,
   ),
 ];
 
 ProviderContainer _makeContainer({
-  required IExpenseRepository repository,
   required IMoneyService moneyService,
+  required IExpenseRepository repository,
+  required IDateFormatterService dateFormatter,
 }) {
   final container = ProviderContainer(
     overrides: [
       moneyServiceProvider.overrideWithValue(moneyService),
       expenseRepositoryProvider.overrideWithValue(repository),
+      dateFormatterServiceProvider.overrideWithValue(dateFormatter),
     ],
   );
   addTearDown(container.dispose);
@@ -69,6 +72,7 @@ ProviderContainer _makeContainer({
 void main() {
   late IMoneyService moneyService;
   late IExpenseRepository repository;
+  late IDateFormatterService dateFormatter;
 
   setUpAll(() {
     registerFallbackValue(const ExpenseFilterModel.empty());
@@ -77,10 +81,17 @@ void main() {
   setUp(() {
     moneyService = MockMoneyService();
     repository = MockExpenseRepository();
+    dateFormatter = MockDateFormatterService();
 
     when(
       () => moneyService.format(any()),
     ).thenAnswer((invocation) => 'R\$ ${invocation.positionalArguments.first}');
+    when(() => dateFormatter.formatDayMonth(any())).thenReturn('22/04');
+    when(() => dateFormatter.formatTime(any())).thenReturn('14:30');
+    when(() => dateFormatter.relativeGroupHeader(any())).thenReturn('Hoje');
+    when(() => dateFormatter.formatShortDate(any())).thenAnswer(
+      (invocation) => 'SHORT(${invocation.positionalArguments.first})',
+    );
   });
 
   group('build', () {
@@ -101,16 +112,17 @@ void main() {
         final container = _makeContainer(
           repository: repository,
           moneyService: moneyService,
+          dateFormatter: dateFormatter,
         );
         final data = await container.read(expensesProvider.future);
 
-        expect(data.items, hasLength(2));
-        expect(data.items.map((item) => item.expense), equals(_first));
-        expect(data.items.first.formattedValue, 'R\$ 85.5');
         expect(data.nextCursor, 'CUR1');
-        expect(data.filter, const ExpenseFilterModel.empty());
+        expect(data.items, hasLength(2));
         expect(data.isLoadingMore, isFalse);
         expect(data.loadMoreFailure, isNull);
+        expect(data.items.first.formattedValue, 'R\$ 85.5');
+        expect(data.filter, const ExpenseFilterModel.empty());
+        expect(data.items.map((item) => item.expense), equals(_first));
       },
     );
 
@@ -127,14 +139,12 @@ void main() {
         final container = _makeContainer(
           repository: repository,
           moneyService: moneyService,
+          dateFormatter: dateFormatter,
         );
         await container.read(expensesProvider.future);
 
         verify(
-          () => repository.findAll(
-            cursor: null,
-            filter: const ExpenseFilterModel.empty(),
-          ),
+          () => repository.findAll(cursor: null, filter: const .empty()),
         ).called(1);
       },
     );
@@ -152,6 +162,7 @@ void main() {
         final container = _makeContainer(
           repository: repository,
           moneyService: moneyService,
+          dateFormatter: dateFormatter,
         );
         container.listen(expensesProvider, (_, _) {});
         container.read(expensesProvider);
@@ -187,6 +198,7 @@ void main() {
       final container = _makeContainer(
         repository: repository,
         moneyService: moneyService,
+        dateFormatter: dateFormatter,
       );
       await container.read(expensesProvider.future);
       await container.read(expensesProvider.notifier).loadMore();
@@ -212,6 +224,7 @@ void main() {
       final container = _makeContainer(
         repository: repository,
         moneyService: moneyService,
+        dateFormatter: dateFormatter,
       );
       await container.read(expensesProvider.future);
 
@@ -241,15 +254,17 @@ void main() {
       final container = _makeContainer(
         repository: repository,
         moneyService: moneyService,
+        dateFormatter: dateFormatter,
       );
       await container.read(expensesProvider.future);
       await container.read(expensesProvider.notifier).loadMore();
 
       final data = container.read(expensesProvider).value!;
-      expect(data.items.map((item) => item.expense), equals(_first));
+
       expect(data.nextCursor, 'CUR1');
       expect(data.isLoadingMore, isFalse);
       expect(data.loadMoreFailure, isA<ServerFailure>());
+      expect(data.items.map((item) => item.expense), equals(_first));
     });
   });
 
@@ -260,10 +275,7 @@ void main() {
       );
 
       when(
-        () => repository.findAll(
-          cursor: null,
-          filter: const ExpenseFilterModel.empty(),
-        ),
+        () => repository.findAll(cursor: null, filter: const .empty()),
       ).thenAnswer(
         (_) async => const Right(
           ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
@@ -277,25 +289,24 @@ void main() {
       final container = _makeContainer(
         repository: repository,
         moneyService: moneyService,
+        dateFormatter: dateFormatter,
       );
       await container.read(expensesProvider.future);
 
       await container.read(expensesProvider.notifier).applyFilter(filter);
 
       final data = container.read(expensesProvider).value!;
+
       expect(data.filter, filter);
-      expect(data.items.map((item) => item.expense), equals(_second));
       expect(data.nextCursor, 'F1');
       expect(data.activeFilterChips, hasLength(1));
+      expect(data.items.map((item) => item.expense), equals(_second));
       expect(data.activeFilterChips.first.kind, ExpenseFilterChipKind.category);
     });
 
     test('emits AsyncError when the reload fails', () async {
       when(
-        () => repository.findAll(
-          cursor: null,
-          filter: const ExpenseFilterModel.empty(),
-        ),
+        () => repository.findAll(cursor: null, filter: const .empty()),
       ).thenAnswer(
         (_) async => const Right(
           ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
@@ -304,21 +315,20 @@ void main() {
       when(
         () => repository.findAll(
           cursor: null,
-          filter: const ExpenseFilterModel(category: ExpenseCategoryEnum.food),
+          filter: const ExpenseFilterModel(category: .food),
         ),
       ).thenAnswer((_) async => const Left(NetworkFailure()));
 
       final container = _makeContainer(
         repository: repository,
         moneyService: moneyService,
+        dateFormatter: dateFormatter,
       );
       await container.read(expensesProvider.future);
 
       await container
           .read(expensesProvider.notifier)
-          .applyFilter(
-            const ExpenseFilterModel(category: ExpenseCategoryEnum.food),
-          );
+          .applyFilter(const ExpenseFilterModel(category: .food));
 
       expect(container.read(expensesProvider).hasError, isTrue);
       expect(container.read(expensesProvider).error, isA<NetworkFailure>());
@@ -327,9 +337,7 @@ void main() {
 
   group('removeFilter', () {
     test('clears category and reloads', () async {
-      final filter = const ExpenseFilterModel.empty().copyWith(
-        category: ExpenseCategoryEnum.food,
-      );
+      final filter = const ExpenseFilterModel.empty().copyWith(category: .food);
 
       when(
         () => repository.findAll(
@@ -349,13 +357,12 @@ void main() {
       final container = _makeContainer(
         repository: repository,
         moneyService: moneyService,
+        dateFormatter: dateFormatter,
       );
       await container.read(expensesProvider.future);
       await container.read(expensesProvider.notifier).applyFilter(filter);
 
-      await container
-          .read(expensesProvider.notifier)
-          .removeFilter(ExpenseFilterChipKind.category);
+      await container.read(expensesProvider.notifier).removeFilter(.category);
 
       final data = container.read(expensesProvider).value!;
       expect(data.filter.category, isNull);
@@ -378,13 +385,12 @@ void main() {
       final container = _makeContainer(
         repository: repository,
         moneyService: moneyService,
+        dateFormatter: dateFormatter,
       );
       await container.read(expensesProvider.future);
       await container.read(expensesProvider.notifier).applyFilter(filtered);
 
-      await container
-          .read(expensesProvider.notifier)
-          .removeFilter(ExpenseFilterChipKind.value);
+      await container.read(expensesProvider.notifier).removeFilter(.value);
 
       final data = container.read(expensesProvider).value!;
       expect(data.filter.minValue, isNull);
@@ -393,7 +399,7 @@ void main() {
 
     test('resets ordering to default when kind is ordering', () async {
       final filtered = const ExpenseFilterModel.empty().copyWith(
-        ordering: ExpenseOrderingEnum.valueDesc,
+        ordering: .valueDesc,
       );
 
       when(
@@ -406,13 +412,12 @@ void main() {
       final container = _makeContainer(
         repository: repository,
         moneyService: moneyService,
+        dateFormatter: dateFormatter,
       );
       await container.read(expensesProvider.future);
       await container.read(expensesProvider.notifier).applyFilter(filtered);
 
-      await container
-          .read(expensesProvider.notifier)
-          .removeFilter(ExpenseFilterChipKind.ordering);
+      await container.read(expensesProvider.notifier).removeFilter(.ordering);
 
       final data = container.read(expensesProvider).value!;
       expect(data.filter.ordering, ExpenseOrderingEnum.dateDesc);

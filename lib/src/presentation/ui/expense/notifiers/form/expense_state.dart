@@ -12,6 +12,7 @@ final class ExpenseState extends Equatable {
   final String? dateFailure;
   final ExpenseStatus status;
   final String? valueFailure;
+  final String? formattedDate;
   final String? descriptionFailure;
 
   const ExpenseState({
@@ -21,6 +22,7 @@ final class ExpenseState extends Equatable {
     this.dateFailure,
     this.valueFailure,
     this.message = '',
+    this.formattedDate,
     this.description = '',
     this.status = .initial,
     this.isDeleting = false,
@@ -36,6 +38,7 @@ final class ExpenseState extends Equatable {
     String? description,
     String? dateFailure,
     String? valueFailure,
+    String? formattedDate,
     ExpenseStatus? status,
     String? descriptionFailure,
     bool clearDateFailure = false,
@@ -49,6 +52,7 @@ final class ExpenseState extends Equatable {
     message: message ?? this.message,
     isDeleting: isDeleting ?? this.isDeleting,
     description: description ?? this.description,
+    formattedDate: formattedDate ?? this.formattedDate,
     dateFailure: clearDateFailure ? null : dateFailure ?? this.dateFailure,
     valueFailure: clearValueFailure ? null : valueFailure ?? this.valueFailure,
     descriptionFailure: clearDescriptionFailure
@@ -67,6 +71,7 @@ final class ExpenseState extends Equatable {
     description,
     dateFailure,
     valueFailure,
+    formattedDate,
     descriptionFailure,
   ];
 }

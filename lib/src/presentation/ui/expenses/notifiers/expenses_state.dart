@@ -4,22 +4,25 @@ import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 
 import 'package:trocado/src/presentation/data/expense_item_presentation_data.dart';
+import 'package:trocado/src/presentation/ui/expenses/data/expense_group_presentation_data.dart';
 import 'package:trocado/src/presentation/ui/expenses/data/expense_active_filter_chip_presentation_data.dart';
 
 final class ExpensesState extends Equatable {
   final String? nextCursor;
   final bool isLoadingMore;
   final Failure? loadMoreFailure;
-  final List<ExpenseItemPresentationData> items;
   final ExpenseFilterModel filter;
+  final List<ExpenseItemPresentationData> items;
+  final List<ExpenseGroupPresentationData> groups;
   final List<ExpenseActiveFilterChipPresentationData> activeFilterChips;
 
   const ExpensesState({
     this.nextCursor,
     this.loadMoreFailure,
     this.items = const [],
+    this.groups = const [],
     this.isLoadingMore = false,
-    this.filter = const ExpenseFilterModel.empty(),
+    this.filter = const .empty(),
     this.activeFilterChips = const [],
   });
 
@@ -27,13 +30,15 @@ final class ExpensesState extends Equatable {
     String? nextCursor,
     bool? isLoadingMore,
     Failure? loadMoreFailure,
-    List<ExpenseItemPresentationData>? items,
     ExpenseFilterModel? filter,
-    List<ExpenseActiveFilterChipPresentationData>? activeFilterChips,
     bool clearNextCursor = false,
     bool clearLoadMoreFailure = false,
+    List<ExpenseItemPresentationData>? items,
+    List<ExpenseGroupPresentationData>? groups,
+    List<ExpenseActiveFilterChipPresentationData>? activeFilterChips,
   }) => ExpensesState(
     items: items ?? this.items,
+    groups: groups ?? this.groups,
     filter: filter ?? this.filter,
     isLoadingMore: isLoadingMore ?? this.isLoadingMore,
     activeFilterChips: activeFilterChips ?? this.activeFilterChips,
@@ -46,6 +51,7 @@ final class ExpensesState extends Equatable {
   @override
   List<Object?> get props => [
     items,
+    groups,
     filter,
     nextCursor,
     isLoadingMore,

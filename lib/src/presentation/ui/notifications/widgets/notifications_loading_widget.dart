@@ -3,6 +3,8 @@ import 'package:skeletonizer/skeletonizer.dart';
 
 import 'package:trocado/src/domain/models/notification/notification_model.dart';
 
+import 'package:trocado/src/presentation/data/notification/notification_item_presentation_data.dart';
+
 import 'package:trocado/src/presentation/ui/notifications/widgets/notification_card_widget.dart';
 
 class NotificationsLoadingWidget extends StatelessWidget {
@@ -14,16 +16,20 @@ class NotificationsLoadingWidget extends StatelessWidget {
       mainAxisSize: .min,
       children: .generate(
         8,
-        (_) => const NotificationCardWidget(notification: _placeholder),
+        (_) => const NotificationCardWidget(item: _placeholderItem),
       ),
     ),
   );
 }
 
-const _placeholder = NotificationModel(
-  id: 0,
-  createdAt: 0,
-  type: .unknown,
-  title: 'Carregando título da notificação',
-  description: 'Carregando descrição da notificação que pode ter duas linhas.',
+const _placeholderItem = NotificationItemPresentationData(
+  formattedTime: '00:00',
+  notification: NotificationModel(
+    id: 0,
+    createdAt: 0,
+    type: .unknown,
+    title: 'Carregando título da notificação',
+    description:
+        'Carregando descrição da notificação que pode ter duas linhas.',
+  ),
 );

@@ -11,8 +11,6 @@ import 'package:trocado/src/presentation/widgets/screen_header_widget.dart';
 import 'package:trocado/src/presentation/ui/expenses/notifiers/expenses_state.dart';
 import 'package:trocado/src/presentation/ui/expenses/notifiers/expenses_notifier.dart';
 
-import 'package:trocado/src/presentation/ui/expenses/data/expense_groups_builder.dart';
-
 import 'package:trocado/src/presentation/ui/expenses/widgets/expenses_list_widget.dart';
 import 'package:trocado/src/presentation/ui/expenses/widgets/expenses_empty_widget.dart';
 import 'package:trocado/src/presentation/ui/expenses/widgets/expenses_failure_widget.dart';
@@ -90,16 +88,15 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
               padding: const .only(right: 16.0),
               child: ExpensesFilterButtonWidget(
                 onPress: () => widget.navigateToFilter(
-                  state.value?.filter ?? const ExpenseFilterModel.empty(),
+                  state.value?.filter ?? const .empty(),
                 ),
               ),
             ),
           ],
         ),
         body: RefreshIndicator(
-          onRefresh: () async => notifier.applyFilter(
-            state.value?.filter ?? const ExpenseFilterModel.empty(),
-          ),
+          onRefresh: () async =>
+              notifier.applyFilter(state.value?.filter ?? const .empty()),
           child: Padding(
             padding: const .only(bottom: 16.0),
             child: CustomScrollView(
@@ -141,7 +138,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
       SliverFillRemaining(
         hasScrollBody: false,
         child: ExpensesFailureWidget(
-          onRetry: () => notifier.applyFilter(const ExpenseFilterModel.empty()),
+          onRetry: () => notifier.applyFilter(const .empty()),
         ),
       ),
     ],
@@ -151,9 +148,9 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     AsyncData(:final ExpensesState value) => [
       ExpensesListWidget(
         state: value,
+        groups: value.groups,
         onLoadMore: _onLoadMore,
         onTapExpense: widget.onTapExpense,
-        groups: buildExpenseGroups(value.items),
       ),
     ],
   };

@@ -1,77 +1,85 @@
+import 'package:mocktail/mocktail.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:intl/date_symbol_data_local.dart';
 
-import 'package:trocado/src/domain/enums/notification/notification_type_enum.dart';
+import 'package:trocado/src/domain/services/date_formatter_service.dart';
 import 'package:trocado/src/domain/models/notification/notification_model.dart';
+
+import 'package:trocado/src/presentation/data/notification/notification_item_presentation_data.dart';
 
 import 'package:trocado/src/presentation/ui/notifications/data/notification_groups_builder.dart';
 
-NotificationModel _item({required int id, required DateTime date}) =>
-    NotificationModel(
-      id: id,
-      type: NotificationTypeEnum.sharedExpenseCreated,
-      title: 'Notification #$id',
-      description: 'Description #$id',
-      createdAt: date.millisecondsSinceEpoch,
-    );
+import '../../../../../mocks/mocks.dart';
+
+NotificationItemPresentationData _item({
+  required int id,
+  required int millis,
+}) => NotificationItemPresentationData(
+  formattedTime: '00:00',
+  notification: NotificationModel(
+    id: id,
+    createdAt: millis,
+    title: 'Notification #$id',
+    type: .sharedExpenseCreated,
+    description: 'Description #$id',
+  ),
+);
 
 void main() {
-  setUpAll(() async {
-    await initializeDateFormatting('pt_BR');
+  late IDateFormatterService dateFormatter;
+
+  setUp(() {
+    dateFormatter = MockDateFormatterService();
   });
 
   group('buildNotificationGroups', () {
     test('returns empty list for empty input', () {
-      expect(buildNotificationGroups(const []), isEmpty);
+      expect(
+        buildNotificationGroups(const [], dateFormatter: dateFormatter),
+        isEmpty,
+      );
     });
 
-    test('groups same-day items under a single "Hoje" header', () {
-      final now = DateTime(2026, 4, 22, 22, 0);
-      final items = [
-        _item(id: 1, date: DateTime(2026, 4, 22, 18, 0)),
-        _item(id: 2, date: DateTime(2026, 4, 22, 10, 0)),
-      ];
+    test('groups items sharing the same header', () {
+      const todayA = 1714000000000;
+      const todayB = 1714050000000;
+      when(() => dateFormatter.relativeGroupHeader(todayA)).thenReturn('Hoje');
+      when(() => dateFormatter.relativeGroupHeader(todayB)).thenReturn('Hoje');
 
-      final groups = buildNotificationGroups(items, now: now);
+      final groups = buildNotificationGroups([
+        _item(id: 1, millis: todayA),
+        _item(id: 2, millis: todayB),
+      ], dateFormatter: dateFormatter);
 
       expect(groups, hasLength(1));
       expect(groups.first.header, 'Hoje');
-      expect(groups.first.notifications.map((item) => item.id), [1, 2]);
+      expect(groups.first.notifications.map((item) => item.notification.id), [
+        1,
+        2,
+      ]);
     });
 
-    test('emits "Hoje" and "Ontem" in input order', () {
-      final now = DateTime(2026, 4, 22, 22, 0);
-      final items = [
-        _item(id: 1, date: DateTime(2026, 4, 22, 18, 0)),
-        _item(id: 2, date: DateTime(2026, 4, 22, 10, 0)),
-        _item(id: 3, date: DateTime(2026, 4, 21, 20, 0)),
-      ];
+    test('starts a new group when header changes', () {
+      const todayA = 1714000000000;
+      const todayB = 1714050000000;
+      const yesterday = 1713900000000;
+      when(() => dateFormatter.relativeGroupHeader(todayA)).thenReturn('Hoje');
+      when(() => dateFormatter.relativeGroupHeader(todayB)).thenReturn('Hoje');
+      when(
+        () => dateFormatter.relativeGroupHeader(yesterday),
+      ).thenReturn('Ontem');
 
-      final groups = buildNotificationGroups(items, now: now);
+      final groups = buildNotificationGroups([
+        _item(id: 1, millis: todayA),
+        _item(id: 2, millis: todayB),
+        _item(id: 3, millis: yesterday),
+      ], dateFormatter: dateFormatter);
 
       expect(groups.map((group) => group.header), ['Hoje', 'Ontem']);
-      expect(groups.first.notifications.map((item) => item.id), [1, 2]);
-      expect(groups.last.notifications.map((item) => item.id), [3]);
-    });
-
-    test('uses "Weekday, dd mmm" for dates within the week', () {
-      final now = DateTime(2026, 4, 18, 10, 0);
-      final items = [_item(id: 1, date: DateTime(2026, 4, 15, 12, 0))];
-
-      final groups = buildNotificationGroups(items, now: now);
-
-      expect(groups, hasLength(1));
-      expect(groups.first.header, 'Quarta-feira, 15 abr.');
-    });
-
-    test('uses "MMMM yyyy" header for older months', () {
-      final now = DateTime(2026, 4, 20, 10, 0);
-      final items = [_item(id: 1, date: DateTime(2026, 3, 15, 12, 0))];
-
-      final groups = buildNotificationGroups(items, now: now);
-
-      expect(groups, hasLength(1));
-      expect(groups.first.header, 'Março 2026');
+      expect(groups.first.notifications.map((item) => item.notification.id), [
+        1,
+        2,
+      ]);
+      expect(groups.last.notifications.single.notification.id, 3);
     });
   });
 }

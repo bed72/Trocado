@@ -2,16 +2,20 @@ import 'package:mocktail/mocktail.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:trocado/src/main/providers/services_provider.dart';
+import 'package:trocado/src/main/providers/repositories_provider.dart';
+
 import 'package:trocado/src/domain/either/either.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
+
 import 'package:trocado/src/domain/services/money_service.dart';
+import 'package:trocado/src/domain/services/date_formatter_service.dart';
+
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
 import 'package:trocado/src/domain/models/expense/expenses_page_model.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
-import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
-import 'package:trocado/src/main/providers/services_provider.dart';
-import 'package:trocado/src/main/providers/repositories_provider.dart';
+import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
 import 'package:trocado/src/presentation/ui/expenses/notifiers/expenses_notifier.dart';
 import 'package:trocado/src/presentation/ui/expense/notifiers/expense_by_id_notifier.dart';
@@ -30,9 +34,16 @@ const _expense = ExpenseModel(
 ProviderContainer _makeContainer({
   required IExpenseRepository repository,
   IMoneyService? moneyService,
+  IDateFormatterService? dateFormatter,
 }) {
+  final formatter = dateFormatter ?? MockDateFormatterService();
+  when(() => formatter.formatDayMonth(any())).thenReturn('22/04');
+  when(() => formatter.formatTime(any())).thenReturn('14:30');
+  when(() => formatter.relativeGroupHeader(any())).thenReturn('Hoje');
+
   final container = ProviderContainer(
     overrides: [
+      dateFormatterServiceProvider.overrideWithValue(formatter),
       expenseRepositoryProvider.overrideWithValue(repository),
       if (moneyService != null)
         moneyServiceProvider.overrideWithValue(moneyService),
@@ -43,8 +54,8 @@ ProviderContainer _makeContainer({
 }
 
 void main() {
-  late IExpenseRepository repository;
   late IMoneyService moneyService;
+  late IExpenseRepository repository;
 
   setUpAll(() {
     registerFallbackValue(const ExpenseFilterModel.empty());

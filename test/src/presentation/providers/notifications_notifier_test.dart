@@ -2,10 +2,12 @@ import 'package:mocktail/mocktail.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:trocado/src/main/providers/services_provider.dart';
 import 'package:trocado/src/main/providers/repositories_provider.dart';
 
 import 'package:trocado/src/domain/either/either.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
+import 'package:trocado/src/domain/services/date_formatter_service.dart';
 import 'package:trocado/src/domain/enums/notification/notification_type_enum.dart';
 import 'package:trocado/src/domain/models/notification/notification_model.dart';
 import 'package:trocado/src/domain/models/notification/notifications_page_model.dart';
@@ -42,10 +44,14 @@ const _second = [
   ),
 ];
 
-ProviderContainer _makeContainer(INotificationRepository repository) {
+ProviderContainer _makeContainer({
+  required INotificationRepository repository,
+  required IDateFormatterService dateFormatter,
+}) {
   final container = ProviderContainer(
     overrides: [
       notificationRepositoryProvider.overrideWithValue(repository),
+      dateFormatterServiceProvider.overrideWithValue(dateFormatter),
     ],
   );
   addTearDown(container.dispose);
@@ -54,27 +60,33 @@ ProviderContainer _makeContainer(INotificationRepository repository) {
 
 void main() {
   late INotificationRepository repository;
+  late IDateFormatterService dateFormatter;
 
   setUp(() {
     repository = MockNotificationRepository();
+    dateFormatter = MockDateFormatterService();
+
+    when(() => dateFormatter.formatTime(any())).thenReturn('14:30');
+    when(() => dateFormatter.relativeGroupHeader(any())).thenReturn('Hoje');
   });
 
   group('build', () {
-    test('AsyncData with first page items and nextCursor on success',
-        () async {
-      when(
-        () => repository.findAll(cursor: any(named: 'cursor')),
-      ).thenAnswer(
+    test('AsyncData with first page items and nextCursor on success', () async {
+      when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
         (_) async => const Right(
           NotificationsPageModel(notifications: _first, nextCursor: 'CUR1'),
         ),
       );
 
-      final container = _makeContainer(repository);
+      final container = _makeContainer(
+        repository: repository,
+        dateFormatter: dateFormatter,
+      );
       container.listen(notificationsProvider, (_, _) {});
       final state = await container.read(notificationsProvider.future);
 
-      expect(state.items.map((item) => item.id), [1, 2]);
+      expect(state.items.map((item) => item.notification.id), [1, 2]);
+      expect(state.items.first.formattedTime, '14:30');
       expect(state.nextCursor, 'CUR1');
       expect(state.isLoadingMore, isFalse);
       expect(state.loadMoreFailure, isNull);
@@ -87,7 +99,10 @@ void main() {
         () => repository.findAll(cursor: any(named: 'cursor')),
       ).thenAnswer((_) async => Left(const NetworkFailure()));
 
-      final container = _makeContainer(repository);
+      final container = _makeContainer(
+        repository: repository,
+        dateFormatter: dateFormatter,
+      );
       container.listen(notificationsProvider, (_, _) {});
       container.read(notificationsProvider);
 
@@ -101,9 +116,9 @@ void main() {
 
   group('loadMore', () {
     test('appends next page items and updates cursor', () async {
-      when(
-        () => repository.findAll(cursor: any(named: 'cursor')),
-      ).thenAnswer((invocation) async {
+      when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer((
+        invocation,
+      ) async {
         final cursor = invocation.namedArguments[#cursor];
         if (cursor == null) {
           return const Right(
@@ -115,28 +130,32 @@ void main() {
         );
       });
 
-      final container = _makeContainer(repository);
+      final container = _makeContainer(
+        repository: repository,
+        dateFormatter: dateFormatter,
+      );
       container.listen(notificationsProvider, (_, _) {});
       await container.read(notificationsProvider.future);
 
       await container.read(notificationsProvider.notifier).loadMore();
 
       final state = container.read(notificationsProvider).value!;
-      expect(state.items.map((item) => item.id), [1, 2, 3]);
       expect(state.nextCursor, isNull);
       expect(state.isLoadingMore, isFalse);
+      expect(state.items.map((item) => item.notification.id), [1, 2, 3]);
     });
 
     test('no-op when nextCursor is null', () async {
-      when(
-        () => repository.findAll(cursor: any(named: 'cursor')),
-      ).thenAnswer(
+      when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
         (_) async => const Right(
           NotificationsPageModel(notifications: _first, nextCursor: null),
         ),
       );
 
-      final container = _makeContainer(repository);
+      final container = _makeContainer(
+        repository: repository,
+        dateFormatter: dateFormatter,
+      );
       container.listen(notificationsProvider, (_, _) {});
       await container.read(notificationsProvider.future);
 
@@ -147,9 +166,9 @@ void main() {
     });
 
     test('sets loadMoreFailure on Left without losing items', () async {
-      when(
-        () => repository.findAll(cursor: any(named: 'cursor')),
-      ).thenAnswer((invocation) async {
+      when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer((
+        invocation,
+      ) async {
         final cursor = invocation.namedArguments[#cursor];
         if (cursor == null) {
           return const Right(
@@ -159,26 +178,29 @@ void main() {
         return Left(const NetworkFailure());
       });
 
-      final container = _makeContainer(repository);
+      final container = _makeContainer(
+        repository: repository,
+        dateFormatter: dateFormatter,
+      );
       container.listen(notificationsProvider, (_, _) {});
       await container.read(notificationsProvider.future);
 
       await container.read(notificationsProvider.notifier).loadMore();
 
       final state = container.read(notificationsProvider).value!;
-      expect(state.items.map((item) => item.id), [1, 2]);
       expect(state.nextCursor, 'CUR1');
       expect(state.isLoadingMore, isFalse);
       expect(state.loadMoreFailure, isA<NetworkFailure>());
+      expect(state.items.map((item) => item.notification.id), [1, 2]);
     });
   });
 
   group('refresh', () {
     test('reloads the first page from scratch', () async {
-      var callCount = 0;
-      when(
-        () => repository.findAll(cursor: any(named: 'cursor')),
-      ).thenAnswer((_) async {
+      int callCount = 0;
+      when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer((
+        _,
+      ) async {
         callCount++;
         if (callCount == 1) {
           return const Right(
@@ -190,15 +212,18 @@ void main() {
         );
       });
 
-      final container = _makeContainer(repository);
+      final container = _makeContainer(
+        repository: repository,
+        dateFormatter: dateFormatter,
+      );
       container.listen(notificationsProvider, (_, _) {});
       await container.read(notificationsProvider.future);
 
       await container.read(notificationsProvider.notifier).refresh();
 
       final state = container.read(notificationsProvider).value!;
-      expect(state.items.map((item) => item.id), [3]);
       expect(state.nextCursor, isNull);
+      expect(state.items.map((item) => item.notification.id), [3]);
     });
   });
 }

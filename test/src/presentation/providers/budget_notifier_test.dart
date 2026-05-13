@@ -4,10 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:trocado/src/domain/either/either.dart';
 
+import 'package:trocado/src/main/providers/services_provider.dart';
 import 'package:trocado/src/main/providers/validators_provider.dart';
 import 'package:trocado/src/main/providers/repositories_provider.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
+import 'package:trocado/src/domain/services/date_formatter_service.dart';
 import 'package:trocado/src/domain/models/budget/budget_model.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
 
@@ -35,9 +37,15 @@ const _budget = BudgetModel(
 Future<ProviderContainer> _makeContainer(
   IBudgetRepository repository, {
   int? id,
+  IDateFormatterService? dateFormatter,
 }) async {
+  final formatter = dateFormatter ?? MockDateFormatterService();
+  when(() => formatter.formatMonth(any())).thenReturn('Março');
+  when(() => formatter.formatPeriod(any(), any())).thenReturn('01/03 – 31/03');
+
   final container = ProviderContainer(
     overrides: [
+      dateFormatterServiceProvider.overrideWithValue(formatter),
       budgetRepositoryProvider.overrideWithValue(repository),
       budgetFormValidatorProvider.overrideWithValue(
         const BudgetFormValidator(
@@ -166,9 +174,9 @@ void main() {
       _formNotifier(container).dispatch(const SubmitPressed());
 
       final state = _formState(container);
+      expect(state.dateFailure, isNotNull);
       expect(state.valueFailure, isNotNull);
       expect(state.descriptionFailure, isNotNull);
-      expect(state.dateFailure, isNotNull);
     });
 
     test('does not call repository when validation fails', () async {

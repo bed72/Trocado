@@ -1,23 +1,30 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:trocado/src/main/providers/services_provider.dart';
 import 'package:trocado/src/main/providers/repositories_provider.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
+import 'package:trocado/src/domain/services/date_formatter_service.dart';
 import 'package:trocado/src/domain/models/notification/notification_model.dart';
 import 'package:trocado/src/domain/models/notification/notifications_page_model.dart';
 import 'package:trocado/src/domain/repositories/interface_notification_repository.dart';
 
 import 'package:trocado/src/presentation/ui/notifications/notifiers/notifications_state.dart';
+import 'package:trocado/src/presentation/ui/notifications/data/notification_groups_builder.dart';
+
+import 'package:trocado/src/presentation/data/notification/notification_item_presentation_data.dart';
 
 part 'notifications_notifier.g.dart';
 
 @Riverpod()
 final class NotificationsNotifier extends _$NotificationsNotifier {
   late INotificationRepository _repository;
+  late IDateFormatterService _dateFormatter;
 
   @override
   Future<NotificationsState> build() async {
     _repository = ref.watch(notificationRepositoryProvider);
+    _dateFormatter = ref.watch(dateFormatterServiceProvider);
 
     return await _loadFirstPage();
   }
@@ -44,13 +51,20 @@ final class NotificationsNotifier extends _$NotificationsNotifier {
       data.fold<NotificationsState>(
         (Failure failure) =>
             current.copyWith(isLoadingMore: false, loadMoreFailure: failure),
-        (NotificationsPageModel page) => current.copyWith(
-          isLoadingMore: false,
-          clearLoadMoreFailure: true,
-          nextCursor: page.nextCursor,
-          clearNextCursor: page.nextCursor == null,
-          items: [...current.items, ...page.notifications],
-        ),
+        (NotificationsPageModel page) {
+          final items = [...current.items, ...page.notifications.map(_toItem)];
+          return current.copyWith(
+            items: items,
+            isLoadingMore: false,
+            clearLoadMoreFailure: true,
+            nextCursor: page.nextCursor,
+            clearNextCursor: page.nextCursor == null,
+            groups: buildNotificationGroups(
+              items,
+              dateFormatter: _dateFormatter,
+            ),
+          );
+        },
       ),
     );
   }
@@ -58,12 +72,20 @@ final class NotificationsNotifier extends _$NotificationsNotifier {
   Future<NotificationsState> _loadFirstPage() async {
     final data = await _repository.findAll();
 
-    return data.fold(
-      (failure) => throw failure,
-      (page) => NotificationsState(
+    return data.fold((failure) => throw failure, (page) {
+      final items = page.notifications.map(_toItem).toList();
+
+      return NotificationsState(
+        items: items,
         nextCursor: page.nextCursor,
-        items: List<NotificationModel>.from(page.notifications),
-      ),
-    );
+        groups: buildNotificationGroups(items, dateFormatter: _dateFormatter),
+      );
+    });
   }
+
+  NotificationItemPresentationData _toItem(NotificationModel notification) =>
+      NotificationItemPresentationData(
+        notification: notification,
+        formattedTime: _dateFormatter.formatTime(notification.createdAt),
+      );
 }

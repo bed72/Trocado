@@ -74,13 +74,12 @@ main   → tudo
 - `models/` — models de domínio (definir por feature, ex: `ExpenseModel`, `CategoryModel`)
 - `enums/` — enums de domínio por feature (ex: `ExpenseCategoryEnum`, `InsightTypeEnum`)
 - `repositories/` — interfaces abstratas de repositório (ex: `IExpenseRepository`)
+- `services/` — interfaces puras de serviços utilitários (ex: `IMoneyService`, `IDateFormatterService`)
 - `validators/validation.dart` — `sealed class ValidationBase<T>` + interface `Validation<T>`
 
 **Regra de ouro:** zero imports de `flutter`, `dart:ui` ou qualquer pacote externo.
 
-### `application/` — Serviços utilitários
-
-- `services/money_service.dart` — formatação de moeda `pt_BR` (`IMoneyService`)
+### Fluxo
 
 A arquitetura **não tem** `use_cases/`. O fluxo padrão é:
 
@@ -103,6 +102,7 @@ O mapping `XxxResponse → XxxModel` é feito via extension em `data/extensions/
 - `clients/http/responses/` — classes de response com `fromJson()` apenas (ex: `SignInResponse`) — **nunca `toModel()`**
 - `clients/http/responses/failure_response.dart` — `FailureResponse` genérico compartilhado: `{ "errors": [{ "field", "message", "code" }] }`
 - `clients/logger/logger_client.dart` — `ILoggerClient` + `LoggerClient`
+- `services/` — implementações concretas das interfaces de `domain/services/` (ex: `MoneyService` com `intl`)
 - `datasources/` — interfaces de datasource retornam `Either<FailureResponse, XxxResponse>`
 - `datasources/remote/` — mapeia `Either<Map, Map>` do Client para `Either<FailureResponse, XxxResponse>` via `fromJson`
 

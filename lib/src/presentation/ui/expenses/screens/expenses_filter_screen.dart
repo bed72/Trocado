@@ -67,9 +67,8 @@ class ExpensesFilterScreen extends StatelessWidget {
                       const SizedBox(height: 8.0),
 
                       ExpensesFilterPeriodSectionWidget(
-                        endDate: state.draft.endDate,
-                        startDate: state.draft.startDate,
                         selectedPreset: state.selectedPreset,
+                        formattedSummary: state.formattedPeriodSummary,
                         onPresetSelected: (preset) {
                           notifier.dispatch(PresetSelected(preset));
                           if (preset == .custom) {

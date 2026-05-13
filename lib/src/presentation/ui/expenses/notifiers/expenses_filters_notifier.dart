@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:trocado/src/main/providers/services_provider.dart';
 
+import 'package:trocado/src/domain/services/date_formatter_service.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 import 'package:trocado/src/domain/enums/expense/expense_period_preset_enum.dart';
 
@@ -13,12 +14,17 @@ part 'expenses_filters_notifier.g.dart';
 @riverpod
 final class ExpensesFiltersNotifier extends _$ExpensesFiltersNotifier {
   late DateTime Function() _now;
+  late IDateFormatterService _dateFormatter;
 
   @override
   ExpensesFiltersState build(ExpenseFilterModel seed) {
     _now = ref.watch(nowProvider);
+    _dateFormatter = ref.watch(dateFormatterServiceProvider);
 
-    return ExpensesFiltersState(draft: seed);
+    return ExpensesFiltersState(
+      draft: seed,
+      formattedPeriodSummary: _summaryOf(seed),
+    );
   }
 
   void dispatch(ExpensesFiltersIntent intent) => switch (intent) {
@@ -29,11 +35,10 @@ final class ExpensesFiltersNotifier extends _$ExpensesFiltersNotifier {
       ),
     ),
     PresetSelected(:final preset) => _selectPreset(preset),
-    CustomRangeChanged(:final startDate, :final endDate) =>
-      state = state.copyWith(
-        selectedPreset: ExpensePeriodPresetEnum.custom,
-        draft: state.draft.copyWith(startDate: startDate, endDate: endDate),
-      ),
+    CustomRangeChanged(:final startDate, :final endDate) => _applyCustomRange(
+      startDate,
+      endDate,
+    ),
     MinValueChanged(:final cents) => state = state.copyWith(
       draft: state.draft.copyWith(
         minValue: cents,
@@ -59,12 +64,35 @@ final class ExpensesFiltersNotifier extends _$ExpensesFiltersNotifier {
     }
 
     final range = preset.toRange(now: _now());
-    state = state.copyWith(
-      selectedPreset: preset,
-      draft: state.draft.copyWith(
-        endDate: range.endDate,
-        startDate: range.startDate,
-      ),
+    final draft = state.draft.copyWith(
+      endDate: range.endDate,
+      startDate: range.startDate,
     );
+
+    state = state.copyWith(
+      draft: draft,
+      selectedPreset: preset,
+      formattedPeriodSummary: _summaryOf(draft),
+    );
+  }
+
+  void _applyCustomRange(int? startDate, int? endDate) {
+    final draft = state.draft.copyWith(
+      endDate: endDate,
+      startDate: startDate,
+    );
+
+    state = state.copyWith(
+      draft: draft,
+      selectedPreset: ExpensePeriodPresetEnum.custom,
+      formattedPeriodSummary: _summaryOf(draft),
+    );
+  }
+
+  String? _summaryOf(ExpenseFilterModel draft) {
+    if (draft.startDate == null || draft.endDate == null) return null;
+    final start = _dateFormatter.formatShortDate(draft.startDate!);
+    final end = _dateFormatter.formatShortDate(draft.endDate!);
+    return '$start – $end';
   }
 }

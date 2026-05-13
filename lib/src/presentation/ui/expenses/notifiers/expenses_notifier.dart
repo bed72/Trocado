@@ -1,22 +1,25 @@
-import 'package:intl/intl.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:trocado/src/main/providers/services_provider.dart';
 import 'package:trocado/src/main/providers/repositories_provider.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
+
 import 'package:trocado/src/domain/services/money_service.dart';
+import 'package:trocado/src/domain/services/date_formatter_service.dart';
+
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
 import 'package:trocado/src/domain/models/expense/expenses_page_model.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
-import 'package:trocado/src/presentation/data/expense_item_presentation_data.dart';
 import 'package:trocado/src/presentation/actions/debounce_action.dart';
+import 'package:trocado/src/presentation/data/expense_item_presentation_data.dart';
 import 'package:trocado/src/presentation/widgets/expense/expense_category_visual_extension.dart';
 
 import 'package:trocado/src/presentation/ui/expenses/notifiers/expenses_state.dart';
 import 'package:trocado/src/presentation/ui/expenses/data/expense_filter_chip_kind.dart';
+import 'package:trocado/src/presentation/ui/expenses/data/expense_groups_builder.dart';
 import 'package:trocado/src/presentation/ui/expenses/data/expense_active_filter_chip_presentation_data.dart';
 
 part 'expenses_notifier.g.dart';
@@ -24,13 +27,15 @@ part 'expenses_notifier.g.dart';
 @Riverpod(keepAlive: true)
 final class ExpensesNotifier extends _$ExpensesNotifier {
   late IMoneyService _moneyService;
-  late IExpenseRepository _repository;
   late DebounceAction _searchDebounce;
+  late IExpenseRepository _repository;
+  late IDateFormatterService _dateFormatter;
 
   @override
   Future<ExpensesState> build() async {
     _moneyService = ref.watch(moneyServiceProvider);
     _repository = ref.watch(expenseRepositoryProvider);
+    _dateFormatter = ref.watch(dateFormatterServiceProvider);
 
     _searchDebounce = DebounceAction();
     ref.onDispose(_searchDebounce.dispose);
@@ -83,13 +88,17 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
       data.fold<ExpensesState>(
         (Failure failure) =>
             current.copyWith(isLoadingMore: false, loadMoreFailure: failure),
-        (ExpensesPageModel page) => current.copyWith(
-          isLoadingMore: false,
-          clearLoadMoreFailure: true,
-          nextCursor: page.nextCursor,
-          clearNextCursor: page.nextCursor == null,
-          items: [...current.items, ...page.expenses.map(_toItem)],
-        ),
+        (ExpensesPageModel page) {
+          final items = [...current.items, ...page.expenses.map(_toItem)];
+          return current.copyWith(
+            items: items,
+            isLoadingMore: false,
+            clearLoadMoreFailure: true,
+            nextCursor: page.nextCursor,
+            groups: buildExpenseGroups(items, dateFormatter: _dateFormatter),
+            clearNextCursor: page.nextCursor == null,
+          );
+        },
       ),
     );
   }
@@ -97,23 +106,30 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
   Future<ExpensesState> _loadFirstPage(ExpenseFilterModel filter) async {
     final data = await _repository.findAll(filter: filter);
 
-    return data.fold(
-      (failure) => throw failure,
-      (page) => ExpensesState(
+    return data.fold((failure) => throw failure, (page) {
+      final items = page.expenses.map(_toItem).toList();
+
+      return ExpensesState(
+        items: items,
         filter: filter,
         nextCursor: page.nextCursor,
         activeFilterChips: _buildChips(filter),
-        items: page.expenses.map(_toItem).toList(),
-      ),
-    );
+        groups: buildExpenseGroups(items, dateFormatter: _dateFormatter),
+      );
+    });
   }
 
-  ExpenseItemPresentationData _toItem(ExpenseModel expense) => ExpenseItemPresentationData(
-    expense: expense,
-    formattedValue: _moneyService.format(expense.value / 100),
-  );
+  ExpenseItemPresentationData _toItem(ExpenseModel expense) =>
+      ExpenseItemPresentationData(
+        expense: expense,
+        formattedValue: _moneyService.format(expense.value / 100),
+        formattedTime: _dateFormatter.formatTime(expense.createdAt),
+        formattedDate: _dateFormatter.formatDayMonth(expense.createdAt),
+      );
 
-  List<ExpenseActiveFilterChipPresentationData> _buildChips(ExpenseFilterModel filter) {
+  List<ExpenseActiveFilterChipPresentationData> _buildChips(
+    ExpenseFilterModel filter,
+  ) {
     final chips = <ExpenseActiveFilterChipPresentationData>[];
 
     if (filter.category != null) {
@@ -157,13 +173,10 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
   }
 
   String _periodLabel(int? start, int? end) {
-    final format = DateFormat('dd/MM/yyyy', 'pt_BR');
     final startLabel = start != null
-        ? format.format(.fromMillisecondsSinceEpoch(start))
+        ? _dateFormatter.formatShortDate(start)
         : null;
-    final endLabel = end != null
-        ? format.format(.fromMillisecondsSinceEpoch(end))
-        : null;
+    final endLabel = end != null ? _dateFormatter.formatShortDate(end) : null;
 
     if (startLabel != null && endLabel != null) {
       return '$startLabel – $endLabel';

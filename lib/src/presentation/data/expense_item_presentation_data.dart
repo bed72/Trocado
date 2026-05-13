@@ -4,13 +4,22 @@ import 'package:trocado/src/domain/models/expense/expense_model.dart';
 
 final class ExpenseItemPresentationData extends Equatable {
   final ExpenseModel expense;
+  final String formattedDate;
+  final String formattedTime;
   final String formattedValue;
 
   const ExpenseItemPresentationData({
     required this.expense,
+    required this.formattedDate,
+    required this.formattedTime,
     required this.formattedValue,
   });
 
   @override
-  List<Object?> get props => [expense, formattedValue];
+  List<Object?> get props => [
+    expense,
+    formattedDate,
+    formattedTime,
+    formattedValue,
+  ];
 }

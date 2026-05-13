@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:trocado/src/domain/services/money_service.dart';
+import 'package:trocado/src/domain/services/date_formatter_service.dart';
 
 import 'package:trocado/src/domain/repositories/interface_user_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
@@ -44,6 +45,9 @@ final class MockTokenDataSource extends Mock implements ILocalTokenDataSource {}
 
 final class MockInsightsRepository extends Mock
     implements IInsightsRepository {}
+
+final class MockDateFormatterService extends Mock
+    implements IDateFormatterService {}
 
 final class MockNotificationRepository extends Mock
     implements INotificationRepository {}

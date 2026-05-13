@@ -12,6 +12,8 @@ final class BudgetFormState extends Equatable {
   final String description;
   final String? dateFailure;
   final String? valueFailure;
+  final String descriptionHint;
+  final String? formattedPeriod;
   final BudgetFormStatus status;
   final String? descriptionFailure;
 
@@ -23,10 +25,12 @@ final class BudgetFormState extends Equatable {
     this.dateFailure,
     this.message = '',
     this.valueFailure,
+    this.formattedPeriod,
     this.description = '',
     this.status = .initial,
     this.isDeleting = false,
     this.descriptionFailure,
+    this.descriptionHint = '',
   });
 
   BudgetFormState copyWith({
@@ -39,6 +43,8 @@ final class BudgetFormState extends Equatable {
     String? description,
     String? dateFailure,
     String? valueFailure,
+    String? descriptionHint,
+    String? formattedPeriod,
     BudgetFormStatus? status,
     String? descriptionFailure,
     bool clearDateFailure = false,
@@ -53,6 +59,8 @@ final class BudgetFormState extends Equatable {
     startDate: startDate ?? this.startDate,
     isDeleting: isDeleting ?? this.isDeleting,
     description: description ?? this.description,
+    descriptionHint: descriptionHint ?? this.descriptionHint,
+    formattedPeriod: formattedPeriod ?? this.formattedPeriod,
     dateFailure: clearDateFailure ? null : dateFailure ?? this.dateFailure,
     valueFailure: clearValueFailure ? null : valueFailure ?? this.valueFailure,
     descriptionFailure: clearDescriptionFailure
@@ -72,6 +80,8 @@ final class BudgetFormState extends Equatable {
     description,
     dateFailure,
     valueFailure,
+    formattedPeriod,
+    descriptionHint,
     descriptionFailure,
   ];
 }

@@ -96,3 +96,51 @@ final class NowProvider
 }
 
 String _$nowHash() => r'5f40f7a4b9a833d331d8ab27c8048d81f2a494d1';
+
+@ProviderFor(dateFormatterService)
+final dateFormatterServiceProvider = DateFormatterServiceProvider._();
+
+final class DateFormatterServiceProvider
+    extends
+        $FunctionalProvider<
+          IDateFormatterService,
+          IDateFormatterService,
+          IDateFormatterService
+        >
+    with $Provider<IDateFormatterService> {
+  DateFormatterServiceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'dateFormatterServiceProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$dateFormatterServiceHash();
+
+  @$internal
+  @override
+  $ProviderElement<IDateFormatterService> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  IDateFormatterService create(Ref ref) {
+    return dateFormatterService(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(IDateFormatterService value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<IDateFormatterService>(value),
+    );
+  }
+}
+
+String _$dateFormatterServiceHash() =>
+    r'0bddecd5453ed6ae3c700f5fba8b781e7a4f9d7d';

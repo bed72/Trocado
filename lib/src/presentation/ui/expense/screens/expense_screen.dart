@@ -141,8 +141,8 @@ class ExpenseScreen extends StatelessWidget {
                     ),
                   ),
                   ExpenseDateFieldWidget(
-                    date: state.date,
                     failure: state.dateFailure,
+                    displayValue: state.formattedDate,
                     navigateTo: navigateToDate,
                   ),
                 ],

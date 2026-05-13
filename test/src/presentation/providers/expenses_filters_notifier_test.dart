@@ -1,8 +1,10 @@
+import 'package:mocktail/mocktail.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:trocado/src/main/providers/services_provider.dart';
 
+import 'package:trocado/src/domain/services/date_formatter_service.dart';
 import 'package:trocado/src/domain/enums/expense/expense_category_enum.dart';
 import 'package:trocado/src/domain/enums/expense/expense_ordering_enum.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
@@ -11,9 +13,20 @@ import 'package:trocado/src/domain/enums/expense/expense_period_preset_enum.dart
 import 'package:trocado/src/presentation/ui/expenses/notifiers/expenses_filters_intent.dart';
 import 'package:trocado/src/presentation/ui/expenses/notifiers/expenses_filters_notifier.dart';
 
-ProviderContainer _makeContainer({DateTime? now}) {
+import '../../../mocks/mocks.dart';
+
+ProviderContainer _makeContainer({
+  DateTime? now,
+  IDateFormatterService? dateFormatter,
+}) {
+  final formatter = dateFormatter ?? MockDateFormatterService();
+  when(() => formatter.formatShortDate(any())).thenAnswer(
+    (invocation) => 'SHORT(${invocation.positionalArguments.first})',
+  );
+
   final container = ProviderContainer(
     overrides: [
+      dateFormatterServiceProvider.overrideWithValue(formatter),
       if (now != null)
         nowProvider.overrideWith(
           (_) =>
@@ -40,7 +53,7 @@ void main() {
     test('seeds the draft from the provided filter', () {
       final container = _makeContainer();
       final filter = const ExpenseFilterModel.empty().copyWith(
-        category: ExpenseCategoryEnum.food,
+        category: .food,
         minValue: 10000,
       );
 
@@ -99,6 +112,19 @@ void main() {
       expect(state.selectedPreset, ExpensePeriodPresetEnum.custom);
       expect(state.draft.startDate, start);
       expect(state.draft.endDate, end);
+    });
+
+    test('exposes formattedPeriodSummary using the date service', () {
+      final container = _makeContainer();
+      final start = DateTime(2026, 3, 5).millisecondsSinceEpoch;
+      final end = DateTime(2026, 3, 20).millisecondsSinceEpoch;
+
+      container
+          .read(expensesFiltersProvider(emptySeed).notifier)
+          .dispatch(CustomRangeChanged(start, end));
+
+      final state = container.read(expensesFiltersProvider(emptySeed));
+      expect(state.formattedPeriodSummary, 'SHORT($start) – SHORT($end)');
     });
   });
 
@@ -184,7 +210,7 @@ void main() {
 
       container
           .read(expensesFiltersProvider(emptySeed).notifier)
-          .dispatch(const OrderingSelected(ExpenseOrderingEnum.valueAsc));
+          .dispatch(const OrderingSelected(.valueAsc));
 
       expect(
         container.read(expensesFiltersProvider(emptySeed)).draft.ordering,
@@ -209,8 +235,8 @@ void main() {
       notifier.dispatch(const Cleared());
 
       final state = container.read(expensesFiltersProvider(emptySeed));
-      expect(state.draft, const ExpenseFilterModel.empty());
       expect(state.selectedPreset, isNull);
+      expect(state.draft, const ExpenseFilterModel.empty());
     });
   });
 }

@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:trocado/src/domain/either/either.dart';
@@ -11,7 +10,10 @@ import 'package:trocado/src/main/providers/services_provider.dart';
 import 'package:trocado/src/main/providers/repositories_provider.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
+
 import 'package:trocado/src/domain/services/money_service.dart';
+import 'package:trocado/src/domain/services/date_formatter_service.dart';
+
 import 'package:trocado/src/domain/models/budget/budget_model.dart';
 import 'package:trocado/src/domain/models/budget/budgets_page_model.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
@@ -86,11 +88,14 @@ BudgetModel _crossYearBudget() => BudgetModel(
 ProviderContainer _makeContainer({
   required IMoneyService moneyService,
   required IBudgetRepository repository,
+  required IDateFormatterService dateFormatter,
 }) {
   final container = ProviderContainer(
     overrides: [
+      nowProvider.overrideWithValue(() => _now),
       moneyServiceProvider.overrideWithValue(moneyService),
       budgetRepositoryProvider.overrideWithValue(repository),
+      dateFormatterServiceProvider.overrideWithValue(dateFormatter),
     ],
   );
   addTearDown(container.dispose);
@@ -100,18 +105,23 @@ ProviderContainer _makeContainer({
 void main() {
   late IMoneyService moneyService;
   late IBudgetRepository repository;
-
-  setUpAll(() async {
-    await initializeDateFormatting('pt_BR');
-  });
+  late IDateFormatterService dateFormatter;
 
   setUp(() {
     moneyService = MockMoneyService();
     repository = MockBudgetRepository();
+    dateFormatter = MockDateFormatterService();
 
     when(
       () => moneyService.format(any()),
     ).thenAnswer((invocation) => 'R\$ ${invocation.positionalArguments.first}');
+
+    when(() => dateFormatter.formatPeriod(any(), any())).thenAnswer(
+      (invocation) =>
+          'PERIOD(${invocation.positionalArguments[0]}-${invocation.positionalArguments[1]})',
+    );
+    when(() => dateFormatter.formatDayMonth(any())).thenReturn('30/04');
+    when(() => dateFormatter.daysUntil(any())).thenReturn(10);
   });
 
   group('build', () {
@@ -130,6 +140,7 @@ void main() {
         final container = _makeContainer(
           repository: repository,
           moneyService: moneyService,
+          dateFormatter: dateFormatter,
         );
         final state = await container.read(budgetsProvider.future);
 
@@ -155,6 +166,7 @@ void main() {
       final container = _makeContainer(
         repository: repository,
         moneyService: moneyService,
+        dateFormatter: dateFormatter,
       );
       final state = await container.read(budgetsProvider.future);
 
@@ -170,6 +182,7 @@ void main() {
       final container = _makeContainer(
         repository: repository,
         moneyService: moneyService,
+        dateFormatter: dateFormatter,
       );
       container.listen(budgetsProvider, (_, _) {});
       container.read(budgetsProvider);
@@ -189,6 +202,7 @@ void main() {
       final container = _makeContainer(
         repository: repository,
         moneyService: moneyService,
+        dateFormatter: dateFormatter,
       );
       await container.read(budgetsProvider.future);
 
@@ -207,58 +221,19 @@ void main() {
         final container = _makeContainer(
           repository: repository,
           moneyService: moneyService,
+          dateFormatter: dateFormatter,
         );
         final state = await container.read(budgetsProvider.future);
         final item = state.items.single;
 
         expect(item.formattedValue, 'R\$ 800.0');
-        expect(item.formattedTotalSpent, 'R\$ 600.0');
         expect(item.formattedRemaining, 'R\$ 200.0');
+        expect(item.formattedTotalSpent, 'R\$ 600.0');
       },
     );
 
     test(
-      'item view-model exposes formattedPeriod for same-year budgets',
-      () async {
-        final pickedMonth = _now.month == 1 ? 6 : 1;
-        final start = DateTime(
-          _now.year,
-          pickedMonth,
-          1,
-        ).millisecondsSinceEpoch;
-        final end = DateTime(_now.year, pickedMonth, 28).millisecondsSinceEpoch;
-        final budget = BudgetModel(
-          id: 10,
-          endDate: end,
-          value: 100000,
-          totalSpent: 0,
-          startDate: start,
-          remaining: 100000,
-          createdAt: _nowMs,
-          description: 'Same year',
-        );
-        final monthLabel = pickedMonth.toString().padLeft(2, '0');
-
-        when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
-          (_) async =>
-              Right(BudgetsPageModel(budgets: [budget], nextCursor: null)),
-        );
-
-        final container = _makeContainer(
-          repository: repository,
-          moneyService: moneyService,
-        );
-        final state = await container.read(budgetsProvider.future);
-
-        expect(
-          state.items.single.formattedPeriod,
-          '01/$monthLabel – 28/$monthLabel',
-        );
-      },
-    );
-
-    test(
-      'item view-model exposes formattedPeriod for cross-year budgets',
+      'item view-model delegates formattedPeriod to IDateFormatterService',
       () async {
         when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
           (_) async => Right(
@@ -269,10 +244,17 @@ void main() {
         final container = _makeContainer(
           repository: repository,
           moneyService: moneyService,
+          dateFormatter: dateFormatter,
         );
         final state = await container.read(budgetsProvider.future);
 
-        expect(state.items.single.formattedPeriod, '15/12/24 – 14/01/25');
+        expect(
+          state.items.single.formattedPeriod,
+          'PERIOD($_crossYearStart-$_crossYearEnd)',
+        );
+        verify(
+          () => dateFormatter.formatPeriod(_crossYearStart, _crossYearEnd),
+        ).called(1);
       },
     );
   });
@@ -284,8 +266,8 @@ void main() {
         when(() => repository.findAll(cursor: null)).thenAnswer(
           (_) async => Right(
             BudgetsPageModel(
-              budgets: [_activeBudget(), _pastBudget()],
               nextCursor: 'CUR1',
+              budgets: [_activeBudget(), _pastBudget()],
             ),
           ),
         );
@@ -298,16 +280,18 @@ void main() {
         final container = _makeContainer(
           repository: repository,
           moneyService: moneyService,
+          dateFormatter: dateFormatter,
         );
         await container.read(budgetsProvider.future);
         await container.read(budgetsProvider.notifier).loadMore();
 
         final state = container.read(budgetsProvider).value!;
-        expect(state.items.map((item) => item.budget.id).toList(), [2, 3]);
+
         expect(state.nextCursor, 'CUR2');
         expect(state.activeCard, isNotNull);
         expect(state.isLoadingMore, isFalse);
         expect(state.loadMoreFailure, isNull);
+        expect(state.items.map((item) => item.budget.id).toList(), [2, 3]);
       },
     );
 
@@ -326,6 +310,7 @@ void main() {
       final container = _makeContainer(
         repository: repository,
         moneyService: moneyService,
+        dateFormatter: dateFormatter,
       );
       await container.read(budgetsProvider.future);
       await container.read(budgetsProvider.notifier).loadMore();
@@ -342,6 +327,7 @@ void main() {
       final container = _makeContainer(
         repository: repository,
         moneyService: moneyService,
+        dateFormatter: dateFormatter,
       );
       await container.read(budgetsProvider.future);
       await container.read(budgetsProvider.notifier).loadMore();
@@ -369,6 +355,7 @@ void main() {
       final container = _makeContainer(
         repository: repository,
         moneyService: moneyService,
+        dateFormatter: dateFormatter,
       );
       container.listen(budgetsProvider, (_, _) {});
       await container.read(budgetsProvider.future);
@@ -404,21 +391,23 @@ void main() {
         final container = _makeContainer(
           repository: repository,
           moneyService: moneyService,
+          dateFormatter: dateFormatter,
         );
         await container.read(budgetsProvider.future);
         await container.read(budgetsProvider.notifier).loadMore();
 
         final state = container.read(budgetsProvider).value!;
-        expect(state.items.map((item) => item.budget.id).toList(), [2]);
-        expect(state.activeCard, isNotNull);
+
         expect(state.nextCursor, 'CUR1');
+        expect(state.activeCard, isNotNull);
         expect(state.isLoadingMore, isFalse);
         expect(state.loadMoreFailure, isA<ServerFailure>());
+        expect(state.items.map((item) => item.budget.id).toList(), [2]);
       },
     );
 
     test('retry after failure clears loadMoreFailure on success', () async {
-      var callCount = 0;
+      int callCount = 0;
 
       when(() => repository.findAll(cursor: null)).thenAnswer(
         (_) async => Right(
@@ -436,6 +425,7 @@ void main() {
       final container = _makeContainer(
         repository: repository,
         moneyService: moneyService,
+        dateFormatter: dateFormatter,
       );
       await container.read(budgetsProvider.future);
       await container.read(budgetsProvider.notifier).loadMore();
@@ -448,15 +438,15 @@ void main() {
       await container.read(budgetsProvider.notifier).loadMore();
 
       final state = container.read(budgetsProvider).value!;
+      expect(state.nextCursor, isNull);
       expect(state.loadMoreFailure, isNull);
       expect(state.items.map((item) => item.budget.id).toList(), [2, 3]);
-      expect(state.nextCursor, isNull);
     });
   });
 
   group('refresh via invalidate', () {
     test('re-runs build and refetches first page', () async {
-      var page = 0;
+      int page = 0;
 
       when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer((
         _,
@@ -473,6 +463,7 @@ void main() {
       final container = _makeContainer(
         repository: repository,
         moneyService: moneyService,
+        dateFormatter: dateFormatter,
       );
       await container.read(budgetsProvider.future);
       container.invalidate(budgetsProvider);

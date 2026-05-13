@@ -1,27 +1,21 @@
-import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 
-import 'package:trocado/src/domain/models/notification/notification_model.dart';
-
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
-
 import 'package:trocado/src/presentation/widgets/icons/background_icon_widget.dart';
+import 'package:trocado/src/presentation/data/notification/notification_item_presentation_data.dart';
 import 'package:trocado/src/presentation/widgets/notification/notification_type_visual_extension.dart';
 
 class NotificationCardWidget extends StatelessWidget {
-  final NotificationModel notification;
+  final NotificationItemPresentationData item;
 
-  const NotificationCardWidget({super.key, required this.notification});
+  const NotificationCardWidget({super.key, required this.item});
 
   @override
   Widget build(BuildContext context) {
-    final createdAt = DateTime.fromMillisecondsSinceEpoch(
-      notification.createdAt,
-    );
-    final time = DateFormat('HH:mm', 'pt_BR').format(createdAt);
+    final notification = item.notification;
 
     return Padding(
-      padding: const .symmetric(horizontal: 16.0, vertical: 12.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
       child: Row(
         spacing: 12.0,
         crossAxisAlignment: .center,
@@ -53,7 +47,7 @@ class NotificationCardWidget extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      time,
+                      item.formattedTime,
                       style: context.typography.bodySmall?.copyWith(
                         color: context.colors.onSurfaceVariant,
                       ),

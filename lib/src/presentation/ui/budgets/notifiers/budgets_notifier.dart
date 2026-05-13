@@ -1,13 +1,15 @@
 import 'dart:math';
 
-import 'package:intl/intl.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:trocado/src/main/providers/services_provider.dart';
 import 'package:trocado/src/main/providers/repositories_provider.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
+
 import 'package:trocado/src/domain/services/money_service.dart';
+import 'package:trocado/src/domain/services/date_formatter_service.dart';
+
 import 'package:trocado/src/domain/models/budget/budget_model.dart';
 import 'package:trocado/src/domain/models/budget/budgets_page_model.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
@@ -21,13 +23,17 @@ part 'budgets_notifier.g.dart';
 
 @Riverpod()
 final class BudgetsNotifier extends _$BudgetsNotifier {
+  late DateTime Function() _now;
   late IMoneyService _moneyService;
   late IBudgetRepository _repository;
+  late IDateFormatterService _dateFormatter;
 
   @override
   Future<BudgetsState> build() async {
+    _now = ref.watch(nowProvider);
     _moneyService = ref.watch(moneyServiceProvider);
     _repository = ref.watch(budgetRepositoryProvider);
+    _dateFormatter = ref.watch(dateFormatterServiceProvider);
 
     return await _loadFirstPage();
   }
@@ -64,7 +70,7 @@ final class BudgetsNotifier extends _$BudgetsNotifier {
     final data = await _repository.findAll();
 
     return data.fold((failure) => throw failure, (page) {
-      final now = DateTime.now().millisecondsSinceEpoch;
+      final now = _now().millisecondsSinceEpoch;
       final active = _pickActive(page.budgets, now);
       final remaining = active == null
           ? page.budgets
@@ -94,7 +100,10 @@ final class BudgetsNotifier extends _$BudgetsNotifier {
           (budget.totalSpent ?? 0) / 100,
         ),
         formattedValue: _moneyService.format(budget.value / 100),
-        formattedPeriod: _formatPeriod(budget.startDate, budget.endDate),
+        formattedPeriod: _dateFormatter.formatPeriod(
+          budget.startDate,
+          budget.endDate,
+        ),
         formattedRemaining: _moneyService.format((budget.remaining ?? 0) / 100),
       );
 
@@ -103,13 +112,13 @@ final class BudgetsNotifier extends _$BudgetsNotifier {
     final totalSpent = model.totalSpent ?? 0;
     final percentage = value > 0 ? totalSpent / value : 0.0;
     final remaining = model.remaining ?? (value - totalSpent);
-    final dailyBudget = (remaining / max(1, _daysRemaining(model.endDate)))
-        .round();
+    final dailyBudget =
+        (remaining / max(1, _dateFormatter.daysUntil(model.endDate))).round();
 
     return BudgetCardPresentationData(
       percentage: percentage,
       overspent: remaining < 0,
-      formattedEndDate: _formatEndDate(model.endDate),
+      formattedEndDate: _dateFormatter.formatDayMonth(model.endDate),
       formattedValue: _moneyService.format(value / 100),
       formattedTotalSpent: _moneyService.format(totalSpent / 100),
       formattedDailyBudget: _moneyService.format(dailyBudget / 100),
@@ -117,31 +126,5 @@ final class BudgetsNotifier extends _$BudgetsNotifier {
       formattedRemaining: _moneyService.format(max(0, remaining) / 100),
       formattedPercentage: (percentage * 100).clamp(0, 100).toStringAsFixed(0),
     );
-  }
-
-  String _formatPeriod(int startMs, int endMs) {
-    final currentYear = DateTime.now().year;
-    final end = DateTime.fromMillisecondsSinceEpoch(endMs);
-    final start = DateTime.fromMillisecondsSinceEpoch(startMs);
-    final sameYear = start.year == currentYear && end.year == currentYear;
-
-    final pattern = sameYear ? 'dd/MM' : 'dd/MM/yy';
-    final format = DateFormat(pattern, 'pt_BR');
-
-    return '${format.format(start)} – ${format.format(end)}';
-  }
-
-  String _formatEndDate(int endDate) => DateFormat(
-    'dd/MM',
-    'pt_BR',
-  ).format(DateTime.fromMillisecondsSinceEpoch(endDate));
-
-  int _daysRemaining(int endDate) {
-    final now = DateTime.now();
-    final end = DateTime.fromMillisecondsSinceEpoch(endDate);
-    final today = DateTime(now.year, now.month, now.day);
-    final endDay = DateTime(end.year, end.month, end.day);
-
-    return endDay.difference(today).inDays + 1;
   }
 }

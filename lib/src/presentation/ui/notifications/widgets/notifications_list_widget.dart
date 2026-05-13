@@ -33,8 +33,8 @@ class NotificationsListWidget extends StatelessWidget {
             final item = group.notifications[index];
 
             return NotificationCardWidget(
-              notification: item,
-              key: ValueKey(item.id),
+              key: ValueKey(item.notification.id),
+              item: item,
             );
           },
         ),

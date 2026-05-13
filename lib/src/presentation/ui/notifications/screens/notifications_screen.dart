@@ -9,8 +9,6 @@ import 'package:trocado/src/presentation/widgets/screen_header_widget.dart';
 import 'package:trocado/src/presentation/ui/notifications/notifiers/notifications_state.dart';
 import 'package:trocado/src/presentation/ui/notifications/notifiers/notifications_notifier.dart';
 
-import 'package:trocado/src/presentation/ui/notifications/data/notification_groups_builder.dart';
-
 import 'package:trocado/src/presentation/ui/notifications/widgets/notifications_list_widget.dart';
 import 'package:trocado/src/presentation/ui/notifications/widgets/notifications_empty_widget.dart';
 import 'package:trocado/src/presentation/ui/notifications/widgets/notifications_failure_widget.dart';
@@ -108,8 +106,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     AsyncData(:final NotificationsState value) => [
       NotificationsListWidget(
         state: value,
+        groups: value.groups,
         onLoadMore: _onLoadMore,
-        groups: buildNotificationGroups(value.items),
       ),
     ],
   };

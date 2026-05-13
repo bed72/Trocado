@@ -9,6 +9,7 @@ import 'package:trocado/src/main/providers/repositories_provider.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/services/money_service.dart';
+import 'package:trocado/src/domain/services/date_formatter_service.dart';
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
 import 'package:trocado/src/domain/enums/expense/expense_category_enum.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
@@ -21,29 +22,31 @@ const _expenses = [
   ExpenseModel(
     id: 129,
     value: 8550,
+    category: .food,
     date: 1744675200000,
     createdAt: 1745332903000,
     description: 'Cafezinho',
-    category: ExpenseCategoryEnum.food,
   ),
   ExpenseModel(
     id: 112,
     value: 3891,
+    category: .health,
     date: 1745971200000,
-    createdAt: 1745331562000,
     description: 'Farmácia',
-    category: ExpenseCategoryEnum.health,
+    createdAt: 1745331562000,
   ),
 ];
 
 ProviderContainer _makeContainer({
-  required IExpenseRepository repository,
   required IMoneyService moneyService,
+  required IExpenseRepository repository,
+  required IDateFormatterService dateFormatter,
 }) {
   final container = ProviderContainer(
     overrides: [
       moneyServiceProvider.overrideWithValue(moneyService),
       expenseRepositoryProvider.overrideWithValue(repository),
+      dateFormatterServiceProvider.overrideWithValue(dateFormatter),
     ],
   );
   addTearDown(container.dispose);
@@ -53,14 +56,18 @@ ProviderContainer _makeContainer({
 void main() {
   late IMoneyService moneyService;
   late IExpenseRepository repository;
+  late IDateFormatterService dateFormatter;
 
   setUp(() {
     moneyService = MockMoneyService();
     repository = MockExpenseRepository();
+    dateFormatter = MockDateFormatterService();
 
     when(
       () => moneyService.format(any()),
     ).thenAnswer((invocation) => 'R\$ ${invocation.positionalArguments.first}');
+    when(() => dateFormatter.formatDayMonth(any())).thenReturn('22/04');
+    when(() => dateFormatter.formatTime(any())).thenReturn('14:30');
   });
 
   test(
@@ -73,13 +80,14 @@ void main() {
       final container = _makeContainer(
         repository: repository,
         moneyService: moneyService,
+        dateFormatter: dateFormatter,
       );
       final data = await container.read(recentExpensesProvider.future);
 
       expect(data, hasLength(2));
-      expect(data.map((item) => item.expense), equals(_expenses));
-      expect(data.first.formattedValue, 'R\$ 85.5');
       expect(data.last.formattedValue, 'R\$ 38.91');
+      expect(data.first.formattedValue, 'R\$ 85.5');
+      expect(data.map((item) => item.expense), equals(_expenses));
     },
   );
 
@@ -91,6 +99,7 @@ void main() {
     final container = _makeContainer(
       repository: repository,
       moneyService: moneyService,
+      dateFormatter: dateFormatter,
     );
     final data = await container.read(recentExpensesProvider.future);
 
@@ -105,6 +114,7 @@ void main() {
     final container = _makeContainer(
       repository: repository,
       moneyService: moneyService,
+      dateFormatter: dateFormatter,
     );
     await container.read(recentExpensesProvider.future);
 
@@ -121,6 +131,7 @@ void main() {
       final container = _makeContainer(
         repository: repository,
         moneyService: moneyService,
+        dateFormatter: dateFormatter,
       );
       container.listen(recentExpensesProvider, (_, _) {});
       container.read(recentExpensesProvider);
@@ -145,6 +156,7 @@ void main() {
       final container = _makeContainer(
         repository: repository,
         moneyService: moneyService,
+        dateFormatter: dateFormatter,
       );
       container.listen(recentExpensesProvider, (_, _) {});
       container.read(recentExpensesProvider);

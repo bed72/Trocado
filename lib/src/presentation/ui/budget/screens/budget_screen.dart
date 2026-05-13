@@ -141,15 +141,15 @@ class BudgetScreen extends StatelessWidget {
                     ),
                   ),
                   BudgetDescriptionFieldWidget(
+                    hint: state.descriptionHint,
                     initialValue: state.description,
                     failure: state.descriptionFailure,
                     onChanged: (value) =>
                         notifier.dispatch(DescriptionChanged(value)),
                   ),
                   BudgetDateFieldWidget(
-                    endDate: state.endDate,
-                    startDate: state.startDate,
                     failure: state.dateFailure,
+                    displayValue: state.formattedPeriod,
                     navigateTo: () => navigateToDate(
                       initialStartDate: state.startDate,
                       initialEndDate: state.endDate,

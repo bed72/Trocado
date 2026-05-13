@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
+import 'package:trocado/src/domain/services/date_formatter_service.dart';
 import 'package:trocado/src/domain/enums/expense/expense_category_enum.dart';
+import 'package:trocado/src/infrastructure/services/date_formatter_service.dart';
 
 import 'package:trocado/src/presentation/data/expense_item_presentation_data.dart';
 
@@ -49,26 +51,35 @@ Widget _shell({required List<Widget> slivers}) => Scaffold(
   ),
 );
 
+final IDateFormatterService _previewFormatter = DateFormatterService(
+  now: DateTime.now,
+);
+
 Widget _listPreview(
   List<ExpenseItemPresentationData> items, {
   bool isLoadingMore = false,
   Failure? loadMoreFailure,
   String? nextCursor = 'CUR',
-}) => _shell(
-  slivers: [
-    ExpensesListWidget(
-      onLoadMore: () {},
-      onTapExpense: (_) {},
-      groups: buildExpenseGroups(items),
-      state: ExpensesState(
-        items: items,
-        nextCursor: nextCursor,
-        isLoadingMore: isLoadingMore,
-        loadMoreFailure: loadMoreFailure,
+}) {
+  final groups = buildExpenseGroups(items, dateFormatter: _previewFormatter);
+
+  return _shell(
+    slivers: [
+      ExpensesListWidget(
+        groups: groups,
+        onLoadMore: () {},
+        onTapExpense: (_) {},
+        state: ExpensesState(
+          items: items,
+          groups: groups,
+          nextCursor: nextCursor,
+          isLoadingMore: isLoadingMore,
+          loadMoreFailure: loadMoreFailure,
+        ),
       ),
-    ),
-  ],
-);
+    ],
+  );
+}
 
 @TrocadoPreview(group: 'Agrupamento', name: 'Hoje apenas')
 Widget previewToday() => _listPreview([
@@ -81,17 +92,17 @@ Widget previewToday() => _listPreview([
   ),
   expenseItemMock(
     id: 2,
-    ago: const Duration(hours: 2),
     value: 38.91,
     category: .health,
     description: 'Farmácia',
+    ago: const Duration(hours: 2),
   ),
   expenseItemMock(
     id: 3,
-    ago: const Duration(hours: 6),
     value: 22.00,
     description: 'Uber',
     category: .transport,
+    ago: const Duration(hours: 6),
   ),
 ]);
 
@@ -106,24 +117,24 @@ Widget previewTodayAndYesterday() => _listPreview([
   ),
   expenseItemMock(
     id: 2,
-    ago: const Duration(hours: 5),
     value: 38.91,
     category: .shopping,
     description: 'Arezzo',
+    ago: const Duration(hours: 5),
   ),
   expenseItemMock(
     id: 3,
-    ago: const Duration(days: 1),
     value: 164.00,
     category: .food,
+    ago: const Duration(days: 1),
     description: 'Pão de Açúcar',
   ),
   expenseItemMock(
     id: 4,
-    ago: const Duration(days: 1, hours: 3),
     value: 19.24,
     category: .transport,
     description: 'Estacionamento',
+    ago: const Duration(days: 1, hours: 3),
   ),
 ]);
 
@@ -138,30 +149,30 @@ Widget previewWithinWeek() => _listPreview([
   ),
   expenseItemMock(
     id: 2,
-    ago: const Duration(days: 1),
     value: 38.91,
     category: .health,
     description: 'Farmácia',
+    ago: const Duration(days: 1),
   ),
   expenseItemMock(
     id: 3,
-    ago: const Duration(days: 2),
     value: 236.66,
     category: .shopping,
     description: 'Arezzo',
+    ago: const Duration(days: 2),
   ),
   expenseItemMock(
     id: 4,
-    ago: const Duration(days: 4),
     value: 164.00,
     category: .food,
     description: 'Pão de Açúcar',
+    ago: const Duration(days: 4),
   ),
   expenseItemMock(
     id: 5,
-    ago: const Duration(days: 6),
     value: 19.24,
     category: .transport,
+    ago: const Duration(days: 6),
     description: 'Estacionamento',
   ),
 ]);
@@ -244,10 +255,10 @@ Widget previewAllGroups() => _listPreview([
   ),
   expenseItemMock(
     id: 8,
-    ago: const Duration(days: 75),
     value: 89.90,
     category: .shopping,
     description: 'Sapato',
+    ago: const Duration(days: 75),
   ),
 ]);
 
@@ -256,11 +267,11 @@ Widget previewLongList() => _listPreview([
   for (int i = 0; i < 25; i++)
     expenseItemMock(
       id: i + 1,
-      ago: Duration(days: i ~/ 2, hours: (i % 2) * 6),
       value: 10.0 + i * 7.5,
+      description: 'Despesa #${i + 1}',
+      ago: Duration(days: i ~/ 2, hours: (i % 2) * 6),
       category:
           ExpenseCategoryEnum.values[i % ExpenseCategoryEnum.values.length],
-      description: 'Despesa #${i + 1}',
     ),
 ]);
 
@@ -282,11 +293,11 @@ Widget previewTailFailure() => _listPreview([
   for (int i = 0; i < 6; i++)
     expenseItemMock(
       id: i + 1,
-      ago: Duration(days: i ~/ 2),
       value: 50.0 + i * 12.0,
+      ago: Duration(days: i ~/ 2),
+      description: 'Despesa #${i + 1}',
       category:
           ExpenseCategoryEnum.values[i % ExpenseCategoryEnum.values.length],
-      description: 'Despesa #${i + 1}',
     ),
 ], loadMoreFailure: const ServerFailure());
 
@@ -297,9 +308,9 @@ Widget previewTailEnd() => _listPreview([
       id: i + 1,
       ago: Duration(days: i),
       value: 50.0 + i * 12.0,
+      description: 'Despesa #${i + 1}',
       category:
           ExpenseCategoryEnum.values[i % ExpenseCategoryEnum.values.length],
-      description: 'Despesa #${i + 1}',
     ),
 ], nextCursor: null);
 

@@ -7,6 +7,7 @@ import 'package:trocado/src/presentation/widgets/expense/expense_item_widget.dar
 
 import 'package:trocado/src/presentation/ui/expenses/notifiers/expenses_state.dart';
 import 'package:trocado/src/presentation/ui/expenses/data/expense_group_presentation_data.dart';
+
 import 'package:trocado/src/presentation/ui/expenses/widgets/expenses_date_header_widget.dart';
 import 'package:trocado/src/presentation/ui/expenses/widgets/expenses_load_more_failure_widget.dart';
 import 'package:trocado/src/presentation/ui/expenses/widgets/expenses_load_more_loading_widget.dart';
@@ -14,8 +15,8 @@ import 'package:trocado/src/presentation/ui/expenses/widgets/expenses_load_more_
 class ExpensesListWidget extends StatelessWidget {
   final ExpensesState state;
   final VoidCallback onLoadMore;
-  final List<ExpenseGroupPresentationData> groups;
   final ValueChanged<ExpenseModel> onTapExpense;
+  final List<ExpenseGroupPresentationData> groups;
 
   const ExpensesListWidget({
     super.key,
@@ -42,6 +43,8 @@ class ExpensesListWidget extends StatelessWidget {
               child: ExpenseItemWidget(
                 key: ValueKey(item.expense.id),
                 expense: item.expense,
+                formattedDate: item.formattedDate,
+                formattedTime: item.formattedTime,
                 formattedValue: item.formattedValue,
               ),
             );

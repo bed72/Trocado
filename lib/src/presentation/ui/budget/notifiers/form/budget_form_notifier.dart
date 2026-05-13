@@ -1,8 +1,10 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:trocado/src/main/providers/services_provider.dart';
 import 'package:trocado/src/main/providers/validators_provider.dart';
 import 'package:trocado/src/main/providers/repositories_provider.dart';
 
+import 'package:trocado/src/domain/services/date_formatter_service.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
 
 import 'package:trocado/src/presentation/ui/home/notifiers/active_budget_notifier.dart';
@@ -18,15 +20,22 @@ part 'budget_form_notifier.g.dart';
 
 @riverpod
 final class BudgetFormNotifier extends _$BudgetFormNotifier {
+  late DateTime Function() _now;
   late IBudgetRepository _repository;
   late BudgetFormValidator _validator;
+  late IDateFormatterService _dateFormatter;
 
   @override
   Future<BudgetFormState> build(int? id) async {
+    _now = ref.watch(nowProvider);
     _repository = ref.watch(budgetRepositoryProvider);
     _validator = ref.watch(budgetFormValidatorProvider);
+    _dateFormatter = ref.watch(dateFormatterServiceProvider);
 
-    if (id == null) return const BudgetFormState();
+    final descriptionHint =
+        'Ex: Orçamento de ${_dateFormatter.formatMonth(_now())}';
+
+    if (id == null) return BudgetFormState(descriptionHint: descriptionHint);
 
     final budget = await ref.watch(budgetByIdProvider(id).future);
 
@@ -36,6 +45,11 @@ final class BudgetFormNotifier extends _$BudgetFormNotifier {
       endDate: budget.endDate,
       startDate: budget.startDate,
       description: budget.description,
+      descriptionHint: descriptionHint,
+      formattedPeriod: _dateFormatter.formatPeriod(
+        budget.startDate,
+        budget.endDate,
+      ),
     );
   }
 
@@ -48,13 +62,11 @@ final class BudgetFormNotifier extends _$BudgetFormNotifier {
         endDate: endDate,
         startDate: startDate,
         clearDateFailure: true,
+        formattedPeriod: _dateFormatter.formatPeriod(startDate, endDate),
       ),
     ),
     DescriptionChanged(:final value) => _mutate(
-      state.value!.copyWith(
-        description: value,
-        clearDescriptionFailure: true,
-      ),
+      state.value!.copyWith(description: value, clearDescriptionFailure: true),
     ),
     SubmitPressed() => _submit(),
     DeletePressed() => _delete(),
@@ -71,7 +83,7 @@ final class BudgetFormNotifier extends _$BudgetFormNotifier {
 
     if (!validation.isValid) return;
 
-    _mutate(validated.copyWith(status: .loading));
+    _mutate(validated.copyWith(status: BudgetFormStatus.loading));
 
     final data = current.id == null
         ? await _repository.create(
@@ -91,14 +103,14 @@ final class BudgetFormNotifier extends _$BudgetFormNotifier {
     data.fold(
       (failure) => _mutate(
         state.value!.copyWith(
-          status: .failure,
+          status: BudgetFormStatus.failure,
           message: failure.message,
         ),
       ),
       (_) {
         ref.invalidate(budgetsProvider);
         ref.invalidate(activeBudgetProvider);
-        _mutate(state.value!.copyWith(status: .success));
+        _mutate(state.value!.copyWith(status: BudgetFormStatus.success));
       },
     );
   }
@@ -115,17 +127,15 @@ final class BudgetFormNotifier extends _$BudgetFormNotifier {
     data.fold(
       (failure) => _mutate(
         state.value!.copyWith(
-          isDeleting: false,
           status: .failure,
+          isDeleting: false,
           message: failure.message,
         ),
       ),
       (_) {
         ref.invalidate(budgetsProvider);
         ref.invalidate(activeBudgetProvider);
-        _mutate(
-          state.value!.copyWith(isDeleting: false, status: .success),
-        );
+        _mutate(state.value!.copyWith(status: .success, isDeleting: false));
       },
     );
   }
