@@ -14,6 +14,7 @@ abstract interface class IRemoteNotificationDataSource {
   Future<Either<FailureResponse, void>> deleteAll();
   Future<Either<FailureResponse, void>> revokeToken();
   Future<Either<FailureResponse, void>> registerToken();
+  Future<Either<FailureResponse, void>> deleteById({required int id});
   Future<Either<FailureResponse, NotificationsResponse>> findAll({
     String? cursor,
   });
@@ -68,6 +69,15 @@ final class RemoteNotificationDataSource
   Future<Either<FailureResponse, void>> deleteAll() async {
     final response = await _httpClient.delete(
       parameter: Requests(EndpointKey.notifications.path),
+    );
+
+    return response.either(FailureResponse.fromJson, (_) {});
+  }
+
+  @override
+  Future<Either<FailureResponse, void>> deleteById({required int id}) async {
+    final response = await _httpClient.delete(
+      parameter: Requests('${EndpointKey.notifications.path}/$id'),
     );
 
     return response.either(FailureResponse.fromJson, (_) {});

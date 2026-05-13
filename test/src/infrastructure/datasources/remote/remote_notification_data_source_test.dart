@@ -183,6 +183,49 @@ void main() {
     });
   });
 
+  group('deleteById', () {
+    test('DELETEs at /api/v1/notifications/{id} without body on 2xx', () async {
+      when(
+        () => httpClient.delete(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Right({}));
+
+      final data = await dataSource.deleteById(id: 42);
+
+      expect(data.isRight, isTrue);
+      final captured =
+          verify(
+                () => httpClient.delete(
+                  parameter: captureAny(named: 'parameter'),
+                ),
+              ).captured.single
+              as Requests;
+
+      expect(captured.body, isNull);
+      expect(captured.path, '/api/v1/notifications/42');
+    });
+
+    test('returns Left with FailureResponse on backend error', () async {
+      when(
+        () => httpClient.delete(parameter: any(named: 'parameter')),
+      ).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'code': 'not_found',
+              'field': 'non_field_errors',
+              'message': 'Notification not found',
+            },
+          ],
+        }),
+      );
+
+      final data = await dataSource.deleteById(id: 99);
+
+      expect(data.isLeft, isTrue);
+      expect(data.left.errors.first.code, 'not_found');
+    });
+  });
+
   group('findAll', () {
     test('GETs without cursor on first page', () async {
       when(() => httpClient.get(parameter: any(named: 'parameter'))).thenAnswer(

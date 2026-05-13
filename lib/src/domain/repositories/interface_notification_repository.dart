@@ -7,5 +7,6 @@ abstract interface class INotificationRepository {
   Future<Either<Failure, void>> deleteAll();
   Future<Either<Failure, void>> revokeToken();
   Future<Either<Failure, void>> registerToken();
+  Future<Either<Failure, void>> deleteById({required int id});
   Future<Either<Failure, NotificationsPageModel>> findAll({String? cursor});
 }

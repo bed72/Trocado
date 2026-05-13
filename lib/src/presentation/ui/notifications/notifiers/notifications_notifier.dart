@@ -69,6 +69,46 @@ final class NotificationsNotifier extends _$NotificationsNotifier {
     );
   }
 
+  Future<void> deleteById(int id) async {
+    final current = state.value;
+    if (current == null) return;
+
+    final originalIndex = current.items.indexWhere(
+      (item) => item.notification.id == id,
+    );
+    if (originalIndex < 0) return;
+
+    final originalItem = current.items[originalIndex];
+    final newItems = [...current.items]..removeAt(originalIndex);
+
+    state = AsyncData(
+      current.copyWith(
+        items: newItems,
+        clearDeleteFailure: true,
+        groups: buildNotificationGroups(newItems, dateFormatter: _dateFormatter),
+      ),
+    );
+
+    final data = await _repository.deleteById(id: id);
+
+    data.fold((Failure failure) {
+      final restored = [...state.value!.items];
+      final insertAt = originalIndex.clamp(0, restored.length);
+      restored.insert(insertAt, originalItem);
+
+      state = AsyncData(
+        state.value!.copyWith(
+          items: restored,
+          deleteFailure: failure,
+          groups: buildNotificationGroups(
+            restored,
+            dateFormatter: _dateFormatter,
+          ),
+        ),
+      );
+    }, (_) {});
+  }
+
   Future<void> deleteAll() async {
     final current = state.value;
     if (current == null) return;

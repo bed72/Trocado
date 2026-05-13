@@ -73,15 +73,29 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Widget build(BuildContext context) => Consumer(
     builder: (_, ref, _) {
       ref.listen(notificationsProvider, (previous, next) {
-        final nextFailure = next.value?.deleteAllFailure;
-        final previousFailure = previous?.value?.deleteAllFailure;
+        final nextDeleteAllFailure = next.value?.deleteAllFailure;
+        final previousDeleteAllFailure = previous?.value?.deleteAllFailure;
 
-        if (nextFailure != null && nextFailure != previousFailure) {
+        if (nextDeleteAllFailure != null &&
+            nextDeleteAllFailure != previousDeleteAllFailure) {
           showToastWidget(
             context: context,
             title: 'Opps',
             type: .failure,
-            description: nextFailure.message,
+            description: nextDeleteAllFailure.message,
+          );
+        }
+
+        final nextDeleteFailure = next.value?.deleteFailure;
+        final previousDeleteFailure = previous?.value?.deleteFailure;
+
+        if (nextDeleteFailure != null &&
+            nextDeleteFailure != previousDeleteFailure) {
+          showToastWidget(
+            context: context,
+            title: 'Opps',
+            type: .failure,
+            description: nextDeleteFailure.message,
           );
         }
       });
@@ -155,6 +169,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         state: value,
         groups: value.groups,
         onLoadMore: _onLoadMore,
+        onDelete: notifier.deleteById,
       ),
     ],
   };

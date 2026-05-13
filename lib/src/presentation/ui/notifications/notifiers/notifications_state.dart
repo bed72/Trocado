@@ -10,6 +10,7 @@ final class NotificationsState extends Equatable {
   final String? nextCursor;
   final bool isLoadingMore;
   final bool isDeletingAll;
+  final Failure? deleteFailure;
   final Failure? loadMoreFailure;
   final Failure? deleteAllFailure;
   final List<NotificationItemPresentationData> items;
@@ -17,6 +18,7 @@ final class NotificationsState extends Equatable {
 
   const NotificationsState({
     this.nextCursor,
+    this.deleteFailure,
     this.loadMoreFailure,
     this.deleteAllFailure,
     this.items = const [],
@@ -29,9 +31,11 @@ final class NotificationsState extends Equatable {
     String? nextCursor,
     bool? isLoadingMore,
     bool? isDeletingAll,
+    Failure? deleteFailure,
     Failure? loadMoreFailure,
     Failure? deleteAllFailure,
     bool clearNextCursor = false,
+    bool clearDeleteFailure = false,
     bool clearLoadMoreFailure = false,
     bool clearDeleteAllFailure = false,
     List<NotificationItemPresentationData>? items,
@@ -42,6 +46,9 @@ final class NotificationsState extends Equatable {
     isLoadingMore: isLoadingMore ?? this.isLoadingMore,
     isDeletingAll: isDeletingAll ?? this.isDeletingAll,
     nextCursor: clearNextCursor ? null : nextCursor ?? this.nextCursor,
+    deleteFailure: clearDeleteFailure
+        ? null
+        : deleteFailure ?? this.deleteFailure,
     loadMoreFailure: clearLoadMoreFailure
         ? null
         : loadMoreFailure ?? this.loadMoreFailure,
@@ -57,6 +64,7 @@ final class NotificationsState extends Equatable {
     nextCursor,
     isLoadingMore,
     isDeletingAll,
+    deleteFailure,
     loadMoreFailure,
     deleteAllFailure,
   ];

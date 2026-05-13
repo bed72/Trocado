@@ -183,6 +183,73 @@ void main() {
     });
   });
 
+  group('deleteById', () {
+    test('returns Right when datasource succeeds', () async {
+      when(
+        () => dataSource.deleteById(id: any(named: 'id')),
+      ).thenAnswer((_) async => const Right(null));
+
+      final data = await repository.deleteById(id: 42);
+
+      expect(data.isRight, isTrue);
+    });
+
+    test('propagates id to datasource', () async {
+      when(
+        () => dataSource.deleteById(id: any(named: 'id')),
+      ).thenAnswer((_) async => const Right(null));
+
+      await repository.deleteById(id: 7);
+
+      verify(() => dataSource.deleteById(id: 7)).called(1);
+    });
+
+    test('returns Left NetworkFailure on network error', () async {
+      when(() => dataSource.deleteById(id: any(named: 'id'))).thenAnswer(
+        (_) async => Left(_failure('network_error', 'Network error')),
+      );
+
+      final data = await repository.deleteById(id: 1);
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<NetworkFailure>());
+    });
+
+    test('returns Left ServerFailure on server error', () async {
+      when(() => dataSource.deleteById(id: any(named: 'id'))).thenAnswer(
+        (_) async => Left(_failure('server_error', 'Internal server error')),
+      );
+
+      final data = await repository.deleteById(id: 1);
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<ServerFailure>());
+    });
+
+    test('returns Left NotFoundFailure on not found', () async {
+      when(() => dataSource.deleteById(id: any(named: 'id'))).thenAnswer(
+        (_) async => Left(_failure('not_found', 'Notification not found.')),
+      );
+
+      final data = await repository.deleteById(id: 99);
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<NotFoundFailure>());
+    });
+
+    test('returns Left ValidationFailure on unknown code', () async {
+      when(() => dataSource.deleteById(id: any(named: 'id'))).thenAnswer(
+        (_) async => Left(_failure('invalid', 'Invalid request.')),
+      );
+
+      final data = await repository.deleteById(id: 1);
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<ValidationFailure>());
+      expect(data.left.message, 'Invalid request.');
+    });
+  });
+
   group('findAll', () {
     test('returns Right with NotificationsPageModel on success', () async {
       when(() => dataSource.findAll(cursor: any(named: 'cursor'))).thenAnswer(

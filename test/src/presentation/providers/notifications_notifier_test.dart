@@ -280,6 +280,81 @@ void main() {
     });
   });
 
+  group('deleteById', () {
+    test('removes item from items and groups on success', () async {
+      when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
+        (_) async => const Right(
+          NotificationsPageModel(notifications: _first, nextCursor: 'CUR1'),
+        ),
+      );
+      when(
+        () => repository.deleteById(id: any(named: 'id')),
+      ).thenAnswer((_) async => const Right(null));
+
+      final container = _makeContainer(
+        repository: repository,
+        dateFormatter: dateFormatter,
+      );
+      container.listen(notificationsProvider, (_, _) {});
+      await container.read(notificationsProvider.future);
+
+      await container.read(notificationsProvider.notifier).deleteById(1);
+
+      final state = container.read(notificationsProvider).value!;
+      expect(state.items.map((item) => item.notification.id), [2]);
+      expect(state.deleteFailure, isNull);
+      verify(() => repository.deleteById(id: 1)).called(1);
+    });
+
+    test('no-op when id is not found in items', () async {
+      when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
+        (_) async => const Right(
+          NotificationsPageModel(notifications: _first, nextCursor: 'CUR1'),
+        ),
+      );
+
+      final container = _makeContainer(
+        repository: repository,
+        dateFormatter: dateFormatter,
+      );
+      container.listen(notificationsProvider, (_, _) {});
+      await container.read(notificationsProvider.future);
+
+      await container.read(notificationsProvider.notifier).deleteById(999);
+
+      final state = container.read(notificationsProvider).value!;
+      expect(state.items.map((item) => item.notification.id), [1, 2]);
+      verifyNever(() => repository.deleteById(id: any(named: 'id')));
+    });
+
+    test(
+      'restores item at original index on failure and sets deleteFailure',
+      () async {
+        when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
+          (_) async => const Right(
+            NotificationsPageModel(notifications: _first, nextCursor: 'CUR1'),
+          ),
+        );
+        when(
+          () => repository.deleteById(id: any(named: 'id')),
+        ).thenAnswer((_) async => Left(const NetworkFailure()));
+
+        final container = _makeContainer(
+          repository: repository,
+          dateFormatter: dateFormatter,
+        );
+        container.listen(notificationsProvider, (_, _) {});
+        await container.read(notificationsProvider.future);
+
+        await container.read(notificationsProvider.notifier).deleteById(2);
+
+        final state = container.read(notificationsProvider).value!;
+        expect(state.items.map((item) => item.notification.id), [1, 2]);
+        expect(state.deleteFailure, isA<NetworkFailure>());
+      },
+    );
+  });
+
   group('refresh', () {
     test('reloads the first page from scratch', () async {
       int callCount = 0;
