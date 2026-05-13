@@ -121,6 +121,12 @@ final class AppRoutes {
     regex: RegExp(r'^/notifications$'),
   );
 
+  static final partnerInvite = AppRoutes._(
+    path: '/partner/invite',
+    name: 'partner-invite-route',
+    regex: RegExp(r'^/partner/invite$'),
+  );
+
   static final profile = AppRoutes._(
     path: '/profile',
     name: 'profile-route',
@@ -183,6 +189,7 @@ final class AppRoutes {
     expenseDate,
     profileDelete,
     notifications,
+    partnerInvite,
     expensesFilter,
     forgotPassword,
     profilePassword,

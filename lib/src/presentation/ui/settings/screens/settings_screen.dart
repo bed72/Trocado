@@ -22,6 +22,7 @@ class SettingsScreen extends StatelessWidget {
   final VoidCallback onEditProfile;
   final VoidCallback onNotification;
   final VoidCallback onSubscription;
+  final VoidCallback onInvitePartner;
 
   const SettingsScreen({
     super.key,
@@ -29,6 +30,7 @@ class SettingsScreen extends StatelessWidget {
     required this.onEditProfile,
     required this.onNotification,
     required this.onSubscription,
+    required this.onInvitePartner,
   });
 
   @override
@@ -112,7 +114,7 @@ class SettingsScreen extends StatelessWidget {
   List<Widget> get _buildCouple => [
     _buildTitleItem('Casal'),
     const SizedBox(height: 8.0),
-    SettingsInvitePartnerWidget(onTap: () {}),
+    SettingsInvitePartnerWidget(onTap: onInvitePartner),
   ];
 
   List<Widget> get _buildAccount => [
