@@ -11,6 +11,7 @@ import 'package:trocado/src/infrastructure/clients/http/responses/failure/failur
 import 'package:trocado/src/infrastructure/clients/http/responses/notification/notifications_response.dart';
 
 abstract interface class IRemoteNotificationDataSource {
+  Future<Either<FailureResponse, void>> deleteAll();
   Future<Either<FailureResponse, void>> revokeToken();
   Future<Either<FailureResponse, void>> registerToken();
   Future<Either<FailureResponse, NotificationsResponse>> findAll({
@@ -61,6 +62,15 @@ final class RemoteNotificationDataSource
       FailureResponse.fromJson,
       NotificationsResponse.fromJson,
     );
+  }
+
+  @override
+  Future<Either<FailureResponse, void>> deleteAll() async {
+    final response = await _httpClient.delete(
+      parameter: Requests(EndpointKey.notifications.path),
+    );
+
+    return response.either(FailureResponse.fromJson, (_) {});
   }
 
   @override

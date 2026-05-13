@@ -15,6 +15,13 @@ final class NotificationRepository implements INotificationRepository {
     : _dataSource = dataSource;
 
   @override
+  Future<Either<Failure, void>> deleteAll() async {
+    final data = await _dataSource.deleteAll();
+
+    return data.either((failure) => failure.toFailure(), (_) {});
+  }
+
+  @override
   Future<Either<Failure, void>> registerToken() async {
     final data = await _dataSource.registerToken();
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -195,6 +197,89 @@ void main() {
     });
   });
 
+  group('deleteAll', () {
+    test('clears items, groups and nextCursor on success', () async {
+      when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
+        (_) async => const Right(
+          NotificationsPageModel(notifications: _first, nextCursor: 'CUR1'),
+        ),
+      );
+      when(
+        () => repository.deleteAll(),
+      ).thenAnswer((_) async => const Right(null));
+
+      final container = _makeContainer(
+        repository: repository,
+        dateFormatter: dateFormatter,
+      );
+      container.listen(notificationsProvider, (_, _) {});
+      await container.read(notificationsProvider.future);
+
+      await container.read(notificationsProvider.notifier).deleteAll();
+
+      final state = container.read(notificationsProvider).value!;
+
+      expect(state.items, isEmpty);
+      expect(state.groups, isEmpty);
+      expect(state.nextCursor, isNull);
+      expect(state.isDeletingAll, isFalse);
+      expect(state.deleteAllFailure, isNull);
+    });
+
+    test('keeps items and sets deleteAllFailure on failure', () async {
+      when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
+        (_) async => const Right(
+          NotificationsPageModel(notifications: _first, nextCursor: 'CUR1'),
+        ),
+      );
+      when(
+        () => repository.deleteAll(),
+      ).thenAnswer((_) async => Left(const NetworkFailure()));
+
+      final container = _makeContainer(
+        repository: repository,
+        dateFormatter: dateFormatter,
+      );
+      container.listen(notificationsProvider, (_, _) {});
+      await container.read(notificationsProvider.future);
+
+      await container.read(notificationsProvider.notifier).deleteAll();
+
+      final state = container.read(notificationsProvider).value!;
+      expect(state.items.map((item) => item.notification.id), [1, 2]);
+      expect(state.nextCursor, 'CUR1');
+      expect(state.isDeletingAll, isFalse);
+      expect(state.deleteAllFailure, isA<NetworkFailure>());
+    });
+
+    test('no-op when already deleting', () async {
+      when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
+        (_) async => const Right(
+          NotificationsPageModel(notifications: _first, nextCursor: 'CUR1'),
+        ),
+      );
+
+      final completer = Completer<Either<Failure, void>>();
+      when(() => repository.deleteAll()).thenAnswer((_) => completer.future);
+
+      final container = _makeContainer(
+        repository: repository,
+        dateFormatter: dateFormatter,
+      );
+      container.listen(notificationsProvider, (_, _) {});
+      await container.read(notificationsProvider.future);
+
+      final notifier = container.read(notificationsProvider.notifier);
+      final first = notifier.deleteAll();
+      final second = notifier.deleteAll();
+
+      completer.complete(const Right(null));
+      await Future.wait([first, second]);
+
+      verify(() => repository.deleteAll()).called(1);
+    });
+  });
+
   group('refresh', () {
     test('reloads the first page from scratch', () async {
       int callCount = 0;
@@ -222,6 +307,7 @@ void main() {
       await container.read(notificationsProvider.notifier).refresh();
 
       final state = container.read(notificationsProvider).value!;
+
       expect(state.nextCursor, isNull);
       expect(state.items.map((item) => item.notification.id), [3]);
     });

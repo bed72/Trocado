@@ -7,10 +7,11 @@ import 'package:trocado/src/domain/repositories/interface_notification_repositor
 
 import 'package:trocado/src/data/repositories/notification_repository.dart';
 
+import 'package:trocado/src/infrastructure/datasources/remote/remote_notification_data_source.dart';
+
 import 'package:trocado/src/infrastructure/clients/http/responses/failure/failure_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/notification/notification_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/notification/notifications_response.dart';
-import 'package:trocado/src/infrastructure/datasources/remote/remote_notification_data_source.dart';
 
 import '../../../mocks/mocks.dart';
 
@@ -125,6 +126,63 @@ void main() {
     });
   });
 
+  group('deleteAll', () {
+    test('returns Right when datasource succeeds', () async {
+      when(
+        () => dataSource.deleteAll(),
+      ).thenAnswer((_) async => const Right(null));
+
+      final data = await repository.deleteAll();
+
+      expect(data.isRight, isTrue);
+    });
+
+    test('returns Left NetworkFailure on network error', () async {
+      when(() => dataSource.deleteAll()).thenAnswer(
+        (_) async => Left(_failure('network_error', 'Network error')),
+      );
+
+      final data = await repository.deleteAll();
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<NetworkFailure>());
+    });
+
+    test('returns Left ServerFailure on server error', () async {
+      when(() => dataSource.deleteAll()).thenAnswer(
+        (_) async => Left(_failure('server_error', 'Internal server error')),
+      );
+
+      final data = await repository.deleteAll();
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<ServerFailure>());
+    });
+
+    test('returns Left NotFoundFailure on not found', () async {
+      when(
+        () => dataSource.deleteAll(),
+      ).thenAnswer((_) async => Left(_failure('not_found', 'Not found.')));
+
+      final data = await repository.deleteAll();
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<NotFoundFailure>());
+    });
+
+    test('returns Left ValidationFailure on unknown code', () async {
+      when(
+        () => dataSource.deleteAll(),
+      ).thenAnswer((_) async => Left(_failure('invalid', 'Invalid request.')));
+
+      final data = await repository.deleteAll();
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<ValidationFailure>());
+      expect(data.left.message, 'Invalid request.');
+    });
+  });
+
   group('findAll', () {
     test('returns Right with NotificationsPageModel on success', () async {
       when(() => dataSource.findAll(cursor: any(named: 'cursor'))).thenAnswer(
@@ -156,11 +214,7 @@ void main() {
     test('propagates cursor to datasource', () async {
       when(() => dataSource.findAll(cursor: any(named: 'cursor'))).thenAnswer(
         (_) async => const Right(
-          NotificationsResponse(
-            next: null,
-            previous: null,
-            notifications: [],
-          ),
+          NotificationsResponse(next: null, previous: null, notifications: []),
         ),
       );
 
@@ -192,9 +246,9 @@ void main() {
     });
 
     test('returns Left ValidationFailure on unknown code', () async {
-      when(() => dataSource.findAll(cursor: any(named: 'cursor'))).thenAnswer(
-        (_) async => Left(_failure('invalid', 'Invalid cursor.')),
-      );
+      when(
+        () => dataSource.findAll(cursor: any(named: 'cursor')),
+      ).thenAnswer((_) async => Left(_failure('invalid', 'Invalid cursor.')));
 
       final data = await repository.findAll();
 

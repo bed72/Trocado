@@ -140,11 +140,52 @@ void main() {
     });
   });
 
+  group('deleteAll', () {
+    test('DELETEs without body on 2xx', () async {
+      when(
+        () => httpClient.delete(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Right({}));
+
+      final data = await dataSource.deleteAll();
+
+      expect(data.isRight, isTrue);
+      final captured =
+          verify(
+                () => httpClient.delete(
+                  parameter: captureAny(named: 'parameter'),
+                ),
+              ).captured.single
+              as Requests;
+
+      expect(captured.body, isNull);
+      expect(captured.path, '/api/v1/notifications');
+    });
+
+    test('returns Left with FailureResponse on backend error', () async {
+      when(
+        () => httpClient.delete(parameter: any(named: 'parameter')),
+      ).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'code': 'server_error',
+              'field': 'non_field_errors',
+              'message': 'Internal server error',
+            },
+          ],
+        }),
+      );
+
+      final data = await dataSource.deleteAll();
+
+      expect(data.isLeft, isTrue);
+      expect(data.left.errors.first.code, 'server_error');
+    });
+  });
+
   group('findAll', () {
     test('GETs without cursor on first page', () async {
-      when(
-        () => httpClient.get(parameter: any(named: 'parameter')),
-      ).thenAnswer(
+      when(() => httpClient.get(parameter: any(named: 'parameter'))).thenAnswer(
         (_) async => const Right({
           'next': null,
           'previous': null,
@@ -155,18 +196,18 @@ void main() {
       final data = await dataSource.findAll();
 
       expect(data.isRight, isTrue);
+
       final captured =
           verify(
                 () => httpClient.get(parameter: captureAny(named: 'parameter')),
               ).captured.single
               as Requests;
+
       expect(captured.path, '/api/v1/notifications');
     });
 
     test('GETs with cursor as query param on subsequent page', () async {
-      when(
-        () => httpClient.get(parameter: any(named: 'parameter')),
-      ).thenAnswer(
+      when(() => httpClient.get(parameter: any(named: 'parameter'))).thenAnswer(
         (_) async => const Right({
           'next': null,
           'previous': null,
@@ -185,9 +226,7 @@ void main() {
     });
 
     test('returns Left with FailureResponse on backend error', () async {
-      when(
-        () => httpClient.get(parameter: any(named: 'parameter')),
-      ).thenAnswer(
+      when(() => httpClient.get(parameter: any(named: 'parameter'))).thenAnswer(
         (_) async => const Left({
           'errors': [
             {

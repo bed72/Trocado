@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:trocado/src/presentation/widgets/toast_widget.dart';
 import 'package:trocado/src/presentation/widgets/app_bar_widget.dart';
 import 'package:trocado/src/presentation/widgets/go_back_widget.dart';
 import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';
 import 'package:trocado/src/presentation/widgets/screen_header_widget.dart';
+import 'package:trocado/src/presentation/widgets/dialog/confirm_dialog_widget.dart';
 
 import 'package:trocado/src/presentation/ui/notifications/notifiers/notifications_state.dart';
 import 'package:trocado/src/presentation/ui/notifications/notifiers/notifications_notifier.dart';
@@ -13,6 +15,7 @@ import 'package:trocado/src/presentation/ui/notifications/widgets/notifications_
 import 'package:trocado/src/presentation/ui/notifications/widgets/notifications_empty_widget.dart';
 import 'package:trocado/src/presentation/ui/notifications/widgets/notifications_failure_widget.dart';
 import 'package:trocado/src/presentation/ui/notifications/widgets/notifications_loading_widget.dart';
+import 'package:trocado/src/presentation/ui/notifications/widgets/notifications_delete_all_button_widget.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -23,6 +26,8 @@ class NotificationsScreen extends StatefulWidget {
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
   VoidCallback _onLoadMore = () {};
+
+  static const int _deleteAllThreshold = 10;
 
   final double _loadMoreThreshold = 200.0;
   final ScrollController _scrollController = ScrollController();
@@ -51,15 +56,57 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
+  Future<void> _onDeleteAllPressed(NotificationsNotifier notifier) async {
+    final confirmed = await showConfirmDialog(
+      context: context,
+      confirmLabel: 'Excluir',
+      title: 'Excluir notificações',
+      description:
+          'Esta ação vai excluir todas as notificações e não pode ser desfeita .',
+    );
+    if (!confirmed) return;
+
+    await notifier.deleteAll();
+  }
+
   @override
   Widget build(BuildContext context) => Consumer(
     builder: (_, ref, _) {
+      ref.listen(notificationsProvider, (previous, next) {
+        final nextFailure = next.value?.deleteAllFailure;
+        final previousFailure = previous?.value?.deleteAllFailure;
+
+        if (nextFailure != null && nextFailure != previousFailure) {
+          showToastWidget(
+            context: context,
+            title: 'Opps',
+            type: .failure,
+            description: nextFailure.message,
+          );
+        }
+      });
+
       final state = ref.watch(notificationsProvider);
       final notifier = ref.read(notificationsProvider.notifier);
       _onLoadMore = notifier.loadMore;
 
+      final itemsCount = state.value?.items.length ?? 0;
+      final showDeleteAll = itemsCount > _deleteAllThreshold;
+
       return ScaffoldWidget(
-        appBar: AppBarWidget(leading: const GoBackWidget()),
+        appBar: AppBarWidget(
+          leading: const GoBackWidget(),
+          actions: showDeleteAll
+              ? [
+                  Padding(
+                    padding: const .only(right: 16.0),
+                    child: NotificationsDeleteAllButtonWidget(
+                      onPress: () => _onDeleteAllPressed(notifier),
+                    ),
+                  ),
+                ]
+              : null,
+        ),
         child: RefreshIndicator(
           onRefresh: notifier.refresh,
           child: CustomScrollView(

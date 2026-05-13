@@ -69,6 +69,34 @@ final class NotificationsNotifier extends _$NotificationsNotifier {
     );
   }
 
+  Future<void> deleteAll() async {
+    final current = state.value;
+    if (current == null) return;
+    if (current.isDeletingAll) return;
+
+    state = AsyncData(
+      current.copyWith(isDeletingAll: true, clearDeleteAllFailure: true),
+    );
+
+    final data = await _repository.deleteAll();
+
+    state = AsyncData(
+      data.fold<NotificationsState>(
+        (Failure failure) => state.value!.copyWith(
+          isDeletingAll: false,
+          deleteAllFailure: failure,
+        ),
+        (_) => state.value!.copyWith(
+          items: const [],
+          groups: const [],
+          isDeletingAll: false,
+          clearNextCursor: true,
+          clearDeleteAllFailure: true,
+        ),
+      ),
+    );
+  }
+
   Future<NotificationsState> _loadFirstPage() async {
     final data = await _repository.findAll();
 
