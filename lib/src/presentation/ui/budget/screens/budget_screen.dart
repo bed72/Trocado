@@ -104,7 +104,7 @@ class BudgetScreen extends StatelessWidget {
   ) {
     final notifier = ref.read(budgetFormProvider(id).notifier);
     final isEditing = state.id != null;
-    final title = isEditing ? 'Editar orçamento' : 'Novo orçamento';
+    final title = isEditing ? 'Atualizar orçamento' : 'Novo orçamento';
     final subtitle = isEditing
         ? 'Atualize as informações do seu orçamento.'
         : 'Preencha as informações abaixo para criar um novo orçamento e acompanhar seus gastos.';

@@ -98,7 +98,7 @@ class ExpenseScreen extends StatelessWidget {
   Widget _buildForm(BuildContext context, WidgetRef ref, ExpenseState state) {
     final notifier = ref.read(expenseProvider(id).notifier);
     final isEditing = state.id != null;
-    final title = isEditing ? 'Editar despesa' : 'Nova despesa';
+    final title = isEditing ? 'Atualizar despesa' : 'Nova despesa';
     final subtitle = isEditing
         ? 'Atualize as informações da sua despesa.'
         : 'Preencha as informações abaixo para registrar sua despesa.';
