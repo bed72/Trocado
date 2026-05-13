@@ -62,3 +62,66 @@ Sem mudanças em `domain/`, `data/`, `infrastructure/`, `main/providers/`. Sem n
 8. **Texto do header espelha o card.**
    - `title`: `'Convidar parceiro'` (igual ao card).
    - `description`: `'Comecem a usar juntos.'` (igual ao subtitle do card, com ponto final pra ficar coerente com outras descriptions do projeto: `'Atualize o seu nome de exibição.'`, `'Gerencie suas preferências.'`).
+
+---
+
+## Adendo 1 — 2026-05-13 — Componentização do corpo
+
+A v1 desta spec entregou só a casca (header + `Placeholder`). Este adendo substitui o `Placeholder` pelo corpo real da tela, conforme mockup aprovado pelo user.
+
+### Nova intenção
+
+Substituir o `Expanded(Placeholder())` por um corpo componentizado: indicador de par (avatar do user + linha pontilhada + slot vazio), hero textual, dois CTAs (convidar por e-mail / copiar link de convite) e nota de privacidade. Botões recebem `VoidCallback`s stub (`() {}`) — wiring real (clipboard, endpoint, deep link) vem em spec(s) filha(s).
+
+### Mudanças no header
+
+- `title`: `'Convidar parceiro'` → **`'Casal'`**
+- `description`: `'Comecem a usar juntos.'` → **`'Vocês dois, uma única visão.'`**
+
+A justificativa do adendo: o mockup posiciona "Casal" como categoria/agrupamento (mesma palavra usada como label da seção em Configurações: `_buildTitleItem('Casal')`) e usa o hero abaixo (`'Trocado fica melhor a dois'`) como CTA emocional. O texto antigo (`'Convidar parceiro'`) virou redundante com a hero.
+
+### Camadas adicionadas no adendo
+
+- `lib/src/presentation/ui/partner/widgets/` (NOVA pasta) — 4 widgets componentizados.
+- `lib/src/presentation/ui/partner/widgets/painters/` (NOVA pasta) — 2 `CustomPainter` pra dashes.
+- `lib/src/presentation/ui/partner/screens/partner_invite_screen.dart` — vira `Consumer` lendo `userProvider`.
+
+Sem notifier nesta etapa — a screen só lê `userProvider` (mesmo padrão da `HomeScreen` com `HomeAppBarWidget`). Notifier de convite entra na próxima spec.
+
+### Decisões de design do adendo
+
+1. **Reuso de `AvatarWidget` no slot do user.**
+   `AvatarWidget` já existe em `presentation/widgets/avatar/avatar_widget.dart` e já faz exatamente o que precisamos: primeira letra do nome maiúscula, fundo `primary.withValues(alpha: 0.2)`, `borderRadius: cornerRadius100` (quadrado arredondado, não círculo). Zero código novo nesse pedaço.
+
+2. **Slot vazio espelha o `AvatarWidget` visualmente, mas com borda pontilhada.**
+   Mesmo tamanho, mesmo `cornerRadius100`. Em vez de fundo sólido + letra: borda dashed + `Icons.person_add_alt` cinza. Decisão do user: "não full rounded, deixa quadrado/ovalado igual a letra do nome".
+
+3. **Dashes via `CustomPainter` próprio — sem dependência nova.**
+   Dois painters: `DashedLinePainter` (conector horizontal) e `DashedRoundedRectPainter` (borda do slot vazio). ~30 linhas cada. Ficam em `widgets/painters/` pra não poluir o widget e facilitar isolamento futuro (ex: preview, reuso).
+
+4. **`PartnerInviteActionsWidget` agrupa os dois botões.**
+   Os botões "Convidar por e-mail" e "Copiar link de convite" sempre aparecem juntos e nessa ordem — não vejo cenário onde apenas um apareça. Agrupar reduz props na screen (de 2 callbacks soltos pra 1 widget que recebe 2 callbacks) e centraliza o spacing entre eles.
+
+5. **`PartnerInviteHeroWidget` e `PartnerInviteSecurityNoteWidget` são puramente estáticos.**
+   Textos hardcoded em `const`. Sem props. Se virarem dinâmicos no futuro (A/B test, copy variável por tipo de conta, etc.), promovemos pra props — YAGNI até lá.
+
+6. **Screen lê `userProvider` direto via `Consumer` + `ref.watch`.**
+   Mesmo padrão da `HomeScreen` que passa `AsyncValue<UserModel>` pro `HomeAppBarWidget`. `PartnerPairIndicatorWidget` recebe `AsyncValue<UserModel> userState` e trata loading com `Skeletonizer` (idem `HomeAppBarWidget`).
+
+   Esse acesso NÃO viola a regra "services só via notifier" do CLAUDE.md: `userProvider` é um data provider (entrega `UserModel`), não service (sem lógica de formatação que precise ser cacheada no state). Confirmado pelo precedente da `HomeScreen`.
+
+7. **Botões usam `child: Icon(...)` do `ButtonWidget`.**
+   `ButtonWidget` já aceita `child` + `label` simultâneos e renderiza `Row(spacing: 8, children: [?child, Text(label)])`. Reuso direto — sem variant novo, sem fork.
+
+8. **Sem mudança em `domain/`, `data/`, `infrastructure/`, `main/providers/`.**
+   `userProvider` já existe e já é provider em `presentation/notifiers/user_notifier.dart`. Nenhum endpoint, request, response novo.
+
+### Fora do escopo do adendo
+
+- Lógica real dos botões (`Clipboard.setData`, chamada de endpoint pra gerar link, navegação pra screen/sheet de convite por e-mail).
+- Endpoint, datasource, repository, request, response de convite.
+- `PartnerInviteNotifier` / state / intent.
+- Deep link de aceite de convite.
+- Empty state quando já há convite pendente / partner vinculado.
+- `@TrocadoPreview` dos novos widgets — adiar pra spec filha quando os widgets estabilizarem.
+- Testes — sem business logic, sem widget tests no projeto pra esse role.
