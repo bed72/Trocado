@@ -89,8 +89,9 @@ class ButtonWidget extends StatelessWidget {
         .danger => ElevatedButton(
           onPressed: onTap,
           style: ElevatedButton.styleFrom(
-            backgroundColor: context.colors.error.withValues(alpha: 0.9),
+            iconColor: context.colors.onError,
             foregroundColor: context.colors.onError,
+            backgroundColor: context.colors.error.withValues(alpha: 0.9),
           ),
           child: child,
         ),
