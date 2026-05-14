@@ -5,6 +5,7 @@ import 'package:trocado/src/main/providers/data_sources.provider.dart';
 
 import 'package:trocado/src/data/repositories/user_repository.dart';
 import 'package:trocado/src/data/repositories/budget_repository.dart';
+import 'package:trocado/src/data/repositories/couple_repository.dart';
 import 'package:trocado/src/data/repositories/expense_repository.dart';
 import 'package:trocado/src/data/repositories/insights_repository.dart';
 import 'package:trocado/src/data/repositories/notification_repository.dart';
@@ -12,6 +13,7 @@ import 'package:trocado/src/data/repositories/authentication_repository.dart';
 
 import 'package:trocado/src/domain/repositories/interface_user_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
+import 'package:trocado/src/domain/repositories/interface_couple_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_insights_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_notification_repository.dart';
@@ -44,6 +46,10 @@ INotificationRepository notificationRepository(Ref ref) =>
 @Riverpod()
 IBudgetRepository budgetRepository(Ref ref) =>
     BudgetRepository(dataSource: ref.watch(remoteBudgetDataSourceProvider));
+
+@Riverpod()
+ICoupleRepository coupleRepository(Ref ref) =>
+    CoupleRepository(dataSource: ref.watch(remoteCoupleDataSourceProvider));
 
 @Riverpod()
 IExpenseRepository expenseRepository(Ref ref) =>

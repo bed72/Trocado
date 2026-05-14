@@ -105,6 +105,54 @@ final class RemoteBudgetDataSourceProvider
 String _$remoteBudgetDataSourceHash() =>
     r'90959fbe283f3f237ba29a74143c291de7e63fe8';
 
+@ProviderFor(remoteCoupleDataSource)
+final remoteCoupleDataSourceProvider = RemoteCoupleDataSourceProvider._();
+
+final class RemoteCoupleDataSourceProvider
+    extends
+        $FunctionalProvider<
+          IRemoteCoupleDataSource,
+          IRemoteCoupleDataSource,
+          IRemoteCoupleDataSource
+        >
+    with $Provider<IRemoteCoupleDataSource> {
+  RemoteCoupleDataSourceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'remoteCoupleDataSourceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$remoteCoupleDataSourceHash();
+
+  @$internal
+  @override
+  $ProviderElement<IRemoteCoupleDataSource> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  IRemoteCoupleDataSource create(Ref ref) {
+    return remoteCoupleDataSource(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(IRemoteCoupleDataSource value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<IRemoteCoupleDataSource>(value),
+    );
+  }
+}
+
+String _$remoteCoupleDataSourceHash() =>
+    r'f46213d3262b631f53dda31537610e5fe6114d10';
+
 @ProviderFor(remoteExpenseDataSource)
 final remoteExpenseDataSourceProvider = RemoteExpenseDataSourceProvider._();
 

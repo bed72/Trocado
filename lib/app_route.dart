@@ -127,6 +127,12 @@ final class AppRoutes {
     regex: RegExp(r'^/partner/invite$'),
   );
 
+  static final partnerInviteQrCode = AppRoutes._(
+    path: '/partner/invite/qr-code',
+    name: 'partner-invite-qr-code-route',
+    regex: RegExp(r'^/partner/invite/qr-code$'),
+  );
+
   static final profile = AppRoutes._(
     path: '/profile',
     name: 'profile-route',
@@ -193,6 +199,7 @@ final class AppRoutes {
     expensesFilter,
     forgotPassword,
     profilePassword,
+    partnerInviteQrCode,
     passwordResetConfirm,
     forgotPasswordSuccess,
   ];

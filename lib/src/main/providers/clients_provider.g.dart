@@ -9,6 +9,47 @@ part of 'clients_provider.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
+@ProviderFor(shareClient)
+final shareClientProvider = ShareClientProvider._();
+
+final class ShareClientProvider
+    extends $FunctionalProvider<IShareClient, IShareClient, IShareClient>
+    with $Provider<IShareClient> {
+  ShareClientProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'shareClientProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$shareClientHash();
+
+  @$internal
+  @override
+  $ProviderElement<IShareClient> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  IShareClient create(Ref ref) {
+    return shareClient(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(IShareClient value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<IShareClient>(value),
+    );
+  }
+}
+
+String _$shareClientHash() => r'570558a5197ac14d85658128fd6099dbc08c1d35';
+
 @ProviderFor(crashClient)
 final crashClientProvider = CrashClientProvider._();
 

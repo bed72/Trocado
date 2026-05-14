@@ -1,0 +1,29 @@
+import 'package:trocado/src/domain/either/either.dart';
+
+import 'package:trocado/src/infrastructure/clients/http/http_client.dart';
+import 'package:trocado/src/infrastructure/clients/http/endpoint_key.dart';
+import 'package:trocado/src/infrastructure/clients/http/requests/requests.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/couple/invite_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/failure/failure_response.dart';
+
+abstract interface class IRemoteCoupleDataSource {
+  Future<Either<FailureResponse, InviteResponse>> createInvite();
+}
+
+final class RemoteCoupleDataSource implements IRemoteCoupleDataSource {
+  final IHttpClient _client;
+
+  RemoteCoupleDataSource({required IHttpClient client}) : _client = client;
+
+  @override
+  Future<Either<FailureResponse, InviteResponse>> createInvite() async {
+    final response = await _client.post(
+      parameter: Requests(EndpointKey.coupleInvites.path),
+    );
+
+    return response.either(
+      FailureResponse.fromJson,
+      InviteResponse.fromJson,
+    );
+  }
+}

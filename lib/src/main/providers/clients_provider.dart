@@ -8,6 +8,7 @@ import 'package:trocado/src/main/providers/storage_provider.dart';
 
 import 'package:trocado/src/infrastructure/clients/http/http_client.dart';
 import 'package:trocado/src/infrastructure/clients/crash/crash_client.dart';
+import 'package:trocado/src/infrastructure/clients/share/share_client.dart';
 import 'package:trocado/src/infrastructure/clients/logger/logger_client.dart';
 import 'package:trocado/src/infrastructure/clients/firebase/firebase_client.dart';
 import 'package:trocado/src/infrastructure/clients/app_check/app_check_client.dart';
@@ -17,6 +18,9 @@ import 'package:trocado/src/infrastructure/clients/http/factories/dio_factory.da
 import 'package:trocado/src/presentation/ui/authentication/sign_in/locations/sign_in_location.dart';
 
 part 'clients_provider.g.dart';
+
+@Riverpod(keepAlive: true)
+IShareClient shareClient(Ref _) => ShareClient();
 
 @Riverpod(keepAlive: true)
 ICrashClient crashClient(Ref _) => CrashClient();

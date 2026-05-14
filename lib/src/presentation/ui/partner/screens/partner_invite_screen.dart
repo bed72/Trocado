@@ -14,7 +14,9 @@ import 'package:trocado/src/presentation/ui/partner/widgets/partner_invite_actio
 import 'package:trocado/src/presentation/ui/partner/widgets/partner_invite_security_note_widget.dart';
 
 class PartnerInviteScreen extends StatelessWidget {
-  const PartnerInviteScreen({super.key});
+  final VoidCallback onGenerate;
+
+  const PartnerInviteScreen({super.key, required this.onGenerate});
 
   @override
   Widget build(BuildContext context) => ScaffoldWidget(
@@ -37,11 +39,8 @@ class PartnerInviteScreen extends StatelessWidget {
               PartnerPairIndicatorWidget(userState: userState),
               const PartnerInviteHeroWidget(),
               const Spacer(),
-              PartnerInviteActionsWidget(
-                onCopyLink: () {},
-                onInviteByEmail: () {},
-              ),
               const PartnerInviteSecurityNoteWidget(),
+              PartnerInviteActionsWidget(onGenerate: onGenerate, onScan: () {}),
             ],
           );
         },

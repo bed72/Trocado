@@ -6,22 +6,27 @@ import 'package:trocado/src/domain/services/date_formatter_service.dart';
 
 import 'package:trocado/src/domain/repositories/interface_user_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
+import 'package:trocado/src/domain/repositories/interface_couple_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_insights_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_notification_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_authentication_repository.dart';
 
 import 'package:trocado/src/infrastructure/clients/http/http_client.dart';
+import 'package:trocado/src/infrastructure/clients/share/share_client.dart';
 import 'package:trocado/src/infrastructure/clients/logger/logger_client.dart';
 import 'package:trocado/src/infrastructure/clients/storage/storage_client.dart';
 import 'package:trocado/src/infrastructure/clients/app_check/app_check_client.dart';
 import 'package:trocado/src/infrastructure/clients/messaging/messaging_client.dart';
 import 'package:trocado/src/infrastructure/datasources/local/local_token_data_source.dart';
+import 'package:trocado/src/infrastructure/datasources/remote/remote_couple_data_source.dart';
 import 'package:trocado/src/infrastructure/datasources/remote/remote_notification_data_source.dart';
 
 final class MockDio extends Mock implements Dio {}
 
 final class MockHttpClient extends Mock implements IHttpClient {}
+
+final class MockShareClient extends Mock implements IShareClient {}
 
 final class MockLoggerClient extends Mock implements ILoggerClient {}
 
@@ -34,6 +39,8 @@ final class MockAppCheckClient extends Mock implements IAppCheckClient {}
 final class MockUserRepository extends Mock implements IUserRepository {}
 
 final class MockMessagingClient extends Mock implements IMessagingClient {}
+
+final class MockCoupleRepository extends Mock implements ICoupleRepository {}
 
 final class MockBudgetRepository extends Mock implements IBudgetRepository {}
 
@@ -51,6 +58,9 @@ final class MockDateFormatterService extends Mock
 
 final class MockNotificationRepository extends Mock
     implements INotificationRepository {}
+
+final class MockRemoteCoupleDataSource extends Mock
+    implements IRemoteCoupleDataSource {}
 
 final class MockAuthenticationRepository extends Mock
     implements IAuthenticationRepository {}

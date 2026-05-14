@@ -4,6 +4,7 @@ import 'package:trocado/src/main/providers/clients_provider.dart';
 
 import 'package:trocado/src/infrastructure/datasources/remote/remote_user_data_source.dart';
 import 'package:trocado/src/infrastructure/datasources/remote/remote_budget_data_source.dart';
+import 'package:trocado/src/infrastructure/datasources/remote/remote_couple_data_source.dart';
 import 'package:trocado/src/infrastructure/datasources/remote/remote_expense_data_source.dart';
 import 'package:trocado/src/infrastructure/datasources/remote/remote_insights_data_source.dart';
 import 'package:trocado/src/infrastructure/datasources/remote/remote_notification_data_source.dart';
@@ -18,6 +19,10 @@ IRemoteUserDataSource remoteUserDataSource(Ref ref) =>
 @Riverpod()
 IRemoteBudgetDataSource remoteBudgetDataSource(Ref ref) =>
     RemoteBudgetDataSource(client: ref.watch(httpClientProvider));
+
+@Riverpod()
+IRemoteCoupleDataSource remoteCoupleDataSource(Ref ref) =>
+    RemoteCoupleDataSource(client: ref.watch(httpClientProvider));
 
 @Riverpod()
 IRemoteExpenseDataSource remoteExpenseDataSource(Ref ref) =>

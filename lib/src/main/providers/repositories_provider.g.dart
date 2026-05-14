@@ -194,6 +194,53 @@ final class BudgetRepositoryProvider
 
 String _$budgetRepositoryHash() => r'42d5a21b14db14fb631690657bdd3809280e5465';
 
+@ProviderFor(coupleRepository)
+final coupleRepositoryProvider = CoupleRepositoryProvider._();
+
+final class CoupleRepositoryProvider
+    extends
+        $FunctionalProvider<
+          ICoupleRepository,
+          ICoupleRepository,
+          ICoupleRepository
+        >
+    with $Provider<ICoupleRepository> {
+  CoupleRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'coupleRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$coupleRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<ICoupleRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  ICoupleRepository create(Ref ref) {
+    return coupleRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ICoupleRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ICoupleRepository>(value),
+    );
+  }
+}
+
+String _$coupleRepositoryHash() => r'2a90289d6ad1523408667a002f9fe8f3661ca7ad';
+
 @ProviderFor(expenseRepository)
 final expenseRepositoryProvider = ExpenseRepositoryProvider._();
 

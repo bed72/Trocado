@@ -11,6 +11,7 @@ enum EndpointKey {
   refreshToken('/api/v1/token/refresh'),
   notifications('/api/v1/notifications'),
   budgetsActive('/api/v1/budgets/active'),
+  coupleInvites('/api/v1/couple/invites'),
   passwordResetConfirm('/api/v1/auth/password/reset'),
   passwordResetRequest('/api/v1/auth/password/request');
 
