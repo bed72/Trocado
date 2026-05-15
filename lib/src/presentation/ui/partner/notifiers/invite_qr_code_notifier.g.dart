@@ -38,7 +38,7 @@ final class InviteQrCodeNotifierProvider
 }
 
 String _$inviteQrCodeNotifierHash() =>
-    r'b3ad926ec1bda217221083c39c5ecde855768f8f';
+    r'136d4ae56cc9492870775d77c7bc10fb671489ea';
 
 abstract class _$InviteQrCodeNotifier
     extends $AsyncNotifier<InviteQrCodePresentationData> {
