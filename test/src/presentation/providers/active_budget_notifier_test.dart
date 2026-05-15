@@ -138,8 +138,8 @@ void main() {
         value: 250000,
         totalSpent: 144094,
         remaining: remaining,
-        description: 'Last day',
         endDate: 1746057600000,
+        description: 'Last day',
         startDate: 1743465600000,
       );
 
@@ -154,8 +154,8 @@ void main() {
       );
       final data = await container.read(activeBudgetProvider.future);
 
-      expect(data!.formattedDailyBudget, 'R\$ 1059.06');
-      expect(data.formattedEndDate, '12/05');
+      expect(data!.formattedEndDate, '12/05');
+      expect(data.formattedDailyBudget, 'R\$ 1059.06');
     },
   );
 
