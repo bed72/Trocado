@@ -1,10 +1,8 @@
 targets:
   $default:
     builders:
-      dart_json_mapper:
+      riverpod_generator:
         generate_for:
-          - lib/main.dart
-
-      reflectable:
-        generate_for:
-          - no/files
+          - lib/src/main/providers/**.dart
+          - lib/src/presentation/notifiers/**.dart
+          - lib/src/presentation/**/notifiers/**.dart
