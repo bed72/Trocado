@@ -150,7 +150,7 @@ import 'package:trocado/src/presentation/ui/settings/data/couple_card_state.dart
 import 'package:trocado/src/presentation/ui/settings/widgets/settings_invite_partner_widget.dart';
 import 'package:trocado/src/presentation/ui/settings/widgets/settings_couple_connected_widget.dart';
 import 'package:trocado/src/presentation/ui/settings/widgets/settings_couple_failure_widget.dart';
-import 'package:trocado/src/presentation/ui/settings/widgets/settings_couple_skeleton_widget.dart';
+import 'package:trocado/src/presentation/ui/settings/widgets/settings_couple_loading_widget.dart';
 
 class SettingsCoupleStatusWidget extends StatelessWidget {
   final VoidCallback onInvitePartner;
@@ -177,7 +177,7 @@ class SettingsCoupleStatusWidget extends StatelessWidget {
             message: message,
             onRetry: () => ref.invalidate(coupleProvider),
           ),
-        _ => const SettingsCoupleSkeletonWidget(),
+        _ => const SettingsCoupleLoadingWidget(),
       };
     },
   );
@@ -247,79 +247,35 @@ Espelha o `BudgetCardFailureWidget` (mesmo ícone, mesma estrutura, mesmo botão
 - `Card` envolvendo (padronizar shape com o `SettingsCoupleConnectedWidget`).
 - `borderRadius: context.radius.cornerRadius100` pra alinhar com o card connected.
 
-### `SettingsCoupleSkeletonWidget` (novo)
+### `SettingsCoupleLoadingWidget` (novo)
 
-`lib/src/presentation/ui/settings/widgets/settings_couple_skeleton_widget.dart`:
+`lib/src/presentation/ui/settings/widgets/settings_couple_loading_widget.dart`:
 
 ```dart
 import 'package:flutter/material.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
-import 'package:trocado/src/presentation/extensions/context_extension.dart';
+import 'package:trocado/src/presentation/ui/settings/data/couple_card_presentation_data.dart';
+import 'package:trocado/src/presentation/ui/settings/widgets/settings_couple_connected_widget.dart';
 
-class SettingsCoupleSkeletonWidget extends StatelessWidget {
-  const SettingsCoupleSkeletonWidget({super.key});
+class SettingsCoupleLoadingWidget extends StatelessWidget {
+  const SettingsCoupleLoadingWidget({super.key});
 
   @override
-  Widget build(BuildContext context) => Card(
-    margin: .zero,
-    elevation: 0.0,
-    clipBehavior: .antiAlias,
-    shape: RoundedRectangleBorder(
-      borderRadius: context.radius.cornerRadius100,
-    ),
-    child: Padding(
-      padding: const .all(12.0),
-      child: Row(
-        spacing: 12.0,
-        crossAxisAlignment: .center,
-        children: [
-          Container(
-            width: 64.0,
-            height: 40.0,
-            decoration: BoxDecoration(
-              shape: BoxShape.rectangle,
-              color: context.colors.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(20.0),
-            ),
-          ),
-          Expanded(
-            child: Column(
-              spacing: 6.0,
-              mainAxisSize: .min,
-              crossAxisAlignment: .start,
-              children: [
-                Container(
-                  width: 140.0,
-                  height: 14.0,
-                  decoration: BoxDecoration(
-                    color: context.colors.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(4.0),
-                  ),
-                ),
-                Container(
-                  width: 100.0,
-                  height: 12.0,
-                  decoration: BoxDecoration(
-                    color: context.colors.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(4.0),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    ),
+  Widget build(BuildContext context) => Skeletonizer(
+    child: SettingsCoupleConnectedWidget(data: _placeholder, onTap: () {}),
   );
 }
+
+const _placeholder = CoupleCardPresentationData(
+  title: 'Gabriel & Marina',
+  subtitle: 'Conectados há 4 meses',
+  currentUserInitial: 'G',
+  partnerInitial: 'M',
+);
 ```
 
-Dimensões espelham o `SettingsCoupleConnectedWidget`:
-- Padding 12, spacing 12, radius `cornerRadius100`.
-- Bloco do avatar pair (64x40 — mesma soma `2 * 40 - 16 = 64`).
-- Duas linhas de texto placeholder (140x14 e 100x12 — ~tamanho do title/subtitle).
-
-Sem animação — Container estático com `surfaceContainerHighest`.
+Segue o padrão `BudgetCardLoadingWidget`: wrap `Skeletonizer` em volta do widget de sucesso com placeholder data. Zero duplicação visual — mesma estrutura, dimensões e radius do connected widget; `Skeletonizer` mascara os textos e avatares com shimmer animado. `onTap: () {}` é no-op durante o loading.
 
 ---
 

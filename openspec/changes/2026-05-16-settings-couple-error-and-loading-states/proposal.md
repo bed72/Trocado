@@ -7,7 +7,7 @@ Diferenciar três estados no banner de casal da `SettingsScreen` que hoje colaps
 - **Conectado** → `SettingsCoupleConnectedWidget` (mantém).
 - **Sem casal** (`NotFoundFailure` vindo do code `not_in_couple` ou `not_found`) → `SettingsInvitePartnerWidget` (mantém).
 - **Falha** (`NetworkFailure`, `ServerFailure`, `ValidationFailure`, `UnknownFailure`) → novo `SettingsCoupleFailureWidget` com mensagem amigável e botão "Tentar novamente".
-- **Loading** → novo `SettingsCoupleSkeletonWidget` (placeholder cinza) em vez de cair no card de convite enquanto o GET ainda está em voo.
+- **Loading** → novo `SettingsCoupleLoadingWidget` (Skeletonizer envolvendo o `SettingsCoupleConnectedWidget` com placeholder) em vez de cair no card de convite enquanto o GET ainda está em voo.
 
 ## Motivação
 
@@ -27,7 +27,7 @@ A correção é uma evolução natural: separar os três estados de negócio (co
 - `presentation/ui/settings/notifiers/couple_notifier.dart` — refatorar `build()` pra retornar `Future<CoupleCardState>` em vez de `Future<CoupleCardPresentationData?>`; no `fold`, mapear `NotFoundFailure` → `CoupleNoneState`, demais failures → `CoupleFailureState(failure.message)`.
 - `presentation/ui/settings/widgets/settings_couple_status_widget.dart` — switch passa a cobrir 4 cenários: `AsyncData(CoupleConnectedState)`, `AsyncData(CoupleNoneState)`, `AsyncData(CoupleFailureState)`, `_` (loading/error do AsyncValue).
 - `presentation/ui/settings/widgets/settings_couple_failure_widget.dart` (NOVO) — Card com ícone `error_outline`, mensagem amigável, botão `OutlinedButton` "Tentar novamente"; recebe `onRetry: VoidCallback`.
-- `presentation/ui/settings/widgets/settings_couple_skeleton_widget.dart` (NOVO) — Card cinza com altura/padding equivalente ao `SettingsCoupleConnectedWidget` pra evitar layout shift.
+- `presentation/ui/settings/widgets/settings_couple_loading_widget.dart` (NOVO) — `Skeletonizer` envolvendo `SettingsCoupleConnectedWidget` com `_placeholder` const, seguindo o padrão `BudgetCardLoadingWidget`.
 - `test/src/presentation/providers/couple_notifier_test.dart` — atualizar os asserts existentes (de `asData?.value` retornando `CoupleCardPresentationData?` pra retornar `CoupleCardState`); adicionar testes para `CoupleFailureState` carregar a `failure.message`.
 
 ## Fora do escopo
@@ -35,7 +35,7 @@ A correção é uma evolução natural: separar os três estados de negócio (co
 - **Retry com debounce ou exponential backoff**. O botão chama `ref.invalidate(coupleProvider)` direto — Riverpod cuida da deduplicação se o user clicar em rajada.
 - **Telemetria de erro / log de falhas no banner**. Se decidido necessário depois, entra como spec separada.
 - **Diferenciar visual entre `NetworkFailure` e `ServerFailure`**. A mensagem usa `failure.message` (que já vem com texto distinto por tipo) — sem ícones nem cores diferentes.
-- **Skeleton animado (shimmer)**. Por ora um Container estático com `surfaceContainerHighest`. Shimmer pode ser adicionado depois sem reabrir essa spec.
+- **Skeleton custom com Container**. Usar o `Skeletonizer` package que já é convenção do projeto (`BudgetCardLoadingWidget`, `RecentExpensesLoadingWidget`, etc.) — animação shimmer vem incluída sem código adicional.
 - **Pull-to-refresh na settings**. Retry é só via botão do card de falha.
 - **Mensagens i18n**. Hardcoded `pt_BR` como o resto do app.
 - **Falha do `userProvider.future`** propagada separadamente. Continua o mesmo comportamento: se `userProvider` lançar, o `coupleNotifier` propaga `AsyncError` e o switch cai no default (skeleton). Aceitável porque `userProvider` falhar implica problema mais grave (sessão inválida) que será tratado no nível do app.
@@ -57,14 +57,14 @@ A correção é uma evolução natural: separar os três estados de negócio (co
 5. **`SettingsCoupleFailureWidget` segue o estilo do `BudgetCardFailureWidget`.**
    Já existe um padrão no projeto pra "card de falha com retry": ícone `error_outline` 48px (cor `colors.error`), texto centralizado em `bodyMedium`, `OutlinedButton` "Tentar novamente". Replicar o padrão mantém consistência visual e familiariza o user com a affordance.
 
-6. **Skeleton estático, sem shimmer.**
-   Shimmer adiciona dependência (`shimmer` package ou animação custom) e o ganho UX é marginal — o GET resolve em ~200ms em rede normal, então o skeleton aparece <1s. Container cinza com altura fixa (mesma do connected widget) elimina o flicker e é suficiente. Migrar pra shimmer no futuro é um diff isolado.
+6. **Skeleton via `Skeletonizer` package, padrão do projeto.**
+   Convenção estabelecida em `BudgetCardLoadingWidget`, `RecentExpensesLoadingWidget`, `InviteQrCodeLoadingWidget`, etc.: wrap o widget de sucesso com `Skeletonizer` + um `_placeholder` const com dados fake. O package cuida da animação shimmer e do mascaramento dos elementos. Reaproveita o `SettingsCoupleConnectedWidget` existente — zero duplicação visual, mesma estrutura/dimensão (sem layout shift).
 
-7. **Widget de skeleton vive ao lado do couple connected e failure widgets.**
-   `presentation/ui/settings/widgets/settings_couple_skeleton_widget.dart`. Justifica: skeleton é específico do banner de casal (suas dimensões espelham o card connected). Se outro lugar precisar de skeleton genérico, promove pra `presentation/widgets/skeleton/` quando esse segundo uso aparecer (YAGNI).
+7. **Widget de loading vive ao lado do couple connected e failure widgets.**
+   `presentation/ui/settings/widgets/settings_couple_loading_widget.dart`. Justifica: específico do banner de casal (depende do `SettingsCoupleConnectedWidget`). Nome `LoadingWidget` segue a convenção do projeto (`BudgetCardLoadingWidget`, `ExpensesLoadingWidget`, etc.).
 
-8. **Loading default + AsyncError do user→couple flow caem no skeleton.**
-   O switch do `SettingsCoupleStatusWidget` resolve `AsyncData` pra um dos 3 widgets de negócio; `AsyncLoading` e `AsyncError` ambos caem no `_` → skeleton. Justifica: `AsyncError` é raro (só se `userProvider` lançar — sessão inválida); mostrar skeleton brevemente é menos ruim que mostrar erro que não dá pra resolver com retry local. Se o `userProvider` realmente quebrou, o app vai sair pra SignIn de qualquer jeito.
+8. **Loading default + AsyncError do user→couple flow caem no loading.**
+   O switch do `SettingsCoupleStatusWidget` resolve `AsyncData` pra um dos 3 widgets de negócio; `AsyncLoading` e `AsyncError` ambos caem no `_` → `SettingsCoupleLoadingWidget`. Justifica: `AsyncError` é raro (só se `userProvider` lançar — sessão inválida); mostrar loading brevemente é menos ruim que mostrar erro que não dá pra resolver com retry local. Se o `userProvider` realmente quebrou, o app vai sair pra SignIn de qualquer jeito.
 
 9. **Sealed class fica em `data/` (não em `notifiers/`).**
    Convenção do projeto: view-models de apresentação ficam em `<feature>/data/` ([[CLAUDE.md]] §Services-via-notifier). `CoupleCardState` é exatamente isso — o "shape" do dado consumido pela view. Vizinho do `couple_card_presentation_data.dart` que já existe.
