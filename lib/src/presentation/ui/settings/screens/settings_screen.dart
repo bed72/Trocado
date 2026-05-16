@@ -15,7 +15,7 @@ import 'package:trocado/src/presentation/ui/settings/widgets/settings_card_widge
 import 'package:trocado/src/presentation/ui/settings/widgets/settings_item_widget.dart';
 import 'package:trocado/src/presentation/ui/settings/widgets/settings_logout_widget.dart';
 import 'package:trocado/src/presentation/ui/settings/widgets/settings_section_widget.dart';
-import 'package:trocado/src/presentation/ui/settings/widgets/settings_invite_partner_widget.dart';
+import 'package:trocado/src/presentation/ui/settings/widgets/settings_couple_status_widget.dart';
 
 class SettingsScreen extends StatelessWidget {
   final VoidCallback onSignIn;
@@ -23,6 +23,7 @@ class SettingsScreen extends StatelessWidget {
   final VoidCallback onNotification;
   final VoidCallback onSubscription;
   final VoidCallback onInvitePartner;
+  final VoidCallback onCoupleDetails;
 
   const SettingsScreen({
     super.key,
@@ -31,6 +32,7 @@ class SettingsScreen extends StatelessWidget {
     required this.onNotification,
     required this.onSubscription,
     required this.onInvitePartner,
+    required this.onCoupleDetails,
   });
 
   @override
@@ -114,7 +116,10 @@ class SettingsScreen extends StatelessWidget {
   List<Widget> get _buildCouple => [
     _buildTitleItem('Casal'),
     const SizedBox(height: 8.0),
-    SettingsInvitePartnerWidget(onTap: onInvitePartner),
+    SettingsCoupleStatusWidget(
+      onInvitePartner: onInvitePartner,
+      onCoupleDetails: onCoupleDetails,
+    ),
   ];
 
   List<Widget> get _buildAccount => [

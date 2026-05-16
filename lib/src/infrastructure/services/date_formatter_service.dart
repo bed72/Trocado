@@ -37,6 +37,27 @@ final class DateFormatterService implements IDateFormatterService {
       _inviteExpiration.format(DateTime.fromMillisecondsSinceEpoch(millis));
 
   @override
+  String formatRelativePast(int millis) {
+    final past = DateTime.fromMillisecondsSinceEpoch(millis);
+    final days = _now().difference(past).inDays;
+
+    if (days < 7) return 'alguns dias';
+
+    if (days < 30) {
+      final weeks = days ~/ 7;
+      return weeks == 1 ? '1 semana' : '$weeks semanas';
+    }
+
+    if (days < 365) {
+      final months = days ~/ 30;
+      return months == 1 ? '1 mês' : '$months meses';
+    }
+
+    final years = days ~/ 365;
+    return years == 1 ? '1 ano' : '$years anos';
+  }
+
+  @override
   String formatMonth(DateTime date) => _capitalize(_month.format(date));
 
   @override

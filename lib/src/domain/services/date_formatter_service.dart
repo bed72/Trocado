@@ -7,6 +7,7 @@ abstract interface class IDateFormatterService {
   String formatMonth(DateTime date);
   String formatDayMonth(int millis);
   String formatShortDate(int millis);
+  String formatRelativePast(int millis);
   String formatInviteExpiration(int millis);
 
   String relativeGroupHeader(int millis);

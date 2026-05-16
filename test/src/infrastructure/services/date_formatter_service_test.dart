@@ -65,8 +65,8 @@ void main() {
     });
 
     test('uses dd/MM/yy when crossing years', () {
-      final start = DateTime(2025, 12, 1).millisecondsSinceEpoch;
       final end = DateTime(2026, 1, 31).millisecondsSinceEpoch;
+      final start = DateTime(2025, 12, 1).millisecondsSinceEpoch;
 
       final data = formatter.formatPeriod(start, end);
 
@@ -74,8 +74,8 @@ void main() {
     });
 
     test('uses dd/MM/yy when end is in a different year from now', () {
-      final start = DateTime(2026, 11, 1).millisecondsSinceEpoch;
       final end = DateTime(2027, 1, 31).millisecondsSinceEpoch;
+      final start = DateTime(2026, 11, 1).millisecondsSinceEpoch;
 
       final data = formatter.formatPeriod(start, end);
 
@@ -172,6 +172,64 @@ void main() {
       final iso = formatter.toIsoDate(original);
 
       expect(formatter.fromIsoDate(iso), original);
+    });
+  });
+
+  group('formatRelativePast', () {
+    test('returns "alguns dias" when diff is under 7 days', () {
+      final data = formatter.formatRelativePast(
+        fixedNow.subtract(const Duration(days: 3)).millisecondsSinceEpoch,
+      );
+
+      expect(data, 'alguns dias');
+    });
+
+    test('returns "1 semana" at exactly 7 days', () {
+      final data = formatter.formatRelativePast(
+        fixedNow.subtract(const Duration(days: 7)).millisecondsSinceEpoch,
+      );
+
+      expect(data, '1 semana');
+    });
+
+    test('returns "2 semanas" at 14 days', () {
+      final data = formatter.formatRelativePast(
+        fixedNow.subtract(const Duration(days: 14)).millisecondsSinceEpoch,
+      );
+
+      expect(data, '2 semanas');
+    });
+
+    test('returns "1 mês" at exactly 30 days', () {
+      final data = formatter.formatRelativePast(
+        fixedNow.subtract(const Duration(days: 30)).millisecondsSinceEpoch,
+      );
+
+      expect(data, '1 mês');
+    });
+
+    test('returns "4 meses" at 120 days', () {
+      final data = formatter.formatRelativePast(
+        fixedNow.subtract(const Duration(days: 120)).millisecondsSinceEpoch,
+      );
+
+      expect(data, '4 meses');
+    });
+
+    test('returns "1 ano" at exactly 365 days', () {
+      final data = formatter.formatRelativePast(
+        fixedNow.subtract(const Duration(days: 365)).millisecondsSinceEpoch,
+      );
+
+      expect(data, '1 ano');
+    });
+
+    test('returns "2 anos" at 800 days', () {
+      final data = formatter.formatRelativePast(
+        fixedNow.subtract(const Duration(days: 800)).millisecondsSinceEpoch,
+      );
+
+      expect(data, '2 anos');
     });
   });
 }

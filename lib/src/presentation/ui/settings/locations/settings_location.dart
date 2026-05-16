@@ -6,8 +6,8 @@ import 'package:trocado/src/presentation/extensions/context_extension.dart';
 import 'package:trocado/src/presentation/pages/screen_page.dart';
 import 'package:trocado/src/presentation/ui/settings/screens/settings_screen.dart';
 import 'package:trocado/src/presentation/ui/partner/locations/partner_invite_location.dart';
-import 'package:trocado/src/presentation/ui/profile/details/locations/profile_details_location.dart';
 import 'package:trocado/src/presentation/ui/authentication/sign_in/locations/sign_in_location.dart';
+import 'package:trocado/src/presentation/ui/profile/details/locations/profile_details_location.dart';
 
 final class SettingsLocation extends Location {
   @override
@@ -19,6 +19,7 @@ final class SettingsLocation extends Location {
         SettingsScreen(
           onNotification: () {},
           onSubscription: () {},
+          onCoupleDetails: () {},
           onEditProfile: () => context.navigate(ProfileDetailsLocation()),
           onInvitePartner: () => context.navigate(PartnerInviteLocation()),
           onSignIn: () =>
