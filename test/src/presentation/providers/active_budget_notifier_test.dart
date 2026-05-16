@@ -122,8 +122,8 @@ void main() {
       );
       final data = await container.read(activeBudgetProvider.future);
 
-      expect(data!.formattedDailyBudget, 'R\$ 529.53');
-      expect(data.formattedEndDate, '01/05');
+      expect(data!.formattedEndDate, '01/05');
+      expect(data.formattedDailyBudget, 'R\$ 529.53');
     },
   );
 
