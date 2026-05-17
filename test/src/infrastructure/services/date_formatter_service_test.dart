@@ -89,6 +89,24 @@ void main() {
     });
   });
 
+  group('formatInviteExpiration', () {
+    test('returns "dd de Mês às HH:mm" with full capitalized month', () {
+      final data = formatter.formatInviteExpiration(
+        DateTime(2026, 5, 18, 18, 23).millisecondsSinceEpoch,
+      );
+
+      expect(data, '18 de Maio às 18:23');
+    });
+
+    test('pads single-digit day with leading zero', () {
+      final data = formatter.formatInviteExpiration(
+        DateTime(2026, 1, 3, 9, 5).millisecondsSinceEpoch,
+      );
+
+      expect(data, '03 de Janeiro às 09:05');
+    });
+  });
+
   group('formatMonth', () {
     test('returns capitalized full month name in pt_BR', () {
       final data = formatter.formatMonth(DateTime(2026, 3, 15));

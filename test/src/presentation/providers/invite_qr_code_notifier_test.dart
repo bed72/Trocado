@@ -47,7 +47,7 @@ void main() {
 
     when(
       () => dateFormatter.formatInviteExpiration(any()),
-    ).thenReturn('Expira em 18/03 às 14:30');
+    ).thenReturn('18 de Maio às 18:23');
     when(
       () => repository.shareInvite(qrData: any(named: 'qrData')),
     ).thenAnswer((_) async => const Right(null));
@@ -68,7 +68,7 @@ void main() {
 
       expect(value.code, 'A3K7FN');
       expect(value.qrData, _qrData);
-      expect(value.formattedExpiration, 'Expira em 18/03 às 14:30');
+      expect(value.formattedExpiration, '18 de Maio às 18:23');
 
       verify(() => dateFormatter.formatInviteExpiration(_expiresAt)).called(1);
     });

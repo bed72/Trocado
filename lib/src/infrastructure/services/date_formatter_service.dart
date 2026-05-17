@@ -17,7 +17,6 @@ final class DateFormatterService implements IDateFormatterService {
   final DateFormat _shortDate = DateFormat('dd/MM/yyyy', _locale);
   final DateFormat _dayMonthAbbrev = DateFormat('dd MMM', _locale);
   final DateFormat _dayMonthShortYear = DateFormat('dd/MM/yy', _locale);
-  final DateFormat _inviteExpiration = DateFormat("dd/MM 'às' HH:mm", _locale);
 
   DateFormatterService({required DateTime Function() now}) : _now = now;
 
@@ -43,8 +42,13 @@ final class DateFormatterService implements IDateFormatterService {
       _time.format(DateTime.fromMillisecondsSinceEpoch(millis));
 
   @override
-  String formatInviteExpiration(int millis) =>
-      _inviteExpiration.format(DateTime.fromMillisecondsSinceEpoch(millis));
+  String formatInviteExpiration(int millis) {
+    final date = DateTime.fromMillisecondsSinceEpoch(millis);
+    final day = date.day.toString().padLeft(2, '0');
+    final month = _capitalize(_month.format(date));
+
+    return '$day de $month às ${_time.format(date)}';
+  }
 
   @override
   String formatRelativePast(int millis) {

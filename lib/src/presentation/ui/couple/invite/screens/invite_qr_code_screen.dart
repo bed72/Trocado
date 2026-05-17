@@ -50,7 +50,6 @@ class InviteQrCodeScreen extends StatelessWidget {
               ButtonWidget.elevated(
                 label: 'Compartilhar',
                 onTap: state is AsyncData ? notifier.share : null,
-                child: const Icon(Icons.share, size: 20.0),
               ),
             ],
           );
