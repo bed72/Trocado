@@ -13,7 +13,7 @@ import 'package:trocado/src/presentation/ui/profile/name/validators/profile_name
 
 part 'profile_name_notifier.g.dart';
 
-@riverpod
+@Riverpod()
 final class ProfileNameNotifier extends _$ProfileNameNotifier {
   late IUserRepository _repository;
   late ProfileNameFormValidator _validator;

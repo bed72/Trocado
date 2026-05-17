@@ -11,7 +11,7 @@ import 'package:trocado/src/presentation/ui/couple/invite/data/invite_qr_code_pr
 
 part 'invite_qr_code_notifier.g.dart';
 
-@riverpod
+@Riverpod()
 final class InviteQrCodeNotifier extends _$InviteQrCodeNotifier {
   late ICoupleRepository _repository;
   late IDateFormatterService _dateFormatter;

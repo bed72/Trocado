@@ -13,7 +13,7 @@ import 'package:trocado/src/presentation/ui/profile/password/validators/profile_
 
 part 'profile_password_notifier.g.dart';
 
-@riverpod
+@Riverpod()
 final class ProfilePasswordNotifier extends _$ProfilePasswordNotifier {
   late IUserRepository _repository;
   late ProfilePasswordFormValidator _validator;

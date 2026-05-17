@@ -11,7 +11,7 @@ import 'package:trocado/src/presentation/ui/authentication/password_reset_confir
 
 part 'password_reset_confirm_notifier.g.dart';
 
-@riverpod
+@Riverpod()
 final class PasswordResetConfirmNotifier
     extends _$PasswordResetConfirmNotifier {
   late IAuthenticationRepository _repository;

@@ -35,7 +35,7 @@ final class CoupleDissolveNotifierProvider
 }
 
 String _$coupleDissolveNotifierHash() =>
-    r'db5383501f6569b6bc6e8bb7e9d49699c3e99700';
+    r'29b15160c9f3a95523f8e670d6bd65554a255db9';
 
 abstract class _$CoupleDissolveNotifier
     extends $AsyncNotifier<CoupleDissolveState> {

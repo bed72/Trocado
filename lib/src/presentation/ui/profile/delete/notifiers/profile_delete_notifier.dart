@@ -13,7 +13,7 @@ import 'package:trocado/src/presentation/ui/profile/delete/validators/profile_de
 
 part 'profile_delete_notifier.g.dart';
 
-@riverpod
+@Riverpod()
 final class ProfileDeleteNotifier extends _$ProfileDeleteNotifier {
   late IUserRepository _repository;
   late ProfileDeleteFormValidator _validator;

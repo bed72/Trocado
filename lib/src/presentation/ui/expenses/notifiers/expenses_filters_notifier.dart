@@ -11,7 +11,7 @@ import 'package:trocado/src/presentation/ui/expenses/notifiers/expenses_filters_
 
 part 'expenses_filters_notifier.g.dart';
 
-@riverpod
+@Riverpod()
 final class ExpensesFiltersNotifier extends _$ExpensesFiltersNotifier {
   late DateTime Function() _now;
   late IDateFormatterService _dateFormatter;

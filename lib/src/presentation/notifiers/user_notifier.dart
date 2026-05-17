@@ -7,7 +7,7 @@ import 'package:trocado/src/domain/repositories/interface_user_repository.dart';
 
 part 'user_notifier.g.dart';
 
-@riverpod
+@Riverpod()
 final class UserNotifier extends _$UserNotifier {
   late IUserRepository _repository;
 

@@ -9,7 +9,7 @@ import 'package:trocado/src/presentation/ui/budgets/notifiers/budgets_notifier.d
 
 part 'budget_by_id_notifier.g.dart';
 
-@riverpod
+@Riverpod()
 final class BudgetByIdNotifier extends _$BudgetByIdNotifier {
   late IBudgetRepository _repository;
 

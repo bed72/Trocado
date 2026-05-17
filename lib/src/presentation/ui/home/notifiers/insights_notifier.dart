@@ -7,7 +7,7 @@ import 'package:trocado/src/domain/repositories/interface_insights_repository.da
 
 part 'insights_notifier.g.dart';
 
-@riverpod
+@Riverpod()
 final class InsightsNotifier extends _$InsightsNotifier {
   late IInsightsRepository _repository;
 

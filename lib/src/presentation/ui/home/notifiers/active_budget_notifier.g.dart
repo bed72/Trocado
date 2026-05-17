@@ -38,7 +38,7 @@ final class ActiveBudgetNotifierProvider
 }
 
 String _$activeBudgetNotifierHash() =>
-    r'74639648f8d22aec4826d8f6017d294c6a87e8c2';
+    r'cf9bcccf2143d9af8bad7f4623e90c3eafc77732';
 
 abstract class _$ActiveBudgetNotifier
     extends $AsyncNotifier<BudgetCardPresentationData?> {

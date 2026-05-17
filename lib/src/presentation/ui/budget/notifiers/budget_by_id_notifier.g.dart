@@ -51,7 +51,7 @@ final class BudgetByIdNotifierProvider
 }
 
 String _$budgetByIdNotifierHash() =>
-    r'94177b25b0b8687deffb130866b6b14625ea67dd';
+    r'c23fe89158cdde439dfb717b7c26e5b712df8575';
 
 final class BudgetByIdNotifierFamily extends $Family
     with

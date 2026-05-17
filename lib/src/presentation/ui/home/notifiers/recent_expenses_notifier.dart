@@ -12,7 +12,7 @@ import 'package:trocado/src/presentation/data/expense_item_presentation_data.dar
 
 part 'recent_expenses_notifier.g.dart';
 
-@riverpod
+@Riverpod()
 final class RecentExpensesNotifier extends _$RecentExpensesNotifier {
   late IMoneyService _moneyService;
   late IExpenseRepository _repository;

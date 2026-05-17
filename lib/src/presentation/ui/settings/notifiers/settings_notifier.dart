@@ -9,7 +9,7 @@ import 'package:trocado/src/presentation/ui/settings/notifiers/settings_intent.d
 
 part 'settings_notifier.g.dart';
 
-@riverpod
+@Riverpod()
 final class SettingsNotifier extends _$SettingsNotifier {
   late IAuthenticationRepository _repository;
 

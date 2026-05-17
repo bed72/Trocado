@@ -18,7 +18,7 @@ import 'package:trocado/src/presentation/ui/expense/validators/expense_form_vali
 
 part 'expense_notifier.g.dart';
 
-@riverpod
+@Riverpod()
 final class ExpenseNotifier extends _$ExpenseNotifier {
   late DateTime Function() _now;
   late IExpenseRepository _repository;

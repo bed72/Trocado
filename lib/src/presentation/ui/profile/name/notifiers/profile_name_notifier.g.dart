@@ -34,7 +34,7 @@ final class ProfileNameNotifierProvider
 }
 
 String _$profileNameNotifierHash() =>
-    r'0f8a560ac6f83d14840f5426ac742fcbbd3e37d4';
+    r'7e47fadec1a3590e17273ccfeac9d72fbb926900';
 
 abstract class _$ProfileNameNotifier extends $AsyncNotifier<ProfileNameState> {
   FutureOr<ProfileNameState> build();

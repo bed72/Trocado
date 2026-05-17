@@ -33,7 +33,7 @@ final class InsightsNotifierProvider
   InsightsNotifier create() => InsightsNotifier();
 }
 
-String _$insightsNotifierHash() => r'6b5f2636d096e26450793bb0346a3fb94878d97f';
+String _$insightsNotifierHash() => r'783da157227c388383492dbc02cc9ceb08fbfb66';
 
 abstract class _$InsightsNotifier extends $AsyncNotifier<InsightsBundleModel> {
   FutureOr<InsightsBundleModel> build();

@@ -42,7 +42,7 @@ final class ProfileDeleteNotifierProvider
 }
 
 String _$profileDeleteNotifierHash() =>
-    r'cd9e644ddb56bb4fe15192ba42974e3a6aa4fd18';
+    r'70d533134314baa71e3c8566812665aefb700cff';
 
 abstract class _$ProfileDeleteNotifier extends $Notifier<ProfileDeleteState> {
   ProfileDeleteState build();

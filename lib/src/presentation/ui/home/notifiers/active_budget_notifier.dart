@@ -14,7 +14,7 @@ import 'package:trocado/src/presentation/data/budget/budget_card_presentation_da
 
 part 'active_budget_notifier.g.dart';
 
-@riverpod
+@Riverpod()
 final class ActiveBudgetNotifier extends _$ActiveBudgetNotifier {
   late IMoneyService _moneyService;
   late IBudgetRepository _repository;

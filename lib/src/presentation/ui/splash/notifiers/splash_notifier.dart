@@ -11,7 +11,7 @@ import 'package:trocado/src/domain/repositories/interface_authentication_reposit
 
 part 'splash_notifier.g.dart';
 
-@riverpod
+@Riverpod()
 final class SplashNotifier extends _$SplashNotifier {
   late INotificationRepository _notificationRepository;
   late IAuthenticationRepository _authenticationRepository;

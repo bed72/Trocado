@@ -18,7 +18,7 @@ import 'package:trocado/src/presentation/ui/couple/dissolve/notifiers/couple_dis
 
 part 'couple_dissolve_notifier.g.dart';
 
-@riverpod
+@Riverpod()
 final class CoupleDissolveNotifier extends _$CoupleDissolveNotifier {
   late ICoupleRepository _repository;
 

@@ -14,7 +14,7 @@ import 'package:trocado/src/presentation/ui/authentication/sign_in/validators/si
 
 part 'sign_in_notifier.g.dart';
 
-@riverpod
+@Riverpod()
 final class SignInNotifier extends _$SignInNotifier {
   late SignInFormValidator _validator;
   late INotificationRepository _notificationRepository;

@@ -14,7 +14,7 @@ import 'package:trocado/src/presentation/ui/authentication/sign_up/validators/si
 
 part 'sign_up_notifier.g.dart';
 
-@riverpod
+@Riverpod()
 final class SignUpNotifier extends _$SignUpNotifier {
   late SignUpFormValidator _validator;
   late INotificationRepository _notificationRepository;

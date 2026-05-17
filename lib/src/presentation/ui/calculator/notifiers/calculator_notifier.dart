@@ -8,7 +8,7 @@ import 'package:trocado/src/presentation/ui/calculator/notifiers/calculator_inte
 
 part 'calculator_notifier.g.dart';
 
-@riverpod
+@Riverpod()
 final class CalculatorNotifier extends _$CalculatorNotifier {
   late IMoneyService _moneyService;
 

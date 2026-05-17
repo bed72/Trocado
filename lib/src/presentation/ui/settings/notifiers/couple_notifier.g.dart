@@ -20,7 +20,7 @@ final class CoupleNotifierProvider
         argument: null,
         retry: null,
         name: r'coupleProvider',
-        isAutoDispose: false,
+        isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -33,7 +33,7 @@ final class CoupleNotifierProvider
   CoupleNotifier create() => CoupleNotifier();
 }
 
-String _$coupleNotifierHash() => r'6fae6af5d8072ef47ca4bd817c6344e74c020e07';
+String _$coupleNotifierHash() => r'ee4def98b73a194775dff275ec6450c649204be9';
 
 abstract class _$CoupleNotifier extends $AsyncNotifier<CoupleCardState> {
   FutureOr<CoupleCardState> build();

@@ -11,7 +11,7 @@ import 'package:trocado/src/presentation/ui/authentication/forgot_password/valid
 
 part 'forgot_password_notifier.g.dart';
 
-@riverpod
+@Riverpod()
 final class ForgotPasswordNotifier extends _$ForgotPasswordNotifier {
   late IAuthenticationRepository _repository;
   late ForgotPasswordFormValidator _validator;

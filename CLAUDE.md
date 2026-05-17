@@ -346,11 +346,28 @@ class SignInScreen extends ConsumerWidget {
 
 ### Code generation
 
-`riverpod_generator` é usado **exclusivamente** para gerar providers Riverpod (`@riverpod`).
+`riverpod_generator` é usado **exclusivamente** para gerar providers Riverpod (`@Riverpod()`).
 Não usar code gen para nenhuma outra finalidade.
 
 ```bash
 dart run build_runner build --delete-conflicting-outputs
+```
+
+### Anotação `@Riverpod()` — sempre a forma com parênteses
+
+Sempre usar `@Riverpod()` (PascalCase com parênteses), **nunca** `@riverpod` (lowercase sem parênteses). As duas formas são funcionalmente equivalentes, mas a forma com parênteses é a única que aceita parâmetros (`keepAlive: true`, `dependencies: [...]`), então padronizar nela elimina o switch de estilo no dia que um provider precisa virar `keepAlive`. Vale para Notifiers, AsyncNotifiers e providers funcionais em `main/providers/`.
+
+```dart
+// correto
+@Riverpod()
+final class SignInNotifier extends _$SignInNotifier { ... }
+
+@Riverpod(keepAlive: true)
+IShareClient shareClient(Ref _) => ShareClient();
+
+// evitar
+@riverpod
+final class SignInNotifier extends _$SignInNotifier { ... }
 ```
 
 ### Ordenação de membros em classes
@@ -513,7 +530,7 @@ final class EmailChanged extends SignInIntent {
 }
 final class SubmitPressed extends SignInIntent {}
 
-@riverpod
+@Riverpod()
 final class SignInNotifier extends _$SignInNotifier {
   late SignInFormValidator _validator;
   late IAuthenticationRepository _repository;
@@ -535,7 +552,7 @@ final class SignInNotifier extends _$SignInNotifier {
 **Notifier com inicialização assíncrona automática** — quando não há interação do usuário e o estado é carregado ao montar (ex: splash, carregamento inicial), usar `AsyncNotifier` com `build()` async. A lógica async fica em método privado separado:
 
 ```dart
-@riverpod
+@Riverpod()
 final class SplashNotifier extends _$SplashNotifier {
   late IAuthenticationRepository _repository;
 

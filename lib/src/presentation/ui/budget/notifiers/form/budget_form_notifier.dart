@@ -17,7 +17,7 @@ import 'package:trocado/src/presentation/ui/budget/notifiers/form/budget_form_in
 
 part 'budget_form_notifier.g.dart';
 
-@riverpod
+@Riverpod()
 final class BudgetFormNotifier extends _$BudgetFormNotifier {
   late DateTime Function() _now;
   late IBudgetRepository _repository;

@@ -51,7 +51,7 @@ final class ExpenseByIdNotifierProvider
 }
 
 String _$expenseByIdNotifierHash() =>
-    r'69f2a6a52a03100b227dfccdff0d182a93d89b23';
+    r'ccd8d04450beea89f4221e656b8ce1f252a3e378';
 
 final class ExpenseByIdNotifierFamily extends $Family
     with

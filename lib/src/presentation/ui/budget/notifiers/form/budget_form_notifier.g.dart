@@ -51,7 +51,7 @@ final class BudgetFormNotifierProvider
 }
 
 String _$budgetFormNotifierHash() =>
-    r'aac7f310aea72c6c999181ce234d9212212070ae';
+    r'27342baf308a8b343946122c9535dd6fe1b47bd7';
 
 final class BudgetFormNotifierFamily extends $Family
     with
