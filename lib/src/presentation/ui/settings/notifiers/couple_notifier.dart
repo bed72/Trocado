@@ -3,12 +3,14 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:trocado/src/main/providers/services_provider.dart';
 import 'package:trocado/src/main/providers/repositories_provider.dart';
 
+import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/models/user_model.dart';
 import 'package:trocado/src/domain/models/couple/couple_model.dart';
 import 'package:trocado/src/domain/services/date_formatter_service.dart';
 import 'package:trocado/src/domain/repositories/interface_couple_repository.dart';
 
 import 'package:trocado/src/presentation/notifiers/user_notifier.dart';
+import 'package:trocado/src/presentation/ui/settings/data/couple_card_state.dart';
 import 'package:trocado/src/presentation/ui/settings/data/couple_card_presentation_data.dart';
 
 part 'couple_notifier.g.dart';
@@ -19,7 +21,7 @@ final class CoupleNotifier extends _$CoupleNotifier {
   late IDateFormatterService _dateFormatter;
 
   @override
-  Future<CoupleCardPresentationData?> build() async {
+  Future<CoupleCardState> build() async {
     _repository = ref.watch(coupleRepositoryProvider);
     _dateFormatter = ref.watch(dateFormatterServiceProvider);
 
@@ -27,10 +29,15 @@ final class CoupleNotifier extends _$CoupleNotifier {
     final user = await ref.watch(userProvider.future);
 
     return data.fold(
-      (_) => null,
-      (couple) => _toPresentationData(user, couple),
+      _toFailureState,
+      (couple) => CoupleConnectedState(_toPresentationData(user, couple)),
     );
   }
+
+  CoupleCardState _toFailureState(Failure failure) => switch (failure) {
+    NotFoundFailure() => const CoupleNoneState(),
+    _ => CoupleFailureState(failure.message),
+  };
 
   CoupleCardPresentationData _toPresentationData(
     UserModel user,

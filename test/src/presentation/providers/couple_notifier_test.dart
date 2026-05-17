@@ -13,6 +13,7 @@ import 'package:trocado/src/domain/repositories/interface_couple_repository.dart
 import 'package:trocado/src/main/providers/services_provider.dart';
 import 'package:trocado/src/main/providers/repositories_provider.dart';
 
+import 'package:trocado/src/presentation/ui/settings/data/couple_card_state.dart';
 import 'package:trocado/src/presentation/ui/settings/notifiers/couple_notifier.dart';
 
 import '../../../mocks/mocks.dart';
@@ -55,17 +56,18 @@ void main() {
 
   group('build', () {
     test(
-      'returns presentation data with title, subtitle and initials',
+      'returns CoupleConnectedState with title, subtitle and initials',
       () async {
         when(
           () => coupleRepository.findActive(),
         ).thenAnswer((_) async => Right(_couple));
 
         final container = await makeContainer();
-        final data = container.read(coupleProvider).asData?.value;
+        final state = container.read(coupleProvider).asData?.value;
 
-        expect(data, isNotNull);
-        expect(data!.partnerInitial, 'M');
+        expect(state, isA<CoupleConnectedState>());
+        final data = (state as CoupleConnectedState).data;
+        expect(data.partnerInitial, 'M');
         expect(data.currentUserInitial, 'G');
         expect(data.title, 'Gabriel & Marina');
         expect(data.subtitle, 'Conectados há 4 meses');
@@ -76,35 +78,79 @@ void main() {
       },
     );
 
-    test('returns null when repository returns NotFoundFailure', () async {
-      when(
-        () => coupleRepository.findActive(),
-      ).thenAnswer((_) async => const Left(NotFoundFailure()));
+    test(
+      'returns CoupleNoneState when repository returns NotFoundFailure',
+      () async {
+        when(
+          () => coupleRepository.findActive(),
+        ).thenAnswer((_) async => const Left(NotFoundFailure()));
 
-      final container = await makeContainer();
+        final container = await makeContainer();
+        final state = container.read(coupleProvider).asData?.value;
 
-      expect(container.read(coupleProvider).asData?.value, isNull);
-    });
+        expect(state, isA<CoupleNoneState>());
+      },
+    );
 
-    test('returns null when repository returns NetworkFailure', () async {
+    test('returns CoupleFailureState with message on NetworkFailure', () async {
       when(
         () => coupleRepository.findActive(),
       ).thenAnswer((_) async => const Left(NetworkFailure()));
 
       final container = await makeContainer();
+      final state = container.read(coupleProvider).asData?.value;
 
-      expect(container.read(coupleProvider).asData?.value, isNull);
+      expect(state, isA<CoupleFailureState>());
+      expect(
+        (state as CoupleFailureState).message,
+        'Sem conexão com o servidor.',
+      );
     });
 
-    test('returns null when repository returns ServerFailure', () async {
+    test('returns CoupleFailureState with message on ServerFailure', () async {
       when(
         () => coupleRepository.findActive(),
       ).thenAnswer((_) async => const Left(ServerFailure()));
 
       final container = await makeContainer();
+      final state = container.read(coupleProvider).asData?.value;
 
-      expect(container.read(coupleProvider).asData?.value, isNull);
+      expect(state, isA<CoupleFailureState>());
+      expect(
+        (state as CoupleFailureState).message,
+        'Falha interna do servidor.',
+      );
     });
+
+    test(
+      'returns CoupleFailureState with custom message on ValidationFailure',
+      () async {
+        when(() => coupleRepository.findActive()).thenAnswer(
+          (_) async => const Left(ValidationFailure('Algo inesperado.')),
+        );
+
+        final container = await makeContainer();
+        final state = container.read(coupleProvider).asData?.value;
+
+        expect(state, isA<CoupleFailureState>());
+        expect((state as CoupleFailureState).message, 'Algo inesperado.');
+      },
+    );
+
+    test(
+      'returns CoupleFailureState with default message on UnknownFailure',
+      () async {
+        when(
+          () => coupleRepository.findActive(),
+        ).thenAnswer((_) async => const Left(UnknownFailure()));
+
+        final container = await makeContainer();
+        final state = container.read(coupleProvider).asData?.value;
+
+        expect(state, isA<CoupleFailureState>());
+        expect((state as CoupleFailureState).message, 'Falha desconhecido.');
+      },
+    );
 
     test('handles partner name with diacritics', () async {
       final coupleWithDiacritics = _couple.copyWith(
@@ -120,9 +166,11 @@ void main() {
       ).thenAnswer((_) async => Right(coupleWithDiacritics));
 
       final container = await makeContainer();
-      final data = container.read(coupleProvider).asData?.value;
+      final state = container.read(coupleProvider).asData?.value;
 
-      expect(data!.partnerInitial, 'Á');
+      expect(state, isA<CoupleConnectedState>());
+      final data = (state as CoupleConnectedState).data;
+      expect(data.partnerInitial, 'Á');
       expect(data.title, 'Gabriel & Ágata');
     });
   });

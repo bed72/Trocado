@@ -4,9 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trocado/src/domain/models/insight/insights_bundle_model.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
+import 'package:trocado/src/presentation/widgets/cards/inline_failure_card_widget.dart';
 import 'package:trocado/src/presentation/ui/home/widgets/insights/insights_carousel_empty_widget.dart';
 import 'package:trocado/src/presentation/ui/home/widgets/insights/insights_carousel_loading_widget.dart';
-import 'package:trocado/src/presentation/ui/home/widgets/insights/insights_carousel_failure_widget.dart';
 import 'package:trocado/src/presentation/ui/home/widgets/insights/insights_carousel_success_widget.dart';
 
 class InsightsCarouselWidget extends StatelessWidget {
@@ -37,7 +37,13 @@ class InsightsCarouselWidget extends StatelessWidget {
       ),
       switch (state) {
         AsyncLoading() => const InsightsCarouselLoadingWidget(),
-        AsyncError() => InsightsCarouselFailureWidget(onRetry: onRetry),
+        AsyncError() => Padding(
+          padding: const .symmetric(horizontal: 16.0),
+          child: InlineFailureCardWidget(
+            onRetry: onRetry,
+            message: 'Não foi possível carregar os insights.',
+          ),
+        ),
         AsyncData(:final value) when value.insights.isEmpty =>
           const InsightsCarouselEmptyWidget(),
         AsyncData(:final value) => InsightsCarouselSuccessWidget(bundle: value),
