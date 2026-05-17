@@ -36,7 +36,7 @@ final class ExpenseNotifier extends _$ExpenseNotifier {
       final millis = _now().millisecondsSinceEpoch;
       return ExpenseState(
         date: millis,
-        formattedDate: _dateFormatter.formatShortDate(millis),
+        formattedDate: _dateFormatter.formatLongDate(millis),
       );
     }
 
@@ -47,7 +47,7 @@ final class ExpenseNotifier extends _$ExpenseNotifier {
       date: expense.date,
       value: expense.value,
       description: expense.description,
-      formattedDate: _dateFormatter.formatShortDate(expense.date),
+      formattedDate: _dateFormatter.formatLongDate(expense.date),
     );
   }
 
@@ -62,7 +62,7 @@ final class ExpenseNotifier extends _$ExpenseNotifier {
       state.value!.copyWith(
         date: date,
         clearDateFailure: true,
-        formattedDate: _dateFormatter.formatShortDate(date),
+        formattedDate: _dateFormatter.formatLongDate(date),
       ),
     ),
     SubmitPressed() => _submit(),

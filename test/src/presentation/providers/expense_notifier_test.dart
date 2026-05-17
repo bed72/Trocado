@@ -41,7 +41,7 @@ Future<ProviderContainer> _makeContainer(
   IDateFormatterService? dateFormatter,
 }) async {
   final formatter = dateFormatter ?? MockDateFormatterService();
-  when(() => formatter.formatShortDate(any())).thenReturn('15/03/2026');
+  when(() => formatter.formatLongDate(any())).thenReturn('15 de Mar de 2026');
 
   final container = ProviderContainer(
     overrides: [

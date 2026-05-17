@@ -26,6 +26,49 @@ void main() {
     });
   });
 
+  group('formatLongDate', () {
+    test('returns "dd de Mmm de yyyy" with capitalized 3-letter month', () {
+      final data = formatter.formatLongDate(
+        DateTime(2026, 5, 17).millisecondsSinceEpoch,
+      );
+
+      expect(data, '17 de Mai de 2026');
+    });
+
+    test('pads single-digit day with leading zero', () {
+      final data = formatter.formatLongDate(
+        DateTime(2026, 1, 3).millisecondsSinceEpoch,
+      );
+
+      expect(data, '03 de Jan de 2026');
+    });
+
+    test('capitalizes every month abbreviation without trailing dot', () {
+      final months = [
+        (1, 'Jan'),
+        (2, 'Fev'),
+        (3, 'Mar'),
+        (4, 'Abr'),
+        (5, 'Mai'),
+        (6, 'Jun'),
+        (7, 'Jul'),
+        (8, 'Ago'),
+        (9, 'Set'),
+        (10, 'Out'),
+        (11, 'Nov'),
+        (12, 'Dez'),
+      ];
+
+      for (final (month, label) in months) {
+        final data = formatter.formatLongDate(
+          DateTime(2026, month, 1).millisecondsSinceEpoch,
+        );
+
+        expect(data, '01 de $label de 2026');
+      }
+    });
+  });
+
   group('formatDayMonth', () {
     test('returns dd/MM in pt_BR', () {
       final data = formatter.formatDayMonth(
