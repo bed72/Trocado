@@ -1,12 +1,12 @@
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:trocado/src/domain/either/either.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/services/money_service.dart';
 import 'package:trocado/src/domain/models/budget/budget_model.dart';
+import 'package:trocado/src/domain/services/date_formatter_service.dart';
 import 'package:trocado/src/domain/models/budget/budgets_page_model.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
 
@@ -50,11 +50,14 @@ BudgetModel _pastBudget() => BudgetModel(
 
 ProviderContainer _makeContainer({
   required IBudgetRepository repository,
+  required IDateFormatterService dateFormatter,
   IMoneyService? moneyService,
 }) {
   final container = ProviderContainer(
     overrides: [
+      nowProvider.overrideWithValue(() => _now),
       budgetRepositoryProvider.overrideWithValue(repository),
+      dateFormatterServiceProvider.overrideWithValue(dateFormatter),
       if (moneyService != null)
         moneyServiceProvider.overrideWithValue(moneyService),
     ],
@@ -66,18 +69,22 @@ ProviderContainer _makeContainer({
 void main() {
   late IMoneyService moneyService;
   late IBudgetRepository repository;
-
-  setUpAll(() async {
-    await initializeDateFormatting('pt_BR');
-  });
+  late IDateFormatterService dateFormatter;
 
   setUp(() {
     moneyService = MockMoneyService();
     repository = MockBudgetRepository();
+    dateFormatter = MockDateFormatterService();
 
     when(
       () => moneyService.format(any()),
     ).thenAnswer((invocation) => 'R\$ ${invocation.positionalArguments.first}');
+
+    when(
+      () => dateFormatter.formatPeriod(any(), any()),
+    ).thenReturn('01/05 – 30/05');
+    when(() => dateFormatter.formatDayMonth(any())).thenReturn('30/05');
+    when(() => dateFormatter.daysUntil(any())).thenReturn(10);
   });
 
   group('build', () {
@@ -91,6 +98,7 @@ void main() {
       final container = _makeContainer(
         repository: repository,
         moneyService: moneyService,
+        dateFormatter: dateFormatter,
       );
       await container.read(budgetsProvider.future);
 
@@ -113,6 +121,7 @@ void main() {
       final container = _makeContainer(
         repository: repository,
         moneyService: moneyService,
+        dateFormatter: dateFormatter,
       );
       await container.read(budgetsProvider.future);
 
@@ -133,6 +142,7 @@ void main() {
       final container = _makeContainer(
         repository: repository,
         moneyService: moneyService,
+        dateFormatter: dateFormatter,
       );
       await container.read(budgetsProvider.future);
 
@@ -147,7 +157,10 @@ void main() {
         () => repository.findById(id: any(named: 'id')),
       ).thenAnswer((_) async => const Left(NotFoundFailure()));
 
-      final container = _makeContainer(repository: repository);
+      final container = _makeContainer(
+        repository: repository,
+        dateFormatter: dateFormatter,
+      );
       container.listen(budgetByIdProvider(7), (_, _) {});
       container.read(budgetByIdProvider(7));
 

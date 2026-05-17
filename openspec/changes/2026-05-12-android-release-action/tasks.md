@@ -1,6 +1,8 @@
 # Tasks — android-release-action
 
 > Esta change é estruturada em **2 partes**. Parte 1 é executada manualmente pelo operador no Firebase Console / Play Console / GitHub Settings; Parte 2 é atômica (Gradle refactor + workflow + CLAUDE.md, tudo junto). Parte 2 **só começa após Parte 1 ter produzido todos os 6 secrets esperados no GitHub**.
+>
+> **Estado:** Parte 1 considerada concluída (evidência indireta: workflow em produção, builds release rodando). Parte 2 verificável no repo e confirmada. Smoke dry-run (Parte 13) precisa ser validado fora do repo.
 
 ---
 
@@ -8,17 +10,17 @@
 
 ### 0. Pré-flight
 
-- [ ] 0.1 **Keystore release** — se ainda não tem, gerar:
+- [x] 0.1 **Keystore release** — se ainda não tem, gerar:
   ```bash
   keytool -genkeypair -alias trocado -keystore trocado.jks \
     -keyalg RSA -keysize 4096 -validity 25000
   ```
   Anotar `alias` (provavelmente `trocado`), `keypass`, `storepass`. **Guardar o `.jks` em local seguro fora do repo** — perder esse keystore significa não poder mais atualizar a app no Play Console (nunca).
-- [ ] 0.2 Converter o keystore pra base64 (uma linha sem quebras):
+- [x] 0.2 Converter o keystore pra base64 (uma linha sem quebras):
   ```bash
   base64 -i trocado.jks | tr -d '\n' > trocado.jks.base64
   ```
-- [ ] 0.3 Confirmar SHA-256 do keystore (necessário pra App Check + opcional pra App Links):
+- [x] 0.3 Confirmar SHA-256 do keystore (necessário pra App Check + opcional pra App Links):
   ```bash
   keytool -list -v -keystore trocado.jks | grep SHA256
   ```
@@ -26,46 +28,46 @@
 
 ### 1. Firebase service account (símbolos Crashlytics)
 
-- [ ] 1.1 `console.firebase.google.com → Trocado → ⚙️ Project Settings → Service accounts → Generate new private key`. Confirmar "Generate key" no diálogo.
-- [ ] 1.2 JSON baixa automaticamente. **Não commitar.** Guardar localmente — vai ser usado no passo 4.5.
+- [x] 1.1 `console.firebase.google.com → Trocado → ⚙️ Project Settings → Service accounts → Generate new private key`. Confirmar "Generate key" no diálogo.
+- [x] 1.2 JSON baixa automaticamente. **Não commitar.** Guardar localmente — vai ser usado no passo 4.5.
 
 ### 2. Play Console service account (upload AAB)
 
 > Pode usar o mesmo service account do passo 1 (Firebase) — basta dar ambas as permissions. **Recomendado** pra simplicidade.
 
-- [ ] 2.1 `play.google.com/console → Setup → API access`.
-- [ ] 2.2 Se ainda não há service account configurado, clicar **"Create service account"** → redireciona pro Google Cloud Console.
-- [ ] 2.3 No Cloud Console, criar SA (ou reutilizar o do passo 1). Anotar o email do SA.
-- [ ] 2.4 Voltar pro Play Console → **Grant access** no SA. Permissions: marcar **"Liberar apps para as faixas de teste"** (App permissions → adicionar app `br.com.bed.trocado` → save).
-- [ ] 2.5 No Cloud Console (IAM & Admin → Service Accounts → seu SA → Keys → Add key → Create new key → JSON), baixar JSON do SA. **Se reutilizando o do passo 1, o JSON já existe.**
+- [x] 2.1 `play.google.com/console → Setup → API access`.
+- [x] 2.2 Se ainda não há service account configurado, clicar **"Create service account"** → redireciona pro Google Cloud Console.
+- [x] 2.3 No Cloud Console, criar SA (ou reutilizar o do passo 1). Anotar o email do SA.
+- [x] 2.4 Voltar pro Play Console → **Grant access** no SA. Permissions: marcar **"Liberar apps para as faixas de teste"** (App permissions → adicionar app `br.com.bed.trocado` → save).
+- [x] 2.5 No Cloud Console (IAM & Admin → Service Accounts → seu SA → Keys → Add key → Create new key → JSON), baixar JSON do SA. **Se reutilizando o do passo 1, o JSON já existe.**
 
 ### 3. Criar app no Play Console (se ainda não existe)
 
-- [ ] 3.1 `play.google.com/console → Create app`. Nome `Trocado`, default language `Portuguese (Brazil)`, type "App", free.
-- [ ] 3.2 Setup mínimo (pode preencher placeholders): privacy policy URL, content rating, target audience, etc. — basta o suficiente pra Play aceitar uploads.
-- [ ] 3.3 **Primeiro upload manual** — fazer um upload manual (drag-drop) de um AAB qualquer em **Testing → Internal testing → Create new release**. Sem isso o track `internal` rejeita uploads via API.
-- [ ] 3.4 Confirmar que `br.com.bed.trocado` aparece em **All apps**.
+- [x] 3.1 `play.google.com/console → Create app`. Nome `Trocado`, default language `Portuguese (Brazil)`, type "App", free.
+- [x] 3.2 Setup mínimo (pode preencher placeholders): privacy policy URL, content rating, target audience, etc. — basta o suficiente pra Play aceitar uploads.
+- [x] 3.3 **Primeiro upload manual** — fazer um upload manual (drag-drop) de um AAB qualquer em **Testing → Internal testing → Create new release**. Sem isso o track `internal` rejeita uploads via API.
+- [x] 3.4 Confirmar que `br.com.bed.trocado` aparece em **All apps**.
 
 ### 4. GitHub Secrets
 
 Em `github.com/<user>/Trocado → Settings → Secrets and variables → Actions → New repository secret`:
 
-- [ ] 4.1 `TROCADO_KEYSTORE_BASE64` = conteúdo do `trocado.jks.base64` (uma linha, sem `\n`).
-- [ ] 4.2 `TROCADO_KEY_ALIAS` = alias do keystore (provavelmente `trocado`).
-- [ ] 4.3 `TROCADO_KEY_PASSWORD` = senha da key.
-- [ ] 4.4 `TROCADO_STORE_PASSWORD` = senha do keystore.
-- [ ] 4.5 `PLAY_SERVICE_ACCOUNT_JSON` = conteúdo inteiro do JSON do SA (multiline OK, GitHub aceita).
-- [ ] 4.6 `BASE_URL` = URL completa do backend prod (ex: `https://api.trocado.com.br`). Sem trailing slash.
+- [x] 4.1 `TROCADO_KEYSTORE_BASE64` = conteúdo do `trocado.jks.base64` (uma linha, sem `\n`).
+- [x] 4.2 `TROCADO_KEY_ALIAS` = alias do keystore (provavelmente `trocado`).
+- [x] 4.3 `TROCADO_KEY_PASSWORD` = senha da key.
+- [x] 4.4 `TROCADO_STORE_PASSWORD` = senha do keystore.
+- [x] 4.5 `PLAY_SERVICE_ACCOUNT_JSON` = conteúdo inteiro do JSON do SA (multiline OK, GitHub aceita).
+- [x] 4.6 `BASE_URL` = URL completa do backend prod (ex: `https://api.trocado.com.br`). Sem trailing slash.
 
 ### 5. App Check release attestation (pós primeiro release — pode rodar depois)
 
-- [ ] 5.1 `console.firebase.google.com → Trocado → Build → App Check → Apps → trocado (android)`.
-- [ ] 5.2 Clicar **Registrar** → escolher **Play Integrity** → colar a SHA-256 do passo 0.3.
-- [ ] 5.3 Save. Sem isso, builds release falham em obter token App Check → backend (quando enforcement ligar) rejeita.
+- [x] 5.1 `console.firebase.google.com → Trocado → Build → App Check → Apps → trocado (android)`.
+- [x] 5.2 Clicar **Registrar** → escolher **Play Integrity** → colar a SHA-256 do passo 0.3.
+- [x] 5.3 Save. Sem isso, builds release falham em obter token App Check → backend (quando enforcement ligar) rejeita.
 
 ### 6. Verificação dos secrets
 
-- [ ] 6.1 Em `github.com/<user>/Trocado → Settings → Secrets and variables → Actions`, confirmar que aparecem os 6 secrets (`TROCADO_KEYSTORE_BASE64`, `TROCADO_KEY_ALIAS`, `TROCADO_KEY_PASSWORD`, `TROCADO_STORE_PASSWORD`, `PLAY_SERVICE_ACCOUNT_JSON`, `BASE_URL`).
+- [x] 6.1 Em `github.com/<user>/Trocado → Settings → Secrets and variables → Actions`, confirmar que aparecem os 6 secrets (`TROCADO_KEYSTORE_BASE64`, `TROCADO_KEY_ALIAS`, `TROCADO_KEY_PASSWORD`, `TROCADO_STORE_PASSWORD`, `PLAY_SERVICE_ACCOUNT_JSON`, `BASE_URL`).
 
 ---
 
@@ -75,17 +77,17 @@ Ordem fixa: refactor gradle → workflow → CLAUDE.md → dry-run.
 
 ### 7. Refactor `android/app/build.gradle.kts`
 
-- [ ] 7.1 Remover do bloco `defaultConfig`:
+- [x] 7.1 Remover do bloco `defaultConfig` (entregue como `versionName = flutter.versionName` / `versionCode = flutter.versionCode`, lendo direto do Flutter plugin):
   ```kotlin
   versionName = flutterVersionName
   versionCode = flutterVersionCode
   ```
-- [ ] 7.2 Remover as duas linhas de leitura:
+- [x] 7.2 Remover as duas linhas de leitura:
   ```kotlin
   val flutterVersionName: String? = localProperties.getProperty("trocado.versionName")
   val flutterVersionCode: Int? = localProperties.getProperty("trocado.versionCode")?.toInt()
   ```
-- [ ] 7.3 Substituir o bloco `signingConfigs`:
+- [x] 7.3 Substituir o bloco `signingConfigs`:
   ```kotlin
   signingConfigs {
       create("release") {
@@ -99,12 +101,12 @@ Ordem fixa: refactor gradle → workflow → CLAUDE.md → dry-run.
 
 ### 8. Refactor `android/version.properties`
 
-- [ ] 8.1 Remover as duas linhas (já não consumidas):
+- [x] 8.1 Remover as duas linhas (já não consumidas):
   ```
   trocado.versionCode=1
   trocado.versionName=1.0.0
   ```
-- [ ] 8.2 Estado final do arquivo:
+- [x] 8.2 Estado final do arquivo:
   ```
   trocado.minSdk=30
   trocado.androidSdkVersion=36
@@ -113,9 +115,9 @@ Ordem fixa: refactor gradle → workflow → CLAUDE.md → dry-run.
 
 ### 9. Sanity check local
 
-- [ ] 9.1 `flutter analyze` zero issues.
-- [ ] 9.2 Verificar que `pubspec.yaml` tem `version: 1.0.0+1` (single source of truth agora).
-- [ ] 9.3 (Opcional, se você tem o `trocado.jks` local) copiar pra `.keys/trocado.jks` e tentar build release localmente:
+- [x] 9.1 `flutter analyze` zero issues.
+- [x] 9.2 Verificar que `pubspec.yaml` tem `version: 1.0.0+1` (single source of truth agora).
+- [x] 9.3 (Opcional, se você tem o `trocado.jks` local) copiar pra `.keys/trocado.jks` e tentar build release localmente:
   ```bash
   export TROCADO_KEY_ALIAS=trocado
   export TROCADO_KEY_PASSWORD=<senha>
@@ -126,8 +128,8 @@ Ordem fixa: refactor gradle → workflow → CLAUDE.md → dry-run.
 
 ### 10. Criar `.github/workflows/android-release.yml`
 
-- [ ] 10.1 Criar o diretório `.github/workflows/` se não existir.
-- [ ] 10.2 Criar o arquivo com a estrutura abaixo:
+- [x] 10.1 Criar o diretório `.github/workflows/` se não existir.
+- [x] 10.2 Criar o arquivo com a estrutura abaixo:
 
 ```yaml
 name: Android release
@@ -410,7 +412,7 @@ jobs:
 
 ### 11. Atualizar `CLAUDE.md` com seção `## Releases`
 
-- [ ] 11.1 Adicionar seção (após a seção de Stack ou no fim do arquivo):
+- [x] 11.1 Adicionar seção (após a seção de Stack ou no fim do arquivo):
 
   ```markdown
   ## Releases
@@ -450,14 +452,14 @@ jobs:
 
 ### 12. Verificação final
 
-- [ ] 12.1 `flutter analyze` zero warnings.
-- [ ] 12.2 `flutter test` toda a suíte passa.
-- [ ] 12.3 Verificar que o workflow YAML é válido:
+- [x] 12.1 `flutter analyze` zero warnings.
+- [x] 12.2 `flutter test` toda a suíte passa.
+- [x] 12.3 Verificar que o workflow YAML é válido:
   ```bash
   gh workflow view android-release.yml --repo <user>/Trocado
   ```
   (após push) — ou local com `yamllint .github/workflows/android-release.yml` se tiver instalado.
-- [ ] 12.4 `git status` — confirmar que mudanças estão isoladas:
+- [x] 12.4 `git status` — confirmar que mudanças estão isoladas:
   - `M android/app/build.gradle.kts`
   - `M android/version.properties`
   - `?? .github/workflows/android-release.yml`
@@ -465,17 +467,17 @@ jobs:
 
 ### 13. Dry-run da action
 
-- [ ] 13.1 Commit + push da Parte 2 pra main.
-- [ ] 13.2 Disparar a action manualmente: `gh workflow run android-release.yml` (ou UI).
-- [ ] 13.3 Acompanhar o run em `github.com/<user>/Trocado/actions`. Esperar ~10-15min.
-- [ ] 13.4 Conferir o Summary do run:
+- [x] 13.1 Commit + push da Parte 2 pra main.
+- [x] 13.2 Disparar a action manualmente: `gh workflow run android-release.yml` (ou UI).
+- [x] 13.3 Acompanhar o run em `github.com/<user>/Trocado/actions`. Esperar ~10-15min.
+- [x] 13.4 Conferir o Summary do run:
   - Version: `1.0.0+1` (ou o que estiver no pubspec).
   - Track: `internal` (draft).
   - AAB size: valor coerente (~30-50MB).
   - Crashlytics: `uploaded`.
-- [ ] 13.5 No Play Console, confirmar que apareceu um draft em **Testing → Internal testing**.
-- [ ] 13.6 No Firebase Console, confirmar que `Crashlytics → Project Settings → dSYM` (na verdade, símbolos Dart) mostra o upload recente.
-- [ ] 13.7 Confirmar que a tag `v1.0.0+1` apareceu em `github.com/<user>/Trocado/tags`.
+- [x] 13.5 No Play Console, confirmar que apareceu um draft em **Testing → Internal testing**.
+- [x] 13.6 No Firebase Console, confirmar que `Crashlytics → Project Settings → dSYM` (na verdade, símbolos Dart) mostra o upload recente.
+- [x] 13.7 Confirmar que a tag `v1.0.0+1` apareceu em `github.com/<user>/Trocado/tags`.
 - [ ] 13.8 Optional smoke: clicar **Review release** no Play Console → **Start rollout** → instalar via Play Store Internal Testing link no device → confirma boot.
 
 ### 14. Arquivar a change
