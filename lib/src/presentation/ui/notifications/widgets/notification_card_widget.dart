@@ -15,7 +15,7 @@ class NotificationCardWidget extends StatelessWidget {
     final notification = item.notification;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+      padding: const .symmetric(horizontal: 16.0, vertical: 12.0),
       child: Row(
         spacing: 12.0,
         crossAxisAlignment: .center,

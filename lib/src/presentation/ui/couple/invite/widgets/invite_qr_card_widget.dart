@@ -3,7 +3,7 @@ import 'package:pretty_qr_code/pretty_qr_code.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
-import 'package:trocado/src/presentation/ui/partner/data/invite_qr_code_presentation_data.dart';
+import 'package:trocado/src/presentation/ui/couple/invite/data/invite_qr_code_presentation_data.dart';
 
 class InviteQrCardWidget extends StatelessWidget {
   final InviteQrCodePresentationData data;
@@ -12,7 +12,7 @@ class InviteQrCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(24.0),
+    padding: const .all(24.0),
     decoration: BoxDecoration(
       borderRadius: context.radius.cornerRadius100,
       color: context.colors.surfaceContainerHighest,
@@ -24,7 +24,7 @@ class InviteQrCardWidget extends StatelessWidget {
         AspectRatio(
           aspectRatio: 1,
           child: Container(
-            padding: const EdgeInsets.all(16.0),
+            padding: const .all(16.0),
             decoration: BoxDecoration(
               borderRadius: context.radius.cornerRadius100,
               color: context.colors.surface,

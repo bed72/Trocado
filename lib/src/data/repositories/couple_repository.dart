@@ -8,13 +8,18 @@ import 'package:trocado/src/domain/models/couple/invite_model.dart';
 import 'package:trocado/src/domain/models/couple/couple_model.dart';
 import 'package:trocado/src/domain/repositories/interface_couple_repository.dart';
 
+import 'package:trocado/src/infrastructure/clients/share/share_client.dart';
 import 'package:trocado/src/infrastructure/datasources/remote/remote_couple_data_source.dart';
 
 final class CoupleRepository implements ICoupleRepository {
+  final IShareClient _client;
   final IRemoteCoupleDataSource _dataSource;
 
-  CoupleRepository({required IRemoteCoupleDataSource dataSource})
-    : _dataSource = dataSource;
+  CoupleRepository({
+    required IShareClient client,
+    required IRemoteCoupleDataSource dataSource,
+  }) : _client = client,
+       _dataSource = dataSource;
 
   @override
   Future<Either<Failure, CoupleModel>> findActive() async {
@@ -34,5 +39,21 @@ final class CoupleRepository implements ICoupleRepository {
       (failure) => failure.toFailure(),
       (response) => response.toModel(),
     );
+  }
+
+  @override
+  Future<Either<Failure, void>> dissolve() async {
+    final data = await _dataSource.dissolve();
+
+    return data.either((failure) => failure.toFailure(), (_) {});
+  }
+
+  @override
+  Future<Either<Failure, void>> shareInvite({required String qrData}) async {
+    await _client.shareText(
+      'Vamos juntar nossas finanças no Trocado! Aceite meu convite: $qrData',
+    );
+
+    return const Right(null);
   }
 }

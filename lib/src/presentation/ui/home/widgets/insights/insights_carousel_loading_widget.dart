@@ -14,7 +14,7 @@ class InsightsCarouselLoadingWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Skeletonizer(
       child: SizedBox(
-        height: 96.0,
+        height: 78.0,
         child: ListView.separated(
           itemCount: 3,
           scrollDirection: .horizontal,
@@ -28,9 +28,9 @@ class InsightsCarouselLoadingWidget extends StatelessWidget {
 }
 
 const _placeholder = InsightModel(
-  type: InsightTypeEnum.budgetUtilization,
-  severity: InsightSeverityEnum.info,
-  title: 'Carregando insight',
-  description: 'Carregando insight com duas linhas de texto para o skeleton.',
   data: {},
+  severity: .info,
+  type: .budgetUtilization,
+  title: 'Carregando insight',
+  description: 'Carregando insight para o skeleton.',
 );

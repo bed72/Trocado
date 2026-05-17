@@ -2,8 +2,15 @@ import 'package:flutter/material.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
-class PartnerInviteSecurityNoteWidget extends StatelessWidget {
-  const PartnerInviteSecurityNoteWidget({super.key});
+class CoupleNoteWidget extends StatelessWidget {
+  final IconData icon;
+  final String message;
+
+  const CoupleNoteWidget({
+    super.key,
+    required this.icon,
+    required this.message,
+  });
 
   @override
   Widget build(BuildContext context) => DecoratedBox(
@@ -13,16 +20,12 @@ class PartnerInviteSecurityNoteWidget extends StatelessWidget {
     ),
     child: ListTile(
       minLeadingWidth: 0.0,
-      horizontalTitleGap: 12.0,
       titleAlignment: .center,
+      horizontalTitleGap: 12.0,
+      leading: Icon(icon, size: 24.0, color: context.colors.primary),
       contentPadding: const .symmetric(horizontal: 12.0, vertical: 8.0),
-      leading: Icon(
-        Icons.shield_outlined,
-        size: 24.0,
-        color: context.colors.primary,
-      ),
       title: Text(
-        'Vocês compartilham orçamentos e despesas, mas senhas e dados de login são individuais.',
+        message,
         style: context.typography.bodySmall?.copyWith(
           color: context.colors.onSurfaceVariant,
         ),

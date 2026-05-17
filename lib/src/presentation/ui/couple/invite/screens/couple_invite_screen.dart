@@ -8,15 +8,15 @@ import 'package:trocado/src/presentation/widgets/go_back_widget.dart';
 import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';
 import 'package:trocado/src/presentation/widgets/screen_header_widget.dart';
 
-import 'package:trocado/src/presentation/ui/partner/widgets/partner_invite_hero_widget.dart';
-import 'package:trocado/src/presentation/ui/partner/widgets/partner_pair_indicator_widget.dart';
-import 'package:trocado/src/presentation/ui/partner/widgets/partner_invite_actions_widget.dart';
-import 'package:trocado/src/presentation/ui/partner/widgets/partner_invite_security_note_widget.dart';
+import 'package:trocado/src/presentation/ui/couple/widgets/couple_note_widget.dart';
+import 'package:trocado/src/presentation/ui/couple/invite/widgets/couple_invite_hero_widget.dart';
+import 'package:trocado/src/presentation/ui/couple/invite/widgets/couple_pair_indicator_widget.dart';
+import 'package:trocado/src/presentation/ui/couple/invite/widgets/couple_invite_actions_widget.dart';
 
-class PartnerInviteScreen extends StatelessWidget {
+class CoupleInviteScreen extends StatelessWidget {
   final VoidCallback onGenerate;
 
-  const PartnerInviteScreen({super.key, required this.onGenerate});
+  const CoupleInviteScreen({super.key, required this.onGenerate});
 
   @override
   Widget build(BuildContext context) => ScaffoldWidget(
@@ -36,11 +36,15 @@ class PartnerInviteScreen extends StatelessWidget {
                 description: 'Vocês dois, uma única visão.',
               ),
               const Spacer(),
-              PartnerPairIndicatorWidget(userState: userState),
-              const PartnerInviteHeroWidget(),
+              CouplePairIndicatorWidget(userState: userState),
+              const CoupleInviteHeroWidget(),
               const Spacer(),
-              const PartnerInviteSecurityNoteWidget(),
-              PartnerInviteActionsWidget(onGenerate: onGenerate, onScan: () {}),
+              const CoupleNoteWidget(
+                icon: Icons.shield_outlined,
+                message:
+                    'Vocês compartilham orçamentos e despesas, mas senhas e dados de login são individuais.',
+              ),
+              CoupleInviteActionsWidget(onGenerate: onGenerate, onScan: () {}),
             ],
           );
         },

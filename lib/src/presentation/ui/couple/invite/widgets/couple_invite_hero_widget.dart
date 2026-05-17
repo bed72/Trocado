@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
-class PartnerInviteHeroWidget extends StatelessWidget {
-  const PartnerInviteHeroWidget({super.key});
+class CoupleInviteHeroWidget extends StatelessWidget {
+  const CoupleInviteHeroWidget({super.key});
 
   @override
   Widget build(BuildContext context) => Column(

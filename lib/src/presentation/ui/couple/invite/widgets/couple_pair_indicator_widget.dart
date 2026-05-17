@@ -7,18 +7,17 @@ import 'package:trocado/src/domain/models/user_model.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
 import 'package:trocado/src/presentation/widgets/avatar/avatar_widget.dart';
+import 'package:trocado/src/presentation/widgets/painters/dashed_line_painter.dart';
+import 'package:trocado/src/presentation/widgets/painters/dashed_rounded_rect_painter.dart';
 
-import 'package:trocado/src/presentation/ui/partner/widgets/painters/dashed_line_painter.dart';
-import 'package:trocado/src/presentation/ui/partner/widgets/painters/dashed_rounded_rect_painter.dart';
-
-class PartnerPairIndicatorWidget extends StatelessWidget {
+class CouplePairIndicatorWidget extends StatelessWidget {
   static const double _slotSize = 72.0;
   static const double _connectorWidth = 56.0;
   static const double _connectorHeight = 2.0;
 
   final AsyncValue<UserModel> userState;
 
-  const PartnerPairIndicatorWidget({super.key, required this.userState});
+  const CouplePairIndicatorWidget({super.key, required this.userState});
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +32,7 @@ class PartnerPairIndicatorWidget extends StatelessWidget {
       child: Row(
         mainAxisAlignment: .center,
         children: [
-          AvatarWidget(size: _slotSize, name: user?.name ?? 'Carregando'),
+          AvatarWidget(size: _slotSize, name: user?.name ?? 'Pensando...'),
           SizedBox(
             width: _connectorWidth,
             height: _connectorHeight,

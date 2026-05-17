@@ -2,7 +2,6 @@ import 'package:mocktail/mocktail.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:trocado/src/main/providers/clients_provider.dart';
 import 'package:trocado/src/main/providers/services_provider.dart';
 import 'package:trocado/src/main/providers/repositories_provider.dart';
 
@@ -12,9 +11,7 @@ import 'package:trocado/src/domain/models/couple/invite_model.dart';
 import 'package:trocado/src/domain/services/date_formatter_service.dart';
 import 'package:trocado/src/domain/repositories/interface_couple_repository.dart';
 
-import 'package:trocado/src/infrastructure/clients/share/share_client.dart';
-
-import 'package:trocado/src/presentation/ui/partner/notifiers/invite_qr_code_notifier.dart';
+import 'package:trocado/src/presentation/ui/couple/invite/notifiers/invite_qr_code_notifier.dart';
 
 import '../../../mocks/mocks.dart';
 
@@ -27,14 +24,12 @@ const _invite = InviteModel(
 );
 
 ProviderContainer _makeContainer({
-  required IShareClient shareClient,
   required ICoupleRepository repository,
   required IDateFormatterService dateFormatter,
 }) {
   final container = ProviderContainer(
     overrides: [
       coupleRepositoryProvider.overrideWithValue(repository),
-      shareClientProvider.overrideWithValue(shareClient),
       dateFormatterServiceProvider.overrideWithValue(dateFormatter),
     ],
   );
@@ -43,19 +38,19 @@ ProviderContainer _makeContainer({
 }
 
 void main() {
-  late IShareClient shareClient;
   late ICoupleRepository repository;
   late IDateFormatterService dateFormatter;
 
   setUp(() {
-    shareClient = MockShareClient();
     repository = MockCoupleRepository();
     dateFormatter = MockDateFormatterService();
 
     when(
       () => dateFormatter.formatInviteExpiration(any()),
     ).thenReturn('Expira em 18/03 às 14:30');
-    when(() => shareClient.shareText(any())).thenAnswer((_) async {});
+    when(
+      () => repository.shareInvite(qrData: any(named: 'qrData')),
+    ).thenAnswer((_) async => const Right(null));
   });
 
   group('build', () {
@@ -66,7 +61,6 @@ void main() {
 
       final container = _makeContainer(
         repository: repository,
-        shareClient: shareClient,
         dateFormatter: dateFormatter,
       );
       container.listen(inviteQrCodeProvider, (_, _) {});
@@ -86,7 +80,6 @@ void main() {
 
       final container = _makeContainer(
         repository: repository,
-        shareClient: shareClient,
         dateFormatter: dateFormatter,
       );
       container.listen(inviteQrCodeProvider, (_, _) {});
@@ -110,7 +103,6 @@ void main() {
 
       final container = _makeContainer(
         repository: repository,
-        shareClient: shareClient,
         dateFormatter: dateFormatter,
       );
       container.listen(inviteQrCodeProvider, (_, _) {});
@@ -130,30 +122,22 @@ void main() {
   });
 
   group('share', () {
-    test(
-      'calls shareClient with formatted text when state is AsyncData',
-      () async {
-        when(
-          () => repository.createInvite(),
-        ).thenAnswer((_) async => const Right(_invite));
+    test('delegates qrData to repository.shareInvite when state is AsyncData', () async {
+      when(
+        () => repository.createInvite(),
+      ).thenAnswer((_) async => const Right(_invite));
 
-        final container = _makeContainer(
-          repository: repository,
-          shareClient: shareClient,
-          dateFormatter: dateFormatter,
-        );
-        container.listen(inviteQrCodeProvider, (_, _) {});
-        await container.read(inviteQrCodeProvider.future);
+      final container = _makeContainer(
+        repository: repository,
+        dateFormatter: dateFormatter,
+      );
+      container.listen(inviteQrCodeProvider, (_, _) {});
+      await container.read(inviteQrCodeProvider.future);
 
-        await container.read(inviteQrCodeProvider.notifier).share();
+      await container.read(inviteQrCodeProvider.notifier).share();
 
-        verify(
-          () => shareClient.shareText(
-            'Vamos juntar nossas finanças no Trocado! Aceite meu convite: $_qrData',
-          ),
-        ).called(1);
-      },
-    );
+      verify(() => repository.shareInvite(qrData: _qrData)).called(1);
+    });
 
     test('does nothing when state is AsyncError', () async {
       when(
@@ -162,7 +146,6 @@ void main() {
 
       final container = _makeContainer(
         repository: repository,
-        shareClient: shareClient,
         dateFormatter: dateFormatter,
       );
       container.listen(inviteQrCodeProvider, (_, _) {});
@@ -172,7 +155,9 @@ void main() {
 
       await container.read(inviteQrCodeProvider.notifier).share();
 
-      verifyNever(() => shareClient.shareText(any()));
+      verifyNever(
+        () => repository.shareInvite(qrData: any(named: 'qrData')),
+      );
     });
   });
 }

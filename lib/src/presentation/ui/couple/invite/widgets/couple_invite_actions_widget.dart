@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 
 import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
 
-class PartnerInviteActionsWidget extends StatelessWidget {
+class CoupleInviteActionsWidget extends StatelessWidget {
   final VoidCallback onScan;
   final VoidCallback onGenerate;
 
-  const PartnerInviteActionsWidget({
+  const CoupleInviteActionsWidget({
     super.key,
     required this.onScan,
     required this.onGenerate,
@@ -17,7 +17,7 @@ class PartnerInviteActionsWidget extends StatelessWidget {
     spacing: 12.0,
     children: [
       SizedBox(
-        width: double.infinity,
+        width: .infinity,
         child: ButtonWidget.elevated(
           onTap: onScan,
           label: 'Scanear QR code',
@@ -25,7 +25,7 @@ class PartnerInviteActionsWidget extends StatelessWidget {
         ),
       ),
       SizedBox(
-        width: double.infinity,
+        width: .infinity,
         child: ButtonWidget.outlined(
           onTap: onGenerate,
           label: 'Gerar QR code',

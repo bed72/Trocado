@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:trocado/src/main/providers/storage_provider.dart';
+import 'package:trocado/src/main/providers/clients_provider.dart';
 import 'package:trocado/src/main/providers/data_sources.provider.dart';
 
 import 'package:trocado/src/data/repositories/user_repository.dart';
@@ -48,8 +49,10 @@ IBudgetRepository budgetRepository(Ref ref) =>
     BudgetRepository(dataSource: ref.watch(remoteBudgetDataSourceProvider));
 
 @Riverpod()
-ICoupleRepository coupleRepository(Ref ref) =>
-    CoupleRepository(dataSource: ref.watch(remoteCoupleDataSourceProvider));
+ICoupleRepository coupleRepository(Ref ref) => CoupleRepository(
+  client: ref.watch(shareClientProvider),
+  dataSource: ref.watch(remoteCoupleDataSourceProvider),
+);
 
 @Riverpod()
 IExpenseRepository expenseRepository(Ref ref) =>

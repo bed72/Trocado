@@ -121,16 +121,22 @@ final class AppRoutes {
     regex: RegExp(r'^/notifications$'),
   );
 
-  static final partnerInvite = AppRoutes._(
-    path: '/partner/invite',
-    name: 'partner-invite-route',
-    regex: RegExp(r'^/partner/invite$'),
+  static final coupleInvite = AppRoutes._(
+    path: '/couple/invite',
+    name: 'couple-invite-route',
+    regex: RegExp(r'^/couple/invite$'),
   );
 
-  static final partnerInviteQrCode = AppRoutes._(
-    path: '/partner/invite/qr-code',
-    name: 'partner-invite-qr-code-route',
-    regex: RegExp(r'^/partner/invite/qr-code$'),
+  static final coupleInviteQrCode = AppRoutes._(
+    path: '/couple/invite/qr-code',
+    name: 'couple-invite-qr-code-route',
+    regex: RegExp(r'^/couple/invite/qr-code$'),
+  );
+
+  static final coupleDissolve = AppRoutes._(
+    path: '/couple/dissolve',
+    name: 'couple-dissolve-route',
+    regex: RegExp(r'^/couple/dissolve$'),
   );
 
   static final profile = AppRoutes._(
@@ -193,13 +199,14 @@ final class AppRoutes {
     dateRange,
     profileName,
     expenseDate,
+    coupleInvite,
     profileDelete,
     notifications,
-    partnerInvite,
     expensesFilter,
+    coupleDissolve,
     forgotPassword,
     profilePassword,
-    partnerInviteQrCode,
+    coupleInviteQrCode,
     passwordResetConfirm,
     forgotPasswordSuccess,
   ];

@@ -239,7 +239,7 @@ final class CoupleRepositoryProvider
   }
 }
 
-String _$coupleRepositoryHash() => r'2a90289d6ad1523408667a002f9fe8f3661ca7ad';
+String _$coupleRepositoryHash() => r'92c4d7c958b406f8f29d1d308082a32309262ade';
 
 @ProviderFor(expenseRepository)
 final expenseRepositoryProvider = ExpenseRepositoryProvider._();

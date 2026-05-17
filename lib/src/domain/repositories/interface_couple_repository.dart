@@ -5,6 +5,8 @@ import 'package:trocado/src/domain/models/couple/invite_model.dart';
 import 'package:trocado/src/domain/models/couple/couple_model.dart';
 
 abstract interface class ICoupleRepository {
+  Future<Either<Failure, void>> dissolve();
   Future<Either<Failure, CoupleModel>> findActive();
   Future<Either<Failure, InviteModel>> createInvite();
+  Future<Either<Failure, void>> shareInvite({required String qrData});
 }

@@ -9,6 +9,7 @@ import 'package:trocado/src/domain/repositories/interface_couple_repository.dart
 
 import 'package:trocado/src/infrastructure/datasources/remote/remote_couple_data_source.dart';
 
+import 'package:trocado/src/infrastructure/clients/share/share_client.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/user_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/couple/couple_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/couple/invite_response.dart';
@@ -27,12 +28,14 @@ FailureResponse _failure(String code, String message) => FailureResponse(
 );
 
 void main() {
+  late IShareClient shareClient;
   late ICoupleRepository repository;
   late IRemoteCoupleDataSource dataSource;
 
   setUp(() {
+    shareClient = MockShareClient();
     dataSource = MockRemoteCoupleDataSource();
-    repository = CoupleRepository(dataSource: dataSource);
+    repository = CoupleRepository(dataSource: dataSource, client: shareClient);
   });
 
   group('createInvite', () {
@@ -190,6 +193,79 @@ void main() {
       expect(data.isLeft, isTrue);
       expect(data.left, isA<ValidationFailure>());
       expect(data.left.message, 'Algo aconteceu de inesperado.');
+    });
+  });
+
+  group('dissolve', () {
+    test('returns Right when API responds 204', () async {
+      when(() => dataSource.dissolve()).thenAnswer((_) async => Right(null));
+
+      final data = await repository.dissolve();
+
+      expect(data.isRight, isTrue);
+    });
+
+    test('returns Left NetworkFailure on network error', () async {
+      when(() => dataSource.dissolve()).thenAnswer(
+        (_) async => Left(_failure('network_error', 'Network error')),
+      );
+
+      final data = await repository.dissolve();
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<NetworkFailure>());
+    });
+
+    test('returns Left ServerFailure on server error', () async {
+      when(() => dataSource.dissolve()).thenAnswer(
+        (_) async => Left(_failure('server_error', 'Internal server error')),
+      );
+
+      final data = await repository.dissolve();
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<ServerFailure>());
+    });
+
+    test('returns Left NotFoundFailure when no active couple', () async {
+      when(() => dataSource.dissolve()).thenAnswer(
+        (_) async =>
+            Left(_failure('not_in_couple', 'Você não está em um casal.')),
+      );
+
+      final data = await repository.dissolve();
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<NotFoundFailure>());
+    });
+
+    test('returns Left ValidationFailure on unknown code', () async {
+      when(() => dataSource.dissolve()).thenAnswer(
+        (_) async => Left(_failure('weird_code', 'Algo deu errado.')),
+      );
+
+      final data = await repository.dissolve();
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<ValidationFailure>());
+      expect(data.left.message, 'Algo deu errado.');
+    });
+  });
+
+  group('shareInvite', () {
+    test('delegates formatted invite text to shareClient', () async {
+      when(() => shareClient.shareText(any())).thenAnswer((_) async {});
+
+      final data = await repository.shareInvite(
+        qrData: 'trocado://invite/A3K7FN',
+      );
+
+      expect(data.isRight, isTrue);
+      verify(
+        () => shareClient.shareText(
+          'Vamos juntar nossas finanças no Trocado! Aceite meu convite: trocado://invite/A3K7FN',
+        ),
+      ).called(1);
     });
   });
 }

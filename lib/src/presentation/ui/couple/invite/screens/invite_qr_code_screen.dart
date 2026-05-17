@@ -8,10 +8,10 @@ import 'package:trocado/src/presentation/widgets/screen_header_widget.dart';
 
 import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
 
-import 'package:trocado/src/presentation/ui/partner/notifiers/invite_qr_code_notifier.dart';
-import 'package:trocado/src/presentation/ui/partner/widgets/invite_qr_card_widget.dart';
-import 'package:trocado/src/presentation/ui/partner/widgets/invite_qr_code_loading_widget.dart';
-import 'package:trocado/src/presentation/ui/partner/widgets/invite_qr_code_failure_widget.dart';
+import 'package:trocado/src/presentation/ui/couple/invite/widgets/invite_qr_card_widget.dart';
+import 'package:trocado/src/presentation/ui/couple/invite/notifiers/invite_qr_code_notifier.dart';
+import 'package:trocado/src/presentation/ui/couple/invite/widgets/invite_qr_code_loading_widget.dart';
+import 'package:trocado/src/presentation/ui/couple/invite/widgets/invite_qr_code_failure_widget.dart';
 
 class InviteQrCodeScreen extends StatelessWidget {
   const InviteQrCodeScreen({super.key});
@@ -20,7 +20,7 @@ class InviteQrCodeScreen extends StatelessWidget {
   Widget build(BuildContext context) => ScaffoldWidget(
     appBar: AppBarWidget(leading: GoBackWidget()),
     child: Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const .all(16.0),
       child: Consumer(
         builder: (_, ref, _) {
           final state = ref.watch(inviteQrCodeProvider);

@@ -4,16 +4,16 @@ import 'package:trocado/app_route.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
 import 'package:trocado/src/presentation/pages/screen_page.dart';
-import 'package:trocado/src/presentation/ui/partner/screens/partner_invite_screen.dart';
-import 'package:trocado/src/presentation/ui/partner/locations/invite_qr_code_location.dart';
+import 'package:trocado/src/presentation/ui/couple/invite/screens/couple_invite_screen.dart';
+import 'package:trocado/src/presentation/ui/couple/invite/locations/invite_qr_code_location.dart';
 
-final class PartnerInviteLocation extends Location {
+final class CoupleInviteLocation extends Location {
   @override
-  String get path => AppRoutes.partnerInvite.path;
+  String get path => AppRoutes.coupleInvite.path;
 
   @override
   LocationPageBuilder get pageBuilder => (context) => screenPage(
-    PartnerInviteScreen(
+    CoupleInviteScreen(
       onGenerate: () => context.navigate(InviteQrCodeLocation()),
     ),
   );

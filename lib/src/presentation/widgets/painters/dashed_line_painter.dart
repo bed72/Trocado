@@ -21,8 +21,8 @@ class DashedLinePainter extends CustomPainter {
       ..strokeCap = .round
       ..style = .stroke;
 
-    final y = size.height / 2;
     double x = 0;
+    final y = size.height / 2;
 
     while (x < size.width) {
       final next = (x + dashLength).clamp(0.0, size.width);
