@@ -5,6 +5,7 @@ import 'package:trocado/src/domain/models/insight/insights_bundle_model.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 import 'package:trocado/src/presentation/widgets/cards/inline_failure_card_widget.dart';
+
 import 'package:trocado/src/presentation/ui/home/widgets/insights/insights_carousel_empty_widget.dart';
 import 'package:trocado/src/presentation/ui/home/widgets/insights/insights_carousel_loading_widget.dart';
 import 'package:trocado/src/presentation/ui/home/widgets/insights/insights_carousel_success_widget.dart';
