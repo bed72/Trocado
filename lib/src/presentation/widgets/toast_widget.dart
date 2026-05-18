@@ -50,6 +50,8 @@ void _showSuccessToast({
     borderSide: BorderSide(width: 0.0, style: .none),
     backgroundColor: context.colors.surfaceContainer,
     icon: BackgroundIconWidget(
+      width: 60.0,
+      height: 60.0,
       color: context.colors.primary,
       icon: Icons.celebration_rounded,
     ),
@@ -69,6 +71,7 @@ void _showSuccessToast({
         : Text(
             description,
             style: context.typography.labelMedium?.copyWith(
+              fontWeight: .w600,
               color: context.colors.onSurfaceVariant.withValues(alpha: .6),
             ),
           ),
@@ -104,9 +107,11 @@ void _showFailureToast({
     borderRadius: .circular(20.0),
     autoCloseDuration: Duration(seconds: seconds),
     closeButton: ToastCloseButton(showType: .none),
+    backgroundColor: context.colors.errorContainer,
     borderSide: BorderSide(width: 0.0, style: .none),
-    backgroundColor: context.colors.surfaceContainer,
     icon: BackgroundIconWidget(
+      width: 60.0,
+      height: 60.0,
       icon: Icons.error_outline_rounded,
       color: context.colors.error.withValues(alpha: .8),
     ),
@@ -126,6 +131,7 @@ void _showFailureToast({
         : Text(
             description,
             style: context.typography.labelMedium?.copyWith(
+              fontWeight: .w600,
               color: context.colors.onSurfaceVariant.withValues(alpha: .6),
             ),
           ),
