@@ -132,31 +132,75 @@ void main() {
   });
 
   group('formatPeriod', () {
-    test('uses dd/MM when both dates in current year', () {
-      final start = DateTime(2026, 1, 1).millisecondsSinceEpoch;
+    test('collapses to single long date when both ends are the same day', () {
+      final millis = DateTime(2026, 5, 20).millisecondsSinceEpoch;
+
+      final data = formatter.formatPeriod(millis, millis);
+
+      expect(data, '20 de Mai');
+    });
+
+    test('collapses single day with year when outside current year', () {
+      final millis = DateTime(2027, 5, 20).millisecondsSinceEpoch;
+
+      final data = formatter.formatPeriod(millis, millis);
+
+      expect(data, '20 de Mai de 2027');
+    });
+
+    test('collapses to single day regardless of intra-day time differences', () {
+      final start = DateTime(2026, 5, 20, 0, 0).millisecondsSinceEpoch;
+      final end = DateTime(2026, 5, 20, 23, 59, 59).millisecondsSinceEpoch;
+
+      final data = formatter.formatPeriod(start, end);
+
+      expect(data, '20 de Mai');
+    });
+
+    test('omits the year for ranges within the current year', () {
+      final start = DateTime(2026, 5, 12).millisecondsSinceEpoch;
+      final end = DateTime(2026, 5, 20).millisecondsSinceEpoch;
+
+      final data = formatter.formatPeriod(start, end);
+
+      expect(data, '12 de Mai até 20 de Mai');
+    });
+
+    test('omits the year for current-year ranges across months', () {
+      final start = DateTime(2026, 1, 5).millisecondsSinceEpoch;
       final end = DateTime(2026, 12, 31).millisecondsSinceEpoch;
 
       final data = formatter.formatPeriod(start, end);
 
-      expect(data, '01/01 – 31/12');
+      expect(data, '05 de Jan até 31 de Dez');
     });
 
-    test('uses dd/MM/yy when crossing years', () {
-      final end = DateTime(2026, 1, 31).millisecondsSinceEpoch;
-      final start = DateTime(2025, 12, 1).millisecondsSinceEpoch;
+    test('shows the year only on the end when range crosses into next year', () {
+      final start = DateTime(2026, 12, 20).millisecondsSinceEpoch;
+      final end = DateTime(2027, 1, 25).millisecondsSinceEpoch;
 
       final data = formatter.formatPeriod(start, end);
 
-      expect(data, '01/12/25 – 31/01/26');
+      expect(data, '20 de Dez até 25 de Jan de 2027');
     });
 
-    test('uses dd/MM/yy when end is in a different year from now', () {
-      final end = DateTime(2027, 1, 31).millisecondsSinceEpoch;
-      final start = DateTime(2026, 11, 1).millisecondsSinceEpoch;
+    test('handles a year-crossing range on the extreme boundary', () {
+      final start = DateTime(2026, 12, 31).millisecondsSinceEpoch;
+      final end = DateTime(2027, 1, 1).millisecondsSinceEpoch;
 
       final data = formatter.formatPeriod(start, end);
 
-      expect(data, '01/11/26 – 31/01/27');
+      expect(data, '31 de Dez até 01 de Jan de 2027');
+    });
+
+    test('uses " até " separator and never the en-dash for distinct days', () {
+      final start = DateTime(2026, 5, 12).millisecondsSinceEpoch;
+      final end = DateTime(2026, 5, 20).millisecondsSinceEpoch;
+
+      final data = formatter.formatPeriod(start, end);
+
+      expect(data.contains(' até '), isTrue);
+      expect(data.contains('–'), isFalse);
     });
   });
 

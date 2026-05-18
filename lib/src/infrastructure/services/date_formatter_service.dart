@@ -16,7 +16,6 @@ final class DateFormatterService implements IDateFormatterService {
   final DateFormat _monthYear = DateFormat('MMMM y', _locale);
   final DateFormat _shortDate = DateFormat('dd/MM/yyyy', _locale);
   final DateFormat _dayMonthAbbrev = DateFormat('dd MMM', _locale);
-  final DateFormat _dayMonthShortYear = DateFormat('dd/MM/yy', _locale);
 
   DateFormatterService({required DateTime Function() now}) : _now = now;
 
@@ -78,14 +77,19 @@ final class DateFormatterService implements IDateFormatterService {
 
   @override
   String formatPeriod(int startMillis, int endMillis) {
-    final end = DateTime.fromMillisecondsSinceEpoch(endMillis);
     final start = DateTime.fromMillisecondsSinceEpoch(startMillis);
+    final end = DateTime.fromMillisecondsSinceEpoch(endMillis);
 
+    final startDay = DateTime(start.year, start.month, start.day);
+    final endDay = DateTime(end.year, end.month, end.day);
     final currentYear = _now().year;
-    final sameYear = start.year == currentYear && end.year == currentYear;
-    final format = sameYear ? _dayMonth : _dayMonthShortYear;
 
-    return '${format.format(start)} – ${format.format(end)}';
+    if (startDay == endDay) return _withOptionalYear(startDay, currentYear);
+
+    final startLabel = _dayMonthLabel(startDay);
+    final endLabel = _withOptionalYear(endDay, currentYear);
+
+    return '$startLabel até $endLabel';
   }
 
   @override
@@ -127,6 +131,21 @@ final class DateFormatterService implements IDateFormatterService {
     final dayMonth = _dayMonthAbbrev.format(day).toLowerCase();
 
     return '$weekday, $dayMonth';
+  }
+
+  String _dayMonthLabel(DateTime date) {
+    final day = date.day.toString().padLeft(2, '0');
+    final month = _capitalize(_monthAbbrev.format(date).replaceAll('.', ''));
+
+    return '$day de $month';
+  }
+
+  String _withOptionalYear(DateTime date, int currentYear) {
+    final base = _dayMonthLabel(date);
+
+    if (date.year == currentYear) return base;
+
+    return '$base de ${date.year}';
   }
 
   String _capitalize(String value) =>

@@ -30,7 +30,7 @@ const _placeholder = BudgetItemPresentationData(
     description: 'Carregando descrição do orçamento',
   ),
   formattedValue: 'R\$ 0.000,00',
-  formattedPeriod: '00/00 – 00/00',
+  formattedPeriod: '00 de Mmm até 00 de Mmm',
   formattedRemaining: 'R\$ 0.000,00',
   formattedTotalSpent: 'R\$ 0.000,00',
 );
