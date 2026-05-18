@@ -16,7 +16,6 @@ import 'package:trocado/src/domain/models/expense/expense_model.dart';
 import 'package:trocado/src/domain/models/expense/expenses_page_model.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 
-import 'package:trocado/src/domain/enums/expense/expense_category_enum.dart';
 import 'package:trocado/src/domain/enums/expense/expense_ordering_enum.dart';
 
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
@@ -89,8 +88,9 @@ void main() {
     when(
       () => moneyService.format(any()),
     ).thenAnswer((invocation) => 'R\$ ${invocation.positionalArguments.first}');
-    when(() => dateFormatter.formatDayMonth(any())).thenReturn('22/04');
-    when(() => dateFormatter.formatTime(any())).thenReturn('14:30');
+    when(
+      () => dateFormatter.formatLongDate(any()),
+    ).thenReturn('22 de Abr de 2026');
     when(() => dateFormatter.relativeGroupHeader(any())).thenReturn('Hoje');
     when(() => dateFormatter.formatShortDate(any())).thenAnswer(
       (invocation) => 'SHORT(${invocation.positionalArguments.first})',
@@ -273,9 +273,7 @@ void main() {
 
   group('applyFilter', () {
     test('reloads first page with new filter and exposes chips', () async {
-      final filter = const ExpenseFilterModel.empty().copyWith(
-        category: ExpenseCategoryEnum.food,
-      );
+      final filter = const ExpenseFilterModel.empty().copyWith(category: .food);
 
       when(
         () => repository.findAll(cursor: null, filter: const .empty()),
@@ -451,8 +449,10 @@ void main() {
       await container.read(expensesProvider.notifier).deleteById(1);
 
       final data = container.read(expensesProvider).value!;
-      expect(data.items.map((item) => item.expense.id), [2]);
+
       expect(data.deleteFailure, isNull);
+      expect(data.items.map((item) => item.expense.id), [2]);
+
       verify(() => repository.delete(id: 1)).called(1);
     });
 
@@ -479,8 +479,9 @@ void main() {
       await container.read(expensesProvider.notifier).deleteById(1);
 
       final data = container.read(expensesProvider).value!;
-      expect(data.items.map((item) => item.expense.id), [1, 2]);
+
       expect(data.deleteFailure, isA<NetworkFailure>());
+      expect(data.items.map((item) => item.expense.id), [1, 2]);
     });
 
     test('is a no-op when id is not in state', () async {

@@ -44,7 +44,7 @@ class ExpensesListWidget extends StatelessWidget {
 
             return Dismissible(
               key: ValueKey(item.expense.id),
-              direction: DismissDirection.horizontal,
+              direction: .horizontal,
               background: SwipeActionsBackgroundWidget.leading(
                 icon: Icons.edit_outlined,
                 color: context.colors.primary,
@@ -73,7 +73,6 @@ class ExpensesListWidget extends StatelessWidget {
               child: ExpenseItemWidget(
                 expense: item.expense,
                 formattedDate: item.formattedDate,
-                formattedTime: item.formattedTime,
                 formattedValue: item.formattedValue,
               ),
             );

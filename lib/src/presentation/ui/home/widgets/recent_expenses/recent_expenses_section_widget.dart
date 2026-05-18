@@ -60,7 +60,6 @@ class RecentExpensesSectionWidget extends StatelessWidget {
               ExpenseItemWidget(
                 expense: item.expense,
                 formattedDate: item.formattedDate,
-                formattedTime: item.formattedTime,
                 formattedValue: item.formattedValue,
               ),
           ],

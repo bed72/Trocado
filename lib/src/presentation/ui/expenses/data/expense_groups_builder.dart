@@ -14,7 +14,7 @@ List<ExpenseGroupPresentationData> buildExpenseGroups(
   List<ExpenseItemPresentationData> currentBucket = [];
 
   for (final item in items) {
-    final header = dateFormatter.relativeGroupHeader(item.expense.createdAt);
+    final header = dateFormatter.relativeGroupHeader(item.expense.date);
 
     if (current == null || current != header) {
       if (current != null) {

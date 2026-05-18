@@ -30,6 +30,8 @@ final class DateFormatterService implements IDateFormatterService {
     final day = date.day.toString().padLeft(2, '0');
     final month = _capitalize(_monthAbbrev.format(date).replaceAll('.', ''));
 
+    if (date.year == _now().year) return '$day de $month';
+
     return '$day de $month de ${date.year}';
   }
 

@@ -32,7 +32,6 @@ ExpenseItemPresentationData expenseItemMock({
       value: (value * 100).round(),
     ),
     formattedValue: formatPreviewValue(value),
-    formattedTime: _formatter.formatTime(millis),
-    formattedDate: _formatter.formatDayMonth(millis),
+    formattedDate: _formatter.formatLongDate(millis),
   );
 }

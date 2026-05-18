@@ -10,14 +10,12 @@ import 'package:trocado/src/presentation/widgets/expense/expense_category_visual
 class ExpenseItemWidget extends StatelessWidget {
   final ExpenseModel expense;
   final String formattedDate;
-  final String formattedTime;
   final String formattedValue;
 
   const ExpenseItemWidget({
     super.key,
     required this.expense,
     required this.formattedDate,
-    required this.formattedTime,
     required this.formattedValue,
   });
 
@@ -73,7 +71,7 @@ class ExpenseItemWidget extends StatelessWidget {
               ),
             ),
             Text(
-              '$formattedDate · $formattedTime',
+              formattedDate,
               style: context.typography.bodySmall?.copyWith(
                 color: context.colors.onSurfaceVariant,
               ),

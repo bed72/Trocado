@@ -27,12 +27,28 @@ void main() {
   });
 
   group('formatLongDate', () {
-    test('returns "dd de Mmm de yyyy" with capitalized 3-letter month', () {
+    test('omits the year when it matches the current year', () {
       final data = formatter.formatLongDate(
         DateTime(2026, 5, 17).millisecondsSinceEpoch,
       );
 
-      expect(data, '17 de Mai de 2026');
+      expect(data, '17 de Mai');
+    });
+
+    test('includes the year when it differs from the current year', () {
+      final data = formatter.formatLongDate(
+        DateTime(2025, 11, 8).millisecondsSinceEpoch,
+      );
+
+      expect(data, '08 de Nov de 2025');
+    });
+
+    test('includes the year for a future year as well', () {
+      final data = formatter.formatLongDate(
+        DateTime(2027, 1, 1).millisecondsSinceEpoch,
+      );
+
+      expect(data, '01 de Jan de 2027');
     });
 
     test('pads single-digit day with leading zero', () {
@@ -40,7 +56,7 @@ void main() {
         DateTime(2026, 1, 3).millisecondsSinceEpoch,
       );
 
-      expect(data, '03 de Jan de 2026');
+      expect(data, '03 de Jan');
     });
 
     test('capitalizes every month abbreviation without trailing dot', () {
@@ -64,7 +80,7 @@ void main() {
           DateTime(2026, month, 1).millisecondsSinceEpoch,
         );
 
-        expect(data, '01 de $label de 2026');
+        expect(data, '01 de $label');
       }
     });
   });

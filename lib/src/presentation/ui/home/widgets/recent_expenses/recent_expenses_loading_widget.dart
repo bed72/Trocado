@@ -17,7 +17,6 @@ class RecentExpensesLoadingWidget extends StatelessWidget {
         (_) => const ExpenseItemWidget(
           expense: _placeholder,
           formattedDate: _placeholderDate,
-          formattedTime: _placeholderTime,
           formattedValue: _placeholderValue,
         ),
       ),
@@ -25,10 +24,8 @@ class RecentExpensesLoadingWidget extends StatelessWidget {
   );
 }
 
-const _placeholderDate = '00/00';
-const _placeholderTime = '00:00';
 const _placeholderValue = 'R\$ 000,00';
-
+const _placeholderDate = '00 de Mmm';
 const _placeholder = ExpenseModel(
   id: 0,
   date: 0,

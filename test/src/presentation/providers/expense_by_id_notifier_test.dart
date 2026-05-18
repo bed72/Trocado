@@ -37,8 +37,7 @@ ProviderContainer _makeContainer({
   IDateFormatterService? dateFormatter,
 }) {
   final formatter = dateFormatter ?? MockDateFormatterService();
-  when(() => formatter.formatDayMonth(any())).thenReturn('22/04');
-  when(() => formatter.formatTime(any())).thenReturn('14:30');
+  when(() => formatter.formatLongDate(any())).thenReturn('22 de Abr de 2026');
   when(() => formatter.relativeGroupHeader(any())).thenReturn('Hoje');
 
   final container = ProviderContainer(
@@ -62,8 +61,8 @@ void main() {
   });
 
   setUp(() {
-    repository = MockExpenseRepository();
     moneyService = MockMoneyService();
+    repository = MockExpenseRepository();
 
     when(
       () => moneyService.format(any()),

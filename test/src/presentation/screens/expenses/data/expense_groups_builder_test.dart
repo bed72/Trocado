@@ -20,8 +20,7 @@ ExpenseItemPresentationData _item({required int id, required int millis}) =>
         createdAt: millis,
         description: 'Expense #$id',
       ),
-      formattedDate: '01/01',
-      formattedTime: '00:00',
+      formattedDate: '01 de Jan de 2026',
       formattedValue: 'R\$ 10,00',
     );
 

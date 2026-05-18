@@ -65,8 +65,7 @@ void main() {
     when(
       () => moneyService.format(any()),
     ).thenAnswer((invocation) => 'R\$ ${invocation.positionalArguments.first}');
-    when(() => dateFormatter.formatDayMonth(any())).thenReturn('22/04');
-    when(() => dateFormatter.formatTime(any())).thenReturn('14:30');
+    when(() => dateFormatter.formatLongDate(any())).thenReturn('22 de Abr de 2026');
   });
 
   test(

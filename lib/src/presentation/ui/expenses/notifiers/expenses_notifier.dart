@@ -11,6 +11,7 @@ import 'package:trocado/src/domain/services/date_formatter_service.dart';
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
 import 'package:trocado/src/domain/models/expense/expenses_page_model.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
+
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
 import 'package:trocado/src/presentation/actions/debounce_action.dart';
@@ -169,8 +170,7 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
       ExpenseItemPresentationData(
         expense: expense,
         formattedValue: _moneyService.format(expense.value / 100),
-        formattedTime: _dateFormatter.formatTime(expense.createdAt),
-        formattedDate: _dateFormatter.formatDayMonth(expense.createdAt),
+        formattedDate: _dateFormatter.formatLongDate(expense.date),
       );
 
   List<ExpenseActiveFilterChipPresentationData> _buildChips(

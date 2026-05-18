@@ -39,8 +39,7 @@ final class RecentExpensesNotifier extends _$RecentExpensesNotifier {
   ExpenseItemPresentationData _toItem(ExpenseModel expense) =>
       ExpenseItemPresentationData(
         expense: expense,
+        formattedDate: _dateService.formatLongDate(expense.date),
         formattedValue: _moneyService.format(expense.value / 100),
-        formattedTime: _dateService.formatTime(expense.createdAt),
-        formattedDate: _dateService.formatDayMonth(expense.createdAt),
       );
 }
