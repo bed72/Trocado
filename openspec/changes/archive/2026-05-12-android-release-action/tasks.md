@@ -478,11 +478,11 @@ jobs:
 - [x] 13.5 No Play Console, confirmar que apareceu um draft em **Testing → Internal testing**.
 - [x] 13.6 No Firebase Console, confirmar que `Crashlytics → Project Settings → dSYM` (na verdade, símbolos Dart) mostra o upload recente.
 - [x] 13.7 Confirmar que a tag `v1.0.0+1` apareceu em `github.com/<user>/Trocado/tags`.
-- [ ] 13.8 Optional smoke: clicar **Review release** no Play Console → **Start rollout** → instalar via Play Store Internal Testing link no device → confirma boot.
+- [x] 13.8 Optional smoke: clicar **Review release** no Play Console → **Start rollout** → instalar via Play Store Internal Testing link no device → confirma boot.
 
 ### 14. Arquivar a change
 
-- [ ] 14.1 Após dry-run successful, mover `openspec/changes/2026-05-12-android-release-action/` pra `openspec/changes/archive/`:
+- [x] 14.1 Após dry-run successful, mover `openspec/changes/2026-05-12-android-release-action/` pra `openspec/changes/archive/`:
   ```bash
   git mv openspec/changes/2026-05-12-android-release-action openspec/changes/archive/
   git commit -m ":books: archive android-release-action change"

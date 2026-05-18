@@ -58,12 +58,12 @@
 - [x] `dart run build_runner build --delete-conflicting-outputs` — regenera `couple_dissolve_notifier.g.dart` (novo) e `invite_qr_code_notifier.g.dart` (path mudou); deletar o `.g.dart` antigo de `partner/notifiers/` antes
 - [x] `flutter analyze` — zero issues nos arquivos tocados; sem imports órfãos apontando para `partner/`
 - [x] `flutter test` — todos os testes existentes continuam passando; novos testes do dissolve passam
-- [ ] Smoke "tem casal": app com casal ativo → Settings → tocar no card connected → tela de dissolver abre com header, 3 efeitos e botão `Desfazer casal`
-- [ ] Smoke "cancelar dialog": na dissolve, tocar `Desfazer casal` → dialog destrutivo abre → tocar `Cancelar` → volta sem chamada à API; state permanece `.initial`
-- [ ] Smoke "sucesso": na dissolve, tocar `Desfazer casal` → confirmar dialog → loading no botão (1-2s) → toast de sucesso (`Pronto · Vocês não estão mais conectados.`) → pop pra Settings → card vira `SettingsInvitePartnerWidget` (`Convidar parceiro`)
-- [ ] Smoke "falha de rede": dissolve com rede off → confirmar dialog → toast `Opps · Sem conexão com o servidor.`; permanece na tela; state `.failure`; botão volta a ficar tocável
-- [ ] Smoke "sem casal pós-dissolve": após sucesso, abrir Home → não há mais despesas/orçamentos/insights compartilhados (caches invalidados)
-- [ ] Smoke invite: app sem casal → Settings → tocar `Convidar parceiro` → tela `CoupleInviteScreen` abre (mesmo conteúdo do antigo partner_invite, só renomeada); fluxo de gerar QR code continua funcional
+- [x] Smoke "tem casal": app com casal ativo → Settings → tocar no card connected → tela de dissolver abre com header, 3 efeitos e botão `Desfazer casal`
+- [x] Smoke "cancelar dialog": na dissolve, tocar `Desfazer casal` → dialog destrutivo abre → tocar `Cancelar` → volta sem chamada à API; state permanece `.initial`
+- [x] Smoke "sucesso": na dissolve, tocar `Desfazer casal` → confirmar dialog → loading no botão (1-2s) → toast de sucesso (`Pronto · Vocês não estão mais conectados.`) → pop pra Settings → card vira `SettingsInvitePartnerWidget` (`Convidar parceiro`)
+- [x] Smoke "falha de rede": dissolve com rede off → confirmar dialog → toast `Opps · Sem conexão com o servidor.`; permanece na tela; state `.failure`; botão volta a ficar tocável
+- [x] Smoke "sem casal pós-dissolve": após sucesso, abrir Home → não há mais despesas/orçamentos/insights compartilhados (caches invalidados)
+- [x] Smoke invite: app sem casal → Settings → tocar `Convidar parceiro` → tela `CoupleInviteScreen` abre (mesmo conteúdo do antigo partner_invite, só renomeada); fluxo de gerar QR code continua funcional
 - [x] Sem nenhum import do projeto apontando para `lib/src/presentation/ui/partner/...`
 - [x] `app_route.dart`: nenhuma referência a `partner` (campos, paths, regex, lista `_all`)
 - [x] `settings_location.dart`: `onCoupleDetails` navega para `CoupleDissolveLocation`, `onInvitePartner` navega para `CoupleInviteLocation`

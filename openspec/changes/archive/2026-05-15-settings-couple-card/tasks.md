@@ -62,8 +62,8 @@
 - [x] `dart run build_runner build --delete-conflicting-outputs` — gera `couple_notifier.g.dart`
 - [x] `flutter analyze` — zero issues nos arquivos tocados
 - [x] `flutter test` — todos os testes passam, incluindo os novos
-- [ ] Smoke positivo: rodar app autenticado **com casal ativo** → abrir Settings → card mostra avatares sobrepostos + `"<user> & <partner>"` + `"Conectados há X"` + chevron → tocar não navega pra lugar nenhum (placeholder consciente)
-- [ ] Smoke negativo: app autenticado **sem casal** → Settings → card invite atual (`person_add_alt`, "Convidar parceiro · Comecem a usar juntos") → tap vai pra `PartnerInviteLocation`
-- [ ] Smoke offline: matar rede após login → Settings → card invite (fallback) → não trava, não mostra erro inline
+- [x] Smoke positivo: rodar app autenticado **com casal ativo** → abrir Settings → card mostra avatares sobrepostos + `"<user> & <partner>"` + `"Conectados há X"` + chevron → tocar não navega pra lugar nenhum (placeholder consciente)
+- [x] Smoke negativo: app autenticado **sem casal** → Settings → card invite atual (`person_add_alt`, "Convidar parceiro · Comecem a usar juntos") → tap vai pra `PartnerInviteLocation`
+- [x] Smoke offline: matar rede após login → Settings → card invite (fallback) → não trava, não mostra erro inline
 - [x] `SettingsScreen` não importa nada de `infrastructure/` nem `data/`
 - [x] `SettingsCoupleStatusWidget` não importa nada de `data/` nem `infrastructure/`

@@ -47,6 +47,6 @@
 
 - [x] `flutter analyze` — zero issues nos arquivos tocados (warning pré-existente em `recent_expenses_notifier_test.dart` não relacionado)
 - [x] `flutter test` — verde (597 testes, 38 nas suítes tocadas)
-- [ ] Smoke: `flutter run`, abrir `/notifications` com `> 10` itens → tocar botão → dialog aparece → "Excluir" → lista esvazia → empty state → botão some
-- [ ] Smoke negativo: simular erro → toast aparece → lista permanece intacta
+- [x] Smoke: `flutter run`, abrir `/notifications` com `> 10` itens → tocar botão → dialog aparece → "Excluir" → lista esvazia → empty state → botão some
+- [x] Smoke negativo: simular erro → toast aparece → lista permanece intacta
 - [x] `NotificationsScreen` não importa `IRemoteNotificationDataSource`, `NotificationsResponse`, nem nada de `infrastructure/`
