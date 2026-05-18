@@ -148,7 +148,7 @@ void main() {
         final state = container.read(coupleProvider).asData?.value;
 
         expect(state, isA<CoupleFailureState>());
-        expect((state as CoupleFailureState).message, 'Falha desconhecido.');
+        expect((state as CoupleFailureState).message, 'Falha desconhecida.');
       },
     );
 
