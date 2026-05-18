@@ -11,6 +11,8 @@ import 'package:trocado/src/infrastructure/clients/http/responses/failure/failur
 import 'package:trocado/src/infrastructure/clients/http/responses/notification/notifications_response.dart';
 
 abstract interface class IRemoteNotificationDataSource {
+  Stream<void> get onTokenRefreshed;
+
   Future<Either<FailureResponse, void>> deleteAll();
   Future<Either<FailureResponse, void>> revokeToken();
   Future<Either<FailureResponse, void>> registerToken();
@@ -30,6 +32,10 @@ final class RemoteNotificationDataSource
     required IMessagingClient messagingClient,
   }) : _httpClient = httpClient,
        _messagingClient = messagingClient;
+
+  @override
+  Stream<void> get onTokenRefreshed =>
+      _messagingClient.onTokenRefresh.map((_) {});
 
   @override
   Future<Either<FailureResponse, void>> registerToken() async {

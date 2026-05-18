@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -238,9 +240,9 @@ void main() {
     });
 
     test('returns Left ValidationFailure on unknown code', () async {
-      when(() => dataSource.deleteById(id: any(named: 'id'))).thenAnswer(
-        (_) async => Left(_failure('invalid', 'Invalid request.')),
-      );
+      when(
+        () => dataSource.deleteById(id: any(named: 'id')),
+      ).thenAnswer((_) async => Left(_failure('invalid', 'Invalid request.')));
 
       final data = await repository.deleteById(id: 1);
 
@@ -260,9 +262,9 @@ void main() {
             notifications: [
               NotificationResponse(
                 id: 1,
-                type: 'shared_expense_created',
-                title: 'Nova despesa',
                 description: 'Desc',
+                title: 'Nova despesa',
+                type: 'shared_expense_created',
                 createdAt: '2026-05-11T14:30:00Z',
               ),
             ],
@@ -274,8 +276,8 @@ void main() {
 
       expect(data.isRight, isTrue);
       expect(data.right.nextCursor, 'next-token');
-      expect(data.right.notifications, hasLength(1));
       expect(data.right.notifications.first.id, 1);
+      expect(data.right.notifications, hasLength(1));
     });
 
     test('propagates cursor to datasource', () async {
@@ -322,6 +324,27 @@ void main() {
       expect(data.isLeft, isTrue);
       expect(data.left, isA<ValidationFailure>());
       expect(data.left.message, 'Invalid cursor.');
+    });
+  });
+
+  group('onTokenRefreshed', () {
+    test('delegates to dataSource.onTokenRefreshed', () async {
+      final controller = StreamController<void>.broadcast();
+      addTearDown(controller.close);
+
+      when(
+        () => dataSource.onTokenRefreshed,
+      ).thenAnswer((_) => controller.stream);
+
+      final emissions = <void>[];
+      final subscription = repository.onTokenRefreshed.listen(emissions.add);
+      addTearDown(subscription.cancel);
+
+      controller.add(null);
+      controller.add(null);
+      await pumpEventQueue();
+
+      expect(emissions, hasLength(2));
     });
   });
 }

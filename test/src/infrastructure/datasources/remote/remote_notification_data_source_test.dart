@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -285,6 +287,43 @@ void main() {
 
       expect(data.isLeft, isTrue);
       expect(data.left.errors.first.code, 'network_error');
+    });
+  });
+
+  group('onTokenRefreshed', () {
+    test('emits void event for each upstream emit', () async {
+      final controller = StreamController<String>.broadcast();
+      addTearDown(controller.close);
+
+      when(
+        () => messagingClient.onTokenRefresh,
+      ).thenAnswer((_) => controller.stream);
+
+      final emissions = <void>[];
+      final subscription = dataSource.onTokenRefreshed.listen(emissions.add);
+      addTearDown(subscription.cancel);
+
+      controller.add('token-1');
+      controller.add('token-2');
+      await pumpEventQueue();
+
+      expect(emissions, hasLength(2));
+    });
+
+    test('attaches listener upstream when subscribed', () async {
+      final controller = StreamController<String>.broadcast();
+      addTearDown(controller.close);
+
+      when(
+        () => messagingClient.onTokenRefresh,
+      ).thenAnswer((_) => controller.stream);
+
+      final subscription = dataSource.onTokenRefreshed.listen((_) {});
+      addTearDown(subscription.cancel);
+
+      await pumpEventQueue();
+
+      expect(controller.hasListener, isTrue);
     });
   });
 }

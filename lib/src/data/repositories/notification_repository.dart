@@ -15,6 +15,9 @@ final class NotificationRepository implements INotificationRepository {
     : _dataSource = dataSource;
 
   @override
+  Stream<void> get onTokenRefreshed => _dataSource.onTokenRefreshed;
+
+  @override
   Future<Either<Failure, void>> deleteAll() async {
     final data = await _dataSource.deleteAll();
 

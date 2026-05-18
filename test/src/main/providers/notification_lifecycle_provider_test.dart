@@ -4,11 +4,8 @@ import 'package:mocktail/mocktail.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:trocado/src/main/providers/clients_provider.dart';
 import 'package:trocado/src/main/providers/repositories_provider.dart';
 import 'package:trocado/src/main/providers/notification_lifecycle_provider.dart';
-
-import 'package:trocado/src/infrastructure/clients/messaging/messaging_client.dart';
 
 import 'package:trocado/src/domain/either/either.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
@@ -17,16 +14,16 @@ import 'package:trocado/src/domain/repositories/interface_notification_repositor
 import '../../../mocks/mocks.dart';
 
 void main() {
-  late IMessagingClient messaging;
   late INotificationRepository repository;
-  late StreamController<String> controller;
+  late StreamController<void> controller;
 
   setUp(() {
-    messaging = MockMessagingClient();
     repository = MockNotificationRepository();
-    controller = StreamController<String>.broadcast();
+    controller = StreamController<void>.broadcast();
 
-    when(() => messaging.onTokenRefresh).thenAnswer((_) => controller.stream);
+    when(
+      () => repository.onTokenRefreshed,
+    ).thenAnswer((_) => controller.stream);
     when(
       () => repository.registerToken(),
     ).thenAnswer((_) async => const Right(null));
@@ -37,14 +34,11 @@ void main() {
   });
 
   ProviderContainer makeContainer() => ProviderContainer(
-    overrides: [
-      messagingClientProvider.overrideWithValue(messaging),
-      notificationRepositoryProvider.overrideWithValue(repository),
-    ],
+    overrides: [notificationRepositoryProvider.overrideWithValue(repository)],
   );
 
   group('NotificationLifecycle', () {
-    test('materialization attaches a listener to onTokenRefresh', () async {
+    test('materialization attaches a listener to onTokenRefreshed', () async {
       final container = makeContainer();
       addTearDown(container.dispose);
 
@@ -60,7 +54,7 @@ void main() {
       addTearDown(container.dispose);
 
       container.read(notificationLifecycleProvider);
-      controller.add('token-1');
+      controller.add(null);
       await pumpEventQueue();
 
       verify(() => repository.registerToken()).called(1);
@@ -71,9 +65,9 @@ void main() {
       addTearDown(container.dispose);
 
       container.read(notificationLifecycleProvider);
-      controller.add('token-1');
-      controller.add('token-2');
-      controller.add('token-3');
+      controller.add(null);
+      controller.add(null);
+      controller.add(null);
       await pumpEventQueue();
 
       verify(() => repository.registerToken()).called(3);
@@ -102,8 +96,8 @@ void main() {
       addTearDown(container.dispose);
 
       container.read(notificationLifecycleProvider);
-      controller.add('token-1');
-      controller.add('token-2');
+      controller.add(null);
+      controller.add(null);
       await pumpEventQueue();
 
       verify(() => repository.registerToken()).called(2);
