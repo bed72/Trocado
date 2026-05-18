@@ -135,7 +135,7 @@ And `IDateFormatterService.formatPeriod` SHALL still be the only period-formatti
 
 ---
 
-### Requirement: Consumers are not modified
+### Requirement: Budget-side consumers are not modified
 
 The following files SHALL NOT be modified by this change (they consume `formatPeriod` and the rendered `formattedPeriod` string transparently):
 
@@ -147,17 +147,7 @@ The following files SHALL NOT be modified by this change (they consume `formatPe
 - `lib/src/presentation/ui/budgets/data/budget_item_presentation_data.dart`
 - `lib/src/presentation/ui/budgets/widgets/budget_list_item_widget.dart`
 
-If any of these files needs to change for the new format to render correctly, the implementation SHALL pause and the spec SHALL be revised before proceeding.
-
-#### Scenario: Diff confined to service + loading widget + service tests
-
-Given the change is implemented
-Then `git diff --name-only` SHALL list only:
-- `lib/src/infrastructure/services/date_formatter_service.dart`
-- `lib/src/presentation/ui/budgets/widgets/budgets_loading_widget.dart`
-- `test/src/infrastructure/services/date_formatter_service_test.dart`
-
-(Plus the spec/proposal/tasks files under `openspec/changes/budget-period-long-format/`.)
+These files are explicitly out of the budget-period rollout — their consumption of `formatPeriod` already produces the new format transparently.
 
 ---
 
@@ -196,6 +186,76 @@ Given any of the deferred shapes above
 When `formatPeriod(start, end)` is called
 Then it SHALL return a non-empty string ending with the four-digit year of `end`
 And SHALL NOT throw
+
+---
+
+### Requirement: ExpensesFiltersNotifier renders the period summary via formatPeriod
+
+`ExpensesFiltersNotifier._summaryOf` (`lib/src/presentation/ui/expenses/notifiers/expenses_filters_notifier.dart`) SHALL replace its current implementation — which calls `_dateFormatter.formatShortDate` twice and joins with `' – '` — by a single call to `_dateFormatter.formatPeriod(draft.startDate!, draft.endDate!)`.
+
+The null-guard (returning `null` when either bound is missing) SHALL be preserved.
+
+#### Scenario: Filter summary inherits the long format
+
+Given the user selects the preset `Últimos 30 dias`
+And `_now()` returns `2026-05-18`
+Then the filter screen footer SHALL render the summary as `'18 de Abr até 18 de Mai'`
+And SHALL NOT contain `'/'` or `'–'`
+
+#### Scenario: Filter summary collapses single day
+
+Given `start = end = 2026-05-18` (custom range with a single day picked)
+Then the summary SHALL render as `'18 de Mai'`
+
+#### Scenario: Filter summary handles year crossing
+
+Given `start = 2026-12-20`, `end = 2027-01-25`, `_now()` in 2026
+Then the summary SHALL render as `'20 de Dez até 25 de Jan de 2027'`
+
+---
+
+### Requirement: ExpensesNotifier renders the period chip via formatPeriod (both-bound) or formatLongDate (one-sided)
+
+`ExpensesNotifier._periodLabel` (`lib/src/presentation/ui/expenses/notifiers/expenses_notifier.dart`) SHALL be rewritten as:
+
+- When both `start` and `end` are non-null: return `_dateFormatter.formatPeriod(start, end)`.
+- When only `start` is non-null: return `'desde ${_dateFormatter.formatLongDate(start)}'`.
+- When only `end` is non-null: return `'até ${_dateFormatter.formatLongDate(end)}'`.
+
+The three branches SHALL be expressed as a switch expression over `(start, end)` (or equivalent pattern destructure), consistent with the project's switch-expression rule. No call to `formatShortDate` SHALL remain in the file.
+
+#### Scenario: Active filter chip uses the new range format
+
+Given the user applies the preset `Mês passado`
+And the resulting filter has `start = 2026-04-01`, `end = 2026-04-30`
+Then the active filter chip for `period` SHALL render `'01 de Abr até 30 de Abr'`
+
+#### Scenario: Active filter chip for a `desde` one-sided range
+
+Given the user applies a filter with only `start = 2026-04-01` (and `end == null`)
+Then the active filter chip for `period` SHALL render `'desde 01 de Abr'`
+
+#### Scenario: Active filter chip for an `até` one-sided range
+
+Given the user applies a filter with only `end = 2026-04-30` (and `start == null`)
+Then the active filter chip for `period` SHALL render `'até 30 de Abr'`
+
+---
+
+### Requirement: IDateFormatterService.formatShortDate is removed
+
+After the two consumers above stop calling `formatShortDate`, no consumer in `lib/` SHALL reference it. The change SHALL:
+
+- Remove `String formatShortDate(int millis);` from `lib/src/domain/services/date_formatter_service.dart`.
+- Remove the implementation and the `_shortDate` `DateFormat` field from `lib/src/infrastructure/services/date_formatter_service.dart`.
+- Remove the `group('formatShortDate', ...)` block from `test/src/infrastructure/services/date_formatter_service_test.dart`.
+
+The mock `MockDateFormatterService` in `test/mocks/mocks.dart` does NOT need to change (it implements the interface; removing a method automatically updates the mock).
+
+#### Scenario: No formatShortDate references remain
+
+Given the change is implemented
+Then `grep -rn "formatShortDate" lib/ test/` SHALL return zero matches
 
 ---
 

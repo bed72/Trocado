@@ -91,8 +91,7 @@ final class ExpensesFiltersNotifier extends _$ExpensesFiltersNotifier {
 
   String? _summaryOf(ExpenseFilterModel draft) {
     if (draft.startDate == null || draft.endDate == null) return null;
-    final start = _dateFormatter.formatShortDate(draft.startDate!);
-    final end = _dateFormatter.formatShortDate(draft.endDate!);
-    return '$start – $end';
+
+    return _dateFormatter.formatPeriod(draft.startDate!, draft.endDate!);
   }
 }

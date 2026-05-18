@@ -218,18 +218,12 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
     return chips;
   }
 
-  String _periodLabel(int? start, int? end) {
-    final startLabel = start != null
-        ? _dateFormatter.formatShortDate(start)
-        : null;
-    final endLabel = end != null ? _dateFormatter.formatShortDate(end) : null;
-
-    if (startLabel != null && endLabel != null) {
-      return '$startLabel – $endLabel';
-    }
-    if (startLabel != null) return 'desde $startLabel';
-    return 'até $endLabel';
-  }
+  String _periodLabel(int? start, int? end) => switch ((start, end)) {
+    (final int s, final int e) => _dateFormatter.formatPeriod(s, e),
+    (final int s, null) => 'desde ${_dateFormatter.formatLongDate(s)}',
+    (null, final int e) => 'até ${_dateFormatter.formatLongDate(e)}',
+    (null, null) => '',
+  };
 
   String _valueLabel(int? min, int? max) {
     final minLabel = min != null ? _moneyService.format(min / 100) : null;

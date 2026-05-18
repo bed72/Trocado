@@ -92,8 +92,9 @@ void main() {
       () => dateFormatter.formatLongDate(any()),
     ).thenReturn('22 de Abr de 2026');
     when(() => dateFormatter.relativeGroupHeader(any())).thenReturn('Hoje');
-    when(() => dateFormatter.formatShortDate(any())).thenAnswer(
-      (invocation) => 'SHORT(${invocation.positionalArguments.first})',
+    when(() => dateFormatter.formatPeriod(any(), any())).thenAnswer(
+      (invocation) =>
+          'PERIOD(${invocation.positionalArguments[0]},${invocation.positionalArguments[1]})',
     );
   });
 

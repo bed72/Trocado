@@ -49,11 +49,38 @@ O campo do form de Budget é o ponto onde o usuário **decide** o período — e
 - Smoke manual na lista de orçamentos (`BudgetsScreen`): cards passados renderizam períodos no novo formato.
 - Placeholder do `BudgetsLoadingWidget` não destrói o layout (largura próxima da versão curta — verificar visualmente).
 
+## Extensão (follow-up no mesmo spec)
+
+Após o primeiro pass cobrindo apenas o form e a lista de Budget, identificamos mais duas superfícies que precisam herdar o mesmo formato antes de arquivar:
+
+1. **Resumo de período no `ExpensesFilterScreen`** — o texto abaixo das pílulas de preset (`Personalizado`, `Mês atual`, `Mês passado`, `Últimos 30 dias`) hoje sai como `18/04/2026 – 18/05/2026` via `ExpensesFiltersNotifier._summaryOf` (chama `formatShortDate` 2×). Passa a usar `formatPeriod` diretamente — a regra é a mesma, basta trocar o método.
+2. **Pílula de filtro ativo na `ExpensesScreen`** — `ExpensesNotifier._periodLabel` monta o label do chip de período ativo. Tem três variantes: `start && end` (hoje `'$start – $end'`), só `start` (`'desde $start'`) e só `end` (`'até $end'`). A variante com ambos os bounds passa a usar `formatPeriod`. As variantes one-sided trocam `formatShortDate` por `formatLongDate` para manter o estilo coerente (`'desde 18 de Abr'`, `'até 18 de Mai'`).
+
+**Bônus de limpeza:** após essas duas trocas, `IDateFormatterService.formatShortDate` fica **sem consumidor em `lib/`**. Removo do interface, do impl e do test group próprio para deixar a superfície do service mínima — coerente com a postura de não manter dead code.
+
+### Camadas afetadas (additional)
+
+- `presentation/ui/expenses/notifiers/expenses_filters_notifier.dart` — `_summaryOf` chama `formatPeriod(startDate, endDate)`.
+- `presentation/ui/expenses/notifiers/expenses_notifier.dart` — `_periodLabel` chama `formatPeriod` no caso both-bound; troca `formatShortDate` por `formatLongDate` nos casos `desde`/`até`.
+- `domain/services/date_formatter_service.dart` — remove `String formatShortDate(int millis);`.
+- `infrastructure/services/date_formatter_service.dart` — remove a implementação de `formatShortDate` e o campo `_shortDate`.
+- `test/src/infrastructure/services/date_formatter_service_test.dart` — remove o `group('formatShortDate', ...)`.
+- `test/src/presentation/providers/expenses_filters_notifier_test.dart` — troca o stub de `formatShortDate` por stub de `formatPeriod`; ajusta o expect.
+- `test/src/presentation/providers/expenses_notifier_test.dart` — mesmo padrão; adiciona stub de `formatLongDate` se algum cenário cobrir one-sided.
+
+### Decisões adicionais
+
+6. **Separador `até` vs `desde`/`até` standalone.** Em pt_BR, `até` funciona tanto como infixo de range (`'12 de Mai até 20 de Mai'`) quanto como prefixo de upper bound (`'até 20 de Mai'`). Sem ambiguidade — o leitor humano distingue pelo contexto. Decidido manter os dois usos.
+
+7. **One-sided ranges continuam usando `formatLongDate` direto.** Não vale criar um wrapper para "long date para uso em chip" — a chamada é uma linha e a coesão interna do service compensa não ter um nível de indireção a mais.
+
+8. **Remover `formatShortDate` em vez de manter por compatibilidade.** Após o swap, fica zero consumidor em `lib/`. CLAUDE.md endossa deletar código morto. A change fica auto-contida: nenhum surface visível do app exibe `dd/MM/yyyy` agora.
+
 ## Fora de escopo
 
 - **Range entirely in a non-current year** (e.g., `10/05/2025 → 20/05/2025` quando hoje é 2026): deferido. Decidir entre `10 de Mai até 20 de Mai de 2025` (ano só no end, igual à regra do cross-year) ou `10 de Mai de 2025 até 20 de Mai de 2025` (ano em ambos). Como hoje o produto não exibe orçamentos antigos com proeminência, fica para a próxima.
 - **Range cruzando mais de uma virada de ano** (e.g., `10/12/2025 → 20/01/2027`): mesmo motivo — caso de borda raríssimo para o domínio de orçamentos de casal.
-- Outras superfícies que poderiam usar `formatPeriod` no futuro (ex: filtros de expense por período, headers de grupo): não criadas por esta change.
-- Mudança no `IDateFormatterService` (nova assinatura, novo método): sem necessidade — o contrato permanece.
+- Outras superfícies que poderiam usar `formatPeriod` no futuro (ex: headers de grupo, exportação de relatório): fora do escopo até surgirem.
+- Adicionar novo método ao `IDateFormatterService`: contrato encolhe (remove `formatShortDate`) mas não cresce.
 - i18n: o app é pt_BR-only por design; sem mudança.
 - Backend: sem mudança.

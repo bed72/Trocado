@@ -20,8 +20,9 @@ ProviderContainer _makeContainer({
   IDateFormatterService? dateFormatter,
 }) {
   final formatter = dateFormatter ?? MockDateFormatterService();
-  when(() => formatter.formatShortDate(any())).thenAnswer(
-    (invocation) => 'SHORT(${invocation.positionalArguments.first})',
+  when(() => formatter.formatPeriod(any(), any())).thenAnswer(
+    (invocation) =>
+        'PERIOD(${invocation.positionalArguments[0]},${invocation.positionalArguments[1]})',
   );
 
   final container = ProviderContainer(
@@ -124,7 +125,7 @@ void main() {
           .dispatch(CustomRangeChanged(start, end));
 
       final state = container.read(expensesFiltersProvider(emptySeed));
-      expect(state.formattedPeriodSummary, 'SHORT($start) – SHORT($end)');
+      expect(state.formattedPeriodSummary, 'PERIOD($start,$end)');
     });
   });
 

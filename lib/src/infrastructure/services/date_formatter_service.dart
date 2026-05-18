@@ -14,14 +14,9 @@ final class DateFormatterService implements IDateFormatterService {
   final DateFormat _dayMonth = DateFormat('dd/MM', _locale);
   final DateFormat _monthAbbrev = DateFormat('MMM', _locale);
   final DateFormat _monthYear = DateFormat('MMMM y', _locale);
-  final DateFormat _shortDate = DateFormat('dd/MM/yyyy', _locale);
   final DateFormat _dayMonthAbbrev = DateFormat('dd MMM', _locale);
 
   DateFormatterService({required DateTime Function() now}) : _now = now;
-
-  @override
-  String formatShortDate(int millis) =>
-      _shortDate.format(DateTime.fromMillisecondsSinceEpoch(millis));
 
   @override
   String formatLongDate(int millis) {

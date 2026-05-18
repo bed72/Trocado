@@ -16,16 +16,6 @@ void main() {
     formatter = DateFormatterService(now: () => fixedNow);
   });
 
-  group('formatShortDate', () {
-    test('returns dd/MM/yyyy in pt_BR', () {
-      final data = formatter.formatShortDate(
-        DateTime(2026, 3, 15).millisecondsSinceEpoch,
-      );
-
-      expect(data, '15/03/2026');
-    });
-  });
-
   group('formatLongDate', () {
     test('omits the year when it matches the current year', () {
       final data = formatter.formatLongDate(
