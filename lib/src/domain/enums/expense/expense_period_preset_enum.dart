@@ -11,7 +11,7 @@ enum ExpensePeriodPresetEnum {
   const ExpensePeriodPresetEnum(this.label);
 
   ExpensePeriodRange toRange({required DateTime now}) => switch (this) {
-    ExpensePeriodPresetEnum.currentMonth => (
+    .currentMonth => (
       startDate: DateTime(now.year, now.month, 1).millisecondsSinceEpoch,
       endDate: DateTime(
         now.year,
@@ -23,7 +23,7 @@ enum ExpensePeriodPresetEnum {
         999,
       ).millisecondsSinceEpoch,
     ),
-    ExpensePeriodPresetEnum.last30Days => (
+    .last30Days => (
       startDate: DateTime(
         now.year,
         now.month,
@@ -39,7 +39,7 @@ enum ExpensePeriodPresetEnum {
         999,
       ).millisecondsSinceEpoch,
     ),
-    ExpensePeriodPresetEnum.previousMonth => (
+    .previousMonth => (
       startDate: DateTime(now.year, now.month - 1, 1).millisecondsSinceEpoch,
       endDate: DateTime(
         now.year,
@@ -51,7 +51,7 @@ enum ExpensePeriodPresetEnum {
         999,
       ).millisecondsSinceEpoch,
     ),
-    ExpensePeriodPresetEnum.custom => throw UnsupportedError(
+    .custom => throw UnsupportedError(
       'custom preset has no implicit range — pick start/end manually',
     ),
   };

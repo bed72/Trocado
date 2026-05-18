@@ -6,14 +6,18 @@ import 'package:trocado/src/domain/models/expense/expenses_page_model.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 
 abstract interface class IExpenseRepository {
+  Future<Either<Failure, void>> delete({required int id});
+  Future<Either<Failure, ExpenseModel>> findById({required int id});
+  Future<Either<Failure, List<ExpenseModel>>> findRecent({int limit = 6});
+  Future<Either<Failure, ExpensesPageModel>> findAll({
+    String? cursor,
+    ExpenseFilterModel? filter,
+  });
   Future<Either<Failure, ExpenseModel>> create({
     required int date,
     required int value,
     required String description,
   });
-
-  Future<Either<Failure, ExpenseModel>> findById({required int id});
-
   // TODO muitos dados
   Future<Either<Failure, ExpenseModel>> update({
     required int id,
@@ -21,13 +25,4 @@ abstract interface class IExpenseRepository {
     required int value,
     required String description,
   });
-
-  Future<Either<Failure, void>> delete({required int id});
-
-  Future<Either<Failure, ExpensesPageModel>> findAll({
-    String? cursor,
-    ExpenseFilterModel? filter,
-  });
-
-  Future<Either<Failure, List<ExpenseModel>>> findRecent({int limit = 6});
 }

@@ -40,8 +40,8 @@ final class ExpenseModel extends Equatable {
     id,
     value,
     date,
-    description,
     category,
     createdAt,
+    description,
   ];
 }

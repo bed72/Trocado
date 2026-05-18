@@ -12,7 +12,7 @@ final class ValidationFailure extends Failure {
 }
 
 final class UnknownFailure extends Failure {
-  const UnknownFailure([super.message = 'Falha desconhecido.']);
+  const UnknownFailure([super.message = 'Falha desconhecida.']);
 }
 
 final class NotFoundFailure extends Failure {
