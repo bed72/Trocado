@@ -97,6 +97,32 @@ final class _RefreshSuccessAdapter implements HttpClientAdapter {
   void close({bool force = false}) {}
 }
 
+final class _CountingAdapter implements HttpClientAdapter {
+  int callCount = 0;
+  final List<String> paths = [];
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    callCount++;
+    paths.add(options.path);
+
+    return ResponseBody.fromString(
+      '',
+      401,
+      headers: {
+        'content-type': ['application/json'],
+      },
+    );
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
 final class _RefreshFailureAdapter implements HttpClientAdapter {
   @override
   Future<ResponseBody> fetch(
@@ -245,6 +271,40 @@ void main() {
         } on DioException catch (_) {}
 
         verify(() => dataSource.clear()).called(1);
+        expect(onUnauthenticatedCalled, isTrue);
+      },
+    );
+
+    test(
+      'skips refresh and short-circuits when refresh token is absent',
+      () async {
+        when(
+          () => dataSource.get(),
+        ).thenAnswer((_) async => (access: null, refresh: null));
+        when(() => dataSource.clear()).thenAnswer((_) async {});
+
+        final adapter = _CountingAdapter();
+        final dio = Dio(BaseOptions(baseUrl: 'https://api.test'));
+        dio.interceptors.add(buildInterceptor(dio));
+        dio.httpClientAdapter = adapter;
+
+        try {
+          await dio.get('/api/v1/expenses');
+        } on DioException catch (_) {}
+
+        expect(adapter.callCount, 1);
+        expect(adapter.paths, ['/api/v1/expenses']);
+        expect(
+          adapter.paths.any((p) => p.contains('token/refresh')),
+          isFalse,
+        );
+        verify(() => dataSource.clear()).called(1);
+        verifyNever(
+          () => dataSource.save(
+            access: any(named: 'access'),
+            refresh: any(named: 'refresh'),
+          ),
+        );
         expect(onUnauthenticatedCalled, isTrue);
       },
     );

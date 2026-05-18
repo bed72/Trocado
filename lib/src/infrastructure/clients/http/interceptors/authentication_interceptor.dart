@@ -45,8 +45,15 @@ final class AuthenticationInterceptor extends Interceptor {
       return handler.next(err);
     }
 
+    final tokens = await _dataSource.get();
+
+    if (tokens.refresh == null) {
+      await _dataSource.clear();
+      _onUnauthenticated();
+      return handler.next(err);
+    }
+
     try {
-      final tokens = await _dataSource.get();
       final Response(data: data) = await _dio.post<Map<String, dynamic>>(
         EndpointKey.refreshToken.path,
         data: {'refresh': tokens.refresh},
