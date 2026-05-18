@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
 
 class SettingsLogoutWidget extends StatelessWidget {
-  final VoidCallback onTap;
   final bool isLoading;
+  final VoidCallback onTap;
 
   const SettingsLogoutWidget({
     super.key,
@@ -20,7 +20,6 @@ class SettingsLogoutWidget extends StatelessWidget {
       label: 'Sair',
       isLoading: isLoading,
       onTap: isLoading ? null : onTap,
-      child: const Icon(Icons.logout, size: 20.0),
     ),
   );
 }
