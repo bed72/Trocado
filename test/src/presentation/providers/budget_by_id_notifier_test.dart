@@ -83,7 +83,7 @@ void main() {
     when(
       () => dateFormatter.formatPeriod(any(), any()),
     ).thenReturn('01/05 – 30/05');
-    when(() => dateFormatter.formatDayMonth(any())).thenReturn('30/05');
+    when(() => dateFormatter.formatLongDate(any())).thenReturn('30 de Mai');
     when(() => dateFormatter.daysUntil(any())).thenReturn(10);
   });
 

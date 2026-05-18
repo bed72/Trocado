@@ -49,7 +49,7 @@ final class ActiveBudgetNotifier extends _$ActiveBudgetNotifier {
       overspent: model.remaining < 0,
       formattedValue: _moneyService.format(model.value / 100),
       formattedDailyBudget: _moneyService.format(dailyBudget / 100),
-      formattedEndDate: _dateFormatter.formatDayMonth(model.endDate),
+      formattedEndDate: _dateFormatter.formatLongDate(model.endDate),
       formattedTotalSpent: _moneyService.format(model.totalSpent / 100),
       formattedOverspent: _moneyService.format(model.remaining.abs() / 100),
       formattedRemaining: _moneyService.format(max(0, model.remaining) / 100),

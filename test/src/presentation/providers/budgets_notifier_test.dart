@@ -120,7 +120,7 @@ void main() {
       (invocation) =>
           'PERIOD(${invocation.positionalArguments[0]}-${invocation.positionalArguments[1]})',
     );
-    when(() => dateFormatter.formatDayMonth(any())).thenReturn('30/04');
+    when(() => dateFormatter.formatLongDate(any())).thenReturn('30 de Abr');
     when(() => dateFormatter.daysUntil(any())).thenReturn(10);
   });
 

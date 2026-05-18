@@ -11,7 +11,6 @@ final class DateFormatterService implements IDateFormatterService {
   final DateFormat _time = DateFormat('HH:mm', _locale);
   final DateFormat _month = DateFormat('MMMM', _locale);
   final DateFormat _weekday = DateFormat('EEEE', _locale);
-  final DateFormat _dayMonth = DateFormat('dd/MM', _locale);
   final DateFormat _monthAbbrev = DateFormat('MMM', _locale);
   final DateFormat _monthYear = DateFormat('MMMM y', _locale);
   final DateFormat _dayMonthAbbrev = DateFormat('dd MMM', _locale);
@@ -28,10 +27,6 @@ final class DateFormatterService implements IDateFormatterService {
 
     return '$day de $month de ${date.year}';
   }
-
-  @override
-  String formatDayMonth(int millis) =>
-      _dayMonth.format(DateTime.fromMillisecondsSinceEpoch(millis));
 
   @override
   String formatTime(int millis) =>

@@ -75,16 +75,6 @@ void main() {
     });
   });
 
-  group('formatDayMonth', () {
-    test('returns dd/MM in pt_BR', () {
-      final data = formatter.formatDayMonth(
-        DateTime(2026, 3, 15).millisecondsSinceEpoch,
-      );
-
-      expect(data, '15/03');
-    });
-  });
-
   group('formatTime', () {
     test('returns HH:mm in pt_BR', () {
       final data = formatter.formatTime(

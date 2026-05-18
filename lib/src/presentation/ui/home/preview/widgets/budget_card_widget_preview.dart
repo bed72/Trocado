@@ -3,33 +3,33 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:trocado/src/presentation/preview/trocado_preview.dart';
 
-import 'package:trocado/src/presentation/data/budget/budget_card_presentation_data.dart';
 import 'package:trocado/src/presentation/ui/home/preview/mocks/budget_card_mock.dart';
 import 'package:trocado/src/presentation/widgets/budget/card/budget_card_widget.dart';
+import 'package:trocado/src/presentation/data/budget/budget_card_presentation_data.dart';
 
 final _healthy = budgetCardMock(
   value: 300000,
   remaining: 210000,
   totalSpent: 90000,
-  formattedEndDate: '31/05',
+  formattedEndDate: '31 de Mai',
 );
 final _warning = budgetCardMock(
   value: 300000,
   remaining: 135000,
   totalSpent: 165000,
-  formattedEndDate: '31/05',
+  formattedEndDate: '31 de Mai',
 );
 final _critical = budgetCardMock(
   value: 300000,
   remaining: 15000,
   totalSpent: 285000,
-  formattedEndDate: '31/05',
+  formattedEndDate: '31 de Mai',
 );
 final _overspent = budgetCardMock(
   value: 300000,
   remaining: -50000,
   totalSpent: 350000,
-  formattedEndDate: '31/05',
+  formattedEndDate: '31 de Mai',
 );
 
 Widget _card(AsyncValue<BudgetCardPresentationData?> state) => Scaffold(

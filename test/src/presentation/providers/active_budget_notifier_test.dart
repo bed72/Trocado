@@ -67,7 +67,7 @@ void main() {
       () => moneyService.format(any()),
     ).thenAnswer((invocation) => 'R\$ ${invocation.positionalArguments.first}');
 
-    when(() => dateFormatter.formatDayMonth(any())).thenReturn('30/04');
+    when(() => dateFormatter.formatLongDate(any())).thenReturn('30 de Abr');
     when(() => dateFormatter.daysUntil(any())).thenReturn(2);
   });
 
@@ -87,7 +87,7 @@ void main() {
 
       expect(data, isNotNull);
       expect(data!.overspent, isFalse);
-      expect(data.formattedEndDate, '30/04');
+      expect(data.formattedEndDate, '30 de Abr');
       expect(data.formattedValue, 'R\$ 18000.0');
       expect(data.formattedTotalSpent, 'R\$ 120.0');
       expect(data.formattedRemaining, 'R\$ 17880.0');
@@ -112,7 +112,7 @@ void main() {
       );
 
       when(() => dateFormatter.daysUntil(any())).thenReturn(daysRemaining);
-      when(() => dateFormatter.formatDayMonth(any())).thenReturn('01/05');
+      when(() => dateFormatter.formatLongDate(any())).thenReturn('01 de Mai');
       when(() => repository.findActive()).thenAnswer((_) async => Right(model));
 
       final container = _makeContainer(
@@ -122,7 +122,7 @@ void main() {
       );
       final data = await container.read(activeBudgetProvider.future);
 
-      expect(data!.formattedEndDate, '01/05');
+      expect(data!.formattedEndDate, '01 de Mai');
       expect(data.formattedDailyBudget, 'R\$ 529.53');
     },
   );
@@ -144,7 +144,7 @@ void main() {
       );
 
       when(() => dateFormatter.daysUntil(any())).thenReturn(daysRemaining);
-      when(() => dateFormatter.formatDayMonth(any())).thenReturn('12/05');
+      when(() => dateFormatter.formatLongDate(any())).thenReturn('12 de Mai');
       when(() => repository.findActive()).thenAnswer((_) async => Right(model));
 
       final container = _makeContainer(
@@ -154,7 +154,7 @@ void main() {
       );
       final data = await container.read(activeBudgetProvider.future);
 
-      expect(data!.formattedEndDate, '12/05');
+      expect(data!.formattedEndDate, '12 de Mai');
       expect(data.formattedDailyBudget, 'R\$ 1059.06');
     },
   );

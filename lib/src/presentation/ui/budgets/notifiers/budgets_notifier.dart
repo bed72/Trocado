@@ -152,7 +152,7 @@ final class BudgetsNotifier extends _$BudgetsNotifier {
       formattedValue: _moneyService.format(value / 100),
       formattedTotalSpent: _moneyService.format(totalSpent / 100),
       formattedDailyBudget: _moneyService.format(dailyBudget / 100),
-      formattedEndDate: _dateFormatter.formatDayMonth(model.endDate),
+      formattedEndDate: _dateFormatter.formatLongDate(model.endDate),
       formattedOverspent: _moneyService.format(remaining.abs() / 100),
       formattedRemaining: _moneyService.format(max(0, remaining) / 100),
       formattedPercentage: (percentage * 100).clamp(0, 100).toStringAsFixed(0),
