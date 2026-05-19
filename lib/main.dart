@@ -1,7 +1,7 @@
-import 'dart:ui';
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:trocado/app_widget.dart';
@@ -14,7 +14,9 @@ import 'package:trocado/src/main/providers/notification_lifecycle_provider.dart'
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final container = ProviderContainer(observers: [stateObserver]);
+  final container = ProviderContainer(
+    observers: kDebugMode ? [stateObserver] : const [],
+  );
   await container.read(firebaseClientProvider).initialize();
   await container.read(appCheckClientProvider).initialize();
 
