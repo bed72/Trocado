@@ -7,6 +7,7 @@ import 'package:trocado/src/main/providers/repositories_provider.dart';
 import 'package:trocado/src/domain/services/date_formatter_service.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
+import 'package:trocado/src/presentation/ui/home/notifiers/insights_notifier.dart';
 import 'package:trocado/src/presentation/ui/home/notifiers/active_budget_notifier.dart';
 import 'package:trocado/src/presentation/ui/home/notifiers/recent_expenses_notifier.dart';
 
@@ -99,6 +100,7 @@ final class ExpenseNotifier extends _$ExpenseNotifier {
         state.value!.copyWith(status: .failure, message: failure.message),
       ),
       (_) {
+        ref.invalidate(insightsProvider);
         ref.invalidate(expensesProvider);
         ref.invalidate(activeBudgetProvider);
         ref.invalidate(recentExpensesProvider);

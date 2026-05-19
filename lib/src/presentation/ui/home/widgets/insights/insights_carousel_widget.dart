@@ -36,19 +36,25 @@ class InsightsCarouselWidget extends StatelessWidget {
           ),
         ),
       ),
-      switch (state) {
-        AsyncLoading() => const InsightsCarouselLoadingWidget(),
-        AsyncError() => Padding(
-          padding: const .symmetric(horizontal: 16.0),
-          child: InlineFailureCardWidget(
-            onRetry: onRetry,
-            message: 'Não foi possível carregar os insights.',
-          ),
-        ),
-        AsyncData(:final value) when value.insights.isEmpty =>
-          const InsightsCarouselEmptyWidget(),
-        AsyncData(:final value) => InsightsCarouselSuccessWidget(bundle: value),
-      },
+      _content(),
     ],
   );
+
+  Widget _content() {
+    if (state.isLoading) return const InsightsCarouselLoadingWidget();
+
+    return switch (state) {
+      AsyncValue(:final value?) when value.insights.isEmpty =>
+        const InsightsCarouselEmptyWidget(),
+      AsyncValue(:final value?) => InsightsCarouselSuccessWidget(bundle: value),
+      AsyncError() => Padding(
+        padding: const .symmetric(horizontal: 16.0),
+        child: InlineFailureCardWidget(
+          onRetry: onRetry,
+          message: 'Não foi possível carregar os insights.',
+        ),
+      ),
+      _ => const InsightsCarouselLoadingWidget(),
+    };
+  }
 }

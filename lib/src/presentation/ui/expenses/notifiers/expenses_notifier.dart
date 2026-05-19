@@ -18,6 +18,7 @@ import 'package:trocado/src/presentation/actions/debounce_action.dart';
 import 'package:trocado/src/presentation/data/expense_item_presentation_data.dart';
 import 'package:trocado/src/presentation/widgets/expense/expense_category_visual_extension.dart';
 
+import 'package:trocado/src/presentation/ui/home/notifiers/insights_notifier.dart';
 import 'package:trocado/src/presentation/ui/home/notifiers/active_budget_notifier.dart';
 import 'package:trocado/src/presentation/ui/home/notifiers/recent_expenses_notifier.dart';
 
@@ -60,12 +61,22 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
   }
 
   Future<void> removeFilter(ExpenseFilterChipKind kind) async {
-    final current = state.value?.filter ?? const .empty();
+    final currentValue = state.value;
+    final current = currentValue?.filter ?? const .empty();
 
     final next = switch (kind) {
       .category => current.copyWith(clearCategory: true),
       .period => current.copyWith(clearEndDate: true, clearStartDate: true),
     };
+
+    if (currentValue != null) {
+      state = AsyncData(
+        currentValue.copyWith(
+          filter: next,
+          activeFilterChips: _buildChips(next),
+        ),
+      );
+    }
 
     await applyFilter(next);
   }
@@ -107,6 +118,7 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
         );
       },
       (_) {
+        ref.invalidate(insightsProvider);
         ref.invalidate(activeBudgetProvider);
         ref.invalidate(recentExpensesProvider);
       },

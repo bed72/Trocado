@@ -23,15 +23,17 @@ class BudgetCardWidget extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => switch (state) {
-    AsyncLoading() => BudgetCardLoadingWidget(),
-    AsyncError() => BudgetCardFailureWidget(onRetry: onRetry),
-    AsyncData(:final value) when value == null => BudgetCardEmptyWidget(
-      onCreateBudget: onCreateBudget,
-    ),
-    AsyncData(:final value) => BudgetCardSuccessWidget(
-      data: value!,
-      onTap: onTap,
-    ),
-  };
+  Widget build(BuildContext context) {
+    if (state.isLoading) return const BudgetCardLoadingWidget();
+
+    return switch (state) {
+      AsyncValue(:final value, hasValue: true) when value != null =>
+        BudgetCardSuccessWidget(data: value, onTap: onTap),
+      AsyncValue(hasValue: true) => BudgetCardEmptyWidget(
+        onCreateBudget: onCreateBudget,
+      ),
+      AsyncError() => BudgetCardFailureWidget(onRetry: onRetry),
+      _ => const BudgetCardLoadingWidget(),
+    };
+  }
 }

@@ -147,8 +147,17 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     ExpensesNotifier notifier,
     AsyncValue<ExpensesState> state,
   ) => switch (state) {
-    AsyncLoading() => const [
-      SliverToBoxAdapter(child: ExpensesLoadingWidget()),
+    AsyncValue(:final value?) when value.items.isEmpty => const [
+      SliverFillRemaining(hasScrollBody: false, child: ExpensesEmptyWidget()),
+    ],
+    AsyncValue(:final value?) => [
+      ExpensesListWidget(
+        state: value,
+        groups: value.groups,
+        onLoadMore: _onLoadMore,
+        onDelete: notifier.deleteById,
+        onTapExpense: widget.onTapExpense,
+      ),
     ],
     AsyncError() => [
       SliverFillRemaining(
@@ -158,17 +167,6 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
         ),
       ),
     ],
-    AsyncData(:final ExpensesState value) when value.items.isEmpty => const [
-      SliverFillRemaining(hasScrollBody: false, child: ExpensesEmptyWidget()),
-    ],
-    AsyncData(:final ExpensesState value) => [
-      ExpensesListWidget(
-        state: value,
-        groups: value.groups,
-        onLoadMore: _onLoadMore,
-        onDelete: notifier.deleteById,
-        onTapExpense: widget.onTapExpense,
-      ),
-    ],
+    _ => const [SliverToBoxAdapter(child: ExpensesLoadingWidget())],
   };
 }

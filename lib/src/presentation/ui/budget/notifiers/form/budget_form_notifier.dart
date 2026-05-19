@@ -7,6 +7,7 @@ import 'package:trocado/src/main/providers/repositories_provider.dart';
 import 'package:trocado/src/domain/services/date_formatter_service.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
 
+import 'package:trocado/src/presentation/ui/home/notifiers/insights_notifier.dart';
 import 'package:trocado/src/presentation/ui/home/notifiers/active_budget_notifier.dart';
 
 import 'package:trocado/src/presentation/ui/budgets/notifiers/budgets_notifier.dart';
@@ -104,6 +105,7 @@ final class BudgetFormNotifier extends _$BudgetFormNotifier {
       ),
       (_) {
         ref.invalidate(budgetsProvider);
+        ref.invalidate(insightsProvider);
         ref.invalidate(activeBudgetProvider);
         _mutate(state.value!.copyWith(status: .success));
       },

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -305,6 +307,53 @@ void main() {
       expect(data.activeFilterChips.first.kind, ExpenseFilterChipKind.category);
     });
 
+    test(
+      'preserves previous value during reload so the list stays visible',
+      () async {
+        final filter = const ExpenseFilterModel.empty().copyWith(
+          category: .food,
+        );
+
+        when(
+          () => repository.findAll(cursor: null, filter: const .empty()),
+        ).thenAnswer(
+          (_) async => const Right(
+            ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
+          ),
+        );
+
+        final reloadCompleter = Completer<Either<Failure, ExpensesPageModel>>();
+        when(
+          () => repository.findAll(cursor: null, filter: filter),
+        ).thenAnswer((_) => reloadCompleter.future);
+
+        final container = _makeContainer(
+          repository: repository,
+          moneyService: moneyService,
+          dateFormatter: dateFormatter,
+        );
+        await container.read(expensesProvider.future);
+
+        final pending = container
+            .read(expensesProvider.notifier)
+            .applyFilter(filter);
+
+        final loadingSnapshot = container.read(expensesProvider);
+        expect(loadingSnapshot.isLoading, isTrue);
+        expect(loadingSnapshot.hasValue, isTrue);
+        expect(loadingSnapshot.value?.items, isNotEmpty);
+
+        reloadCompleter.complete(
+          const Right(ExpensesPageModel(expenses: _second, nextCursor: 'F1')),
+        );
+        await pending;
+
+        final finalSnapshot = container.read(expensesProvider);
+        expect(finalSnapshot.isLoading, isFalse);
+        expect(finalSnapshot.value?.filter, filter);
+      },
+    );
+
     test('emits AsyncError when the reload fails', () async {
       when(
         () => repository.findAll(cursor: null, filter: const .empty()),
@@ -370,6 +419,57 @@ void main() {
       expect(data.activeFilterChips, isEmpty);
     });
 
+    test(
+      'dismisses chip synchronously before the reload completes',
+      () async {
+        final filter = const ExpenseFilterModel.empty().copyWith(
+          category: .food,
+        );
+
+        when(
+          () => repository.findAll(cursor: null, filter: const .empty()),
+        ).thenAnswer(
+          (_) async => const Right(
+            ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
+          ),
+        );
+        when(() => repository.findAll(cursor: null, filter: filter)).thenAnswer(
+          (_) async => const Right(
+            ExpensesPageModel(expenses: _second, nextCursor: 'F1'),
+          ),
+        );
+
+        final container = _makeContainer(
+          repository: repository,
+          moneyService: moneyService,
+          dateFormatter: dateFormatter,
+        );
+        await container.read(expensesProvider.future);
+        await container.read(expensesProvider.notifier).applyFilter(filter);
+
+        final reloadCompleter = Completer<Either<Failure, ExpensesPageModel>>();
+        when(
+          () => repository.findAll(cursor: null, filter: const .empty()),
+        ).thenAnswer((_) => reloadCompleter.future);
+
+        final pending = container
+            .read(expensesProvider.notifier)
+            .removeFilter(.category);
+
+        final intermediate = container.read(expensesProvider);
+        expect(intermediate.value?.filter.category, isNull);
+        expect(intermediate.value?.activeFilterChips, isEmpty);
+
+        reloadCompleter.complete(
+          const Right(ExpensesPageModel(expenses: _first, nextCursor: 'F0')),
+        );
+        await pending;
+
+        final data = container.read(expensesProvider).value!;
+        expect(data.filter.category, isNull);
+        expect(data.activeFilterChips, isEmpty);
+      },
+    );
   });
 
   group('deleteById', () {
