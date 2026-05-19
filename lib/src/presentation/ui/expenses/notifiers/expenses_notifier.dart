@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:trocado/src/main/providers/services_provider.dart';
@@ -65,6 +66,7 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
     final current = currentValue?.filter ?? const .empty();
 
     final next = switch (kind) {
+      .description => current.copyWith(description: ''),
       .category => current.copyWith(clearCategory: true),
       .period => current.copyWith(clearEndDate: true, clearStartDate: true),
     };
@@ -187,6 +189,16 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
     ExpenseFilterModel filter,
   ) {
     final chips = <ExpenseActiveFilterChipPresentationData>[];
+
+    if (filter.description.isNotEmpty) {
+      chips.add(
+        ExpenseActiveFilterChipPresentationData(
+          kind: .description,
+          icon: Icons.search,
+          label: 'Busca: ${filter.description}',
+        ),
+      );
+    }
 
     if (filter.category != null) {
       chips.add(

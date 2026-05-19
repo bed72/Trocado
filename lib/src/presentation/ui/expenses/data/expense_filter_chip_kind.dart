@@ -1,1 +1,1 @@
-enum ExpenseFilterChipKind { category, period }
+enum ExpenseFilterChipKind { description, category, period }

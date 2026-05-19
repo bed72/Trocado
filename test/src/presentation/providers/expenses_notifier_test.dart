@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/material.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -354,6 +355,92 @@ void main() {
       },
     );
 
+    test(
+      'prepends a search chip with Icons.search when description is not empty',
+      () async {
+        final filter = const ExpenseFilterModel.empty().copyWith(
+          description: 'Alugel',
+        );
+
+        when(
+          () => repository.findAll(cursor: null, filter: const .empty()),
+        ).thenAnswer(
+          (_) async => const Right(
+            ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
+          ),
+        );
+        when(
+          () => repository.findAll(cursor: null, filter: filter),
+        ).thenAnswer(
+          (_) async =>
+              const Right(ExpensesPageModel(expenses: _first, nextCursor: 'D1')),
+        );
+
+        final container = _makeContainer(
+          repository: repository,
+          moneyService: moneyService,
+          dateFormatter: dateFormatter,
+        );
+        await container.read(expensesProvider.future);
+
+        await container.read(expensesProvider.notifier).applyFilter(filter);
+
+        final data = container.read(expensesProvider).value!;
+
+        expect(data.activeFilterChips, hasLength(1));
+        expect(data.activeFilterChips.first.kind, ExpenseFilterChipKind.description);
+        expect(data.activeFilterChips.first.icon, Icons.search);
+        expect(data.activeFilterChips.first.label, 'Busca: Alugel');
+      },
+    );
+
+    test(
+      'orders chips as description, category, period when all three filters are active',
+      () async {
+        final filter = const ExpenseFilterModel.empty().copyWith(
+          description: 'Alugel',
+          category: .food,
+          startDate: 1745000000000,
+          endDate: 1745999999999,
+        );
+
+        when(
+          () => repository.findAll(cursor: null, filter: const .empty()),
+        ).thenAnswer(
+          (_) async => const Right(
+            ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
+          ),
+        );
+        when(
+          () => repository.findAll(cursor: null, filter: filter),
+        ).thenAnswer(
+          (_) async => const Right(
+            ExpensesPageModel(expenses: _second, nextCursor: 'ALL'),
+          ),
+        );
+
+        final container = _makeContainer(
+          repository: repository,
+          moneyService: moneyService,
+          dateFormatter: dateFormatter,
+        );
+        await container.read(expensesProvider.future);
+
+        await container.read(expensesProvider.notifier).applyFilter(filter);
+
+        final data = container.read(expensesProvider).value!;
+
+        expect(
+          data.activeFilterChips.map((chip) => chip.kind).toList(),
+          equals(<ExpenseFilterChipKind>[
+            .description,
+            .category,
+            .period,
+          ]),
+        );
+      },
+    );
+
     test('emits AsyncError when the reload fails', () async {
       when(
         () => repository.findAll(cursor: null, filter: const .empty()),
@@ -386,6 +473,59 @@ void main() {
   });
 
   group('removeFilter', () {
+    test(
+      'clears description and rebuilds chips without the search chip',
+      () async {
+        final filter = const ExpenseFilterModel.empty().copyWith(
+          description: 'Alugel',
+        );
+
+        when(
+          () => repository.findAll(cursor: null, filter: const .empty()),
+        ).thenAnswer(
+          (_) async => const Right(
+            ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
+          ),
+        );
+        when(
+          () => repository.findAll(cursor: null, filter: filter),
+        ).thenAnswer(
+          (_) async =>
+              const Right(ExpensesPageModel(expenses: _first, nextCursor: 'D1')),
+        );
+
+        final container = _makeContainer(
+          repository: repository,
+          moneyService: moneyService,
+          dateFormatter: dateFormatter,
+        );
+        await container.read(expensesProvider.future);
+        await container.read(expensesProvider.notifier).applyFilter(filter);
+
+        final reloadCompleter = Completer<Either<Failure, ExpensesPageModel>>();
+        when(
+          () => repository.findAll(cursor: null, filter: const .empty()),
+        ).thenAnswer((_) => reloadCompleter.future);
+
+        final pending = container
+            .read(expensesProvider.notifier)
+            .removeFilter(.description);
+
+        final intermediate = container.read(expensesProvider);
+        expect(intermediate.value?.filter.description, '');
+        expect(intermediate.value?.activeFilterChips, isEmpty);
+
+        reloadCompleter.complete(
+          const Right(ExpensesPageModel(expenses: _first, nextCursor: 'F0')),
+        );
+        await pending;
+
+        final data = container.read(expensesProvider).value!;
+        expect(data.filter.description, '');
+        expect(data.activeFilterChips, isEmpty);
+      },
+    );
+
     test('clears category and reloads', () async {
       final filter = const ExpenseFilterModel.empty().copyWith(category: .food);
 

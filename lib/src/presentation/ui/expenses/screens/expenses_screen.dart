@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 
+import 'package:trocado/src/presentation/actions/callback_action.dart';
+
 import 'package:trocado/src/presentation/widgets/toast_widget.dart';
 import 'package:trocado/src/presentation/widgets/app_bar_widget.dart';
 import 'package:trocado/src/presentation/widgets/go_back_widget.dart';
@@ -35,6 +37,7 @@ class ExpensesScreen extends StatefulWidget {
 }
 
 class _ExpensesScreenState extends State<ExpensesScreen> {
+  bool _initialDescriptionSynced = false;
   VoidCallback _onLoadMore = () {};
 
   final double _loadMoreThreshold = 200.0;
@@ -66,6 +69,23 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     }
   }
 
+  void _syncInitialDescription(WidgetRef ref) {
+    if (_initialDescriptionSynced) return;
+
+    final description = ref.read(expensesProvider).value?.filter.description;
+    if (description == null) return;
+
+    _initialDescriptionSynced = true;
+
+    if (description.isEmpty) return;
+    if (_searchController.text == description) return;
+
+    addPostFrameCallback(() {
+      if (!mounted) return;
+      _searchController.text = description;
+    });
+  }
+
   @override
   Widget build(BuildContext context) => Consumer(
     builder: (_, ref, _) {
@@ -82,7 +102,18 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
             description: nextDeleteFailure.message,
           );
         }
+
+        final nextDescription = next.value?.filter.description ?? '';
+        final previousDescription = previous?.value?.filter.description ?? '';
+
+        if (previousDescription.isNotEmpty &&
+            nextDescription.isEmpty &&
+            _searchController.text.isNotEmpty) {
+          _searchController.clear();
+        }
       });
+
+      _syncInitialDescription(ref);
 
       final state = ref.watch(expensesProvider);
       final notifier = ref.read(expensesProvider.notifier);
