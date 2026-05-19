@@ -26,10 +26,17 @@ final class ExpenseFilterRequest {
         fragments.add('le(date,${_formatDate(filter.endDate!)})');
       }
 
+      if (filter.minValue != null) {
+        fragments.add('ge(value,${_formatValue(filter.minValue!)})');
+      }
+      if (filter.maxValue != null) {
+        fragments.add('le(value,${_formatValue(filter.maxValue!)})');
+      }
+
       final trimmedDescription = filter.description.trim();
       if (trimmedDescription.isNotEmpty) {
         fragments.add(
-          'like(description,${Uri.encodeComponent(trimmedDescription)}*)',
+          'ilike(description,*${Uri.encodeComponent(trimmedDescription)}*)',
         );
       }
 
@@ -43,4 +50,6 @@ final class ExpenseFilterRequest {
 
   String _formatDate(int millis) =>
       DateFormat('yyyy-MM-dd').format(.fromMillisecondsSinceEpoch(millis));
+
+  String _formatValue(int cents) => (cents / 100).toStringAsFixed(2);
 }

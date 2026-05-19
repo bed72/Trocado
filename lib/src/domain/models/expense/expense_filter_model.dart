@@ -4,12 +4,16 @@ import 'package:trocado/src/domain/enums/expense/expense_category_enum.dart';
 
 final class ExpenseFilterModel extends Equatable {
   final int? endDate;
+  final int? minValue;
+  final int? maxValue;
   final int? startDate;
   final String description;
   final ExpenseCategoryEnum? category;
 
   const ExpenseFilterModel({
     this.endDate,
+    this.minValue,
+    this.maxValue,
     this.category,
     this.startDate,
     this.description = '',
@@ -19,21 +23,29 @@ final class ExpenseFilterModel extends Equatable {
 
   bool get isEmpty =>
       endDate == null &&
+      minValue == null &&
+      maxValue == null &&
       category == null &&
       startDate == null &&
       description.isEmpty;
 
   ExpenseFilterModel copyWith({
     int? endDate,
+    int? minValue,
+    int? maxValue,
     int? startDate,
     String? description,
     ExpenseCategoryEnum? category,
     bool clearEndDate = false,
+    bool clearMinValue = false,
+    bool clearMaxValue = false,
     bool clearCategory = false,
     bool clearStartDate = false,
   }) => ExpenseFilterModel(
     description: description ?? this.description,
     endDate: clearEndDate ? null : endDate ?? this.endDate,
+    minValue: clearMinValue ? null : minValue ?? this.minValue,
+    maxValue: clearMaxValue ? null : maxValue ?? this.maxValue,
     category: clearCategory ? null : category ?? this.category,
     startDate: clearStartDate ? null : startDate ?? this.startDate,
   );
@@ -41,6 +53,8 @@ final class ExpenseFilterModel extends Equatable {
   @override
   List<Object?> get props => [
     endDate,
+    minValue,
+    maxValue,
     category,
     startDate,
     description,

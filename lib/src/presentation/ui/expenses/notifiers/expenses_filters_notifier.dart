@@ -4,6 +4,7 @@ import 'package:trocado/src/main/providers/services_provider.dart';
 
 import 'package:trocado/src/domain/services/date_formatter_service.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
+import 'package:trocado/src/domain/enums/expense/expense_value_preset_enum.dart';
 import 'package:trocado/src/domain/enums/expense/expense_period_preset_enum.dart';
 
 import 'package:trocado/src/presentation/ui/expenses/notifiers/expenses_filters_state.dart';
@@ -34,7 +35,8 @@ final class ExpensesFiltersNotifier extends _$ExpensesFiltersNotifier {
         clearCategory: category == null,
       ),
     ),
-    PresetSelected(:final preset) => _selectPreset(preset),
+    ValuePresetSelected(:final preset) => _selectValuePreset(preset),
+    PeriodPresetSelected(:final preset) => _selectPeriodPreset(preset),
     CustomRangeChanged(:final startDate, :final endDate) => _applyCustomRange(
       startDate,
       endDate,
@@ -42,9 +44,21 @@ final class ExpensesFiltersNotifier extends _$ExpensesFiltersNotifier {
     Cleared() => state = const ExpensesFiltersState(),
   };
 
-  void _selectPreset(ExpensePeriodPresetEnum preset) {
-    if (preset == ExpensePeriodPresetEnum.custom) {
-      state = state.copyWith(selectedPreset: preset);
+  void _selectValuePreset(ExpenseValuePresetEnum preset) {
+    final range = preset.toRange();
+    final draft = state.draft.copyWith(
+      minValue: range.minValue,
+      maxValue: range.maxValue,
+      clearMinValue: range.minValue == null,
+      clearMaxValue: range.maxValue == null,
+    );
+
+    state = state.copyWith(draft: draft, selectedValuePreset: preset);
+  }
+
+  void _selectPeriodPreset(ExpensePeriodPresetEnum preset) {
+    if (preset == .custom) {
+      state = state.copyWith(selectedPeriodPreset: preset);
       return;
     }
 
@@ -56,20 +70,17 @@ final class ExpensesFiltersNotifier extends _$ExpensesFiltersNotifier {
 
     state = state.copyWith(
       draft: draft,
-      selectedPreset: preset,
+      selectedPeriodPreset: preset,
       formattedPeriodSummary: _summaryOf(draft),
     );
   }
 
   void _applyCustomRange(int? startDate, int? endDate) {
-    final draft = state.draft.copyWith(
-      endDate: endDate,
-      startDate: startDate,
-    );
+    final draft = state.draft.copyWith(endDate: endDate, startDate: startDate);
 
     state = state.copyWith(
       draft: draft,
-      selectedPreset: ExpensePeriodPresetEnum.custom,
+      selectedPeriodPreset: ExpensePeriodPresetEnum.custom,
       formattedPeriodSummary: _summaryOf(draft),
     );
   }

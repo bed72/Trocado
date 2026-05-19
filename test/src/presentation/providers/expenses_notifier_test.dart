@@ -19,7 +19,6 @@ import 'package:trocado/src/domain/models/expense/expense_model.dart';
 import 'package:trocado/src/domain/models/expense/expenses_page_model.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 
-
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
 import 'package:trocado/src/presentation/ui/expenses/notifiers/expenses_notifier.dart';
@@ -369,11 +368,10 @@ void main() {
             ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
           ),
         );
-        when(
-          () => repository.findAll(cursor: null, filter: filter),
-        ).thenAnswer(
-          (_) async =>
-              const Right(ExpensesPageModel(expenses: _first, nextCursor: 'D1')),
+        when(() => repository.findAll(cursor: null, filter: filter)).thenAnswer(
+          (_) async => const Right(
+            ExpensesPageModel(expenses: _first, nextCursor: 'D1'),
+          ),
         );
 
         final container = _makeContainer(
@@ -388,20 +386,25 @@ void main() {
         final data = container.read(expensesProvider).value!;
 
         expect(data.activeFilterChips, hasLength(1));
-        expect(data.activeFilterChips.first.kind, ExpenseFilterChipKind.description);
+        expect(
+          data.activeFilterChips.first.kind,
+          ExpenseFilterChipKind.description,
+        );
         expect(data.activeFilterChips.first.icon, Icons.search);
         expect(data.activeFilterChips.first.label, 'Busca: Alugel');
       },
     );
 
     test(
-      'orders chips as description, category, period when all three filters are active',
+      'orders chips as description, category, value, period when all four filters are active',
       () async {
         final filter = const ExpenseFilterModel.empty().copyWith(
-          description: 'Alugel',
           category: .food,
-          startDate: 1745000000000,
+          minValue: 5000,
+          maxValue: 20000,
+          description: 'Alugel',
           endDate: 1745999999999,
+          startDate: 1745000000000,
         );
 
         when(
@@ -411,9 +414,7 @@ void main() {
             ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
           ),
         );
-        when(
-          () => repository.findAll(cursor: null, filter: filter),
-        ).thenAnswer(
+        when(() => repository.findAll(cursor: null, filter: filter)).thenAnswer(
           (_) async => const Right(
             ExpensesPageModel(expenses: _second, nextCursor: 'ALL'),
           ),
@@ -435,9 +436,128 @@ void main() {
           equals(<ExpenseFilterChipKind>[
             .description,
             .category,
+            .value,
             .period,
           ]),
         );
+      },
+    );
+
+    test(
+      'builds a value chip with Icons.payments_outlined when min and max are set',
+      () async {
+        final filter = const ExpenseFilterModel.empty().copyWith(
+          minValue: 5000,
+          maxValue: 20000,
+        );
+
+        when(
+          () => repository.findAll(cursor: null, filter: const .empty()),
+        ).thenAnswer(
+          (_) async => const Right(
+            ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
+          ),
+        );
+        when(() => repository.findAll(cursor: null, filter: filter)).thenAnswer(
+          (_) async => const Right(
+            ExpensesPageModel(expenses: _second, nextCursor: 'V1'),
+          ),
+        );
+
+        final container = _makeContainer(
+          repository: repository,
+          moneyService: moneyService,
+          dateFormatter: dateFormatter,
+        );
+        await container.read(expensesProvider.future);
+
+        await container.read(expensesProvider.notifier).applyFilter(filter);
+
+        final data = container.read(expensesProvider).value!;
+        final valueChip = data.activeFilterChips.firstWhere(
+          (chip) => chip.kind == .value,
+        );
+
+        expect(valueChip.icon, Icons.payments_outlined);
+        expect(valueChip.label, 'R\$ 50.0 – R\$ 200.0');
+      },
+    );
+
+    test(
+      'builds value chip label "Até <max>" when only maxValue is set',
+      () async {
+        final filter = const ExpenseFilterModel.empty().copyWith(
+          maxValue: 5000,
+        );
+
+        when(
+          () => repository.findAll(cursor: null, filter: const .empty()),
+        ).thenAnswer(
+          (_) async => const Right(
+            ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
+          ),
+        );
+        when(() => repository.findAll(cursor: null, filter: filter)).thenAnswer(
+          (_) async => const Right(
+            ExpensesPageModel(expenses: _second, nextCursor: 'V2'),
+          ),
+        );
+
+        final container = _makeContainer(
+          repository: repository,
+          moneyService: moneyService,
+          dateFormatter: dateFormatter,
+        );
+        await container.read(expensesProvider.future);
+
+        await container.read(expensesProvider.notifier).applyFilter(filter);
+
+        final valueChip = container
+            .read(expensesProvider)
+            .value!
+            .activeFilterChips
+            .firstWhere((chip) => chip.kind == .value);
+
+        expect(valueChip.label, 'Até R\$ 50.0');
+      },
+    );
+
+    test(
+      'builds value chip label "Acima de <min>" when only minValue is set',
+      () async {
+        final filter = const ExpenseFilterModel.empty().copyWith(
+          minValue: 50000,
+        );
+
+        when(
+          () => repository.findAll(cursor: null, filter: const .empty()),
+        ).thenAnswer(
+          (_) async => const Right(
+            ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
+          ),
+        );
+        when(() => repository.findAll(cursor: null, filter: filter)).thenAnswer(
+          (_) async => const Right(
+            ExpensesPageModel(expenses: _second, nextCursor: 'V3'),
+          ),
+        );
+
+        final container = _makeContainer(
+          repository: repository,
+          moneyService: moneyService,
+          dateFormatter: dateFormatter,
+        );
+        await container.read(expensesProvider.future);
+
+        await container.read(expensesProvider.notifier).applyFilter(filter);
+
+        final valueChip = container
+            .read(expensesProvider)
+            .value!
+            .activeFilterChips
+            .firstWhere((chip) => chip.kind == .value);
+
+        expect(valueChip.label, 'Acima de R\$ 500.0');
       },
     );
 
@@ -487,11 +607,10 @@ void main() {
             ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
           ),
         );
-        when(
-          () => repository.findAll(cursor: null, filter: filter),
-        ).thenAnswer(
-          (_) async =>
-              const Right(ExpensesPageModel(expenses: _first, nextCursor: 'D1')),
+        when(() => repository.findAll(cursor: null, filter: filter)).thenAnswer(
+          (_) async => const Right(
+            ExpensesPageModel(expenses: _first, nextCursor: 'D1'),
+          ),
         );
 
         final container = _makeContainer(
@@ -526,6 +645,46 @@ void main() {
       },
     );
 
+    test('clears minValue and maxValue when removing the value chip', () async {
+      final filter = const ExpenseFilterModel.empty().copyWith(
+        minValue: 5000,
+        maxValue: 20000,
+      );
+
+      when(
+        () => repository.findAll(
+          cursor: null,
+          filter: const ExpenseFilterModel.empty(),
+        ),
+      ).thenAnswer(
+        (_) async => const Right(
+          ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
+        ),
+      );
+      when(() => repository.findAll(cursor: null, filter: filter)).thenAnswer(
+        (_) async =>
+            const Right(ExpensesPageModel(expenses: _second, nextCursor: 'V1')),
+      );
+
+      final container = _makeContainer(
+        repository: repository,
+        moneyService: moneyService,
+        dateFormatter: dateFormatter,
+      );
+      await container.read(expensesProvider.future);
+      await container.read(expensesProvider.notifier).applyFilter(filter);
+
+      await container.read(expensesProvider.notifier).removeFilter(.value);
+
+      final data = container.read(expensesProvider).value!;
+      expect(data.filter.minValue, isNull);
+      expect(data.filter.maxValue, isNull);
+      expect(
+        data.activeFilterChips.where((chip) => chip.kind == .value),
+        isEmpty,
+      );
+    });
+
     test('clears category and reloads', () async {
       final filter = const ExpenseFilterModel.empty().copyWith(category: .food);
 
@@ -559,57 +718,51 @@ void main() {
       expect(data.activeFilterChips, isEmpty);
     });
 
-    test(
-      'dismisses chip synchronously before the reload completes',
-      () async {
-        final filter = const ExpenseFilterModel.empty().copyWith(
-          category: .food,
-        );
+    test('dismisses chip synchronously before the reload completes', () async {
+      final filter = const ExpenseFilterModel.empty().copyWith(category: .food);
 
-        when(
-          () => repository.findAll(cursor: null, filter: const .empty()),
-        ).thenAnswer(
-          (_) async => const Right(
-            ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
-          ),
-        );
-        when(() => repository.findAll(cursor: null, filter: filter)).thenAnswer(
-          (_) async => const Right(
-            ExpensesPageModel(expenses: _second, nextCursor: 'F1'),
-          ),
-        );
+      when(
+        () => repository.findAll(cursor: null, filter: const .empty()),
+      ).thenAnswer(
+        (_) async => const Right(
+          ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
+        ),
+      );
+      when(() => repository.findAll(cursor: null, filter: filter)).thenAnswer(
+        (_) async =>
+            const Right(ExpensesPageModel(expenses: _second, nextCursor: 'F1')),
+      );
 
-        final container = _makeContainer(
-          repository: repository,
-          moneyService: moneyService,
-          dateFormatter: dateFormatter,
-        );
-        await container.read(expensesProvider.future);
-        await container.read(expensesProvider.notifier).applyFilter(filter);
+      final container = _makeContainer(
+        repository: repository,
+        moneyService: moneyService,
+        dateFormatter: dateFormatter,
+      );
+      await container.read(expensesProvider.future);
+      await container.read(expensesProvider.notifier).applyFilter(filter);
 
-        final reloadCompleter = Completer<Either<Failure, ExpensesPageModel>>();
-        when(
-          () => repository.findAll(cursor: null, filter: const .empty()),
-        ).thenAnswer((_) => reloadCompleter.future);
+      final reloadCompleter = Completer<Either<Failure, ExpensesPageModel>>();
+      when(
+        () => repository.findAll(cursor: null, filter: const .empty()),
+      ).thenAnswer((_) => reloadCompleter.future);
 
-        final pending = container
-            .read(expensesProvider.notifier)
-            .removeFilter(.category);
+      final pending = container
+          .read(expensesProvider.notifier)
+          .removeFilter(.category);
 
-        final intermediate = container.read(expensesProvider);
-        expect(intermediate.value?.filter.category, isNull);
-        expect(intermediate.value?.activeFilterChips, isEmpty);
+      final intermediate = container.read(expensesProvider);
+      expect(intermediate.value?.filter.category, isNull);
+      expect(intermediate.value?.activeFilterChips, isEmpty);
 
-        reloadCompleter.complete(
-          const Right(ExpensesPageModel(expenses: _first, nextCursor: 'F0')),
-        );
-        await pending;
+      reloadCompleter.complete(
+        const Right(ExpensesPageModel(expenses: _first, nextCursor: 'F0')),
+      );
+      await pending;
 
-        final data = container.read(expensesProvider).value!;
-        expect(data.filter.category, isNull);
-        expect(data.activeFilterChips, isEmpty);
-      },
-    );
+      final data = container.read(expensesProvider).value!;
+      expect(data.filter.category, isNull);
+      expect(data.activeFilterChips, isEmpty);
+    });
   });
 
   group('deleteById', () {

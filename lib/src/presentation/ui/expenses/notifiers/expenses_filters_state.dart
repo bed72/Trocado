@@ -1,15 +1,18 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
+import 'package:trocado/src/domain/enums/expense/expense_value_preset_enum.dart';
 import 'package:trocado/src/domain/enums/expense/expense_period_preset_enum.dart';
 
 final class ExpensesFiltersState extends Equatable {
   final ExpenseFilterModel draft;
   final String? formattedPeriodSummary;
-  final ExpensePeriodPresetEnum? selectedPreset;
+  final ExpenseValuePresetEnum? selectedValuePreset;
+  final ExpensePeriodPresetEnum? selectedPeriodPreset;
 
   const ExpensesFiltersState({
-    this.selectedPreset,
+    this.selectedValuePreset,
+    this.selectedPeriodPreset,
     this.formattedPeriodSummary,
     this.draft = const .empty(),
   });
@@ -17,19 +20,29 @@ final class ExpensesFiltersState extends Equatable {
   ExpensesFiltersState copyWith({
     ExpenseFilterModel? draft,
     String? formattedPeriodSummary,
-    bool clearSelectedPreset = false,
+    ExpenseValuePresetEnum? selectedValuePreset,
+    ExpensePeriodPresetEnum? selectedPeriodPreset,
+    bool clearSelectedValuePreset = false,
+    bool clearSelectedPeriodPreset = false,
     bool clearFormattedPeriodSummary = false,
-    ExpensePeriodPresetEnum? selectedPreset,
   }) => ExpensesFiltersState(
     draft: draft ?? this.draft,
-    selectedPreset: clearSelectedPreset
+    selectedValuePreset: clearSelectedValuePreset
         ? null
-        : selectedPreset ?? this.selectedPreset,
+        : selectedValuePreset ?? this.selectedValuePreset,
+    selectedPeriodPreset: clearSelectedPeriodPreset
+        ? null
+        : selectedPeriodPreset ?? this.selectedPeriodPreset,
     formattedPeriodSummary: clearFormattedPeriodSummary
         ? null
         : formattedPeriodSummary ?? this.formattedPeriodSummary,
   );
 
   @override
-  List<Object?> get props => [draft, selectedPreset, formattedPeriodSummary];
+  List<Object?> get props => [
+    draft,
+    selectedValuePreset,
+    selectedPeriodPreset,
+    formattedPeriodSummary,
+  ];
 }

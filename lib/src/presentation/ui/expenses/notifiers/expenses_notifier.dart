@@ -68,6 +68,7 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
     final next = switch (kind) {
       .description => current.copyWith(description: ''),
       .category => current.copyWith(clearCategory: true),
+      .value => current.copyWith(clearMinValue: true, clearMaxValue: true),
       .period => current.copyWith(clearEndDate: true, clearStartDate: true),
     };
 
@@ -210,6 +211,16 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
       );
     }
 
+    if (filter.minValue != null || filter.maxValue != null) {
+      chips.add(
+        ExpenseActiveFilterChipPresentationData(
+          kind: .value,
+          icon: Icons.payments_outlined,
+          label: _valueLabel(filter.minValue, filter.maxValue),
+        ),
+      );
+    }
+
     if (filter.startDate != null || filter.endDate != null) {
       chips.add(
         ExpenseActiveFilterChipPresentationData(
@@ -222,10 +233,18 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
     return chips;
   }
 
+  String _valueLabel(int? min, int? max) => switch ((min, max)) {
+    (final int m, final int x) =>
+      '${_moneyService.format(m / 100)} – ${_moneyService.format(x / 100)}',
+    (final int m, null) => 'Acima de ${_moneyService.format(m / 100)}',
+    (null, final int x) => 'Até ${_moneyService.format(x / 100)}',
+    (null, null) => '',
+  };
+
   String _periodLabel(int? start, int? end) => switch ((start, end)) {
     (final int s, final int e) => _dateFormatter.formatPeriod(s, e),
-    (final int s, null) => 'desde ${_dateFormatter.formatLongDate(s)}',
     (null, final int e) => 'até ${_dateFormatter.formatLongDate(e)}',
+    (final int s, null) => 'desde ${_dateFormatter.formatLongDate(s)}',
     (null, null) => '',
   };
 }

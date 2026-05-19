@@ -16,6 +16,7 @@ import 'package:trocado/src/presentation/ui/expenses/notifiers/expenses_notifier
 import 'package:trocado/src/presentation/ui/expenses/notifiers/expenses_filters_intent.dart';
 import 'package:trocado/src/presentation/ui/expenses/notifiers/expenses_filters_notifier.dart';
 
+import 'package:trocado/src/presentation/ui/expenses/widgets/filter/expenses_filter_value_section_widget.dart';
 import 'package:trocado/src/presentation/ui/expenses/widgets/filter/expenses_filter_period_section_widget.dart';
 import 'package:trocado/src/presentation/ui/expenses/widgets/filter/expenses_filter_category_section_widget.dart';
 
@@ -64,11 +65,19 @@ class ExpensesFilterScreen extends StatelessWidget {
 
                       const SizedBox(height: 8.0),
 
+                      ExpensesFilterValueSectionWidget(
+                        selectedPreset: state.selectedValuePreset,
+                        onPresetSelected: (preset) =>
+                            notifier.dispatch(ValuePresetSelected(preset)),
+                      ),
+
+                      const SizedBox(height: 8.0),
+
                       ExpensesFilterPeriodSectionWidget(
-                        selectedPreset: state.selectedPreset,
+                        selectedPreset: state.selectedPeriodPreset,
                         formattedSummary: state.formattedPeriodSummary,
                         onPresetSelected: (preset) {
-                          notifier.dispatch(PresetSelected(preset));
+                          notifier.dispatch(PeriodPresetSelected(preset));
                           if (preset == .custom) {
                             navigateToDateRange(
                               initialEndDate: state.draft.endDate,

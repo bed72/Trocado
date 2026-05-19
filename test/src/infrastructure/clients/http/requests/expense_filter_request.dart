@@ -30,10 +30,12 @@ void main() {
 
     test('preserves the documented fragment ordering with all fields set', () {
       final filter = ExpenseFilterModel(
-        category: ExpenseCategoryEnum.food,
-        startDate: DateTime(2026, 3, 1).millisecondsSinceEpoch,
-        endDate: DateTime(2026, 3, 31).millisecondsSinceEpoch,
+        category: .food,
+        minValue: 5000,
+        maxValue: 20000,
         description: 'Merc',
+        endDate: DateTime(2026, 3, 31).millisecondsSinceEpoch,
+        startDate: DateTime(2026, 3, 1).millisecondsSinceEpoch,
       );
 
       final query = builder.build(filter: filter, cursor: 'abc');
@@ -43,7 +45,9 @@ void main() {
         'eq(category,food)'
         '&ge(date,2026-03-01)'
         '&le(date,2026-03-31)'
-        '&like(description,Merc*)'
+        '&ge(value,50.00)'
+        '&le(value,200.00)'
+        '&ilike(description,*Merc*)'
         '&page_size=20'
         '&cursor=abc',
       );
@@ -56,10 +60,53 @@ void main() {
 
       final query = builder.build(filter: filter, cursor: null);
 
-      expect(query, contains('like(description,Caf%C3%A9*)'));
+      expect(query, contains('ilike(description,*Caf%C3%A9*)'));
     });
 
-    test('never emits value or ordering fragments', () {
+    test(
+      'encodes user-typed asterisks so they are not treated as wildcards',
+      () {
+        final filter = const ExpenseFilterModel.empty().copyWith(
+          description: 'a*b',
+        );
+
+        final query = builder.build(filter: filter, cursor: null);
+
+        expect(query, contains('ilike(description,*a%2Ab*)'));
+      },
+    );
+
+    test('emits ge(value,X.XX) when only minValue is set', () {
+      final filter = const ExpenseFilterModel.empty().copyWith(minValue: 5000);
+
+      final query = builder.build(filter: filter, cursor: null);
+
+      expect(query, contains('ge(value,50.00)'));
+      expect(query, isNot(contains('le(value')));
+    });
+
+    test('emits le(value,X.XX) when only maxValue is set', () {
+      final filter = const ExpenseFilterModel.empty().copyWith(maxValue: 5000);
+
+      final query = builder.build(filter: filter, cursor: null);
+
+      expect(query, contains('le(value,50.00)'));
+      expect(query, isNot(contains('ge(value')));
+    });
+
+    test('combines search and value fragments when both are set', () {
+      final filter = const ExpenseFilterModel.empty().copyWith(
+        description: 'uber',
+        minValue: 3000,
+      );
+
+      final query = builder.build(filter: filter, cursor: null);
+
+      expect(query, contains('ge(value,30.00)'));
+      expect(query, contains('ilike(description,*uber*)'));
+    });
+
+    test('never emits ordering fragments', () {
       final filter = ExpenseFilterModel(
         category: ExpenseCategoryEnum.food,
         startDate: DateTime(2026, 3, 1).millisecondsSinceEpoch,
@@ -70,8 +117,6 @@ void main() {
       final query = builder.build(filter: filter, cursor: 'abc');
 
       expect(query, isNot(contains('ordering')));
-      expect(query, isNot(contains('ge(value')));
-      expect(query, isNot(contains('le(value')));
     });
 
     test('trims description and skips when empty after trim', () {
@@ -83,6 +128,7 @@ void main() {
       final query = builder.build(filter: filter, cursor: null);
 
       expect(query, isNot(contains('like(description')));
+      expect(query, isNot(contains('ilike(description')));
     });
   });
 }
