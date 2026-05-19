@@ -40,13 +40,24 @@ class ExpensesFilterPeriodSectionWidget extends StatelessWidget {
             )
             .toList(),
       ),
-      if (formattedSummary != null)
-        Text(
-          formattedSummary!,
-          style: context.typography.bodyMedium?.copyWith(
-            color: context.colors.onSurfaceVariant,
-          ),
+      AnimatedSize(
+        duration: const Duration(milliseconds: 200),
+        alignment: .topLeft,
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 200),
+          transitionBuilder: (child, animation) =>
+              FadeTransition(opacity: animation, child: child),
+          child: formattedSummary == null
+              ? const SizedBox.shrink(key: ValueKey('empty'))
+              : Text(
+                  'De: ${formattedSummary!}',
+                  key: ValueKey(formattedSummary),
+                  style: context.typography.bodyMedium?.copyWith(
+                    color: context.colors.onSurfaceVariant,
+                  ),
+                ),
         ),
+      ),
     ],
   );
 }
