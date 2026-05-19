@@ -201,20 +201,20 @@ void main() {
       expect(data, 'Ontem');
     });
 
-    test('returns weekday-feira + dayMonth for weekday 2-6 days ago', () {
+    test('returns weekday-feira + long dayMonth for weekday 2-6 days ago', () {
       final data = formatter.relativeGroupHeader(
         DateTime(2026, 5, 10).millisecondsSinceEpoch,
       );
 
-      expect(data, 'Domingo, 10 mai.');
+      expect(data, 'Domingo, 10 de Mai');
     });
 
-    test('returns Sábado + dayMonth without -feira suffix', () {
+    test('returns Sábado + long dayMonth without -feira suffix', () {
       final data = formatter.relativeGroupHeader(
         DateTime(2026, 5, 9).millisecondsSinceEpoch,
       );
 
-      expect(data, 'Sábado, 09 mai.');
+      expect(data, 'Sábado, 09 de Mai');
     });
 
     test('returns capitalized Month Year for 7+ days ago', () {

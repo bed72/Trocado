@@ -13,7 +13,6 @@ final class DateFormatterService implements IDateFormatterService {
   final DateFormat _weekday = DateFormat('EEEE', _locale);
   final DateFormat _monthAbbrev = DateFormat('MMM', _locale);
   final DateFormat _monthYear = DateFormat('MMMM y', _locale);
-  final DateFormat _dayMonthAbbrev = DateFormat('dd MMM', _locale);
 
   DateFormatterService({required DateTime Function() now}) : _now = now;
 
@@ -118,9 +117,8 @@ final class DateFormatterService implements IDateFormatterService {
 
   String _weekdayHeader(DateTime day) {
     final weekday = _capitalize(_weekday.format(day));
-    final dayMonth = _dayMonthAbbrev.format(day).toLowerCase();
 
-    return '$weekday, $dayMonth';
+    return '$weekday, ${_dayMonthLabel(day)}';
   }
 
   String _dayMonthLabel(DateTime date) {
