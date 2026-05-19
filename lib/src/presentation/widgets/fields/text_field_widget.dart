@@ -62,8 +62,8 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
     if (!widget.enabled) {
       return context.colors.onSurfaceVariant.withValues(alpha: .6);
     }
-    if (_isFocused) return context.colors.primary;
     if (_isFailure) return context.colors.error;
+    if (_isFocused) return context.colors.primary;
     return context.colors.onSurfaceVariant;
   }
 
@@ -125,7 +125,7 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
       crossAxisAlignment: .start,
       children: [
         _buildLabel(color),
-        const SizedBox(height: 2.0),
+        const SizedBox(height: 4.0),
         AbsorbPointer(absorbing: widget.absorbing, child: _buildField(color)),
         if (_isFailure) _buildFailure(color),
       ],
@@ -143,6 +143,7 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
   TextField _buildField(Color color) => TextField(
     focusNode: _focus,
     cursorHeight: 16.0,
+    cursorColor: color,
     onChanged: _onChanged,
     enabled: widget.enabled,
     readOnly: widget.readOnly,
@@ -159,17 +160,19 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
       filled: _isFailure || _isFocused,
       constraints: const .tightFor(height: 56.0),
       errorBorder: _outlinedBorder(context.colors.error),
-      focusedBorder: _outlinedBorder(context.colors.primary),
       border: _outlinedBorder(context.colors.onSurfaceVariant),
       focusedErrorBorder: _outlinedBorder(context.colors.error),
+      focusedBorder: _outlinedBorder(
+        _isFailure ? context.colors.error : context.colors.primary,
+      ),
       contentPadding: const .symmetric(horizontal: 12.0, vertical: 18.0),
       hintStyle: context.typography.bodyMedium?.copyWith(
         height: 1.0,
         color: color.withValues(alpha: .6),
       ),
-      fillColor: _isFocused
-          ? context.colors.primary.withValues(alpha: .06)
-          : context.colors.error.withValues(alpha: .06),
+      fillColor: _isFailure
+          ? context.colors.error.withValues(alpha: .06)
+          : context.colors.primary.withValues(alpha: .06),
       disabledBorder: _outlinedBorder(
         context.colors.onSurfaceVariant.withValues(alpha: .4),
       ),
