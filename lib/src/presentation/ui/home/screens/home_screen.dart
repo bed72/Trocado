@@ -5,10 +5,14 @@ import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
 
 import 'package:trocado/src/presentation/mixins/back_button_mixin.dart';
 
+import 'package:trocado/src/domain/enums/theme/theme_mode_enum.dart';
+
 import 'package:trocado/src/presentation/notifiers/user_notifier.dart';
 import 'package:trocado/src/presentation/ui/home/notifiers/insights_notifier.dart';
 import 'package:trocado/src/presentation/ui/home/notifiers/active_budget_notifier.dart';
 import 'package:trocado/src/presentation/ui/home/notifiers/recent_expenses_notifier.dart';
+import 'package:trocado/src/presentation/ui/settings/notifiers/theme/theme_intent.dart';
+import 'package:trocado/src/presentation/ui/settings/notifiers/theme/theme_notifier.dart';
 
 import 'package:trocado/src/presentation/widgets/budget/card/budget_card_widget.dart';
 
@@ -60,10 +64,18 @@ class _HomeScreenState extends State<HomeScreen>
         final insightsState = ref.watch(insightsProvider);
         final budgetState = ref.watch(activeBudgetProvider);
         final recentExpensesState = ref.watch(recentExpensesProvider);
+        final themeMode = ref.watch(themeProvider).maybeWhen(
+          data: (s) => s.mode,
+          orElse: () => ThemeModeEnum.system,
+        );
 
         return Scaffold(
           appBar: HomeAppBarWidget(
             userState: userState,
+            themeMode: themeMode,
+            onCycleTheme: () => ref
+                .read(themeProvider.notifier)
+                .dispatch(const CycleTheme()),
             navigateToProfile: widget.navigateToProfile,
             navigateToSettings: widget.navigateToSettings,
             navigateToNotification: widget.navigateToNotification,

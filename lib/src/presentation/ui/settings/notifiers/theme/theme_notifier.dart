@@ -27,6 +27,7 @@ final class ThemeNotifier extends _$ThemeNotifier {
   }
 
   void dispatch(ThemeIntent intent) => switch (intent) {
+    CycleTheme() => _cycle(),
     ToggleTheme() => _toggle(),
     SetTheme(:final mode) => _set(mode),
   };
@@ -34,9 +35,20 @@ final class ThemeNotifier extends _$ThemeNotifier {
   Future<void> _toggle() async {
     final current = state.value?.mode ?? .system;
     final next = switch (current) {
-      .light => ThemeModeEnum.dark,
       .dark => ThemeModeEnum.light,
+      .light => ThemeModeEnum.dark,
       .system => ThemeModeEnum.dark,
+    };
+
+    await _set(next);
+  }
+
+  Future<void> _cycle() async {
+    final current = state.value?.mode ?? .system;
+    final next = switch (current) {
+      .light => ThemeModeEnum.dark,
+      .dark => ThemeModeEnum.system,
+      .system => ThemeModeEnum.light,
     };
 
     await _set(next);

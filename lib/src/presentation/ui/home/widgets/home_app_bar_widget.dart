@@ -3,13 +3,18 @@ import 'package:skeletonizer/skeletonizer.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:trocado/src/domain/models/user_model.dart';
+import 'package:trocado/src/domain/enums/theme/theme_mode_enum.dart';
+
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
+import 'package:trocado/src/presentation/extensions/theme_mode_enum_extension.dart';
 
 import 'package:trocado/src/presentation/widgets/avatar/avatar_widget.dart';
 import 'package:trocado/src/presentation/widgets/buttons/icon_button_widget.dart';
 import 'package:trocado/src/presentation/ui/home/widgets/home_greeting_widget.dart';
 
 class HomeAppBarWidget extends StatelessWidget implements PreferredSizeWidget {
+  final ThemeModeEnum themeMode;
+  final VoidCallback onCycleTheme;
   final AsyncValue<UserModel> userState;
   final VoidCallback navigateToProfile;
   final VoidCallback navigateToSettings;
@@ -18,6 +23,8 @@ class HomeAppBarWidget extends StatelessWidget implements PreferredSizeWidget {
   const HomeAppBarWidget({
     super.key,
     required this.userState,
+    required this.themeMode,
+    required this.onCycleTheme,
     required this.navigateToProfile,
     required this.navigateToSettings,
     required this.navigateToNotification,
@@ -41,17 +48,24 @@ class HomeAppBarWidget extends StatelessWidget implements PreferredSizeWidget {
           children: [
             AvatarWidget(
               onTap: navigateToProfile,
-              name: user?.name ?? 'Carregando',
+              name: user?.name ?? 'Pensando...',
             ),
-            HomeGreetingWidget(name: user?.name ?? 'Carregando'),
+            HomeGreetingWidget(name: user?.name ?? 'Pensando...'),
           ],
         ),
         actions: [
           IconButtonWidget(
             withoutBackground: true,
-            onPress: navigateToNotification,
             color: context.colors.onSurface,
-            icon: Icons.notifications_outlined,
+            onPress: navigateToNotification,
+            icon: Icons.notifications_none_rounded,
+          ),
+
+          IconButtonWidget(
+            icon: themeMode.icon,
+            onPress: onCycleTheme,
+            withoutBackground: true,
+            color: context.colors.onSurface,
           ),
 
           IconButtonWidget(

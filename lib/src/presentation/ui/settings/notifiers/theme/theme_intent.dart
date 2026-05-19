@@ -8,6 +8,10 @@ final class ToggleTheme extends ThemeIntent {
   const ToggleTheme();
 }
 
+final class CycleTheme extends ThemeIntent {
+  const CycleTheme();
+}
+
 final class SetTheme extends ThemeIntent {
   final ThemeModeEnum mode;
 

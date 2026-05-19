@@ -135,6 +135,68 @@ void main() {
     });
   });
 
+  group('dispatch(CycleTheme)', () {
+    test('cycles system to light and persists', () async {
+      when(
+        () => repository.get(),
+      ).thenAnswer((_) async => const Right(ThemeModeEnum.system));
+
+      final container = await makeContainer();
+
+      container
+          .read(themeProvider.notifier)
+          .dispatch(const CycleTheme());
+
+      await pumpEventQueue();
+
+      expect(
+        container.read(themeProvider).asData?.value.mode,
+        ThemeModeEnum.light,
+      );
+      verify(() => repository.save(mode: ThemeModeEnum.light)).called(1);
+    });
+
+    test('cycles light to dark and persists', () async {
+      when(
+        () => repository.get(),
+      ).thenAnswer((_) async => const Right(ThemeModeEnum.light));
+
+      final container = await makeContainer();
+
+      container
+          .read(themeProvider.notifier)
+          .dispatch(const CycleTheme());
+
+      await pumpEventQueue();
+
+      expect(
+        container.read(themeProvider).asData?.value.mode,
+        ThemeModeEnum.dark,
+      );
+      verify(() => repository.save(mode: ThemeModeEnum.dark)).called(1);
+    });
+
+    test('cycles dark to system and persists', () async {
+      when(
+        () => repository.get(),
+      ).thenAnswer((_) async => const Right(ThemeModeEnum.dark));
+
+      final container = await makeContainer();
+
+      container
+          .read(themeProvider.notifier)
+          .dispatch(const CycleTheme());
+
+      await pumpEventQueue();
+
+      expect(
+        container.read(themeProvider).asData?.value.mode,
+        ThemeModeEnum.system,
+      );
+      verify(() => repository.save(mode: ThemeModeEnum.system)).called(1);
+    });
+  });
+
   group('dispatch(ToggleTheme)', () {
     test('switches light to dark and persists', () async {
       when(
