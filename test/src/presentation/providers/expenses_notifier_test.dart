@@ -16,7 +16,6 @@ import 'package:trocado/src/domain/models/expense/expense_model.dart';
 import 'package:trocado/src/domain/models/expense/expenses_page_model.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 
-import 'package:trocado/src/domain/enums/expense/expense_ordering_enum.dart';
 
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
@@ -371,59 +370,6 @@ void main() {
       expect(data.activeFilterChips, isEmpty);
     });
 
-    test('clears value bounds when kind is value', () async {
-      final filtered = const ExpenseFilterModel.empty().copyWith(
-        minValue: 10000,
-        maxValue: 50000,
-      );
-
-      when(
-        () => repository.findAll(cursor: null, filter: any(named: 'filter')),
-      ).thenAnswer(
-        (_) async =>
-            const Right(ExpensesPageModel(expenses: _first, nextCursor: null)),
-      );
-
-      final container = _makeContainer(
-        repository: repository,
-        moneyService: moneyService,
-        dateFormatter: dateFormatter,
-      );
-      await container.read(expensesProvider.future);
-      await container.read(expensesProvider.notifier).applyFilter(filtered);
-
-      await container.read(expensesProvider.notifier).removeFilter(.value);
-
-      final data = container.read(expensesProvider).value!;
-      expect(data.filter.minValue, isNull);
-      expect(data.filter.maxValue, isNull);
-    });
-
-    test('resets ordering to default when kind is ordering', () async {
-      final filtered = const ExpenseFilterModel.empty().copyWith(
-        ordering: .valueDesc,
-      );
-
-      when(
-        () => repository.findAll(cursor: null, filter: any(named: 'filter')),
-      ).thenAnswer(
-        (_) async =>
-            const Right(ExpensesPageModel(expenses: _first, nextCursor: null)),
-      );
-
-      final container = _makeContainer(
-        repository: repository,
-        moneyService: moneyService,
-        dateFormatter: dateFormatter,
-      );
-      await container.read(expensesProvider.future);
-      await container.read(expensesProvider.notifier).applyFilter(filtered);
-
-      await container.read(expensesProvider.notifier).removeFilter(.ordering);
-
-      final data = container.read(expensesProvider).value!;
-      expect(data.filter.ordering, ExpenseOrderingEnum.dateDesc);
-    });
   });
 
   group('deleteById', () {

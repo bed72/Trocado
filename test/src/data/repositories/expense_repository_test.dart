@@ -7,7 +7,6 @@ import 'package:trocado/src/data/repositories/expense_repository.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/enums/expense/expense_category_enum.dart';
-import 'package:trocado/src/domain/enums/expense/expense_ordering_enum.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
@@ -480,15 +479,14 @@ void main() {
       expect(captured.query, isNull);
     });
 
-    test('embeds RQL fragments and ordering when filter is set', () async {
+    test('embeds RQL fragments when filter is set', () async {
       when(
         () => client.get(parameter: any(named: 'parameter')),
       ).thenAnswer((_) async => const Right(page));
 
       final filter = ExpenseFilterModel(
         category: ExpenseCategoryEnum.food,
-        minValue: 10000,
-        ordering: ExpenseOrderingEnum.valueDesc,
+        startDate: DateTime(2026, 3, 1).millisecondsSinceEpoch,
       );
 
       await repository.findAll(filter: filter);
@@ -503,8 +501,7 @@ void main() {
         captured.path,
         '/api/v1/expenses?'
         'eq(category,food)'
-        '&ge(value,100.00)'
-        '&ordering=-value'
+        '&ge(date,2026-03-01)'
         '&page_size=20',
       );
       expect(captured.query, isNull);

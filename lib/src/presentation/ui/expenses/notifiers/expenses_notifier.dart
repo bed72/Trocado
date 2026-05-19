@@ -49,7 +49,7 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
 
   Future<void> applyFilter(ExpenseFilterModel filter) async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() => _loadFirstPage(filter.normalized()));
+    state = await AsyncValue.guard(() => _loadFirstPage(filter));
   }
 
   void searchChanged(String description) {
@@ -63,9 +63,7 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
     final current = state.value?.filter ?? const .empty();
 
     final next = switch (kind) {
-      .ordering => current.copyWith(ordering: .dateDesc),
       .category => current.copyWith(clearCategory: true),
-      .value => current.copyWith(clearMinValue: true, clearMaxValue: true),
       .period => current.copyWith(clearEndDate: true, clearStartDate: true),
     };
 
@@ -197,24 +195,6 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
       );
     }
 
-    if (filter.minValue != null || filter.maxValue != null) {
-      chips.add(
-        ExpenseActiveFilterChipPresentationData(
-          kind: .value,
-          label: _valueLabel(filter.minValue, filter.maxValue),
-        ),
-      );
-    }
-
-    if (filter.ordering != .dateDesc) {
-      chips.add(
-        ExpenseActiveFilterChipPresentationData(
-          kind: .ordering,
-          label: filter.ordering.label,
-        ),
-      );
-    }
-
     return chips;
   }
 
@@ -224,14 +204,4 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
     (null, final int e) => 'até ${_dateFormatter.formatLongDate(e)}',
     (null, null) => '',
   };
-
-  String _valueLabel(int? min, int? max) {
-    final minLabel = min != null ? _moneyService.format(min / 100) : null;
-    final maxLabel = max != null ? _moneyService.format(max / 100) : null;
-
-    if (minLabel != null && maxLabel != null) return '$minLabel – $maxLabel';
-    if (minLabel != null) return '≥ $minLabel';
-
-    return '≤ $maxLabel';
-  }
 }

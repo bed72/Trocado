@@ -1,1 +1,1 @@
-enum ExpenseFilterChipKind { category, period, value, ordering }
+enum ExpenseFilterChipKind { category, period }

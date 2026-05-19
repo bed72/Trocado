@@ -16,10 +16,8 @@ import 'package:trocado/src/presentation/ui/expenses/notifiers/expenses_notifier
 import 'package:trocado/src/presentation/ui/expenses/notifiers/expenses_filters_intent.dart';
 import 'package:trocado/src/presentation/ui/expenses/notifiers/expenses_filters_notifier.dart';
 
-import 'package:trocado/src/presentation/ui/expenses/widgets/filter/expenses_filter_value_section_widget.dart';
 import 'package:trocado/src/presentation/ui/expenses/widgets/filter/expenses_filter_period_section_widget.dart';
 import 'package:trocado/src/presentation/ui/expenses/widgets/filter/expenses_filter_category_section_widget.dart';
-import 'package:trocado/src/presentation/ui/expenses/widgets/filter/expenses_filter_ordering_section_widget.dart';
 
 class ExpensesFilterScreen extends StatelessWidget {
   final ExpenseFilterModel initialFilter;
@@ -81,25 +79,6 @@ class ExpensesFilterScreen extends StatelessWidget {
                             );
                           }
                         },
-                      ),
-
-                      const SizedBox(height: 8.0),
-
-                      ExpensesFilterValueSectionWidget(
-                        minValue: state.draft.minValue,
-                        maxValue: state.draft.maxValue,
-                        onMinChanged: (value) =>
-                            notifier.dispatch(MinValueChanged(value)),
-                        onMaxChanged: (value) =>
-                            notifier.dispatch(MaxValueChanged(value)),
-                      ),
-
-                      const SizedBox(height: 8.0),
-
-                      ExpensesFilterOrderingSectionWidget(
-                        selected: state.draft.ordering,
-                        onSelected: (ordering) =>
-                            notifier.dispatch(OrderingSelected(ordering)),
                       ),
 
                       const SizedBox(height: 8.0),

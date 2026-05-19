@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:trocado/src/domain/enums/expense/expense_category_enum.dart';
-import 'package:trocado/src/domain/enums/expense/expense_ordering_enum.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 
 import 'package:trocado/src/infrastructure/clients/http/requests/expense_filter_request.dart';
@@ -34,10 +33,7 @@ void main() {
         category: ExpenseCategoryEnum.food,
         startDate: DateTime(2026, 3, 1).millisecondsSinceEpoch,
         endDate: DateTime(2026, 3, 31).millisecondsSinceEpoch,
-        minValue: 100,
-        maxValue: 50000,
         description: 'Merc',
-        ordering: ExpenseOrderingEnum.valueDesc,
       );
 
       final query = builder.build(filter: filter, cursor: 'abc');
@@ -47,41 +43,10 @@ void main() {
         'eq(category,food)'
         '&ge(date,2026-03-01)'
         '&le(date,2026-03-31)'
-        '&ge(value,1.00)'
-        '&le(value,500.00)'
         '&like(description,Merc*)'
-        '&ordering=-value'
         '&page_size=20'
         '&cursor=abc',
       );
-    });
-
-    test('formats decimal values with two decimal places', () {
-      final filter = const ExpenseFilterModel.empty().copyWith(minValue: 9);
-
-      final query = builder.build(filter: filter, cursor: null);
-
-      expect(query, contains('ge(value,0.09)'));
-
-      final filter2 = const ExpenseFilterModel.empty().copyWith(minValue: 100);
-      expect(
-        builder.build(filter: filter2, cursor: null),
-        contains('ge(value,1.00)'),
-      );
-    });
-
-    test('omits value fragments when centavos is zero', () {
-      final filter = const ExpenseFilterModel.empty().copyWith(
-        minValue: 0,
-        maxValue: 0,
-        category: ExpenseCategoryEnum.food,
-      );
-
-      final query = builder.build(filter: filter, cursor: null);
-
-      expect(query, isNot(contains('ge(value')));
-      expect(query, isNot(contains('le(value')));
-      expect(query, contains('eq(category,food)'));
     });
 
     test('percent-encodes description with accents', () {
@@ -94,21 +59,19 @@ void main() {
       expect(query, contains('like(description,Caf%C3%A9*)'));
     });
 
-    test('emits ordering even when it matches the default', () {
-      final filter = const ExpenseFilterModel.empty().copyWith(
+    test('never emits value or ordering fragments', () {
+      final filter = ExpenseFilterModel(
         category: ExpenseCategoryEnum.food,
+        startDate: DateTime(2026, 3, 1).millisecondsSinceEpoch,
+        endDate: DateTime(2026, 3, 31).millisecondsSinceEpoch,
+        description: 'Merc',
       );
 
-      final query = builder.build(filter: filter, cursor: null);
+      final query = builder.build(filter: filter, cursor: 'abc');
 
-      expect(query, contains('ordering=-date'));
-    });
-
-    test('omits ordering when filter is null', () {
-      expect(
-        builder.build(filter: null, cursor: 'abc'),
-        isNot(contains('ordering')),
-      );
+      expect(query, isNot(contains('ordering')));
+      expect(query, isNot(contains('ge(value')));
+      expect(query, isNot(contains('le(value')));
     });
 
     test('trims description and skips when empty after trim', () {

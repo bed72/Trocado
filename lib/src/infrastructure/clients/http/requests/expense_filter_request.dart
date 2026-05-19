@@ -25,12 +25,6 @@ final class ExpenseFilterRequest {
       if (filter.endDate != null) {
         fragments.add('le(date,${_formatDate(filter.endDate!)})');
       }
-      if (filter.minValue != null && filter.minValue! > 0) {
-        fragments.add('ge(value,${_formatValue(filter.minValue!)})');
-      }
-      if (filter.maxValue != null && filter.maxValue! > 0) {
-        fragments.add('le(value,${_formatValue(filter.maxValue!)})');
-      }
 
       final trimmedDescription = filter.description.trim();
       if (trimmedDescription.isNotEmpty) {
@@ -39,7 +33,6 @@ final class ExpenseFilterRequest {
         );
       }
 
-      fragments.add('ordering=${filter.ordering.query}');
       fragments.add('page_size=$pageSize');
     }
 
@@ -48,10 +41,6 @@ final class ExpenseFilterRequest {
     return fragments.join('&');
   }
 
-  String _formatDate(int millis) => DateFormat(
-    'yyyy-MM-dd',
-  ).format(DateTime.fromMillisecondsSinceEpoch(millis));
-
-  String _formatValue(int centavos) =>
-      '${centavos ~/ 100}.${(centavos % 100).toString().padLeft(2, '0')}';
+  String _formatDate(int millis) =>
+      DateFormat('yyyy-MM-dd').format(.fromMillisecondsSinceEpoch(millis));
 }

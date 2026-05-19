@@ -6,7 +6,6 @@ import 'package:trocado/src/main/providers/services_provider.dart';
 
 import 'package:trocado/src/domain/services/date_formatter_service.dart';
 import 'package:trocado/src/domain/enums/expense/expense_category_enum.dart';
-import 'package:trocado/src/domain/enums/expense/expense_ordering_enum.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 import 'package:trocado/src/domain/enums/expense/expense_period_preset_enum.dart';
 
@@ -55,7 +54,7 @@ void main() {
       final container = _makeContainer();
       final filter = const ExpenseFilterModel.empty().copyWith(
         category: .food,
-        minValue: 10000,
+        startDate: 100,
       );
 
       final state = container.read(expensesFiltersProvider(filter));
@@ -159,67 +158,6 @@ void main() {
     });
   });
 
-  group('MinValueChanged / MaxValueChanged', () {
-    test('non-zero values are stored', () {
-      final container = _makeContainer();
-      final notifier = container.read(
-        expensesFiltersProvider(emptySeed).notifier,
-      );
-
-      notifier.dispatch(const MinValueChanged(1500));
-      notifier.dispatch(const MaxValueChanged(50000));
-
-      final draft = container.read(expensesFiltersProvider(emptySeed)).draft;
-      expect(draft.minValue, 1500);
-      expect(draft.maxValue, 50000);
-    });
-
-    test('zero is treated as unset', () {
-      final container = _makeContainer();
-      final notifier = container.read(
-        expensesFiltersProvider(emptySeed).notifier,
-      );
-
-      notifier.dispatch(const MinValueChanged(1500));
-      notifier.dispatch(const MinValueChanged(0));
-
-      expect(
-        container.read(expensesFiltersProvider(emptySeed)).draft.minValue,
-        isNull,
-      );
-    });
-
-    test('null is treated as unset', () {
-      final container = _makeContainer();
-      final notifier = container.read(
-        expensesFiltersProvider(emptySeed).notifier,
-      );
-
-      notifier.dispatch(const MaxValueChanged(1500));
-      notifier.dispatch(const MaxValueChanged(null));
-
-      expect(
-        container.read(expensesFiltersProvider(emptySeed)).draft.maxValue,
-        isNull,
-      );
-    });
-  });
-
-  group('OrderingSelected', () {
-    test('updates the ordering', () {
-      final container = _makeContainer();
-
-      container
-          .read(expensesFiltersProvider(emptySeed).notifier)
-          .dispatch(const OrderingSelected(.valueAsc));
-
-      expect(
-        container.read(expensesFiltersProvider(emptySeed)).draft.ordering,
-        ExpenseOrderingEnum.valueAsc,
-      );
-    });
-  });
-
   group('Cleared', () {
     test('resets draft and preset to empty', () {
       final container = _makeContainer(now: DateTime(2026, 4, 23));
@@ -231,7 +169,6 @@ void main() {
         const PresetSelected(ExpensePeriodPresetEnum.currentMonth),
       );
       notifier.dispatch(const CategorySelected(ExpenseCategoryEnum.food));
-      notifier.dispatch(const MinValueChanged(10000));
 
       notifier.dispatch(const Cleared());
 

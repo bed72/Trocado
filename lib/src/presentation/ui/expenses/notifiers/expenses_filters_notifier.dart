@@ -39,21 +39,6 @@ final class ExpensesFiltersNotifier extends _$ExpensesFiltersNotifier {
       startDate,
       endDate,
     ),
-    MinValueChanged(:final cents) => state = state.copyWith(
-      draft: state.draft.copyWith(
-        minValue: cents,
-        clearMinValue: cents == null || cents == 0,
-      ),
-    ),
-    MaxValueChanged(:final cents) => state = state.copyWith(
-      draft: state.draft.copyWith(
-        maxValue: cents,
-        clearMaxValue: cents == null || cents == 0,
-      ),
-    ),
-    OrderingSelected(:final ordering) => state = state.copyWith(
-      draft: state.draft.copyWith(ordering: ordering),
-    ),
     Cleared() => state = const ExpensesFiltersState(),
   };
 
