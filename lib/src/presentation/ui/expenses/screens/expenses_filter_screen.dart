@@ -65,14 +65,6 @@ class ExpensesFilterScreen extends StatelessWidget {
 
                       const SizedBox(height: 8.0),
 
-                      ExpensesFilterValueSectionWidget(
-                        selectedPreset: state.selectedValuePreset,
-                        onPresetSelected: (preset) =>
-                            notifier.dispatch(ValuePresetSelected(preset)),
-                      ),
-
-                      const SizedBox(height: 8.0),
-
                       ExpensesFilterPeriodSectionWidget(
                         selectedPreset: state.selectedPeriodPreset,
                         formattedSummary: state.formattedPeriodSummary,
@@ -88,6 +80,14 @@ class ExpensesFilterScreen extends StatelessWidget {
                             );
                           }
                         },
+                      ),
+
+                      const SizedBox(height: 8.0),
+
+                      ExpensesFilterValueSectionWidget(
+                        selectedPreset: state.selectedValuePreset,
+                        onPresetSelected: (preset) =>
+                            notifier.dispatch(ValuePresetSelected(preset)),
                       ),
 
                       const SizedBox(height: 8.0),

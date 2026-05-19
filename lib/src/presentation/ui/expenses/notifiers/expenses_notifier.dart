@@ -211,21 +211,21 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
       );
     }
 
+    if (filter.startDate != null || filter.endDate != null) {
+      chips.add(
+        ExpenseActiveFilterChipPresentationData(
+          kind: .period,
+          label: _periodLabel(filter.startDate, filter.endDate),
+        ),
+      );
+    }
+
     if (filter.minValue != null || filter.maxValue != null) {
       chips.add(
         ExpenseActiveFilterChipPresentationData(
           kind: .value,
           icon: Icons.payments_outlined,
           label: _valueLabel(filter.minValue, filter.maxValue),
-        ),
-      );
-    }
-
-    if (filter.startDate != null || filter.endDate != null) {
-      chips.add(
-        ExpenseActiveFilterChipPresentationData(
-          kind: .period,
-          label: _periodLabel(filter.startDate, filter.endDate),
         ),
       );
     }

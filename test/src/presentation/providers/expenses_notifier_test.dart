@@ -396,7 +396,7 @@ void main() {
     );
 
     test(
-      'orders chips as description, category, value, period when all four filters are active',
+      'orders chips as description, category, period, value when all four filters are active',
       () async {
         final filter = const ExpenseFilterModel.empty().copyWith(
           category: .food,
@@ -436,8 +436,8 @@ void main() {
           equals(<ExpenseFilterChipKind>[
             .description,
             .category,
-            .value,
             .period,
+            .value,
           ]),
         );
       },
