@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
-import 'package:trocado/src/domain/enums/insight/insight_type_enum.dart';
 import 'package:trocado/src/domain/models/insight/insight_model.dart';
-import 'package:trocado/src/domain/enums/insight/insight_severity_enum.dart';
 
 import 'package:trocado/src/presentation/ui/home/widgets/insights/insight_card_widget.dart';
 
