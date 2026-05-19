@@ -14,8 +14,8 @@ void main() {
       expect(ThemeModeEnum.dark.icon, Icons.dark_mode_outlined);
     });
 
-    test('system returns Icons.brightness_auto_outlined', () {
-      expect(ThemeModeEnum.system.icon, Icons.brightness_auto_outlined);
+    test('system returns Icons.brightness_6_outlined', () {
+      expect(ThemeModeEnum.system.icon, Icons.brightness_6_outlined);
     });
   });
 
