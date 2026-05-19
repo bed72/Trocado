@@ -38,7 +38,7 @@ final class RecentExpensesNotifierProvider
 }
 
 String _$recentExpensesNotifierHash() =>
-    r'e4a0f54a816604aa3bf9ca5c5969b666d597531c';
+    r'3c6db4e3a3d056d1d05ca675276cad21af6e2e0f';
 
 abstract class _$RecentExpensesNotifier
     extends $AsyncNotifier<List<ExpenseItemPresentationData>> {

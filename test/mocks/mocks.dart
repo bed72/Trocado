@@ -5,6 +5,7 @@ import 'package:trocado/src/domain/services/money_service.dart';
 import 'package:trocado/src/domain/services/date_formatter_service.dart';
 
 import 'package:trocado/src/domain/repositories/interface_user_repository.dart';
+import 'package:trocado/src/domain/repositories/interface_theme_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_couple_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
@@ -18,6 +19,7 @@ import 'package:trocado/src/infrastructure/clients/logger/logger_client.dart';
 import 'package:trocado/src/infrastructure/clients/storage/storage_client.dart';
 import 'package:trocado/src/infrastructure/clients/app_check/app_check_client.dart';
 import 'package:trocado/src/infrastructure/clients/messaging/messaging_client.dart';
+import 'package:trocado/src/infrastructure/datasources/local/local_theme_data_source.dart';
 import 'package:trocado/src/infrastructure/datasources/local/local_token_data_source.dart';
 import 'package:trocado/src/infrastructure/datasources/remote/remote_couple_data_source.dart';
 import 'package:trocado/src/infrastructure/datasources/remote/remote_notification_data_source.dart';
@@ -38,6 +40,8 @@ final class MockAppCheckClient extends Mock implements IAppCheckClient {}
 
 final class MockUserRepository extends Mock implements IUserRepository {}
 
+final class MockThemeRepository extends Mock implements IThemeRepository {}
+
 final class MockMessagingClient extends Mock implements IMessagingClient {}
 
 final class MockCoupleRepository extends Mock implements ICoupleRepository {}
@@ -56,11 +60,14 @@ final class MockInsightsRepository extends Mock
 final class MockDateFormatterService extends Mock
     implements IDateFormatterService {}
 
-final class MockNotificationRepository extends Mock
-    implements INotificationRepository {}
+final class MockLocalThemeDataSource extends Mock
+    implements ILocalThemeDataSource {}
 
 final class MockRemoteCoupleDataSource extends Mock
     implements IRemoteCoupleDataSource {}
+
+final class MockNotificationRepository extends Mock
+    implements INotificationRepository {}
 
 final class MockAuthenticationRepository extends Mock
     implements IAuthenticationRepository {}

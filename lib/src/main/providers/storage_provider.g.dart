@@ -97,3 +97,51 @@ final class LocalTokenDataSourceProvider
 
 String _$localTokenDataSourceHash() =>
     r'e4bd19dcdfc1c778e7c6ddc397c19397d271c1ea';
+
+@ProviderFor(localThemeDataSource)
+final localThemeDataSourceProvider = LocalThemeDataSourceProvider._();
+
+final class LocalThemeDataSourceProvider
+    extends
+        $FunctionalProvider<
+          ILocalThemeDataSource,
+          ILocalThemeDataSource,
+          ILocalThemeDataSource
+        >
+    with $Provider<ILocalThemeDataSource> {
+  LocalThemeDataSourceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'localThemeDataSourceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$localThemeDataSourceHash();
+
+  @$internal
+  @override
+  $ProviderElement<ILocalThemeDataSource> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  ILocalThemeDataSource create(Ref ref) {
+    return localThemeDataSource(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ILocalThemeDataSource value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ILocalThemeDataSource>(value),
+    );
+  }
+}
+
+String _$localThemeDataSourceHash() =>
+    r'5f734830076ddb60d9468f3c29b235cb536c09d5';

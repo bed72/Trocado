@@ -335,3 +335,49 @@ final class InsightsRepositoryProvider
 
 String _$insightsRepositoryHash() =>
     r'902a07b8a0bb85d8e9031ef1540f15869a2ec82c';
+
+@ProviderFor(themeRepository)
+final themeRepositoryProvider = ThemeRepositoryProvider._();
+
+final class ThemeRepositoryProvider
+    extends
+        $FunctionalProvider<
+          IThemeRepository,
+          IThemeRepository,
+          IThemeRepository
+        >
+    with $Provider<IThemeRepository> {
+  ThemeRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'themeRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$themeRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<IThemeRepository> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  IThemeRepository create(Ref ref) {
+    return themeRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(IThemeRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<IThemeRepository>(value),
+    );
+  }
+}
+
+String _$themeRepositoryHash() => r'cba9ac1d4c98a80ad6c76f0990992eb3e0a111ea';
