@@ -68,13 +68,14 @@ class NotificationCardWidget extends StatelessWidget {
                         ),
                       ),
                     ),
-                    Text(
-                      notification.type.label,
-                      style: context.typography.labelSmall?.copyWith(
-                        fontWeight: .w600,
-                        color: notification.type.color(context),
+                    if (item.showLabel)
+                      Text(
+                        notification.type.label,
+                        style: context.typography.labelSmall?.copyWith(
+                          fontWeight: .w600,
+                          color: notification.type.color(context),
+                        ),
                       ),
-                    ),
                   ],
                 ),
               ],

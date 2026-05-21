@@ -9,9 +9,12 @@ import 'package:trocado/src/main/providers/repositories_provider.dart';
 
 import 'package:trocado/src/domain/either/either.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
+import 'package:trocado/src/domain/models/user_model.dart';
+import 'package:trocado/src/domain/models/couple/couple_model.dart';
 import 'package:trocado/src/domain/services/date_formatter_service.dart';
-import 'package:trocado/src/domain/enums/notification/notification_type_enum.dart';
 import 'package:trocado/src/domain/models/notification/notification_model.dart';
+import 'package:trocado/src/domain/repositories/interface_couple_repository.dart';
+import 'package:trocado/src/domain/enums/notification/notification_type_enum.dart';
 import 'package:trocado/src/domain/models/notification/notifications_page_model.dart';
 import 'package:trocado/src/domain/repositories/interface_notification_repository.dart';
 
@@ -22,10 +25,10 @@ import '../../../mocks/mocks.dart';
 const _first = [
   NotificationModel(
     id: 1,
-    type: NotificationTypeEnum.sharedExpenseCreated,
     title: 'Nova despesa',
-    description: 'Gabriel registrou R\$ 85,50.',
     createdAt: 1747000000000,
+    type: .sharedExpenseCreated,
+    description: 'Gabriel registrou R\$ 85,50.',
   ),
   NotificationModel(
     id: 2,
@@ -48,10 +51,13 @@ const _second = [
 
 ProviderContainer _makeContainer({
   required INotificationRepository repository,
+  required ICoupleRepository coupleRepository,
   required IDateFormatterService dateFormatter,
 }) {
   final container = ProviderContainer(
+    retry: (_, _) => null,
     overrides: [
+      coupleRepositoryProvider.overrideWithValue(coupleRepository),
       notificationRepositoryProvider.overrideWithValue(repository),
       dateFormatterServiceProvider.overrideWithValue(dateFormatter),
     ],
@@ -62,12 +68,17 @@ ProviderContainer _makeContainer({
 
 void main() {
   late INotificationRepository repository;
+  late ICoupleRepository coupleRepository;
   late IDateFormatterService dateFormatter;
 
   setUp(() {
     repository = MockNotificationRepository();
+    coupleRepository = MockCoupleRepository();
     dateFormatter = MockDateFormatterService();
 
+    when(
+      () => coupleRepository.findActive(),
+    ).thenAnswer((_) async => const Left(NotFoundFailure()));
     when(() => dateFormatter.formatTime(any())).thenReturn('14:30');
     when(() => dateFormatter.relativeGroupHeader(any())).thenReturn('Hoje');
   });
@@ -82,6 +93,7 @@ void main() {
 
       final container = _makeContainer(
         repository: repository,
+        coupleRepository: coupleRepository,
         dateFormatter: dateFormatter,
       );
       container.listen(notificationsProvider, (_, _) {});
@@ -103,6 +115,7 @@ void main() {
 
       final container = _makeContainer(
         repository: repository,
+        coupleRepository: coupleRepository,
         dateFormatter: dateFormatter,
       );
       container.listen(notificationsProvider, (_, _) {});
@@ -134,6 +147,7 @@ void main() {
 
       final container = _makeContainer(
         repository: repository,
+        coupleRepository: coupleRepository,
         dateFormatter: dateFormatter,
       );
       container.listen(notificationsProvider, (_, _) {});
@@ -156,6 +170,7 @@ void main() {
 
       final container = _makeContainer(
         repository: repository,
+        coupleRepository: coupleRepository,
         dateFormatter: dateFormatter,
       );
       container.listen(notificationsProvider, (_, _) {});
@@ -182,6 +197,7 @@ void main() {
 
       final container = _makeContainer(
         repository: repository,
+        coupleRepository: coupleRepository,
         dateFormatter: dateFormatter,
       );
       container.listen(notificationsProvider, (_, _) {});
@@ -210,6 +226,7 @@ void main() {
 
       final container = _makeContainer(
         repository: repository,
+        coupleRepository: coupleRepository,
         dateFormatter: dateFormatter,
       );
       container.listen(notificationsProvider, (_, _) {});
@@ -238,6 +255,7 @@ void main() {
 
       final container = _makeContainer(
         repository: repository,
+        coupleRepository: coupleRepository,
         dateFormatter: dateFormatter,
       );
       container.listen(notificationsProvider, (_, _) {});
@@ -264,6 +282,7 @@ void main() {
 
       final container = _makeContainer(
         repository: repository,
+        coupleRepository: coupleRepository,
         dateFormatter: dateFormatter,
       );
       container.listen(notificationsProvider, (_, _) {});
@@ -293,6 +312,7 @@ void main() {
 
       final container = _makeContainer(
         repository: repository,
+        coupleRepository: coupleRepository,
         dateFormatter: dateFormatter,
       );
       container.listen(notificationsProvider, (_, _) {});
@@ -315,6 +335,7 @@ void main() {
 
       final container = _makeContainer(
         repository: repository,
+        coupleRepository: coupleRepository,
         dateFormatter: dateFormatter,
       );
       container.listen(notificationsProvider, (_, _) {});
@@ -341,6 +362,7 @@ void main() {
 
         final container = _makeContainer(
           repository: repository,
+          coupleRepository: coupleRepository,
           dateFormatter: dateFormatter,
         );
         container.listen(notificationsProvider, (_, _) {});
@@ -353,6 +375,123 @@ void main() {
         expect(state.deleteFailure, isA<NetworkFailure>());
       },
     );
+  });
+
+  group('couple label gating', () {
+    final coupleModel = CoupleModel(
+      id: 7,
+      createdAt: 1746000000000,
+      partner: const UserModel(id: 2, name: 'Kira', email: 'kira@trocado.app'),
+    );
+
+    test('hides label for sharedExpenseCreated when solo', () async {
+      when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
+        (_) async => const Right(
+          NotificationsPageModel(notifications: _first, nextCursor: null),
+        ),
+      );
+
+      final container = _makeContainer(
+        repository: repository,
+        coupleRepository: coupleRepository,
+        dateFormatter: dateFormatter,
+      );
+      container.listen(notificationsProvider, (_, _) {});
+      final state = await container.read(notificationsProvider.future);
+
+      final sharedItem = state.items.firstWhere(
+        (item) =>
+            item.notification.type == NotificationTypeEnum.sharedExpenseCreated,
+      );
+      final budgetItem = state.items.firstWhere(
+        (item) =>
+            item.notification.type == NotificationTypeEnum.budgetEightyPercent,
+      );
+      expect(sharedItem.showLabel, isFalse);
+      expect(budgetItem.showLabel, isTrue);
+    });
+
+    test('shows label for unknown when solo', () async {
+      when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
+        (_) async => const Right(
+          NotificationsPageModel(notifications: _second, nextCursor: null),
+        ),
+      );
+
+      final container = _makeContainer(
+        repository: repository,
+        coupleRepository: coupleRepository,
+        dateFormatter: dateFormatter,
+      );
+      container.listen(notificationsProvider, (_, _) {});
+      final state = await container.read(notificationsProvider.future);
+
+      expect(state.items.first.showLabel, isTrue);
+    });
+
+    test('shows label for all types when in couple', () async {
+      when(
+        () => coupleRepository.findActive(),
+      ).thenAnswer((_) async => Right(coupleModel));
+      when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
+        (_) async => const Right(
+          NotificationsPageModel(notifications: _first, nextCursor: null),
+        ),
+      );
+
+      final container = _makeContainer(
+        repository: repository,
+        coupleRepository: coupleRepository,
+        dateFormatter: dateFormatter,
+      );
+      container.listen(notificationsProvider, (_, _) {});
+      final state = await container.read(notificationsProvider.future);
+
+      expect(state.items.every((item) => item.showLabel), isTrue);
+    });
+
+    test('loadMore preserves solo gating across pages', () async {
+      when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer((
+        invocation,
+      ) async {
+        final cursor = invocation.namedArguments[#cursor];
+        if (cursor == null) {
+          return const Right(
+            NotificationsPageModel(notifications: _first, nextCursor: 'CUR1'),
+          );
+        }
+        return const Right(
+          NotificationsPageModel(notifications: _second, nextCursor: null),
+        );
+      });
+
+      final container = _makeContainer(
+        repository: repository,
+        coupleRepository: coupleRepository,
+        dateFormatter: dateFormatter,
+      );
+      container.listen(notificationsProvider, (_, _) {});
+      await container.read(notificationsProvider.future);
+
+      await container.read(notificationsProvider.notifier).loadMore();
+
+      final state = container.read(notificationsProvider).value!;
+      final shared = state.items.firstWhere(
+        (item) =>
+            item.notification.type == NotificationTypeEnum.sharedExpenseCreated,
+      );
+      final budget = state.items.firstWhere(
+        (item) =>
+            item.notification.type == NotificationTypeEnum.budgetEightyPercent,
+      );
+      final unknown = state.items.firstWhere(
+        (item) => item.notification.type == NotificationTypeEnum.unknown,
+      );
+
+      expect(shared.showLabel, isFalse);
+      expect(budget.showLabel, isTrue);
+      expect(unknown.showLabel, isTrue);
+    });
   });
 
   group('refresh', () {
@@ -374,6 +513,7 @@ void main() {
 
       final container = _makeContainer(
         repository: repository,
+        coupleRepository: coupleRepository,
         dateFormatter: dateFormatter,
       );
       container.listen(notificationsProvider, (_, _) {});

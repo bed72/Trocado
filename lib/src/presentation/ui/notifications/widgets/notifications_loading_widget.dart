@@ -23,6 +23,7 @@ class NotificationsLoadingWidget extends StatelessWidget {
 }
 
 const _placeholderItem = NotificationItemPresentationData(
+  showLabel: true,
   formattedTime: '00:00',
   notification: NotificationModel(
     id: 0,

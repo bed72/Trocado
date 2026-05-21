@@ -14,6 +14,7 @@ NotificationItemPresentationData _item({
   required int id,
   required int millis,
 }) => NotificationItemPresentationData(
+  showLabel: true,
   formattedTime: '00:00',
   notification: NotificationModel(
     id: id,

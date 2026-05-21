@@ -7,7 +7,10 @@ import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/services/date_formatter_service.dart';
 import 'package:trocado/src/domain/models/notification/notification_model.dart';
 import 'package:trocado/src/domain/models/notification/notifications_page_model.dart';
+import 'package:trocado/src/domain/enums/notification/notification_type_enum.dart';
 import 'package:trocado/src/domain/repositories/interface_notification_repository.dart';
+
+import 'package:trocado/src/presentation/notifiers/couple_notifier.dart';
 
 import 'package:trocado/src/presentation/ui/notifications/notifiers/notifications_state.dart';
 import 'package:trocado/src/presentation/ui/notifications/data/notification_groups_builder.dart';
@@ -18,6 +21,7 @@ part 'notifications_notifier.g.dart';
 
 @Riverpod()
 final class NotificationsNotifier extends _$NotificationsNotifier {
+  late bool _isInCouple;
   late INotificationRepository _repository;
   late IDateFormatterService _dateFormatter;
 
@@ -25,6 +29,9 @@ final class NotificationsNotifier extends _$NotificationsNotifier {
   Future<NotificationsState> build() async {
     _repository = ref.watch(notificationRepositoryProvider);
     _dateFormatter = ref.watch(dateFormatterServiceProvider);
+
+    final couple = await ref.watch(coupleProvider.future);
+    _isInCouple = couple != null;
 
     return await _loadFirstPage();
   }
@@ -155,5 +162,11 @@ final class NotificationsNotifier extends _$NotificationsNotifier {
       NotificationItemPresentationData(
         notification: notification,
         formattedTime: _dateFormatter.formatTime(notification.createdAt),
+        showLabel: _shouldShowLabel(notification.type),
       );
+
+  bool _shouldShowLabel(NotificationTypeEnum type) => switch (type) {
+    .sharedExpenseCreated => _isInCouple,
+    .budgetEightyPercent || .unknown => true,
+  };
 }
