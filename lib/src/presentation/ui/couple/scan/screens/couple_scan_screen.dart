@@ -126,76 +126,84 @@ class _CoupleScanScreenState extends State<CoupleScanScreen> {
       appBar: AppBarWidget(leading: GoBackWidget()),
       child: CoupleScanPermissionDeniedWidget(
         canAskAgain: state.canAskAgain,
-        onManualCode: () => _openManualSheet(notifier),
+        onManualCode: _openManualSheet,
         onAllow: () => notifier.dispatch(const PermissionRequested()),
         onOpenSettings: () => notifier.dispatch(const OpenSettingsPressed()),
       ),
     ),
-    _ => _scannerScaffold(notifier: notifier),
+    _ => _scannerScaffold(state: state, notifier: notifier),
   };
 
-  Scaffold _scannerScaffold({required CoupleScanNotifier notifier}) => Scaffold(
-    extendBodyBehindAppBar: true,
-    backgroundColor: Colors.black,
-    appBar: CoupleScanTopBarWidget(),
-    body: Stack(
-      children: [
-        Positioned.fill(
-          child: MobileScanner(
-            controller: _controller,
-            onDetect: (capture) {
-              for (final barcode in capture.barcodes) {
-                final value = barcode.rawValue;
-                if (value != null && value.isNotEmpty) {
-                  notifier.dispatch(QrDetected(value));
-                  break;
+  Scaffold _scannerScaffold({
+    required CoupleScanState state,
+    required CoupleScanNotifier notifier,
+  }) {
+    final isLooking = state.status == .lookup || state.status == .lookedUp;
+
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      backgroundColor: Colors.black,
+      appBar: CoupleScanTopBarWidget(),
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: MobileScanner(
+              controller: _controller,
+              onDetect: (capture) {
+                for (final barcode in capture.barcodes) {
+                  final value = barcode.rawValue;
+                  if (value != null && value.isNotEmpty) {
+                    notifier.dispatch(QrDetected(value));
+                    break;
+                  }
                 }
-              }
-            },
+              },
+            ),
           ),
-        ),
-        const Positioned.fill(
-          child: IgnorePointer(child: CoupleScanOverlayWidget()),
-        ),
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: SafeArea(
-            top: false,
-            child: Padding(
-              padding: const .fromLTRB(16.0, 0, 16.0, 24.0),
-              child: Column(
-                spacing: 16.0,
-                mainAxisSize: .min,
-                crossAxisAlignment: .stretch,
-                children: [
-                  Align(
-                    alignment: .centerRight,
-                    child: CoupleScanTorchButtonWidget(
-                      isOn: _isTorchOn,
-                      onPressed: _toggleTorch,
+          const Positioned.fill(
+            child: IgnorePointer(child: CoupleScanOverlayWidget()),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: const .fromLTRB(16.0, 0, 16.0, 24.0),
+                child: Column(
+                  spacing: 16.0,
+                  mainAxisSize: .min,
+                  crossAxisAlignment: .stretch,
+                  children: [
+                    Align(
+                      alignment: .centerRight,
+                      child: CoupleScanTorchButtonWidget(
+                        isOn: _isTorchOn,
+                        onPressed: _toggleTorch,
+                      ),
                     ),
-                  ),
-                  Text(
-                    'Aponte a câmera para o QR code do seu par',
-                    textAlign: .center,
-                    style: context.typography.bodyMedium?.copyWith(
-                      color: Colors.white,
+                    Text(
+                      'Aponte a câmera para o QR code do seu par',
+                      textAlign: .center,
+                      style: context.typography.bodyMedium?.copyWith(
+                        color: Colors.white,
+                      ),
                     ),
-                  ),
-                  ButtonWidget.elevated(
-                    onTap: () => _openManualSheet(notifier),
-                    child: const Text('Digitar código manualmente'),
-                  ),
-                ],
+                    ButtonWidget.elevated(
+                      isLoading: isLooking,
+                      onTap: isLooking ? null : _openManualSheet,
+                      child: const Text('Digitar código manualmente'),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-      ],
-    ),
-  );
+        ],
+      ),
+    );
+  }
 
   void _navigateToConfirm(String code, InviteLookupModel lookup) =>
       context.navigate(CoupleScanConfirmLocation(code: code, lookup: lookup));
@@ -211,6 +219,6 @@ class _CoupleScanScreenState extends State<CoupleScanScreen> {
     container.read(coupleScanProvider.notifier).dispatch(const RetryPressed());
   }
 
-  Future<void> _openManualSheet(CoupleScanNotifier _) =>
+  Future<void> _openManualSheet() =>
       showCoupleScanManualCodeSheet(context: context);
 }
