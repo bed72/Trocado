@@ -12,6 +12,7 @@ import 'package:trocado/src/presentation/ui/budgets/notifiers/budgets_notifier.d
 import 'package:trocado/src/presentation/ui/expenses/notifiers/expenses_notifier.dart';
 import 'package:trocado/src/presentation/ui/home/notifiers/active_budget_notifier.dart';
 import 'package:trocado/src/presentation/ui/home/notifiers/recent_expenses_notifier.dart';
+import 'package:trocado/src/presentation/ui/home/notifiers/shared_active_budget_notifier.dart';
 
 import 'package:trocado/src/presentation/ui/couple/dissolve/notifiers/couple_dissolve_state.dart';
 import 'package:trocado/src/presentation/ui/couple/dissolve/notifiers/couple_dissolve_intent.dart';
@@ -61,6 +62,7 @@ final class CoupleDissolveNotifier extends _$CoupleDissolveNotifier {
         ref.invalidate(insightsProvider);
         ref.invalidate(activeBudgetProvider);
         ref.invalidate(recentExpensesProvider);
+        ref.invalidate(sharedActiveBudgetProvider);
         state = AsyncData(current.copyWith(status: .success));
       },
     );

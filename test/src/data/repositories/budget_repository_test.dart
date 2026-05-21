@@ -255,6 +255,102 @@ void main() {
     });
   });
 
+  group('findActiveShared', () {
+    const sharedJson = {
+      'period': {'start_date': '2026-05-01', 'end_date': '2026-05-31'},
+      'me': {
+        'value': '2500.00',
+        'total_spent': '1556.27',
+        'remaining': '943.73',
+      },
+      'partner': {
+        'value': '5000.00',
+        'total_spent': '4720.87',
+        'remaining': '279.13',
+        'name': 'Gabriel Ramos',
+        'email': 'gabriel@trocado.app',
+      },
+      'combined': {
+        'value': '7500.00',
+        'total_spent': '6277.14',
+        'remaining': '1222.86',
+      },
+      'partner_has_different_period': false,
+    };
+
+    test('uses /budgets/active/shared path', () async {
+      when(
+        () => client.get(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Right(sharedJson));
+
+      await repository.findActiveShared();
+
+      final captured =
+          verify(
+                () => client.get(parameter: captureAny(named: 'parameter')),
+              ).captured.single
+              as Requests;
+
+      expect(captured.path, '/api/v1/budgets/active/shared');
+    });
+
+    test('returns Right with SharedActiveBudgetModel on success', () async {
+      when(
+        () => client.get(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Right(sharedJson));
+
+      final data = await repository.findActiveShared();
+
+      expect(data.isRight, isTrue);
+      expect(data.right, isNotNull);
+      expect(data.right!.me.value, 250000);
+      expect(data.right!.me.totalSpent, 155627);
+      expect(data.right!.partner.value, 500000);
+      expect(data.right!.partner.name, 'Gabriel Ramos');
+      expect(data.right!.combined.value, 750000);
+      expect(data.right!.combined.totalSpent, 627714);
+      expect(data.right!.partnerHasDifferentPeriod, isFalse);
+    });
+
+    test('returns Right(null) on 404 — no active shared budget', () async {
+      when(() => client.get(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'code': 'not_found',
+              'field': 'non_field_errors',
+              'message': 'No active shared budget.',
+            },
+          ],
+        }),
+      );
+
+      final data = await repository.findActiveShared();
+
+      expect(data.isRight, isTrue);
+      expect(data.right, isNull);
+    });
+
+    test('returns Left NetworkFailure on network error', () async {
+      when(() => client.get(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Left({
+          'errors': [
+            {
+              'code': 'network_error',
+              'message': 'Network',
+              'field': 'non_field_errors',
+            },
+          ],
+        }),
+      );
+
+      final data = await repository.findActiveShared();
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<NetworkFailure>());
+    });
+  });
+
   group('findAll', () {
     const pageJson = {
       'next': 'http://api.example.org/budgets/?cursor=NEXT',

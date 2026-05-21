@@ -4,6 +4,7 @@ enum EndpointKey {
   couple('/api/v1/couple'),
   invites('/api/v1/invites'),
   budgets('/api/v1/budgets'),
+  budgetsActiveShared('/api/v1/budgets/active/shared'),
   expenses('/api/v1/expenses'),
   expensesShared('/api/v1/expenses/shared'),
   insights('/api/v1/insights'),

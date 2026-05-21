@@ -7,8 +7,8 @@ final class ExpenseModel extends Equatable {
   final int date;
   final int value;
   final int createdAt;
-  final String description;
   final bool? createdByMe;
+  final String description;
   final String? createdByName;
   final ExpenseCategoryEnum category;
 

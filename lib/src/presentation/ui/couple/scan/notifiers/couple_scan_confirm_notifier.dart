@@ -12,6 +12,7 @@ import 'package:trocado/src/presentation/ui/budgets/notifiers/budgets_notifier.d
 import 'package:trocado/src/presentation/ui/expenses/notifiers/expenses_notifier.dart';
 import 'package:trocado/src/presentation/ui/home/notifiers/active_budget_notifier.dart';
 import 'package:trocado/src/presentation/ui/home/notifiers/recent_expenses_notifier.dart';
+import 'package:trocado/src/presentation/ui/home/notifiers/shared_active_budget_notifier.dart';
 
 import 'package:trocado/src/presentation/ui/couple/scan/data/couple_scan_confirm_state.dart';
 import 'package:trocado/src/presentation/ui/couple/scan/notifiers/couple_scan_confirm_intent.dart';
@@ -51,6 +52,7 @@ final class CoupleScanConfirmNotifier extends _$CoupleScanConfirmNotifier {
         ref.invalidate(insightsProvider);
         ref.invalidate(activeBudgetProvider);
         ref.invalidate(recentExpensesProvider);
+        ref.invalidate(sharedActiveBudgetProvider);
         state = state.copyWith(
           status: .success,
           partnerName: model.partner.name,

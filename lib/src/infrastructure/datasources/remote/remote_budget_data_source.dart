@@ -8,9 +8,13 @@ import 'package:trocado/src/infrastructure/clients/http/responses/budget/budget_
 import 'package:trocado/src/infrastructure/clients/http/responses/budget/budgets_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/failure/failure_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/budget/active_budget_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/budget/shared_active_budget_response.dart';
 
 abstract interface class IRemoteBudgetDataSource {
   Future<Either<FailureResponse, ActiveBudgetResponse>> findActive();
+
+  Future<Either<FailureResponse, SharedActiveBudgetResponse>>
+  findActiveShared();
 
   Future<Either<FailureResponse, BudgetsResponse>> findAll({String? cursor});
 
@@ -49,6 +53,19 @@ final class RemoteBudgetDataSource implements IRemoteBudgetDataSource {
     return response.either(
       FailureResponse.fromJson,
       ActiveBudgetResponse.fromJson,
+    );
+  }
+
+  @override
+  Future<Either<FailureResponse, SharedActiveBudgetResponse>>
+  findActiveShared() async {
+    final response = await _client.get(
+      parameter: Requests(EndpointKey.budgetsActiveShared.path),
+    );
+
+    return response.either(
+      FailureResponse.fromJson,
+      SharedActiveBudgetResponse.fromJson,
     );
   }
 

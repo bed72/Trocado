@@ -6,7 +6,10 @@ import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
 import 'package:trocado/src/domain/enums/theme/theme_mode_enum.dart';
 
 import 'package:trocado/src/presentation/mixins/back_button_mixin.dart';
+import 'package:trocado/src/presentation/notifiers/couple_notifier.dart';
 import 'package:trocado/src/presentation/widgets/budget/card/budget_card_widget.dart';
+import 'package:trocado/src/presentation/widgets/budget/card/shared_budget_card_widget.dart';
+import 'package:trocado/src/presentation/widgets/budget/card/shared_budget_card_loading_widget.dart';
 
 import 'package:trocado/src/presentation/ui/home/notifiers/insights_notifier.dart';
 import 'package:trocado/src/presentation/ui/home/notifiers/home_app_bar_notifier.dart';
@@ -14,6 +17,7 @@ import 'package:trocado/src/presentation/ui/home/notifiers/active_budget_notifie
 import 'package:trocado/src/presentation/ui/settings/notifiers/theme/theme_intent.dart';
 import 'package:trocado/src/presentation/ui/home/notifiers/recent_expenses_notifier.dart';
 import 'package:trocado/src/presentation/ui/settings/notifiers/theme/theme_notifier.dart';
+import 'package:trocado/src/presentation/ui/home/notifiers/shared_active_budget_notifier.dart';
 
 import 'package:trocado/src/presentation/ui/home/widgets/home_app_bar_widget.dart';
 import 'package:trocado/src/presentation/ui/home/widgets/home_action_button_widget.dart';
@@ -59,9 +63,9 @@ class _HomeScreenState extends State<HomeScreen>
   Widget build(BuildContext context) {
     return Consumer(
       builder: (_, ref, _) {
+        final coupleState = ref.watch(coupleProvider);
         final appBarState = ref.watch(homeAppBarProvider);
         final insightsState = ref.watch(insightsProvider);
-        final budgetState = ref.watch(activeBudgetProvider);
         final recentExpensesState = ref.watch(recentExpensesProvider);
         final themeMode = ref
             .watch(themeProvider)
@@ -88,12 +92,7 @@ class _HomeScreenState extends State<HomeScreen>
               children: [
                 Padding(
                   padding: const .all(16.0),
-                  child: BudgetCardWidget(
-                    state: budgetState,
-                    onTap: widget.navigateToBudgets,
-                    onCreateBudget: widget.navigateToBudget,
-                    onRetry: () => ref.refresh(activeBudgetProvider),
-                  ),
+                  child: _budgetCard(ref, coupleState),
                 ),
                 InsightsCarouselWidget(
                   state: insightsState,
@@ -112,4 +111,20 @@ class _HomeScreenState extends State<HomeScreen>
       },
     );
   }
+
+  Widget _budgetCard(WidgetRef ref, AsyncValue<Object?> coupleState) =>
+      switch (coupleState) {
+        AsyncData(value: null) => BudgetCardWidget(
+          state: ref.watch(activeBudgetProvider),
+          onTap: widget.navigateToBudgets,
+          onCreateBudget: widget.navigateToBudget,
+          onRetry: () => ref.refresh(activeBudgetProvider),
+        ),
+        AsyncData() => SharedBudgetCardWidget(
+          state: ref.watch(sharedActiveBudgetProvider),
+          onTap: widget.navigateToBudgets,
+          onRetry: () => ref.refresh(sharedActiveBudgetProvider),
+        ),
+        _ => const SharedBudgetCardLoadingWidget(),
+      };
 }
