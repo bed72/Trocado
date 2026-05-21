@@ -71,7 +71,7 @@ void _showSuccessToast({
         : Text(
             description,
             style: context.typography.labelMedium?.copyWith(
-              fontWeight: .w600,
+              fontWeight: .w900,
               color: context.colors.onSurfaceVariant.withValues(alpha: .6),
             ),
           ),
@@ -122,7 +122,7 @@ void _showFailureToast({
     title: Text(
       title,
       style: context.typography.titleSmall?.copyWith(
-        fontWeight: .w600,
+        fontWeight: .w900,
         color: context.colors.onSurfaceVariant,
       ),
     ),

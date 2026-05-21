@@ -150,6 +150,7 @@ class PasswordResetConfirmScreen extends StatelessWidget {
 
   void _submit(PasswordResetConfirmNotifier notifier) {
     hideKeyboard();
+
     notifier.dispatch(const SubmitPressed());
   }
 }
