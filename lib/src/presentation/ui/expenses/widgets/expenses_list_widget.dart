@@ -41,6 +41,16 @@ class ExpensesListWidget extends StatelessWidget {
           itemCount: group.expenses.length,
           itemBuilder: (_, index) {
             final item = group.expenses[index];
+            final isEditable = item.expense.createdByMe ?? true;
+
+            final card = ExpenseItemWidget(
+              expense: item.expense,
+              authorName: item.authorName,
+              formattedDate: item.formattedDate,
+              formattedValue: item.formattedValue,
+            );
+
+            if (!isEditable) return card;
 
             return Dismissible(
               key: ValueKey(item.expense.id),
@@ -70,11 +80,7 @@ class ExpensesListWidget extends StatelessWidget {
                 );
               },
               onDismissed: (_) => onDelete(item.expense.id),
-              child: ExpenseItemWidget(
-                expense: item.expense,
-                formattedDate: item.formattedDate,
-                formattedValue: item.formattedValue,
-              ),
+              child: card,
             );
           },
         ),

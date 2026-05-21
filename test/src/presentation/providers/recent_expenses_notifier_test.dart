@@ -11,6 +11,7 @@ import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/services/money_service.dart';
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
 import 'package:trocado/src/domain/services/date_formatter_service.dart';
+import 'package:trocado/src/domain/enums/scope/financial_scope_enum.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
 import 'package:trocado/src/presentation/ui/home/notifiers/recent_expenses_notifier.dart';
@@ -57,6 +58,10 @@ void main() {
   late IExpenseRepository repository;
   late IDateFormatterService dateFormatter;
 
+  setUpAll(() {
+    registerFallbackValue(FinancialScopeEnum.mine);
+  });
+
   setUp(() {
     moneyService = MockMoneyService();
     repository = MockExpenseRepository();
@@ -72,7 +77,10 @@ void main() {
     'returns AsyncData with mapped ExpenseItemPresentationData when repository returns Right',
     () async {
       when(
-        () => repository.findRecent(limit: any(named: 'limit')),
+        () => repository.findRecent(
+        limit: any(named: 'limit'),
+        scope: any(named: 'scope'),
+      ),
       ).thenAnswer((_) async => const Right(_expenses));
 
       final container = _makeContainer(
@@ -91,7 +99,10 @@ void main() {
 
   test('returns AsyncData with empty list when backend has no data', () async {
     when(
-      () => repository.findRecent(limit: any(named: 'limit')),
+      () => repository.findRecent(
+        limit: any(named: 'limit'),
+        scope: any(named: 'scope'),
+      ),
     ).thenAnswer((_) async => const Right(<ExpenseModel>[]));
 
     final container = _makeContainer(
@@ -106,7 +117,10 @@ void main() {
 
   test('calls repository with default limit of 4 on build', () async {
     when(
-      () => repository.findRecent(limit: any(named: 'limit')),
+      () => repository.findRecent(
+        limit: any(named: 'limit'),
+        scope: any(named: 'scope'),
+      ),
     ).thenAnswer((_) async => const Right(_expenses));
 
     final container = _makeContainer(
@@ -116,14 +130,17 @@ void main() {
     );
     await container.read(recentExpensesProvider.future);
 
-    verify(() => repository.findRecent()).called(1);
+    verify(() => repository.findRecent(scope: FinancialScopeEnum.mine)).called(1);
   });
 
   test(
     'emits AsyncError when repository returns Left(NetworkFailure)',
     () async {
       when(
-        () => repository.findRecent(limit: any(named: 'limit')),
+        () => repository.findRecent(
+        limit: any(named: 'limit'),
+        scope: any(named: 'scope'),
+      ),
       ).thenAnswer((_) async => const Left(NetworkFailure()));
 
       final container = _makeContainer(
@@ -148,7 +165,10 @@ void main() {
     'emits AsyncError when repository returns Left(ServerFailure)',
     () async {
       when(
-        () => repository.findRecent(limit: any(named: 'limit')),
+        () => repository.findRecent(
+        limit: any(named: 'limit'),
+        scope: any(named: 'scope'),
+      ),
       ).thenAnswer((_) async => const Left(ServerFailure()));
 
       final container = _makeContainer(

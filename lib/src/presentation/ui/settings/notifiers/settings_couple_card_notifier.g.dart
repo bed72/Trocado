@@ -35,7 +35,7 @@ final class SettingsCoupleCardNotifierProvider
 }
 
 String _$settingsCoupleCardNotifierHash() =>
-    r'fdfbceec138018fd349613361e3f93630d5b150b';
+    r'3db5cecf956f58b9e9e801c8ca59020858574592';
 
 abstract class _$SettingsCoupleCardNotifier
     extends $AsyncNotifier<CoupleCardState> {

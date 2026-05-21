@@ -4,6 +4,7 @@ import 'package:trocado/src/data/extensions/expense_response_extension.dart';
 import 'package:trocado/src/data/extensions/failure_response_extension.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
+import 'package:trocado/src/domain/enums/scope/financial_scope_enum.dart';
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
 import 'package:trocado/src/domain/models/expense/expenses_page_model.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
@@ -75,8 +76,9 @@ final class ExpenseRepository implements IExpenseRepository {
   @override
   Future<Either<Failure, List<ExpenseModel>>> findRecent({
     int limit = 6,
+    required FinancialScopeEnum scope,
   }) async {
-    final data = await _dataSource.findRecent(limit: limit);
+    final data = await _dataSource.findRecent(limit: limit, scope: scope);
 
     return data.either(
       (failure) => failure.toFailure(),
@@ -88,8 +90,13 @@ final class ExpenseRepository implements IExpenseRepository {
   Future<Either<Failure, ExpensesPageModel>> findAll({
     String? cursor,
     ExpenseFilterModel? filter,
+    required FinancialScopeEnum scope,
   }) async {
-    final data = await _dataSource.findAll(cursor: cursor, filter: filter);
+    final data = await _dataSource.findAll(
+      cursor: cursor,
+      filter: filter,
+      scope: scope,
+    );
 
     return data.either(
       (failure) => failure.toFailure(),

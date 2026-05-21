@@ -3,9 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
 
-import 'package:trocado/src/presentation/mixins/back_button_mixin.dart';
-
 import 'package:trocado/src/domain/enums/theme/theme_mode_enum.dart';
+
+import 'package:trocado/src/presentation/mixins/back_button_mixin.dart';
+import 'package:trocado/src/presentation/widgets/budget/card/budget_card_widget.dart';
 
 import 'package:trocado/src/presentation/ui/home/notifiers/insights_notifier.dart';
 import 'package:trocado/src/presentation/ui/home/notifiers/home_app_bar_notifier.dart';
@@ -13,8 +14,6 @@ import 'package:trocado/src/presentation/ui/home/notifiers/active_budget_notifie
 import 'package:trocado/src/presentation/ui/settings/notifiers/theme/theme_intent.dart';
 import 'package:trocado/src/presentation/ui/home/notifiers/recent_expenses_notifier.dart';
 import 'package:trocado/src/presentation/ui/settings/notifiers/theme/theme_notifier.dart';
-
-import 'package:trocado/src/presentation/widgets/budget/card/budget_card_widget.dart';
 
 import 'package:trocado/src/presentation/ui/home/widgets/home_app_bar_widget.dart';
 import 'package:trocado/src/presentation/ui/home/widgets/home_action_button_widget.dart';

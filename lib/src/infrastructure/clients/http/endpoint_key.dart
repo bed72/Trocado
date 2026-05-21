@@ -5,6 +5,7 @@ enum EndpointKey {
   invites('/api/v1/invites'),
   budgets('/api/v1/budgets'),
   expenses('/api/v1/expenses'),
+  expensesShared('/api/v1/expenses/shared'),
   insights('/api/v1/insights'),
   logout('/api/v1/auth/logout'),
   signUp('/api/v1/auth/register'),

@@ -9,6 +9,8 @@ import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/services/money_service.dart';
 import 'package:trocado/src/domain/services/date_formatter_service.dart';
 
+import 'package:trocado/src/domain/enums/scope/financial_scope_enum.dart';
+
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
 import 'package:trocado/src/domain/models/expense/expenses_page_model.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
@@ -16,6 +18,7 @@ import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
 import 'package:trocado/src/presentation/actions/debounce_action.dart';
+import 'package:trocado/src/presentation/notifiers/couple_notifier.dart';
 import 'package:trocado/src/presentation/data/expense_item_presentation_data.dart';
 import 'package:trocado/src/presentation/widgets/expense/expense_category_visual_extension.dart';
 
@@ -32,6 +35,7 @@ part 'expenses_notifier.g.dart';
 
 @Riverpod(keepAlive: true)
 final class ExpensesNotifier extends _$ExpensesNotifier {
+  late bool _isInCouple;
   late IMoneyService _moneyService;
   late DebounceAction _searchDebounce;
   late IExpenseRepository _repository;
@@ -43,15 +47,30 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
     _repository = ref.watch(expenseRepositoryProvider);
     _dateFormatter = ref.watch(dateFormatterServiceProvider);
 
+    final couple = await ref.watch(coupleProvider.future);
+    _isInCouple = couple != null;
+
     _searchDebounce = DebounceAction();
     ref.onDispose(_searchDebounce.dispose);
 
-    return await _loadFirstPage(const .empty());
+    return await _loadFirstPage(const .empty(), .mine);
+  }
+
+  Future<void> changeScope(FinancialScopeEnum scope) async {
+    final current = state.value;
+    if (current == null) return;
+    if (current.scope == scope) return;
+
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(
+      () => _loadFirstPage(current.filter, scope),
+    );
   }
 
   Future<void> applyFilter(ExpenseFilterModel filter) async {
+    final scope = state.value?.scope ?? .mine;
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() => _loadFirstPage(filter));
+    state = await AsyncValue.guard(() => _loadFirstPage(filter, scope));
   }
 
   void searchChanged(String description) {
@@ -142,6 +161,7 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
     final data = await _repository.findAll(
       filter: current.filter,
       cursor: current.nextCursor,
+      scope: current.scope,
     );
 
     state = AsyncData(
@@ -163,15 +183,20 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
     );
   }
 
-  Future<ExpensesState> _loadFirstPage(ExpenseFilterModel filter) async {
-    final data = await _repository.findAll(filter: filter);
+  Future<ExpensesState> _loadFirstPage(
+    ExpenseFilterModel filter,
+    FinancialScopeEnum scope,
+  ) async {
+    final data = await _repository.findAll(filter: filter, scope: scope);
 
     return data.fold((failure) => throw failure, (page) {
       final items = page.expenses.map(_toItem).toList();
 
       return ExpensesState(
         items: items,
+        scope: scope,
         filter: filter,
+        isInCouple: _isInCouple,
         nextCursor: page.nextCursor,
         activeFilterChips: _buildChips(filter),
         groups: buildExpenseGroups(items, dateFormatter: _dateFormatter),
@@ -182,6 +207,9 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
   ExpenseItemPresentationData _toItem(ExpenseModel expense) =>
       ExpenseItemPresentationData(
         expense: expense,
+        authorName: (_isInCouple && expense.createdByMe == false)
+            ? expense.createdByName
+            : null,
         formattedValue: _moneyService.format(expense.value / 100),
         formattedDate: _dateFormatter.formatLongDate(expense.date),
       );

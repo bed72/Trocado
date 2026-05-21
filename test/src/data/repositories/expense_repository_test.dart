@@ -6,6 +6,7 @@ import 'package:trocado/src/domain/either/either.dart';
 import 'package:trocado/src/data/repositories/expense_repository.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
+import 'package:trocado/src/domain/enums/scope/financial_scope_enum.dart';
 import 'package:trocado/src/domain/enums/expense/expense_category_enum.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
@@ -294,7 +295,7 @@ void main() {
         () => client.get(parameter: any(named: 'parameter')),
       ).thenAnswer((_) async => const Right(page));
 
-      final data = await repository.findRecent(limit: 4);
+      final data = await repository.findRecent(limit: 4, scope: FinancialScopeEnum.mine);
 
       expect(data.isRight, isTrue);
       expect(data.right.last.id, 110);
@@ -321,7 +322,7 @@ void main() {
         }),
       );
 
-      final data = await repository.findRecent(limit: 4);
+      final data = await repository.findRecent(limit: 4, scope: FinancialScopeEnum.mine);
 
       expect(data.isRight, isTrue);
       expect(data.right, hasLength(1));
@@ -333,7 +334,7 @@ void main() {
             const Right({'next': null, 'previous': null, 'results': []}),
       );
 
-      final data = await repository.findRecent();
+      final data = await repository.findRecent(scope: FinancialScopeEnum.mine);
 
       expect(data.right, isEmpty);
       expect(data.isRight, isTrue);
@@ -352,7 +353,7 @@ void main() {
         }),
       );
 
-      final data = await repository.findRecent();
+      final data = await repository.findRecent(scope: FinancialScopeEnum.mine);
 
       expect(data.isLeft, isTrue);
       expect(data.left, isA<NetworkFailure>());
@@ -371,7 +372,7 @@ void main() {
         }),
       );
 
-      final data = await repository.findRecent();
+      final data = await repository.findRecent(scope: FinancialScopeEnum.mine);
 
       expect(data.isLeft, isTrue);
       expect(data.left, isA<ServerFailure>());
@@ -390,7 +391,7 @@ void main() {
         }),
       );
 
-      final data = await repository.findRecent();
+      final data = await repository.findRecent(scope: FinancialScopeEnum.mine);
 
       expect(data.isLeft, isTrue);
       expect(data.left, isA<NotFoundFailure>());
@@ -405,11 +406,27 @@ void main() {
         }),
       );
 
-      final data = await repository.findRecent();
+      final data = await repository.findRecent(scope: FinancialScopeEnum.mine);
 
       expect(data.isLeft, isTrue);
       expect(data.left, isA<ValidationFailure>());
       expect(data.left.message, 'Invalid limit.');
+    });
+
+    test('uses /expenses/shared path when scope is couple', () async {
+      when(() => client.get(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Right({'next': null, 'previous': null, 'results': []}),
+      );
+
+      await repository.findRecent(scope: FinancialScopeEnum.couple);
+
+      final captured =
+          verify(
+                () => client.get(parameter: captureAny(named: 'parameter')),
+              ).captured.single
+              as Requests;
+
+      expect(captured.path, '/api/v1/expenses/shared');
     });
   });
 
@@ -450,7 +467,7 @@ void main() {
         () => client.get(parameter: any(named: 'parameter')),
       ).thenAnswer((_) async => const Right(page));
 
-      await repository.findAll();
+      await repository.findAll(scope: FinancialScopeEnum.mine);
 
       final captured =
           verify(
@@ -467,7 +484,7 @@ void main() {
         () => client.get(parameter: any(named: 'parameter')),
       ).thenAnswer((_) async => const Right(page));
 
-      await repository.findAll(cursor: 'ABC');
+      await repository.findAll(cursor: 'ABC', scope: FinancialScopeEnum.mine);
 
       final captured =
           verify(
@@ -489,7 +506,7 @@ void main() {
         startDate: DateTime(2026, 3, 1).millisecondsSinceEpoch,
       );
 
-      await repository.findAll(filter: filter);
+      await repository.findAll(filter: filter, scope: FinancialScopeEnum.mine);
 
       final captured =
           verify(
@@ -516,7 +533,7 @@ void main() {
         category: ExpenseCategoryEnum.food,
       );
 
-      await repository.findAll(filter: filter, cursor: 'NEXT');
+      await repository.findAll(filter: filter, cursor: 'NEXT', scope: FinancialScopeEnum.mine);
 
       final captured =
           verify(
@@ -533,7 +550,7 @@ void main() {
         () => client.get(parameter: any(named: 'parameter')),
       ).thenAnswer((_) async => const Right(page));
 
-      final data = await repository.findAll();
+      final data = await repository.findAll(scope: FinancialScopeEnum.mine);
 
       expect(data.isRight, isTrue);
       expect(data.right.nextCursor, 'NEXT123');
@@ -549,7 +566,7 @@ void main() {
             const Right({'next': null, 'previous': null, 'results': []}),
       );
 
-      final data = await repository.findAll();
+      final data = await repository.findAll(scope: FinancialScopeEnum.mine);
 
       expect(data.isRight, isTrue);
       expect(data.right.expenses, isEmpty);
@@ -568,7 +585,7 @@ void main() {
           }),
         );
 
-        final data = await repository.findAll();
+        final data = await repository.findAll(scope: FinancialScopeEnum.mine);
 
         expect(data.isRight, isTrue);
         expect(data.right.nextCursor, isNull);
@@ -588,7 +605,7 @@ void main() {
         }),
       );
 
-      final data = await repository.findAll();
+      final data = await repository.findAll(scope: FinancialScopeEnum.mine);
 
       expect(data.isLeft, isTrue);
       expect(data.left, isA<NetworkFailure>());
@@ -607,7 +624,7 @@ void main() {
         }),
       );
 
-      final data = await repository.findAll();
+      final data = await repository.findAll(scope: FinancialScopeEnum.mine);
 
       expect(data.isLeft, isTrue);
       expect(data.left, isA<ServerFailure>());
@@ -626,7 +643,7 @@ void main() {
         }),
       );
 
-      final data = await repository.findAll();
+      final data = await repository.findAll(scope: FinancialScopeEnum.mine);
 
       expect(data.isLeft, isTrue);
       expect(data.left, isA<NotFoundFailure>());
@@ -645,11 +662,44 @@ void main() {
         }),
       );
 
-      final data = await repository.findAll(cursor: 'BROKEN');
+      final data = await repository.findAll(cursor: 'BROKEN', scope: FinancialScopeEnum.mine);
 
       expect(data.isLeft, isTrue);
       expect(data.left, isA<ValidationFailure>());
       expect(data.left.message, 'Invalid cursor.');
+    });
+
+    test('uses /expenses/shared path when scope is couple', () async {
+      when(() => client.get(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Right({'next': null, 'previous': null, 'results': []}),
+      );
+
+      await repository.findAll(scope: FinancialScopeEnum.couple);
+
+      final captured =
+          verify(
+                () => client.get(parameter: captureAny(named: 'parameter')),
+              ).captured.single
+              as Requests;
+
+      expect(captured.path, '/api/v1/expenses/shared');
+    });
+
+    test('uses /expenses/shared path with RQL when scope is couple and filter is set', () async {
+      when(() => client.get(parameter: any(named: 'parameter'))).thenAnswer(
+        (_) async => const Right({'next': null, 'previous': null, 'results': []}),
+      );
+
+      const filter = ExpenseFilterModel(category: ExpenseCategoryEnum.food);
+      await repository.findAll(filter: filter, scope: FinancialScopeEnum.couple);
+
+      final captured =
+          verify(
+                () => client.get(parameter: captureAny(named: 'parameter')),
+              ).captured.single
+              as Requests;
+
+      expect(captured.path, startsWith('/api/v1/expenses/shared?'));
     });
   });
 

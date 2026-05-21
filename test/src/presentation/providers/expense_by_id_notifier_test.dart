@@ -15,6 +15,8 @@ import 'package:trocado/src/domain/models/expense/expense_model.dart';
 import 'package:trocado/src/domain/models/expense/expenses_page_model.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 
+import 'package:trocado/src/domain/enums/scope/financial_scope_enum.dart';
+import 'package:trocado/src/domain/repositories/interface_couple_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
 import 'package:trocado/src/presentation/ui/expenses/notifiers/expenses_notifier.dart';
@@ -33,6 +35,7 @@ const _expense = ExpenseModel(
 
 ProviderContainer _makeContainer({
   required IExpenseRepository repository,
+  required ICoupleRepository coupleRepository,
   IMoneyService? moneyService,
   IDateFormatterService? dateFormatter,
 }) {
@@ -41,8 +44,10 @@ ProviderContainer _makeContainer({
   when(() => formatter.relativeGroupHeader(any())).thenReturn('Hoje');
 
   final container = ProviderContainer(
+    retry: (_, _) => null,
     overrides: [
       dateFormatterServiceProvider.overrideWithValue(formatter),
+      coupleRepositoryProvider.overrideWithValue(coupleRepository),
       expenseRepositoryProvider.overrideWithValue(repository),
       if (moneyService != null)
         moneyServiceProvider.overrideWithValue(moneyService),
@@ -55,15 +60,21 @@ ProviderContainer _makeContainer({
 void main() {
   late IMoneyService moneyService;
   late IExpenseRepository repository;
+  late ICoupleRepository coupleRepository;
 
   setUpAll(() {
     registerFallbackValue(const ExpenseFilterModel.empty());
+    registerFallbackValue(FinancialScopeEnum.mine);
   });
 
   setUp(() {
     moneyService = MockMoneyService();
     repository = MockExpenseRepository();
+    coupleRepository = MockCoupleRepository();
 
+    when(
+      () => coupleRepository.findActive(),
+    ).thenAnswer((_) async => const Left(NotFoundFailure()));
     when(
       () => moneyService.format(any()),
     ).thenAnswer((invocation) => 'R\$ ${invocation.positionalArguments.first}');
@@ -75,6 +86,7 @@ void main() {
         () => repository.findAll(
           cursor: any(named: 'cursor'),
           filter: any(named: 'filter'),
+          scope: any(named: 'scope'),
         ),
       ).thenAnswer(
         (_) async => const Right(ExpensesPageModel(expenses: [_expense])),
@@ -82,6 +94,7 @@ void main() {
 
       final container = _makeContainer(
         repository: repository,
+        coupleRepository: coupleRepository,
         moneyService: moneyService,
       );
       await container.read(expensesProvider.future);
@@ -97,7 +110,7 @@ void main() {
         () => repository.findById(id: any(named: 'id')),
       ).thenAnswer((_) async => const Right(_expense));
 
-      final container = _makeContainer(repository: repository);
+      final container = _makeContainer(repository: repository, coupleRepository: coupleRepository);
 
       final data = await container.read(expenseByIdProvider(132).future);
 
@@ -110,7 +123,7 @@ void main() {
         () => repository.findById(id: any(named: 'id')),
       ).thenAnswer((_) async => const Left(NotFoundFailure()));
 
-      final container = _makeContainer(repository: repository);
+      final container = _makeContainer(repository: repository, coupleRepository: coupleRepository);
       container.listen(expenseByIdProvider(132), (_, _) {});
       container.read(expenseByIdProvider(132));
 

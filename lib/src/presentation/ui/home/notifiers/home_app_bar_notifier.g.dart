@@ -35,7 +35,7 @@ final class HomeAppBarNotifierProvider
 }
 
 String _$homeAppBarNotifierHash() =>
-    r'bd4eb99a8a54b04ead65c2375f36b145ac527fda';
+    r'f912455ecb5c082b5b3cf2d5c34c6f7607da2e49';
 
 abstract class _$HomeAppBarNotifier
     extends $AsyncNotifier<HomeAppBarPresentationData> {

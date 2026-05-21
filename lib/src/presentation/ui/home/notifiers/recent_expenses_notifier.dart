@@ -5,6 +5,7 @@ import 'package:trocado/src/main/providers/repositories_provider.dart';
 
 import 'package:trocado/src/domain/services/money_service.dart';
 import 'package:trocado/src/domain/services/date_formatter_service.dart';
+import 'package:trocado/src/domain/enums/scope/financial_scope_enum.dart';
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
@@ -28,7 +29,7 @@ final class RecentExpensesNotifier extends _$RecentExpensesNotifier {
   }
 
   Future<List<ExpenseItemPresentationData>> _load() async {
-    final data = await _repository.findRecent();
+    final data = await _repository.findRecent(scope: FinancialScopeEnum.mine);
 
     return data.fold(
       (failure) => throw failure,

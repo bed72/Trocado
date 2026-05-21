@@ -61,5 +61,35 @@ void main() {
 
       expect(response.category, 'travel');
     });
+
+    test('parses created_by_me and created_by_name when present', () {
+      final response = ExpenseResponse.fromJson({
+        'id': 5,
+        'value': '50.00',
+        'date': '2026-05-19',
+        'category': 'food',
+        'description': 'Cafezinho',
+        'created_at': '2026-05-19T15:09:04Z',
+        'created_by_me': false,
+        'created_by_name': 'Gabriel Ramos',
+      });
+
+      expect(response.createdByMe, isFalse);
+      expect(response.createdByName, 'Gabriel Ramos');
+    });
+
+    test('created_by_me and created_by_name are null when absent', () {
+      final response = ExpenseResponse.fromJson({
+        'id': 6,
+        'value': '20.00',
+        'date': '2026-05-19',
+        'category': 'food',
+        'description': 'Padaria',
+        'created_at': '2026-05-19T08:00:00Z',
+      });
+
+      expect(response.createdByMe, isNull);
+      expect(response.createdByName, isNull);
+    });
   });
 }

@@ -8,6 +8,8 @@ final class ExpenseModel extends Equatable {
   final int value;
   final int createdAt;
   final String description;
+  final bool? createdByMe;
+  final String? createdByName;
   final ExpenseCategoryEnum category;
 
   const ExpenseModel({
@@ -17,6 +19,8 @@ final class ExpenseModel extends Equatable {
     required this.category,
     required this.createdAt,
     required this.description,
+    this.createdByMe,
+    this.createdByName,
   });
 
   ExpenseModel copyWith({
@@ -25,6 +29,8 @@ final class ExpenseModel extends Equatable {
     int? value,
     int? createdAt,
     String? description,
+    bool? createdByMe,
+    String? createdByName,
     ExpenseCategoryEnum? category,
   }) => ExpenseModel(
     id: id ?? this.id,
@@ -33,6 +39,8 @@ final class ExpenseModel extends Equatable {
     category: category ?? this.category,
     createdAt: createdAt ?? this.createdAt,
     description: description ?? this.description,
+    createdByMe: createdByMe ?? this.createdByMe,
+    createdByName: createdByName ?? this.createdByName,
   );
 
   @override
@@ -43,5 +51,7 @@ final class ExpenseModel extends Equatable {
     category,
     createdAt,
     description,
+    createdByMe,
+    createdByName,
   ];
 }

@@ -11,6 +11,7 @@ import 'package:trocado/src/main/providers/repositories_provider.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
 import 'package:trocado/src/domain/services/date_formatter_service.dart';
+import 'package:trocado/src/domain/repositories/interface_couple_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
 import 'package:trocado/src/presentation/ui/expense/notifiers/form/expense_state.dart';
@@ -39,13 +40,21 @@ Future<ProviderContainer> _makeContainer(
   IExpenseRepository repository, {
   int? id,
   IDateFormatterService? dateFormatter,
+  ICoupleRepository? coupleRepository,
 }) async {
   final formatter = dateFormatter ?? MockDateFormatterService();
   when(() => formatter.formatLongDate(any())).thenReturn('15 de Mar de 2026');
 
+  final coupleRepo = coupleRepository ?? MockCoupleRepository();
+  when(
+    () => coupleRepo.findActive(),
+  ).thenAnswer((_) async => const Left(NotFoundFailure()));
+
   final container = ProviderContainer(
+    retry: (_, _) => null,
     overrides: [
       dateFormatterServiceProvider.overrideWithValue(formatter),
+      coupleRepositoryProvider.overrideWithValue(coupleRepo),
       expenseRepositoryProvider.overrideWithValue(repository),
       expenseFormValidatorProvider.overrideWithValue(
         const ExpenseFormValidator(

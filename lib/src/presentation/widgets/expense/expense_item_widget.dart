@@ -9,6 +9,7 @@ import 'package:trocado/src/presentation/widgets/expense/expense_category_visual
 
 class ExpenseItemWidget extends StatelessWidget {
   final ExpenseModel expense;
+  final String? authorName;
   final String formattedDate;
   final String formattedValue;
 
@@ -17,6 +18,7 @@ class ExpenseItemWidget extends StatelessWidget {
     required this.expense,
     required this.formattedDate,
     required this.formattedValue,
+    this.authorName,
   });
 
   @override
@@ -76,6 +78,14 @@ class ExpenseItemWidget extends StatelessWidget {
                 color: context.colors.onSurfaceVariant,
               ),
             ),
+            if (authorName != null)
+              Text(
+                authorName!,
+                style: context.typography.labelSmall?.copyWith(
+                  fontWeight: .w600,
+                  color: context.colors.primary,
+                ),
+              ),
           ],
         ),
       ],

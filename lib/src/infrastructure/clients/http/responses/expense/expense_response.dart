@@ -5,6 +5,8 @@ final class ExpenseResponse {
   final String category;
   final String createdAt;
   final String description;
+  final bool? createdByMe;
+  final String? createdByName;
 
   const ExpenseResponse({
     required this.id,
@@ -13,6 +15,8 @@ final class ExpenseResponse {
     required this.category,
     required this.createdAt,
     required this.description,
+    this.createdByMe,
+    this.createdByName,
   });
 
   factory ExpenseResponse.fromJson(Map<String, dynamic> json) =>
@@ -23,5 +27,7 @@ final class ExpenseResponse {
         category: json['category'] as String,
         createdAt: json['created_at'] as String,
         description: json['description'] as String,
+        createdByMe: json['created_by_me'] as bool?,
+        createdByName: json['created_by_name'] as String?,
       );
 }

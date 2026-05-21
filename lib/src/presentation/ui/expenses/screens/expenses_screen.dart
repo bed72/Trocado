@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:trocado/src/domain/enums/scope/financial_scope_enum.dart';
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 
@@ -21,6 +22,7 @@ import 'package:trocado/src/presentation/ui/expenses/widgets/expenses_loading_wi
 import 'package:trocado/src/presentation/ui/expenses/widgets/expenses_search_field_widget.dart';
 import 'package:trocado/src/presentation/ui/expenses/widgets/expenses_filter_button_widget.dart';
 import 'package:trocado/src/presentation/ui/expenses/widgets/expenses_active_filters_widget.dart';
+import 'package:trocado/src/presentation/ui/expenses/widgets/expenses_scope_selector_widget.dart';
 
 class ExpensesScreen extends StatefulWidget {
   final ValueChanged<ExpenseModel> onTapExpense;
@@ -159,6 +161,19 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                     ),
                   ),
                 ),
+                if (state.value?.isInCouple ?? false)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const .symmetric(
+                        horizontal: 16.0,
+                        vertical: 8.0,
+                      ),
+                      child: ExpensesScopeSelectorWidget(
+                        scope: state.value?.scope ?? FinancialScopeEnum.mine,
+                        onScopeChanged: notifier.changeScope,
+                      ),
+                    ),
+                  ),
                 SliverToBoxAdapter(
                   child: ExpensesActiveFiltersWidget(
                     onRemove: notifier.removeFilter,

@@ -1,5 +1,6 @@
 import 'package:trocado/src/domain/either/either.dart';
 
+import 'package:trocado/src/domain/enums/scope/financial_scope_enum.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 
 import 'package:trocado/src/infrastructure/clients/http/http_client.dart';
@@ -33,11 +34,13 @@ abstract interface class IRemoteExpenseDataSource {
 
   Future<Either<FailureResponse, ExpensesResponse>> findRecent({
     required int limit,
+    required FinancialScopeEnum scope,
   });
 
   Future<Either<FailureResponse, ExpensesResponse>> findAll({
     String? cursor,
     ExpenseFilterModel? filter,
+    required FinancialScopeEnum scope,
   });
 }
 
@@ -116,9 +119,10 @@ final class RemoteExpenseDataSource implements IRemoteExpenseDataSource {
   @override
   Future<Either<FailureResponse, ExpensesResponse>> findRecent({
     required int limit,
+    required FinancialScopeEnum scope,
   }) async {
     final response = await _client.get(
-      parameter: Requests(EndpointKey.expenses.path),
+      parameter: Requests(_basePath(scope)),
     );
 
     return response.either(FailureResponse.fromJson, ExpensesResponse.fromJson);
@@ -128,14 +132,19 @@ final class RemoteExpenseDataSource implements IRemoteExpenseDataSource {
   Future<Either<FailureResponse, ExpensesResponse>> findAll({
     String? cursor,
     ExpenseFilterModel? filter,
+    required FinancialScopeEnum scope,
   }) async {
+    final base = _basePath(scope);
     final rql = _request.build(filter: filter, cursor: cursor);
-    final path = rql.isEmpty
-        ? EndpointKey.expenses.path
-        : '${EndpointKey.expenses.path}?$rql';
+    final path = rql.isEmpty ? base : '$base?$rql';
 
     final response = await _client.get(parameter: Requests(path));
 
     return response.either(FailureResponse.fromJson, ExpensesResponse.fromJson);
   }
+
+  String _basePath(FinancialScopeEnum scope) => switch (scope) {
+    .mine => EndpointKey.expenses.path,
+    .couple => EndpointKey.expensesShared.path,
+  };
 }

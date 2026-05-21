@@ -10,6 +10,8 @@ extension ExpenseResponseExtension on ExpenseResponse {
   ExpenseModel toModel() => ExpenseModel(
     id: id,
     description: description,
+    createdByMe: createdByMe,
+    createdByName: createdByName,
     category: .fromString(category),
     value: (double.parse(value) * 100).round(),
     createdAt: DateTime.parse(createdAt).millisecondsSinceEpoch,

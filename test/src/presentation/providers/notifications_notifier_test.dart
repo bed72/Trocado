@@ -14,7 +14,6 @@ import 'package:trocado/src/domain/models/couple/couple_model.dart';
 import 'package:trocado/src/domain/services/date_formatter_service.dart';
 import 'package:trocado/src/domain/models/notification/notification_model.dart';
 import 'package:trocado/src/domain/repositories/interface_couple_repository.dart';
-import 'package:trocado/src/domain/enums/notification/notification_type_enum.dart';
 import 'package:trocado/src/domain/models/notification/notifications_page_model.dart';
 import 'package:trocado/src/domain/repositories/interface_notification_repository.dart';
 
@@ -32,26 +31,26 @@ const _first = [
   ),
   NotificationModel(
     id: 2,
-    type: NotificationTypeEnum.budgetEightyPercent,
     title: 'Orçamento 80%',
     description: 'Atenção.',
     createdAt: 1746990000000,
+    type: .budgetEightyPercent,
   ),
 ];
 
 const _second = [
   NotificationModel(
     id: 3,
-    type: NotificationTypeEnum.unknown,
     title: 'Aviso',
+    type: .unknown,
     description: 'Algo.',
     createdAt: 1746000000000,
   ),
 ];
 
 ProviderContainer _makeContainer({
-  required INotificationRepository repository,
   required ICoupleRepository coupleRepository,
+  required INotificationRepository repository,
   required IDateFormatterService dateFormatter,
 }) {
   final container = ProviderContainer(
@@ -99,11 +98,11 @@ void main() {
       container.listen(notificationsProvider, (_, _) {});
       final state = await container.read(notificationsProvider.future);
 
-      expect(state.items.map((item) => item.notification.id), [1, 2]);
-      expect(state.items.first.formattedTime, '14:30');
       expect(state.nextCursor, 'CUR1');
       expect(state.isLoadingMore, isFalse);
       expect(state.loadMoreFailure, isNull);
+      expect(state.items.first.formattedTime, '14:30');
+      expect(state.items.map((item) => item.notification.id), [1, 2]);
 
       verify(() => repository.findAll(cursor: null)).called(1);
     });
@@ -115,8 +114,8 @@ void main() {
 
       final container = _makeContainer(
         repository: repository,
-        coupleRepository: coupleRepository,
         dateFormatter: dateFormatter,
+        coupleRepository: coupleRepository,
       );
       container.listen(notificationsProvider, (_, _) {});
       container.read(notificationsProvider);
@@ -124,6 +123,7 @@ void main() {
       await pumpEventQueue();
 
       final state = container.read(notificationsProvider);
+
       expect(state.hasError, isTrue);
       expect(state.error, isA<NetworkFailure>());
     });
@@ -147,15 +147,16 @@ void main() {
 
       final container = _makeContainer(
         repository: repository,
-        coupleRepository: coupleRepository,
         dateFormatter: dateFormatter,
+        coupleRepository: coupleRepository,
       );
       container.listen(notificationsProvider, (_, _) {});
-      await container.read(notificationsProvider.future);
 
+      await container.read(notificationsProvider.future);
       await container.read(notificationsProvider.notifier).loadMore();
 
       final state = container.read(notificationsProvider).value!;
+
       expect(state.nextCursor, isNull);
       expect(state.isLoadingMore, isFalse);
       expect(state.items.map((item) => item.notification.id), [1, 2, 3]);
@@ -170,16 +171,16 @@ void main() {
 
       final container = _makeContainer(
         repository: repository,
-        coupleRepository: coupleRepository,
         dateFormatter: dateFormatter,
+        coupleRepository: coupleRepository,
       );
       container.listen(notificationsProvider, (_, _) {});
       await container.read(notificationsProvider.future);
 
       await container.read(notificationsProvider.notifier).loadMore();
 
-      verify(() => repository.findAll(cursor: null)).called(1);
       verifyNever(() => repository.findAll(cursor: 'CUR1'));
+      verify(() => repository.findAll(cursor: null)).called(1);
     });
 
     test('sets loadMoreFailure on Left without losing items', () async {
@@ -197,8 +198,8 @@ void main() {
 
       final container = _makeContainer(
         repository: repository,
-        coupleRepository: coupleRepository,
         dateFormatter: dateFormatter,
+        coupleRepository: coupleRepository,
       );
       container.listen(notificationsProvider, (_, _) {});
       await container.read(notificationsProvider.future);
@@ -206,6 +207,7 @@ void main() {
       await container.read(notificationsProvider.notifier).loadMore();
 
       final state = container.read(notificationsProvider).value!;
+
       expect(state.nextCursor, 'CUR1');
       expect(state.isLoadingMore, isFalse);
       expect(state.loadMoreFailure, isA<NetworkFailure>());
@@ -226,12 +228,12 @@ void main() {
 
       final container = _makeContainer(
         repository: repository,
-        coupleRepository: coupleRepository,
         dateFormatter: dateFormatter,
+        coupleRepository: coupleRepository,
       );
       container.listen(notificationsProvider, (_, _) {});
-      await container.read(notificationsProvider.future);
 
+      await container.read(notificationsProvider.future);
       await container.read(notificationsProvider.notifier).deleteAll();
 
       final state = container.read(notificationsProvider).value!;
@@ -255,8 +257,8 @@ void main() {
 
       final container = _makeContainer(
         repository: repository,
-        coupleRepository: coupleRepository,
         dateFormatter: dateFormatter,
+        coupleRepository: coupleRepository,
       );
       container.listen(notificationsProvider, (_, _) {});
       await container.read(notificationsProvider.future);
@@ -264,10 +266,11 @@ void main() {
       await container.read(notificationsProvider.notifier).deleteAll();
 
       final state = container.read(notificationsProvider).value!;
-      expect(state.items.map((item) => item.notification.id), [1, 2]);
+
       expect(state.nextCursor, 'CUR1');
       expect(state.isDeletingAll, isFalse);
       expect(state.deleteAllFailure, isA<NetworkFailure>());
+      expect(state.items.map((item) => item.notification.id), [1, 2]);
     });
 
     test('no-op when already deleting', () async {
@@ -282,8 +285,8 @@ void main() {
 
       final container = _makeContainer(
         repository: repository,
-        coupleRepository: coupleRepository,
         dateFormatter: dateFormatter,
+        coupleRepository: coupleRepository,
       );
       container.listen(notificationsProvider, (_, _) {});
       await container.read(notificationsProvider.future);
@@ -312,8 +315,8 @@ void main() {
 
       final container = _makeContainer(
         repository: repository,
-        coupleRepository: coupleRepository,
         dateFormatter: dateFormatter,
+        coupleRepository: coupleRepository,
       );
       container.listen(notificationsProvider, (_, _) {});
       await container.read(notificationsProvider.future);
@@ -321,8 +324,10 @@ void main() {
       await container.read(notificationsProvider.notifier).deleteById(1);
 
       final state = container.read(notificationsProvider).value!;
-      expect(state.items.map((item) => item.notification.id), [2]);
+
       expect(state.deleteFailure, isNull);
+      expect(state.items.map((item) => item.notification.id), [2]);
+
       verify(() => repository.deleteById(id: 1)).called(1);
     });
 
@@ -335,17 +340,18 @@ void main() {
 
       final container = _makeContainer(
         repository: repository,
-        coupleRepository: coupleRepository,
         dateFormatter: dateFormatter,
+        coupleRepository: coupleRepository,
       );
       container.listen(notificationsProvider, (_, _) {});
-      await container.read(notificationsProvider.future);
 
+      await container.read(notificationsProvider.future);
       await container.read(notificationsProvider.notifier).deleteById(999);
 
       final state = container.read(notificationsProvider).value!;
-      expect(state.items.map((item) => item.notification.id), [1, 2]);
+
       verifyNever(() => repository.deleteById(id: any(named: 'id')));
+      expect(state.items.map((item) => item.notification.id), [1, 2]);
     });
 
     test(
@@ -362,17 +368,18 @@ void main() {
 
         final container = _makeContainer(
           repository: repository,
-          coupleRepository: coupleRepository,
           dateFormatter: dateFormatter,
+          coupleRepository: coupleRepository,
         );
         container.listen(notificationsProvider, (_, _) {});
-        await container.read(notificationsProvider.future);
 
+        await container.read(notificationsProvider.future);
         await container.read(notificationsProvider.notifier).deleteById(2);
 
         final state = container.read(notificationsProvider).value!;
-        expect(state.items.map((item) => item.notification.id), [1, 2]);
+
         expect(state.deleteFailure, isA<NetworkFailure>());
+        expect(state.items.map((item) => item.notification.id), [1, 2]);
       },
     );
   });
@@ -393,22 +400,21 @@ void main() {
 
       final container = _makeContainer(
         repository: repository,
-        coupleRepository: coupleRepository,
         dateFormatter: dateFormatter,
+        coupleRepository: coupleRepository,
       );
       container.listen(notificationsProvider, (_, _) {});
       final state = await container.read(notificationsProvider.future);
 
       final sharedItem = state.items.firstWhere(
-        (item) =>
-            item.notification.type == NotificationTypeEnum.sharedExpenseCreated,
+        (item) => item.notification.type == .sharedExpenseCreated,
       );
       final budgetItem = state.items.firstWhere(
-        (item) =>
-            item.notification.type == NotificationTypeEnum.budgetEightyPercent,
+        (item) => item.notification.type == .budgetEightyPercent,
       );
-      expect(sharedItem.showLabel, isFalse);
+
       expect(budgetItem.showLabel, isTrue);
+      expect(sharedItem.showLabel, isFalse);
     });
 
     test('shows label for unknown when solo', () async {
@@ -420,8 +426,8 @@ void main() {
 
       final container = _makeContainer(
         repository: repository,
-        coupleRepository: coupleRepository,
         dateFormatter: dateFormatter,
+        coupleRepository: coupleRepository,
       );
       container.listen(notificationsProvider, (_, _) {});
       final state = await container.read(notificationsProvider.future);
@@ -441,8 +447,8 @@ void main() {
 
       final container = _makeContainer(
         repository: repository,
-        coupleRepository: coupleRepository,
         dateFormatter: dateFormatter,
+        coupleRepository: coupleRepository,
       );
       container.listen(notificationsProvider, (_, _) {});
       final state = await container.read(notificationsProvider.future);
@@ -467,29 +473,27 @@ void main() {
 
       final container = _makeContainer(
         repository: repository,
-        coupleRepository: coupleRepository,
         dateFormatter: dateFormatter,
+        coupleRepository: coupleRepository,
       );
       container.listen(notificationsProvider, (_, _) {});
-      await container.read(notificationsProvider.future);
 
+      await container.read(notificationsProvider.future);
       await container.read(notificationsProvider.notifier).loadMore();
 
       final state = container.read(notificationsProvider).value!;
       final shared = state.items.firstWhere(
-        (item) =>
-            item.notification.type == NotificationTypeEnum.sharedExpenseCreated,
+        (item) => item.notification.type == .sharedExpenseCreated,
       );
       final budget = state.items.firstWhere(
-        (item) =>
-            item.notification.type == NotificationTypeEnum.budgetEightyPercent,
+        (item) => item.notification.type == .budgetEightyPercent,
       );
       final unknown = state.items.firstWhere(
-        (item) => item.notification.type == NotificationTypeEnum.unknown,
+        (item) => item.notification.type == .unknown,
       );
 
-      expect(shared.showLabel, isFalse);
       expect(budget.showLabel, isTrue);
+      expect(shared.showLabel, isFalse);
       expect(unknown.showLabel, isTrue);
     });
   });
@@ -513,12 +517,12 @@ void main() {
 
       final container = _makeContainer(
         repository: repository,
-        coupleRepository: coupleRepository,
         dateFormatter: dateFormatter,
+        coupleRepository: coupleRepository,
       );
       container.listen(notificationsProvider, (_, _) {});
-      await container.read(notificationsProvider.future);
 
+      await container.read(notificationsProvider.future);
       await container.read(notificationsProvider.notifier).refresh();
 
       final state = container.read(notificationsProvider).value!;
