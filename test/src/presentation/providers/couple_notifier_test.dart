@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,19 +8,13 @@ import 'package:trocado/src/domain/either/either.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/models/user_model.dart';
 import 'package:trocado/src/domain/models/couple/couple_model.dart';
-import 'package:trocado/src/domain/services/date_formatter_service.dart';
-import 'package:trocado/src/domain/repositories/interface_user_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_couple_repository.dart';
 
-import 'package:trocado/src/main/providers/services_provider.dart';
 import 'package:trocado/src/main/providers/repositories_provider.dart';
 
-import 'package:trocado/src/presentation/ui/settings/data/couple_card_state.dart';
-import 'package:trocado/src/presentation/ui/settings/notifiers/couple_notifier.dart';
+import 'package:trocado/src/presentation/notifiers/couple_notifier.dart';
 
 import '../../../mocks/mocks.dart';
-
-const _user = UserModel(id: 1, email: 'gabriel@trocado.app', name: 'Gabriel');
 
 final _couple = CoupleModel(
   id: 7,
@@ -27,151 +23,100 @@ final _couple = CoupleModel(
 );
 
 void main() {
-  late IUserRepository userRepository;
   late ICoupleRepository coupleRepository;
-  late IDateFormatterService dateFormatter;
 
   setUp(() {
-    userRepository = MockUserRepository();
     coupleRepository = MockCoupleRepository();
-    dateFormatter = MockDateFormatterService();
-
-    when(() => userRepository.me()).thenAnswer((_) async => const Right(_user));
-    when(() => dateFormatter.formatRelativePast(any())).thenReturn('4 meses');
   });
 
   Future<ProviderContainer> makeContainer() async {
     final container = ProviderContainer(
-      overrides: [
-        userRepositoryProvider.overrideWithValue(userRepository),
-        coupleRepositoryProvider.overrideWithValue(coupleRepository),
-        dateFormatterServiceProvider.overrideWithValue(dateFormatter),
-      ],
+      retry: (_, _) => null,
+      overrides: [coupleRepositoryProvider.overrideWithValue(coupleRepository)],
     );
     addTearDown(container.dispose);
-    container.listen(coupleProvider, (_, _) {});
-    await container.read(coupleProvider.future);
+    container.listen(coupleProvider, (_, _) {}, onError: (_, _) {});
+    unawaited(
+      container
+          .read(coupleProvider.future)
+          .then<void>((_) {}, onError: (_, _) {}),
+    );
+    await Future<void>.delayed(Duration.zero);
+    await Future<void>.delayed(Duration.zero);
     return container;
   }
 
   group('build', () {
-    test(
-      'returns CoupleConnectedState with title, subtitle and initials',
-      () async {
-        when(
-          () => coupleRepository.findActive(),
-        ).thenAnswer((_) async => Right(_couple));
+    test('returns AsyncData with couple on success', () async {
+      when(
+        () => coupleRepository.findActive(),
+      ).thenAnswer((_) async => Right(_couple));
 
-        final container = await makeContainer();
-        final state = container.read(coupleProvider).asData?.value;
+      final container = await makeContainer();
+      final state = container.read(coupleProvider);
 
-        expect(state, isA<CoupleConnectedState>());
-        final data = (state as CoupleConnectedState).data;
-        expect(data.partnerInitial, 'M');
-        expect(data.currentUserInitial, 'G');
-        expect(data.title, 'Gabriel & Marina');
-        expect(data.subtitle, 'Conectados há 4 meses');
+      expect(state.asData?.value, _couple);
+      expect(state, isA<AsyncData<CoupleModel?>>());
+    });
 
-        verify(
-          () => dateFormatter.formatRelativePast(_couple.createdAt),
-        ).called(1);
-      },
-    );
+    test('returns AsyncData with null on NotFoundFailure', () async {
+      when(
+        () => coupleRepository.findActive(),
+      ).thenAnswer((_) async => const Left(NotFoundFailure()));
 
-    test(
-      'returns CoupleNoneState when repository returns NotFoundFailure',
-      () async {
-        when(
-          () => coupleRepository.findActive(),
-        ).thenAnswer((_) async => const Left(NotFoundFailure()));
+      final container = await makeContainer();
+      final state = container.read(coupleProvider);
 
-        final container = await makeContainer();
-        final state = container.read(coupleProvider).asData?.value;
+      expect(state.asData?.value, isNull);
+      expect(state, isA<AsyncData<CoupleModel?>>());
+    });
 
-        expect(state, isA<CoupleNoneState>());
-      },
-    );
-
-    test('returns CoupleFailureState with message on NetworkFailure', () async {
+    test('returns AsyncError on NetworkFailure', () async {
       when(
         () => coupleRepository.findActive(),
       ).thenAnswer((_) async => const Left(NetworkFailure()));
 
       final container = await makeContainer();
-      final state = container.read(coupleProvider).asData?.value;
+      final state = container.read(coupleProvider);
 
-      expect(state, isA<CoupleFailureState>());
-      expect(
-        (state as CoupleFailureState).message,
-        'Sem conexão com o servidor.',
-      );
+      expect(state, isA<AsyncError<CoupleModel?>>());
+      expect(state.error, isA<NetworkFailure>());
     });
 
-    test('returns CoupleFailureState with message on ServerFailure', () async {
+    test('returns AsyncError on ServerFailure', () async {
       when(
         () => coupleRepository.findActive(),
       ).thenAnswer((_) async => const Left(ServerFailure()));
 
       final container = await makeContainer();
-      final state = container.read(coupleProvider).asData?.value;
+      final state = container.read(coupleProvider);
 
-      expect(state, isA<CoupleFailureState>());
-      expect(
-        (state as CoupleFailureState).message,
-        'Falha interna do servidor.',
-      );
+      expect(state.error, isA<ServerFailure>());
+      expect(state, isA<AsyncError<CoupleModel?>>());
     });
 
-    test(
-      'returns CoupleFailureState with custom message on ValidationFailure',
-      () async {
-        when(() => coupleRepository.findActive()).thenAnswer(
-          (_) async => const Left(ValidationFailure('Algo inesperado.')),
-        );
-
-        final container = await makeContainer();
-        final state = container.read(coupleProvider).asData?.value;
-
-        expect(state, isA<CoupleFailureState>());
-        expect((state as CoupleFailureState).message, 'Algo inesperado.');
-      },
-    );
-
-    test(
-      'returns CoupleFailureState with default message on UnknownFailure',
-      () async {
-        when(
-          () => coupleRepository.findActive(),
-        ).thenAnswer((_) async => const Left(UnknownFailure()));
-
-        final container = await makeContainer();
-        final state = container.read(coupleProvider).asData?.value;
-
-        expect(state, isA<CoupleFailureState>());
-        expect((state as CoupleFailureState).message, 'Falha desconhecida.');
-      },
-    );
-
-    test('handles partner name with diacritics', () async {
-      final coupleWithDiacritics = _couple.copyWith(
-        partner: const UserModel(
-          id: 2,
-          name: 'Ágata',
-          email: 'agata@trocado.app',
-        ),
+    test('returns AsyncError on ValidationFailure', () async {
+      when(() => coupleRepository.findActive()).thenAnswer(
+        (_) async => const Left(ValidationFailure('Algo inesperado.')),
       );
 
+      final container = await makeContainer();
+      final state = container.read(coupleProvider);
+
+      expect(state.error, isA<ValidationFailure>());
+      expect(state, isA<AsyncError<CoupleModel?>>());
+    });
+
+    test('returns AsyncError on UnknownFailure', () async {
       when(
         () => coupleRepository.findActive(),
-      ).thenAnswer((_) async => Right(coupleWithDiacritics));
+      ).thenAnswer((_) async => const Left(UnknownFailure()));
 
       final container = await makeContainer();
-      final state = container.read(coupleProvider).asData?.value;
+      final state = container.read(coupleProvider);
 
-      expect(state, isA<CoupleConnectedState>());
-      final data = (state as CoupleConnectedState).data;
-      expect(data.partnerInitial, 'Á');
-      expect(data.title, 'Gabriel & Ágata');
+      expect(state.error, isA<UnknownFailure>());
+      expect(state, isA<AsyncError<CoupleModel?>>());
     });
   });
 }

@@ -1,0 +1,1 @@
+enum FinancialScopeEnum { mine, couple }

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:trocado/src/presentation/notifiers/couple_notifier.dart';
 import 'package:trocado/src/presentation/widgets/cards/inline_failure_card_widget.dart';
 
 import 'package:trocado/src/presentation/ui/settings/data/couple_card_state.dart';
-import 'package:trocado/src/presentation/ui/settings/notifiers/couple_notifier.dart';
+import 'package:trocado/src/presentation/ui/settings/notifiers/settings_couple_card_notifier.dart';
 import 'package:trocado/src/presentation/ui/settings/widgets/settings_invite_partner_widget.dart';
 import 'package:trocado/src/presentation/ui/settings/widgets/settings_couple_connected_widget.dart';
 import 'package:trocado/src/presentation/ui/settings/widgets/settings_couple_loading_widget.dart';
@@ -22,7 +23,7 @@ class SettingsCoupleStatusWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Consumer(
     builder: (_, ref, _) {
-      final state = ref.watch(coupleProvider);
+      final state = ref.watch(settingsCoupleCardProvider);
 
       return switch (state) {
         AsyncData(value: CoupleConnectedState(:final data)) =>

@@ -1,57 +1,48 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:trocado/src/main/providers/services_provider.dart';
-import 'package:trocado/src/main/providers/repositories_provider.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/models/user_model.dart';
 import 'package:trocado/src/domain/models/couple/couple_model.dart';
 import 'package:trocado/src/domain/services/date_formatter_service.dart';
-import 'package:trocado/src/domain/repositories/interface_couple_repository.dart';
 
 import 'package:trocado/src/presentation/notifiers/user_notifier.dart';
+import 'package:trocado/src/presentation/notifiers/couple_notifier.dart';
+import 'package:trocado/src/presentation/extensions/name_initial_extension.dart';
+
 import 'package:trocado/src/presentation/ui/settings/data/couple_card_state.dart';
 import 'package:trocado/src/presentation/ui/settings/data/couple_card_presentation_data.dart';
 
-part 'couple_notifier.g.dart';
+part 'settings_couple_card_notifier.g.dart';
 
 @Riverpod()
-final class CoupleNotifier extends _$CoupleNotifier {
-  late ICoupleRepository _repository;
+final class SettingsCoupleCardNotifier extends _$SettingsCoupleCardNotifier {
   late IDateFormatterService _dateFormatter;
 
   @override
   Future<CoupleCardState> build() async {
-    _repository = ref.watch(coupleRepositoryProvider);
     _dateFormatter = ref.watch(dateFormatterServiceProvider);
 
-    final data = await _repository.findActive();
-    final user = await ref.watch(userProvider.future);
+    try {
+      final couple = await ref.watch(coupleProvider.future);
+      if (couple == null) return const CoupleNoneState();
 
-    return data.fold(
-      _toFailureState,
-      (couple) => CoupleConnectedState(_toPresentationData(user, couple)),
-    );
+      final user = await ref.watch(userProvider.future);
+      return CoupleConnectedState(_toPresentationData(user, couple));
+    } on Failure catch (failure) {
+      return CoupleFailureState(failure.message);
+    }
   }
-
-  CoupleCardState _toFailureState(Failure failure) => switch (failure) {
-    NotFoundFailure() => const CoupleNoneState(),
-    _ => CoupleFailureState(failure.message),
-  };
 
   CoupleCardPresentationData _toPresentationData(
     UserModel user,
     CoupleModel couple,
   ) => CoupleCardPresentationData(
-    currentUserInitial: _initial(user.name),
-    partnerInitial: _initial(couple.partner.name),
+    currentUserInitial: user.name.toInitial(),
     title: '${user.name} & ${couple.partner.name}',
+    partnerInitial: couple.partner.name.toInitial(),
     subtitle:
         'Conectados há ${_dateFormatter.formatRelativePast(couple.createdAt)}',
   );
-
-  String _initial(String name) {
-    final trimmed = name.trim();
-    return trimmed.isEmpty ? '' : trimmed.substring(0, 1).toUpperCase();
-  }
 }

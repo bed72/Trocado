@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
+import 'package:trocado/src/presentation/extensions/name_initial_extension.dart';
 
 import 'package:trocado/src/presentation/widgets/bounce_widget.dart';
 
@@ -12,12 +13,9 @@ class AvatarWidget extends StatelessWidget {
   const AvatarWidget({
     super.key,
     required this.name,
-    this.size = 48.0,
     this.onTap,
+    this.size = 48.0,
   });
-
-  String get _initial =>
-      name.trim().isEmpty ? '' : name.trim().characters.first.toUpperCase();
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +30,7 @@ class AvatarWidget extends StatelessWidget {
           borderRadius: context.radius.cornerRadius100,
         ),
         child: Text(
-          _initial,
+          name.toInitial(),
           style: context.typography.titleLarge?.copyWith(
             fontWeight: .w800,
             color: context.colors.primary,

@@ -5,10 +5,10 @@ import 'package:trocado/src/main/providers/repositories_provider.dart';
 import 'package:trocado/src/domain/repositories/interface_couple_repository.dart';
 
 import 'package:trocado/src/presentation/notifiers/user_notifier.dart';
+import 'package:trocado/src/presentation/notifiers/couple_notifier.dart';
 
 import 'package:trocado/src/presentation/ui/home/notifiers/insights_notifier.dart';
 import 'package:trocado/src/presentation/ui/budgets/notifiers/budgets_notifier.dart';
-import 'package:trocado/src/presentation/ui/settings/notifiers/couple_notifier.dart';
 import 'package:trocado/src/presentation/ui/expenses/notifiers/expenses_notifier.dart';
 import 'package:trocado/src/presentation/ui/home/notifiers/active_budget_notifier.dart';
 import 'package:trocado/src/presentation/ui/home/notifiers/recent_expenses_notifier.dart';

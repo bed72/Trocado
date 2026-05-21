@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'couple_notifier.dart';
+part of 'settings_couple_card_notifier.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,33 +9,36 @@ part of 'couple_notifier.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(CoupleNotifier)
-final coupleProvider = CoupleNotifierProvider._();
+@ProviderFor(SettingsCoupleCardNotifier)
+final settingsCoupleCardProvider = SettingsCoupleCardNotifierProvider._();
 
-final class CoupleNotifierProvider
-    extends $AsyncNotifierProvider<CoupleNotifier, CoupleCardState> {
-  CoupleNotifierProvider._()
+final class SettingsCoupleCardNotifierProvider
+    extends
+        $AsyncNotifierProvider<SettingsCoupleCardNotifier, CoupleCardState> {
+  SettingsCoupleCardNotifierProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'coupleProvider',
+        name: r'settingsCoupleCardProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$coupleNotifierHash();
+  String debugGetCreateSourceHash() => _$settingsCoupleCardNotifierHash();
 
   @$internal
   @override
-  CoupleNotifier create() => CoupleNotifier();
+  SettingsCoupleCardNotifier create() => SettingsCoupleCardNotifier();
 }
 
-String _$coupleNotifierHash() => r'ee4def98b73a194775dff275ec6450c649204be9';
+String _$settingsCoupleCardNotifierHash() =>
+    r'd2bf2e6d936f922e1ac14024c2fe9759f7a6ce5b';
 
-abstract class _$CoupleNotifier extends $AsyncNotifier<CoupleCardState> {
+abstract class _$SettingsCoupleCardNotifier
+    extends $AsyncNotifier<CoupleCardState> {
   FutureOr<CoupleCardState> build();
   @$mustCallSuper
   @override
