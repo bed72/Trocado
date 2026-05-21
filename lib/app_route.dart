@@ -145,12 +145,6 @@ final class AppRoutes {
     regex: RegExp(r'^/couple/scan$'),
   );
 
-  static final coupleScanConfirm = AppRoutes._(
-    path: '/couple/scan/confirm',
-    name: 'couple-scan-confirm-route',
-    regex: RegExp(r'^/couple/scan/confirm$'),
-  );
-
   static final profile = AppRoutes._(
     path: '/profile',
     name: 'profile-route',
@@ -219,7 +213,6 @@ final class AppRoutes {
     coupleDissolve,
     forgotPassword,
     profilePassword,
-    coupleScanConfirm,
     coupleInviteQrCode,
     passwordResetConfirm,
     forgotPasswordSuccess,

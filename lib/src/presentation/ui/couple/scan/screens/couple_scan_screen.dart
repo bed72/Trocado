@@ -13,10 +13,10 @@ import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
 import 'package:trocado/src/presentation/ui/couple/scan/data/couple_scan_state.dart';
 import 'package:trocado/src/presentation/ui/couple/scan/notifiers/couple_scan_intent.dart';
 import 'package:trocado/src/presentation/ui/couple/scan/notifiers/couple_scan_notifier.dart';
+import 'package:trocado/src/presentation/ui/couple/scan/widgets/couple_scan_confirm_sheet.dart';
 import 'package:trocado/src/presentation/ui/couple/scan/widgets/couple_scan_top_bar_widget.dart';
 import 'package:trocado/src/presentation/ui/couple/scan/widgets/couple_scan_overlay_widget.dart';
 import 'package:trocado/src/presentation/ui/couple/scan/widgets/couple_scan_manual_code_sheet.dart';
-import 'package:trocado/src/presentation/ui/couple/scan/locations/couple_scan_confirm_location.dart';
 import 'package:trocado/src/presentation/ui/couple/scan/widgets/couple_scan_torch_button_widget.dart';
 import 'package:trocado/src/presentation/ui/couple/scan/widgets/couple_scan_permission_denied_widget.dart';
 
@@ -63,13 +63,13 @@ class _CoupleScanScreenState extends State<CoupleScanScreen> {
     switch (next.status) {
       case .detected:
         await _safeStop();
-      case .ready when previous == .failure:
+      case .ready when previous == .failure || previous == .detected:
         await _safeStart();
       default:
     }
 
     if (next.status == .detected) {
-      if (mounted) _navigateToConfirm(next.code);
+      if (mounted) _openConfirmSheet(next.code);
     }
 
     if (next.status == .failure && previous != .failure) {
@@ -202,8 +202,12 @@ class _CoupleScanScreenState extends State<CoupleScanScreen> {
     );
   }
 
-  void _navigateToConfirm(String code) =>
-      context.navigate(CoupleScanConfirmLocation(code: code));
+  Future<void> _openConfirmSheet(String code) async {
+    await showCoupleScanConfirmSheet(context: context, code: code);
+    if (!mounted) return;
+    final container = ProviderScope.containerOf(context, listen: false);
+    container.read(coupleScanProvider.notifier).dispatch(const RetryPressed());
+  }
 
   void _showFailure(String message) {
     showToastWidget(
