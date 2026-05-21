@@ -1,11 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:trocado/src/infrastructure/clients/http/responses/couple/invite_lookup_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/couple/invite_accept_response.dart';
 
 void main() {
-  group('InviteLookupResponse.fromJson', () {
+  group('InviteAcceptResponse.fromJson', () {
     test('parses all fields', () {
-      final response = InviteLookupResponse.fromJson({
+      final response = InviteAcceptResponse.fromJson({
         'couple_id': 1,
         'partner': {'id': 2, 'name': 'Jane Doe', 'email': 'jane@trocado.app'},
       });

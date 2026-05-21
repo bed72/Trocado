@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:trocado/src/domain/either/either.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/models/user_model.dart';
-import 'package:trocado/src/domain/models/couple/invite_lookup_model.dart';
+import 'package:trocado/src/domain/models/couple/invite_accept_model.dart';
 import 'package:trocado/src/domain/repositories/interface_couple_repository.dart';
 
 import 'package:trocado/src/main/providers/repositories_provider.dart';
@@ -16,7 +16,7 @@ import 'package:trocado/src/presentation/ui/couple/scan/notifiers/couple_scan_co
 
 import '../../../mocks/mocks.dart';
 
-const _lookup = InviteLookupModel(
+const _accepted = InviteAcceptModel(
   coupleId: 1,
   partner: UserModel(id: 2, name: 'Marina', email: 'marina@trocado.app'),
 );
@@ -43,15 +43,16 @@ void main() {
       final state = container.read(coupleScanConfirmProvider);
 
       expect(state.message, '');
+      expect(state.partnerName, '');
       expect(state.status, CoupleScanConfirmStatus.initial);
     });
   });
 
   group('AcceptPressed', () {
-    test('transitions to success on Right', () async {
+    test('transitions to success and stores partnerName on Right', () async {
       when(
         () => repository.acceptInvite(code: 'ABC'),
-      ).thenAnswer((_) async => const Right(_lookup));
+      ).thenAnswer((_) async => const Right(_accepted));
 
       final container = makeContainer();
       container
@@ -62,6 +63,7 @@ void main() {
 
       final state = container.read(coupleScanConfirmProvider);
       expect(state.status, CoupleScanConfirmStatus.success);
+      expect(state.partnerName, 'Marina');
     });
 
     test('transitions to failure with message on Left', () async {
@@ -88,7 +90,7 @@ void main() {
         _,
       ) async {
         callCount++;
-        return const Right(_lookup);
+        return const Right(_accepted);
       });
 
       final container = makeContainer();

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:trocado/src/domain/models/couple/invite_lookup_model.dart';
-
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
 import 'package:trocado/src/presentation/widgets/toast_widget.dart';
@@ -14,17 +12,11 @@ import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
 
 import 'package:trocado/src/presentation/ui/couple/scan/notifiers/couple_scan_confirm_intent.dart';
 import 'package:trocado/src/presentation/ui/couple/scan/notifiers/couple_scan_confirm_notifier.dart';
-import 'package:trocado/src/presentation/ui/couple/scan/widgets/couple_scan_partner_preview_widget.dart';
 
 class CoupleScanConfirmScreen extends StatelessWidget {
   final String code;
-  final InviteLookupModel lookup;
 
-  const CoupleScanConfirmScreen({
-    super.key,
-    required this.code,
-    required this.lookup,
-  });
+  const CoupleScanConfirmScreen({super.key, required this.code});
 
   @override
   Widget build(BuildContext context) => ScaffoldWidget(
@@ -36,7 +28,7 @@ class CoupleScanConfirmScreen extends StatelessWidget {
           ref.listen(coupleScanConfirmProvider, (previous, next) {
             switch (next.status) {
               case .success when previous?.status != .success:
-                _onSuccess(context);
+                _onSuccess(context, next.partnerName);
               case .failure when previous?.status != .failure:
                 _onFailure(context, next.message);
               default:
@@ -52,10 +44,17 @@ class CoupleScanConfirmScreen extends StatelessWidget {
             children: [
               const ScreenHeaderWidget(
                 title: 'Confirmar união',
-                description:
-                    'Confira os dados do seu par e confirme para começar a compartilhar finanças.',
+                description: 'Confira o código do convite antes de aceitar.',
               ),
-              CoupleScanPartnerPreviewWidget(partner: lookup.partner),
+              Center(
+                child: Text(
+                  code,
+                  style: context.typography.headlineMedium?.copyWith(
+                    fontWeight: .w600,
+                    letterSpacing: 4.0,
+                  ),
+                ),
+              ),
               const Spacer(),
               SizedBox(
                 width: .infinity,
@@ -74,12 +73,12 @@ class CoupleScanConfirmScreen extends StatelessWidget {
     ),
   );
 
-  void _onSuccess(BuildContext context) {
+  void _onSuccess(BuildContext context, String partnerName) {
     showToastWidget(
       context: context,
       type: .success,
       title: 'Pronto',
-      description: 'Vocês estão conectados.',
+      description: 'Você está conectado com $partnerName.',
     );
     context.root();
   }

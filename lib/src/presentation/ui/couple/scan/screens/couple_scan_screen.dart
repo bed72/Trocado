@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:trocado/src/domain/models/couple/invite_lookup_model.dart';
-
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
 import 'package:trocado/src/presentation/widgets/toast_widget.dart';
@@ -63,16 +61,15 @@ class _CoupleScanScreenState extends State<CoupleScanScreen> {
     if (previous == next.status) return;
 
     switch (next.status) {
-      case .lookup:
-      case .lookedUp:
+      case .detected:
         await _safeStop();
       case .ready when previous == .failure:
         await _safeStart();
       default:
     }
 
-    if (next.status == .lookedUp && next.lookup != null) {
-      if (mounted) _navigateToConfirm(next.code, next.lookup!);
+    if (next.status == .detected) {
+      if (mounted) _navigateToConfirm(next.code);
     }
 
     if (next.status == .failure && previous != .failure) {
@@ -138,7 +135,7 @@ class _CoupleScanScreenState extends State<CoupleScanScreen> {
     required CoupleScanState state,
     required CoupleScanNotifier notifier,
   }) {
-    final isLooking = state.status == .lookup || state.status == .lookedUp;
+    final isCapturing = state.status == .detected;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -191,8 +188,8 @@ class _CoupleScanScreenState extends State<CoupleScanScreen> {
                       ),
                     ),
                     ButtonWidget.elevated(
-                      isLoading: isLooking,
-                      onTap: isLooking ? null : _openManualSheet,
+                      isLoading: isCapturing,
+                      onTap: isCapturing ? null : _openManualSheet,
                       child: const Text('Digitar código manualmente'),
                     ),
                   ],
@@ -205,8 +202,8 @@ class _CoupleScanScreenState extends State<CoupleScanScreen> {
     );
   }
 
-  void _navigateToConfirm(String code, InviteLookupModel lookup) =>
-      context.navigate(CoupleScanConfirmLocation(code: code, lookup: lookup));
+  void _navigateToConfirm(String code) =>
+      context.navigate(CoupleScanConfirmLocation(code: code));
 
   void _showFailure(String message) {
     showToastWidget(

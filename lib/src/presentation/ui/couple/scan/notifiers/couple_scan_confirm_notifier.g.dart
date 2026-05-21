@@ -43,7 +43,7 @@ final class CoupleScanConfirmNotifierProvider
 }
 
 String _$coupleScanConfirmNotifierHash() =>
-    r'e68c9207f7cd724b774eb0bad60252f55705b5e2';
+    r'f666abcdb7384c64a70582a95c1aea513863bc77';
 
 abstract class _$CoupleScanConfirmNotifier
     extends $Notifier<CoupleScanConfirmState> {

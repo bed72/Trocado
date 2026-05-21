@@ -2,10 +2,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:trocado/src/main/providers/services_provider.dart';
 import 'package:trocado/src/main/providers/validators_provider.dart';
-import 'package:trocado/src/main/providers/repositories_provider.dart';
 
 import 'package:trocado/src/domain/services/camera_permission_service.dart';
-import 'package:trocado/src/domain/repositories/interface_couple_repository.dart';
 
 import 'package:trocado/src/presentation/ui/couple/scan/data/couple_scan_state.dart';
 import 'package:trocado/src/presentation/ui/couple/scan/notifiers/couple_scan_intent.dart';
@@ -15,13 +13,11 @@ part 'couple_scan_notifier.g.dart';
 
 @Riverpod()
 final class CoupleScanNotifier extends _$CoupleScanNotifier {
-  late ICoupleRepository _repository;
   late ICameraPermissionService _permission;
   late CoupleScanFormValidator _formValidator;
 
   @override
   Future<CoupleScanState> build() async {
-    _repository = ref.watch(coupleRepositoryProvider);
     _permission = ref.watch(cameraPermissionServiceProvider);
     _formValidator = ref.watch(coupleScanFormValidatorProvider);
 
@@ -31,7 +27,7 @@ final class CoupleScanNotifier extends _$CoupleScanNotifier {
   void dispatch(CoupleScanIntent intent) => switch (intent) {
     RetryPressed() => _retry(),
     OpenSettingsPressed() => _openSettings(),
-    QrDetected(:final code) => _lookup(code),
+    QrDetected(:final code) => _detect(code),
     PermissionRequested() => _requestPermission(),
     ManualCodeSubmitted() => _onManualCodeSubmitted(),
     ManualCodeChanged(:final code) => _onManualCodeChanged(code),
@@ -62,29 +58,27 @@ final class CoupleScanNotifier extends _$CoupleScanNotifier {
     final validated = _formValidator(current);
     state = AsyncData(validated.state);
 
-    if (validated.code != null) _lookup(validated.code!);
+    if (validated.code != null) _detect(validated.code!);
   }
 
-  Future<void> _lookup(String code) async {
+  void _detect(String code) {
     final current = state.value;
     if (current == null) return;
     if (current.status != .ready) return;
 
-    final trimmed = code.trim();
-    if (trimmed.isEmpty) return;
+    final parsed = _parseCode(code);
+    if (parsed.isEmpty) return;
 
-    state = AsyncData(current.copyWith(status: .lookup));
+    state = AsyncData(current.copyWith(code: parsed, status: .detected));
+  }
 
-    final data = await _repository.lookupInvite(code: trimmed);
-
-    state = AsyncData(
-      data.fold(
-        (failure) =>
-            current.copyWith(status: .failure, message: failure.message),
-        (lookup) =>
-            current.copyWith(code: trimmed, lookup: lookup, status: .lookedUp),
-      ),
-    );
+  String _parseCode(String value) {
+    final trimmed = value.trim();
+    final uri = Uri.tryParse(trimmed);
+    if (uri != null && uri.scheme == 'trocado' && uri.host == 'invite') {
+      return uri.pathSegments.isEmpty ? '' : uri.pathSegments.first;
+    }
+    return trimmed;
   }
 
   void _retry() => state = const AsyncData(CoupleScanState(status: .ready));

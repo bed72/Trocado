@@ -43,7 +43,7 @@ final class CoupleScanConfirmNotifier extends _$CoupleScanConfirmNotifier {
     data.fold(
       (failure) =>
           state = state.copyWith(status: .failure, message: failure.message),
-      (_) {
+      (model) {
         ref.invalidate(userProvider);
         ref.invalidate(coupleProvider);
         ref.invalidate(budgetsProvider);
@@ -51,7 +51,10 @@ final class CoupleScanConfirmNotifier extends _$CoupleScanConfirmNotifier {
         ref.invalidate(insightsProvider);
         ref.invalidate(activeBudgetProvider);
         ref.invalidate(recentExpensesProvider);
-        state = state.copyWith(status: .success);
+        state = state.copyWith(
+          status: .success,
+          partnerName: model.partner.name,
+        );
       },
     );
   }

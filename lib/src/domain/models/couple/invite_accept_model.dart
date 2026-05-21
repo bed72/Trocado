@@ -2,14 +2,14 @@ import 'package:equatable/equatable.dart';
 
 import 'package:trocado/src/domain/models/user_model.dart';
 
-final class InviteLookupModel extends Equatable {
+final class InviteAcceptModel extends Equatable {
   final int coupleId;
   final UserModel partner;
 
-  const InviteLookupModel({required this.coupleId, required this.partner});
+  const InviteAcceptModel({required this.coupleId, required this.partner});
 
-  InviteLookupModel copyWith({int? coupleId, UserModel? partner}) =>
-      InviteLookupModel(
+  InviteAcceptModel copyWith({int? coupleId, UserModel? partner}) =>
+      InviteAcceptModel(
         partner: partner ?? this.partner,
         coupleId: coupleId ?? this.coupleId,
       );

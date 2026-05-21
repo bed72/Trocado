@@ -34,7 +34,7 @@ final class CoupleScanNotifierProvider
 }
 
 String _$coupleScanNotifierHash() =>
-    r'90215a927383b7c17e354f97c3447ee8715fb804';
+    r'5f9057456b8e33476d74e5f7e6f53837f6d270a7';
 
 abstract class _$CoupleScanNotifier extends $AsyncNotifier<CoupleScanState> {
   FutureOr<CoupleScanState> build();

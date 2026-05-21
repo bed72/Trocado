@@ -2,6 +2,7 @@ enum EndpointKey {
   me('/api/v1/me'),
   signIn('/api/v1/token'),
   couple('/api/v1/couple'),
+  invites('/api/v1/invites'),
   budgets('/api/v1/budgets'),
   expenses('/api/v1/expenses'),
   insights('/api/v1/insights'),
