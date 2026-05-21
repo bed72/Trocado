@@ -1,11 +1,13 @@
 import 'package:trocado/src/data/extensions/invite_response_extension.dart';
 import 'package:trocado/src/data/extensions/couple_response_extension.dart';
 import 'package:trocado/src/data/extensions/failure_response_extension.dart';
+import 'package:trocado/src/data/extensions/invite_lookup_response_extension.dart';
 
 import 'package:trocado/src/domain/either/either.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/models/couple/invite_model.dart';
 import 'package:trocado/src/domain/models/couple/couple_model.dart';
+import 'package:trocado/src/domain/models/couple/invite_lookup_model.dart';
 import 'package:trocado/src/domain/repositories/interface_couple_repository.dart';
 
 import 'package:trocado/src/infrastructure/clients/share/share_client.dart';
@@ -55,5 +57,29 @@ final class CoupleRepository implements ICoupleRepository {
     );
 
     return const Right(null);
+  }
+
+  @override
+  Future<Either<Failure, InviteLookupModel>> lookupInvite({
+    required String code,
+  }) async {
+    final data = await _dataSource.lookupInvite(code: code);
+
+    return data.either(
+      (failure) => failure.toFailure(),
+      (response) => response.toModel(),
+    );
+  }
+
+  @override
+  Future<Either<Failure, InviteLookupModel>> acceptInvite({
+    required String code,
+  }) async {
+    final data = await _dataSource.acceptInvite(code: code);
+
+    return data.either(
+      (failure) => failure.toFailure(),
+      (response) => response.toModel(),
+    );
   }
 }

@@ -14,6 +14,7 @@ import 'package:trocado/src/infrastructure/clients/http/responses/user_response.
 import 'package:trocado/src/infrastructure/clients/http/responses/couple/couple_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/couple/invite_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/failure/failure_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/couple/invite_lookup_response.dart';
 
 import '../../../mocks/mocks.dart';
 
@@ -266,6 +267,152 @@ void main() {
           'Vamos juntar nossas finanças no Trocado! Aceite meu convite: trocado://invite/A3K7FN',
         ),
       ).called(1);
+    });
+  });
+
+  group('lookupInvite', () {
+    const code = 'A3K7FN';
+
+    test('returns Right with InviteLookupModel on success', () async {
+      when(() => dataSource.lookupInvite(code: code)).thenAnswer(
+        (_) async => Right(
+          InviteLookupResponse(
+            coupleId: 1,
+            partner: const UserResponse(
+              id: 2,
+              name: 'Marina',
+              email: 'partner@trocado.app',
+            ),
+          ),
+        ),
+      );
+
+      final data = await repository.lookupInvite(code: code);
+
+      expect(data.isRight, isTrue);
+      expect(data.right.coupleId, 1);
+      expect(data.right.partner.id, 2);
+      expect(data.right.partner.name, 'Marina');
+      expect(data.right.partner.email, 'partner@trocado.app');
+    });
+
+    test('returns Left NotFoundFailure when code does not exist', () async {
+      when(() => dataSource.lookupInvite(code: code)).thenAnswer(
+        (_) async => Left(_failure('not_found', 'Convite não encontrado.')),
+      );
+
+      final data = await repository.lookupInvite(code: code);
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<NotFoundFailure>());
+    });
+
+    test('returns Left ValidationFailure when invite expired', () async {
+      when(() => dataSource.lookupInvite(code: code)).thenAnswer(
+        (_) async => Left(_failure('invite_expired', 'Convite expirou.')),
+      );
+
+      final data = await repository.lookupInvite(code: code);
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<ValidationFailure>());
+      expect(data.left.message, 'Convite expirou.');
+    });
+
+    test('returns Left NetworkFailure on network error', () async {
+      when(() => dataSource.lookupInvite(code: code)).thenAnswer(
+        (_) async => Left(_failure('network_error', 'Network error')),
+      );
+
+      final data = await repository.lookupInvite(code: code);
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<NetworkFailure>());
+    });
+
+    test('returns Left ServerFailure on 5xx', () async {
+      when(() => dataSource.lookupInvite(code: code)).thenAnswer(
+        (_) async => Left(_failure('server_error', 'Internal server error')),
+      );
+
+      final data = await repository.lookupInvite(code: code);
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<ServerFailure>());
+    });
+  });
+
+  group('acceptInvite', () {
+    const code = 'A3K7FN';
+
+    test('returns Right with InviteLookupModel on success', () async {
+      when(() => dataSource.acceptInvite(code: code)).thenAnswer(
+        (_) async => Right(
+          InviteLookupResponse(
+            coupleId: 1,
+            partner: const UserResponse(
+              id: 2,
+              name: 'Marina',
+              email: 'partner@trocado.app',
+            ),
+          ),
+        ),
+      );
+
+      final data = await repository.acceptInvite(code: code);
+
+      expect(data.isRight, isTrue);
+      expect(data.right.coupleId, 1);
+      expect(data.right.partner.name, 'Marina');
+    });
+
+    test('returns Left ValidationFailure when invite already used', () async {
+      when(() => dataSource.acceptInvite(code: code)).thenAnswer(
+        (_) async =>
+            Left(_failure('invite_already_used', 'Convite já foi aceito.')),
+      );
+
+      final data = await repository.acceptInvite(code: code);
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<ValidationFailure>());
+      expect(data.left.message, 'Convite já foi aceito.');
+    });
+
+    test('returns Left ValidationFailure when own invite', () async {
+      when(() => dataSource.acceptInvite(code: code)).thenAnswer(
+        (_) async => Left(
+          _failure('invite_own', 'Você não pode aceitar seu próprio convite.'),
+        ),
+      );
+
+      final data = await repository.acceptInvite(code: code);
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<ValidationFailure>());
+    });
+
+    test('returns Left ValidationFailure when already in couple', () async {
+      when(() => dataSource.acceptInvite(code: code)).thenAnswer(
+        (_) async =>
+            Left(_failure('already_in_couple', 'Você já está em um casal.')),
+      );
+
+      final data = await repository.acceptInvite(code: code);
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<ValidationFailure>());
+    });
+
+    test('returns Left NetworkFailure on network error', () async {
+      when(() => dataSource.acceptInvite(code: code)).thenAnswer(
+        (_) async => Left(_failure('network_error', 'Network error')),
+      );
+
+      final data = await repository.acceptInvite(code: code);
+
+      expect(data.isLeft, isTrue);
+      expect(data.left, isA<NetworkFailure>());
     });
   });
 }

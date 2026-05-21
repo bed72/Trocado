@@ -21,7 +21,7 @@ class ExpensesFilterPeriodSectionWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Column(
     spacing: 8.0,
-    crossAxisAlignment: CrossAxisAlignment.start,
+    crossAxisAlignment: .start,
     children: [
       Text(
         'Período',

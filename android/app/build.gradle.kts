@@ -87,6 +87,7 @@ android {
 
 dependencies {
     implementation("androidx.core:core-splashscreen:1.2.0")
+    implementation("com.google.mlkit:barcode-scanning:17.3.0")
 }
 
 flutter {

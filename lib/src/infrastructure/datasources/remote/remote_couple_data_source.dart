@@ -6,11 +6,18 @@ import 'package:trocado/src/infrastructure/clients/http/requests/requests.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/couple/couple_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/couple/invite_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/failure/failure_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/couple/invite_lookup_response.dart';
 
 abstract interface class IRemoteCoupleDataSource {
   Future<Either<FailureResponse, void>> dissolve();
   Future<Either<FailureResponse, CoupleResponse>> findActive();
   Future<Either<FailureResponse, InviteResponse>> createInvite();
+  Future<Either<FailureResponse, InviteLookupResponse>> lookupInvite({
+    required String code,
+  });
+  Future<Either<FailureResponse, InviteLookupResponse>> acceptInvite({
+    required String code,
+  });
 }
 
 final class RemoteCoupleDataSource implements IRemoteCoupleDataSource {
@@ -43,5 +50,33 @@ final class RemoteCoupleDataSource implements IRemoteCoupleDataSource {
     );
 
     return response.either(FailureResponse.fromJson, InviteResponse.fromJson);
+  }
+
+  @override
+  Future<Either<FailureResponse, InviteLookupResponse>> lookupInvite({
+    required String code,
+  }) async {
+    final response = await _client.get(
+      parameter: Requests('${EndpointKey.coupleInvites.path}/$code'),
+    );
+
+    return response.either(
+      FailureResponse.fromJson,
+      InviteLookupResponse.fromJson,
+    );
+  }
+
+  @override
+  Future<Either<FailureResponse, InviteLookupResponse>> acceptInvite({
+    required String code,
+  }) async {
+    final response = await _client.post(
+      parameter: Requests('${EndpointKey.coupleInvites.path}/$code/accept'),
+    );
+
+    return response.either(
+      FailureResponse.fromJson,
+      InviteLookupResponse.fromJson,
+    );
   }
 }

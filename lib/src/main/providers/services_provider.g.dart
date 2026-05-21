@@ -144,3 +144,51 @@ final class DateFormatterServiceProvider
 
 String _$dateFormatterServiceHash() =>
     r'0bddecd5453ed6ae3c700f5fba8b781e7a4f9d7d';
+
+@ProviderFor(cameraPermissionService)
+final cameraPermissionServiceProvider = CameraPermissionServiceProvider._();
+
+final class CameraPermissionServiceProvider
+    extends
+        $FunctionalProvider<
+          ICameraPermissionService,
+          ICameraPermissionService,
+          ICameraPermissionService
+        >
+    with $Provider<ICameraPermissionService> {
+  CameraPermissionServiceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'cameraPermissionServiceProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$cameraPermissionServiceHash();
+
+  @$internal
+  @override
+  $ProviderElement<ICameraPermissionService> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  ICameraPermissionService create(Ref ref) {
+    return cameraPermissionService(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ICameraPermissionService value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ICameraPermissionService>(value),
+    );
+  }
+}
+
+String _$cameraPermissionServiceHash() =>
+    r'dd64986b0a1beaf35decbdb7a5045ed1d68e3038';

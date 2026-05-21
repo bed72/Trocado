@@ -11,6 +11,7 @@ class TextFieldWidget extends StatefulWidget {
   final String label;
   final bool readOnly;
   final bool absorbing;
+  final bool autofocus;
   final String? failure;
   final bool obscureText;
   final String? initialValue;
@@ -41,6 +42,7 @@ class TextFieldWidget extends StatefulWidget {
     this.inputFormatters,
     this.readOnly = false,
     this.absorbing = false,
+    this.autofocus = false,
     this.onTrailingIconTap,
     this.obscureText = false,
     this.hideTrailingIconWhenEmpty = false,
@@ -148,6 +150,7 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
     enabled: widget.enabled,
     readOnly: widget.readOnly,
     textAlignVertical: .center,
+    autofocus: widget.autofocus,
     obscureText: widget.obscureText,
     keyboardType: widget.keyboardType,
     textInputAction: widget.inputAction,

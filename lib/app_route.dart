@@ -139,6 +139,18 @@ final class AppRoutes {
     regex: RegExp(r'^/couple/dissolve$'),
   );
 
+  static final coupleScan = AppRoutes._(
+    path: '/couple/scan',
+    name: 'couple-scan-route',
+    regex: RegExp(r'^/couple/scan$'),
+  );
+
+  static final coupleScanConfirm = AppRoutes._(
+    path: '/couple/scan/confirm',
+    name: 'couple-scan-confirm-route',
+    regex: RegExp(r'^/couple/scan/confirm$'),
+  );
+
   static final profile = AppRoutes._(
     path: '/profile',
     name: 'profile-route',
@@ -196,6 +208,7 @@ final class AppRoutes {
     category,
     settings,
     calculator,
+    coupleScan,
     dateRange,
     profileName,
     expenseDate,
@@ -206,6 +219,7 @@ final class AppRoutes {
     coupleDissolve,
     forgotPassword,
     profilePassword,
+    coupleScanConfirm,
     coupleInviteQrCode,
     passwordResetConfirm,
     forgotPasswordSuccess,

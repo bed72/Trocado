@@ -44,7 +44,9 @@ dependencies:
   quick_actions: ^1.1.0
   toastification: ^3.2.0
   pretty_qr_code: ^3.6.0
+  mobile_scanner: ^7.2.0
   flex_color_scheme: ^8.4.0
+  permission_handler: ^12.0.1
   flutter_expandable_fab: ^2.5.2
   flutter_secure_storage: ^10.2.0
 

@@ -447,3 +447,51 @@ final class ProfileDeleteFormValidatorProvider
 
 String _$profileDeleteFormValidatorHash() =>
     r'fb5610c4aed70f2bca5cc4fb7bce6cad5b5fe955';
+
+@ProviderFor(coupleScanFormValidator)
+final coupleScanFormValidatorProvider = CoupleScanFormValidatorProvider._();
+
+final class CoupleScanFormValidatorProvider
+    extends
+        $FunctionalProvider<
+          CoupleScanFormValidator,
+          CoupleScanFormValidator,
+          CoupleScanFormValidator
+        >
+    with $Provider<CoupleScanFormValidator> {
+  CoupleScanFormValidatorProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'coupleScanFormValidatorProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$coupleScanFormValidatorHash();
+
+  @$internal
+  @override
+  $ProviderElement<CoupleScanFormValidator> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  CoupleScanFormValidator create(Ref ref) {
+    return coupleScanFormValidator(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(CoupleScanFormValidator value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<CoupleScanFormValidator>(value),
+    );
+  }
+}
+
+String _$coupleScanFormValidatorHash() =>
+    r'e354c3dd1a49bc3697b251961e352de46f6d646e';

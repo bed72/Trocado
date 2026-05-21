@@ -14,9 +14,14 @@ import 'package:trocado/src/presentation/ui/couple/invite/widgets/couple_pair_in
 import 'package:trocado/src/presentation/ui/couple/invite/widgets/couple_invite_actions_widget.dart';
 
 class CoupleInviteScreen extends StatelessWidget {
+  final VoidCallback onScan;
   final VoidCallback onGenerate;
 
-  const CoupleInviteScreen({super.key, required this.onGenerate});
+  const CoupleInviteScreen({
+    super.key,
+    required this.onScan,
+    required this.onGenerate,
+  });
 
   @override
   Widget build(BuildContext context) => ScaffoldWidget(
@@ -44,7 +49,7 @@ class CoupleInviteScreen extends StatelessWidget {
                 message:
                     'Vocês compartilham orçamentos e despesas, mas senhas e dados de login são individuais.',
               ),
-              CoupleInviteActionsWidget(onGenerate: onGenerate, onScan: () {}),
+              CoupleInviteActionsWidget(onGenerate: onGenerate, onScan: onScan),
             ],
           );
         },
