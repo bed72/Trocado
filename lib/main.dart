@@ -17,9 +17,9 @@ Future<void> main() async {
   final container = ProviderContainer(
     observers: kDebugMode ? [stateObserver] : const [],
   );
+
   await container.read(firebaseClientProvider).initialize();
   await container.read(appCheckClientProvider).initialize();
-
   container.read(notificationLifecycleProvider);
 
   final client = container.read(crashClientProvider);

@@ -3,11 +3,8 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.application")
-    // START: FlutterFire Configuration
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
-    // END: FlutterFire Configuration
-    id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
 }
 
@@ -20,9 +17,9 @@ if (localPropertiesFile.exists()) {
     }
 }
 
-var flutterNdkVersion: String = localProperties.getProperty("trocado.ndkVersion") ?: "29.0.14206865"
 val flutterMinSdk: Int? = localProperties.getProperty("trocado.minSdk")?.toInt()
 val flutterAndroidSkd: Int? = localProperties.getProperty("trocado.androidSdkVersion")?.toInt()
+var flutterNdkVersion: String = localProperties.getProperty("trocado.ndkVersion") ?: "29.0.14206865"
 
 android {
     ndkVersion = flutterNdkVersion
@@ -34,26 +31,20 @@ android {
         targetCompatibility = JavaVersion.VERSION_21
     }
 
-    kotlin {
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_21)
-        }
-    }
-
     defaultConfig {
         minSdk = flutterMinSdk
         targetSdk = flutterAndroidSkd
-        applicationId = "br.com.bed.trocado"
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        applicationId = "br.com.bed.trocado"
     }
 
     signingConfigs {
         create("release") {
-            storeFile = file(System.getenv("TROCADO_KEYSTORE_PATH") ?: "../../.keys/trocado.jks")
             keyAlias = System.getenv("TROCADO_KEY_ALIAS")
             keyPassword = System.getenv("TROCADO_KEY_PASSWORD")
             storePassword = System.getenv("TROCADO_STORE_PASSWORD")
+            storeFile = file(System.getenv("TROCADO_KEYSTORE_PATH") ?: "../../.keys/trocado.jks")
         }
     }
 
@@ -82,6 +73,12 @@ android {
                 debugSymbolLevel = "FULL"
             }
         }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_21)
     }
 }
 

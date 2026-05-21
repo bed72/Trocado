@@ -30,7 +30,7 @@ class SwitcherSizeAnimation extends StatelessWidget {
       switchInCurve: Curves.easeOutCubic,
       switchOutCurve: Curves.easeInCubic,
       transitionBuilder: (child, animation) => SizeTransition(
-        axisAlignment: -1.0,
+        alignment: .topCenter,
         sizeFactor: animation,
         child: child,
       ),
@@ -52,8 +52,8 @@ class SlideAnimation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedSlide(
-      curve: Curves.decelerate,
       duration: _duration,
+      curve: Curves.decelerate,
       offset: condition ? const Offset(0, 1) : .zero,
       child: AnimatedOpacity(
         duration: _duration,
