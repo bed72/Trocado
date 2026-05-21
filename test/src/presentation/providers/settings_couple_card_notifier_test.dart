@@ -155,6 +155,39 @@ void main() {
       },
     );
 
+    test('uses only first name for both partners in title', () async {
+      const userWithLongName = UserModel(
+        id: 1,
+        email: 'gabriel@trocado.app',
+        name: 'Gabriel Henrique Ramos',
+      );
+      final coupleWithLongName = _couple.copyWith(
+        partner: const UserModel(
+          id: 2,
+          email: 'marina@trocado.app',
+          name: 'Marina Fernanda da Silva',
+        ),
+      );
+
+      when(
+        () => userRepository.me(),
+      ).thenAnswer((_) async => const Right(userWithLongName));
+      when(
+        () => coupleRepository.findActive(),
+      ).thenAnswer((_) async => Right(coupleWithLongName));
+
+      final container = await makeContainer();
+      final state = container.read(settingsCoupleCardProvider).asData?.value;
+
+      expect(state, isA<CoupleConnectedState>());
+
+      final data = (state! as CoupleConnectedState).data;
+
+      expect(data.partnerInitial, 'M');
+      expect(data.currentUserInitial, 'G');
+      expect(data.title, 'Gabriel & Marina');
+    });
+
     test('handles partner name with diacritics', () async {
       final coupleWithDiacritics = _couple.copyWith(
         partner: const UserModel(

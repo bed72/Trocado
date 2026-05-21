@@ -40,8 +40,8 @@ final class SettingsCoupleCardNotifier extends _$SettingsCoupleCardNotifier {
     CoupleModel couple,
   ) => CoupleCardPresentationData(
     currentUserInitial: user.name.toInitial(),
-    title: '${user.name} & ${couple.partner.name}',
     partnerInitial: couple.partner.name.toInitial(),
+    title: '${user.name.toFirstName()} & ${couple.partner.name.toFirstName()}',
     subtitle:
         'Conectados há ${_dateFormatter.formatRelativePast(couple.createdAt)}',
   );

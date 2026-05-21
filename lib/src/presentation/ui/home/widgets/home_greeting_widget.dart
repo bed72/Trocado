@@ -27,6 +27,8 @@ class HomeGreetingWidget extends StatelessWidget {
       ),
       Text(
         name,
+        maxLines: 1,
+        overflow: .ellipsis,
         style: context.typography.titleMedium?.copyWith(
           fontWeight: .w600,
           color: context.colors.onSurface,

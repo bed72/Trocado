@@ -5,4 +5,6 @@ extension NameInitialExtension on String {
     final trimmed = trim();
     return trimmed.isEmpty ? '' : trimmed.characters.first.toUpperCase();
   }
+
+  String toFirstName() => trim().split(' ').first;
 }

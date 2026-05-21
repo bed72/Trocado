@@ -7,11 +7,11 @@ import 'package:trocado/src/presentation/mixins/back_button_mixin.dart';
 
 import 'package:trocado/src/domain/enums/theme/theme_mode_enum.dart';
 
-import 'package:trocado/src/presentation/notifiers/user_notifier.dart';
 import 'package:trocado/src/presentation/ui/home/notifiers/insights_notifier.dart';
+import 'package:trocado/src/presentation/ui/home/notifiers/home_app_bar_notifier.dart';
 import 'package:trocado/src/presentation/ui/home/notifiers/active_budget_notifier.dart';
-import 'package:trocado/src/presentation/ui/home/notifiers/recent_expenses_notifier.dart';
 import 'package:trocado/src/presentation/ui/settings/notifiers/theme/theme_intent.dart';
+import 'package:trocado/src/presentation/ui/home/notifiers/recent_expenses_notifier.dart';
 import 'package:trocado/src/presentation/ui/settings/notifiers/theme/theme_notifier.dart';
 
 import 'package:trocado/src/presentation/widgets/budget/card/budget_card_widget.dart';
@@ -60,22 +60,20 @@ class _HomeScreenState extends State<HomeScreen>
   Widget build(BuildContext context) {
     return Consumer(
       builder: (_, ref, _) {
-        final userState = ref.watch(userProvider);
+        final appBarState = ref.watch(homeAppBarProvider);
         final insightsState = ref.watch(insightsProvider);
         final budgetState = ref.watch(activeBudgetProvider);
         final recentExpensesState = ref.watch(recentExpensesProvider);
-        final themeMode = ref.watch(themeProvider).maybeWhen(
-          data: (s) => s.mode,
-          orElse: () => ThemeModeEnum.system,
-        );
+        final themeMode = ref
+            .watch(themeProvider)
+            .maybeWhen(data: (s) => s.mode, orElse: () => ThemeModeEnum.system);
 
         return Scaffold(
           appBar: HomeAppBarWidget(
-            userState: userState,
+            appBarState: appBarState,
             themeMode: themeMode,
-            onCycleTheme: () => ref
-                .read(themeProvider.notifier)
-                .dispatch(const CycleTheme()),
+            onCycleTheme: () =>
+                ref.read(themeProvider.notifier).dispatch(const CycleTheme()),
             navigateToProfile: widget.navigateToProfile,
             navigateToSettings: widget.navigateToSettings,
             navigateToNotification: widget.navigateToNotification,
