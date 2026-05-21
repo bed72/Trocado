@@ -234,10 +234,10 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
   }
 
   String _valueLabel(int? min, int? max) => switch ((min, max)) {
+    (null, final int x) => 'Até ${_moneyService.format(x / 100)}',
+    (final int m, null) => 'Acima de ${_moneyService.format(m / 100)}',
     (final int m, final int x) =>
       '${_moneyService.format(m / 100)} – ${_moneyService.format(x / 100)}',
-    (final int m, null) => 'Acima de ${_moneyService.format(m / 100)}',
-    (null, final int x) => 'Até ${_moneyService.format(x / 100)}',
     (null, null) => '',
   };
 
