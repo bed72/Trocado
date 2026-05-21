@@ -293,25 +293,39 @@ lib/src/presentation/preview/
 - Cada função de preview devolve a estrutura "real" (Scaffold, CustomScrollView etc.) — o wrapper do `@TrocadoPreview` já envolve em `MaterialApp`.
 - Previews não leem providers Riverpod direto. Se a tela consome um notifier, extrair a estrutura visual num widget puro (ou um helper `_shell` local) e preview esse widget com estado mockado.
 
-### Widgets privados em arquivos de widget
+### Classes privadas em arquivos de widget
 
-Nunca criar uma classe de widget privada dentro de outro arquivo de widget (ex: `class _FooWidget extends StatelessWidget`).
+Nunca criar uma classe privada com prefixo `_` dentro de outro arquivo de widget. Vale para qualquer classe que tenha lógica própria — widgets (`_FooWidget extends StatelessWidget`/`StatefulWidget`), formatters (`_FooFormatter extends TextInputFormatter`), painters (`_FooPainter extends CustomPainter`), validations, helpers de qualquer tipo. Sempre extrair para arquivo próprio com classe pública.
+
 Em vez disso:
-- Widget com corpo não-trivial → extrair para seu próprio arquivo (`foo_widget.dart`)
-- Widget trivial (ex: espaçador, placeholder fixo) → método privado que retorna o widget
+- Classe com corpo não-trivial → extrair para seu próprio arquivo (`foo_widget.dart`, `foo_formatter.dart`, etc.) com **classe pública**
+- Widget trivial (ex: espaçador, placeholder fixo, `Row` com 2 filhos) → método privado que retorna o widget
+
+Cada tipo de classe tem sua subpasta dentro da feature:
+- Widgets → `widgets/`
+- Formatters → `formatters/`
+- Painters → `widgets/painters/`
+- Validations → `validators/`
 
 ```dart
 // correto — widget extraído para arquivo próprio
 // settings_profile_widget.dart
 class SettingsProfileWidget extends StatelessWidget { ... }
 
+// correto — formatter extraído (em formatters/uppercase_alphabet_formatter.dart)
+final class UppercaseAlphabetFormatter extends TextInputFormatter { ... }
+
 // correto — método para widget trivial
 Widget _profilePlaceholder() => const SizedBox(height: 48.0);
 
-// proibido — classe privada dentro do arquivo
+// proibido — classe de widget privada dentro do arquivo
 class _ProfilePlaceholder extends StatelessWidget {
   Widget build(BuildContext context) => const SizedBox(height: 48.0);
 }
+
+// proibido — qualquer classe privada com lógica dentro de outro arquivo
+class _UppercaseAlphabetFormatter extends TextInputFormatter { ... }
+class _DashedPainter extends CustomPainter { ... }
 ```
 
 ```dart
