@@ -38,9 +38,9 @@ abstract interface class IRemoteExpenseDataSource {
   });
 
   Future<Either<FailureResponse, ExpensesResponse>> findAll({
+    required FinancialScopeEnum scope,
     String? cursor,
     ExpenseFilterModel? filter,
-    required FinancialScopeEnum scope,
   });
 }
 
@@ -121,18 +121,16 @@ final class RemoteExpenseDataSource implements IRemoteExpenseDataSource {
     required int limit,
     required FinancialScopeEnum scope,
   }) async {
-    final response = await _client.get(
-      parameter: Requests(_basePath(scope)),
-    );
+    final response = await _client.get(parameter: Requests(_basePath(scope)));
 
     return response.either(FailureResponse.fromJson, ExpensesResponse.fromJson);
   }
 
   @override
   Future<Either<FailureResponse, ExpensesResponse>> findAll({
+    required FinancialScopeEnum scope,
     String? cursor,
     ExpenseFilterModel? filter,
-    required FinancialScopeEnum scope,
   }) async {
     final base = _basePath(scope);
     final rql = _request.build(filter: filter, cursor: cursor);

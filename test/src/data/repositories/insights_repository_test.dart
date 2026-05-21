@@ -7,6 +7,7 @@ import 'package:trocado/src/data/repositories/insights_repository.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/enums/insight/insight_type_enum.dart';
+import 'package:trocado/src/domain/enums/scope/financial_scope_enum.dart';
 import 'package:trocado/src/domain/enums/insight/insight_severity_enum.dart';
 import 'package:trocado/src/domain/repositories/interface_insights_repository.dart';
 
@@ -56,7 +57,7 @@ void main() {
         () => client.get(parameter: any(named: 'parameter')),
       ).thenAnswer((_) async => const Right(_successJson));
 
-      final data = await repository.findAll();
+      final data = await repository.findAll(scope: FinancialScopeEnum.mine);
 
       expect(data.isRight, isTrue);
       expect(data.right.hasEnoughData, isTrue);
@@ -75,7 +76,7 @@ void main() {
         }),
       );
 
-      final data = await repository.findAll();
+      final data = await repository.findAll(scope: FinancialScopeEnum.mine);
 
       expect(data.isRight, isTrue);
       expect(data.right.insights, isEmpty);
@@ -99,7 +100,7 @@ void main() {
         }),
       );
 
-      final data = await repository.findAll();
+      final data = await repository.findAll(scope: FinancialScopeEnum.mine);
 
       expect(data.isRight, isTrue);
       expect(data.right.insights.first.type, InsightTypeEnum.unknown);
@@ -119,7 +120,7 @@ void main() {
         }),
       );
 
-      final data = await repository.findAll();
+      final data = await repository.findAll(scope: FinancialScopeEnum.mine);
 
       expect(data.isLeft, isTrue);
       expect(data.left, isA<NetworkFailure>());
@@ -138,10 +139,42 @@ void main() {
         }),
       );
 
-      final data = await repository.findAll();
+      final data = await repository.findAll(scope: FinancialScopeEnum.mine);
 
       expect(data.isLeft, isTrue);
       expect(data.left, isA<ServerFailure>());
+    });
+
+    test('uses /insights/shared path when scope is couple', () async {
+      when(
+        () => client.get(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Right(_successJson));
+
+      await repository.findAll(scope: FinancialScopeEnum.couple);
+
+      final captured =
+          verify(
+                () => client.get(parameter: captureAny(named: 'parameter')),
+              ).captured.single
+              as Requests;
+
+      expect(captured.path, '/api/v1/insights/shared');
+    });
+
+    test('uses /insights path when scope is mine', () async {
+      when(
+        () => client.get(parameter: any(named: 'parameter')),
+      ).thenAnswer((_) async => const Right(_successJson));
+
+      await repository.findAll(scope: FinancialScopeEnum.mine);
+
+      final captured =
+          verify(
+                () => client.get(parameter: captureAny(named: 'parameter')),
+              ).captured.single
+              as Requests;
+
+      expect(captured.path, '/api/v1/insights');
     });
   });
 }

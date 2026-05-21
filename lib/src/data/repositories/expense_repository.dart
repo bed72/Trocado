@@ -88,14 +88,14 @@ final class ExpenseRepository implements IExpenseRepository {
 
   @override
   Future<Either<Failure, ExpensesPageModel>> findAll({
+    required FinancialScopeEnum scope,
     String? cursor,
     ExpenseFilterModel? filter,
-    required FinancialScopeEnum scope,
   }) async {
     final data = await _dataSource.findAll(
+      scope: scope,
       cursor: cursor,
       filter: filter,
-      scope: scope,
     );
 
     return data.either(

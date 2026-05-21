@@ -14,15 +14,15 @@ abstract interface class IExpenseRepository {
     int limit = 6,
     required FinancialScopeEnum scope,
   });
-  Future<Either<Failure, ExpensesPageModel>> findAll({
-    String? cursor,
-    ExpenseFilterModel? filter,
-    required FinancialScopeEnum scope,
-  });
   Future<Either<Failure, ExpenseModel>> create({
     required int date,
     required int value,
     required String description,
+  });
+  Future<Either<Failure, ExpensesPageModel>> findAll({
+    required FinancialScopeEnum scope,
+    String? cursor,
+    ExpenseFilterModel? filter,
   });
   Future<Either<Failure, ExpenseModel>> update({
     required int id,

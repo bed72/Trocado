@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:trocado/src/domain/enums/scope/financial_scope_enum.dart';
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 
@@ -169,7 +168,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                         vertical: 8.0,
                       ),
                       child: ExpensesScopeSelectorWidget(
-                        scope: state.value?.scope ?? FinancialScopeEnum.mine,
+                        scope: state.value?.scope ?? .mine,
                         onScopeChanged: notifier.changeScope,
                       ),
                     ),

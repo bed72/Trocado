@@ -213,12 +213,16 @@ class SharedBudgetCardSuccessWidget extends StatelessWidget {
       ),
       Text(
         '$formattedSpent / $formattedValue',
+        maxLines: 1,
+        overflow: .ellipsis,
         style: context.typography.labelSmall?.copyWith(
           color: context.colors.outline,
         ),
       ),
       Text(
         'Resta $formattedRemaining',
+        maxLines: 1,
+        overflow: .ellipsis,
         style: context.typography.labelSmall?.copyWith(
           color: context.colors.onSurfaceVariant,
         ),

@@ -4,9 +4,7 @@ enum EndpointKey {
   couple('/api/v1/couple'),
   invites('/api/v1/invites'),
   budgets('/api/v1/budgets'),
-  budgetsActiveShared('/api/v1/budgets/active/shared'),
   expenses('/api/v1/expenses'),
-  expensesShared('/api/v1/expenses/shared'),
   insights('/api/v1/insights'),
   logout('/api/v1/auth/logout'),
   signUp('/api/v1/auth/register'),
@@ -16,7 +14,10 @@ enum EndpointKey {
   notifications('/api/v1/notifications'),
   budgetsActive('/api/v1/budgets/active'),
   coupleInvites('/api/v1/couple/invites'),
+  expensesShared('/api/v1/expenses/shared'),
+  insightsShared('/api/v1/insights/shared'),
   passwordResetConfirm('/api/v1/auth/password/reset'),
+  budgetsActiveShared('/api/v1/budgets/active/shared'),
   passwordResetRequest('/api/v1/auth/password/request');
 
   const EndpointKey(this.path);
