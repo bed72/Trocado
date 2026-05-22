@@ -25,6 +25,7 @@ import 'package:trocado/src/presentation/widgets/expense/expense_category_visual
 import 'package:trocado/src/presentation/ui/home/notifiers/insights_notifier.dart';
 import 'package:trocado/src/presentation/ui/home/notifiers/active_budget_notifier.dart';
 import 'package:trocado/src/presentation/ui/home/notifiers/recent_expenses_notifier.dart';
+import 'package:trocado/src/presentation/ui/home/notifiers/shared_active_budget_notifier.dart';
 
 import 'package:trocado/src/presentation/ui/expenses/notifiers/expenses_state.dart';
 import 'package:trocado/src/presentation/ui/expenses/data/expense_groups_builder.dart';
@@ -143,6 +144,7 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
         ref.invalidate(insightsProvider);
         ref.invalidate(activeBudgetProvider);
         ref.invalidate(recentExpensesProvider);
+        ref.invalidate(sharedActiveBudgetProvider);
       },
     );
   }

@@ -10,6 +10,7 @@ import 'package:trocado/src/domain/repositories/interface_expense_repository.dar
 import 'package:trocado/src/presentation/ui/home/notifiers/insights_notifier.dart';
 import 'package:trocado/src/presentation/ui/home/notifiers/active_budget_notifier.dart';
 import 'package:trocado/src/presentation/ui/home/notifiers/recent_expenses_notifier.dart';
+import 'package:trocado/src/presentation/ui/home/notifiers/shared_active_budget_notifier.dart';
 
 import 'package:trocado/src/presentation/ui/expenses/notifiers/expenses_notifier.dart';
 import 'package:trocado/src/presentation/ui/expense/notifiers/form/expense_state.dart';
@@ -104,6 +105,7 @@ final class ExpenseNotifier extends _$ExpenseNotifier {
         ref.invalidate(expensesProvider);
         ref.invalidate(activeBudgetProvider);
         ref.invalidate(recentExpensesProvider);
+        ref.invalidate(sharedActiveBudgetProvider);
         _mutate(state.value!.copyWith(status: .success));
       },
     );

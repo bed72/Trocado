@@ -16,7 +16,9 @@ import 'package:trocado/src/domain/repositories/interface_budget_repository.dart
 
 import 'package:trocado/src/presentation/data/budget/budget_card_presentation_data.dart';
 
+import 'package:trocado/src/presentation/ui/home/notifiers/insights_notifier.dart';
 import 'package:trocado/src/presentation/ui/home/notifiers/active_budget_notifier.dart';
+import 'package:trocado/src/presentation/ui/home/notifiers/shared_active_budget_notifier.dart';
 
 import 'package:trocado/src/presentation/ui/budgets/notifiers/budgets_state.dart';
 import 'package:trocado/src/presentation/ui/budgets/data/budget_item_presentation_data.dart';
@@ -66,7 +68,11 @@ final class BudgetsNotifier extends _$BudgetsNotifier {
       state = AsyncData(
         state.value!.copyWith(items: restored, deleteFailure: failure),
       );
-    }, (_) => ref.invalidate(activeBudgetProvider));
+    }, (_) {
+      ref.invalidate(insightsProvider);
+      ref.invalidate(activeBudgetProvider);
+      ref.invalidate(sharedActiveBudgetProvider);
+    });
   }
 
   Future<void> loadMore() async {
