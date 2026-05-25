@@ -4,6 +4,7 @@ import 'package:trocado/src/main/providers/storage_provider.dart';
 import 'package:trocado/src/main/providers/clients_provider.dart';
 import 'package:trocado/src/main/providers/data_sources.provider.dart';
 
+import 'package:trocado/src/data/repositories/chat_repository.dart';
 import 'package:trocado/src/data/repositories/user_repository.dart';
 import 'package:trocado/src/data/repositories/theme_repository.dart';
 import 'package:trocado/src/data/repositories/budget_repository.dart';
@@ -13,6 +14,7 @@ import 'package:trocado/src/data/repositories/insights_repository.dart';
 import 'package:trocado/src/data/repositories/notification_repository.dart';
 import 'package:trocado/src/data/repositories/authentication_repository.dart';
 
+import 'package:trocado/src/domain/repositories/interface_chat_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_user_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_theme_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
@@ -67,3 +69,9 @@ IExpenseRepository expenseRepository(Ref ref) =>
 @Riverpod()
 IInsightsRepository insightsRepository(Ref ref) =>
     InsightsRepository(dataSource: ref.watch(remoteInsightsDataSourceProvider));
+
+@Riverpod()
+IChatRepository chatRepository(Ref ref) => ChatRepository(
+  localDataSource: ref.watch(localChatDataSourceProvider),
+  remoteDataSource: ref.watch(remoteChatDataSourceProvider),
+);

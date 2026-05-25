@@ -1,0 +1,1 @@
+enum ChatSenderEnum { user, assistant }

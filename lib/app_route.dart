@@ -43,6 +43,12 @@ final class AppRoutes {
     regex: RegExp(r'/splash'),
   );
 
+  static final chat = AppRoutes._(
+    path: '/chat',
+    name: 'chat-route',
+    regex: RegExp(r'^/chat$'),
+  );
+
   static final category = AppRoutes._(
     path: '/category',
     name: 'category-route',
@@ -188,22 +194,23 @@ final class AppRoutes {
   );
 
   static final _all = [
+    chat,
     date,
     exit,
     home,
     budget,
-    budgets,
     splash,
     signIn,
     signUp,
+    budgets,
     expense,
     profile,
     expenses,
     category,
     settings,
+    dateRange,
     calculator,
     coupleScan,
-    dateRange,
     profileName,
     expenseDate,
     coupleInvite,

@@ -145,3 +145,51 @@ final class LocalThemeDataSourceProvider
 
 String _$localThemeDataSourceHash() =>
     r'5f734830076ddb60d9468f3c29b235cb536c09d5';
+
+@ProviderFor(localChatDataSource)
+final localChatDataSourceProvider = LocalChatDataSourceProvider._();
+
+final class LocalChatDataSourceProvider
+    extends
+        $FunctionalProvider<
+          ILocalChatDataSource,
+          ILocalChatDataSource,
+          ILocalChatDataSource
+        >
+    with $Provider<ILocalChatDataSource> {
+  LocalChatDataSourceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'localChatDataSourceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$localChatDataSourceHash();
+
+  @$internal
+  @override
+  $ProviderElement<ILocalChatDataSource> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  ILocalChatDataSource create(Ref ref) {
+    return localChatDataSource(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ILocalChatDataSource value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ILocalChatDataSource>(value),
+    );
+  }
+}
+
+String _$localChatDataSourceHash() =>
+    r'65e6cfed3c33f3bb44cf43973096052d383d4562';

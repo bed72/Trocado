@@ -1,5 +1,6 @@
 enum EndpointKey {
   me('/api/v1/me'),
+  chat('/api/v1/chat'),
   signIn('/api/v1/token'),
   couple('/api/v1/couple'),
   invites('/api/v1/invites'),

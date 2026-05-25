@@ -33,7 +33,7 @@ final class BudgetsNotifierProvider
   BudgetsNotifier create() => BudgetsNotifier();
 }
 
-String _$budgetsNotifierHash() => r'087b67e5d92852ee2cbabfddfe303d06976f50bd';
+String _$budgetsNotifierHash() => r'dd7022e21c2b927ecfc8f4c2c93052f6f6f946fe';
 
 abstract class _$BudgetsNotifier extends $AsyncNotifier<BudgetsState> {
   FutureOr<BudgetsState> build();

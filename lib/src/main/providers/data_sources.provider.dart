@@ -3,6 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:trocado/src/main/providers/clients_provider.dart';
 
 import 'package:trocado/src/infrastructure/datasources/remote/remote_user_data_source.dart';
+import 'package:trocado/src/infrastructure/datasources/remote/remote_chat_data_source.dart';
 import 'package:trocado/src/infrastructure/datasources/remote/remote_budget_data_source.dart';
 import 'package:trocado/src/infrastructure/datasources/remote/remote_couple_data_source.dart';
 import 'package:trocado/src/infrastructure/datasources/remote/remote_expense_data_source.dart';
@@ -11,6 +12,10 @@ import 'package:trocado/src/infrastructure/datasources/remote/remote_notificatio
 import 'package:trocado/src/infrastructure/datasources/remote/remote_authentication_data_source.dart';
 
 part 'data_sources.provider.g.dart';
+
+@Riverpod()
+IRemoteChatDataSource remoteChatDataSource(Ref ref) =>
+    RemoteChatDataSource(client: ref.watch(httpClientProvider));
 
 @Riverpod()
 IRemoteUserDataSource remoteUserDataSource(Ref ref) =>
