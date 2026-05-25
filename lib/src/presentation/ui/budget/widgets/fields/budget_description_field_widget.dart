@@ -23,5 +23,6 @@ class BudgetDescriptionFieldWidget extends StatelessWidget {
     label: 'Descrição',
     onChanged: onChanged,
     initialValue: initialValue,
+    textCapitalization: .sentences,
   );
 }

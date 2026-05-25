@@ -23,6 +23,7 @@ class TextFieldWidget extends StatefulWidget {
   final ValueChanged<String>? onChanged;
   final TextEditingController? controller;
   final ValueChanged<bool>? onFocusChanged;
+  final TextCapitalization textCapitalization;
   final List<TextInputFormatter>? inputFormatters;
 
   const TextFieldWidget({
@@ -45,6 +46,7 @@ class TextFieldWidget extends StatefulWidget {
     this.autofocus = false,
     this.onTrailingIconTap,
     this.obscureText = false,
+    this.textCapitalization = .none,
     this.hideTrailingIconWhenEmpty = false,
   });
 
@@ -156,6 +158,7 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
     textInputAction: widget.inputAction,
     inputFormatters: widget.inputFormatters,
     controller: widget.controller ?? _controller,
+    textCapitalization: widget.textCapitalization,
     maxLines: widget.obscureText ? 1 : widget.maxLines,
     style: context.typography.bodyMedium?.copyWith(color: color, height: 1.0),
     decoration: InputDecoration(

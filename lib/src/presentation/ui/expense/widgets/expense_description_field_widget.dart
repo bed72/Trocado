@@ -22,5 +22,6 @@ class ExpenseDescriptionFieldWidget extends StatelessWidget {
     keyboardType: .name,
     onChanged: onChanged,
     initialValue: initialValue,
+    textCapitalization: .sentences,
   );
 }
