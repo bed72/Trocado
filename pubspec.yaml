@@ -48,7 +48,7 @@ dependencies:
   flex_color_scheme: ^8.4.0
   permission_handler: ^12.0.1
   flutter_expandable_fab: ^2.5.2
-  flutter_secure_storage: ^10.2.0
+  flutter_secure_storage: ^10.3.0
 
   talker: ^5.1.17
   talker_logger: 5.1.17

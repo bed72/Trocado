@@ -1,7 +1,9 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:trocado/src/main/providers/services_provider.dart';
 import 'package:trocado/src/main/providers/repositories_provider.dart';
 
+import 'package:trocado/src/domain/services/quick_action_service.dart';
 import 'package:trocado/src/domain/repositories/interface_authentication_repository.dart';
 
 import 'package:trocado/src/presentation/ui/settings/notifiers/settings_state.dart';
@@ -11,10 +13,12 @@ part 'settings_notifier.g.dart';
 
 @Riverpod()
 final class SettingsNotifier extends _$SettingsNotifier {
+  late IQuickActionService _service;
   late IAuthenticationRepository _repository;
 
   @override
   SettingsState build() {
+    _service = ref.watch(quickActionServiceProvider);
     _repository = ref.watch(authenticationRepositoryProvider);
     return const SettingsState();
   }
@@ -33,7 +37,10 @@ final class SettingsNotifier extends _$SettingsNotifier {
     data.fold(
       (failure) =>
           state = state.copyWith(status: .failure, message: failure.message),
-      (_) => state = state.copyWith(status: .success),
+      (_) {
+        _service.clear();
+        state = state.copyWith(status: .success);
+      },
     );
   }
 }

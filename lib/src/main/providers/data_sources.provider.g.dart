@@ -9,6 +9,54 @@ part of 'data_sources.provider.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
+@ProviderFor(remoteChatDataSource)
+final remoteChatDataSourceProvider = RemoteChatDataSourceProvider._();
+
+final class RemoteChatDataSourceProvider
+    extends
+        $FunctionalProvider<
+          IRemoteChatDataSource,
+          IRemoteChatDataSource,
+          IRemoteChatDataSource
+        >
+    with $Provider<IRemoteChatDataSource> {
+  RemoteChatDataSourceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'remoteChatDataSourceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$remoteChatDataSourceHash();
+
+  @$internal
+  @override
+  $ProviderElement<IRemoteChatDataSource> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  IRemoteChatDataSource create(Ref ref) {
+    return remoteChatDataSource(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(IRemoteChatDataSource value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<IRemoteChatDataSource>(value),
+    );
+  }
+}
+
+String _$remoteChatDataSourceHash() =>
+    r'b64df85451731e6ff648d4d704e507e22d72f95c';
+
 @ProviderFor(remoteUserDataSource)
 final remoteUserDataSourceProvider = RemoteUserDataSourceProvider._();
 
@@ -299,54 +347,6 @@ final class RemoteAuthenticationDataSourceProvider
 
 String _$remoteAuthenticationDataSourceHash() =>
     r'e8ac2f5080ca4fc5fccab6e546157e2b4f69442c';
-
-@ProviderFor(remoteChatDataSource)
-final remoteChatDataSourceProvider = RemoteChatDataSourceProvider._();
-
-final class RemoteChatDataSourceProvider
-    extends
-        $FunctionalProvider<
-          IRemoteChatDataSource,
-          IRemoteChatDataSource,
-          IRemoteChatDataSource
-        >
-    with $Provider<IRemoteChatDataSource> {
-  RemoteChatDataSourceProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'remoteChatDataSourceProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$remoteChatDataSourceHash();
-
-  @$internal
-  @override
-  $ProviderElement<IRemoteChatDataSource> $createElement(
-    $ProviderPointer pointer,
-  ) => $ProviderElement(pointer);
-
-  @override
-  IRemoteChatDataSource create(Ref ref) {
-    return remoteChatDataSource(ref);
-  }
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(IRemoteChatDataSource value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<IRemoteChatDataSource>(value),
-    );
-  }
-}
-
-String _$remoteChatDataSourceHash() =>
-    r'b64df85451731e6ff648d4d704e507e22d72f95c';
 
 @ProviderFor(remoteNotificationDataSource)
 final remoteNotificationDataSourceProvider =

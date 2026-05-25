@@ -3,6 +3,7 @@ import 'package:mocktail/mocktail.dart';
 
 import 'package:trocado/src/domain/services/money_service.dart';
 import 'package:trocado/src/domain/services/date_formatter_service.dart';
+import 'package:trocado/src/domain/services/quick_action_service.dart';
 import 'package:trocado/src/domain/services/camera_permission_service.dart';
 
 import 'package:trocado/src/domain/repositories/interface_user_repository.dart';
@@ -72,6 +73,9 @@ final class MockNotificationRepository extends Mock
 
 final class MockCameraPermissionService extends Mock
     implements ICameraPermissionService {}
+
+final class MockQuickActionService extends Mock
+    implements IQuickActionService {}
 
 final class MockAuthenticationRepository extends Mock
     implements IAuthenticationRepository {}

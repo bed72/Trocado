@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
 
+import 'package:trocado/src/main/providers/services_provider.dart';
+
 import 'package:trocado/src/domain/enums/theme/theme_mode_enum.dart';
 
 import 'package:trocado/src/presentation/mixins/back_button_mixin.dart';
@@ -54,15 +56,28 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen>
     with BackButtonMixin<HomeScreen> {
+  bool _quickActionsRegistered = false;
+
   @override
   void execute() {
     widget.navigateToExit();
+  }
+
+  void _registerQuickActions(WidgetRef ref) {
+    if (_quickActionsRegistered) return;
+    _quickActionsRegistered = true;
+
+    ref.read(quickActionServiceProvider).register(
+      onBudget: widget.navigateToBudget,
+      onExpense: widget.navigateToCreateExpense,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer(
       builder: (_, ref, _) {
+        _registerQuickActions(ref);
         final coupleState = ref.watch(coupleProvider);
         final appBarState = ref.watch(homeAppBarProvider);
         final insightsState = ref.watch(insightsProvider);

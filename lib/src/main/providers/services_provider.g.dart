@@ -192,3 +192,51 @@ final class CameraPermissionServiceProvider
 
 String _$cameraPermissionServiceHash() =>
     r'dd64986b0a1beaf35decbdb7a5045ed1d68e3038';
+
+@ProviderFor(quickActionService)
+final quickActionServiceProvider = QuickActionServiceProvider._();
+
+final class QuickActionServiceProvider
+    extends
+        $FunctionalProvider<
+          IQuickActionService,
+          IQuickActionService,
+          IQuickActionService
+        >
+    with $Provider<IQuickActionService> {
+  QuickActionServiceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'quickActionServiceProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$quickActionServiceHash();
+
+  @$internal
+  @override
+  $ProviderElement<IQuickActionService> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  IQuickActionService create(Ref ref) {
+    return quickActionService(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(IQuickActionService value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<IQuickActionService>(value),
+    );
+  }
+}
+
+String _$quickActionServiceHash() =>
+    r'8e235f9cff8e97f51f9aac60000da1474a9c2bc5';
