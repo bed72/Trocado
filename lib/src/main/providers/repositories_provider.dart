@@ -15,11 +15,11 @@ import 'package:trocado/src/data/repositories/insights_repository.dart';
 import 'package:trocado/src/data/repositories/notification_repository.dart';
 import 'package:trocado/src/data/repositories/authentication_repository.dart';
 
-import 'package:trocado/src/domain/repositories/interface_health_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_chat_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_user_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_theme_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
+import 'package:trocado/src/domain/repositories/interface_health_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_couple_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_insights_repository.dart';

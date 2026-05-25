@@ -4,6 +4,7 @@ import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
 import 'package:trocado/src/presentation/widgets/app_bar_widget.dart';
 import 'package:trocado/src/presentation/widgets/go_back_widget.dart';
+import 'package:trocado/src/presentation/widgets/icons/background_icon_widget.dart';
 import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';
 import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
 
@@ -69,18 +70,12 @@ class ForgotPasswordSuccessScreen extends StatelessWidget {
     ],
   );
 
-  Widget _buildIcon(BuildContext context) => Container(
+  BackgroundIconWidget _buildIcon(BuildContext context) => BackgroundIconWidget(
     width: 96.0,
     height: 96.0,
-    decoration: BoxDecoration(
-      shape: .circle,
-      color: context.colors.primaryContainer,
-    ),
-    child: Icon(
-      Icons.mark_email_read_outlined,
-      size: 44.0,
-      color: context.colors.onPrimaryContainer,
-    ),
+    iconSize: 48.0,
+    icon: Icons.mark_email_read_outlined,
+    color: context.colors.onPrimaryContainer,
   );
 
   Widget _buildMessage(BuildContext context) => Text.rich(

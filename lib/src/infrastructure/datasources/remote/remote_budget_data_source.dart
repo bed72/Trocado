@@ -20,7 +20,6 @@ abstract interface class IRemoteBudgetDataSource {
 
   Future<Either<FailureResponse, BudgetResponse>> findById({required int id});
 
-  // TODO muitos dados
   Future<Either<FailureResponse, BudgetResponse>> create({
     required int value,
     required int endDate,
