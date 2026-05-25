@@ -51,15 +51,23 @@ class ExpensesFilterCategorySectionWidget extends StatelessWidget {
     return FilterChip(
       selected: isSelected,
       showCheckmark: false,
-      label: Text(category.label),
+      materialTapTargetSize: .shrinkWrap,
+      selectedColor: color.withValues(alpha: 0.15),
+      labelPadding: const .symmetric(horizontal: 4.0),
+      backgroundColor: context.colors.surfaceContainerHighest,
+      onSelected: (_) => onSelected(isSelected ? null : category),
+      label: Text(
+        category.label,
+        style: TextStyle(
+          fontWeight: isSelected ? .w600 : null,
+          color: isSelected ? color : context.colors.onSurfaceVariant,
+        ),
+      ),
       avatar: Icon(
         category.icon,
         size: 18.0,
         color: isSelected ? color : context.colors.onSurfaceVariant,
       ),
-      selectedColor: color.withValues(alpha: 0.15),
-      backgroundColor: context.colors.surfaceContainerHighest,
-      onSelected: (_) => onSelected(isSelected ? null : category),
       shape: RoundedRectangleBorder(
         borderRadius: context.radius.cornerRadius050,
         side: BorderSide(color: isSelected ? color : Colors.transparent),
