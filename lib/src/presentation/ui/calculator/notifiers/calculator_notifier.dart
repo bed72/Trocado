@@ -1,6 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import 'package:trocado/src/domain/services/money_service.dart';
+import 'package:trocado/src/domain/services/interface_money_service.dart';
 import 'package:trocado/src/main/providers/services_provider.dart';
 
 import 'package:trocado/src/presentation/ui/calculator/notifiers/calculator_state.dart';

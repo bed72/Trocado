@@ -12,8 +12,8 @@ import 'package:trocado/src/main/providers/repositories_provider.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
 
-import 'package:trocado/src/domain/services/money_service.dart';
-import 'package:trocado/src/domain/services/date_formatter_service.dart';
+import 'package:trocado/src/domain/services/interface_money_service.dart';
+import 'package:trocado/src/domain/services/interface_date_formatter_service.dart';
 
 import 'package:trocado/src/domain/models/user_model.dart';
 import 'package:trocado/src/domain/models/couple/couple_model.dart';
@@ -166,7 +166,11 @@ void main() {
         await container.read(expensesProvider.future);
 
         verify(
-          () => repository.findAll(cursor: null, filter: const .empty(), scope: FinancialScopeEnum.mine),
+          () => repository.findAll(
+            cursor: null,
+            filter: const .empty(),
+            scope: FinancialScopeEnum.mine,
+          ),
         ).called(1);
       },
     );
@@ -202,7 +206,11 @@ void main() {
   group('loadMore', () {
     test('appends items preserving filter on success', () async {
       when(
-        () => repository.findAll(cursor: null, filter: any(named: 'filter'), scope: any(named: 'scope')),
+        () => repository.findAll(
+          cursor: null,
+          filter: any(named: 'filter'),
+          scope: any(named: 'scope'),
+        ),
       ).thenAnswer(
         (_) async => const Right(
           ExpensesPageModel(expenses: _first, nextCursor: 'CUR1'),
@@ -241,7 +249,11 @@ void main() {
 
     test('is a no-op when nextCursor is null', () async {
       when(
-        () => repository.findAll(cursor: null, filter: any(named: 'filter'), scope: any(named: 'scope')),
+        () => repository.findAll(
+          cursor: null,
+          filter: any(named: 'filter'),
+          scope: any(named: 'scope'),
+        ),
       ).thenAnswer(
         (_) async =>
             const Right(ExpensesPageModel(expenses: _first, nextCursor: null)),
@@ -258,14 +270,22 @@ void main() {
       await container.read(expensesProvider.notifier).loadMore();
 
       verify(
-        () => repository.findAll(cursor: null, filter: any(named: 'filter'), scope: any(named: 'scope')),
+        () => repository.findAll(
+          cursor: null,
+          filter: any(named: 'filter'),
+          scope: any(named: 'scope'),
+        ),
       ).called(1);
       verifyNoMoreInteractions(repository);
     });
 
     test('preserves items and records failure on error', () async {
       when(
-        () => repository.findAll(cursor: null, filter: any(named: 'filter'), scope: any(named: 'scope')),
+        () => repository.findAll(
+          cursor: null,
+          filter: any(named: 'filter'),
+          scope: any(named: 'scope'),
+        ),
       ).thenAnswer(
         (_) async => const Right(
           ExpensesPageModel(expenses: _first, nextCursor: 'CUR1'),
@@ -302,13 +322,23 @@ void main() {
       final filter = const ExpenseFilterModel.empty().copyWith(category: .food);
 
       when(
-        () => repository.findAll(cursor: null, filter: const .empty(), scope: FinancialScopeEnum.mine),
+        () => repository.findAll(
+          cursor: null,
+          filter: const .empty(),
+          scope: FinancialScopeEnum.mine,
+        ),
       ).thenAnswer(
         (_) async => const Right(
           ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
         ),
       );
-      when(() => repository.findAll(cursor: null, filter: filter, scope: FinancialScopeEnum.mine)).thenAnswer(
+      when(
+        () => repository.findAll(
+          cursor: null,
+          filter: filter,
+          scope: FinancialScopeEnum.mine,
+        ),
+      ).thenAnswer(
         (_) async =>
             const Right(ExpensesPageModel(expenses: _second, nextCursor: 'F1')),
       );
@@ -340,7 +370,11 @@ void main() {
         );
 
         when(
-          () => repository.findAll(cursor: null, filter: const .empty(), scope: FinancialScopeEnum.mine),
+          () => repository.findAll(
+            cursor: null,
+            filter: const .empty(),
+            scope: FinancialScopeEnum.mine,
+          ),
         ).thenAnswer(
           (_) async => const Right(
             ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
@@ -349,7 +383,11 @@ void main() {
 
         final reloadCompleter = Completer<Either<Failure, ExpensesPageModel>>();
         when(
-          () => repository.findAll(cursor: null, filter: filter, scope: FinancialScopeEnum.mine),
+          () => repository.findAll(
+            cursor: null,
+            filter: filter,
+            scope: FinancialScopeEnum.mine,
+          ),
         ).thenAnswer((_) => reloadCompleter.future);
 
         final container = _makeContainer(
@@ -388,13 +426,23 @@ void main() {
         );
 
         when(
-          () => repository.findAll(cursor: null, filter: const .empty(), scope: FinancialScopeEnum.mine),
+          () => repository.findAll(
+            cursor: null,
+            filter: const .empty(),
+            scope: FinancialScopeEnum.mine,
+          ),
         ).thenAnswer(
           (_) async => const Right(
             ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
           ),
         );
-        when(() => repository.findAll(cursor: null, filter: filter, scope: FinancialScopeEnum.mine)).thenAnswer(
+        when(
+          () => repository.findAll(
+            cursor: null,
+            filter: filter,
+            scope: FinancialScopeEnum.mine,
+          ),
+        ).thenAnswer(
           (_) async => const Right(
             ExpensesPageModel(expenses: _first, nextCursor: 'D1'),
           ),
@@ -435,13 +483,23 @@ void main() {
         );
 
         when(
-          () => repository.findAll(cursor: null, filter: const .empty(), scope: FinancialScopeEnum.mine),
+          () => repository.findAll(
+            cursor: null,
+            filter: const .empty(),
+            scope: FinancialScopeEnum.mine,
+          ),
         ).thenAnswer(
           (_) async => const Right(
             ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
           ),
         );
-        when(() => repository.findAll(cursor: null, filter: filter, scope: FinancialScopeEnum.mine)).thenAnswer(
+        when(
+          () => repository.findAll(
+            cursor: null,
+            filter: filter,
+            scope: FinancialScopeEnum.mine,
+          ),
+        ).thenAnswer(
           (_) async => const Right(
             ExpensesPageModel(expenses: _second, nextCursor: 'ALL'),
           ),
@@ -480,13 +538,23 @@ void main() {
         );
 
         when(
-          () => repository.findAll(cursor: null, filter: const .empty(), scope: FinancialScopeEnum.mine),
+          () => repository.findAll(
+            cursor: null,
+            filter: const .empty(),
+            scope: FinancialScopeEnum.mine,
+          ),
         ).thenAnswer(
           (_) async => const Right(
             ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
           ),
         );
-        when(() => repository.findAll(cursor: null, filter: filter, scope: FinancialScopeEnum.mine)).thenAnswer(
+        when(
+          () => repository.findAll(
+            cursor: null,
+            filter: filter,
+            scope: FinancialScopeEnum.mine,
+          ),
+        ).thenAnswer(
           (_) async => const Right(
             ExpensesPageModel(expenses: _second, nextCursor: 'V1'),
           ),
@@ -520,13 +588,23 @@ void main() {
         );
 
         when(
-          () => repository.findAll(cursor: null, filter: const .empty(), scope: FinancialScopeEnum.mine),
+          () => repository.findAll(
+            cursor: null,
+            filter: const .empty(),
+            scope: FinancialScopeEnum.mine,
+          ),
         ).thenAnswer(
           (_) async => const Right(
             ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
           ),
         );
-        when(() => repository.findAll(cursor: null, filter: filter, scope: FinancialScopeEnum.mine)).thenAnswer(
+        when(
+          () => repository.findAll(
+            cursor: null,
+            filter: filter,
+            scope: FinancialScopeEnum.mine,
+          ),
+        ).thenAnswer(
           (_) async => const Right(
             ExpensesPageModel(expenses: _second, nextCursor: 'V2'),
           ),
@@ -560,13 +638,23 @@ void main() {
         );
 
         when(
-          () => repository.findAll(cursor: null, filter: const .empty(), scope: FinancialScopeEnum.mine),
+          () => repository.findAll(
+            cursor: null,
+            filter: const .empty(),
+            scope: FinancialScopeEnum.mine,
+          ),
         ).thenAnswer(
           (_) async => const Right(
             ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
           ),
         );
-        when(() => repository.findAll(cursor: null, filter: filter, scope: FinancialScopeEnum.mine)).thenAnswer(
+        when(
+          () => repository.findAll(
+            cursor: null,
+            filter: filter,
+            scope: FinancialScopeEnum.mine,
+          ),
+        ).thenAnswer(
           (_) async => const Right(
             ExpensesPageModel(expenses: _second, nextCursor: 'V3'),
           ),
@@ -594,7 +682,11 @@ void main() {
 
     test('emits AsyncError when the reload fails', () async {
       when(
-        () => repository.findAll(cursor: null, filter: const .empty(), scope: FinancialScopeEnum.mine),
+        () => repository.findAll(
+          cursor: null,
+          filter: const .empty(),
+          scope: FinancialScopeEnum.mine,
+        ),
       ).thenAnswer(
         (_) async => const Right(
           ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
@@ -634,13 +726,23 @@ void main() {
         );
 
         when(
-          () => repository.findAll(cursor: null, filter: const .empty(), scope: FinancialScopeEnum.mine),
+          () => repository.findAll(
+            cursor: null,
+            filter: const .empty(),
+            scope: FinancialScopeEnum.mine,
+          ),
         ).thenAnswer(
           (_) async => const Right(
             ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
           ),
         );
-        when(() => repository.findAll(cursor: null, filter: filter, scope: FinancialScopeEnum.mine)).thenAnswer(
+        when(
+          () => repository.findAll(
+            cursor: null,
+            filter: filter,
+            scope: FinancialScopeEnum.mine,
+          ),
+        ).thenAnswer(
           (_) async => const Right(
             ExpensesPageModel(expenses: _first, nextCursor: 'D1'),
           ),
@@ -657,7 +759,11 @@ void main() {
 
         final reloadCompleter = Completer<Either<Failure, ExpensesPageModel>>();
         when(
-          () => repository.findAll(cursor: null, filter: const .empty(), scope: FinancialScopeEnum.mine),
+          () => repository.findAll(
+            cursor: null,
+            filter: const .empty(),
+            scope: FinancialScopeEnum.mine,
+          ),
         ).thenAnswer((_) => reloadCompleter.future);
 
         final pending = container
@@ -696,7 +802,13 @@ void main() {
           ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
         ),
       );
-      when(() => repository.findAll(cursor: null, filter: filter, scope: FinancialScopeEnum.mine)).thenAnswer(
+      when(
+        () => repository.findAll(
+          cursor: null,
+          filter: filter,
+          scope: FinancialScopeEnum.mine,
+        ),
+      ).thenAnswer(
         (_) async =>
             const Right(ExpensesPageModel(expenses: _second, nextCursor: 'V1')),
       );
@@ -735,7 +847,13 @@ void main() {
           ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
         ),
       );
-      when(() => repository.findAll(cursor: null, filter: filter, scope: FinancialScopeEnum.mine)).thenAnswer(
+      when(
+        () => repository.findAll(
+          cursor: null,
+          filter: filter,
+          scope: FinancialScopeEnum.mine,
+        ),
+      ).thenAnswer(
         (_) async =>
             const Right(ExpensesPageModel(expenses: _second, nextCursor: 'F1')),
       );
@@ -760,13 +878,23 @@ void main() {
       final filter = const ExpenseFilterModel.empty().copyWith(category: .food);
 
       when(
-        () => repository.findAll(cursor: null, filter: const .empty(), scope: FinancialScopeEnum.mine),
+        () => repository.findAll(
+          cursor: null,
+          filter: const .empty(),
+          scope: FinancialScopeEnum.mine,
+        ),
       ).thenAnswer(
         (_) async => const Right(
           ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
         ),
       );
-      when(() => repository.findAll(cursor: null, filter: filter, scope: FinancialScopeEnum.mine)).thenAnswer(
+      when(
+        () => repository.findAll(
+          cursor: null,
+          filter: filter,
+          scope: FinancialScopeEnum.mine,
+        ),
+      ).thenAnswer(
         (_) async =>
             const Right(ExpensesPageModel(expenses: _second, nextCursor: 'F1')),
       );
@@ -782,7 +910,11 @@ void main() {
 
       final reloadCompleter = Completer<Either<Failure, ExpensesPageModel>>();
       when(
-        () => repository.findAll(cursor: null, filter: const .empty(), scope: FinancialScopeEnum.mine),
+        () => repository.findAll(
+          cursor: null,
+          filter: const .empty(),
+          scope: FinancialScopeEnum.mine,
+        ),
       ).thenAnswer((_) => reloadCompleter.future);
 
       final pending = container
@@ -922,29 +1054,32 @@ void main() {
       ),
     ];
 
-    test('initial state has isInCouple=false and scope=mine when solo', () async {
-      when(
-        () => repository.findAll(
-          cursor: any(named: 'cursor'),
-          filter: any(named: 'filter'),
-          scope: any(named: 'scope'),
-        ),
-      ).thenAnswer(
-        (_) async => const Right(ExpensesPageModel(expenses: _first)),
-      );
+    test(
+      'initial state has isInCouple=false and scope=mine when solo',
+      () async {
+        when(
+          () => repository.findAll(
+            cursor: any(named: 'cursor'),
+            filter: any(named: 'filter'),
+            scope: any(named: 'scope'),
+          ),
+        ).thenAnswer(
+          (_) async => const Right(ExpensesPageModel(expenses: _first)),
+        );
 
-      final container = _makeContainer(
-        repository: repository,
-        moneyService: moneyService,
-        coupleRepository: coupleRepository,
-        dateFormatter: dateFormatter,
-      );
-      final data = await container.read(expensesProvider.future);
+        final container = _makeContainer(
+          repository: repository,
+          moneyService: moneyService,
+          coupleRepository: coupleRepository,
+          dateFormatter: dateFormatter,
+        );
+        final data = await container.read(expensesProvider.future);
 
-      expect(data.isInCouple, isFalse);
-      expect(data.scope, FinancialScopeEnum.mine);
-      expect(data.items.every((item) => item.authorName == null), isTrue);
-    });
+        expect(data.isInCouple, isFalse);
+        expect(data.scope, FinancialScopeEnum.mine);
+        expect(data.items.every((item) => item.authorName == null), isTrue);
+      },
+    );
 
     test('initial state has isInCouple=true when in couple', () async {
       when(
@@ -972,36 +1107,39 @@ void main() {
       expect(data.scope, FinancialScopeEnum.mine);
     });
 
-    test('items in couple scope show authorName only when createdByMe is false', () async {
-      when(
-        () => coupleRepository.findActive(),
-      ).thenAnswer((_) async => Right(coupleModel));
-      when(
-        () => repository.findAll(
-          cursor: any(named: 'cursor'),
-          filter: any(named: 'filter'),
-          scope: any(named: 'scope'),
-        ),
-      ).thenAnswer(
-        (_) async => const Right(ExpensesPageModel(expenses: coupleExpenses)),
-      );
+    test(
+      'items in couple scope show authorName only when createdByMe is false',
+      () async {
+        when(
+          () => coupleRepository.findActive(),
+        ).thenAnswer((_) async => Right(coupleModel));
+        when(
+          () => repository.findAll(
+            cursor: any(named: 'cursor'),
+            filter: any(named: 'filter'),
+            scope: any(named: 'scope'),
+          ),
+        ).thenAnswer(
+          (_) async => const Right(ExpensesPageModel(expenses: coupleExpenses)),
+        );
 
-      final container = _makeContainer(
-        repository: repository,
-        moneyService: moneyService,
-        coupleRepository: coupleRepository,
-        dateFormatter: dateFormatter,
-      );
-      final data = await container.read(expensesProvider.future);
+        final container = _makeContainer(
+          repository: repository,
+          moneyService: moneyService,
+          coupleRepository: coupleRepository,
+          dateFormatter: dateFormatter,
+        );
+        final data = await container.read(expensesProvider.future);
 
-      final partnerItem = data.items.firstWhere(
-        (item) => item.expense.id == 100,
-      );
-      final myItem = data.items.firstWhere((item) => item.expense.id == 101);
+        final partnerItem = data.items.firstWhere(
+          (item) => item.expense.id == 100,
+        );
+        final myItem = data.items.firstWhere((item) => item.expense.id == 101);
 
-      expect(partnerItem.authorName, 'Kira');
-      expect(myItem.authorName, isNull);
-    });
+        expect(partnerItem.authorName, 'Kira');
+        expect(myItem.authorName, isNull);
+      },
+    );
 
     test('changeScope reloads with new scope and preserves filter', () async {
       when(

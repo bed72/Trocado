@@ -1,6 +1,6 @@
 import 'package:intl/intl.dart';
 
-import 'package:trocado/src/domain/services/money_service.dart';
+import 'package:trocado/src/domain/services/interface_money_service.dart';
 
 final class MoneyService implements IMoneyService {
   final NumberFormat _formatter;

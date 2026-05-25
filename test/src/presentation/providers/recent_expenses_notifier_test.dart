@@ -8,9 +8,9 @@ import 'package:trocado/src/main/providers/services_provider.dart';
 import 'package:trocado/src/main/providers/repositories_provider.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
-import 'package:trocado/src/domain/services/money_service.dart';
+import 'package:trocado/src/domain/services/interface_money_service.dart';
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
-import 'package:trocado/src/domain/services/date_formatter_service.dart';
+import 'package:trocado/src/domain/services/interface_date_formatter_service.dart';
 import 'package:trocado/src/domain/enums/scope/financial_scope_enum.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
@@ -70,7 +70,9 @@ void main() {
     when(
       () => moneyService.format(any()),
     ).thenAnswer((invocation) => 'R\$ ${invocation.positionalArguments.first}');
-    when(() => dateFormatter.formatLongDate(any())).thenReturn('22 de Abr de 2026');
+    when(
+      () => dateFormatter.formatLongDate(any()),
+    ).thenReturn('22 de Abr de 2026');
   });
 
   test(
@@ -78,9 +80,9 @@ void main() {
     () async {
       when(
         () => repository.findRecent(
-        limit: any(named: 'limit'),
-        scope: any(named: 'scope'),
-      ),
+          limit: any(named: 'limit'),
+          scope: any(named: 'scope'),
+        ),
       ).thenAnswer((_) async => const Right(_expenses));
 
       final container = _makeContainer(
@@ -130,7 +132,9 @@ void main() {
     );
     await container.read(recentExpensesProvider.future);
 
-    verify(() => repository.findRecent(scope: FinancialScopeEnum.mine)).called(1);
+    verify(
+      () => repository.findRecent(scope: FinancialScopeEnum.mine),
+    ).called(1);
   });
 
   test(
@@ -138,9 +142,9 @@ void main() {
     () async {
       when(
         () => repository.findRecent(
-        limit: any(named: 'limit'),
-        scope: any(named: 'scope'),
-      ),
+          limit: any(named: 'limit'),
+          scope: any(named: 'scope'),
+        ),
       ).thenAnswer((_) async => const Left(NetworkFailure()));
 
       final container = _makeContainer(
@@ -166,9 +170,9 @@ void main() {
     () async {
       when(
         () => repository.findRecent(
-        limit: any(named: 'limit'),
-        scope: any(named: 'scope'),
-      ),
+          limit: any(named: 'limit'),
+          scope: any(named: 'scope'),
+        ),
       ).thenAnswer((_) async => const Left(ServerFailure()));
 
       final container = _makeContainer(

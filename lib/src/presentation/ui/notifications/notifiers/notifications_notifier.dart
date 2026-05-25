@@ -4,7 +4,7 @@ import 'package:trocado/src/main/providers/services_provider.dart';
 import 'package:trocado/src/main/providers/repositories_provider.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
-import 'package:trocado/src/domain/services/date_formatter_service.dart';
+import 'package:trocado/src/domain/services/interface_date_formatter_service.dart';
 import 'package:trocado/src/domain/models/notification/notification_model.dart';
 import 'package:trocado/src/domain/models/notification/notifications_page_model.dart';
 import 'package:trocado/src/domain/enums/notification/notification_type_enum.dart';
@@ -92,7 +92,10 @@ final class NotificationsNotifier extends _$NotificationsNotifier {
       current.copyWith(
         items: newItems,
         clearDeleteFailure: true,
-        groups: buildNotificationGroups(newItems, dateFormatter: _dateFormatter),
+        groups: buildNotificationGroups(
+          newItems,
+          dateFormatter: _dateFormatter,
+        ),
       ),
     );
 

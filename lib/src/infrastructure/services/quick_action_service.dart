@@ -1,6 +1,6 @@
 import 'package:quick_actions/quick_actions.dart';
 
-import 'package:trocado/src/domain/services/quick_action_service.dart';
+import 'package:trocado/src/domain/services/interface_quick_action_service.dart';
 
 enum _QuickActionsConstant {
   budget(

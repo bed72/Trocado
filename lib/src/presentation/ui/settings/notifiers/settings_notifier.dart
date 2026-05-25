@@ -3,7 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:trocado/src/main/providers/services_provider.dart';
 import 'package:trocado/src/main/providers/repositories_provider.dart';
 
-import 'package:trocado/src/domain/services/quick_action_service.dart';
+import 'package:trocado/src/domain/services/interface_quick_action_service.dart';
 import 'package:trocado/src/domain/repositories/interface_authentication_repository.dart';
 
 import 'package:trocado/src/presentation/ui/settings/notifiers/settings_state.dart';

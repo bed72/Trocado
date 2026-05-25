@@ -8,7 +8,7 @@ import 'package:trocado/src/main/providers/repositories_provider.dart';
 import 'package:trocado/src/domain/either/either.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/models/couple/invite_model.dart';
-import 'package:trocado/src/domain/services/date_formatter_service.dart';
+import 'package:trocado/src/domain/services/interface_date_formatter_service.dart';
 import 'package:trocado/src/domain/repositories/interface_couple_repository.dart';
 
 import 'package:trocado/src/presentation/ui/couple/invite/notifiers/invite_qr_code_notifier.dart';
@@ -122,22 +122,25 @@ void main() {
   });
 
   group('share', () {
-    test('delegates qrData to repository.shareInvite when state is AsyncData', () async {
-      when(
-        () => repository.createInvite(),
-      ).thenAnswer((_) async => const Right(_invite));
+    test(
+      'delegates qrData to repository.shareInvite when state is AsyncData',
+      () async {
+        when(
+          () => repository.createInvite(),
+        ).thenAnswer((_) async => const Right(_invite));
 
-      final container = _makeContainer(
-        repository: repository,
-        dateFormatter: dateFormatter,
-      );
-      container.listen(inviteQrCodeProvider, (_, _) {});
-      await container.read(inviteQrCodeProvider.future);
+        final container = _makeContainer(
+          repository: repository,
+          dateFormatter: dateFormatter,
+        );
+        container.listen(inviteQrCodeProvider, (_, _) {});
+        await container.read(inviteQrCodeProvider.future);
 
-      await container.read(inviteQrCodeProvider.notifier).share();
+        await container.read(inviteQrCodeProvider.notifier).share();
 
-      verify(() => repository.shareInvite(qrData: _qrData)).called(1);
-    });
+        verify(() => repository.shareInvite(qrData: _qrData)).called(1);
+      },
+    );
 
     test('does nothing when state is AsyncError', () async {
       when(
@@ -155,9 +158,7 @@ void main() {
 
       await container.read(inviteQrCodeProvider.notifier).share();
 
-      verifyNever(
-        () => repository.shareInvite(qrData: any(named: 'qrData')),
-      );
+      verifyNever(() => repository.shareInvite(qrData: any(named: 'qrData')));
     });
   });
 }

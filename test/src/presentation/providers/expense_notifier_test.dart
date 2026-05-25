@@ -10,7 +10,7 @@ import 'package:trocado/src/main/providers/repositories_provider.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
-import 'package:trocado/src/domain/services/date_formatter_service.dart';
+import 'package:trocado/src/domain/services/interface_date_formatter_service.dart';
 import 'package:trocado/src/domain/repositories/interface_couple_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
@@ -328,5 +328,4 @@ void main() {
       expect(state.date, _expense.date);
     });
   });
-
 }

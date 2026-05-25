@@ -11,8 +11,8 @@ import 'package:trocado/src/main/providers/repositories_provider.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
 
-import 'package:trocado/src/domain/services/money_service.dart';
-import 'package:trocado/src/domain/services/date_formatter_service.dart';
+import 'package:trocado/src/domain/services/interface_money_service.dart';
+import 'package:trocado/src/domain/services/interface_date_formatter_service.dart';
 
 import 'package:trocado/src/domain/models/budget/budget_model.dart';
 import 'package:trocado/src/domain/models/budget/budgets_page_model.dart';

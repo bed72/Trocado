@@ -6,8 +6,8 @@ import 'package:trocado/src/main/providers/repositories_provider.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
 
-import 'package:trocado/src/domain/services/money_service.dart';
-import 'package:trocado/src/domain/services/date_formatter_service.dart';
+import 'package:trocado/src/domain/services/interface_money_service.dart';
+import 'package:trocado/src/domain/services/interface_date_formatter_service.dart';
 
 import 'package:trocado/src/domain/enums/scope/financial_scope_enum.dart';
 
@@ -63,9 +63,7 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
     if (current.scope == scope) return;
 
     state = const AsyncLoading();
-    state = await AsyncValue.guard(
-      () => _loadFirstPage(current.filter, scope),
-    );
+    state = await AsyncValue.guard(() => _loadFirstPage(current.filter, scope));
   }
 
   Future<void> applyFilter(ExpenseFilterModel filter) async {

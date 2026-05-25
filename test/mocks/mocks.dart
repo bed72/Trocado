@@ -1,10 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'package:trocado/src/domain/services/money_service.dart';
-import 'package:trocado/src/domain/services/date_formatter_service.dart';
-import 'package:trocado/src/domain/services/quick_action_service.dart';
-import 'package:trocado/src/domain/services/camera_permission_service.dart';
+import 'package:trocado/src/domain/services/interface_money_service.dart';
+import 'package:trocado/src/domain/services/interface_date_formatter_service.dart';
+import 'package:trocado/src/domain/services/interface_quick_action_service.dart';
+import 'package:trocado/src/domain/services/interface_camera_permission_service.dart';
 import 'package:trocado/src/domain/services/interface_connectivity_service.dart';
 
 import 'package:trocado/src/domain/repositories/interface_user_repository.dart';

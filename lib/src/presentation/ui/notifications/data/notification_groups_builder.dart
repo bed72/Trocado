@@ -1,4 +1,4 @@
-import 'package:trocado/src/domain/services/date_formatter_service.dart';
+import 'package:trocado/src/domain/services/interface_date_formatter_service.dart';
 
 import 'package:trocado/src/presentation/data/notification/notification_item_presentation_data.dart';
 

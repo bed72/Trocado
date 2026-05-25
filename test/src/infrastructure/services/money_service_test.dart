@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:trocado/src/domain/services/money_service.dart';
+import 'package:trocado/src/domain/services/interface_money_service.dart';
 import 'package:trocado/src/infrastructure/services/money_service.dart';
 
 void main() {

@@ -3,8 +3,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:trocado/src/main/providers/services_provider.dart';
 import 'package:trocado/src/main/providers/repositories_provider.dart';
 
-import 'package:trocado/src/domain/services/money_service.dart';
-import 'package:trocado/src/domain/services/date_formatter_service.dart';
+import 'package:trocado/src/domain/services/interface_money_service.dart';
+import 'package:trocado/src/domain/services/interface_date_formatter_service.dart';
 import 'package:trocado/src/domain/enums/scope/financial_scope_enum.dart';
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';

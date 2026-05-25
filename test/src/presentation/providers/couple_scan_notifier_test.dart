@@ -2,7 +2,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:trocado/src/domain/services/camera_permission_service.dart';
+import 'package:trocado/src/domain/services/interface_camera_permission_service.dart';
 
 import 'package:trocado/src/main/providers/services_provider.dart';
 

@@ -11,7 +11,7 @@ import 'package:trocado/src/presentation/ui/settings/notifiers/settings_notifier
 
 import 'package:trocado/src/domain/either/either.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
-import 'package:trocado/src/domain/services/quick_action_service.dart';
+import 'package:trocado/src/domain/services/interface_quick_action_service.dart';
 import 'package:trocado/src/domain/repositories/interface_authentication_repository.dart';
 
 import '../../../mocks/mocks.dart';

@@ -8,8 +8,8 @@ import 'package:trocado/src/main/providers/services_provider.dart';
 import 'package:trocado/src/main/providers/repositories_provider.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
-import 'package:trocado/src/domain/services/money_service.dart';
-import 'package:trocado/src/domain/services/date_formatter_service.dart';
+import 'package:trocado/src/domain/services/interface_money_service.dart';
+import 'package:trocado/src/domain/services/interface_date_formatter_service.dart';
 import 'package:trocado/src/domain/models/budget/active_budget_model.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
 

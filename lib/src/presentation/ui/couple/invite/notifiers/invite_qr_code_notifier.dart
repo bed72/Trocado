@@ -4,7 +4,7 @@ import 'package:trocado/src/main/providers/services_provider.dart';
 import 'package:trocado/src/main/providers/repositories_provider.dart';
 
 import 'package:trocado/src/domain/models/couple/invite_model.dart';
-import 'package:trocado/src/domain/services/date_formatter_service.dart';
+import 'package:trocado/src/domain/services/interface_date_formatter_service.dart';
 import 'package:trocado/src/domain/repositories/interface_couple_repository.dart';
 
 import 'package:trocado/src/presentation/ui/couple/invite/data/invite_qr_code_presentation_data.dart';

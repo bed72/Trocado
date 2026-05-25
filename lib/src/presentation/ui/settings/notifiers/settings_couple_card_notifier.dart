@@ -5,7 +5,7 @@ import 'package:trocado/src/main/providers/services_provider.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/models/user_model.dart';
 import 'package:trocado/src/domain/models/couple/couple_model.dart';
-import 'package:trocado/src/domain/services/date_formatter_service.dart';
+import 'package:trocado/src/domain/services/interface_date_formatter_service.dart';
 
 import 'package:trocado/src/presentation/notifiers/user_notifier.dart';
 import 'package:trocado/src/presentation/notifiers/couple_notifier.dart';

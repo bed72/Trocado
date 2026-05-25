@@ -1,6 +1,6 @@
 import 'package:permission_handler/permission_handler.dart';
 
-import 'package:trocado/src/domain/services/camera_permission_service.dart';
+import 'package:trocado/src/domain/services/interface_camera_permission_service.dart';
 
 final class CameraPermissionService implements ICameraPermissionService {
   @override

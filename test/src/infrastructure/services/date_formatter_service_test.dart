@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
-import 'package:trocado/src/domain/services/date_formatter_service.dart';
+import 'package:trocado/src/domain/services/interface_date_formatter_service.dart';
 import 'package:trocado/src/infrastructure/services/date_formatter_service.dart';
 
 void main() {
@@ -128,14 +128,17 @@ void main() {
       expect(data, '20 de Mai de 2027');
     });
 
-    test('collapses to single day regardless of intra-day time differences', () {
-      final start = DateTime(2026, 5, 20, 0, 0).millisecondsSinceEpoch;
-      final end = DateTime(2026, 5, 20, 23, 59, 59).millisecondsSinceEpoch;
+    test(
+      'collapses to single day regardless of intra-day time differences',
+      () {
+        final start = DateTime(2026, 5, 20, 0, 0).millisecondsSinceEpoch;
+        final end = DateTime(2026, 5, 20, 23, 59, 59).millisecondsSinceEpoch;
 
-      final data = formatter.formatPeriod(start, end);
+        final data = formatter.formatPeriod(start, end);
 
-      expect(data, '20 de Mai');
-    });
+        expect(data, '20 de Mai');
+      },
+    );
 
     test('omits the year for ranges within the current year', () {
       final start = DateTime(2026, 5, 12).millisecondsSinceEpoch;
@@ -155,14 +158,17 @@ void main() {
       expect(data, '05 de Jan até 31 de Dez');
     });
 
-    test('shows the year only on the end when range crosses into next year', () {
-      final start = DateTime(2026, 12, 20).millisecondsSinceEpoch;
-      final end = DateTime(2027, 1, 25).millisecondsSinceEpoch;
+    test(
+      'shows the year only on the end when range crosses into next year',
+      () {
+        final start = DateTime(2026, 12, 20).millisecondsSinceEpoch;
+        final end = DateTime(2027, 1, 25).millisecondsSinceEpoch;
 
-      final data = formatter.formatPeriod(start, end);
+        final data = formatter.formatPeriod(start, end);
 
-      expect(data, '20 de Dez até 25 de Jan de 2027');
-    });
+        expect(data, '20 de Dez até 25 de Jan de 2027');
+      },
+    );
 
     test('handles a year-crossing range on the extreme boundary', () {
       final start = DateTime(2026, 12, 31).millisecondsSinceEpoch;

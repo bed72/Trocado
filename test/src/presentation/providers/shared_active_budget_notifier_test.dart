@@ -10,8 +10,8 @@ import 'package:trocado/src/main/providers/services_provider.dart';
 import 'package:trocado/src/main/providers/repositories_provider.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
-import 'package:trocado/src/domain/services/money_service.dart';
-import 'package:trocado/src/domain/services/date_formatter_service.dart';
+import 'package:trocado/src/domain/services/interface_money_service.dart';
+import 'package:trocado/src/domain/services/interface_date_formatter_service.dart';
 
 import 'package:trocado/src/domain/models/budget/budget_slice_model.dart';
 import 'package:trocado/src/domain/models/budget/budget_period_model.dart';
@@ -26,10 +26,7 @@ import 'package:trocado/src/presentation/ui/home/notifiers/shared_active_budget_
 import '../../../mocks/mocks.dart';
 
 const _model = SharedActiveBudgetModel(
-  period: BudgetPeriodModel(
-    startDate: 1746057600000,
-    endDate: 1748649600000,
-  ),
+  period: BudgetPeriodModel(startDate: 1746057600000, endDate: 1748649600000),
   me: BudgetSliceModel(value: 250000, totalSpent: 155627, remaining: 94373),
   partner: PartnerBudgetSliceModel(
     name: 'Gabriel Ramos',
@@ -73,9 +70,7 @@ void main() {
     repository = MockBudgetRepository();
     dateFormatter = MockDateFormatterService();
 
-    when(
-      () => moneyService.format(any()),
-    ).thenAnswer(
+    when(() => moneyService.format(any())).thenAnswer(
       (invocation) =>
           'R\$ ${(invocation.positionalArguments.first as double).toStringAsFixed(2)}',
     );
@@ -99,9 +94,7 @@ void main() {
           dateFormatter: dateFormatter,
         );
         container.listen(sharedActiveBudgetProvider, (_, _) {});
-        final data = await container.read(
-          sharedActiveBudgetProvider.future,
-        );
+        final data = await container.read(sharedActiveBudgetProvider.future);
 
         expect(data, isNotNull);
         expect(data!.formattedTotal, 'R\$ 7500.00');
@@ -150,10 +143,9 @@ void main() {
         onError: (_, _) {},
       );
       unawaited(
-        container.read(sharedActiveBudgetProvider.future).then<void>(
-              (_) {},
-              onError: (_, _) {},
-            ),
+        container
+            .read(sharedActiveBudgetProvider.future)
+            .then<void>((_) {}, onError: (_, _) {}),
       );
       await Future<void>.delayed(Duration.zero);
       await Future<void>.delayed(Duration.zero);

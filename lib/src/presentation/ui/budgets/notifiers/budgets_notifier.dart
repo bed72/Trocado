@@ -7,8 +7,8 @@ import 'package:trocado/src/main/providers/repositories_provider.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
 
-import 'package:trocado/src/domain/services/money_service.dart';
-import 'package:trocado/src/domain/services/date_formatter_service.dart';
+import 'package:trocado/src/domain/services/interface_money_service.dart';
+import 'package:trocado/src/domain/services/interface_date_formatter_service.dart';
 
 import 'package:trocado/src/domain/models/budget/budget_model.dart';
 import 'package:trocado/src/domain/models/budget/budgets_page_model.dart';
@@ -60,19 +60,22 @@ final class BudgetsNotifier extends _$BudgetsNotifier {
 
     final data = await _repository.delete(id: id);
 
-    data.fold((Failure failure) {
-      final restored = [...state.value!.items];
-      final insertAt = originalIndex.clamp(0, restored.length);
-      restored.insert(insertAt, originalItem);
+    data.fold(
+      (Failure failure) {
+        final restored = [...state.value!.items];
+        final insertAt = originalIndex.clamp(0, restored.length);
+        restored.insert(insertAt, originalItem);
 
-      state = AsyncData(
-        state.value!.copyWith(items: restored, deleteFailure: failure),
-      );
-    }, (_) {
-      ref.invalidate(insightsProvider);
-      ref.invalidate(activeBudgetProvider);
-      ref.invalidate(sharedActiveBudgetProvider);
-    });
+        state = AsyncData(
+          state.value!.copyWith(items: restored, deleteFailure: failure),
+        );
+      },
+      (_) {
+        ref.invalidate(insightsProvider);
+        ref.invalidate(activeBudgetProvider);
+        ref.invalidate(sharedActiveBudgetProvider);
+      },
+    );
   }
 
   Future<void> loadMore() async {

@@ -1,6 +1,6 @@
 import 'package:intl/intl.dart';
 
-import 'package:trocado/src/domain/services/date_formatter_service.dart';
+import 'package:trocado/src/domain/services/interface_date_formatter_service.dart';
 
 final class DateFormatterService implements IDateFormatterService {
   static const _locale = 'pt_BR';

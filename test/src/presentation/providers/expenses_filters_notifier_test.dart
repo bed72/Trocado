@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:trocado/src/main/providers/services_provider.dart';
 
-import 'package:trocado/src/domain/services/date_formatter_service.dart';
+import 'package:trocado/src/domain/services/interface_date_formatter_service.dart';
 import 'package:trocado/src/domain/enums/expense/expense_category_enum.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 import 'package:trocado/src/domain/enums/expense/expense_value_preset_enum.dart';

@@ -6,7 +6,7 @@ import 'package:trocado/src/domain/either/either.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/models/user_model.dart';
 import 'package:trocado/src/domain/models/couple/couple_model.dart';
-import 'package:trocado/src/domain/services/date_formatter_service.dart';
+import 'package:trocado/src/domain/services/interface_date_formatter_service.dart';
 import 'package:trocado/src/domain/repositories/interface_user_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_couple_repository.dart';
 

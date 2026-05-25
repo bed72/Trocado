@@ -2,7 +2,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
-import 'package:trocado/src/domain/services/date_formatter_service.dart';
+import 'package:trocado/src/domain/services/interface_date_formatter_service.dart';
 
 import 'package:trocado/src/presentation/data/expense_item_presentation_data.dart';
 

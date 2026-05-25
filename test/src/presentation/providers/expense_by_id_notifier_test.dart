@@ -8,8 +8,8 @@ import 'package:trocado/src/main/providers/repositories_provider.dart';
 import 'package:trocado/src/domain/either/either.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
 
-import 'package:trocado/src/domain/services/money_service.dart';
-import 'package:trocado/src/domain/services/date_formatter_service.dart';
+import 'package:trocado/src/domain/services/interface_money_service.dart';
+import 'package:trocado/src/domain/services/interface_date_formatter_service.dart';
 
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
 import 'package:trocado/src/domain/models/expense/expenses_page_model.dart';
@@ -110,7 +110,10 @@ void main() {
         () => repository.findById(id: any(named: 'id')),
       ).thenAnswer((_) async => const Right(_expense));
 
-      final container = _makeContainer(repository: repository, coupleRepository: coupleRepository);
+      final container = _makeContainer(
+        repository: repository,
+        coupleRepository: coupleRepository,
+      );
 
       final data = await container.read(expenseByIdProvider(132).future);
 
@@ -123,7 +126,10 @@ void main() {
         () => repository.findById(id: any(named: 'id')),
       ).thenAnswer((_) async => const Left(NotFoundFailure()));
 
-      final container = _makeContainer(repository: repository, coupleRepository: coupleRepository);
+      final container = _makeContainer(
+        repository: repository,
+        coupleRepository: coupleRepository,
+      );
       container.listen(expenseByIdProvider(132), (_, _) {});
       container.read(expenseByIdProvider(132));
 

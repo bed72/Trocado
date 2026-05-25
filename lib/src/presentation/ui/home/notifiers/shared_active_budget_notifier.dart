@@ -5,8 +5,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:trocado/src/main/providers/services_provider.dart';
 import 'package:trocado/src/main/providers/repositories_provider.dart';
 
-import 'package:trocado/src/domain/services/money_service.dart';
-import 'package:trocado/src/domain/services/date_formatter_service.dart';
+import 'package:trocado/src/domain/services/interface_money_service.dart';
+import 'package:trocado/src/domain/services/interface_date_formatter_service.dart';
 
 import 'package:trocado/src/domain/models/budget/budget_slice_model.dart';
 import 'package:trocado/src/domain/models/budget/partner_budget_slice_model.dart';
@@ -18,8 +18,7 @@ import 'package:trocado/src/presentation/data/budget/shared_budget_card_presenta
 part 'shared_active_budget_notifier.g.dart';
 
 @Riverpod()
-final class SharedActiveBudgetNotifier
-    extends _$SharedActiveBudgetNotifier {
+final class SharedActiveBudgetNotifier extends _$SharedActiveBudgetNotifier {
   late IMoneyService _moneyService;
   late IBudgetRepository _repository;
   late IDateFormatterService _dateFormatter;
@@ -48,7 +47,8 @@ final class SharedActiveBudgetNotifier
         ? combined.totalSpent / combined.value
         : 0.0;
     final dailyBudget =
-        (combined.remaining / max(1, _dateFormatter.daysUntil(model.period.endDate)))
+        (combined.remaining /
+                max(1, _dateFormatter.daysUntil(model.period.endDate)))
             .round();
 
     return SharedBudgetCardPresentationData(
@@ -63,7 +63,9 @@ final class SharedActiveBudgetNotifier
       formattedEndDate: _dateFormatter.formatLongDate(model.period.endDate),
       formattedOverspent: _moneyService.format(combined.remaining.abs() / 100),
       formattedPercentage: (percentage * 100).clamp(0, 100).toStringAsFixed(0),
-      formattedRemaining: _moneyService.format(max(0, combined.remaining) / 100),
+      formattedRemaining: _moneyService.format(
+        max(0, combined.remaining) / 100,
+      ),
     );
   }
 

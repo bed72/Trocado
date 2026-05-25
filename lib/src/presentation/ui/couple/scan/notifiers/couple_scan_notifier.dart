@@ -3,7 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:trocado/src/main/providers/services_provider.dart';
 import 'package:trocado/src/main/providers/validators_provider.dart';
 
-import 'package:trocado/src/domain/services/camera_permission_service.dart';
+import 'package:trocado/src/domain/services/interface_camera_permission_service.dart';
 
 import 'package:trocado/src/presentation/ui/couple/scan/data/couple_scan_state.dart';
 import 'package:trocado/src/presentation/ui/couple/scan/notifiers/couple_scan_intent.dart';

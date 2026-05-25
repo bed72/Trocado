@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
-import 'package:trocado/src/domain/services/date_formatter_service.dart';
+import 'package:trocado/src/domain/services/interface_date_formatter_service.dart';
 import 'package:trocado/src/domain/enums/expense/expense_category_enum.dart';
 import 'package:trocado/src/infrastructure/services/date_formatter_service.dart';
 
