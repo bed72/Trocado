@@ -129,7 +129,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             slivers: [
               const SliverToBoxAdapter(
                 child: Padding(
-                  padding: .symmetric(horizontal: 16.0, vertical: 8.0),
+                  padding: .symmetric(horizontal: 16.0, vertical: 24.0),
                   child: ScreenHeaderWidget(
                     title: 'Notificações',
                     description: 'Acompanhe os alertas e avisos da sua conta.',
