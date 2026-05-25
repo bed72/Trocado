@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-enum ExpenseStatus { initial, loading, success, failure }
+enum ExpenseStatus { initial, loading, success, successAndContinue, failure }
 
 final class ExpenseState extends Equatable {
   final int? id;

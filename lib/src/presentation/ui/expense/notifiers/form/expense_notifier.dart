@@ -7,16 +7,16 @@ import 'package:trocado/src/main/providers/repositories_provider.dart';
 import 'package:trocado/src/domain/services/interface_date_formatter_service.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
-import 'package:trocado/src/presentation/ui/home/notifiers/insights_notifier.dart';
-import 'package:trocado/src/presentation/ui/home/notifiers/active_budget_notifier.dart';
-import 'package:trocado/src/presentation/ui/home/notifiers/recent_expenses_notifier.dart';
-import 'package:trocado/src/presentation/ui/home/notifiers/shared_active_budget_notifier.dart';
-
 import 'package:trocado/src/presentation/ui/expenses/notifiers/expenses_notifier.dart';
 import 'package:trocado/src/presentation/ui/expense/notifiers/form/expense_state.dart';
 import 'package:trocado/src/presentation/ui/expense/notifiers/form/expense_intent.dart';
 import 'package:trocado/src/presentation/ui/expense/notifiers/expense_by_id_notifier.dart';
 import 'package:trocado/src/presentation/ui/expense/validators/expense_form_validator.dart';
+
+import 'package:trocado/src/presentation/ui/home/notifiers/insights_notifier.dart';
+import 'package:trocado/src/presentation/ui/home/notifiers/active_budget_notifier.dart';
+import 'package:trocado/src/presentation/ui/home/notifiers/recent_expenses_notifier.dart';
+import 'package:trocado/src/presentation/ui/home/notifiers/shared_active_budget_notifier.dart';
 
 part 'expense_notifier.g.dart';
 
@@ -68,6 +68,7 @@ final class ExpenseNotifier extends _$ExpenseNotifier {
       ),
     ),
     SubmitPressed() => _submit(),
+    SubmitAndContinuePressed() => _submitAndContinue(),
   };
 
   void _mutate(ExpenseState next) => state = AsyncData(next);
@@ -101,13 +102,45 @@ final class ExpenseNotifier extends _$ExpenseNotifier {
         state.value!.copyWith(status: .failure, message: failure.message),
       ),
       (_) {
-        ref.invalidate(insightsProvider);
-        ref.invalidate(expensesProvider);
-        ref.invalidate(activeBudgetProvider);
-        ref.invalidate(recentExpensesProvider);
-        ref.invalidate(sharedActiveBudgetProvider);
+        _invalidateCaches();
         _mutate(state.value!.copyWith(status: .success));
       },
     );
+  }
+
+  Future<void> _submitAndContinue() async {
+    final current = state.value!;
+    final validation = _validator(current);
+    final validated = validation.state;
+
+    _mutate(validated);
+
+    if (!validation.isValid) return;
+
+    _mutate(validated.copyWith(status: .loading));
+
+    final data = await _repository.create(
+      date: validated.date!,
+      value: validated.value,
+      description: validated.description,
+    );
+
+    data.fold(
+      (failure) => _mutate(
+        state.value!.copyWith(status: .failure, message: failure.message),
+      ),
+      (_) {
+        _invalidateCaches();
+        _mutate(state.value!.copyWith(status: .successAndContinue));
+      },
+    );
+  }
+
+  void _invalidateCaches() {
+    ref.invalidate(insightsProvider);
+    ref.invalidate(expensesProvider);
+    ref.invalidate(activeBudgetProvider);
+    ref.invalidate(recentExpensesProvider);
+    ref.invalidate(sharedActiveBudgetProvider);
   }
 }

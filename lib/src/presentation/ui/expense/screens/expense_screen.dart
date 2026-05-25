@@ -9,6 +9,7 @@ import 'package:trocado/src/presentation/widgets/app_bar_widget.dart';
 import 'package:trocado/src/presentation/widgets/go_back_widget.dart';
 import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';
 import 'package:trocado/src/presentation/widgets/buttons/button_widget.dart';
+import 'package:trocado/src/presentation/widgets/buttons/hold_button_widget.dart';
 import 'package:trocado/src/presentation/widgets/buttons/form_submit_button_widget.dart';
 import 'package:trocado/src/presentation/widgets/circular_progress_indicator_widget.dart';
 
@@ -46,6 +47,14 @@ class ExpenseScreen extends StatelessWidget {
         switch (next.value.status) {
           case .success when previousStatus != .success:
             context.pop();
+          case .successAndContinue when previousStatus != .successAndContinue:
+            showToastWidget(
+              context: context,
+              type: .success,
+              title: 'Despesa cadastrada',
+              description: 'Tudo limpo para uma nova despesa.',
+            );
+            ref.invalidate(expenseProvider(id));
           case .failure when previousStatus != .failure:
             showToastWidget(
               context: context,
@@ -149,14 +158,27 @@ class ExpenseScreen extends StatelessWidget {
           ),
           Padding(
             padding: const .only(top: 16.0),
-            child: FormSubmitButtonWidget(
-              isLoading: state.status == .loading,
-              label: isEditing ? 'Atualizar' : 'Cadastrar',
-              onTap: () {
-                hideKeyboard();
-                notifier.dispatch(const SubmitPressed());
-              },
-            ),
+            child: isEditing
+                ? FormSubmitButtonWidget(
+                    label: 'Atualizar',
+                    isLoading: state.status == .loading,
+                    onTap: () {
+                      hideKeyboard();
+                      notifier.dispatch(const SubmitPressed());
+                    },
+                  )
+                : HoldButtonWidget(
+                    label: 'Cadastrar',
+                    isLoading: state.status == .loading,
+                    onTap: () {
+                      hideKeyboard();
+                      notifier.dispatch(const SubmitPressed());
+                    },
+                    onHoldComplete: () {
+                      hideKeyboard();
+                      notifier.dispatch(const SubmitAndContinuePressed());
+                    },
+                  ),
           ),
         ],
       ),
