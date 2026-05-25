@@ -83,6 +83,7 @@ class _ChatTextFieldWidgetState extends State<ChatTextFieldWidget> {
   TextField _buildTextField() => TextField(
     minLines: 1,
     maxLines: 3,
+    cursorHeight: 16.0,
     textInputAction: .send,
     enabled: widget.enabled,
     controller: _controller,

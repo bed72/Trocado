@@ -42,7 +42,7 @@ final class NotificationLifecycleProvider
 }
 
 String _$notificationLifecycleHash() =>
-    r'6835f0519e8106958022e3d100e8ff626b79da97';
+    r'ee37d9813aea415e5d24d8a9b0a7249280dbd762';
 
 abstract class _$NotificationLifecycle extends $Notifier<void> {
   void build();

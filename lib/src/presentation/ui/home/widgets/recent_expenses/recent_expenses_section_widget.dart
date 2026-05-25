@@ -42,7 +42,7 @@ class RecentExpensesSectionWidget extends StatelessWidget {
                 color: context.colors.onSurface,
               ),
             ),
-            (state.value?.length ?? 0) > 4
+            (state.value?.length ?? 0) > 0
                 ? ButtonWidget.text(onTap: onSeeAll, label: 'Ver tudo')
                 : const SizedBox.shrink(),
           ],

@@ -43,6 +43,7 @@ class ExpensesFilterScreen extends StatelessWidget {
         child: Padding(
           padding: const .all(16.0),
           child: Column(
+            crossAxisAlignment: .start,
             children: [
               Expanded(
                 child: SingleChildScrollView(
