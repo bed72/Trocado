@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
@@ -196,12 +197,15 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
       SliverFillRemaining(hasScrollBody: false, child: ExpensesEmptyWidget()),
     ],
     AsyncValue(:final value?) => [
-      ExpensesListWidget(
-        state: value,
-        groups: value.groups,
-        onLoadMore: _onLoadMore,
-        onDelete: notifier.deleteById,
-        onTapExpense: widget.onTapExpense,
+      Skeletonizer.sliver(
+        enabled: value.isFiltering,
+        child: ExpensesListWidget(
+          state: value,
+          groups: value.groups,
+          onLoadMore: _onLoadMore,
+          onDelete: notifier.deleteById,
+          onTapExpense: widget.onTapExpense,
+        ),
       ),
     ],
     AsyncError() => [

@@ -10,6 +10,7 @@ import 'package:trocado/src/presentation/ui/expenses/data/expense_active_filter_
 
 final class ExpensesState extends Equatable {
   final bool isInCouple;
+  final bool isFiltering;
   final String? nextCursor;
   final bool isLoadingMore;
   final FinancialScopeEnum scope;
@@ -27,6 +28,7 @@ final class ExpensesState extends Equatable {
     this.items = const [],
     this.groups = const [],
     this.isInCouple = false,
+    this.isFiltering = false,
     this.isLoadingMore = false,
     this.scope = FinancialScopeEnum.mine,
     this.filter = const .empty(),
@@ -35,6 +37,7 @@ final class ExpensesState extends Equatable {
 
   ExpensesState copyWith({
     bool? isInCouple,
+    bool? isFiltering,
     String? nextCursor,
     bool? isLoadingMore,
     FinancialScopeEnum? scope,
@@ -53,6 +56,7 @@ final class ExpensesState extends Equatable {
     filter: filter ?? this.filter,
     scope: scope ?? this.scope,
     isInCouple: isInCouple ?? this.isInCouple,
+    isFiltering: isFiltering ?? this.isFiltering,
     isLoadingMore: isLoadingMore ?? this.isLoadingMore,
     activeFilterChips: activeFilterChips ?? this.activeFilterChips,
     nextCursor: clearNextCursor ? null : nextCursor ?? this.nextCursor,
@@ -72,6 +76,7 @@ final class ExpensesState extends Equatable {
     filter,
     nextCursor,
     isInCouple,
+    isFiltering,
     isLoadingMore,
     deleteFailure,
     loadMoreFailure,

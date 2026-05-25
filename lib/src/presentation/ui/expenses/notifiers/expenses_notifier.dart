@@ -5,15 +5,14 @@ import 'package:trocado/src/main/providers/services_provider.dart';
 import 'package:trocado/src/main/providers/repositories_provider.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
-
-import 'package:trocado/src/domain/services/interface_money_service.dart';
-import 'package:trocado/src/domain/services/interface_date_formatter_service.dart';
-
 import 'package:trocado/src/domain/enums/scope/financial_scope_enum.dart';
 
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
 import 'package:trocado/src/domain/models/expense/expenses_page_model.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
+
+import 'package:trocado/src/domain/services/interface_money_service.dart';
+import 'package:trocado/src/domain/services/interface_date_formatter_service.dart';
 
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
@@ -62,13 +61,20 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
     if (current == null) return;
     if (current.scope == scope) return;
 
-    state = const AsyncLoading();
+    state = AsyncData(current.copyWith(isFiltering: true));
     state = await AsyncValue.guard(() => _loadFirstPage(current.filter, scope));
   }
 
   Future<void> applyFilter(ExpenseFilterModel filter) async {
-    final scope = state.value?.scope ?? .mine;
-    state = const AsyncLoading();
+    final current = state.value;
+    final scope = current?.scope ?? .mine;
+
+    if (current != null) {
+      state = AsyncData(current.copyWith(isFiltering: true));
+    } else {
+      state = const AsyncLoading();
+    }
+
     state = await AsyncValue.guard(() => _loadFirstPage(filter, scope));
   }
 
