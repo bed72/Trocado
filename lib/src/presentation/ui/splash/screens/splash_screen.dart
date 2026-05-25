@@ -9,6 +9,7 @@ import 'package:trocado/src/presentation/extensions/context_extension.dart';
 
 import 'package:trocado/src/presentation/ui/splash/notifiers/splash_state.dart';
 import 'package:trocado/src/presentation/ui/splash/notifiers/splash_notifier.dart';
+import 'package:trocado/src/presentation/ui/splash/widgets/splash_error_widget.dart';
 
 class SplashScreen extends StatelessWidget {
   final VoidCallback navigateToHome;
@@ -28,25 +29,35 @@ class SplashScreen extends StatelessWidget {
           splashProvider,
           (_, AsyncValue<SplashStatus> state) => switch (state) {
             AsyncData(:final value) => switch (value) {
-              SplashStatus.authenticated => navigateToHome(),
-              SplashStatus.unauthenticated => navigateToSignIn(),
+              .authenticated => navigateToHome(),
+              .unauthenticated => navigateToSignIn(),
+              .noConnection || .maintenance => null,
             },
             _ => null,
           },
         );
 
-        return _buildBody(context);
+        final state = ref.watch(splashProvider);
+
+        return ScaffoldWidget(
+          child: switch (state) {
+            AsyncData(value: .noConnection) ||
+            AsyncData(value: .maintenance) => SplashErrorWidget(
+              status: state.requireValue,
+              onRetry: () => ref.read(splashProvider.notifier).retry(),
+            ),
+            _ => _buildLogo(context),
+          },
+        );
       },
     );
   }
 
-  ScaffoldWidget _buildBody(BuildContext context) => ScaffoldWidget(
-    child: Center(
-      child: ImageWidget(
-        height: 196.0,
-        source: AssetsConstant.logo.source,
-        color: context.colors.inversePrimary,
-      ),
+  Widget _buildLogo(BuildContext context) => Center(
+    child: ImageWidget(
+      height: 196.0,
+      source: AssetsConstant.logo.source,
+      color: context.colors.inversePrimary,
     ),
   );
 }

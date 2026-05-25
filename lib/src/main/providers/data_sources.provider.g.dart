@@ -201,6 +201,54 @@ final class RemoteCoupleDataSourceProvider
 String _$remoteCoupleDataSourceHash() =>
     r'f46213d3262b631f53dda31537610e5fe6114d10';
 
+@ProviderFor(remoteHealthDataSource)
+final remoteHealthDataSourceProvider = RemoteHealthDataSourceProvider._();
+
+final class RemoteHealthDataSourceProvider
+    extends
+        $FunctionalProvider<
+          IRemoteHealthDataSource,
+          IRemoteHealthDataSource,
+          IRemoteHealthDataSource
+        >
+    with $Provider<IRemoteHealthDataSource> {
+  RemoteHealthDataSourceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'remoteHealthDataSourceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$remoteHealthDataSourceHash();
+
+  @$internal
+  @override
+  $ProviderElement<IRemoteHealthDataSource> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  IRemoteHealthDataSource create(Ref ref) {
+    return remoteHealthDataSource(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(IRemoteHealthDataSource value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<IRemoteHealthDataSource>(value),
+    );
+  }
+}
+
+String _$remoteHealthDataSourceHash() =>
+    r'9c3437109e762132851c6100ac32716f9c51f54e';
+
 @ProviderFor(remoteExpenseDataSource)
 final remoteExpenseDataSourceProvider = RemoteExpenseDataSourceProvider._();
 

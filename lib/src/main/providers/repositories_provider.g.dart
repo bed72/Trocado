@@ -382,6 +382,53 @@ final class InsightsRepositoryProvider
 String _$insightsRepositoryHash() =>
     r'902a07b8a0bb85d8e9031ef1540f15869a2ec82c';
 
+@ProviderFor(healthRepository)
+final healthRepositoryProvider = HealthRepositoryProvider._();
+
+final class HealthRepositoryProvider
+    extends
+        $FunctionalProvider<
+          IHealthRepository,
+          IHealthRepository,
+          IHealthRepository
+        >
+    with $Provider<IHealthRepository> {
+  HealthRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'healthRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$healthRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<IHealthRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  IHealthRepository create(Ref ref) {
+    return healthRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(IHealthRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<IHealthRepository>(value),
+    );
+  }
+}
+
+String _$healthRepositoryHash() => r'a713d0553c206bb2a44a602a680585ddf2a8ceb5';
+
 @ProviderFor(chatRepository)
 final chatRepositoryProvider = ChatRepositoryProvider._();
 

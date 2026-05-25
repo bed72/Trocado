@@ -240,3 +240,51 @@ final class QuickActionServiceProvider
 
 String _$quickActionServiceHash() =>
     r'8e235f9cff8e97f51f9aac60000da1474a9c2bc5';
+
+@ProviderFor(connectivityService)
+final connectivityServiceProvider = ConnectivityServiceProvider._();
+
+final class ConnectivityServiceProvider
+    extends
+        $FunctionalProvider<
+          IConnectivityService,
+          IConnectivityService,
+          IConnectivityService
+        >
+    with $Provider<IConnectivityService> {
+  ConnectivityServiceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'connectivityServiceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$connectivityServiceHash();
+
+  @$internal
+  @override
+  $ProviderElement<IConnectivityService> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  IConnectivityService create(Ref ref) {
+    return connectivityService(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(IConnectivityService value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<IConnectivityService>(value),
+    );
+  }
+}
+
+String _$connectivityServiceHash() =>
+    r'c9c4632f868853b370fd67073db0204bc169e7f6';

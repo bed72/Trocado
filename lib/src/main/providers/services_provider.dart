@@ -4,11 +4,13 @@ import 'package:trocado/src/domain/services/money_service.dart';
 import 'package:trocado/src/domain/services/quick_action_service.dart';
 import 'package:trocado/src/domain/services/date_formatter_service.dart';
 import 'package:trocado/src/domain/services/camera_permission_service.dart';
+import 'package:trocado/src/domain/services/interface_connectivity_service.dart';
 
 import 'package:trocado/src/infrastructure/services/money_service.dart';
 import 'package:trocado/src/infrastructure/services/quick_action_service.dart';
 import 'package:trocado/src/infrastructure/services/date_formatter_service.dart';
 import 'package:trocado/src/infrastructure/services/camera_permission_service.dart';
+import 'package:trocado/src/infrastructure/services/connectivity_service.dart';
 
 part 'services_provider.g.dart';
 
@@ -28,3 +30,6 @@ ICameraPermissionService cameraPermissionService(Ref _) =>
 
 @Riverpod(keepAlive: true)
 IQuickActionService quickActionService(Ref _) => QuickActionService();
+
+@Riverpod()
+IConnectivityService connectivityService(Ref _) => ConnectivityService();

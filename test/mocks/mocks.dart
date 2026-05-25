@@ -5,11 +5,13 @@ import 'package:trocado/src/domain/services/money_service.dart';
 import 'package:trocado/src/domain/services/date_formatter_service.dart';
 import 'package:trocado/src/domain/services/quick_action_service.dart';
 import 'package:trocado/src/domain/services/camera_permission_service.dart';
+import 'package:trocado/src/domain/services/interface_connectivity_service.dart';
 
 import 'package:trocado/src/domain/repositories/interface_user_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_theme_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_couple_repository.dart';
+import 'package:trocado/src/domain/repositories/interface_health_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_insights_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_notification_repository.dart';
@@ -50,6 +52,8 @@ final class MockCoupleRepository extends Mock implements ICoupleRepository {}
 
 final class MockBudgetRepository extends Mock implements IBudgetRepository {}
 
+final class MockHealthRepository extends Mock implements IHealthRepository {}
+
 final class MockHttpClientAdapter extends Mock implements HttpClientAdapter {}
 
 final class MockExpenseRepository extends Mock implements IExpenseRepository {}
@@ -76,6 +80,9 @@ final class MockCameraPermissionService extends Mock
 
 final class MockQuickActionService extends Mock
     implements IQuickActionService {}
+
+final class MockConnectivityService extends Mock
+    implements IConnectivityService {}
 
 final class MockAuthenticationRepository extends Mock
     implements IAuthenticationRepository {}

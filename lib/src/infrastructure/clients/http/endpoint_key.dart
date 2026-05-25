@@ -1,5 +1,6 @@
 enum EndpointKey {
   me('/api/v1/me'),
+  health('/health/'),
   chat('/api/v1/chat'),
   signIn('/api/v1/token'),
   couple('/api/v1/couple'),
@@ -31,6 +32,7 @@ enum EndpointKey {
       _publicEndpoints.any((key) => path.contains(key.path));
 
   static const _publicEndpoints = {
+    health,
     signIn,
     signUp,
     refreshToken,

@@ -9,11 +9,13 @@ import 'package:trocado/src/data/repositories/user_repository.dart';
 import 'package:trocado/src/data/repositories/theme_repository.dart';
 import 'package:trocado/src/data/repositories/budget_repository.dart';
 import 'package:trocado/src/data/repositories/couple_repository.dart';
+import 'package:trocado/src/data/repositories/health_repository.dart';
 import 'package:trocado/src/data/repositories/expense_repository.dart';
 import 'package:trocado/src/data/repositories/insights_repository.dart';
 import 'package:trocado/src/data/repositories/notification_repository.dart';
 import 'package:trocado/src/data/repositories/authentication_repository.dart';
 
+import 'package:trocado/src/domain/repositories/interface_health_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_chat_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_user_repository.dart';
 import 'package:trocado/src/domain/repositories/interface_theme_repository.dart';
@@ -69,6 +71,10 @@ IExpenseRepository expenseRepository(Ref ref) =>
 @Riverpod()
 IInsightsRepository insightsRepository(Ref ref) =>
     InsightsRepository(dataSource: ref.watch(remoteInsightsDataSourceProvider));
+
+@Riverpod()
+IHealthRepository healthRepository(Ref ref) =>
+    HealthRepository(dataSource: ref.watch(remoteHealthDataSourceProvider));
 
 @Riverpod()
 IChatRepository chatRepository(Ref ref) => ChatRepository(

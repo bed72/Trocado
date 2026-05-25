@@ -1,1 +1,1 @@
-enum SplashStatus { authenticated, unauthenticated }
+enum SplashStatus { authenticated, unauthenticated, noConnection, maintenance }
