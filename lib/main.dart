@@ -20,6 +20,7 @@ Future<void> main() async {
 
   await container.read(firebaseClientProvider).initialize();
   await container.read(appCheckClientProvider).initialize();
+  await container.read(localNotificationClientProvider).initialize();
   container.read(notificationLifecycleProvider);
 
   final client = container.read(crashClientProvider);

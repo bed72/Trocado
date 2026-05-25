@@ -221,6 +221,54 @@ final class MessagingClientProvider
 
 String _$messagingClientHash() => r'd088880587fa615ed0aba668bcfe26c5000b8cf9';
 
+@ProviderFor(localNotificationClient)
+final localNotificationClientProvider = LocalNotificationClientProvider._();
+
+final class LocalNotificationClientProvider
+    extends
+        $FunctionalProvider<
+          ILocalNotificationClient,
+          ILocalNotificationClient,
+          ILocalNotificationClient
+        >
+    with $Provider<ILocalNotificationClient> {
+  LocalNotificationClientProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'localNotificationClientProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$localNotificationClientHash();
+
+  @$internal
+  @override
+  $ProviderElement<ILocalNotificationClient> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  ILocalNotificationClient create(Ref ref) {
+    return localNotificationClient(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ILocalNotificationClient value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ILocalNotificationClient>(value),
+    );
+  }
+}
+
+String _$localNotificationClientHash() =>
+    r'd2d2e0549fb8cbdf0c43cf9e0e7d7fac2d4008d9';
+
 @ProviderFor(loggerClient)
 final loggerClientProvider = LoggerClientProvider._();
 

@@ -23,6 +23,7 @@ import 'package:trocado/src/infrastructure/clients/logger/logger_client.dart';
 import 'package:trocado/src/infrastructure/clients/storage/storage_client.dart';
 import 'package:trocado/src/infrastructure/clients/app_check/app_check_client.dart';
 import 'package:trocado/src/infrastructure/clients/messaging/messaging_client.dart';
+import 'package:trocado/src/infrastructure/clients/notification/local_notification_client.dart';
 import 'package:trocado/src/infrastructure/datasources/local/local_theme_data_source.dart';
 import 'package:trocado/src/infrastructure/datasources/local/local_token_data_source.dart';
 import 'package:trocado/src/infrastructure/datasources/remote/remote_couple_data_source.dart';
@@ -63,6 +64,12 @@ final class MockTokenDataSource extends Mock implements ILocalTokenDataSource {}
 final class MockInsightsRepository extends Mock
     implements IInsightsRepository {}
 
+final class MockQuickActionService extends Mock
+    implements IQuickActionService {}
+
+final class MockConnectivityService extends Mock
+    implements IConnectivityService {}
+
 final class MockDateFormatterService extends Mock
     implements IDateFormatterService {}
 
@@ -78,11 +85,8 @@ final class MockNotificationRepository extends Mock
 final class MockCameraPermissionService extends Mock
     implements ICameraPermissionService {}
 
-final class MockQuickActionService extends Mock
-    implements IQuickActionService {}
-
-final class MockConnectivityService extends Mock
-    implements IConnectivityService {}
+final class MockLocalNotificationClient extends Mock
+    implements ILocalNotificationClient {}
 
 final class MockAuthenticationRepository extends Mock
     implements IAuthenticationRepository {}
