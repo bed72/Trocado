@@ -18,7 +18,7 @@ final class RemoteHealthDataSource implements IRemoteHealthDataSource {
   @override
   Future<Either<FailureResponse, HealthResponse>> check() async {
     final response = await _client.get(
-      parameter: Requests(EndpointKey.health.path),
+      parameter: Requests('${EndpointKey.health.path}?format=json'),
     );
 
     return response.either(FailureResponse.fromJson, HealthResponse.fromJson);
