@@ -16,6 +16,7 @@ class HomeGreetingWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Column(
+    spacing: 2.0,
     mainAxisSize: .min,
     crossAxisAlignment: .start,
     children: [
