@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:trocado/src/presentation/extensions/context_extension.dart';
-
 import 'package:trocado/src/presentation/widgets/app_bar_widget.dart';
 import 'package:trocado/src/presentation/widgets/go_back_widget.dart';
 import 'package:trocado/src/presentation/widgets/scaffold_widget.dart';
