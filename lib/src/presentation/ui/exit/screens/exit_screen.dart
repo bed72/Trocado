@@ -24,16 +24,13 @@ class ExitScreen extends StatelessWidget {
             spacing: 16.0,
             children: [
               Expanded(
-                child: ButtonWidget.danger(
-                  onTap: onExit,
-                  child: Text('Sair'),
-                ),
-              ),
-              Expanded(
                 child: ButtonWidget.outlined(
                   onTap: onCancel,
                   child: Text('Cancelar'),
                 ),
+              ),
+              Expanded(
+                child: ButtonWidget.danger(onTap: onExit, child: Text('Sair')),
               ),
             ],
           ),
