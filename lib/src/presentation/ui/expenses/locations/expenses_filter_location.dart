@@ -25,9 +25,9 @@ final class ExpensesFilterLocation extends Location {
           initialFilter: initialFilter,
           navigateToDateRange:
               ({
+                required onSelected,
                 int? initialEndDate,
                 int? initialStartDate,
-                required onSelected,
               }) => context.navigate(
                 DateRangeLocation(
                   onSelected: onSelected,

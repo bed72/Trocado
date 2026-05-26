@@ -20,9 +20,9 @@ final class SettingsLocation extends Location {
         SettingsScreen(
           onNotification: () {},
           onSubscription: () {},
-          onCoupleDetails: () => context.navigate(CoupleDissolveLocation()),
           onEditProfile: () => context.navigate(ProfileDetailsLocation()),
           onInvitePartner: () => context.navigate(CoupleInviteLocation()),
+          onCoupleDetails: () => context.navigate(CoupleDissolveLocation()),
           onSignIn: () =>
               context.clear(SignInLocation(), root: true, replace: true),
         ),

@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "655804305812",
-    "project_id": "trocado-ab00c",
-    "storage_bucket": "trocado-ab00c.firebasestorage.app"
+    "project_number": "581806206821",
+    "project_id": "trocado-70f81",
+    "storage_bucket": "trocado-70f81.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:655804305812:android:93a66a7e8a74acf2d33f81",
+        "mobilesdk_app_id": "1:581806206821:android:f9335eb12a80ee405d3b8c",
         "android_client_info": {
           "package_name": "br.com.bed.trocado"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAqxtdT6NAJrUfmy0ysXK5oAUyDIzL6QgU"
+          "current_key": "AIzaSyC_ztTHg1v6XsUWMBiu4zgbP14DWvj7AV0"
         }
       ],
       "services": {

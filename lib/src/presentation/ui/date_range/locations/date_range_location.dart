@@ -9,16 +9,16 @@ import 'package:trocado/src/presentation/ui/date_range/screens/date_range_screen
 final class DateRangeLocation extends Location {
   final String? title;
   final String? subtitle;
-  final int? initialStartDate;
   final int? initialEndDate;
+  final int? initialStartDate;
   final DateRangeSelected onSelected;
 
   const DateRangeLocation({
     required this.onSelected,
     this.title,
     this.subtitle,
-    this.initialStartDate,
     this.initialEndDate,
+    this.initialStartDate,
   });
 
   @override
@@ -30,9 +30,9 @@ final class DateRangeLocation extends Location {
         builder: (_) => DateRangeScreen(
           onSelected: onSelected,
           title: title ?? 'Período',
-          subtitle: subtitle ?? 'Selecione o período.',
-          initialStartDate: initialStartDate,
           initialEndDate: initialEndDate,
+          initialStartDate: initialStartDate,
+          subtitle: subtitle ?? 'Selecione o período.',
         ),
       );
 }

@@ -50,19 +50,19 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyAqxtdT6NAJrUfmy0ysXK5oAUyDIzL6QgU',
-    appId: '1:655804305812:android:93a66a7e8a74acf2d33f81',
-    messagingSenderId: '655804305812',
-    projectId: 'trocado-ab00c',
-    storageBucket: 'trocado-ab00c.firebasestorage.app',
+    apiKey: 'AIzaSyC_ztTHg1v6XsUWMBiu4zgbP14DWvj7AV0',
+    appId: '1:581806206821:android:f9335eb12a80ee405d3b8c',
+    messagingSenderId: '581806206821',
+    projectId: 'trocado-70f81',
+    storageBucket: 'trocado-70f81.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDsoFYH2H2sFtfs9KGk8JZ8TTAw8VYPuT0',
-    appId: '1:655804305812:ios:376e50dd60fb82e4d33f81',
-    messagingSenderId: '655804305812',
-    projectId: 'trocado-ab00c',
-    storageBucket: 'trocado-ab00c.firebasestorage.app',
+    apiKey: 'AIzaSyA4PfS4Pd21uxvhqjkymKR_G1jATE2FXG0',
+    appId: '1:581806206821:ios:65cacd66c2820e9c5d3b8c',
+    messagingSenderId: '581806206821',
+    projectId: 'trocado-70f81',
+    storageBucket: 'trocado-70f81.firebasestorage.app',
     iosBundleId: 'br.com.bed.trocado',
   );
 
