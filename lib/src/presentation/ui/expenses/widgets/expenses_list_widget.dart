@@ -52,35 +52,38 @@ class ExpensesListWidget extends StatelessWidget {
 
             if (!isEditable) return card;
 
-            return Dismissible(
-              key: ValueKey(item.expense.id),
-              direction: .horizontal,
-              background: SwipeActionsBackgroundWidget.leading(
-                icon: Icons.edit_outlined,
-                color: context.colors.primary,
-                iconColor: context.colors.onPrimary,
-              ),
-              secondaryBackground: SwipeActionsBackgroundWidget.trailing(
-                icon: Icons.delete_outline,
-                color: context.colors.error,
-                iconColor: context.colors.onError,
-              ),
-              confirmDismiss: (direction) async {
-                if (direction == .startToEnd) {
-                  onTapExpense(item.expense);
-                  return false;
-                }
+            return Container(
+              margin: const .only(bottom: 2.0),
+              child: Dismissible(
+                key: ValueKey(item.expense.id),
+                direction: .horizontal,
+                background: SwipeActionsBackgroundWidget.leading(
+                  icon: Icons.edit_outlined,
+                  color: context.colors.primary,
+                  iconColor: context.colors.onPrimary,
+                ),
+                secondaryBackground: SwipeActionsBackgroundWidget.trailing(
+                  icon: Icons.delete_outline,
+                  color: context.colors.error,
+                  iconColor: context.colors.onError,
+                ),
+                confirmDismiss: (direction) async {
+                  if (direction == .startToEnd) {
+                    onTapExpense(item.expense);
+                    return false;
+                  }
 
-                return await showConfirmDialog(
-                  context: context,
-                  confirmLabel: 'Excluir',
-                  title: 'Excluir despesa',
-                  description:
-                      'Esta ação vai excluir a despesa e não pode ser desfeita.',
-                );
-              },
-              onDismissed: (_) => onDelete(item.expense.id),
-              child: card,
+                  return await showConfirmDialog(
+                    context: context,
+                    confirmLabel: 'Excluir',
+                    title: 'Excluir despesa',
+                    description:
+                        'Esta ação vai excluir a despesa e não pode ser desfeita.',
+                  );
+                },
+                onDismissed: (_) => onDelete(item.expense.id),
+                child: card,
+              ),
             );
           },
         ),

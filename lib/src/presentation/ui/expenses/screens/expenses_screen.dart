@@ -39,8 +39,8 @@ class ExpensesScreen extends StatefulWidget {
 }
 
 class _ExpensesScreenState extends State<ExpensesScreen> {
-  bool _initialDescriptionSynced = false;
   VoidCallback _onLoadMore = () {};
+  bool _initialDescriptionSynced = false;
 
   final double _loadMoreThreshold = 200.0;
   final ScrollController _scrollController = ScrollController();
@@ -165,8 +165,8 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const .symmetric(
-                        horizontal: 16.0,
                         vertical: 8.0,
+                        horizontal: 16.0,
                       ),
                       child: ExpensesScopeSelectorWidget(
                         scope: state.value?.scope ?? .mine,

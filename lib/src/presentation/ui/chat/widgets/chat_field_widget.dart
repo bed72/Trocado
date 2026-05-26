@@ -4,12 +4,12 @@ import 'package:trocado/src/presentation/widgets/bounce_widget.dart';
 import 'package:trocado/src/presentation/extensions/context_extension.dart';
 import 'package:trocado/src/presentation/widgets/icons/icon_widget.dart';
 
-class ChatTextFieldWidget extends StatefulWidget {
+class ChatFieldWidget extends StatefulWidget {
   final bool enabled;
   final VoidCallback onSend;
   final ValueChanged<String> onChanged;
 
-  const ChatTextFieldWidget({
+  const ChatFieldWidget({
     super.key,
     required this.onSend,
     required this.enabled,
@@ -17,10 +17,10 @@ class ChatTextFieldWidget extends StatefulWidget {
   });
 
   @override
-  State<ChatTextFieldWidget> createState() => _ChatTextFieldWidgetState();
+  State<ChatFieldWidget> createState() => _ChatFieldWidgetState();
 }
 
-class _ChatTextFieldWidgetState extends State<ChatTextFieldWidget> {
+class _ChatFieldWidgetState extends State<ChatFieldWidget> {
   bool _hasText = false;
 
   late final TextEditingController _controller;
@@ -87,6 +87,7 @@ class _ChatTextFieldWidgetState extends State<ChatTextFieldWidget> {
     textInputAction: .send,
     enabled: widget.enabled,
     controller: _controller,
+    textCapitalization: .sentences,
     onSubmitted: (_) => _handleSend(),
     style: context.typography.bodyMedium,
     onChanged: (value) {

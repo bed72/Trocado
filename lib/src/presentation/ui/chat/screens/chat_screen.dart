@@ -10,7 +10,7 @@ import 'package:trocado/src/presentation/ui/chat/notifiers/chat_intent.dart';
 import 'package:trocado/src/presentation/ui/chat/notifiers/chat_notifier.dart';
 import 'package:trocado/src/presentation/ui/chat/widgets/chat_empty_widget.dart';
 import 'package:trocado/src/presentation/ui/chat/widgets/chat_messages_widget.dart';
-import 'package:trocado/src/presentation/ui/chat/widgets/chat_text_field_widget.dart';
+import 'package:trocado/src/presentation/ui/chat/widgets/chat_field_widget.dart';
 
 class ChatScreen extends StatelessWidget {
   const ChatScreen({super.key});
@@ -41,7 +41,7 @@ class ChatScreen extends StatelessWidget {
                         isPolling: state.status == .polling,
                       ),
               ),
-              ChatTextFieldWidget(
+              ChatFieldWidget(
                 enabled: !state.isProcessing,
                 onChanged: (value) => ref
                     .read(chatProvider.notifier)

@@ -91,6 +91,16 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
   }
 
   @override
+  void didUpdateWidget(TextFieldWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_controller != null &&
+        widget.initialValue != oldWidget.initialValue &&
+        _controller.text != (widget.initialValue ?? '')) {
+      _controller.text = widget.initialValue ?? '';
+    }
+  }
+
+  @override
   void dispose() {
     _focus
       ..removeListener(_onFocusChange)
