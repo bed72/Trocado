@@ -12,8 +12,7 @@ abstract interface class ILocalNotificationClient {
 final class LocalNotificationClient implements ILocalNotificationClient {
   final FlutterLocalNotificationsPlugin _plugin;
 
-  LocalNotificationClient({required FlutterLocalNotificationsPlugin plugin})
-    : _plugin = plugin;
+  LocalNotificationClient({required this._plugin});
 
   @override
   Future<void> initialize() async {

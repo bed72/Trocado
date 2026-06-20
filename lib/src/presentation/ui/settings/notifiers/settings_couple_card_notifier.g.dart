@@ -42,7 +42,7 @@ abstract class _$SettingsCoupleCardNotifier
   FutureOr<CoupleCardState> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<CoupleCardState>, CoupleCardState>;
     final element =
         ref.element
@@ -52,6 +52,6 @@ abstract class _$SettingsCoupleCardNotifier
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

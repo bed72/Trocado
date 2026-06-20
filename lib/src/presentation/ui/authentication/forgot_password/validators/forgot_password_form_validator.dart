@@ -7,8 +7,7 @@ import 'package:trocado/src/presentation/ui/authentication/forgot_password/notif
 final class ForgotPasswordFormValidator {
   final EmailValidation _emailValidation;
 
-  const ForgotPasswordFormValidator({required EmailValidation emailValidation})
-    : _emailValidation = emailValidation;
+  const ForgotPasswordFormValidator({required this._emailValidation});
 
   ({ForgotPasswordState state, bool isValid}) call(ForgotPasswordState state) {
     final email = _emailValidation(state.email);

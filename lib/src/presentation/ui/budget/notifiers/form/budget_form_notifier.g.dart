@@ -85,7 +85,7 @@ abstract class _$BudgetFormNotifier extends $AsyncNotifier<BudgetFormState> {
   FutureOr<BudgetFormState> build(int? id);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<BudgetFormState>, BudgetFormState>;
     final element =
         ref.element
@@ -95,6 +95,6 @@ abstract class _$BudgetFormNotifier extends $AsyncNotifier<BudgetFormState> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args));
+    return element.handleCreate(ref, () => build(_$args));
   }
 }

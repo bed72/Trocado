@@ -48,8 +48,7 @@ final class RemoteAuthenticationDataSource
     implements IRemoteAuthenticationDataSource {
   final IHttpClient _client;
 
-  RemoteAuthenticationDataSource({required IHttpClient client})
-    : _client = client;
+  RemoteAuthenticationDataSource({required this._client});
 
   @override
   Future<Either<FailureResponse, void>> logout({

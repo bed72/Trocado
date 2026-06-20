@@ -48,7 +48,7 @@ abstract class _$ForgotPasswordNotifier extends $Notifier<ForgotPasswordState> {
   ForgotPasswordState build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<ForgotPasswordState, ForgotPasswordState>;
     final element =
         ref.element
@@ -58,6 +58,6 @@ abstract class _$ForgotPasswordNotifier extends $Notifier<ForgotPasswordState> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

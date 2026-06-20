@@ -5,7 +5,7 @@ import 'package:trocado/src/infrastructure/clients/app_check/app_check_client.da
 final class AppCheckInterceptor extends Interceptor {
   final IAppCheckClient _client;
 
-  AppCheckInterceptor({required IAppCheckClient client}) : _client = client;
+  AppCheckInterceptor({required this._client});
 
   @override
   void onRequest(

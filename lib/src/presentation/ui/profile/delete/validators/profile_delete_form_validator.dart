@@ -7,9 +7,7 @@ import 'package:trocado/src/presentation/ui/profile/delete/notifiers/profile_del
 final class ProfileDeleteFormValidator {
   final PasswordValidation _passwordValidation;
 
-  const ProfileDeleteFormValidator({
-    required PasswordValidation passwordValidation,
-  }) : _passwordValidation = passwordValidation;
+  const ProfileDeleteFormValidator({required this._passwordValidation});
 
   ({ProfileDeleteState state, bool isValid}) call(ProfileDeleteState state) {
     final password = _passwordValidation(state.password);

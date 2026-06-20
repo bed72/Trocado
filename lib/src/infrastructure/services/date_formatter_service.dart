@@ -14,7 +14,7 @@ final class DateFormatterService implements IDateFormatterService {
   final DateFormat _monthAbbrev = DateFormat('MMM', _locale);
   final DateFormat _monthYear = DateFormat('MMMM y', _locale);
 
-  DateFormatterService({required DateTime Function() now}) : _now = now;
+  DateFormatterService({required this._now});
 
   @override
   String formatLongDate(int millis) {

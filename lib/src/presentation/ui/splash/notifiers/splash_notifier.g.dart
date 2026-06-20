@@ -39,7 +39,7 @@ abstract class _$SplashNotifier extends $AsyncNotifier<SplashStatus> {
   FutureOr<SplashStatus> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<SplashStatus>, SplashStatus>;
     final element =
         ref.element
@@ -49,6 +49,6 @@ abstract class _$SplashNotifier extends $AsyncNotifier<SplashStatus> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

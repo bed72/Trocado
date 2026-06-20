@@ -105,7 +105,7 @@ abstract class _$PasswordResetConfirmNotifier
   PasswordResetConfirmState build({required String uid, required String token});
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref =
         this.ref as $Ref<PasswordResetConfirmState, PasswordResetConfirmState>;
     final element =
@@ -116,7 +116,7 @@ abstract class _$PasswordResetConfirmNotifier
               Object?,
               Object?
             >;
-    element.handleCreate(
+    return element.handleCreate(
       ref,
       () => build(uid: _$args.uid, token: _$args.token),
     );

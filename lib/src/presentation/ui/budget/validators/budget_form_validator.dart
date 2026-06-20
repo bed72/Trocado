@@ -12,12 +12,10 @@ final class BudgetFormValidator {
   final BudgetDescriptionValidation _descriptionValidation;
 
   const BudgetFormValidator({
-    required BudgetValueValidation valueValidation,
-    required BudgetDateRangeValidation dateRangeValidation,
-    required BudgetDescriptionValidation descriptionValidation,
-  }) : _valueValidation = valueValidation,
-       _dateRangeValidation = dateRangeValidation,
-       _descriptionValidation = descriptionValidation;
+    required this._valueValidation,
+    required this._dateRangeValidation,
+    required this._descriptionValidation,
+  });
 
   ({BudgetFormState state, bool isValid}) call(BudgetFormState state) {
     final value = _valueValidation(state.value);

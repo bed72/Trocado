@@ -13,7 +13,7 @@ abstract interface class IRemoteHealthDataSource {
 final class RemoteHealthDataSource implements IRemoteHealthDataSource {
   final IHttpClient _client;
 
-  RemoteHealthDataSource({required IHttpClient client}) : _client = client;
+  RemoteHealthDataSource({required this._client});
 
   @override
   Future<Either<FailureResponse, HealthResponse>> check() async {

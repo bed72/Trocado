@@ -48,9 +48,8 @@ final class RemoteExpenseDataSource implements IRemoteExpenseDataSource {
   final IHttpClient _client;
   final ExpenseFilterRequest _request;
 
-  RemoteExpenseDataSource({required IHttpClient client})
-    : _client = client,
-      _request = const ExpenseFilterRequest();
+  RemoteExpenseDataSource({required this._client})
+    : _request = const ExpenseFilterRequest();
 
   @override
   Future<Either<FailureResponse, ExpenseResponse>> create({

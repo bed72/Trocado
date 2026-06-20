@@ -42,7 +42,7 @@ abstract class _$CoupleDissolveNotifier
   FutureOr<CoupleDissolveState> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref =
         this.ref as $Ref<AsyncValue<CoupleDissolveState>, CoupleDissolveState>;
     final element =
@@ -53,6 +53,6 @@ abstract class _$CoupleDissolveNotifier
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

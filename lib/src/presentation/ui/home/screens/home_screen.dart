@@ -67,10 +67,12 @@ class _HomeScreenState extends State<HomeScreen>
     if (_quickActionsRegistered) return;
     _quickActionsRegistered = true;
 
-    ref.read(quickActionServiceProvider).register(
-      onBudget: widget.navigateToBudget,
-      onExpense: widget.navigateToCreateExpense,
-    );
+    ref
+        .read(quickActionServiceProvider)
+        .register(
+          onBudget: widget.navigateToBudget,
+          onExpense: widget.navigateToCreateExpense,
+        );
   }
 
   @override
@@ -87,16 +89,16 @@ class _HomeScreenState extends State<HomeScreen>
             .maybeWhen(data: (s) => s.mode, orElse: () => ThemeModeEnum.system);
 
         return Scaffold(
+          floatingActionButtonLocation: ExpandableFab.location,
           appBar: HomeAppBarWidget(
-            appBarState: appBarState,
             themeMode: themeMode,
-            onCycleTheme: () =>
-                ref.read(themeProvider.notifier).dispatch(const CycleTheme()),
+            appBarState: appBarState,
             navigateToProfile: widget.navigateToProfile,
             navigateToSettings: widget.navigateToSettings,
             navigateToNotification: widget.navigateToNotification,
+            onCycleTheme: () =>
+                ref.read(themeProvider.notifier).dispatch(const CycleTheme()),
           ),
-          floatingActionButtonLocation: ExpandableFab.location,
           floatingActionButton: HomeActionButtonWidget(
             onChat: widget.navigateToChat,
             onBudget: widget.navigateToBudget,
@@ -130,14 +132,14 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _budgetCard(WidgetRef ref, AsyncValue<Object?> coupleState) =>
       switch (coupleState) {
         AsyncData(value: null) => BudgetCardWidget(
-          state: ref.watch(activeBudgetProvider),
           onTap: widget.navigateToBudgets,
+          state: ref.watch(activeBudgetProvider),
           onCreateBudget: widget.navigateToBudget,
           onRetry: () => ref.refresh(activeBudgetProvider),
         ),
         AsyncData() => SharedBudgetCardWidget(
-          state: ref.watch(sharedActiveBudgetProvider),
           onTap: widget.navigateToBudgets,
+          state: ref.watch(sharedActiveBudgetProvider),
           onRetry: () => ref.refresh(sharedActiveBudgetProvider),
         ),
         _ => const SharedBudgetCardLoadingWidget(),

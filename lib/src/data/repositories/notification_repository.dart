@@ -11,8 +11,7 @@ import 'package:trocado/src/infrastructure/datasources/remote/remote_notificatio
 final class NotificationRepository implements INotificationRepository {
   final IRemoteNotificationDataSource _dataSource;
 
-  NotificationRepository({required IRemoteNotificationDataSource dataSource})
-    : _dataSource = dataSource;
+  NotificationRepository({required this._dataSource});
 
   @override
   Stream<void> get onTokenRefreshed => _dataSource.onTokenRefreshed;

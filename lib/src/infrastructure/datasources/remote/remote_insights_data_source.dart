@@ -17,7 +17,7 @@ abstract interface class IRemoteInsightsDataSource {
 final class RemoteInsightsDataSource implements IRemoteInsightsDataSource {
   final IHttpClient _client;
 
-  RemoteInsightsDataSource({required IHttpClient client}) : _client = client;
+  RemoteInsightsDataSource({required this._client});
 
   @override
   Future<Either<FailureResponse, InsightsResponse>> findAll({

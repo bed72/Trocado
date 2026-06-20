@@ -21,7 +21,7 @@ final class LoggerClient implements ILoggerClient {
     ),
   );
 
-  LoggerClient({required ICrashClient client}) : _client = client;
+  LoggerClient({required this._client});
 
   @override
   void debug(String message, {Object? error, StackTrace? stackTrace}) =>

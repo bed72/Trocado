@@ -95,7 +95,7 @@ abstract class _$ExpensesFiltersNotifier
   ExpensesFiltersState build(ExpenseFilterModel seed);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<ExpensesFiltersState, ExpensesFiltersState>;
     final element =
         ref.element
@@ -105,6 +105,6 @@ abstract class _$ExpensesFiltersNotifier
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args));
+    return element.handleCreate(ref, () => build(_$args));
   }
 }

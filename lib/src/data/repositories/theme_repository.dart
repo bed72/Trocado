@@ -9,8 +9,7 @@ import 'package:trocado/src/infrastructure/datasources/local/local_theme_data_so
 final class ThemeRepository implements IThemeRepository {
   final ILocalThemeDataSource _dataSource;
 
-  ThemeRepository({required ILocalThemeDataSource dataSource})
-    : _dataSource = dataSource;
+  ThemeRepository({required this._dataSource});
 
   @override
   Future<Either<Failure, ThemeModeEnum>> get() async {

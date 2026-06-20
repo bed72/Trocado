@@ -12,12 +12,10 @@ final class AuthenticationInterceptor extends Interceptor {
   final ILocalTokenDataSource _dataSource;
 
   AuthenticationInterceptor({
-    required Dio dio,
-    required VoidCallback onUnauthenticated,
-    required ILocalTokenDataSource dataSource,
-  }) : _dio = dio,
-       _dataSource = dataSource,
-       _onUnauthenticated = onUnauthenticated;
+    required this._dio,
+    required this._dataSource,
+    required this._onUnauthenticated,
+  });
 
   @override
   void onRequest(

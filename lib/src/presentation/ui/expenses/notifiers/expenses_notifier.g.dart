@@ -33,13 +33,13 @@ final class ExpensesNotifierProvider
   ExpensesNotifier create() => ExpensesNotifier();
 }
 
-String _$expensesNotifierHash() => r'3aedc0001e0fb50ea85f526d02f8b28fc6355c9d';
+String _$expensesNotifierHash() => r'254d4acd1aef0e869b3178d3cd4bb6edb4a7fb46';
 
 abstract class _$ExpensesNotifier extends $AsyncNotifier<ExpensesState> {
   FutureOr<ExpensesState> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<ExpensesState>, ExpensesState>;
     final element =
         ref.element
@@ -49,6 +49,6 @@ abstract class _$ExpensesNotifier extends $AsyncNotifier<ExpensesState> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

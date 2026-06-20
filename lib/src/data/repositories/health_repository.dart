@@ -9,8 +9,7 @@ import 'package:trocado/src/infrastructure/datasources/remote/remote_health_data
 final class HealthRepository implements IHealthRepository {
   final IRemoteHealthDataSource _dataSource;
 
-  HealthRepository({required IRemoteHealthDataSource dataSource})
-    : _dataSource = dataSource;
+  HealthRepository({required this._dataSource});
 
   @override
   Future<Either<Failure, bool>> check() async {

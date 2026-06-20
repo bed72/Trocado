@@ -28,10 +28,9 @@ final class RemoteNotificationDataSource
   final IMessagingClient _messagingClient;
 
   RemoteNotificationDataSource({
-    required IHttpClient httpClient,
-    required IMessagingClient messagingClient,
-  }) : _httpClient = httpClient,
-       _messagingClient = messagingClient;
+    required this._httpClient,
+    required this._messagingClient,
+  });
 
   @override
   Stream<void> get onTokenRefreshed =>

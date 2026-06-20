@@ -6,8 +6,7 @@ import 'package:trocado/src/presentation/ui/couple/scan/validators/invite_code_v
 final class CoupleScanFormValidator {
   final InviteCodeValidation _codeValidation;
 
-  const CoupleScanFormValidator({required InviteCodeValidation codeValidation})
-    : _codeValidation = codeValidation;
+  const CoupleScanFormValidator({required this._codeValidation});
 
   ({CoupleScanState state, String? code}) call(CoupleScanState state) {
     final code = _codeValidation(state.manualCode);

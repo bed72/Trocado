@@ -10,7 +10,7 @@ abstract interface class ILocalTokenDataSource {
 final class LocalTokenDataSource implements ILocalTokenDataSource {
   final IStorageClient _client;
 
-  LocalTokenDataSource({required IStorageClient client}) : _client = client;
+  LocalTokenDataSource({required this._client});
 
   @override
   Future<void> clear() => _client.clear();

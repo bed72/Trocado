@@ -24,7 +24,7 @@ abstract interface class IRemoteUserDataSource {
 final class RemoteUserDataSource implements IRemoteUserDataSource {
   final IHttpClient _client;
 
-  RemoteUserDataSource({required IHttpClient client}) : _client = client;
+  RemoteUserDataSource({required this._client});
 
   @override
   Future<Either<FailureResponse, UserResponse>> me() async {

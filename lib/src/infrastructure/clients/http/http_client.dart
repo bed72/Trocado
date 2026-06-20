@@ -16,7 +16,7 @@ abstract interface class IHttpClient {
 final class HttpClient implements IHttpClient {
   final Dio _dio;
 
-  HttpClient({required Dio dio}) : _dio = dio;
+  HttpClient({required this._dio});
 
   @override
   Future<Responses> get({required Requests parameter}) => _execute(

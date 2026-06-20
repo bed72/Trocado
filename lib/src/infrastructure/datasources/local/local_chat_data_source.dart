@@ -9,7 +9,7 @@ abstract interface class ILocalChatDataSource {
 final class LocalChatDataSource implements ILocalChatDataSource {
   final IStorageClient _client;
 
-  LocalChatDataSource({required IStorageClient client}) : _client = client;
+  LocalChatDataSource({required this._client});
 
   @override
   Future<String?> getSessionId() =>

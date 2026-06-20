@@ -6,8 +6,7 @@ import 'package:trocado/src/presentation/ui/profile/name/notifiers/profile_name_
 final class ProfileNameFormValidator {
   final NameValidation _nameValidation;
 
-  const ProfileNameFormValidator({required NameValidation nameValidation})
-    : _nameValidation = nameValidation;
+  const ProfileNameFormValidator({required this._nameValidation});
 
   ({ProfileNameState state, bool isValid}) call(ProfileNameState state) {
     final name = _nameValidation(state.name);

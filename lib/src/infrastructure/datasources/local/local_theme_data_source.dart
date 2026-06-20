@@ -11,7 +11,7 @@ abstract interface class ILocalThemeDataSource {
 final class LocalThemeDataSource implements ILocalThemeDataSource {
   final IStorageClient _client;
 
-  LocalThemeDataSource({required IStorageClient client}) : _client = client;
+  LocalThemeDataSource({required this._client});
 
   @override
   Future<ThemeModeEnum?> get() async {

@@ -372,8 +372,8 @@ void main() {
         when(
           () => repository.findAll(
             cursor: null,
+            scope: .mine,
             filter: const .empty(),
-            scope: FinancialScopeEnum.mine,
           ),
         ).thenAnswer(
           (_) async => const Right(
@@ -383,18 +383,14 @@ void main() {
 
         final reloadCompleter = Completer<Either<Failure, ExpensesPageModel>>();
         when(
-          () => repository.findAll(
-            cursor: null,
-            filter: filter,
-            scope: FinancialScopeEnum.mine,
-          ),
+          () => repository.findAll(scope: .mine, cursor: null, filter: filter),
         ).thenAnswer((_) => reloadCompleter.future);
 
         final container = _makeContainer(
           repository: repository,
           moneyService: moneyService,
-          coupleRepository: coupleRepository,
           dateFormatter: dateFormatter,
+          coupleRepository: coupleRepository,
         );
         await container.read(expensesProvider.future);
 
@@ -403,8 +399,9 @@ void main() {
             .applyFilter(filter);
 
         final loadingSnapshot = container.read(expensesProvider);
-        expect(loadingSnapshot.isLoading, isTrue);
+
         expect(loadingSnapshot.hasValue, isTrue);
+        expect(loadingSnapshot.value?.isFiltering, isTrue);
         expect(loadingSnapshot.value?.items, isNotEmpty);
 
         reloadCompleter.complete(
@@ -413,6 +410,7 @@ void main() {
         await pending;
 
         final finalSnapshot = container.read(expensesProvider);
+
         expect(finalSnapshot.isLoading, isFalse);
         expect(finalSnapshot.value?.filter, filter);
       },

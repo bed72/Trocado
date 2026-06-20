@@ -18,12 +18,10 @@ final class AuthenticationRepository implements IAuthenticationRepository {
   final IRemoteAuthenticationDataSource _authenticationDataSource;
 
   AuthenticationRepository({
-    required ILocalTokenDataSource tokenDataSource,
-    required INotificationRepository notificationRepository,
-    required IRemoteAuthenticationDataSource authenticationDataSource,
-  }) : _tokenDataSource = tokenDataSource,
-       _notificationRepository = notificationRepository,
-       _authenticationDataSource = authenticationDataSource;
+    required this._tokenDataSource,
+    required this._notificationRepository,
+    required this._authenticationDataSource,
+  });
 
   @override
   Future<Either<Failure, void>> logout() async {

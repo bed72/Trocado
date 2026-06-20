@@ -11,12 +11,10 @@ final class ExpenseFormValidator {
   final ExpenseDescriptionValidation _descriptionValidation;
 
   const ExpenseFormValidator({
-    required ExpenseDateValidation dateValidation,
-    required ExpenseValueValidation valueValidation,
-    required ExpenseDescriptionValidation descriptionValidation,
-  }) : _dateValidation = dateValidation,
-       _valueValidation = valueValidation,
-       _descriptionValidation = descriptionValidation;
+    required this._dateValidation,
+    required this._valueValidation,
+    required this._descriptionValidation,
+  });
 
   ({ExpenseState state, bool isValid}) call(ExpenseState state) {
     final date = _dateValidation(state.date);

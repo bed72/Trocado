@@ -39,7 +39,7 @@ abstract class _$CoupleNotifier extends $AsyncNotifier<CoupleModel?> {
   FutureOr<CoupleModel?> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<CoupleModel?>, CoupleModel?>;
     final element =
         ref.element
@@ -49,6 +49,6 @@ abstract class _$CoupleNotifier extends $AsyncNotifier<CoupleModel?> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

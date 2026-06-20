@@ -12,8 +12,7 @@ import 'package:trocado/src/infrastructure/datasources/remote/remote_insights_da
 final class InsightsRepository implements IInsightsRepository {
   final IRemoteInsightsDataSource _dataSource;
 
-  InsightsRepository({required IRemoteInsightsDataSource dataSource})
-    : _dataSource = dataSource;
+  InsightsRepository({required this._dataSource});
 
   @override
   Future<Either<Failure, InsightsBundleModel>> findAll({

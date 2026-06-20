@@ -40,7 +40,7 @@ abstract class _$CoupleScanNotifier extends $AsyncNotifier<CoupleScanState> {
   FutureOr<CoupleScanState> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<CoupleScanState>, CoupleScanState>;
     final element =
         ref.element
@@ -50,6 +50,6 @@ abstract class _$CoupleScanNotifier extends $AsyncNotifier<CoupleScanState> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

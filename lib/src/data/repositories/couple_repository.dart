@@ -17,11 +17,7 @@ final class CoupleRepository implements ICoupleRepository {
   final IShareClient _client;
   final IRemoteCoupleDataSource _dataSource;
 
-  CoupleRepository({
-    required IShareClient client,
-    required IRemoteCoupleDataSource dataSource,
-  }) : _client = client,
-       _dataSource = dataSource;
+  CoupleRepository({required this._client, required this._dataSource});
 
   @override
   Future<Either<Failure, CoupleModel>> findActive() async {

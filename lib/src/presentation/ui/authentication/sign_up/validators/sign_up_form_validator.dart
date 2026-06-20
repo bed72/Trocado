@@ -12,12 +12,10 @@ final class SignUpFormValidator {
   final PasswordValidation _passwordValidation;
 
   const SignUpFormValidator({
-    required EmailValidation emailValidation,
-    required TermsValidation termsValidation,
-    required PasswordValidation passwordValidation,
-  }) : _emailValidation = emailValidation,
-       _termsValidation = termsValidation,
-       _passwordValidation = passwordValidation;
+    required this._emailValidation,
+    required this._termsValidation,
+    required this._passwordValidation,
+  });
 
   ({SignUpState state, bool isValid}) call(SignUpState state) {
     final email = _emailValidation(state.email);

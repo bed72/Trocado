@@ -15,8 +15,7 @@ import 'package:trocado/src/infrastructure/datasources/remote/remote_expense_dat
 final class ExpenseRepository implements IExpenseRepository {
   final IRemoteExpenseDataSource _dataSource;
 
-  ExpenseRepository({required IRemoteExpenseDataSource dataSource})
-    : _dataSource = dataSource;
+  ExpenseRepository({required this._dataSource});
 
   @override
   Future<Either<Failure, ExpenseModel>> create({

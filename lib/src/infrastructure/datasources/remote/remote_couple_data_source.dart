@@ -20,7 +20,7 @@ abstract interface class IRemoteCoupleDataSource {
 final class RemoteCoupleDataSource implements IRemoteCoupleDataSource {
   final IHttpClient _client;
 
-  RemoteCoupleDataSource({required IHttpClient client}) : _client = client;
+  RemoteCoupleDataSource({required this._client});
 
   @override
   Future<Either<FailureResponse, void>> dissolve() async {

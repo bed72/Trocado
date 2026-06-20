@@ -14,10 +14,9 @@ final class ChatRepository implements IChatRepository {
   final IRemoteChatDataSource _remoteDataSource;
 
   ChatRepository({
-    required ILocalChatDataSource localDataSource,
-    required IRemoteChatDataSource remoteDataSource,
-  }) : _localDataSource = localDataSource,
-       _remoteDataSource = remoteDataSource;
+    required this._localDataSource,
+    required this._remoteDataSource,
+  });
 
   @override
   Future<Either<Failure, int>> sendMessage({

@@ -7,9 +7,7 @@ import 'package:trocado/src/presentation/ui/profile/password/notifiers/profile_p
 final class ProfilePasswordFormValidator {
   final PasswordValidation _passwordValidation;
 
-  const ProfilePasswordFormValidator({
-    required PasswordValidation passwordValidation,
-  }) : _passwordValidation = passwordValidation;
+  const ProfilePasswordFormValidator({required this._passwordValidation});
 
   ({ProfilePasswordState state, bool isValid}) call(
     ProfilePasswordState state,

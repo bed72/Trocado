@@ -47,7 +47,7 @@ abstract class _$SignUpNotifier extends $Notifier<SignUpState> {
   SignUpState build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<SignUpState, SignUpState>;
     final element =
         ref.element
@@ -57,6 +57,6 @@ abstract class _$SignUpNotifier extends $Notifier<SignUpState> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

@@ -21,7 +21,7 @@ abstract interface class IRemoteChatDataSource {
 final class RemoteChatDataSource implements IRemoteChatDataSource {
   final IHttpClient _client;
 
-  RemoteChatDataSource({required IHttpClient client}) : _client = client;
+  RemoteChatDataSource({required this._client});
 
   @override
   Future<Either<FailureResponse, SendMessageResponse>> sendMessage({

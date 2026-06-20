@@ -12,7 +12,7 @@ abstract interface class ILoggerDataSource {
 final class LocalLoggerDatasource implements ILoggerDataSource {
   final ILoggerClient _client;
 
-  LocalLoggerDatasource({required ILoggerClient client}) : _client = client;
+  LocalLoggerDatasource({required this._client});
 
   @override
   void debug(String message, {Object? error, StackTrace? stackTrace}) {

@@ -7,9 +7,7 @@ import 'package:trocado/src/presentation/ui/authentication/password_reset_confir
 final class PasswordResetConfirmFormValidator {
   final PasswordValidation _passwordValidation;
 
-  const PasswordResetConfirmFormValidator({
-    required PasswordValidation passwordValidation,
-  }) : _passwordValidation = passwordValidation;
+  const PasswordResetConfirmFormValidator({required this._passwordValidation});
 
   ({PasswordResetConfirmState state, bool isValid}) call(
     PasswordResetConfirmState state,

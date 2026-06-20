@@ -10,10 +10,9 @@ final class SignInFormValidator {
   final PasswordValidation _passwordValidation;
 
   const SignInFormValidator({
-    required EmailValidation emailValidation,
-    required PasswordValidation passwordValidation,
-  }) : _emailValidation = emailValidation,
-       _passwordValidation = passwordValidation;
+    required this._emailValidation,
+    required this._passwordValidation,
+  });
 
   ({SignInState state, bool isValid}) call(SignInState state) {
     final email = _emailValidation(state.email);

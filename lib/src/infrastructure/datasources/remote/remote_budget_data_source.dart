@@ -41,7 +41,7 @@ abstract interface class IRemoteBudgetDataSource {
 final class RemoteBudgetDataSource implements IRemoteBudgetDataSource {
   final IHttpClient _client;
 
-  RemoteBudgetDataSource({required IHttpClient client}) : _client = client;
+  RemoteBudgetDataSource({required this._client});
 
   @override
   Future<Either<FailureResponse, ActiveBudgetResponse>> findActive() async {

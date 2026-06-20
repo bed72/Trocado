@@ -15,10 +15,9 @@ final class UserRepository implements IUserRepository {
   final ILocalTokenDataSource _tokenDataSource;
 
   UserRepository({
-    required IRemoteUserDataSource userDataSource,
-    required ILocalTokenDataSource tokenDataSource,
-  }) : _userDataSource = userDataSource,
-       _tokenDataSource = tokenDataSource;
+    required this._userDataSource,
+    required this._tokenDataSource,
+  });
 
   @override
   Future<Either<Failure, UserModel>> me() async {

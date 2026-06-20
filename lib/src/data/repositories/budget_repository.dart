@@ -18,8 +18,7 @@ import 'package:trocado/src/infrastructure/datasources/remote/remote_budget_data
 final class BudgetRepository implements IBudgetRepository {
   final IRemoteBudgetDataSource _dataSource;
 
-  BudgetRepository({required IRemoteBudgetDataSource dataSource})
-    : _dataSource = dataSource;
+  BudgetRepository({required this._dataSource});
 
   @override
   Future<Either<Failure, ActiveBudgetModel?>> findActive() async {
