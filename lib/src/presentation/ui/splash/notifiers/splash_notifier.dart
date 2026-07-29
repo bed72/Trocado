@@ -31,9 +31,9 @@ final class SplashNotifier extends _$SplashNotifier {
     final hasConnection = await _connectivityService.hasConnection();
     if (!hasConnection) return SplashStatus.noConnection;
 
-    final health = await _healthRepository.check();
-    final isHealthy = health.fold((_) => false, (ok) => ok);
-    if (!isHealthy) return SplashStatus.maintenance;
+    // final health = await _healthRepository.check();
+    // final isHealthy = health.fold((_) => false, (ok) => ok);
+    // if (!isHealthy) return SplashStatus.maintenance;
 
     return await _checkSession();
   }
