@@ -3,3 +3,4 @@ documentation: https://docs.flutter.dev/tools/devtools/extensions#configure-exte
 extensions:
   - get_it: true
   - solidart: true
+  - riverpod: true
