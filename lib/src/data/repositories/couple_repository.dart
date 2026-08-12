@@ -21,29 +21,29 @@ final class CoupleRepository implements ICoupleRepository {
 
   @override
   Future<Either<Failure, CoupleModel>> findActive() async {
-    final data = await _dataSource.findActive();
+    final response = await _dataSource.findActive();
 
-    return data.either(
+    return response.either(
       (failure) => failure.toFailure(),
-      (response) => response.toModel(),
+      (success) => success.data.toModel(),
     );
   }
 
   @override
   Future<Either<Failure, InviteModel>> createInvite() async {
-    final data = await _dataSource.createInvite();
+    final response = await _dataSource.createInvite();
 
-    return data.either(
+    return response.either(
       (failure) => failure.toFailure(),
-      (response) => response.toModel(),
+      (success) => success.data.toModel(),
     );
   }
 
   @override
   Future<Either<Failure, void>> dissolve() async {
-    final data = await _dataSource.dissolve();
+    final response = await _dataSource.dissolve();
 
-    return data.either((failure) => failure.toFailure(), (_) {});
+    return response.either((failure) => failure.toFailure(), (_) {});
   }
 
   @override
@@ -59,11 +59,11 @@ final class CoupleRepository implements ICoupleRepository {
   Future<Either<Failure, InviteAcceptModel>> acceptInvite({
     required String code,
   }) async {
-    final data = await _dataSource.acceptInvite(code: code);
+    final response = await _dataSource.acceptInvite(code: code);
 
-    return data.either(
+    return response.either(
       (failure) => failure.toFailure(),
-      (response) => response.toModel(),
+      (success) => success.data.toModel(),
     );
   }
 }

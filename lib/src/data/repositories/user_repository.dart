@@ -21,11 +21,11 @@ final class UserRepository implements IUserRepository {
 
   @override
   Future<Either<Failure, UserModel>> me() async {
-    final data = await _userDataSource.me();
+    final response = await _userDataSource.me();
 
-    return data.either(
+    return response.either(
       (failure) => failure.toFailure(),
-      (response) => response.toModel(),
+      (success) => success.data.toModel(),
     );
   }
 
@@ -35,21 +35,21 @@ final class UserRepository implements IUserRepository {
 
     if (tokens.refresh == null) return const Left(UnknownFailure());
 
-    final data = await _userDataSource.delete(
+    final response = await _userDataSource.delete(
       password: password,
       refresh: tokens.refresh!,
     );
 
-    return data.either((failure) => failure.toFailure(), (_) {});
+    return response.either((failure) => failure.toFailure(), (_) {});
   }
 
   @override
   Future<Either<Failure, UserModel>> updateName({required String name}) async {
-    final data = await _userDataSource.update(name: name);
+    final response = await _userDataSource.update(name: name);
 
-    return data.either(
+    return response.either(
       (failure) => failure.toFailure(),
-      (response) => response.toModel(),
+      (success) => success.data.toModel(),
     );
   }
 
@@ -58,14 +58,14 @@ final class UserRepository implements IUserRepository {
     required String newPassword,
     required String currentPassword,
   }) async {
-    final data = await _userDataSource.update(
+    final response = await _userDataSource.update(
       newPassword: newPassword,
       currentPassword: currentPassword,
     );
 
-    return data.either(
+    return response.either(
       (failure) => failure.toFailure(),
-      (response) => response.toModel(),
+      (success) => success.data.toModel(),
     );
   }
 }

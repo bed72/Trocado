@@ -23,26 +23,29 @@ final class ChatRepository implements IChatRepository {
     required String message,
     String? sessionId,
   }) async {
-    final data = await _remoteDataSource.sendMessage(
+    final response = await _remoteDataSource.sendMessage(
       message: message,
       sessionId: sessionId,
     );
 
-    if (data.isLeft) return Left(data.left.toFailure());
+    if (response.isLeft) return Left(response.left.toFailure());
 
-    await _localDataSource.saveSessionId(sessionId: data.right.sessionId);
+    await _localDataSource.saveSessionId(
+      sessionId: response.right.data.sessionId,
+    );
 
-    return Right(data.right.taskId);
+    return Right(response.right.data.taskId);
   }
 
   @override
   Future<Either<Failure, ChatResultModel>> getResult({
     required int taskId,
   }) async {
-    final data = await _remoteDataSource.getResult(taskId: taskId);
-    return data.either(
+    final response = await _remoteDataSource.getResult(taskId: taskId);
+
+    return response.either(
       (failure) => failure.toFailure(),
-      (response) => response.toModel(),
+      (success) => success.data.toModel(),
     );
   }
 }

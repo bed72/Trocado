@@ -14,8 +14,8 @@ import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/services/interface_money_service.dart';
 import 'package:trocado/src/domain/services/interface_date_formatter_service.dart';
 
+import 'package:trocado/src/domain/models/page_model.dart';
 import 'package:trocado/src/domain/models/budget/budget_model.dart';
-import 'package:trocado/src/domain/models/budget/budgets_page_model.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
 
 import 'package:trocado/src/presentation/ui/budgets/notifiers/budgets_notifier.dart';
@@ -130,8 +130,8 @@ void main() {
       () async {
         when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
           (_) async => Right(
-            BudgetsPageModel(
-              budgets: [_activeBudget(), _pastBudget(), _olderBudget()],
+            PageModel<BudgetModel>(
+              items: [_activeBudget(), _pastBudget(), _olderBudget()],
               nextCursor: 'CUR1',
             ),
           ),
@@ -156,8 +156,8 @@ void main() {
     test('sets activeCard to null when no budget covers today', () async {
       when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
         (_) async => Right(
-          BudgetsPageModel(
-            budgets: [_pastBudget(), _olderBudget()],
+          PageModel<BudgetModel>(
+            items: [_pastBudget(), _olderBudget()],
             nextCursor: null,
           ),
         ),
@@ -196,7 +196,7 @@ void main() {
     test('calls findAll with no cursor on first build', () async {
       when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
         (_) async =>
-            const Right(BudgetsPageModel(budgets: [], nextCursor: null)),
+            const Right(PageModel<BudgetModel>(items: [], nextCursor: null)),
       );
 
       final container = _makeContainer(
@@ -214,7 +214,7 @@ void main() {
       () async {
         when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
           (_) async => Right(
-            BudgetsPageModel(budgets: [_pastBudget()], nextCursor: null),
+            PageModel<BudgetModel>(items: [_pastBudget()], nextCursor: null),
           ),
         );
 
@@ -237,7 +237,10 @@ void main() {
       () async {
         when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
           (_) async => Right(
-            BudgetsPageModel(budgets: [_crossYearBudget()], nextCursor: null),
+            PageModel<BudgetModel>(
+              items: [_crossYearBudget()],
+              nextCursor: null,
+            ),
           ),
         );
 
@@ -265,15 +268,15 @@ void main() {
       () async {
         when(() => repository.findAll(cursor: null)).thenAnswer(
           (_) async => Right(
-            BudgetsPageModel(
+            PageModel<BudgetModel>(
               nextCursor: 'CUR1',
-              budgets: [_activeBudget(), _pastBudget()],
+              items: [_activeBudget(), _pastBudget()],
             ),
           ),
         );
         when(() => repository.findAll(cursor: 'CUR1')).thenAnswer(
           (_) async => Right(
-            BudgetsPageModel(budgets: [_olderBudget()], nextCursor: 'CUR2'),
+            PageModel<BudgetModel>(items: [_olderBudget()], nextCursor: 'CUR2'),
           ),
         );
 
@@ -298,12 +301,12 @@ void main() {
     test('clears nextCursor when next page returns nextCursor null', () async {
       when(() => repository.findAll(cursor: null)).thenAnswer(
         (_) async => Right(
-          BudgetsPageModel(budgets: [_pastBudget()], nextCursor: 'CUR1'),
+          PageModel<BudgetModel>(items: [_pastBudget()], nextCursor: 'CUR1'),
         ),
       );
       when(() => repository.findAll(cursor: 'CUR1')).thenAnswer(
         (_) async => Right(
-          BudgetsPageModel(budgets: [_olderBudget()], nextCursor: null),
+          PageModel<BudgetModel>(items: [_olderBudget()], nextCursor: null),
         ),
       );
 
@@ -320,8 +323,9 @@ void main() {
 
     test('is a no-op when nextCursor is null', () async {
       when(() => repository.findAll(cursor: null)).thenAnswer(
-        (_) async =>
-            Right(BudgetsPageModel(budgets: [_pastBudget()], nextCursor: null)),
+        (_) async => Right(
+          PageModel<BudgetModel>(items: [_pastBudget()], nextCursor: null),
+        ),
       );
 
       final container = _makeContainer(
@@ -341,11 +345,11 @@ void main() {
     });
 
     test('is a no-op when isLoadingMore is true', () async {
-      final completer = Completer<Either<Failure, BudgetsPageModel>>();
+      final completer = Completer<Either<Failure, PageModel<BudgetModel>>>();
 
       when(() => repository.findAll(cursor: null)).thenAnswer(
         (_) async => Right(
-          BudgetsPageModel(budgets: [_pastBudget()], nextCursor: 'CUR1'),
+          PageModel<BudgetModel>(items: [_pastBudget()], nextCursor: 'CUR1'),
         ),
       );
       when(
@@ -368,7 +372,9 @@ void main() {
       verify(() => repository.findAll(cursor: 'CUR1')).called(1);
 
       completer.complete(
-        Right(BudgetsPageModel(budgets: [_olderBudget()], nextCursor: null)),
+        Right(
+          PageModel<BudgetModel>(items: [_olderBudget()], nextCursor: null),
+        ),
       );
       await firstCall;
     });
@@ -378,8 +384,8 @@ void main() {
       () async {
         when(() => repository.findAll(cursor: null)).thenAnswer(
           (_) async => Right(
-            BudgetsPageModel(
-              budgets: [_activeBudget(), _pastBudget()],
+            PageModel<BudgetModel>(
+              items: [_activeBudget(), _pastBudget()],
               nextCursor: 'CUR1',
             ),
           ),
@@ -411,14 +417,14 @@ void main() {
 
       when(() => repository.findAll(cursor: null)).thenAnswer(
         (_) async => Right(
-          BudgetsPageModel(budgets: [_pastBudget()], nextCursor: 'CUR1'),
+          PageModel<BudgetModel>(items: [_pastBudget()], nextCursor: 'CUR1'),
         ),
       );
       when(() => repository.findAll(cursor: 'CUR1')).thenAnswer((_) async {
         callCount += 1;
         if (callCount == 1) return const Left(ServerFailure());
         return Right(
-          BudgetsPageModel(budgets: [_olderBudget()], nextCursor: null),
+          PageModel<BudgetModel>(items: [_olderBudget()], nextCursor: null),
         );
       });
 
@@ -453,8 +459,8 @@ void main() {
       ) async {
         page += 1;
         return Right(
-          BudgetsPageModel(
-            budgets: page == 1 ? [_pastBudget()] : [_olderBudget()],
+          PageModel<BudgetModel>(
+            items: page == 1 ? [_pastBudget()] : [_olderBudget()],
             nextCursor: null,
           ),
         );
@@ -478,8 +484,8 @@ void main() {
     test('removes item optimistically and calls repository.delete', () async {
       when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
         (_) async => Right(
-          BudgetsPageModel(
-            budgets: [_activeBudget(), _pastBudget(), _olderBudget()],
+          PageModel<BudgetModel>(
+            items: [_activeBudget(), _pastBudget(), _olderBudget()],
             nextCursor: null,
           ),
         ),
@@ -506,8 +512,8 @@ void main() {
     test('restores item and sets deleteFailure on failure', () async {
       when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
         (_) async => Right(
-          BudgetsPageModel(
-            budgets: [_activeBudget(), _pastBudget(), _olderBudget()],
+          PageModel<BudgetModel>(
+            items: [_activeBudget(), _pastBudget(), _olderBudget()],
             nextCursor: null,
           ),
         ),
@@ -533,8 +539,8 @@ void main() {
     test('is a no-op when id is not in state', () async {
       when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
         (_) async => Right(
-          BudgetsPageModel(
-            budgets: [_activeBudget(), _pastBudget()],
+          PageModel<BudgetModel>(
+            items: [_activeBudget(), _pastBudget()],
             nextCursor: null,
           ),
         ),

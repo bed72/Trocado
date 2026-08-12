@@ -18,12 +18,14 @@ import 'package:trocado/src/infrastructure/datasources/remote/remote_expense_dat
 import '../../../mocks/mocks.dart';
 
 const _successJson = {
-  'id': 1,
-  'value': '85.50',
-  'date': '2026-03-15',
-  'category': 'food',
-  'description': 'Mercado',
-  'created_at': '2026-03-15T11:45:03.220605-03:00',
+  'data': {
+    'id': 1,
+    'value': '85.50',
+    'date': '2026-03-15',
+    'category': 'food',
+    'description': 'Mercado',
+    'created_at': '2026-03-15T11:45:03.220605-03:00',
+  },
 };
 
 final _date = DateTime.parse('2026-03-15').millisecondsSinceEpoch;
@@ -62,12 +64,14 @@ void main() {
     test('converts decimal value to cents correctly', () async {
       when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
         (_) async => const Right({
-          'id': 2,
-          'value': '100.00',
-          'date': '2026-03-15',
-          'category': 'housing',
-          'description': 'Aluguel',
-          'created_at': '2026-03-15T11:45:03.220605-03:00',
+          'data': {
+            'id': 2,
+            'value': '100.00',
+            'date': '2026-03-15',
+            'category': 'housing',
+            'description': 'Aluguel',
+            'created_at': '2026-03-15T11:45:03.220605-03:00',
+          },
         }),
       );
 
@@ -186,12 +190,14 @@ void main() {
       () async {
         when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
           (_) async => const Right({
-            'id': 5,
-            'value': '10.00',
-            'date': '2026-03-15',
-            'category': 'travel',
-            'description': 'Uber',
-            'created_at': '2026-03-15T11:45:03.220605-03:00',
+            'data': {
+              'id': 5,
+              'value': '10.00',
+              'date': '2026-03-15',
+              'category': 'travel',
+              'description': 'Uber',
+              'created_at': '2026-03-15T11:45:03.220605-03:00',
+            },
           }),
         );
 
@@ -244,9 +250,7 @@ void main() {
 
   group('findRecent', () {
     const page = {
-      'next': 'http://api/expenses?cursor=abc',
-      'previous': null,
-      'results': [
+      'data': [
         {
           'id': 129,
           'value': '85.50',
@@ -288,6 +292,7 @@ void main() {
           'created_at': '2026-04-22T11:29:22.121206-03:00',
         },
       ],
+      'links': {'next': 'http://api/expenses?cursor=abc'},
     };
 
     test('returns Right with at most limit items preserving order', () async {
@@ -295,7 +300,10 @@ void main() {
         () => client.get(parameter: any(named: 'parameter')),
       ).thenAnswer((_) async => const Right(page));
 
-      final data = await repository.findRecent(limit: 4, scope: FinancialScopeEnum.mine);
+      final data = await repository.findRecent(
+        limit: 4,
+        scope: FinancialScopeEnum.mine,
+      );
 
       expect(data.isRight, isTrue);
       expect(data.right.last.id, 110);
@@ -307,9 +315,7 @@ void main() {
     test('returns Right with actual length when fewer than limit', () async {
       when(() => client.get(parameter: any(named: 'parameter'))).thenAnswer(
         (_) async => const Right({
-          'next': null,
-          'previous': null,
-          'results': [
+          'data': [
             {
               'id': 1,
               'value': '10.00',
@@ -322,7 +328,10 @@ void main() {
         }),
       );
 
-      final data = await repository.findRecent(limit: 4, scope: FinancialScopeEnum.mine);
+      final data = await repository.findRecent(
+        limit: 4,
+        scope: FinancialScopeEnum.mine,
+      );
 
       expect(data.isRight, isTrue);
       expect(data.right, hasLength(1));
@@ -330,8 +339,10 @@ void main() {
 
     test('returns Right with empty list when results is empty', () async {
       when(() => client.get(parameter: any(named: 'parameter'))).thenAnswer(
-        (_) async =>
-            const Right({'next': null, 'previous': null, 'results': []}),
+        (_) async => const Right({
+          'data': <dynamic>[],
+          'links': {'next': null},
+        }),
       );
 
       final data = await repository.findRecent(scope: FinancialScopeEnum.mine);
@@ -415,7 +426,10 @@ void main() {
 
     test('uses /expenses/shared path when scope is couple', () async {
       when(() => client.get(parameter: any(named: 'parameter'))).thenAnswer(
-        (_) async => const Right({'next': null, 'previous': null, 'results': []}),
+        (_) async => const Right({
+          'data': <dynamic>[],
+          'links': {'next': null},
+        }),
       );
 
       await repository.findRecent(scope: FinancialScopeEnum.couple);
@@ -432,9 +446,7 @@ void main() {
 
   group('findAll', () {
     const page = {
-      'next': 'http://api/v1/expenses?cursor=NEXT123',
-      'previous': null,
-      'results': [
+      'data': [
         {
           'id': 129,
           'value': '85.50',
@@ -460,6 +472,7 @@ void main() {
           'created_at': '2026-04-22T11:29:22.126006-03:00',
         },
       ],
+      'links': {'next': 'http://api/v1/expenses?cursor=NEXT123'},
     };
 
     test('invokes GET without any query suffix on the first page', () async {
@@ -533,7 +546,11 @@ void main() {
         category: ExpenseCategoryEnum.food,
       );
 
-      await repository.findAll(filter: filter, cursor: 'NEXT', scope: FinancialScopeEnum.mine);
+      await repository.findAll(
+        filter: filter,
+        cursor: 'NEXT',
+        scope: FinancialScopeEnum.mine,
+      );
 
       final captured =
           verify(
@@ -554,22 +571,24 @@ void main() {
 
       expect(data.isRight, isTrue);
       expect(data.right.nextCursor, 'NEXT123');
-      expect(data.right.expenses, hasLength(3));
-      expect(data.right.expenses.first.id, 129);
+       expect(data.right.items, hasLength(3));
+       expect(data.right.items.first.id, 129);
       expect(data.right.previousCursor, isNull);
-      expect(data.right.expenses.first.category, ExpenseCategoryEnum.food);
+       expect(data.right.items.first.category, ExpenseCategoryEnum.food);
     });
 
     test('returns Right with empty page when results is empty', () async {
       when(() => client.get(parameter: any(named: 'parameter'))).thenAnswer(
-        (_) async =>
-            const Right({'next': null, 'previous': null, 'results': []}),
+        (_) async => const Right({
+          'data': <dynamic>[],
+          'links': {'next': null},
+        }),
       );
 
       final data = await repository.findAll(scope: FinancialScopeEnum.mine);
 
       expect(data.isRight, isTrue);
-      expect(data.right.expenses, isEmpty);
+       expect(data.right.items, isEmpty);
       expect(data.right.nextCursor, isNull);
       expect(data.right.previousCursor, isNull);
     });
@@ -579,9 +598,8 @@ void main() {
       () async {
         when(() => client.get(parameter: any(named: 'parameter'))).thenAnswer(
           (_) async => const Right({
-            'results': [],
-            'previous': null,
-            'next': 'http://api/v1/expenses',
+            'data': [],
+            'links': {'next': 'http://api/v1/expenses'},
           }),
         );
 
@@ -662,7 +680,10 @@ void main() {
         }),
       );
 
-      final data = await repository.findAll(cursor: 'BROKEN', scope: FinancialScopeEnum.mine);
+      final data = await repository.findAll(
+        cursor: 'BROKEN',
+        scope: FinancialScopeEnum.mine,
+      );
 
       expect(data.isLeft, isTrue);
       expect(data.left, isA<ValidationFailure>());
@@ -671,7 +692,10 @@ void main() {
 
     test('uses /expenses/shared path when scope is couple', () async {
       when(() => client.get(parameter: any(named: 'parameter'))).thenAnswer(
-        (_) async => const Right({'next': null, 'previous': null, 'results': []}),
+        (_) async => const Right({
+          'data': <dynamic>[],
+          'links': {'next': null},
+        }),
       );
 
       await repository.findAll(scope: FinancialScopeEnum.couple);
@@ -685,22 +709,31 @@ void main() {
       expect(captured.path, '/api/v1/expenses/shared');
     });
 
-    test('uses /expenses/shared path with RQL when scope is couple and filter is set', () async {
-      when(() => client.get(parameter: any(named: 'parameter'))).thenAnswer(
-        (_) async => const Right({'next': null, 'previous': null, 'results': []}),
-      );
+    test(
+      'uses /expenses/shared path with RQL when scope is couple and filter is set',
+      () async {
+        when(() => client.get(parameter: any(named: 'parameter'))).thenAnswer(
+          (_) async => const Right({
+            'data': <dynamic>[],
+            'links': {'next': null},
+          }),
+        );
 
-      const filter = ExpenseFilterModel(category: ExpenseCategoryEnum.food);
-      await repository.findAll(filter: filter, scope: FinancialScopeEnum.couple);
+        const filter = ExpenseFilterModel(category: ExpenseCategoryEnum.food);
+        await repository.findAll(
+          filter: filter,
+          scope: FinancialScopeEnum.couple,
+        );
 
-      final captured =
-          verify(
-                () => client.get(parameter: captureAny(named: 'parameter')),
-              ).captured.single
-              as Requests;
+        final captured =
+            verify(
+                  () => client.get(parameter: captureAny(named: 'parameter')),
+                ).captured.single
+                as Requests;
 
-      expect(captured.path, startsWith('/api/v1/expenses/shared?'));
-    });
+        expect(captured.path, startsWith('/api/v1/expenses/shared?'));
+      },
+    );
   });
 
   group('update', () {
@@ -922,12 +955,14 @@ void main() {
 
   group('findById', () {
     const successJson = {
-      'id': 132,
-      'value': '85.50',
-      'category': 'food',
-      'date': '2026-03-15',
-      'description': 'Mercado',
-      'created_at': '2026-03-15T18:30:00-03:00',
+      'data': {
+        'id': 132,
+        'value': '85.50',
+        'category': 'food',
+        'date': '2026-03-15',
+        'description': 'Mercado',
+        'created_at': '2026-03-15T18:30:00-03:00',
+      },
     };
 
     test('calls GET on /api/v1/expenses/<id>', () async {

@@ -4,9 +4,9 @@ import 'package:trocado/src/data/extensions/expense_response_extension.dart';
 import 'package:trocado/src/data/extensions/failure_response_extension.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
-import 'package:trocado/src/domain/enums/scope/financial_scope_enum.dart';
+import 'package:trocado/src/domain/models/page_model.dart';
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
-import 'package:trocado/src/domain/models/expense/expenses_page_model.dart';
+import 'package:trocado/src/domain/enums/scope/financial_scope_enum.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 import 'package:trocado/src/domain/repositories/interface_expense_repository.dart';
 
@@ -23,25 +23,25 @@ final class ExpenseRepository implements IExpenseRepository {
     required int value,
     required String description,
   }) async {
-    final data = await _dataSource.create(
+    final response = await _dataSource.create(
       date: date,
       value: value,
       description: description,
     );
 
-    return data.either(
+    return response.either(
       (failure) => failure.toFailure(),
-      (response) => response.toModel(),
+      (success) => success.data.toModel(),
     );
   }
 
   @override
   Future<Either<Failure, ExpenseModel>> findById({required int id}) async {
-    final data = await _dataSource.findById(id: id);
+    final response = await _dataSource.findById(id: id);
 
-    return data.either(
+    return response.either(
       (failure) => failure.toFailure(),
-      (response) => response.toModel(),
+      (success) => success.data.toModel(),
     );
   }
 
@@ -52,24 +52,27 @@ final class ExpenseRepository implements IExpenseRepository {
     required int value,
     required String description,
   }) async {
-    final data = await _dataSource.update(
+    final response = await _dataSource.update(
       id: id,
       date: date,
       value: value,
       description: description,
     );
 
-    return data.either(
+    return response.either(
       (failure) => failure.toFailure(),
-      (response) => response.toModel(),
+      (success) => success.data.toModel(),
     );
   }
 
   @override
   Future<Either<Failure, void>> delete({required int id}) async {
-    final data = await _dataSource.delete(id: id);
+    final response = await _dataSource.delete(id: id);
 
-    return data.either<Failure, void>((failure) => failure.toFailure(), (_) {});
+    return response.either<Failure, void>(
+      (failure) => failure.toFailure(),
+      (_) {},
+    );
   }
 
   @override
@@ -77,29 +80,29 @@ final class ExpenseRepository implements IExpenseRepository {
     int limit = 6,
     required FinancialScopeEnum scope,
   }) async {
-    final data = await _dataSource.findRecent(limit: limit, scope: scope);
+    final response = await _dataSource.findRecent(limit: limit, scope: scope);
 
-    return data.either(
+    return response.either(
       (failure) => failure.toFailure(),
-      (response) => response.toModel(limit: limit),
+      (success) => success.toModel(limit: limit),
     );
   }
 
   @override
-  Future<Either<Failure, ExpensesPageModel>> findAll({
+  Future<Either<Failure, PageModel<ExpenseModel>>> findAll({
     required FinancialScopeEnum scope,
     String? cursor,
     ExpenseFilterModel? filter,
   }) async {
-    final data = await _dataSource.findAll(
+    final response = await _dataSource.findAll(
       scope: scope,
       cursor: cursor,
       filter: filter,
     );
 
-    return data.either(
+    return response.either(
       (failure) => failure.toFailure(),
-      (response) => response.toPageModel(),
+      (success) => success.toPageModel(),
     );
   }
 }

@@ -4,11 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:trocado/src/domain/either/either.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
-import 'package:trocado/src/domain/services/interface_money_service.dart';
+import 'package:trocado/src/domain/models/page_model.dart';
 import 'package:trocado/src/domain/models/budget/budget_model.dart';
-import 'package:trocado/src/domain/services/interface_date_formatter_service.dart';
-import 'package:trocado/src/domain/models/budget/budgets_page_model.dart';
+import 'package:trocado/src/domain/services/interface_money_service.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
+import 'package:trocado/src/domain/services/interface_date_formatter_service.dart';
 
 import 'package:trocado/src/main/providers/services_provider.dart';
 import 'package:trocado/src/main/providers/repositories_provider.dart';
@@ -91,7 +91,7 @@ void main() {
     test('returns active budget from cache without calling findById', () async {
       when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
         (_) async => Right(
-          BudgetsPageModel(budgets: [_activeBudget()], nextCursor: null),
+          PageModel<BudgetModel>(items: [_activeBudget()], nextCursor: null),
         ),
       );
 
@@ -111,9 +111,9 @@ void main() {
     test('returns budget from items cache without calling findById', () async {
       when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
         (_) async => Right(
-          BudgetsPageModel(
+          PageModel<BudgetModel>(
             nextCursor: null,
-            budgets: [_activeBudget(), _pastBudget()],
+            items: [_activeBudget(), _pastBudget()],
           ),
         ),
       );
@@ -133,7 +133,7 @@ void main() {
 
     test('falls back to repository.findById when not in cache', () async {
       when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
-        (_) async => Right(BudgetsPageModel(budgets: [], nextCursor: null)),
+        (_) async => Right(PageModel<BudgetModel>(items: [], nextCursor: null)),
       );
       when(
         () => repository.findById(id: any(named: 'id')),

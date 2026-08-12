@@ -7,6 +7,8 @@ import 'package:trocado/src/infrastructure/clients/http/requests/requests.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/sign_up_request.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/password_reset_confirm_request.dart';
 
+import 'package:trocado/src/infrastructure/clients/http/responses/reponses.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/data_model.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/failure/failure_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/authentication/authentication_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/authentication/password_reset_response.dart';
@@ -15,12 +17,12 @@ import 'package:trocado/src/infrastructure/clients/http/responses/authentication
 abstract interface class IRemoteAuthenticationDataSource {
   Future<Either<FailureResponse, void>> logout({required String refresh});
 
-  Future<Either<FailureResponse, AuthenticationResponse>> signIn({
+  Future<Either<FailureResponse, DataModel<AuthenticationResponse>>> signIn({
     required String email,
     required String password,
   });
 
-  Future<Either<FailureResponse, AuthenticationResponse>> signUp({
+  Future<Either<FailureResponse, DataModel<AuthenticationResponse>>> signUp({
     required String name,
     required String email,
     required String password,
@@ -28,15 +30,13 @@ abstract interface class IRemoteAuthenticationDataSource {
 
   Future<Either<FailureResponse, void>> verifyToken({required String token});
 
-  Future<Either<FailureResponse, AuthenticationResponse>> refreshToken({
-    required String refresh,
-  });
+  Future<Either<FailureResponse, DataModel<AuthenticationResponse>>>
+  refreshToken({required String refresh});
 
-  Future<Either<FailureResponse, PasswordResetResponse>> requestPasswordReset({
-    required String email,
-  });
+  Future<Either<FailureResponse, DataModel<PasswordResetResponse>>>
+  requestPasswordReset({required String email});
 
-  Future<Either<FailureResponse, PasswordResetConfirmResponse>>
+  Future<Either<FailureResponse, DataModel<PasswordResetConfirmResponse>>>
   confirmPasswordReset({
     required String uid,
     required String token,
@@ -62,7 +62,7 @@ final class RemoteAuthenticationDataSource
   }
 
   @override
-  Future<Either<FailureResponse, AuthenticationResponse>> signIn({
+  Future<Either<FailureResponse, DataModel<AuthenticationResponse>>> signIn({
     required String email,
     required String password,
   }) async {
@@ -73,14 +73,15 @@ final class RemoteAuthenticationDataSource
       ),
     );
 
-    return response.either(
-      FailureResponse.fromJson,
-      AuthenticationResponse.fromJson,
+    return response.toDataModel(
+      (data) => AuthenticationResponse.fromJson(
+        Map<String, dynamic>.from(data as Map),
+      ),
     );
   }
 
   @override
-  Future<Either<FailureResponse, AuthenticationResponse>> signUp({
+  Future<Either<FailureResponse, DataModel<AuthenticationResponse>>> signUp({
     required String name,
     required String email,
     required String password,
@@ -96,9 +97,10 @@ final class RemoteAuthenticationDataSource
       ),
     );
 
-    return response.either(
-      FailureResponse.fromJson,
-      AuthenticationResponse.fromJson,
+    return response.toDataModel(
+      (data) => AuthenticationResponse.fromJson(
+        Map<String, dynamic>.from(data as Map),
+      ),
     );
   }
 
@@ -114,9 +116,8 @@ final class RemoteAuthenticationDataSource
   }
 
   @override
-  Future<Either<FailureResponse, AuthenticationResponse>> refreshToken({
-    required String refresh,
-  }) async {
+  Future<Either<FailureResponse, DataModel<AuthenticationResponse>>>
+  refreshToken({required String refresh}) async {
     final response = await _client.post(
       parameter: Requests(
         EndpointKey.refreshToken.path,
@@ -124,16 +125,16 @@ final class RemoteAuthenticationDataSource
       ),
     );
 
-    return response.either(
-      FailureResponse.fromJson,
-      AuthenticationResponse.fromJson,
+    return response.toDataModel(
+      (data) => AuthenticationResponse.fromJson(
+        Map<String, dynamic>.from(data as Map),
+      ),
     );
   }
 
   @override
-  Future<Either<FailureResponse, PasswordResetResponse>> requestPasswordReset({
-    required String email,
-  }) async {
+  Future<Either<FailureResponse, DataModel<PasswordResetResponse>>>
+  requestPasswordReset({required String email}) async {
     final response = await _client.post(
       parameter: Requests(
         EndpointKey.passwordResetRequest.path,
@@ -141,14 +142,15 @@ final class RemoteAuthenticationDataSource
       ),
     );
 
-    return response.either(
-      FailureResponse.fromJson,
-      PasswordResetResponse.fromJson,
+    return response.toDataModel(
+      (data) => PasswordResetResponse.fromJson(
+        Map<String, dynamic>.from(data as Map),
+      ),
     );
   }
 
   @override
-  Future<Either<FailureResponse, PasswordResetConfirmResponse>>
+  Future<Either<FailureResponse, DataModel<PasswordResetConfirmResponse>>>
   confirmPasswordReset({
     required String uid,
     required String token,
@@ -165,9 +167,10 @@ final class RemoteAuthenticationDataSource
       ),
     );
 
-    return response.either(
-      FailureResponse.fromJson,
-      PasswordResetConfirmResponse.fromJson,
+    return response.toDataModel(
+      (data) => PasswordResetConfirmResponse.fromJson(
+        Map<String, dynamic>.from(data as Map),
+      ),
     );
   }
 }

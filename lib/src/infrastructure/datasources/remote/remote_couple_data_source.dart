@@ -3,6 +3,8 @@ import 'package:trocado/src/domain/either/either.dart';
 import 'package:trocado/src/infrastructure/clients/http/http_client.dart';
 import 'package:trocado/src/infrastructure/clients/http/endpoint_key.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/requests.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/reponses.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/data_model.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/couple/couple_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/couple/invite_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/failure/failure_response.dart';
@@ -10,11 +12,10 @@ import 'package:trocado/src/infrastructure/clients/http/responses/couple/invite_
 
 abstract interface class IRemoteCoupleDataSource {
   Future<Either<FailureResponse, void>> dissolve();
-  Future<Either<FailureResponse, CoupleResponse>> findActive();
-  Future<Either<FailureResponse, InviteResponse>> createInvite();
-  Future<Either<FailureResponse, InviteAcceptResponse>> acceptInvite({
-    required String code,
-  });
+  Future<Either<FailureResponse, DataModel<CoupleResponse>>> findActive();
+  Future<Either<FailureResponse, DataModel<InviteResponse>>> createInvite();
+  Future<Either<FailureResponse, DataModel<InviteAcceptResponse>>>
+  acceptInvite({required String code});
 }
 
 final class RemoteCoupleDataSource implements IRemoteCoupleDataSource {
@@ -32,34 +33,39 @@ final class RemoteCoupleDataSource implements IRemoteCoupleDataSource {
   }
 
   @override
-  Future<Either<FailureResponse, CoupleResponse>> findActive() async {
+  Future<Either<FailureResponse, DataModel<CoupleResponse>>>
+  findActive() async {
     final response = await _client.get(
       parameter: Requests(EndpointKey.couple.path),
     );
 
-    return response.either(FailureResponse.fromJson, CoupleResponse.fromJson);
+    return response.toDataModel(
+      (data) => CoupleResponse.fromJson(Map<String, dynamic>.from(data as Map)),
+    );
   }
 
   @override
-  Future<Either<FailureResponse, InviteResponse>> createInvite() async {
+  Future<Either<FailureResponse, DataModel<InviteResponse>>>
+  createInvite() async {
     final response = await _client.post(
       parameter: Requests(EndpointKey.coupleInvites.path),
     );
 
-    return response.either(FailureResponse.fromJson, InviteResponse.fromJson);
+    return response.toDataModel(
+      (data) => InviteResponse.fromJson(Map<String, dynamic>.from(data as Map)),
+    );
   }
 
   @override
-  Future<Either<FailureResponse, InviteAcceptResponse>> acceptInvite({
-    required String code,
-  }) async {
+  Future<Either<FailureResponse, DataModel<InviteAcceptResponse>>>
+  acceptInvite({required String code}) async {
     final response = await _client.post(
       parameter: Requests('${EndpointKey.invites.path}/$code/accept'),
     );
 
-    return response.either(
-      FailureResponse.fromJson,
-      InviteAcceptResponse.fromJson,
+    return response.toDataModel(
+      (data) =>
+          InviteAcceptResponse.fromJson(Map<String, dynamic>.from(data as Map)),
     );
   }
 }

@@ -7,8 +7,8 @@ import 'package:trocado/src/main/providers/repositories_provider.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/enums/scope/financial_scope_enum.dart';
 
+import 'package:trocado/src/domain/models/page_model.dart';
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
-import 'package:trocado/src/domain/models/expense/expenses_page_model.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 
 import 'package:trocado/src/domain/services/interface_money_service.dart';
@@ -174,8 +174,8 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
       data.fold<ExpensesState>(
         (Failure failure) =>
             current.copyWith(isLoadingMore: false, loadMoreFailure: failure),
-        (ExpensesPageModel page) {
-          final items = [...current.items, ...page.expenses.map(_toItem)];
+        (PageModel<ExpenseModel> page) {
+          final items = [...current.items, ...page.items.map(_toItem)];
           return current.copyWith(
             items: items,
             isLoadingMore: false,
@@ -196,7 +196,7 @@ final class ExpensesNotifier extends _$ExpensesNotifier {
     final data = await _repository.findAll(filter: filter, scope: scope);
 
     return data.fold((failure) => throw failure, (page) {
-      final items = page.expenses.map(_toItem).toList();
+      final items = page.items.map(_toItem).toList();
 
       return ExpensesState(
         items: items,

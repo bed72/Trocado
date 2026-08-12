@@ -4,10 +4,10 @@ import 'package:trocado/src/main/providers/services_provider.dart';
 import 'package:trocado/src/main/providers/repositories_provider.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
-import 'package:trocado/src/domain/services/interface_date_formatter_service.dart';
+import 'package:trocado/src/domain/models/page_model.dart';
 import 'package:trocado/src/domain/models/notification/notification_model.dart';
-import 'package:trocado/src/domain/models/notification/notifications_page_model.dart';
 import 'package:trocado/src/domain/enums/notification/notification_type_enum.dart';
+import 'package:trocado/src/domain/services/interface_date_formatter_service.dart';
 import 'package:trocado/src/domain/repositories/interface_notification_repository.dart';
 
 import 'package:trocado/src/presentation/notifiers/couple_notifier.dart';
@@ -58,8 +58,8 @@ final class NotificationsNotifier extends _$NotificationsNotifier {
       data.fold<NotificationsState>(
         (Failure failure) =>
             current.copyWith(isLoadingMore: false, loadMoreFailure: failure),
-        (NotificationsPageModel page) {
-          final items = [...current.items, ...page.notifications.map(_toItem)];
+        (PageModel<NotificationModel> page) {
+          final items = [...current.items, ...page.items.map(_toItem)];
           return current.copyWith(
             items: items,
             isLoadingMore: false,
@@ -151,7 +151,7 @@ final class NotificationsNotifier extends _$NotificationsNotifier {
     final data = await _repository.findAll();
 
     return data.fold((failure) => throw failure, (page) {
-      final items = page.notifications.map(_toItem).toList();
+      final items = page.items.map(_toItem).toList();
 
       return NotificationsState(
         items: items,

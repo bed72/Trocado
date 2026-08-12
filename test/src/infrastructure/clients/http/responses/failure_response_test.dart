@@ -4,85 +4,38 @@ import 'package:trocado/src/infrastructure/clients/http/responses/failure/failur
 
 void main() {
   group('FailureResponse.fromJson', () {
-    test('deserializes single validation error', () {
-      final json = {
+    test('deserializes status and source field', () {
+      final data = FailureResponse.fromJson(const {
         'errors': [
           {
-            'field': 'email',
-            'code': 'required',
-            'message': 'This field is required.',
+            'status': '422',
+            'code': 'INVALID_AMOUNT',
+            'message': 'O valor informado é inválido.',
+            'source': {'field': 'email'},
           },
         ],
-      };
+      });
 
-      final data = FailureResponse.fromJson(json);
-
-      expect(data.errors.length, 1);
-      expect(data.errors.first.field, 'email');
-      expect(data.errors.first.code, 'required');
-      expect(data.errors.first.message, 'This field is required.');
+      expect(data.errors, hasLength(1));
+      expect(data.errors.first.status, '422');
+      expect(data.errors.first.code, 'INVALID_AMOUNT');
+      expect(data.errors.first.source?.field, 'email');
+      expect(data.errors.first.message, 'O valor informado é inválido.');
     });
 
-    test('deserializes non_field_errors', () {
-      final json = {
+    test('preserves every error item', () {
+      final data = FailureResponse.fromJson(const {
         'errors': [
-          {
-            'code': 'invalid',
-            'field': 'non_field_errors',
-            'message': 'Invalid credentials.',
-          },
+          {'code': 'required', 'message': 'Email is required.'},
+          {'code': 'required', 'message': 'Password is required.'},
         ],
-      };
+      });
 
-      final data = FailureResponse.fromJson(json);
-
-      expect(data.errors.first.code, 'invalid');
-      expect(data.errors.first.field, 'non_field_errors');
+      expect(data.errors, hasLength(2));
     });
 
-    test('deserializes multiple errors', () {
-      final json = {
-        'errors': [
-          {
-            'field': 'email',
-            'code': 'required',
-            'message': 'This field is required.',
-          },
-          {
-            'code': 'required',
-            'field': 'password',
-            'message': 'This field is required.',
-          },
-        ],
-      };
-
-      final data = FailureResponse.fromJson(json);
-
-      expect(data.errors.length, 2);
-    });
-
-    test('deserializes null field from backend', () {
-      final json = {
-        'errors': [
-          {
-            'field': null,
-            'code': 'no_active_account',
-            'message': 'Usuário e/ou senha incorreto(s)',
-          },
-        ],
-      };
-
-      final data = FailureResponse.fromJson(json);
-
-      expect(data.errors.first.field, isNull);
-      expect(data.errors.first.code, 'no_active_account');
-      expect(data.errors.first.message, 'Usuário e/ou senha incorreto(s)');
-    });
-
-    test('deserializes empty errors list', () {
-      final json = {'errors': <dynamic>[]};
-
-      final data = FailureResponse.fromJson(json);
+    test('deserializes an empty errors list', () {
+      final data = FailureResponse.fromJson(const {'errors': <dynamic>[]});
 
       expect(data.errors, isEmpty);
     });

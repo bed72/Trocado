@@ -34,11 +34,11 @@ final class AuthenticationRepository implements IAuthenticationRepository {
       return const Right(null);
     }
 
-    final data = await _authenticationDataSource.logout(
+    final response = await _authenticationDataSource.logout(
       refresh: tokens.refresh!,
     );
 
-    if (data.isLeft) return Left(data.left.toFailure());
+    if (response.isLeft) return Left(response.left.toFailure());
 
     await _tokenDataSource.clear();
     return const Right(null);
@@ -48,11 +48,11 @@ final class AuthenticationRepository implements IAuthenticationRepository {
   Future<Either<Failure, void>> requestPasswordReset({
     required String email,
   }) async {
-    final data = await _authenticationDataSource.requestPasswordReset(
+    final response = await _authenticationDataSource.requestPasswordReset(
       email: email,
     );
 
-    return data.either((failure) => failure.toFailure(), (_) {});
+    return response.either((failure) => failure.toFailure(), (_) {});
   }
 
   @override
@@ -61,13 +61,13 @@ final class AuthenticationRepository implements IAuthenticationRepository {
     required String token,
     required String newPassword,
   }) async {
-    final data = await _authenticationDataSource.confirmPasswordReset(
+    final reponse = await _authenticationDataSource.confirmPasswordReset(
       uid: uid,
       token: token,
       newPassword: newPassword,
     );
 
-    return data.either((failure) => failure.toFailure(), (_) {});
+    return reponse.either((failure) => failure.toFailure(), (_) {});
   }
 
   @override
@@ -75,19 +75,19 @@ final class AuthenticationRepository implements IAuthenticationRepository {
     required String email,
     required String password,
   }) async {
-    final data = await _authenticationDataSource.signIn(
+    final response = await _authenticationDataSource.signIn(
       email: email,
       password: password,
     );
 
-    if (data.isLeft) return Left(data.left.toFailure());
+    if (response.isLeft) return Left(response.left.toFailure());
 
     await _tokenDataSource.save(
-      access: data.right.access,
-      refresh: data.right.refresh,
+      access: response.right.data.access,
+      refresh: response.right.data.refresh,
     );
 
-    return Right(data.right.toModel());
+    return Right(response.right.data.toModel());
   }
 
   @override
@@ -95,20 +95,20 @@ final class AuthenticationRepository implements IAuthenticationRepository {
     required String email,
     required String password,
   }) async {
-    final data = await _authenticationDataSource.signUp(
+    final response = await _authenticationDataSource.signUp(
       email: email,
       password: password,
       name: email.split('@').first,
     );
 
-    if (data.isLeft) return Left(data.left.toFailure());
+    if (response.isLeft) return Left(response.left.toFailure());
 
     await _tokenDataSource.save(
-      access: data.right.access,
-      refresh: data.right.refresh,
+      access: response.right.data.access,
+      refresh: response.right.data.refresh,
     );
 
-    return Right(data.right.toModel());
+    return Right(response.right.data.toModel());
   }
 
   @override
@@ -131,8 +131,8 @@ final class AuthenticationRepository implements IAuthenticationRepository {
     }
 
     await _tokenDataSource.save(
-      access: refresh.right.access,
-      refresh: refresh.right.refresh,
+      access: refresh.right.data.access,
+      refresh: refresh.right.data.refresh,
     );
 
     return const Right(null);

@@ -5,11 +5,7 @@ final class ChatResultModel extends Equatable {
   final String? answer;
   final String? sessionId;
 
-  const ChatResultModel({
-    required this.status,
-    this.answer,
-    this.sessionId,
-  });
+  const ChatResultModel({required this.status, this.answer, this.sessionId});
 
   bool get isReady => status == 'ready';
 

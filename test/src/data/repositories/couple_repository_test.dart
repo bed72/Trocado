@@ -10,6 +10,7 @@ import 'package:trocado/src/domain/repositories/interface_couple_repository.dart
 import 'package:trocado/src/infrastructure/datasources/remote/remote_couple_data_source.dart';
 
 import 'package:trocado/src/infrastructure/clients/share/share_client.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/data_model.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/user_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/couple/couple_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/couple/invite_response.dart';
@@ -23,7 +24,7 @@ FailureResponse _failure(String code, String message) => FailureResponse(
     FailureItemResponse(
       code: code,
       message: message,
-      field: 'non_field_errors',
+      source: const FailureSourceResponse(field: 'non_field_errors'),
     ),
   ],
 );
@@ -43,10 +44,12 @@ void main() {
     test('returns Right with InviteModel on success', () async {
       when(() => dataSource.createInvite()).thenAnswer(
         (_) async => Right(
-          InviteResponse(
-            code: 'A3K7FN',
-            qrData: 'trocado://invite/A3K7FN',
-            expiresAt: '2026-03-18T14:30:00Z',
+          DataModel(
+            data: InviteResponse(
+              code: 'A3K7FN',
+              qrData: 'trocado://invite/A3K7FN',
+              expiresAt: '2026-03-18T14:30:00Z',
+            ),
           ),
         ),
       );
@@ -113,13 +116,15 @@ void main() {
     test('returns Right with CoupleModel on success', () async {
       when(() => dataSource.findActive()).thenAnswer(
         (_) async => Right(
-          CoupleResponse(
-            id: 1,
-            createdAt: '2026-01-12T14:30:00Z',
-            partner: const UserResponse(
-              id: 2,
-              name: 'Marina',
-              email: 'partner@trocado.app',
+          DataModel(
+            data: CoupleResponse(
+              id: 1,
+              createdAt: '2026-01-12T14:30:00Z',
+              partner: const UserResponse(
+                id: 2,
+                name: 'Marina',
+                email: 'partner@trocado.app',
+              ),
             ),
           ),
         ),
@@ -276,12 +281,14 @@ void main() {
     test('returns Right with InviteAcceptModel on success', () async {
       when(() => dataSource.acceptInvite(code: code)).thenAnswer(
         (_) async => Right(
-          InviteAcceptResponse(
-            coupleId: 1,
-            partner: const UserResponse(
-              id: 2,
-              name: 'Marina',
-              email: 'partner@trocado.app',
+          DataModel(
+            data: InviteAcceptResponse(
+              coupleId: 1,
+              partner: const UserResponse(
+                id: 2,
+                name: 'Marina',
+                email: 'partner@trocado.app',
+              ),
             ),
           ),
         ),

@@ -3,17 +3,17 @@ import 'dart:async';
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:trocado/src/data/repositories/notification_repository.dart';
+
 import 'package:trocado/src/domain/either/either.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/repositories/interface_notification_repository.dart';
 
-import 'package:trocado/src/data/repositories/notification_repository.dart';
-
 import 'package:trocado/src/infrastructure/datasources/remote/remote_notification_data_source.dart';
 
+import 'package:trocado/src/infrastructure/clients/http/responses/data_model.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/failure/failure_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/notification/notification_response.dart';
-import 'package:trocado/src/infrastructure/clients/http/responses/notification/notifications_response.dart';
 
 import '../../../mocks/mocks.dart';
 
@@ -22,7 +22,7 @@ FailureResponse _failure(String code, String message) => FailureResponse(
     FailureItemResponse(
       code: code,
       message: message,
-      field: 'non_field_errors',
+      source: const FailureSourceResponse(field: 'non_field_errors'),
     ),
   ],
 );
@@ -253,38 +253,41 @@ void main() {
   });
 
   group('findAll', () {
-    test('returns Right with NotificationsPageModel on success', () async {
-      when(() => dataSource.findAll(cursor: any(named: 'cursor'))).thenAnswer(
-        (_) async => Right(
-          NotificationsResponse(
-            next: 'http://api.example.org/?cursor=next-token',
-            previous: null,
-            notifications: [
-              NotificationResponse(
-                id: 1,
-                description: 'Desc',
-                title: 'Nova despesa',
-                type: 'shared_expense_created',
-                createdAt: '2026-05-11T14:30:00Z',
-              ),
-            ],
+    test(
+      'returns Right with PageModel<NotificationModel> on success',
+      () async {
+        when(() => dataSource.findAll(cursor: any(named: 'cursor'))).thenAnswer(
+          (_) async => Right(
+            DataModel<List<NotificationResponse>>(
+              data: [
+                NotificationResponse(
+                  id: 1,
+                  description: 'Desc',
+                  title: 'Nova despesa',
+                  type: 'shared_expense_created',
+                  createdAt: '2026-05-11T14:30:00Z',
+                ),
+              ],
+              links: const {
+                'next': 'http://api.example.org/?cursor=next-token',
+              },
+            ),
           ),
-        ),
-      );
+        );
 
-      final data = await repository.findAll();
+        final data = await repository.findAll();
 
-      expect(data.isRight, isTrue);
-      expect(data.right.nextCursor, 'next-token');
-      expect(data.right.notifications.first.id, 1);
-      expect(data.right.notifications, hasLength(1));
-    });
+        expect(data.isRight, isTrue);
+        expect(data.right.nextCursor, 'next-token');
+        expect(data.right.items.first.id, 1);
+        expect(data.right.items, hasLength(1));
+      },
+    );
 
     test('propagates cursor to datasource', () async {
       when(() => dataSource.findAll(cursor: any(named: 'cursor'))).thenAnswer(
-        (_) async => const Right(
-          NotificationsResponse(next: null, previous: null, notifications: []),
-        ),
+        (_) async =>
+            const Right(DataModel<List<NotificationResponse>>(data: [])),
       );
 
       await repository.findAll(cursor: 'abc');

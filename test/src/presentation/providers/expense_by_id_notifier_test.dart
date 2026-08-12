@@ -11,8 +11,8 @@ import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/services/interface_money_service.dart';
 import 'package:trocado/src/domain/services/interface_date_formatter_service.dart';
 
+import 'package:trocado/src/domain/models/page_model.dart';
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
-import 'package:trocado/src/domain/models/expense/expenses_page_model.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 
 import 'package:trocado/src/domain/enums/scope/financial_scope_enum.dart';
@@ -89,7 +89,7 @@ void main() {
           scope: any(named: 'scope'),
         ),
       ).thenAnswer(
-        (_) async => const Right(ExpensesPageModel(expenses: [_expense])),
+        (_) async => const Right(PageModel<ExpenseModel>(items: [_expense])),
       );
 
       final container = _makeContainer(

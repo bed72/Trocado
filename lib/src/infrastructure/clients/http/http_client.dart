@@ -86,7 +86,7 @@ final class HttpClient implements IHttpClient {
       {
         'code': 'unknown',
         'message': 'Unknown error',
-        'field': 'non_field_errors',
+        'source': {'field': 'non_field_errors'},
       },
     ],
   };
@@ -100,7 +100,7 @@ final class HttpClient implements IHttpClient {
             'errors': [
               {
                 'code': 'network_error',
-                'field': 'non_field_errors',
+                'source': {'field': 'non_field_errors'},
                 'message': exception.message ?? 'Network error',
               },
             ],

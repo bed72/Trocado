@@ -6,24 +6,28 @@ import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 import 'package:trocado/src/infrastructure/clients/http/http_client.dart';
 import 'package:trocado/src/infrastructure/clients/http/endpoint_key.dart';
 
+import 'package:trocado/src/infrastructure/clients/http/responses/reponses.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/data_model.dart';
+
 import 'package:trocado/src/infrastructure/clients/http/requests/requests.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/expense_request.dart';
-import 'package:trocado/src/infrastructure/clients/http/requests/expense_filter_request.dart';
 
+import 'package:trocado/src/infrastructure/clients/http/requests/expense_filter_request.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/expense/expense_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/failure/failure_response.dart';
-import 'package:trocado/src/infrastructure/clients/http/responses/expense/expenses_response.dart';
 
 abstract interface class IRemoteExpenseDataSource {
-  Future<Either<FailureResponse, ExpenseResponse>> create({
+  Future<Either<FailureResponse, DataModel<ExpenseResponse>>> create({
     required int date,
     required int value,
     required String description,
   });
 
-  Future<Either<FailureResponse, ExpenseResponse>> findById({required int id});
+  Future<Either<FailureResponse, DataModel<ExpenseResponse>>> findById({
+    required int id,
+  });
 
-  Future<Either<FailureResponse, ExpenseResponse>> update({
+  Future<Either<FailureResponse, DataModel<ExpenseResponse>>> update({
     required int id,
     required int date,
     required int value,
@@ -32,12 +36,12 @@ abstract interface class IRemoteExpenseDataSource {
 
   Future<Either<FailureResponse, void>> delete({required int id});
 
-  Future<Either<FailureResponse, ExpensesResponse>> findRecent({
+  Future<Either<FailureResponse, DataModel<List<ExpenseResponse>>>> findRecent({
     required int limit,
     required FinancialScopeEnum scope,
   });
 
-  Future<Either<FailureResponse, ExpensesResponse>> findAll({
+  Future<Either<FailureResponse, DataModel<List<ExpenseResponse>>>> findAll({
     required FinancialScopeEnum scope,
     String? cursor,
     ExpenseFilterModel? filter,
@@ -52,7 +56,7 @@ final class RemoteExpenseDataSource implements IRemoteExpenseDataSource {
     : _request = const ExpenseFilterRequest();
 
   @override
-  Future<Either<FailureResponse, ExpenseResponse>> create({
+  Future<Either<FailureResponse, DataModel<ExpenseResponse>>> create({
     required int date,
     required int value,
     required String description,
@@ -68,22 +72,28 @@ final class RemoteExpenseDataSource implements IRemoteExpenseDataSource {
       ),
     );
 
-    return response.either(FailureResponse.fromJson, ExpenseResponse.fromJson);
+    return response.toDataModel(
+      (data) =>
+          ExpenseResponse.fromJson(Map<String, dynamic>.from(data as Map)),
+    );
   }
 
   @override
-  Future<Either<FailureResponse, ExpenseResponse>> findById({
+  Future<Either<FailureResponse, DataModel<ExpenseResponse>>> findById({
     required int id,
   }) async {
     final response = await _client.get(
       parameter: Requests('${EndpointKey.expenses.path}/$id'),
     );
 
-    return response.either(FailureResponse.fromJson, ExpenseResponse.fromJson);
+    return response.toDataModel(
+      (data) =>
+          ExpenseResponse.fromJson(Map<String, dynamic>.from(data as Map)),
+    );
   }
 
   @override
-  Future<Either<FailureResponse, ExpenseResponse>> update({
+  Future<Either<FailureResponse, DataModel<ExpenseResponse>>> update({
     required int id,
     required int date,
     required int value,
@@ -100,7 +110,10 @@ final class RemoteExpenseDataSource implements IRemoteExpenseDataSource {
       ),
     );
 
-    return response.either(FailureResponse.fromJson, ExpenseResponse.fromJson);
+    return response.toDataModel(
+      (data) =>
+          ExpenseResponse.fromJson(Map<String, dynamic>.from(data as Map)),
+    );
   }
 
   @override
@@ -116,17 +129,25 @@ final class RemoteExpenseDataSource implements IRemoteExpenseDataSource {
   }
 
   @override
-  Future<Either<FailureResponse, ExpensesResponse>> findRecent({
+  Future<Either<FailureResponse, DataModel<List<ExpenseResponse>>>> findRecent({
     required int limit,
     required FinancialScopeEnum scope,
   }) async {
     final response = await _client.get(parameter: Requests(_basePath(scope)));
 
-    return response.either(FailureResponse.fromJson, ExpensesResponse.fromJson);
+    return response.toDataModel(
+      (data) => (data as List)
+          .map(
+            (item) => ExpenseResponse.fromJson(
+              Map<String, dynamic>.from(item as Map),
+            ),
+          )
+          .toList(),
+    );
   }
 
   @override
-  Future<Either<FailureResponse, ExpensesResponse>> findAll({
+  Future<Either<FailureResponse, DataModel<List<ExpenseResponse>>>> findAll({
     required FinancialScopeEnum scope,
     String? cursor,
     ExpenseFilterModel? filter,
@@ -137,7 +158,15 @@ final class RemoteExpenseDataSource implements IRemoteExpenseDataSource {
 
     final response = await _client.get(parameter: Requests(path));
 
-    return response.either(FailureResponse.fromJson, ExpensesResponse.fromJson);
+    return response.toDataModel(
+      (data) => (data as List)
+          .map(
+            (item) => ExpenseResponse.fromJson(
+              Map<String, dynamic>.from(item as Map),
+            ),
+          )
+          .toList(),
+    );
   }
 
   String _basePath(FinancialScopeEnum scope) => switch (scope) {

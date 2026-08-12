@@ -18,24 +18,26 @@ import 'package:trocado/src/infrastructure/datasources/remote/remote_insights_da
 import '../../../mocks/mocks.dart';
 
 const _successJson = {
-  'insights': [
-    {
-      'severity': 'danger',
-      'title': 'Estourou',
-      'description': 'Usou 146%.',
-      'type': 'budget_utilization',
-      'data': {'budget_pct': 145.61},
-    },
-    {
-      'severity': 'info',
-      'type': 'top_category',
-      'title': 'Categoria em destaque',
-      'description': 'Housing em 56%.',
-      'data': {'category': 'housing', 'pct': 55.98},
-    },
-  ],
-  'has_enough_data': true,
-  'generated_at': '2026-04-22T18:24:36.544845+00:00',
+  'data': {
+    'insights': [
+      {
+        'severity': 'danger',
+        'title': 'Estourou',
+        'description': 'Usou 146%.',
+        'type': 'budget_utilization',
+        'data': {'budget_pct': 145.61},
+      },
+      {
+        'severity': 'info',
+        'type': 'top_category',
+        'title': 'Categoria em destaque',
+        'description': 'Housing em 56%.',
+        'data': {'category': 'housing', 'pct': 55.98},
+      },
+    ],
+    'has_enough_data': true,
+    'generated_at': '2026-04-22T18:24:36.544845+00:00',
+  },
 };
 
 void main() {
@@ -70,9 +72,11 @@ void main() {
     test('returns Right with empty list when backend returns empty', () async {
       when(() => client.get(parameter: any(named: 'parameter'))).thenAnswer(
         (_) async => const Right({
-          'insights': [],
-          'has_enough_data': false,
-          'generated_at': '2026-04-22T18:24:36.544845+00:00',
+          'data': {
+            'insights': [],
+            'has_enough_data': false,
+            'generated_at': '2026-04-22T18:24:36.544845+00:00',
+          },
         }),
       );
 
@@ -86,17 +90,19 @@ void main() {
     test('maps unknown type and severity to unknown enums', () async {
       when(() => client.get(parameter: any(named: 'parameter'))).thenAnswer(
         (_) async => Right(<String, dynamic>{
-          'insights': [
-            <String, dynamic>{
-              'title': 'titulo',
-              'description': 'desc',
-              'severity': 'critical',
-              'type': 'brand_new_type',
-              'data': <String, dynamic>{},
-            },
-          ],
-          'has_enough_data': true,
-          'generated_at': '2026-04-22T18:24:36.544845+00:00',
+          'data': {
+            'insights': [
+              <String, dynamic>{
+                'title': 'titulo',
+                'description': 'desc',
+                'severity': 'critical',
+                'type': 'brand_new_type',
+                'data': <String, dynamic>{},
+              },
+            ],
+            'has_enough_data': true,
+            'generated_at': '2026-04-22T18:24:36.544845+00:00',
+          },
         }),
       );
 

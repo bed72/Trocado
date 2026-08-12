@@ -14,17 +14,21 @@ import 'package:trocado/src/infrastructure/datasources/remote/remote_health_data
 import '../../../mocks/mocks.dart';
 
 const _successJson = {
-  'status': 'ok',
-  'version': 1,
-  'components': {
-    'db': 'ok',
-    'cache': 'ok',
-    'queue': {'depth': 0, 'warning': false},
-    'worker': {'status': 'ok', 'heartbeat_age_seconds': 5.94},
+  'data': {
+    'status': 'ok',
+    'version': 1,
+    'components': {
+      'db': 'ok',
+      'cache': 'ok',
+      'queue': {'depth': 0, 'warning': false},
+      'worker': {'status': 'ok', 'heartbeat_age_seconds': 5.94},
+    },
   },
 };
 
-const _unhealthyJson = {'status': 'degraded', 'version': 1};
+const _unhealthyJson = {
+  'data': {'status': 'degraded', 'version': 1},
+};
 
 const _failureJson = {
   'errors': [

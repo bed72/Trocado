@@ -15,11 +15,11 @@ import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/services/interface_money_service.dart';
 import 'package:trocado/src/domain/services/interface_date_formatter_service.dart';
 
+import 'package:trocado/src/domain/models/page_model.dart';
 import 'package:trocado/src/domain/models/user_model.dart';
 import 'package:trocado/src/domain/models/couple/couple_model.dart';
-import 'package:trocado/src/domain/enums/scope/financial_scope_enum.dart';
 import 'package:trocado/src/domain/models/expense/expense_model.dart';
-import 'package:trocado/src/domain/models/expense/expenses_page_model.dart';
+import 'package:trocado/src/domain/enums/scope/financial_scope_enum.dart';
 import 'package:trocado/src/domain/models/expense/expense_filter_model.dart';
 
 import 'package:trocado/src/domain/repositories/interface_couple_repository.dart';
@@ -124,7 +124,7 @@ void main() {
           ),
         ).thenAnswer(
           (_) async => const Right(
-            ExpensesPageModel(expenses: _first, nextCursor: 'CUR1'),
+            PageModel<ExpenseModel>(items: _first, nextCursor: 'CUR1'),
           ),
         );
 
@@ -155,7 +155,7 @@ void main() {
             filter: any(named: 'filter'),
             scope: any(named: 'scope'),
           ),
-        ).thenAnswer((_) async => const Right(ExpensesPageModel()));
+        ).thenAnswer((_) async => const Right(PageModel<ExpenseModel>()));
 
         final container = _makeContainer(
           repository: repository,
@@ -213,7 +213,7 @@ void main() {
         ),
       ).thenAnswer(
         (_) async => const Right(
-          ExpensesPageModel(expenses: _first, nextCursor: 'CUR1'),
+          PageModel<ExpenseModel>(items: _first, nextCursor: 'CUR1'),
         ),
       );
       when(
@@ -224,7 +224,7 @@ void main() {
         ),
       ).thenAnswer(
         (_) async => const Right(
-          ExpensesPageModel(expenses: _second, nextCursor: 'CUR2'),
+          PageModel<ExpenseModel>(items: _second, nextCursor: 'CUR2'),
         ),
       );
 
@@ -255,8 +255,9 @@ void main() {
           scope: any(named: 'scope'),
         ),
       ).thenAnswer(
-        (_) async =>
-            const Right(ExpensesPageModel(expenses: _first, nextCursor: null)),
+        (_) async => const Right(
+          PageModel<ExpenseModel>(items: _first, nextCursor: null),
+        ),
       );
 
       final container = _makeContainer(
@@ -288,7 +289,7 @@ void main() {
         ),
       ).thenAnswer(
         (_) async => const Right(
-          ExpensesPageModel(expenses: _first, nextCursor: 'CUR1'),
+          PageModel<ExpenseModel>(items: _first, nextCursor: 'CUR1'),
         ),
       );
       when(
@@ -329,7 +330,7 @@ void main() {
         ),
       ).thenAnswer(
         (_) async => const Right(
-          ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
+          PageModel<ExpenseModel>(items: _first, nextCursor: 'INIT'),
         ),
       );
       when(
@@ -339,8 +340,9 @@ void main() {
           scope: FinancialScopeEnum.mine,
         ),
       ).thenAnswer(
-        (_) async =>
-            const Right(ExpensesPageModel(expenses: _second, nextCursor: 'F1')),
+        (_) async => const Right(
+          PageModel<ExpenseModel>(items: _second, nextCursor: 'F1'),
+        ),
       );
 
       final container = _makeContainer(
@@ -377,11 +379,12 @@ void main() {
           ),
         ).thenAnswer(
           (_) async => const Right(
-            ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
+            PageModel<ExpenseModel>(items: _first, nextCursor: 'INIT'),
           ),
         );
 
-        final reloadCompleter = Completer<Either<Failure, ExpensesPageModel>>();
+        final reloadCompleter =
+            Completer<Either<Failure, PageModel<ExpenseModel>>>();
         when(
           () => repository.findAll(scope: .mine, cursor: null, filter: filter),
         ).thenAnswer((_) => reloadCompleter.future);
@@ -405,7 +408,9 @@ void main() {
         expect(loadingSnapshot.value?.items, isNotEmpty);
 
         reloadCompleter.complete(
-          const Right(ExpensesPageModel(expenses: _second, nextCursor: 'F1')),
+          const Right(
+            PageModel<ExpenseModel>(items: _second, nextCursor: 'F1'),
+          ),
         );
         await pending;
 
@@ -431,7 +436,7 @@ void main() {
           ),
         ).thenAnswer(
           (_) async => const Right(
-            ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
+            PageModel<ExpenseModel>(items: _first, nextCursor: 'INIT'),
           ),
         );
         when(
@@ -442,7 +447,7 @@ void main() {
           ),
         ).thenAnswer(
           (_) async => const Right(
-            ExpensesPageModel(expenses: _first, nextCursor: 'D1'),
+            PageModel<ExpenseModel>(items: _first, nextCursor: 'D1'),
           ),
         );
 
@@ -488,7 +493,7 @@ void main() {
           ),
         ).thenAnswer(
           (_) async => const Right(
-            ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
+            PageModel<ExpenseModel>(items: _first, nextCursor: 'INIT'),
           ),
         );
         when(
@@ -499,7 +504,7 @@ void main() {
           ),
         ).thenAnswer(
           (_) async => const Right(
-            ExpensesPageModel(expenses: _second, nextCursor: 'ALL'),
+            PageModel<ExpenseModel>(items: _second, nextCursor: 'ALL'),
           ),
         );
 
@@ -543,7 +548,7 @@ void main() {
           ),
         ).thenAnswer(
           (_) async => const Right(
-            ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
+            PageModel<ExpenseModel>(items: _first, nextCursor: 'INIT'),
           ),
         );
         when(
@@ -554,7 +559,7 @@ void main() {
           ),
         ).thenAnswer(
           (_) async => const Right(
-            ExpensesPageModel(expenses: _second, nextCursor: 'V1'),
+            PageModel<ExpenseModel>(items: _second, nextCursor: 'V1'),
           ),
         );
 
@@ -593,7 +598,7 @@ void main() {
           ),
         ).thenAnswer(
           (_) async => const Right(
-            ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
+            PageModel<ExpenseModel>(items: _first, nextCursor: 'INIT'),
           ),
         );
         when(
@@ -604,7 +609,7 @@ void main() {
           ),
         ).thenAnswer(
           (_) async => const Right(
-            ExpensesPageModel(expenses: _second, nextCursor: 'V2'),
+            PageModel<ExpenseModel>(items: _second, nextCursor: 'V2'),
           ),
         );
 
@@ -643,7 +648,7 @@ void main() {
           ),
         ).thenAnswer(
           (_) async => const Right(
-            ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
+            PageModel<ExpenseModel>(items: _first, nextCursor: 'INIT'),
           ),
         );
         when(
@@ -654,7 +659,7 @@ void main() {
           ),
         ).thenAnswer(
           (_) async => const Right(
-            ExpensesPageModel(expenses: _second, nextCursor: 'V3'),
+            PageModel<ExpenseModel>(items: _second, nextCursor: 'V3'),
           ),
         );
 
@@ -687,7 +692,7 @@ void main() {
         ),
       ).thenAnswer(
         (_) async => const Right(
-          ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
+          PageModel<ExpenseModel>(items: _first, nextCursor: 'INIT'),
         ),
       );
       when(
@@ -731,7 +736,7 @@ void main() {
           ),
         ).thenAnswer(
           (_) async => const Right(
-            ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
+            PageModel<ExpenseModel>(items: _first, nextCursor: 'INIT'),
           ),
         );
         when(
@@ -742,7 +747,7 @@ void main() {
           ),
         ).thenAnswer(
           (_) async => const Right(
-            ExpensesPageModel(expenses: _first, nextCursor: 'D1'),
+            PageModel<ExpenseModel>(items: _first, nextCursor: 'D1'),
           ),
         );
 
@@ -755,7 +760,8 @@ void main() {
         await container.read(expensesProvider.future);
         await container.read(expensesProvider.notifier).applyFilter(filter);
 
-        final reloadCompleter = Completer<Either<Failure, ExpensesPageModel>>();
+        final reloadCompleter =
+            Completer<Either<Failure, PageModel<ExpenseModel>>>();
         when(
           () => repository.findAll(
             cursor: null,
@@ -773,7 +779,7 @@ void main() {
         expect(intermediate.value?.activeFilterChips, isEmpty);
 
         reloadCompleter.complete(
-          const Right(ExpensesPageModel(expenses: _first, nextCursor: 'F0')),
+          const Right(PageModel<ExpenseModel>(items: _first, nextCursor: 'F0')),
         );
         await pending;
 
@@ -797,7 +803,7 @@ void main() {
         ),
       ).thenAnswer(
         (_) async => const Right(
-          ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
+          PageModel<ExpenseModel>(items: _first, nextCursor: 'INIT'),
         ),
       );
       when(
@@ -807,8 +813,9 @@ void main() {
           scope: FinancialScopeEnum.mine,
         ),
       ).thenAnswer(
-        (_) async =>
-            const Right(ExpensesPageModel(expenses: _second, nextCursor: 'V1')),
+        (_) async => const Right(
+          PageModel<ExpenseModel>(items: _second, nextCursor: 'V1'),
+        ),
       );
 
       final container = _makeContainer(
@@ -842,7 +849,7 @@ void main() {
         ),
       ).thenAnswer(
         (_) async => const Right(
-          ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
+          PageModel<ExpenseModel>(items: _first, nextCursor: 'INIT'),
         ),
       );
       when(
@@ -852,8 +859,9 @@ void main() {
           scope: FinancialScopeEnum.mine,
         ),
       ).thenAnswer(
-        (_) async =>
-            const Right(ExpensesPageModel(expenses: _second, nextCursor: 'F1')),
+        (_) async => const Right(
+          PageModel<ExpenseModel>(items: _second, nextCursor: 'F1'),
+        ),
       );
 
       final container = _makeContainer(
@@ -883,7 +891,7 @@ void main() {
         ),
       ).thenAnswer(
         (_) async => const Right(
-          ExpensesPageModel(expenses: _first, nextCursor: 'INIT'),
+          PageModel<ExpenseModel>(items: _first, nextCursor: 'INIT'),
         ),
       );
       when(
@@ -893,8 +901,9 @@ void main() {
           scope: FinancialScopeEnum.mine,
         ),
       ).thenAnswer(
-        (_) async =>
-            const Right(ExpensesPageModel(expenses: _second, nextCursor: 'F1')),
+        (_) async => const Right(
+          PageModel<ExpenseModel>(items: _second, nextCursor: 'F1'),
+        ),
       );
 
       final container = _makeContainer(
@@ -906,7 +915,8 @@ void main() {
       await container.read(expensesProvider.future);
       await container.read(expensesProvider.notifier).applyFilter(filter);
 
-      final reloadCompleter = Completer<Either<Failure, ExpensesPageModel>>();
+      final reloadCompleter =
+          Completer<Either<Failure, PageModel<ExpenseModel>>>();
       when(
         () => repository.findAll(
           cursor: null,
@@ -924,7 +934,7 @@ void main() {
       expect(intermediate.value?.activeFilterChips, isEmpty);
 
       reloadCompleter.complete(
-        const Right(ExpensesPageModel(expenses: _first, nextCursor: 'F0')),
+        const Right(PageModel<ExpenseModel>(items: _first, nextCursor: 'F0')),
       );
       await pending;
 
@@ -943,7 +953,7 @@ void main() {
           scope: any(named: 'scope'),
         ),
       ).thenAnswer(
-        (_) async => const Right(ExpensesPageModel(expenses: _first)),
+        (_) async => const Right(PageModel<ExpenseModel>(items: _first)),
       );
       when(
         () => repository.delete(id: any(named: 'id')),
@@ -975,7 +985,7 @@ void main() {
           scope: any(named: 'scope'),
         ),
       ).thenAnswer(
-        (_) async => const Right(ExpensesPageModel(expenses: _first)),
+        (_) async => const Right(PageModel<ExpenseModel>(items: _first)),
       );
       when(
         () => repository.delete(id: any(named: 'id')),
@@ -1005,7 +1015,7 @@ void main() {
           scope: any(named: 'scope'),
         ),
       ).thenAnswer(
-        (_) async => const Right(ExpensesPageModel(expenses: _first)),
+        (_) async => const Right(PageModel<ExpenseModel>(items: _first)),
       );
 
       final container = _makeContainer(
@@ -1062,7 +1072,7 @@ void main() {
             scope: any(named: 'scope'),
           ),
         ).thenAnswer(
-          (_) async => const Right(ExpensesPageModel(expenses: _first)),
+          (_) async => const Right(PageModel<ExpenseModel>(items: _first)),
         );
 
         final container = _makeContainer(
@@ -1090,7 +1100,7 @@ void main() {
           scope: any(named: 'scope'),
         ),
       ).thenAnswer(
-        (_) async => const Right(ExpensesPageModel(expenses: _first)),
+        (_) async => const Right(PageModel<ExpenseModel>(items: _first)),
       );
 
       final container = _makeContainer(
@@ -1118,7 +1128,8 @@ void main() {
             scope: any(named: 'scope'),
           ),
         ).thenAnswer(
-          (_) async => const Right(ExpensesPageModel(expenses: coupleExpenses)),
+          (_) async =>
+              const Right(PageModel<ExpenseModel>(items: coupleExpenses)),
         );
 
         final container = _makeContainer(
@@ -1153,7 +1164,7 @@ void main() {
           scope: FinancialScopeEnum.mine,
         ),
       ).thenAnswer(
-        (_) async => const Right(ExpensesPageModel(expenses: _first)),
+        (_) async => const Right(PageModel<ExpenseModel>(items: _first)),
       );
       when(
         () => repository.findAll(
@@ -1162,7 +1173,7 @@ void main() {
           scope: FinancialScopeEnum.mine,
         ),
       ).thenAnswer(
-        (_) async => const Right(ExpensesPageModel(expenses: _first)),
+        (_) async => const Right(PageModel<ExpenseModel>(items: _first)),
       );
       when(
         () => repository.findAll(
@@ -1171,7 +1182,8 @@ void main() {
           scope: FinancialScopeEnum.couple,
         ),
       ).thenAnswer(
-        (_) async => const Right(ExpensesPageModel(expenses: coupleExpenses)),
+        (_) async =>
+            const Right(PageModel<ExpenseModel>(items: coupleExpenses)),
       );
 
       final container = _makeContainer(
@@ -1201,7 +1213,7 @@ void main() {
           scope: any(named: 'scope'),
         ),
       ).thenAnswer(
-        (_) async => const Right(ExpensesPageModel(expenses: _first)),
+        (_) async => const Right(PageModel<ExpenseModel>(items: _first)),
       );
 
       final container = _makeContainer(

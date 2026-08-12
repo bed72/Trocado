@@ -58,7 +58,7 @@ void main() {
           {
             'code': 'not_found',
             'message': 'Not found.',
-            'field': 'non_field_errors',
+            'source': {'field': 'non_field_errors'},
           },
         ],
       };
@@ -133,7 +133,7 @@ void main() {
       final body = {
         'errors': [
           {
-            'field': 'email',
+            'source': {'field': 'email'},
             'code': 'required',
             'message': 'This field is required.',
           },

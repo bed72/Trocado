@@ -1,8 +1,8 @@
+import 'package:trocado/src/domain/models/page_model.dart';
 import 'package:trocado/src/domain/models/notification/notification_model.dart';
-import 'package:trocado/src/domain/models/notification/notifications_page_model.dart';
 
+import 'package:trocado/src/infrastructure/clients/http/responses/data_model.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/notification/notification_response.dart';
-import 'package:trocado/src/infrastructure/clients/http/responses/notification/notifications_response.dart';
 
 extension NotificationResponseExtension on NotificationResponse {
   NotificationModel toModel() => NotificationModel(
@@ -15,16 +15,27 @@ extension NotificationResponseExtension on NotificationResponse {
   );
 }
 
-extension NotificationsResponseExtension on NotificationsResponse {
-  NotificationsPageModel toPageModel() => NotificationsPageModel(
-    nextCursor: _cursorFrom(next),
-    previousCursor: _cursorFrom(previous),
-    notifications: notifications.map((item) => item.toModel()).toList(),
+extension NotificationsResponseExtension
+    on DataModel<List<NotificationResponse>> {
+  PageModel<NotificationModel> toPageModel() => PageModel<NotificationModel>(
+    nextCursor: _cursorFrom(links?['next'], 'next_cursor'),
+    previousCursor: _cursorFrom(
+      links?['previous'] ?? links?['prev'],
+      'previous_cursor',
+    ),
+    items: data.map((item) => item.toModel()).toList(),
   );
 
-  String? _cursorFrom(String? url) {
-    if (url == null) return null;
+  String? _cursorFrom(Object? link, String metaKey) {
+    final String? url = link as String?;
+    final String? cursor = url == null
+        ? null
+        : Uri.parse(url).queryParameters['cursor'];
+    if (cursor != null) return cursor;
 
-    return Uri.parse(url).queryParameters['cursor'];
+    final pagination = meta?['pagination'];
+    if (pagination is! Map) return null;
+
+    return pagination[metaKey] as String?;
   }
 }

@@ -1,19 +1,35 @@
+final class FailureSourceResponse {
+  final String? field;
+
+  const FailureSourceResponse({required this.field});
+
+  factory FailureSourceResponse.fromJson(Map<String, dynamic> json) =>
+      FailureSourceResponse(field: json['field'] as String?);
+}
+
 final class FailureItemResponse {
   final String? code;
-  final String? field;
+  final String? status;
   final String? message;
+  final FailureSourceResponse? source;
 
   const FailureItemResponse({
     required this.code,
-    required this.field,
     required this.message,
+    this.status,
+    this.source,
   });
 
   factory FailureItemResponse.fromJson(Map<String, dynamic> json) =>
       FailureItemResponse(
         code: json['code'] as String?,
-        field: json['field'] as String?,
+        status: json['status'] as String?,
         message: json['message'] as String?,
+        source: json['source'] is Map
+            ? FailureSourceResponse.fromJson(
+                Map<String, dynamic>.from(json['source'] as Map),
+              )
+            : null,
       );
 }
 

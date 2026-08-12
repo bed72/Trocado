@@ -16,8 +16,8 @@ import 'package:trocado/src/presentation/ui/authentication/sign_in/notifiers/sig
 import 'package:trocado/src/presentation/ui/authentication/sign_in/notifiers/sign_in_notifier.dart';
 
 class SignInScreen extends StatelessWidget {
-  final VoidCallback onSuccess;
   final VoidCallback onSignUp;
+  final VoidCallback onSuccess;
   final VoidCallback onForgotPassword;
 
   const SignInScreen({

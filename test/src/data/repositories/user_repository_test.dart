@@ -17,9 +17,7 @@ import 'package:trocado/src/infrastructure/datasources/remote/remote_user_data_s
 import '../../../mocks/mocks.dart';
 
 const _meSuccessJson = {
-  'id': 1,
-  'name': 'Jane Doe',
-  'email': 'jane@trocado.app',
+  'data': {'id': 1, 'name': 'Jane Doe', 'email': 'jane@trocado.app'},
 };
 
 const _meFailureJson = {

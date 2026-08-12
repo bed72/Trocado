@@ -5,11 +5,7 @@ final class UserModel extends Equatable {
   final String name;
   final String email;
 
-  const UserModel({
-    required this.id,
-    required this.name,
-    required this.email,
-  });
+  const UserModel({required this.id, required this.name, required this.email});
 
   UserModel copyWith({int? id, String? name, String? email}) => UserModel(
     id: id ?? this.id,

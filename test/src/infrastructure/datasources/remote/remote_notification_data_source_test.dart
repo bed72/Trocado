@@ -232,9 +232,8 @@ void main() {
     test('GETs without cursor on first page', () async {
       when(() => httpClient.get(parameter: any(named: 'parameter'))).thenAnswer(
         (_) async => const Right({
-          'next': null,
-          'previous': null,
-          'results': <Map<String, dynamic>>[],
+          'data': <Map<String, dynamic>>[],
+          'links': {'next': null},
         }),
       );
 
@@ -254,9 +253,8 @@ void main() {
     test('GETs with cursor as query param on subsequent page', () async {
       when(() => httpClient.get(parameter: any(named: 'parameter'))).thenAnswer(
         (_) async => const Right({
-          'next': null,
-          'previous': null,
-          'results': <Map<String, dynamic>>[],
+          'data': <Map<String, dynamic>>[],
+          'links': {'next': null},
         }),
       );
 

@@ -3,7 +3,8 @@ import 'package:trocado/src/data/extensions/notification_response_extension.dart
 
 import 'package:trocado/src/domain/either/either.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
-import 'package:trocado/src/domain/models/notification/notifications_page_model.dart';
+import 'package:trocado/src/domain/models/page_model.dart';
+import 'package:trocado/src/domain/models/notification/notification_model.dart';
 import 'package:trocado/src/domain/repositories/interface_notification_repository.dart';
 
 import 'package:trocado/src/infrastructure/datasources/remote/remote_notification_data_source.dart';
@@ -18,41 +19,41 @@ final class NotificationRepository implements INotificationRepository {
 
   @override
   Future<Either<Failure, void>> deleteAll() async {
-    final data = await _dataSource.deleteAll();
+    final response = await _dataSource.deleteAll();
 
-    return data.either((failure) => failure.toFailure(), (_) {});
+    return response.either((failure) => failure.toFailure(), (_) {});
   }
 
   @override
   Future<Either<Failure, void>> deleteById({required int id}) async {
-    final data = await _dataSource.deleteById(id: id);
+    final response = await _dataSource.deleteById(id: id);
 
-    return data.either((failure) => failure.toFailure(), (_) {});
+    return response.either((failure) => failure.toFailure(), (_) {});
   }
 
   @override
   Future<Either<Failure, void>> registerToken() async {
-    final data = await _dataSource.registerToken();
+    final response = await _dataSource.registerToken();
 
-    return data.either((failure) => failure.toFailure(), (_) {});
+    return response.either((failure) => failure.toFailure(), (_) {});
   }
 
   @override
   Future<Either<Failure, void>> revokeToken() async {
-    final data = await _dataSource.revokeToken();
+    final response = await _dataSource.revokeToken();
 
-    return data.either((failure) => failure.toFailure(), (_) {});
+    return response.either((failure) => failure.toFailure(), (_) {});
   }
 
   @override
-  Future<Either<Failure, NotificationsPageModel>> findAll({
+  Future<Either<Failure, PageModel<NotificationModel>>> findAll({
     String? cursor,
   }) async {
-    final data = await _dataSource.findAll(cursor: cursor);
+    final response = await _dataSource.findAll(cursor: cursor);
 
-    return data.either(
+    return response.either(
       (failure) => failure.toFailure(),
-      (response) => response.toPageModel(),
+      (success) => success.toPageModel(),
     );
   }
 }

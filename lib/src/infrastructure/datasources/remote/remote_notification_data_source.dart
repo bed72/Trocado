@@ -4,11 +4,15 @@ import 'package:trocado/src/infrastructure/clients/messaging/messaging_client.da
 
 import 'package:trocado/src/infrastructure/clients/http/http_client.dart';
 import 'package:trocado/src/infrastructure/clients/http/endpoint_key.dart';
+
 import 'package:trocado/src/infrastructure/clients/http/requests/requests.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/fcm_token_request.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/fcm_token_delete_request.dart';
+
+import 'package:trocado/src/infrastructure/clients/http/responses/reponses.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/data_model.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/failure/failure_response.dart';
-import 'package:trocado/src/infrastructure/clients/http/responses/notification/notifications_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/notification/notification_response.dart';
 
 abstract interface class IRemoteNotificationDataSource {
   Stream<void> get onTokenRefreshed;
@@ -17,9 +21,8 @@ abstract interface class IRemoteNotificationDataSource {
   Future<Either<FailureResponse, void>> revokeToken();
   Future<Either<FailureResponse, void>> registerToken();
   Future<Either<FailureResponse, void>> deleteById({required int id});
-  Future<Either<FailureResponse, NotificationsResponse>> findAll({
-    String? cursor,
-  });
+  Future<Either<FailureResponse, DataModel<List<NotificationResponse>>>>
+  findAll({String? cursor});
 }
 
 final class RemoteNotificationDataSource
@@ -55,18 +58,22 @@ final class RemoteNotificationDataSource
   }
 
   @override
-  Future<Either<FailureResponse, NotificationsResponse>> findAll({
-    String? cursor,
-  }) async {
+  Future<Either<FailureResponse, DataModel<List<NotificationResponse>>>>
+  findAll({String? cursor}) async {
     final path = cursor == null
         ? EndpointKey.notifications.path
         : '${EndpointKey.notifications.path}?cursor=$cursor';
 
     final response = await _httpClient.get(parameter: Requests(path));
 
-    return response.either(
-      FailureResponse.fromJson,
-      NotificationsResponse.fromJson,
+    return response.toDataModel(
+      (data) => (data as List)
+          .map(
+            (item) => NotificationResponse.fromJson(
+              Map<String, dynamic>.from(item as Map),
+            ),
+          )
+          .toList(),
     );
   }
 

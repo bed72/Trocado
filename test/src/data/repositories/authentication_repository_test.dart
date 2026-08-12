@@ -19,8 +19,7 @@ import 'package:trocado/src/infrastructure/datasources/remote/remote_authenticat
 import '../../../mocks/mocks.dart';
 
 const _signUpSuccessJson = {
-  'access': 'access-token',
-  'refresh': 'refresh-token',
+  'data': {'access': 'access-token', 'refresh': 'refresh-token'},
 };
 
 void main() {
@@ -58,8 +57,9 @@ void main() {
   group('signIn', () {
     test('returns Right with AuthenticationModel on success', () async {
       when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
-        (_) async =>
-            const Right({'access': 'access-token', 'refresh': 'refresh-token'}),
+        (_) async => const Right({
+          'data': {'access': 'access-token', 'refresh': 'refresh-token'},
+        }),
       );
 
       final data = await repository.signIn(
@@ -74,8 +74,9 @@ void main() {
 
     test('calls save with tokens on success', () async {
       when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
-        (_) async =>
-            const Right({'access': 'access-token', 'refresh': 'refresh-token'}),
+        (_) async => const Right({
+          'data': {'access': 'access-token', 'refresh': 'refresh-token'},
+        }),
       );
 
       await repository.signIn(
@@ -317,7 +318,10 @@ void main() {
     test('returns Right on success', () async {
       when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
         (_) async => const Right({
-          'detail': 'If this email is registered, a reset link has been sent.',
+          'data': {
+            'detail':
+                'If this email is registered, a reset link has been sent.',
+          },
         }),
       );
 
@@ -331,7 +335,10 @@ void main() {
     test('does not call tokenDataSource.save on success', () async {
       when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
         (_) async => const Right({
-          'detail': 'If this email is registered, a reset link has been sent.',
+          'data': {
+            'detail':
+                'If this email is registered, a reset link has been sent.',
+          },
         }),
       );
 
@@ -459,8 +466,7 @@ void main() {
           }
 
           return const Right({
-            'access': 'new_access',
-            'refresh': 'new_refresh',
+            'data': {'access': 'new_access', 'refresh': 'new_refresh'},
           });
         });
 
@@ -528,8 +534,9 @@ void main() {
   group('confirmPasswordReset', () {
     test('returns Right on success', () async {
       when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
-        (_) async =>
-            const Right({'detail': 'Password has been reset successfully.'}),
+        (_) async => const Right({
+          'data': {'detail': 'Password has been reset successfully.'},
+        }),
       );
 
       final data = await repository.confirmPasswordReset(
@@ -543,8 +550,9 @@ void main() {
 
     test('does not call tokenDataSource.save on success', () async {
       when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
-        (_) async =>
-            const Right({'detail': 'Password has been reset successfully.'}),
+        (_) async => const Right({
+          'data': {'detail': 'Password has been reset successfully.'},
+        }),
       );
 
       await repository.confirmPasswordReset(

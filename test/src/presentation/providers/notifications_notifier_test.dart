@@ -10,11 +10,11 @@ import 'package:trocado/src/main/providers/repositories_provider.dart';
 import 'package:trocado/src/domain/either/either.dart';
 import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/models/user_model.dart';
+import 'package:trocado/src/domain/models/page_model.dart';
 import 'package:trocado/src/domain/models/couple/couple_model.dart';
 import 'package:trocado/src/domain/services/interface_date_formatter_service.dart';
 import 'package:trocado/src/domain/models/notification/notification_model.dart';
 import 'package:trocado/src/domain/repositories/interface_couple_repository.dart';
-import 'package:trocado/src/domain/models/notification/notifications_page_model.dart';
 import 'package:trocado/src/domain/repositories/interface_notification_repository.dart';
 
 import 'package:trocado/src/presentation/ui/notifications/notifiers/notifications_notifier.dart';
@@ -86,7 +86,7 @@ void main() {
     test('AsyncData with first page items and nextCursor on success', () async {
       when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
         (_) async => const Right(
-          NotificationsPageModel(notifications: _first, nextCursor: 'CUR1'),
+          PageModel<NotificationModel>(items: _first, nextCursor: 'CUR1'),
         ),
       );
 
@@ -137,11 +137,11 @@ void main() {
         final cursor = invocation.namedArguments[#cursor];
         if (cursor == null) {
           return const Right(
-            NotificationsPageModel(notifications: _first, nextCursor: 'CUR1'),
+            PageModel<NotificationModel>(items: _first, nextCursor: 'CUR1'),
           );
         }
         return const Right(
-          NotificationsPageModel(notifications: _second, nextCursor: null),
+          PageModel<NotificationModel>(items: _second, nextCursor: null),
         );
       });
 
@@ -165,7 +165,7 @@ void main() {
     test('no-op when nextCursor is null', () async {
       when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
         (_) async => const Right(
-          NotificationsPageModel(notifications: _first, nextCursor: null),
+          PageModel<NotificationModel>(items: _first, nextCursor: null),
         ),
       );
 
@@ -190,7 +190,7 @@ void main() {
         final cursor = invocation.namedArguments[#cursor];
         if (cursor == null) {
           return const Right(
-            NotificationsPageModel(notifications: _first, nextCursor: 'CUR1'),
+            PageModel<NotificationModel>(items: _first, nextCursor: 'CUR1'),
           );
         }
         return Left(const NetworkFailure());
@@ -219,7 +219,7 @@ void main() {
     test('clears items, groups and nextCursor on success', () async {
       when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
         (_) async => const Right(
-          NotificationsPageModel(notifications: _first, nextCursor: 'CUR1'),
+          PageModel<NotificationModel>(items: _first, nextCursor: 'CUR1'),
         ),
       );
       when(
@@ -248,7 +248,7 @@ void main() {
     test('keeps items and sets deleteAllFailure on failure', () async {
       when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
         (_) async => const Right(
-          NotificationsPageModel(notifications: _first, nextCursor: 'CUR1'),
+          PageModel<NotificationModel>(items: _first, nextCursor: 'CUR1'),
         ),
       );
       when(
@@ -276,7 +276,7 @@ void main() {
     test('no-op when already deleting', () async {
       when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
         (_) async => const Right(
-          NotificationsPageModel(notifications: _first, nextCursor: 'CUR1'),
+          PageModel<NotificationModel>(items: _first, nextCursor: 'CUR1'),
         ),
       );
 
@@ -306,7 +306,7 @@ void main() {
     test('removes item from items and groups on success', () async {
       when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
         (_) async => const Right(
-          NotificationsPageModel(notifications: _first, nextCursor: 'CUR1'),
+          PageModel<NotificationModel>(items: _first, nextCursor: 'CUR1'),
         ),
       );
       when(
@@ -334,7 +334,7 @@ void main() {
     test('no-op when id is not found in items', () async {
       when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
         (_) async => const Right(
-          NotificationsPageModel(notifications: _first, nextCursor: 'CUR1'),
+          PageModel<NotificationModel>(items: _first, nextCursor: 'CUR1'),
         ),
       );
 
@@ -359,7 +359,7 @@ void main() {
       () async {
         when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
           (_) async => const Right(
-            NotificationsPageModel(notifications: _first, nextCursor: 'CUR1'),
+            PageModel<NotificationModel>(items: _first, nextCursor: 'CUR1'),
           ),
         );
         when(
@@ -394,7 +394,7 @@ void main() {
     test('hides label for sharedExpenseCreated when solo', () async {
       when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
         (_) async => const Right(
-          NotificationsPageModel(notifications: _first, nextCursor: null),
+          PageModel<NotificationModel>(items: _first, nextCursor: null),
         ),
       );
 
@@ -420,7 +420,7 @@ void main() {
     test('shows label for unknown when solo', () async {
       when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
         (_) async => const Right(
-          NotificationsPageModel(notifications: _second, nextCursor: null),
+          PageModel<NotificationModel>(items: _second, nextCursor: null),
         ),
       );
 
@@ -441,7 +441,7 @@ void main() {
       ).thenAnswer((_) async => Right(coupleModel));
       when(() => repository.findAll(cursor: any(named: 'cursor'))).thenAnswer(
         (_) async => const Right(
-          NotificationsPageModel(notifications: _first, nextCursor: null),
+          PageModel<NotificationModel>(items: _first, nextCursor: null),
         ),
       );
 
@@ -463,11 +463,11 @@ void main() {
         final cursor = invocation.namedArguments[#cursor];
         if (cursor == null) {
           return const Right(
-            NotificationsPageModel(notifications: _first, nextCursor: 'CUR1'),
+            PageModel<NotificationModel>(items: _first, nextCursor: 'CUR1'),
           );
         }
         return const Right(
-          NotificationsPageModel(notifications: _second, nextCursor: null),
+          PageModel<NotificationModel>(items: _second, nextCursor: null),
         );
       });
 
@@ -507,11 +507,11 @@ void main() {
         callCount++;
         if (callCount == 1) {
           return const Right(
-            NotificationsPageModel(notifications: _first, nextCursor: 'CUR1'),
+            PageModel<NotificationModel>(items: _first, nextCursor: 'CUR1'),
           );
         }
         return const Right(
-          NotificationsPageModel(notifications: _second, nextCursor: null),
+          PageModel<NotificationModel>(items: _second, nextCursor: null),
         );
       });
 

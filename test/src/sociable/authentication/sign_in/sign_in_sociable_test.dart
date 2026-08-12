@@ -4,10 +4,10 @@ import 'package:mocktail/mocktail.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:trocado/src/domain/either/either.dart';
+
 import 'package:trocado/src/main/providers/storage_provider.dart';
 import 'package:trocado/src/main/providers/clients_provider.dart';
-
-import 'package:trocado/src/domain/either/either.dart';
 
 import 'package:trocado/src/infrastructure/clients/http/http_client.dart';
 import 'package:trocado/src/infrastructure/clients/storage/storage_key.dart';
@@ -25,8 +25,7 @@ const _signInPath = '/api/v1/token';
 const _fcmTokenPath = '/api/v1/me/fcm-token';
 
 const _signInSuccessBody = {
-  'access': 'access-token',
-  'refresh': 'refresh-token',
+  'data': {'access': 'access-token', 'refresh': 'refresh-token'},
 };
 
 const _invalidCredentialsBody = {

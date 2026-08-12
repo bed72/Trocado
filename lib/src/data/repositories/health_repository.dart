@@ -13,11 +13,11 @@ final class HealthRepository implements IHealthRepository {
 
   @override
   Future<Either<Failure, bool>> check() async {
-    final data = await _dataSource.check();
+    final response = await _dataSource.check();
 
-    return data.either(
+    return response.either(
       (failure) => failure.toFailure(),
-      (response) => response.status == 'ok',
+      (success) => success.data.status == 'ok',
     );
   }
 }

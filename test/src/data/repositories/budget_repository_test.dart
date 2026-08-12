@@ -6,7 +6,8 @@ import 'package:trocado/src/domain/either/either.dart';
 import 'package:trocado/src/data/repositories/budget_repository.dart';
 
 import 'package:trocado/src/domain/failures/failure.dart';
-import 'package:trocado/src/domain/models/budget/budgets_page_model.dart';
+import 'package:trocado/src/domain/models/page_model.dart';
+import 'package:trocado/src/domain/models/budget/budget_model.dart';
 import 'package:trocado/src/domain/models/budget/active_budget_model.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
 
@@ -17,21 +18,25 @@ import 'package:trocado/src/infrastructure/datasources/remote/remote_budget_data
 import '../../../mocks/mocks.dart';
 
 const _successJson = {
-  'id': 1,
-  'value': '1000.00',
-  'end_date': '2026-03-31',
-  'start_date': '2026-03-01',
-  'description': 'March budget',
+  'data': {
+    'id': 1,
+    'value': '1000.00',
+    'end_date': '2026-03-31',
+    'start_date': '2026-03-01',
+    'description': 'March budget',
+  },
 };
 
 const _activeSuccessJson = {
-  'id': 35,
-  'value': '18000.00',
-  'remaining': '17880.00',
-  'total_spent': '120.00',
-  'end_date': '2026-04-30',
-  'start_date': '2026-04-01',
-  'description': 'Orçamento de Abril',
+  'data': {
+    'id': 35,
+    'value': '18000.00',
+    'remaining': '17880.00',
+    'total_spent': '120.00',
+    'end_date': '2026-04-30',
+    'start_date': '2026-04-01',
+    'description': 'Orçamento de Abril',
+  },
 };
 
 const _endDate = 1743379200000; // 2026-03-31 UTC
@@ -72,11 +77,13 @@ void main() {
     test('converts decimal value to cents correctly', () async {
       when(() => client.post(parameter: any(named: 'parameter'))).thenAnswer(
         (_) async => const Right({
-          'id': 2,
-          'value': '85.50',
-          'description': 'Test',
-          'end_date': '2026-03-31',
-          'start_date': '2026-03-01',
+          'data': {
+            'id': 2,
+            'value': '85.50',
+            'description': 'Test',
+            'end_date': '2026-03-31',
+            'start_date': '2026-03-01',
+          },
         }),
       );
 
@@ -257,25 +264,27 @@ void main() {
 
   group('findActiveShared', () {
     const sharedJson = {
-      'period': {'start_date': '2026-05-01', 'end_date': '2026-05-31'},
-      'me': {
-        'value': '2500.00',
-        'total_spent': '1556.27',
-        'remaining': '943.73',
+      'data': {
+        'period': {'start_date': '2026-05-01', 'end_date': '2026-05-31'},
+        'me': {
+          'value': '2500.00',
+          'total_spent': '1556.27',
+          'remaining': '943.73',
+        },
+        'partner': {
+          'value': '5000.00',
+          'total_spent': '4720.87',
+          'remaining': '279.13',
+          'name': 'Gabriel Ramos',
+          'email': 'gabriel@trocado.app',
+        },
+        'combined': {
+          'value': '7500.00',
+          'total_spent': '6277.14',
+          'remaining': '1222.86',
+        },
+        'partner_has_different_period': false,
       },
-      'partner': {
-        'value': '5000.00',
-        'total_spent': '4720.87',
-        'remaining': '279.13',
-        'name': 'Gabriel Ramos',
-        'email': 'gabriel@trocado.app',
-      },
-      'combined': {
-        'value': '7500.00',
-        'total_spent': '6277.14',
-        'remaining': '1222.86',
-      },
-      'partner_has_different_period': false,
     };
 
     test('uses /budgets/active/shared path', () async {
@@ -353,9 +362,7 @@ void main() {
 
   group('findAll', () {
     const pageJson = {
-      'next': 'http://api.example.org/budgets/?cursor=NEXT',
-      'previous': null,
-      'results': [
+      'data': [
         {
           'id': 9,
           'value': '1000.00',
@@ -377,6 +384,7 @@ void main() {
           'created_at': '2026-02-02T17:34:21.517100-03:00',
         },
       ],
+      'links': {'next': 'http://api.example.org/budgets/?cursor=NEXT'},
     };
 
     test(
@@ -420,7 +428,7 @@ void main() {
     );
 
     test(
-      'returns Right with BudgetsPageModel and extracted nextCursor',
+      'returns Right with PageModel<BudgetModel> and extracted nextCursor',
       () async {
         when(
           () => client.get(parameter: any(named: 'parameter')),
@@ -430,9 +438,9 @@ void main() {
 
         expect(data.isRight, isTrue);
         expect(data.right.nextCursor, 'NEXT');
-        expect(data.right.budgets, hasLength(2));
+        expect(data.right.items, hasLength(2));
         expect(data.right.previousCursor, isNull);
-        expect(data.right, isA<BudgetsPageModel>());
+        expect(data.right, isA<PageModel<BudgetModel>>());
       },
     );
 
@@ -444,7 +452,7 @@ void main() {
         ).thenAnswer((_) async => const Right(pageJson));
 
         final data = await repository.findAll();
-        final overspent = data.right.budgets[1];
+        final overspent = data.right.items[1];
 
         expect(overspent.value, 220000);
         expect(overspent.totalSpent, 393497);
@@ -458,7 +466,7 @@ void main() {
       ).thenAnswer((_) async => const Right(pageJson));
 
       final data = await repository.findAll();
-      final first = data.right.budgets.first;
+      final first = data.right.items.first;
 
       expect(
         first.startDate,
@@ -478,7 +486,7 @@ void main() {
       final data = await repository.findAll();
 
       expect(
-        data.right.budgets.first.createdAt,
+        data.right.items.first.createdAt,
         DateTime.parse(
           '2026-05-02T17:58:42.119430-03:00',
         ).millisecondsSinceEpoch,
@@ -490,9 +498,11 @@ void main() {
       () async {
         when(() => client.get(parameter: any(named: 'parameter'))).thenAnswer(
           (_) async => const Right({
-            'results': [],
-            'previous': null,
-            'next': 'http://api.example.org/budgets/?cursor=ABC&ordering=desc',
+            'data': [],
+            'links': {
+              'next':
+                  'http://api.example.org/budgets/?cursor=ABC&ordering=desc',
+            },
           }),
         );
 
@@ -504,13 +514,15 @@ void main() {
 
     test('returns nextCursor null when next is null', () async {
       when(() => client.get(parameter: any(named: 'parameter'))).thenAnswer(
-        (_) async =>
-            const Right({'next': null, 'previous': null, 'results': []}),
+        (_) async => const Right({
+          'data': <dynamic>[],
+          'links': {'next': null},
+        }),
       );
 
       final data = await repository.findAll();
 
-      expect(data.right.budgets, isEmpty);
+      expect(data.right.items, isEmpty);
       expect(data.right.nextCursor, isNull);
     });
 

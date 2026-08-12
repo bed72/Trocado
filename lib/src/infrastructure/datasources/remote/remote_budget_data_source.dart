@@ -5,29 +5,34 @@ import 'package:trocado/src/infrastructure/clients/http/endpoint_key.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/requests.dart';
 import 'package:trocado/src/infrastructure/clients/http/requests/budget_request.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/budget/budget_response.dart';
-import 'package:trocado/src/infrastructure/clients/http/responses/budget/budgets_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/failure/failure_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/budget/active_budget_response.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/budget/shared_active_budget_response.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/data_model.dart';
+import 'package:trocado/src/infrastructure/clients/http/responses/reponses.dart';
 
 abstract interface class IRemoteBudgetDataSource {
-  Future<Either<FailureResponse, ActiveBudgetResponse>> findActive();
+  Future<Either<FailureResponse, DataModel<ActiveBudgetResponse>>> findActive();
 
-  Future<Either<FailureResponse, SharedActiveBudgetResponse>>
+  Future<Either<FailureResponse, DataModel<SharedActiveBudgetResponse>>>
   findActiveShared();
 
-  Future<Either<FailureResponse, BudgetsResponse>> findAll({String? cursor});
+  Future<Either<FailureResponse, DataModel<List<BudgetResponse>>>> findAll({
+    String? cursor,
+  });
 
-  Future<Either<FailureResponse, BudgetResponse>> findById({required int id});
+  Future<Either<FailureResponse, DataModel<BudgetResponse>>> findById({
+    required int id,
+  });
 
-  Future<Either<FailureResponse, BudgetResponse>> create({
+  Future<Either<FailureResponse, DataModel<BudgetResponse>>> create({
     required int value,
     required int endDate,
     required int startDate,
     required String description,
   });
 
-  Future<Either<FailureResponse, BudgetResponse>> update({
+  Future<Either<FailureResponse, DataModel<BudgetResponse>>> update({
     required int id,
     required int value,
     required int endDate,
@@ -44,32 +49,34 @@ final class RemoteBudgetDataSource implements IRemoteBudgetDataSource {
   RemoteBudgetDataSource({required this._client});
 
   @override
-  Future<Either<FailureResponse, ActiveBudgetResponse>> findActive() async {
+  Future<Either<FailureResponse, DataModel<ActiveBudgetResponse>>>
+  findActive() async {
     final response = await _client.get(
       parameter: Requests(EndpointKey.budgetsActive.path),
     );
 
-    return response.either(
-      FailureResponse.fromJson,
-      ActiveBudgetResponse.fromJson,
+    return response.toDataModel(
+      (data) =>
+          ActiveBudgetResponse.fromJson(Map<String, dynamic>.from(data as Map)),
     );
   }
 
   @override
-  Future<Either<FailureResponse, SharedActiveBudgetResponse>>
+  Future<Either<FailureResponse, DataModel<SharedActiveBudgetResponse>>>
   findActiveShared() async {
     final response = await _client.get(
       parameter: Requests(EndpointKey.budgetsActiveShared.path),
     );
 
-    return response.either(
-      FailureResponse.fromJson,
-      SharedActiveBudgetResponse.fromJson,
+    return response.toDataModel(
+      (data) => SharedActiveBudgetResponse.fromJson(
+        Map<String, dynamic>.from(data as Map),
+      ),
     );
   }
 
   @override
-  Future<Either<FailureResponse, BudgetsResponse>> findAll({
+  Future<Either<FailureResponse, DataModel<List<BudgetResponse>>>> findAll({
     String? cursor,
   }) async {
     final response = await _client.get(
@@ -79,22 +86,31 @@ final class RemoteBudgetDataSource implements IRemoteBudgetDataSource {
       ),
     );
 
-    return response.either(FailureResponse.fromJson, BudgetsResponse.fromJson);
+    return response.toDataModel(
+      (data) => (data as List)
+          .map(
+            (item) =>
+                BudgetResponse.fromJson(Map<String, dynamic>.from(item as Map)),
+          )
+          .toList(),
+    );
   }
 
   @override
-  Future<Either<FailureResponse, BudgetResponse>> findById({
+  Future<Either<FailureResponse, DataModel<BudgetResponse>>> findById({
     required int id,
   }) async {
     final response = await _client.get(
       parameter: Requests('${EndpointKey.budgets.path}/$id'),
     );
 
-    return response.either(FailureResponse.fromJson, BudgetResponse.fromJson);
+    return response.toDataModel(
+      (data) => BudgetResponse.fromJson(Map<String, dynamic>.from(data as Map)),
+    );
   }
 
   @override
-  Future<Either<FailureResponse, BudgetResponse>> create({
+  Future<Either<FailureResponse, DataModel<BudgetResponse>>> create({
     required int value,
     required int endDate,
     required int startDate,
@@ -112,11 +128,13 @@ final class RemoteBudgetDataSource implements IRemoteBudgetDataSource {
       ),
     );
 
-    return response.either(FailureResponse.fromJson, BudgetResponse.fromJson);
+    return response.toDataModel(
+      (data) => BudgetResponse.fromJson(Map<String, dynamic>.from(data as Map)),
+    );
   }
 
   @override
-  Future<Either<FailureResponse, BudgetResponse>> update({
+  Future<Either<FailureResponse, DataModel<BudgetResponse>>> update({
     required int id,
     required int value,
     required int endDate,
@@ -135,7 +153,9 @@ final class RemoteBudgetDataSource implements IRemoteBudgetDataSource {
       ),
     );
 
-    return response.either(FailureResponse.fromJson, BudgetResponse.fromJson);
+    return response.toDataModel(
+      (data) => BudgetResponse.fromJson(Map<String, dynamic>.from(data as Map)),
+    );
   }
 
   @override

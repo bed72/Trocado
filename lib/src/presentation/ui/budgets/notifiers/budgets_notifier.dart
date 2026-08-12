@@ -10,8 +10,8 @@ import 'package:trocado/src/domain/failures/failure.dart';
 import 'package:trocado/src/domain/services/interface_money_service.dart';
 import 'package:trocado/src/domain/services/interface_date_formatter_service.dart';
 
+import 'package:trocado/src/domain/models/page_model.dart';
 import 'package:trocado/src/domain/models/budget/budget_model.dart';
-import 'package:trocado/src/domain/models/budget/budgets_page_model.dart';
 import 'package:trocado/src/domain/repositories/interface_budget_repository.dart';
 
 import 'package:trocado/src/presentation/data/budget/budget_card_presentation_data.dart';
@@ -95,12 +95,12 @@ final class BudgetsNotifier extends _$BudgetsNotifier {
       data.fold<BudgetsState>(
         (Failure failure) =>
             current.copyWith(isLoadingMore: false, loadMoreFailure: failure),
-        (BudgetsPageModel page) => current.copyWith(
+        (PageModel<BudgetModel> page) => current.copyWith(
           isLoadingMore: false,
           clearLoadMoreFailure: true,
           nextCursor: page.nextCursor,
           clearNextCursor: page.nextCursor == null,
-          items: [...current.items, ...page.budgets.map(_toItem)],
+          items: [...current.items, ...page.items.map(_toItem)],
         ),
       ),
     );
@@ -111,10 +111,10 @@ final class BudgetsNotifier extends _$BudgetsNotifier {
 
     return data.fold((failure) => throw failure, (page) {
       final now = _now().millisecondsSinceEpoch;
-      final active = _pickActive(page.budgets, now);
+      final active = _pickActive(page.items, now);
       final remaining = active == null
-          ? page.budgets
-          : page.budgets.where((b) => b.id != active.id).toList();
+          ? page.items
+          : page.items.where((b) => b.id != active.id).toList();
 
       return BudgetsState(
         activeBudget: active,

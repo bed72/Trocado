@@ -4,8 +4,8 @@ import 'package:trocado/src/domain/enums/notification/notification_type_enum.dar
 
 import 'package:trocado/src/data/extensions/notification_response_extension.dart';
 
+import 'package:trocado/src/infrastructure/clients/http/responses/data_model.dart';
 import 'package:trocado/src/infrastructure/clients/http/responses/notification/notification_response.dart';
-import 'package:trocado/src/infrastructure/clients/http/responses/notification/notifications_response.dart';
 
 void main() {
   group('NotificationResponseExtension.toModel', () {
@@ -57,12 +57,14 @@ void main() {
     });
   });
 
-  group('NotificationsResponseExtension.toPageModel', () {
+  group('DataModel<List<NotificationResponse>>.toPageModel', () {
     test('extracts cursor query param from next and previous URLs', () {
-      final response = NotificationsResponse(
-        next: 'http://api.example.org/path?cursor=cD00ODY%3D&page_size=10',
-        previous: 'http://api.example.org/path?cursor=cj0xJnA9NDg3',
-        notifications: const [],
+      final response = DataModel<List<NotificationResponse>>(
+        data: const [],
+        links: const {
+          'next': 'http://api.example.org/path?cursor=cD00ODY%3D&page_size=10',
+          'prev': 'http://api.example.org/path?cursor=cj0xJnA9NDg3',
+        },
       );
 
       final page = response.toPageModel();
@@ -72,11 +74,7 @@ void main() {
     });
 
     test('null URL maps to null cursor', () {
-      final response = const NotificationsResponse(
-        next: null,
-        previous: null,
-        notifications: [],
-      );
+      final response = const DataModel<List<NotificationResponse>>(data: []);
 
       final page = response.toPageModel();
 
@@ -85,10 +83,12 @@ void main() {
     });
 
     test('URL without cursor query param maps to null cursor', () {
-      final response = const NotificationsResponse(
-        next: 'http://api.example.org/path',
-        previous: 'http://api.example.org/path?other=1',
-        notifications: [],
+      final response = const DataModel<List<NotificationResponse>>(
+        data: [],
+        links: {
+          'next': 'http://api.example.org/path',
+          'prev': 'http://api.example.org/path?other=1',
+        },
       );
 
       final page = response.toPageModel();
@@ -98,10 +98,8 @@ void main() {
     });
 
     test('maps each NotificationResponse to a NotificationModel', () {
-      final response = NotificationsResponse(
-        next: null,
-        previous: null,
-        notifications: [
+      final response = DataModel<List<NotificationResponse>>(
+        data: [
           NotificationResponse(
             id: 1,
             type: 'shared_expense_created',
@@ -121,16 +119,10 @@ void main() {
 
       final page = response.toPageModel();
 
-      expect(page.notifications, hasLength(2));
-      expect(page.notifications[0].id, 1);
-      expect(
-        page.notifications[0].type,
-        NotificationTypeEnum.sharedExpenseCreated,
-      );
-      expect(
-        page.notifications[1].type,
-        NotificationTypeEnum.budgetEightyPercent,
-      );
+      expect(page.items, hasLength(2));
+      expect(page.items[0].id, 1);
+      expect(page.items[0].type, NotificationTypeEnum.sharedExpenseCreated);
+      expect(page.items[1].type, NotificationTypeEnum.budgetEightyPercent);
     });
   });
 }

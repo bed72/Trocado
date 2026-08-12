@@ -18,11 +18,11 @@ final class InsightsRepository implements IInsightsRepository {
   Future<Either<Failure, InsightsBundleModel>> findAll({
     required FinancialScopeEnum scope,
   }) async {
-    final data = await _dataSource.findAll(scope: scope);
+    final response = await _dataSource.findAll(scope: scope);
 
-    return data.either(
+    return response.either(
       (failure) => failure.toFailure(),
-      (response) => response.toModel(),
+      (success) => success.data.toModel(),
     );
   }
 }
