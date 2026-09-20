@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Budget\Presentation\Http\Resources;
+namespace App\Budget\Presentation\Http\Responses;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\JsonApi\JsonApiResource;
@@ -22,9 +22,9 @@ final class BudgetResponse extends JsonApiResource
     public function toAttributes(Request $request): array
     {
         return [
-            'amount' => $this->resource->amount->cents(),
-            'start_date' => $this->resource->startDate,
             'end_date' => $this->resource->endDate,
+            'start_date' => $this->resource->startDate,
+            'amount' => $this->resource->amount->cents(),
             'created_at' => $this->resource->createdAt?->format(format: DATE_ATOM),
             'updated_at' => $this->resource->updatedAt?->format(format: DATE_ATOM),
         ];
@@ -32,6 +32,6 @@ final class BudgetResponse extends JsonApiResource
 
     public function toLinks(Request $request): array
     {
-        return ['self' => route(name: 'budgets.show', parameters: ['budget' => $this->resource->id])];
+        return ['self' => route(name: 'budgets.get', parameters: ['budget' => $this->resource->id])];
     }
 }

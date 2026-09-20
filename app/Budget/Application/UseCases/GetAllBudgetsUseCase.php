@@ -7,7 +7,7 @@ namespace App\Budget\Application\UseCases;
 use App\Budget\Application\Repositories\BudgetRepository;
 use App\Budget\Domain\Entities\BudgetEntity;
 
-final readonly class ListBudgetsUseCase
+final readonly class GetAllBudgetsUseCase
 {
     public function __construct(private BudgetRepository $budgets) {}
 

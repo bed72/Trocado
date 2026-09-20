@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Budget\Presentation\Http\Controllers;
 
-use App\Budget\Application\UseCases\ListBudgetsUseCase;
-use App\Budget\Presentation\Http\Resources\BudgetResponse;
+use App\Budget\Application\UseCases\GetAllBudgetsUseCase;
+use App\Budget\Presentation\Http\Responses\BudgetResponse;
 use Illuminate\Http\Resources\JsonApi\AnonymousResourceCollection;
 
-final class ListBudgetsController
+final class GetAllBudgetsController
 {
-    public function __construct(private readonly ListBudgetsUseCase $useCase) {}
+    public function __construct(private readonly GetAllBudgetsUseCase $useCase) {}
 
     public function __invoke(): AnonymousResourceCollection
     {

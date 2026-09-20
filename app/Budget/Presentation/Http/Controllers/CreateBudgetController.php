@@ -6,7 +6,7 @@ namespace App\Budget\Presentation\Http\Controllers;
 
 use App\Budget\Application\UseCases\CreateBudgetUseCase;
 use App\Budget\Presentation\Http\Requests\CreateBudgetRequest;
-use App\Budget\Presentation\Http\Resources\BudgetResponse;
+use App\Budget\Presentation\Http\Responses\BudgetResponse;
 use Illuminate\Http\JsonResponse;
 
 final class CreateBudgetController
@@ -24,6 +24,6 @@ final class CreateBudgetController
 
         return (new BudgetResponse(resource: $budget))->response()
             ->setStatusCode(code: 201)
-            ->header(key: 'Location', values: route(name: 'budgets.show', parameters: ['budget' => $budget->id]));
+            ->header(key: 'Location', values: route(name: 'budgets.get', parameters: ['budget' => $budget->id]));
     }
 }

@@ -1,0 +1,45 @@
+meta {
+  name: Update - Invalid Final Date Range
+  type: http
+  seq: 4
+  tags: [
+    budget
+    validation
+  ]
+}
+
+patch {
+  url: {{baseUrl}}/api/budgets/{{validationBudgetId}}
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/vnd.api+json
+  Content-Type: application/vnd.api+json
+}
+
+body:json {
+  {
+    "data": {
+      "type": "budgets",
+      "id": "{{validationBudgetId}}",
+      "attributes": {
+        "end_date": "2026-10-31"
+      }
+    }
+  }
+}
+
+tests {
+  test("returns HTTP 422", function () {
+    expect(res.getStatus()).to.equal(422);
+  });
+
+  test("returns the domain validation error", function () {
+    const error = res.getBody().errors[0];
+
+    expect(error.status).to.equal("422");
+    expect(error.title).to.equal("Dados inv\u00e1lidos");
+  });
+}

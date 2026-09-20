@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Budget\Presentation\Http\Controllers;
 
 use App\Budget\Application\UseCases\GetBudgetUseCase;
-use App\Budget\Presentation\Http\Resources\BudgetResponse;
+use App\Budget\Presentation\Http\Responses\BudgetResponse;
 
 final class GetBudgetController
 {

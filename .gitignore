@@ -14,7 +14,9 @@
 /.idea
 /.nova
 /.phpunit.cache
-/.vscode
+/.vscode/*
+!/.vscode/extensions.json
+!/.vscode/settings.json
 /.zed
 /auth.json
 /node_modules

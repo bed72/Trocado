@@ -29,7 +29,7 @@ Para JSON:API, consulte primeiro Boost/Search Docs e o código da versão instal
 
 ## Nomes e evolução
 
-Use sufixos explícitos: `BudgetEntity`, `MoneyValueObject`, `BudgetRepository`, `EloquentBudgetRepository`, `BudgetModel`, `CreateBudgetUseCase`, `GetBudgetUseCase`, `ListBudgetsUseCase`, `UpdateBudgetUseCase`, `DeleteBudgetUseCase`, `BudgetController`, `CreateBudgetRequest`, `BudgetJsonApiResource`, `BudgetServiceProvider`, `ResendEmailAdapter` e `ExpoPushAdapter`. Evite `Service`, `Manager`, `Handler` ou `Helper` sem papel claro. Não crie bases genéricas (`BaseEntity`, `BaseUseCase`, `BaseController`, `BaseMapper`, `BaseFactory`) por antecipação.
+Use sufixos explícitos: `BudgetEntity`, `MoneyValueObject`, `BudgetRepository`, `EloquentBudgetRepository`, `BudgetModel`, `CreateBudgetUseCase`, `GetBudgetUseCase`, `GetAllBudgetsUseCase`, `UpdateBudgetUseCase`, `DeleteBudgetUseCase`, `BudgetController`, `CreateBudgetRequest`, `BudgetJsonApiResource`, `BudgetServiceProvider`, `ResendEmailAdapter` e `ExpoPushAdapter`. Evite `Service`, `Manager`, `Handler` ou `Helper` sem papel claro. Não crie bases genéricas (`BaseEntity`, `BaseUseCase`, `BaseController`, `BaseMapper`, `BaseFactory`) por antecipação.
 
 Controllers podem ser separados por ação, como os atuais `CreateBudgetController` e `GetBudgetController`; o sufixo `Controller` importa mais que unificá-los. O `BudgetResponse` existente estende o `JsonApiResource` oficial, mas antecede a convenção de nome `BudgetJsonApiResource`: trate-o como exceção preexistente, sem copiá-la nem renomeá-la durante trabalho não relacionado.
 

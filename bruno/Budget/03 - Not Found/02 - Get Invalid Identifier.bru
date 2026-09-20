@@ -1,0 +1,32 @@
+meta {
+  name: Get Invalid Budget Identifier
+  type: http
+  seq: 2
+  tags: [
+    budget
+    not-found
+  ]
+}
+
+get {
+  url: {{baseUrl}}/api/budgets/not-a-number
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/vnd.api+json
+}
+
+tests {
+  test("returns HTTP 404", function () {
+    expect(res.getStatus()).to.equal(404);
+  });
+
+  test("returns the generic route not-found error", function () {
+    const error = res.getBody().errors[0];
+
+    expect(error.status).to.equal("404");
+    expect(error.title).to.equal("Recurso n\u00e3o encontrado");
+  });
+}

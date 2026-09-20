@@ -1,0 +1,42 @@
+meta {
+  name: Update Missing Budget
+  type: http
+  seq: 3
+  tags: [
+    budget
+    not-found
+  ]
+}
+
+patch {
+  url: {{baseUrl}}/api/budgets/{{notFoundBudgetId}}
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/vnd.api+json
+  Content-Type: application/vnd.api+json
+}
+
+body:json {
+  {
+    "data": {
+      "type": "budgets",
+      "id": "{{notFoundBudgetId}}",
+      "attributes": {
+        "amount": 10000
+      }
+    }
+  }
+}
+
+tests {
+  test("returns HTTP 404", function () {
+    expect(res.getStatus()).to.equal(404);
+  });
+
+  test("returns the domain not-found error", function () {
+    expect(res.getBody().errors[0].title).to.equal("Budget n\u00e3o encontrado");
+  });
+}

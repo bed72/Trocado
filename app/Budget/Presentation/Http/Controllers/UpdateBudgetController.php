@@ -6,7 +6,7 @@ namespace App\Budget\Presentation\Http\Controllers;
 
 use App\Budget\Application\UseCases\UpdateBudgetUseCase;
 use App\Budget\Presentation\Http\Requests\UpdateBudgetRequest;
-use App\Budget\Presentation\Http\Resources\BudgetResponse;
+use App\Budget\Presentation\Http\Responses\BudgetResponse;
 
 final class UpdateBudgetController
 {
