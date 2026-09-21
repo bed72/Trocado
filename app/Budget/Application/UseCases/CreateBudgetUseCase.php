@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Budget\Application\UseCases;
 
+use App\Budget\Application\Data\CreateBudgetInput;
 use App\Budget\Application\Ports\BudgetWritePort;
 use App\Budget\Application\Repositories\BudgetRecurrenceRepository;
 use App\Budget\Application\Repositories\BudgetRepository;
@@ -20,21 +21,21 @@ final readonly class CreateBudgetUseCase
         private BudgetRecurrenceRepository $recurrenceRepository,
     ) {}
 
-    public function execute(int $amount, string $startDate, string $endDate, bool $recurring = false): BudgetEntity
+    public function execute(CreateBudgetInput $input): BudgetEntity
     {
         $budget = new BudgetEntity(
             id: null,
-            endDate: $endDate,
-            startDate: $startDate,
-            amount: MoneyValueObject::fromCents(cents: $amount),
+            endDate: $input->endDate,
+            startDate: $input->startDate,
+            amount: MoneyValueObject::fromCents(cents: $input->amount),
         );
 
-        return $this->port->execute(operation: function () use ($budget, $recurring): BudgetEntity {
+        return $this->port->execute(operation: function () use ($budget, $input): BudgetEntity {
             if ($this->budgetRepository->hasOverlap(startDate: $budget->startDate, endDate: $budget->endDate)) {
                 throw new OverlappingBudgetException;
             }
 
-            if (! $recurring) {
+            if (! $input->recurring) {
                 return $this->budgetRepository->create(budget: $budget);
             }
 

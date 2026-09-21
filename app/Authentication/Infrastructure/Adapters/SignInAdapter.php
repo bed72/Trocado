@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Authentication\Infrastructure\Adapters;
 
+use App\Authentication\Application\Data\SignInOutput;
 use App\Authentication\Application\Exceptions\InvalidCredentialsException;
 use App\Authentication\Application\Ports\SignInPort;
 use App\User\Domain\Exceptions\InvalidEmailException;
@@ -24,7 +25,7 @@ final readonly class SignInAdapter implements SignInPort
         private Repository $repository,
     ) {}
 
-    public function issue(string $email, #[SensitiveParameter] string $password): array
+    public function issue(string $email, #[SensitiveParameter] string $password): SignInOutput
     {
         try {
             $canonicalEmail = EmailValueObject::fromString(value: $email)->value();
@@ -62,11 +63,11 @@ final readonly class SignInAdapter implements SignInPort
             throw new RuntimeException(message: 'Não foi possível concluir a autenticação.');
         }
 
-        return [
-            'expiresAt' => $expiresAt,
-            'userId' => (int) $user->getKey(),
-            'plainTextToken' => $accessToken->plainTextToken,
-            'id' => (int) $accessToken->accessToken->getKey(),
-        ];
+        return new SignInOutput(
+            id: (int) $accessToken->accessToken->getKey(),
+            userId: (int) $user->getKey(),
+            plainTextToken: $accessToken->plainTextToken,
+            expiresAt: $expiresAt,
+        );
     }
 }

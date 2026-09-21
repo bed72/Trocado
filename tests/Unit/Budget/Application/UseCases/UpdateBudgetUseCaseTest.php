@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Budget\Application\Data\UpdateBudgetInput;
 use App\Budget\Application\Exceptions\BudgetNotFoundException;
 use App\Budget\Application\Ports\BudgetWritePort;
 use App\Budget\Application\Repositories\BudgetRepository;
@@ -57,7 +58,7 @@ it('updates the amount while preserving dates and timestamps', function (): void
         port: $this->port,
         repository: $repository,
         useCase: new GetBudgetUseCase(repository: $repository),
-    ))->execute(id: 7, amount: 0, startDate: null, endDate: null);
+    ))->execute(input: new UpdateBudgetInput(id: 7, amount: 0, startDate: null, endDate: null));
 
     expect($result)->toBe($persisted);
 });
@@ -79,7 +80,12 @@ it('updates dates while preserving the amount', function (): void {
         useCase: new GetBudgetUseCase(repository: $repository),
         port: $this->port,
         repository: $repository,
-    ))->execute(id: 7, amount: null, startDate: '2026-10-01', endDate: '2026-10-31');
+    ))->execute(input: new UpdateBudgetInput(
+        id: 7,
+        amount: null,
+        startDate: '2026-10-01',
+        endDate: '2026-10-31',
+    ));
 
     expect($result->amount)->toBe($current->amount)
         ->and($result->startDate)->toBe('2026-10-01')
@@ -95,7 +101,7 @@ it('does not persist when the budget does not exist', function (): void {
         port: $this->port,
         repository: $repository,
         useCase: new GetBudgetUseCase(repository: $repository),
-    ))->execute(id: 42, amount: 100, startDate: null, endDate: null);
+    ))->execute(input: new UpdateBudgetInput(id: 42, amount: 100, startDate: null, endDate: null));
 })->throws(BudgetNotFoundException::class);
 
 it('does not persist an invalid resulting date range', function (): void {
@@ -113,7 +119,7 @@ it('does not persist an invalid resulting date range', function (): void {
         port: $this->port,
         repository: $repository,
         useCase: new GetBudgetUseCase(repository: $repository),
-    ))->execute(id: 7, amount: null, startDate: null, endDate: '2026-08-31');
+    ))->execute(input: new UpdateBudgetInput(id: 7, amount: null, startDate: null, endDate: '2026-08-31'));
 })->throws(InvalidBudgetDateRangeException::class);
 
 it('does not persist a negative amount', function (): void {
@@ -131,5 +137,5 @@ it('does not persist a negative amount', function (): void {
         port: $this->port,
         useCase: new GetBudgetUseCase(repository: $repository),
         repository: $repository,
-    ))->execute(id: 7, amount: -1, startDate: null, endDate: null);
+    ))->execute(input: new UpdateBudgetInput(id: 7, amount: -1, startDate: null, endDate: null));
 })->throws(InvalidMoneyAmountException::class);

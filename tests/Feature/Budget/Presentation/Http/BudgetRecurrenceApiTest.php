@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Budget\Application\Data\CreateBudgetInput;
 use App\Budget\Application\Ports\BudgetWritePort;
 use App\Budget\Application\Repositories\BudgetRecurrenceRepository;
 use App\Budget\Application\Repositories\BudgetRepository;
@@ -122,12 +123,12 @@ it('rolls back the recurrence when its initial budget cannot be persisted', func
         port: app(BudgetWritePort::class),
         budgetRepository: $failingBudgetRepository,
         recurrenceRepository: app(BudgetRecurrenceRepository::class),
-    ))->execute(
+    ))->execute(input: new CreateBudgetInput(
         amount: 1000,
-        recurring: true,
-        endDate: '2026-01-07',
         startDate: '2026-01-01',
-    ))->toThrow(RuntimeException::class);
+        endDate: '2026-01-07',
+        recurring: true,
+    )))->toThrow(RuntimeException::class);
 
     $this->assertDatabaseCount('budget_recurrences', 0);
     $this->assertDatabaseCount('budgets', 0);
@@ -161,12 +162,12 @@ it('does not persist a budget when recurrence persistence fails', function (): v
         port: app(BudgetWritePort::class),
         budgetRepository: app(BudgetRepository::class),
         recurrenceRepository: $failingRecurrenceRepository,
-    ))->execute(
+    ))->execute(input: new CreateBudgetInput(
         amount: 1000,
-        recurring: true,
-        endDate: '2026-01-07',
         startDate: '2026-01-01',
-    ))->toThrow(RuntimeException::class);
+        endDate: '2026-01-07',
+        recurring: true,
+    )))->toThrow(RuntimeException::class);
 
     $this->assertDatabaseCount('budget_recurrences', 0);
     $this->assertDatabaseCount('budgets', 0);
@@ -489,10 +490,10 @@ function recurrenceUpdatePayload(int $id, array $attributes): array
 
 function createRecurringBudget(): BudgetEntity
 {
-    return app(CreateBudgetUseCase::class)->execute(
+    return app(CreateBudgetUseCase::class)->execute(input: new CreateBudgetInput(
         amount: 1000,
         startDate: '2026-01-01',
         endDate: '2026-01-07',
         recurring: true,
-    );
+    ));
 }

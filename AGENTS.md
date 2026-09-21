@@ -30,6 +30,10 @@
 - Não importe Eloquent, Models, Builders, Controllers, Requests, Responses, facades, HTTP, Infrastructure ou SDKs concretos.
 - Não use `app()`, `resolve()` ou Service Locator.
 - Contratos de Repository expõem apenas operações necessárias e tipos independentes do ORM.
+- Coloque agrupamentos de dados da Application em `app/<Contexto>/Application/Data`, sem compartilhá-los entre contextos apenas por coincidência estrutural.
+- Use objetos `final readonly`, constructor-only e sem dependências de framework: `Input` para entradas coesas e `Output` para saídas estruturadas; não use `Result` como sufixo de saída da Application.
+- Mais de três parâmetros relevantes exigem avaliar um `Input`, sem esconder dados sem coesão. Três ou mais valores heterogêneos nomeados exigem um `Output`; pares seguem o mesmo critério quando os nomes ou a evolução conjunta forem essenciais.
+- Preserve Entities, Value Objects, scalars e coleções homogêneas como retornos naturais. Repositories só usam Data próprio para projeções compostas legítimas e não reutilizam Outputs de Use Case por conveniência.
 
 === .ai/architecture rules ===
 
@@ -52,6 +56,7 @@
 - Proíba dependências de Laravel, Illuminate, Eloquent, facades, HTTP, container, banco, migrations, Infrastructure e Presentation.
 - Domain não conhece persistência nem serialização. Proteja invariantes também fora do Form Request.
 - Crie Value Objects só para conceitos reais; prefira imutabilidade e não crie interfaces para Entities ou Value Objects.
+- Mantenha carriers sem comportamento em `Application/Data`; dados com invariantes, igualdade semântica ou operações próprias do conceito pertencem ou devem ser reavaliados como Value Objects de Domain.
 
 === .ai/infrastructure rules ===
 
@@ -78,8 +83,9 @@
 
 # Nomes
 
-- Use sufixos que revelem o papel: `Entity`, `ValueObject`, `UseCase`, `Repository`, `Port`, `Adapter`, `Model`, `Request`, `Controller`, `Response`, `Command`, `Enum`, `Exception` e `ServiceProvider`.
-- Exemplos: `BudgetEntity`, `MoneyValueObject`, `BudgetRepository`, `BudgetWritePort`, `BudgetWriteAdapter`, `EloquentBudgetRepository`, `BudgetModel`, `CreateBudgetUseCase`, `BudgetResponse` e `ProcessDueBudgetRecurrencesCommand`.
+- Use sufixos que revelem o papel: `Entity`, `ValueObject`, `Input`, `Output`, `UseCase`, `Repository`, `Port`, `Adapter`, `Model`, `Request`, `Controller`, `Response`, `Command`, `Enum`, `Exception` e `ServiceProvider`.
+- Exemplos: `BudgetEntity`, `MoneyValueObject`, `CreateBudgetInput`, `SignInOutput`, `BudgetRepository`, `BudgetWritePort`, `BudgetWriteAdapter`, `EloquentBudgetRepository`, `BudgetModel`, `CreateBudgetUseCase`, `BudgetResponse` e `ProcessDueBudgetRecurrencesCommand`.
+- Reserve `Input` e `Output` para contratos em `Application/Data`; não use `Result` como sufixo de saída da Application nem `Response` fora da Presentation.
 - Controllers podem ser separados por ação, como `CreateBudgetController`. Classes de resposta JSON:API ficam em `Presentation/Http/Responses`, usam o sufixo `Response` e podem estender o recurso first-party do Laravel.
 - Evite nomes genéricos como `Service`, `Manager`, `Handler` ou `Helper` quando o papel for claro.
 - Não crie `BaseEntity`, `BaseUseCase`, `BaseRepository`, `BaseController`, `BaseService`, `BaseMapper` ou `BaseFactory` por antecipação.

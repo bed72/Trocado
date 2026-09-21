@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Budget\Application\UseCases;
 
+use App\Budget\Application\Data\UpdateBudgetInput;
 use App\Budget\Application\Ports\BudgetWritePort;
 use App\Budget\Application\Repositories\BudgetRepository;
 use App\Budget\Domain\Entities\BudgetEntity;
@@ -18,22 +19,22 @@ final readonly class UpdateBudgetUseCase
         private BudgetRepository $repository,
     ) {}
 
-    public function execute(int $id, ?int $amount, ?string $startDate, ?string $endDate): BudgetEntity
+    public function execute(UpdateBudgetInput $input): BudgetEntity
     {
-        return $this->port->execute(operation: function () use ($id, $amount, $startDate, $endDate): BudgetEntity {
-            $current = $this->useCase->execute(id: $id);
+        return $this->port->execute(operation: function () use ($input): BudgetEntity {
+            $current = $this->useCase->execute(id: $input->id);
             $updated = new BudgetEntity(
-                id: $id,
+                id: $input->id,
                 createdAt: $current->createdAt,
                 updatedAt: $current->updatedAt,
-                endDate: $endDate ?? $current->endDate,
-                startDate: $startDate ?? $current->startDate,
-                amount: $amount === null ? $current->amount : MoneyValueObject::fromCents(cents: $amount),
+                endDate: $input->endDate ?? $current->endDate,
+                startDate: $input->startDate ?? $current->startDate,
+                amount: $input->amount === null ? $current->amount : MoneyValueObject::fromCents(cents: $input->amount),
                 recurrenceId: $current->recurrenceId,
             );
 
             if ($this->repository->hasOverlap(
-                excludeId: $id,
+                excludeId: $input->id,
                 endDate: $updated->endDate,
                 startDate: $updated->startDate,
             )) {

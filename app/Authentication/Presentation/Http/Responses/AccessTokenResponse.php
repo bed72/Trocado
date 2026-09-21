@@ -11,7 +11,7 @@ final class AccessTokenResponse extends JsonApiResource
 {
     public function toId(Request $request): string
     {
-        return (string) $this->resource['id'];
+        return (string) $this->resource->id;
     }
 
     public function toType(Request $request): string
@@ -23,8 +23,8 @@ final class AccessTokenResponse extends JsonApiResource
     {
         return [
             'token_type' => 'Bearer',
-            'token' => $this->resource['plainTextToken'],
-            'expires_at' => $this->resource['expiresAt']->format(format: DATE_ATOM),
+            'token' => $this->resource->plainTextToken,
+            'expires_at' => $this->resource->expiresAt->format(format: DATE_ATOM),
         ];
     }
 
@@ -35,7 +35,7 @@ final class AccessTokenResponse extends JsonApiResource
             'user' => [
                 'data' => [
                     'type' => 'users',
-                    'id' => (string) $this->resource['userId'],
+                    'id' => (string) $this->resource->userId,
                 ],
             ],
         ];

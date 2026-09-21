@@ -2,17 +2,18 @@
 
 declare(strict_types=1);
 
+use App\Budget\Application\Data\CreateBudgetInput;
 use App\Budget\Application\UseCases\CreateBudgetUseCase;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Carbon;
 
 it('processes due recurrences synchronously using the application date', function (): void {
-    app(CreateBudgetUseCase::class)->execute(
+    app(CreateBudgetUseCase::class)->execute(input: new CreateBudgetInput(
         amount: 1000,
         startDate: '2026-01-01',
         endDate: '2026-01-07',
         recurring: true,
-    );
+    ));
     config()->set('app.timezone', 'America/Sao_Paulo');
     Carbon::setTestNow('2026-01-08 01:00:00+00:00');
 

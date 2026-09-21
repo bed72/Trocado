@@ -52,6 +52,69 @@ arch('application code uses strict types and PSR-4 casing')
     ->toUseStrictTypes()
     ->toBeCasedCorrectly();
 
+it('keeps application data contracts immutable, constructor-only, and conventionally located', function () use ($applicationPath): void {
+    $phpFiles = [];
+    $collectPhpFiles = function (string $directory) use (&$collectPhpFiles, &$phpFiles): void {
+        foreach (glob($directory.'/*') ?: [] as $entry) {
+            if (is_dir($entry)) {
+                $collectPhpFiles($entry);
+
+                continue;
+            }
+
+            if (str_ends_with($entry, '.php')) {
+                $phpFiles[] = $entry;
+            }
+        }
+    };
+    $collectPhpFiles($applicationPath);
+
+    $dataFiles = array_values(array_filter(
+        $phpFiles,
+        fn (string $file): bool => str_contains($file, '/Application/Data/'),
+    ));
+    $misplacedDataContracts = array_values(array_filter(
+        $phpFiles,
+        fn (string $file): bool => preg_match('/(?:Input|Output)\.php$/', $file) === 1
+            && ! str_contains($file, '/Application/Data/'),
+    ));
+    $applicationResults = array_values(array_filter(
+        $phpFiles,
+        fn (string $file): bool => str_contains($file, '/Application/') && str_ends_with($file, 'Result.php'),
+    ));
+
+    expect($dataFiles)->not->toBeEmpty()
+        ->and($misplacedDataContracts)->toBe([])
+        ->and($applicationResults)->toBe([]);
+
+    foreach ($dataFiles as $file) {
+        $relativeClass = substr($file, strlen($applicationPath) + 1, -4);
+        $class = 'App\\'.str_replace('/', '\\', $relativeClass);
+        $reflection = new ReflectionClass($class);
+        $declaredMethods = array_values(array_filter(
+            $reflection->getMethods(),
+            fn (ReflectionMethod $method): bool => $method->getDeclaringClass()->getName() === $class
+                && $method->getName() !== '__construct',
+        ));
+
+        expect(basename($file))->toMatch('/(?:Input|Output)\.php$/')
+            ->and($reflection->isFinal())->toBeTrue()
+            ->and($reflection->isReadOnly())->toBeTrue()
+            ->and($reflection->getConstructor())->not->toBeNull()
+            ->and($declaredMethods)->toBe([])
+            ->and($reflection->getParentClass())->toBeFalse()
+            ->and($reflection->getInterfaceNames())->toBe([]);
+
+        foreach ($reflection->getProperties() as $property) {
+            expect($property->hasType())->toBeTrue();
+        }
+
+        foreach ($reflection->getConstructor()?->getParameters() ?? [] as $parameter) {
+            expect($parameter->hasType())->toBeTrue();
+        }
+    }
+});
+
 foreach ($contexts as $context) {
     $contextPath = $applicationPath.'/'.$context;
     $contextNamespace = 'App\\'.$context;

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Budget\Application\Data\CreateBudgetInput;
 use App\Budget\Application\Ports\BudgetWritePort;
 use App\Budget\Application\Repositories\BudgetRecurrenceRepository;
 use App\Budget\Application\Repositories\BudgetRepository;
@@ -44,11 +45,11 @@ it('persists a valid domain entity and returns the repository result', function 
         port: $this->port,
         budgetRepository: $repository,
         recurrenceRepository: $this->recurrenceRepository,
-    ))->execute(
+    ))->execute(input: new CreateBudgetInput(
         amount: 12500,
-        startDate: '2026-09-01',
         endDate: '2026-09-30',
-    );
+        startDate: '2026-09-01',
+    ));
 
     expect($result)->toBe($persisted);
 });
@@ -61,11 +62,11 @@ it('does not persist an invalid date range', function (): void {
         port: $this->port,
         budgetRepository: $repository,
         recurrenceRepository: $this->recurrenceRepository,
-    ))->execute(
+    ))->execute(input: new CreateBudgetInput(
         amount: 100,
         startDate: '2026-09-30',
         endDate: '2026-09-01',
-    );
+    ));
 })->throws(InvalidBudgetDateRangeException::class);
 
 it('does not persist a negative amount', function (): void {
@@ -76,11 +77,11 @@ it('does not persist a negative amount', function (): void {
         port: $this->port,
         budgetRepository: $repository,
         recurrenceRepository: $this->recurrenceRepository,
-    ))->execute(
+    ))->execute(input: new CreateBudgetInput(
         amount: -1,
         startDate: '2026-09-01',
         endDate: '2026-09-30',
-    );
+    ));
 })->throws(InvalidMoneyAmountException::class);
 
 it('creates the recurrence before persisting its initial budget', function (): void {
@@ -111,12 +112,12 @@ it('creates the recurrence before persisting its initial budget', function (): v
         port: $this->port,
         budgetRepository: $repository,
         recurrenceRepository: $this->recurrenceRepository,
-    ))->execute(
+    ))->execute(input: new CreateBudgetInput(
         amount: 1000,
         startDate: '2026-01-01',
         endDate: '2026-01-07',
         recurring: true,
-    );
+    ));
 
     expect($budget->recurrenceId)->toBe(5);
 });
