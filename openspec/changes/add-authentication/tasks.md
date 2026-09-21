@@ -1,78 +1,73 @@
-## 1. Estrutura e persistência
+## Lote 1: Fundação Laravel Auth e Sanctum
 
-- [ ] 1.1 Criar a estrutura mínima de `app/Authentication/{Domain,Application,Infrastructure,Presentation}` somente com os diretórios necessários aos arquivos desta mudança.
-- [ ] 1.2 Criar a migration de `authentication_credentials` com `user_id` único, password hash, timestamps, foreign key para `users.id` e exclusão em cascata.
-- [ ] 1.3 Criar a migration de `authentication_sessions` com identificador não secreto, `user_id`, `token_hash` único, `expires_at`, timestamp de criação, índices de consulta e exclusão em cascata.
-- [ ] 1.4 Definir configuração explícita para duração padrão de 120 minutos, nome e atributos do cookie e demais valores operacionais sem armazenar segredos no código.
-- [ ] 1.5 Executar as migrations pelo ambiente Lerd e confirmar schema, constraints, índices e rollback sem alterar as colunas de `users`.
+**Objetivo:** Disponibilizar persistência e integração autenticável suportadas pelo Laravel, sem expor endpoints de Authentication.
+**Dependências:** nenhuma.
+**Orçamento:** máximo de 20 arquivos únicos.
+**Estado do lote:** AWAITING_REVIEW
+**Escopo previsto:** Dependência Sanctum, migrations, configuração de auth e sessão, integração de `UserModel`, persistência do password hash e verificações focadas de User e arquitetura.
 
-## 2. Domain de Authentication
+- [x] 1.1 Instalar `laravel/sanctum:^4.3` pelo fluxo oficial compatível com Laravel 13 e revisar os arquivos publicados antes de mantê-los.
+- [x] 1.2 Publicar e adaptar a migration oficial de `personal_access_tokens` sem criar tabela própria de sessões ou tokens.
+- [x] 1.3 Criar migration para adicionar `password` não exposto à tabela `users`, com backfill irrecuperável para Users preexistentes e rollback explícito.
+- [x] 1.4 Configurar expiração Sanctum de 120 minutos, guard/provider Eloquent e sessão web por valores de ambiente, sem segredos no código.
+- [x] 1.5 Tornar `UserModel` um `Authenticatable` com `HasApiTokens`, password oculto e casts necessários, sem alterar `UserEntity`.
+- [x] 1.6 Adaptar a criação persistente de User para receber password hash somente na borda necessária, sem expô-lo nos contratos de leitura ou Responses.
+- [x] 1.7 Executar migrations no Lerd e confirmar schema, índices, hashes e rollback sem criar `authentication_credentials` ou `authentication_sessions`.
+- [x] 1.8 Atualizar e executar testes de User e arquitetura para provar que Domain/Application continuam independentes e somente Infrastructure integra Laravel/Sanctum.
+- [x] 1.9 Executar o quality gate do lote, incluindo testes focados, Pint e contagem dos arquivos alterados.
 
-- [ ] 2.1 Implementar `PasswordValueObject` com preservação exata do valor, mínimo de 8 caracteres e máximo de 72 bytes, além de `InvalidPasswordException`.
-- [ ] 2.2 Implementar `PasswordHashValueObject` e o Value Object do digest de sessão sem aceitar valores vazios ou expor segredos por conversão implícita.
-- [ ] 2.3 Implementar `CredentialEntity` vinculada por `userId` e sem nome, e-mail, senha em claro ou dependência de User.
-- [ ] 2.4 Implementar `AuthenticationSessionEntity` com identificador, `userId`, digest e expiração fixa, incluindo a decisão pura de expiração por instante explícito.
-- [ ] 2.5 Adicionar testes unitários das invariantes de senha, hash, credencial e sessão, incluindo limites, preservação de espaços e expiração.
+## Lote 2: SignUp API completo
 
-## 3. Contratos e casos de uso
+**Objetivo:** Entregar cadastro atômico pela API JSON:API sem autenticação implícita.
+**Dependências:** Lote 1 aprovado.
+**Orçamento:** máximo de 20 arquivos únicos.
+**Estado do lote:** PENDING
+**Escopo previsto:** Política de senha, orquestração atômica, tradução de conflito, Request, Controller, Response, rota API e testes do contrato de cadastro.
 
-- [ ] 3.1 Definir `CredentialRepository` com somente as operações exigidas por criação, busca por `userId` e atualização de hash.
-- [ ] 3.2 Definir `AuthenticationSessionRepository` com operações explícitas para criar, localizar por digest e remover a sessão atual.
-- [ ] 3.3 Definir `UserIdentityPort`, `PasswordHasherPort`, `SessionTokenPort`, `ClockPort` e `AuthenticationWritePort` com tipos independentes de Laravel, Eloquent e User.
-- [ ] 3.4 Implementar `SignUpUseCase` com hash antes da transação, criação atômica de identidade e credencial e sem emissão implícita de sessão.
-- [ ] 3.5 Implementar `SignInUseCase` com resolução por e-mail, verificação genérica de credenciais, hash fictício, rehash quando necessário e emissão de nova sessão.
-- [ ] 3.6 Implementar `SignOutUseCase` para revogar somente a sessão identificada pelo principal atual.
-- [ ] 3.7 Criar exceções de Application para credenciais inválidas, conflito de credencial/identidade e falhas traduzidas do Port sem reutilizar exceções de User na Presentation.
-- [ ] 3.8 Adicionar testes unitários dos três UseCases cobrindo sucesso, rollback, User sem credencial, falhas indistinguíveis, rehash, múltiplas sessões e revogação seletiva.
+- [ ] 2.1 Implementar a política de senha de 8 caracteres a 72 bytes com preservação exata e confirmação no Request.
+- [ ] 2.2 Implementar `SignUp` atômico sobre `users`, com hash Laravel, canonicalização de e-mail pelo contexto User e sem token ou sessão implícitos.
+- [ ] 2.3 Traduzir e-mail existente, inclusive conflito concorrente da constraint, para a mesma resposta `409` sem anexar senha ao User existente.
+- [ ] 2.4 Implementar Request, Controller e Response de `SignUp` em `POST /api/authentication/sign-up`, com `201`, `Location` e relacionamento User.
+- [ ] 2.5 Mapear validação e conflito para erros JSON:API `422` e `409` com `source.pointer` quando aplicável.
+- [ ] 2.6 Adicionar testes de limites, espaços, multibyte, confirmação, hash persistido, atomicidade, concorrência relevante, envelope, headers e ausência de segredos.
+- [ ] 2.7 Executar o quality gate do lote, incluindo testes focados, arquitetura, validação OpenSpec, Pint e contagem dos arquivos alterados.
 
-## 4. Infrastructure e integração com User
+## Lote 3: Sessão API com Personal Access Tokens
 
-- [ ] 4.1 Implementar `CredentialModel` e `AuthenticationSessionModel` como Models de persistência sem transformá-los em entidades de Domain.
-- [ ] 4.2 Implementar `EloquentCredentialRepository` e `EloquentAuthenticationSessionRepository` com mapping, consultas indexadas e tradução das constraints relevantes.
-- [ ] 4.3 Implementar `PasswordHasherAdapter` com o hasher Laravel, incluindo verificação, hash fictício e detecção de rehash.
-- [ ] 4.4 Implementar `SessionTokenAdapter` com pelo menos 256 bits de entropia, codificação segura para header/cookie e digest SHA-256 determinístico para consulta.
-- [ ] 4.5 Implementar `ClockAdapter` e `AuthenticationWriteAdapter`, mantendo geração de hash fora da transação e coordenação de User e Credential dentro dela.
-- [ ] 4.6 Implementar `UserIdentityAdapter` sobre `CreateUserUseCase` e `GetUserByEmailUseCase`, traduzindo entidades e exceções de User para contratos de Authentication.
-- [ ] 4.7 Implementar `AuthenticationServiceProvider` com somente os bindings arquiteturalmente relevantes e registrar o provider no composition root.
-- [ ] 4.8 Atualizar o allowlist do teste arquitetural para permitir somente a dependência de Authentication Infrastructure em User Application/Domain.
-- [ ] 4.9 Adicionar testes de integração dos Repositories, Adapters, transação entre contextos, cascatas, concorrência de `SignUp` e bindings do provider.
+**Objetivo:** Entregar `SignIn` e `SignOut` de API com Bearer tokens Sanctum, falhas não enumeráveis e controles operacionais.
+**Dependências:** Lote 1 aprovado.
+**Orçamento:** máximo de 20 arquivos únicos.
+**Estado do lote:** PENDING
+**Escopo previsto:** Casos de uso de entrada e saída, respostas e rotas API, proteção `auth:sanctum`, rate limiter, expiração, pruning e testes do ciclo de vida do token.
 
-## 5. Guard e principal autenticado
+- [ ] 3.1 Implementar `SignIn` de API com verificação pelo provider/hasher Laravel e emissão por `createToken`, sem gerador, digest, Model ou Repository próprios.
+- [ ] 3.2 Configurar token Sanctum com expiração de 120 minutos e resposta imediata contendo o plain-text token somente uma vez.
+- [ ] 3.3 Implementar `SignOut` de API removendo somente `currentAccessToken()` sob `auth:sanctum`.
+- [ ] 3.4 Garantir falha pública idêntica para e-mail inválido, User inexistente, User de backfill e senha incorreta.
+- [ ] 3.5 Implementar Controller, Requests, `AccessTokenResponse` e rotas de API para `SignIn` e `SignOut`, com `200`, `204`, `no-store` e `no-cache`.
+- [ ] 3.6 Mapear credenciais inválidas, falta de autenticação e throttling para JSON:API `401` e `429`.
+- [ ] 3.7 Configurar rate limiter compartilhável de cinco tentativas por minuto por IP e digest do e-mail normalizado, sem e-mail em claro na chave.
+- [ ] 3.8 Agendar `sanctum:prune-expired` e garantir que tokens expirados não autentiquem antes ou depois da limpeza física.
+- [ ] 3.9 Adicionar testes de múltiplos tokens, expiração, Bearer válido, token revogado, revogação seletiva, envelopes, headers e ausência de segredos.
+- [ ] 3.10 Executar o quality gate do lote, incluindo testes focados, arquitetura, validação OpenSpec, Pint e contagem dos arquivos alterados.
 
-- [ ] 5.1 Implementar o principal Laravel mínimo com `userId` e `sessionId`, sem expor `UserModel`, `UserEntity`, credencial ou hashes.
-- [ ] 5.2 Implementar o resolvedor de request que extrai Bearer e cookie, recusa credenciais conflitantes, calcula o digest e aceita somente sessão não expirada.
-- [ ] 5.3 Registrar um request guard próprio de Authentication e configurar o middleware Laravel para disponibilizar o principal em `$request->user()`.
-- [ ] 5.4 Garantir que sessão expirada, ausente, revogada ou com token inválido produza `401` e que um registro expirado encontrado possa ser removido.
-- [ ] 5.5 Adicionar testes do guard para Bearer, cookie, mesmo token nos dois transportes, conflito, expiração, revogação e principal mínimo.
+## Lote 4: Autenticação web e fechamento operacional
 
-## 6. API JSON:API
+**Objetivo:** Entregar os três fluxos web por sessão Laravel e concluir a verificação integrada da capability.
+**Dependências:** Lotes 1, 2 e 3 aprovados.
+**Orçamento:** máximo de 20 arquivos únicos.
+**Estado do lote:** PENDING
+**Escopo previsto:** Endpoints web, redirects, sessão, CSRF, cookies, reutilização do limiter, segurança contra vazamento, allowlist arquitetural, Bruno e verificação final.
 
-- [ ] 6.1 Implementar `SignUpRequest`, `SignUpController` e `SignUpResponse` para `POST /api/authentication/sign-up`, incluindo estrutura fechada, confirmação de senha, `201`, `Location` e relacionamento com User.
-- [ ] 6.2 Implementar `SignInRequest`, `SignInController` e `AuthenticationSessionResponse` para `POST /api/authentication/sign-in`, incluindo resposta `200`, token Bearer retornado uma vez e headers `no-store`/`no-cache`.
-- [ ] 6.3 Implementar `SignOutController` para `DELETE /api/authentication/sign-out` protegido pelo guard e com resposta `204`.
-- [ ] 6.4 Registrar as rotas com nomes `authentication.api.sign-up`, `authentication.api.sign-in` e `authentication.api.sign-out` no arquivo de rotas do contexto e no composition root.
-- [ ] 6.5 Mapear exceções e falhas HTTP de Authentication para erros JSON:API `401`, `409`, `422` e `429`, preservando pointers e mensagens sem enumeração.
-- [ ] 6.6 Adicionar feature tests dos payloads, status, headers, envelopes, pointers, segredo retornado somente no `SignIn` e rejeição posterior do token revogado.
-
-## 7. Transporte web por cookie
-
-- [ ] 7.1 Implementar Controllers e Requests web de `SignUp`, `SignIn` e `SignOut` chamando os mesmos UseCases da API e retornando redirects convencionais.
-- [ ] 7.2 Registrar as rotas mutáveis no grupo `web` com nomes `authentication.web.sign-up`, `authentication.web.sign-in` e `authentication.web.sign-out` e proteção CSRF.
-- [ ] 7.3 Anexar o token de `SignIn` em cookie Laravel criptografado, assinado, `HttpOnly`, `SameSite=Lax`, path `/`, `Secure` em produção e com expiração alinhada à sessão.
-- [ ] 7.4 Expirar o cookie em `SignOut` e evitar token em corpo, URL, HTML, flash data, logs e mensagens de erro.
-- [ ] 7.5 Adicionar feature tests dos atributos do cookie, redirects, CSRF, ausência do token no conteúdo e autenticação de requests web seguintes.
-
-## 8. Proteções operacionais
-
-- [ ] 8.1 Configurar rate limiter de cinco tentativas de `SignIn` por minuto por IP e digest do e-mail operacionalmente normalizado, compartilhado pelos transportes API e web.
-- [ ] 8.2 Testar limite excedido, independência entre chaves e ausência do e-mail em claro na chave persistida.
-- [ ] 8.3 Verificar que logs, exceptions, dumps e responses não contêm password, password hash, token digest ou token puro fora da resposta inicial da API e do cookie.
-- [ ] 8.4 Confirmar que nenhuma rota atual de User ou Budget recebeu autorização genérica e documentar a necessidade de specs próprias de ownership.
-
-## 9. Verificação e documentação operacional
-
-- [ ] 9.1 Adicionar a collection Bruno de `SignUp`, `SignIn`, `SignOut`, credenciais inválidas, validação, conflito, throttling e token revogado usando somente variáveis de runtime para segredos.
-- [ ] 9.2 Executar os testes focados de Domain, Application, Infrastructure, API, web, provider e arquitetura após cada grupo implementado.
-- [ ] 9.3 Executar a suíte completa, analisar falhas sem alterar testes não relacionados e confirmar que User continua independente de Authentication.
-- [ ] 9.4 Executar Laravel Pint com `vendor/bin/pint --dirty --format agent` e revisar o diff final para segredos, dependências indevidas e escopo não solicitado.
-- [ ] 9.5 Validar a mudança OpenSpec, confirmar todos os cenários implementados e somente então preparar o arquivamento da capability.
+- [ ] 4.1 Implementar `SignUp`, `SignIn` e `SignOut` web com guard `web`, redirects, regeneração de sessão, logout, invalidação da sessão e regeneração CSRF.
+- [ ] 4.2 Registrar as três rotas web com os nomes definidos na spec, mantendo-as no grupo `web` sem proteger User ou Budget genericamente.
+- [ ] 4.3 Manter cookie de sessão Laravel criptografado, `HttpOnly`, `SameSite=Lax` e `Secure` em produção, sem Personal Access Token no transporte web.
+- [ ] 4.4 Reutilizar no `SignIn` web o limiter do lote 3 e preservar a mesma falha pública de credenciais inválidas.
+- [ ] 4.5 Testar redirects, CSRF, session fixation, invalidação no `SignOut` e autenticação posterior por `auth:sanctum`.
+- [ ] 4.6 Verificar que logs, exceptions, dumps, Responses e serialização do Model não contêm password, hash ou token puro indevido.
+- [ ] 4.7 Atualizar o allowlist arquitetural somente para integrações entre Authentication Infrastructure e User necessárias ao uso de Auth/Sanctum.
+- [ ] 4.8 Adicionar collection Bruno de `SignUp`, `SignIn`, `SignOut`, falhas e token revogado usando variável de runtime para o Bearer token.
+- [ ] 4.9 Executar testes focados de User, Authentication, Sanctum, API, web, provider e arquitetura.
+- [ ] 4.10 Executar a suíte completa e confirmar que rotas atuais de User e Budget continuam sem autorização genérica.
+- [ ] 4.11 Executar `vendor/bin/pint --dirty --format agent` e revisar o diff para segredos, infraestrutura própria duplicada e escopo indevido.
+- [ ] 4.12 Validar a mudança OpenSpec em modo strict e aplicar o quality gate final antes de preparar o arquivamento.

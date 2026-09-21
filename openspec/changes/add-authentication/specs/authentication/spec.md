@@ -1,416 +1,267 @@
 ## ADDED Requirements
 
-### Requirement: Authentication como bounded context independente
-O sistema MUST organizar Authentication em `app/Authentication/{Domain,Application,Infrastructure,Presentation}`, MUST manter Domain livre de framework e MUST manter Application livre de Eloquent, HTTP, facades, Infrastructure, Presentation e tipos pertencentes a outros bounded contexts.
+### Requirement: Authentication usa Laravel Sanctum
+O sistema MUST usar Laravel Sanctum como mecanismo de autenticação HTTP e MUST NOT implementar guard, principal, formato de token, geração de token, digest, tabela de token ou resolução Bearer próprios.
 
-#### Scenario: Fronteiras arquiteturais de Authentication
-- **WHEN** as dependências do novo contexto são verificadas
-- **THEN** Domain utiliza somente seus próprios tipos e PHP
-- **AND** Application utiliza somente seu Domain e seus próprios contratos
-- **AND** integrações Laravel e entre contextos permanecem em Infrastructure ou Presentation conforme seus papéis
+#### Scenario: Dependência suportada
+- **WHEN** a implementação de Authentication é inspecionada
+- **THEN** `laravel/sanctum` é uma dependência de produção compatível com a versão instalada do Laravel
+- **AND** rotas protegidas usam o guard `sanctum`
 
-#### Scenario: Ausência de serviço agregador
-- **WHEN** os casos de uso de Authentication são inspecionados
-- **THEN** `SignUp`, `SignIn` e `SignOut` são UseCases concretos e separados
-- **AND** não existe `AuthenticationService`, UseCase base ou interface por UseCase
+#### Scenario: Ausência de infraestrutura paralela
+- **WHEN** os componentes de sessão e token são inspecionados
+- **THEN** tokens de API usam `personal_access_tokens` e o guard do Sanctum
+- **AND** não existem `authentication_sessions`, token generator, token digest, request guard ou principal equivalentes mantidos pela aplicação
 
-### Requirement: User permanece independente de Authentication
-O sistema MUST manter nome, e-mail e identidade no bounded context User, MUST persistir credenciais e sessões fora da tabela `users` e MUST NOT fazer `UserEntity` ou `UserModel` implementar contratos de autenticação do Laravel.
+### Requirement: Authentication respeita as fronteiras do projeto
+O sistema MUST manter regras de senha e orquestração próprias nas camadas adequadas, MUST manter Domain e Application livres de Laravel e MUST limitar integrações com Auth, Eloquent e Sanctum a Infrastructure ou Presentation.
 
-#### Scenario: Estrutura de User inalterada
-- **WHEN** Authentication é instalado
-- **THEN** a tabela `users` continua contendo somente os dados definidos pela capability User
-- **AND** nenhuma coluna de password, password hash, token, sessão ou remember token é adicionada a ela
+#### Scenario: Fronteiras arquiteturais
+- **WHEN** as dependências de Authentication são verificadas
+- **THEN** Domain utiliza somente tipos próprios e PHP
+- **AND** Application utiliza somente seu Domain e contratos próprios
+- **AND** Auth, Eloquent, Sanctum e tipos de User aparecem somente nas bordas permitidas
 
-#### Scenario: Model de User permanece comum
-- **WHEN** `UserModel` é inspecionado
-- **THEN** ele continua sendo um Model Eloquent comum
-- **AND** não implementa `Illuminate\Contracts\Auth\Authenticatable`
+#### Scenario: Sem abstração do pacote
+- **WHEN** a integração Sanctum é inspecionada
+- **THEN** não existe wrapper que apenas renomeia uma única chamada de `createToken`, `currentAccessToken` ou `auth:sanctum`
+- **AND** contratos próprios existem somente quando preservam uma fronteira real de Application
 
-### Requirement: Integração com User por Port
-Authentication Application MUST depender de `UserIdentityPort` para criar e localizar identidades, MUST usar `userId` como vínculo persistente e MUST NOT importar `UserEntity`, `EmailValueObject`, `UserRepository` ou UseCases de User.
+### Requirement: UserModel é o principal autenticável
+O sistema MUST usar `UserModel` como principal Eloquent dos guards Laravel, MUST habilitá-lo com `HasApiTokens` e MUST manter `UserEntity` sem framework, password, token ou sessão.
 
-#### Scenario: Resolução de e-mail no contexto proprietário
-- **WHEN** `SignInUseCase` procura uma identidade pelo e-mail recebido
-- **THEN** ele chama `UserIdentityPort` com o valor de entrada
-- **AND** `UserIdentityAdapter` delega a resolução ao contexto User
-- **AND** a canonicalização do e-mail é aplicada pelo contexto User
+#### Scenario: Principal resolvido pelo Sanctum
+- **WHEN** uma requisição protegida é autenticada por sessão first-party ou Bearer token
+- **THEN** `$request->user()` retorna o `UserModel` correspondente
+- **AND** Sanctum disponibiliza o token atual quando o transporte for Bearer
 
-#### Scenario: Dependência entre contextos isolada
-- **WHEN** as dependências entre namespaces são verificadas
-- **THEN** somente Authentication Infrastructure referencia Application ou Domain de User
-- **AND** essa exceção está declarada no allowlist arquitetural
+#### Scenario: Domain permanece puro
+- **WHEN** `UserEntity` é inspecionada
+- **THEN** ela não implementa `Authenticatable` nem usa `HasApiTokens`
+- **AND** contém somente o estado de identidade definido pela capability User
 
-#### Scenario: Localização futura do EmailValueObject
-- **WHEN** a implementação do Email VO mudar dentro de User ou para um Core compartilhado
-- **THEN** os contratos e UseCases de Authentication permanecem independentes daquele namespace
+### Requirement: Password hash usa o provider Laravel
+O sistema MUST armazenar somente password hash adaptativo na coluna `users.password`, MUST ocultá-lo da serialização e MUST usar o provider e hasher configurados do Laravel para autenticação.
 
-### Requirement: Credencial local separada
-O sistema MUST representar no máximo uma credencial local por User, MUST persistir somente `userId`, password hash e timestamps em `authentication_credentials` e MUST garantir a unicidade de `userId` no banco.
+#### Scenario: Persistência de nova conta
+- **WHEN** `SignUp` cria uma conta
+- **THEN** `users.password` contém um hash adaptativo verificável pelo hasher Laravel
+- **AND** a senha em texto puro não é persistida nem serializada
 
-#### Scenario: Persistência de credencial
-- **WHEN** uma credencial local é criada para um User
-- **THEN** `authentication_credentials` contém uma referência única a `users.id`
-- **AND** contém um password hash adaptativo
-- **AND** não contém nome ou e-mail duplicado
+#### Scenario: User preexistente
+- **WHEN** a migration encontra User criado antes de Authentication
+- **THEN** atribui um hash aleatório irrecuperável necessário ao provider
+- **AND** esse User não consegue autenticar com uma senha conhecida
 
-#### Scenario: User sem credencial
-- **WHEN** uma identidade User não possui registro em `authentication_credentials`
-- **THEN** ela continua sendo uma identidade válida para o contexto User
-- **AND** não pode concluir `SignIn` por senha
+#### Scenario: Infraestrutura própria não é criada
+- **WHEN** o schema é inspecionado
+- **THEN** não existem tabelas `authentication_credentials` ou `authentication_sessions`
+- **AND** tokens ficam na tabela oficial `personal_access_tokens`
 
-#### Scenario: Exclusão da identidade
-- **WHEN** um User é excluído
-- **THEN** sua credencial e todas as suas sessões são removidas por integridade referencial
-- **AND** nenhuma credencial ou sessão órfã permanece
+### Requirement: Senha válida e preservada
+O sistema MUST preservar exatamente a senha informada, MUST aceitar somente senhas com ao menos 8 caracteres e no máximo 72 bytes e MUST confirmar a senha no `SignUp` HTTP.
 
-### Requirement: Senha válida e confidencial
-O sistema MUST preservar exatamente a senha informada, MUST aceitar somente senhas com ao menos 8 caracteres e no máximo 72 bytes e MUST manter a senha em texto puro apenas durante o processamento necessário para criar ou verificar seu hash.
+#### Scenario: Senha válida com espaços
+- **WHEN** `SignUp` recebe senha confirmada dentro dos limites contendo espaços externos
+- **THEN** o valor exato é entregue ao hasher sem trim ou normalização
 
-#### Scenario: Senha dentro da política
-- **WHEN** `SignUp` recebe uma senha confirmada dentro dos limites
-- **THEN** o Domain aceita o valor sem remover espaços ou modificar caracteres
+#### Scenario: Senha fora dos limites
+- **WHEN** a senha possui menos de 8 caracteres ou mais de 72 bytes
+- **THEN** responde `422`
+- **AND** nenhum User, token ou sessão é criado
 
-#### Scenario: Senha muito curta
-- **WHEN** `SignUp` recebe uma senha com menos de 8 caracteres
-- **THEN** a operação é rejeitada com erro de entrada `422`
-- **AND** nenhuma identidade ou credencial é persistida
+#### Scenario: Confirmação divergente
+- **WHEN** `password_confirmation` difere de `password`
+- **THEN** responde `422` com pointer para `/data/attributes/password_confirmation`
 
-#### Scenario: Senha acima do limite
-- **WHEN** `SignUp` recebe uma senha acima de 72 bytes
-- **THEN** a operação é rejeitada com erro de entrada `422`
-- **AND** nenhuma identidade ou credencial é persistida
-
-#### Scenario: Senha não confirmada
-- **WHEN** `password_confirmation` não corresponde exatamente a `password`
-- **THEN** o Request rejeita o documento com `422`
-- **AND** aponta o atributo inválido no erro JSON:API
-
-#### Scenario: Segredo ausente de saídas
-- **WHEN** qualquer operação de Authentication responde, falha ou registra diagnóstico
-- **THEN** password, password hash e token digest não aparecem em resposta, URL, log ou mensagem pública
-
-### Requirement: Hash adaptativo de senha
-Authentication Application MUST usar `PasswordHasherPort` para criar, verificar e detectar hashes defasados, e Infrastructure MUST implementar essa capacidade com o hasher configurado pelo Laravel sem expor facades ou algoritmos concretos à Application.
-
-#### Scenario: Criação do hash
-- **WHEN** `SignUp` aceita uma senha válida
-- **THEN** a senha é transformada em hash adaptativo antes da persistência
-- **AND** somente o hash é entregue ao `CredentialRepository`
-
-#### Scenario: Verificação de senha
-- **WHEN** `SignIn` encontra uma credencial
-- **THEN** a comparação é executada pelo `PasswordHasherPort`
-- **AND** não por comparação direta de strings ou hash determinístico rápido
-
-#### Scenario: Rehash após autenticação
-- **WHEN** a senha está correta e o hash persistido usa parâmetros defasados
-- **THEN** o sistema produz e persiste um hash atualizado
-- **AND** conclui o mesmo `SignIn` sem exigir alteração da senha
-
-### Requirement: SignUp cria identidade e credencial atomicamente
-`SignUpUseCase` MUST criar uma nova identidade em User e sua credencial local dentro de uma única unidade transacional, MUST produzir o password hash antes da transação e MUST NOT criar sessão implicitamente.
+### Requirement: SignUp cria conta atomicamente
+O sistema MUST criar nome, e-mail canônico e password hash em uma única transação, MUST preservar a unicidade de e-mail e MUST NOT autenticar ou emitir token implicitamente.
 
 #### Scenario: SignUp bem-sucedido
-- **WHEN** `SignUp` recebe nome, e-mail disponível, senha válida e confirmação correspondente
-- **THEN** User persiste uma identidade com o e-mail canônico
-- **AND** Authentication persiste uma credencial vinculada ao novo `userId`
-- **AND** nenhuma sessão é criada
-
-#### Scenario: Falha ao persistir a credencial
-- **WHEN** a identidade é inserida mas a persistência da credencial falha dentro da operação
-- **THEN** a transação reverte a identidade e a credencial
-- **AND** nenhum User incompleto permanece
+- **WHEN** nome, e-mail disponível e senha confirmada são válidos
+- **THEN** um único registro `users` é persistido com password hash
+- **AND** nenhum Personal Access Token ou sessão web é criado
 
 #### Scenario: E-mail já utilizado
-- **WHEN** `SignUp` recebe um e-mail canônico pertencente a User existente
-- **THEN** a operação responde `409`
-- **AND** não anexa credencial ao User existente
-- **AND** não cria outra identidade ou sessão
+- **WHEN** o e-mail canônico já pertence a um User
+- **THEN** responde `409` sem alterar aquele User
+- **AND** não cria password, token ou sessão adicional
 
 #### Scenario: Concorrência no mesmo e-mail
 - **WHEN** dois `SignUp` concorrentes usam o mesmo e-mail canônico
-- **THEN** a constraint única permite somente uma identidade e uma credencial
-- **AND** a tentativa conflitante é traduzida para a mesma falha de e-mail utilizado
+- **THEN** a constraint única permite somente uma conta
+- **AND** a tentativa conflitante é traduzida para o mesmo `409`
 
-### Requirement: Contrato JSON:API de SignUp
-A API MUST expor `POST /api/authentication/sign-up` com nome `authentication.api.sign-up`, MUST aceitar um documento JSON:API `sign-ups` e MUST responder em JSON:API sem representar password ou credencial secreta.
+### Requirement: API de SignUp segue JSON:API
+A API MUST expor `POST /api/authentication/sign-up` com nome `authentication.api.sign-up`, aceitar documento `sign-ups` fechado e responder sem password ou token.
 
-#### Scenario: Request válido de SignUp
-- **WHEN** a API recebe `data.type` igual a `sign-ups` e os atributos `name`, `email`, `password` e `password_confirmation` válidos
-- **THEN** responde `201` com um recurso `sign-ups`
-- **AND** o identificador corresponde ao `userId` criado
-- **AND** o relacionamento `user` referencia o recurso `users` criado
-- **AND** o header `Location` referencia `/api/users/{id}` para o User criado
+#### Scenario: SignUp válido
+- **WHEN** o documento contém `name`, `email`, `password` e `password_confirmation` válidos
+- **THEN** responde `201` com recurso `sign-ups` identificado pelo `userId`
+- **AND** relaciona `user` ao recurso `users` e envia `Location` para `/api/users/{id}`
 
-#### Scenario: Estrutura inesperada no SignUp
-- **WHEN** o documento omite membros obrigatórios, usa outro `data.type` ou inclui atributo não permitido
-- **THEN** responde `422` com `application/vnd.api+json`
-- **AND** cada erro contém `source.pointer` para o membro inválido
+#### Scenario: Estrutura inválida
+- **WHEN** faltam membros, `data.type` difere ou existem atributos não permitidos
+- **THEN** responde `422` em JSON:API
+- **AND** os erros contêm `source.pointer`
 
-#### Scenario: SignUp não autentica
-- **WHEN** a API conclui `SignUp`
-- **THEN** a resposta não contém token
-- **AND** o novo User precisa executar `SignIn` separadamente
+### Requirement: SignIn de API emite Personal Access Token
+A API MUST expor `POST /api/authentication/sign-in` com nome `authentication.api.sign-in`, validar e-mail e senha pelo provider Laravel e emitir um novo Personal Access Token Sanctum somente após sucesso.
 
-### Requirement: SignIn usa e-mail e senha
-`SignInUseCase` MUST receber e-mail e senha, MUST resolver o `userId` por `UserIdentityPort`, MUST verificar a credencial associada e MUST criar uma nova sessão somente quando a senha corresponder.
+#### Scenario: Credenciais válidas
+- **WHEN** o provider confirma as credenciais
+- **THEN** Sanctum cria um registro em `personal_access_tokens`
+- **AND** o resultado contém o plain-text token somente para entrega imediata
 
-#### Scenario: SignIn válido
-- **WHEN** e-mail canônico identifica um User com credencial e a senha corresponde ao hash
-- **THEN** uma nova AuthenticationSession é persistida para aquele `userId`
-- **AND** o resultado contém o token puro somente para entrega imediata
+#### Scenario: Novo SignIn
+- **WHEN** o mesmo User conclui dois `SignIn` válidos
+- **THEN** Sanctum cria dois Personal Access Tokens distintos
+- **AND** ambos permanecem válidos até expiração ou revogação individual
 
-#### Scenario: E-mail com forma não canônica
-- **WHEN** `SignIn` recebe espaços externos ou diferença de caixa em um e-mail válido
-- **THEN** User aplica sua canonicalização existente
-- **AND** a mesma identidade e credencial são encontradas
+#### Scenario: E-mail canônico
+- **WHEN** `SignIn` recebe diferença de caixa ou espaços externos em e-mail válido
+- **THEN** aplica a canonicalização de User antes de consultar o provider
+- **AND** encontra a mesma identidade
 
-#### Scenario: User sem credencial
-- **WHEN** o e-mail identifica User existente sem credencial local
-- **THEN** `SignIn` falha como credenciais inválidas
-- **AND** nenhuma sessão é criada
+### Requirement: Falha de SignIn não enumera Users
+O sistema MUST responder com o mesmo status, título e detalhe público quando o e-mail for inválido, o User não existir, o password hash for irrecuperável ou a senha estiver incorreta.
 
-### Requirement: Falha de SignIn não enumera usuários
-O sistema MUST produzir a mesma `InvalidCredentialsException`, o mesmo status `401`, o mesmo título e o mesmo detalhe público quando o e-mail for inválido, o User não existir, a credencial não existir ou a senha estiver incorreta.
+#### Scenario: Credenciais inválidas
+- **WHEN** qualquer condição de credencial inválida ocorre
+- **THEN** a API responde `401` com erro genérico idêntico
+- **AND** não informa qual parte falhou
 
-#### Scenario: E-mail sintaticamente inválido
-- **WHEN** `SignIn` recebe e-mail que User considera inválido
-- **THEN** responde com o erro público genérico de credenciais inválidas
-- **AND** não informa que o formato, o User ou a credencial falhou
+#### Scenario: Falha não emite autenticação
+- **WHEN** as credenciais não são confirmadas
+- **THEN** nenhum Personal Access Token ou sessão web é criado
 
-#### Scenario: User inexistente
-- **WHEN** `SignIn` recebe e-mail válido sem identidade correspondente
-- **THEN** responde com o mesmo erro público de credenciais inválidas
-- **AND** nenhuma sessão é criada
+### Requirement: Token de API é gerenciado pelo Sanctum
+O sistema MUST delegar geração, hash SHA-256, lookup, autenticação e revogação de Bearer token ao Sanctum, MUST configurar expiração fixa padrão de 120 minutos e MUST NOT renovar o token a cada request.
 
-#### Scenario: Senha incorreta
-- **WHEN** `SignIn` encontra User e credencial mas a senha não corresponde
-- **THEN** responde com o mesmo erro público de credenciais inválidas
-- **AND** nenhuma sessão é criada
+#### Scenario: Token persistido com segurança
+- **WHEN** Sanctum emite um Personal Access Token
+- **THEN** `personal_access_tokens` armazena somente seu hash
+- **AND** o plain-text token não pode ser recuperado do banco
 
-#### Scenario: Caminho sem hash real
-- **WHEN** User ou credencial não existe
-- **THEN** o sistema ainda executa uma verificação contra hash fictício válido
-- **AND** não condiciona a mensagem pública à existência do registro
+#### Scenario: Expiração
+- **WHEN** decorrem 120 minutos desde a emissão sem override
+- **THEN** `auth:sanctum` recusa o token
+- **AND** requests anteriores não prolongam a expiração
 
-### Requirement: Sessão opaca server-side
-O sistema MUST criar AuthenticationSession server-side com identificador não secreto, `userId`, digest único do token, criação e expiração fixa, MUST gerar token com ao menos 256 bits de entropia criptográfica e MUST persistir somente seu digest SHA-256.
+#### Scenario: Limpeza de expirados
+- **WHEN** a rotina oficial `sanctum:prune-expired` executa após a margem configurada
+- **THEN** tokens expirados elegíveis são removidos fisicamente
+- **AND** a validade não depende dessa remoção
 
-#### Scenario: Emissão da sessão
-- **WHEN** `SignIn` é concluído
-- **THEN** um token opaco novo é gerado pelo `SessionTokenPort`
-- **AND** somente seu digest é persistido em `authentication_sessions`
-- **AND** o token puro não pode ser reconstruído a partir do registro
+### Requirement: Resposta de SignIn representa access token
+A API MUST responder `SignIn` válido com recurso JSON:API `access-tokens`, token Bearer retornado uma única vez e headers contra cache.
 
-#### Scenario: Tokens distintos
-- **WHEN** o mesmo User conclui dois `SignIn`
-- **THEN** duas sessões independentes com tokens e identificadores distintos são criadas
-- **AND** ambas podem permanecer válidas simultaneamente
+#### Scenario: Resposta válida
+- **WHEN** um token Sanctum é emitido
+- **THEN** responde `200` com identificador do token, `token`, `token_type` igual a `Bearer` e `expires_at`
+- **AND** relaciona o token ao recurso `users` autenticado
 
-#### Scenario: Expiração configurada
-- **WHEN** uma sessão é emitida sem override de configuração
-- **THEN** sua expiração é fixada em 120 minutos após a emissão
-- **AND** requisições não prolongam automaticamente essa expiração
-
-#### Scenario: Colisão de digest
-- **WHEN** a persistência encontra um digest já existente
-- **THEN** a constraint única impede duas sessões com o mesmo digest
-- **AND** o segredo colidente não é retornado como sessão válida
-
-### Requirement: Contrato JSON:API de SignIn por Bearer
-A API MUST expor `POST /api/authentication/sign-in` com nome `authentication.api.sign-in`, MUST aceitar um documento JSON:API `sign-ins` com e-mail e senha e MUST responder com a nova AuthenticationSession e o token Bearer somente uma vez.
-
-#### Scenario: SignIn de API bem-sucedido
-- **WHEN** a API recebe `data.type` igual a `sign-ins` e credenciais válidas
-- **THEN** responde `200` com `data.type` igual a `authentication-sessions`
-- **AND** inclui o identificador não secreto da sessão, `token`, `token_type` igual a `Bearer` e `expires_at`
-- **AND** relaciona a sessão ao recurso `users` autenticado
-
-#### Scenario: Resposta com token não armazenável em cache
-- **WHEN** a API devolve o token após `SignIn`
-- **THEN** a resposta contém `Cache-Control: no-store`
-- **AND** contém `Pragma: no-cache`
+#### Scenario: Resposta não armazenável
+- **WHEN** a API entrega o plain-text token
+- **THEN** envia `Cache-Control: no-store` e `Pragma: no-cache`
 - **AND** usa `application/vnd.api+json`
 
 #### Scenario: Token não é relido
-- **WHEN** a sessão já foi emitida e outra resposta consulta ou utiliza a sessão
-- **THEN** o token puro não é recuperado da persistência nem devolvido novamente
+- **WHEN** qualquer resposta posterior usa o token
+- **THEN** o plain-text token não é recuperado da persistência nem devolvido novamente
 
-### Requirement: Transporte web por cookie protegido
-O fluxo web MUST transportar o mesmo token opaco em cookie Laravel criptografado e assinado, `HttpOnly`, `SameSite=Lax`, path `/` e `Secure` em produção, MUST NOT incluir o token no corpo, URL, HTML ou flash data e MUST proteger operações mutáveis por CSRF.
+### Requirement: Web usa sessão Laravel first-party
+O fluxo web MUST usar guard `web`, sessão e cookie nativos do Laravel, MUST regenerar a sessão após `SignIn`, MUST proteger operações mutáveis por CSRF e MUST NOT colocar Personal Access Token em cookie próprio.
 
-#### Scenario: SignIn web bem-sucedido
-- **WHEN** o endpoint web de `SignIn` recebe credenciais válidas e CSRF válido
-- **THEN** chama o mesmo `SignInUseCase` usado pela API
-- **AND** anexa o token a um cookie protegido com expiração correspondente à sessão
-- **AND** redireciona sem expor o token
+#### Scenario: SignIn web
+- **WHEN** credenciais válidas e CSRF válido são enviados ao endpoint web
+- **THEN** o guard `web` autentica o User e regenera o session ID
+- **AND** redireciona sem token no corpo, URL ou flash data
 
-#### Scenario: Requisição web sem CSRF
-- **WHEN** uma requisição mutável de Authentication usa transporte web sem prova CSRF válida
+#### Scenario: Cookie protegido
+- **WHEN** a sessão web é emitida
+- **THEN** o cookie é criptografado e assinado, `HttpOnly`, `SameSite=Lax` e `Secure` em produção
+- **AND** sua configuração vem do mecanismo de sessão Laravel
+
+#### Scenario: Ausência de CSRF
+- **WHEN** uma operação web mutável não possui prova CSRF válida
 - **THEN** o middleware web rejeita a operação
-- **AND** nenhuma identidade, credencial ou sessão é alterada
+- **AND** nenhuma conta ou autenticação é alterada
 
-#### Scenario: Cookie acessível ao servidor
-- **WHEN** uma requisição web seguinte inclui o cookie válido
-- **THEN** o request guard resolve a mesma AuthenticationSession server-side
-- **AND** scripts do navegador não conseguem ler o cookie por ele ser `HttpOnly`
-
-#### Scenario: Ambiente de produção
-- **WHEN** a aplicação opera em produção
-- **THEN** o cookie de Authentication é emitido somente com a flag `Secure`
-
-### Requirement: Resolução inequívoca do token
-O request guard MUST aceitar o token pelo header Bearer ou pelo cookie configurado, MUST autenticar somente sessões existentes e não expiradas e MUST rejeitar uma requisição que apresente credenciais conflitantes nos dois transportes.
+### Requirement: Sanctum reconhece sessão ou Bearer
+Rotas protegidas MUST usar `auth:sanctum` e MUST aceitar sessão first-party válida ou Personal Access Token Bearer válido conforme a resolução oficial do pacote.
 
 #### Scenario: Bearer válido
-- **WHEN** uma requisição envia `Authorization: Bearer` com token pertencente a sessão válida
-- **THEN** o guard resolve o `userId` e o identificador daquela sessão
+- **WHEN** uma requisição envia Personal Access Token válido em `Authorization: Bearer`
+- **THEN** Sanctum resolve o `UserModel` correspondente
+- **AND** disponibiliza `currentAccessToken()`
 
-#### Scenario: Cookie válido
-- **WHEN** uma requisição envia somente o cookie com token pertencente a sessão válida
-- **THEN** o guard resolve o mesmo principal que seria resolvido por Bearer
+#### Scenario: Sessão web válida
+- **WHEN** uma requisição first-party envia sessão Laravel válida
+- **THEN** Sanctum resolve o mesmo `UserModel` pelo guard web
+- **AND** não cria Personal Access Token
 
-#### Scenario: Credenciais conflitantes
-- **WHEN** a mesma requisição apresenta Bearer e cookie com tokens diferentes
-- **THEN** a autenticação é recusada com `401`
-- **AND** nenhum dos dois tokens é escolhido implicitamente
+#### Scenario: Credencial ausente ou inválida
+- **WHEN** não existe sessão first-party nem Bearer token válido
+- **THEN** a API responde `401` em JSON:API
 
-#### Scenario: Mesmo token nos dois transportes
-- **WHEN** Bearer e cookie contêm exatamente o mesmo token válido
-- **THEN** o guard trata ambos como referência à mesma sessão
-- **AND** não cria sessão adicional
-
-### Requirement: Principal autenticado mínimo
-Infrastructure MUST fornecer ao Laravel um principal autenticado contendo pelo menos `userId` e `sessionId`, MUST obter esse principal da AuthenticationSession e MUST NOT expor CredentialEntity, password hash, token digest, UserEntity ou UserModel como principal.
-
-#### Scenario: Request autenticado
-- **WHEN** o guard reconhece uma AuthenticationSession válida
-- **THEN** `$request->user()` disponibiliza um principal compatível com o middleware Laravel
-- **AND** seu identificador de negócio é o `userId`
-- **AND** sua sessão atual é identificável para `SignOut`
-
-#### Scenario: Dependências dos casos de uso protegidos
-- **WHEN** outro contexto futuramente protege uma operação
-- **THEN** a Presentation extrai o `userId` do principal
-- **AND** passa um valor explícito ao UseCase de negócio
-- **AND** não passa Request, guard ou principal Laravel para Application
-
-### Requirement: Sessão expirada ou revogada não autentica
-O sistema MUST considerar inválida uma sessão revogada, ausente ou cuja expiração não seja posterior ao instante atual, independentemente do transporte usado.
-
-#### Scenario: Sessão expirada por Bearer
-- **WHEN** uma requisição apresenta token cujo registro alcançou `expires_at`
-- **THEN** responde `401` no formato JSON:API
-- **AND** não disponibiliza principal autenticado
-
-#### Scenario: Sessão expirada por cookie
-- **WHEN** uma requisição web apresenta cookie de sessão expirada
-- **THEN** a autenticação é recusada
-- **AND** o cookie pode ser expirado na resposta
-
-#### Scenario: Sessão revogada
-- **WHEN** o token de uma sessão removida é reapresentado
-- **THEN** responde como não autenticado
-- **AND** a sessão não pode ser recriada a partir do token antigo
-
-### Requirement: SignOut revoga somente a sessão atual
-`SignOutUseCase` MUST remover a AuthenticationSession identificada pelo principal atual, MUST preserve outras sessões do mesmo User e MUST NOT apagar a credencial local.
+### Requirement: SignOut encerra somente o mecanismo atual
+O sistema MUST revogar somente o Personal Access Token atual no fluxo API e MUST encerrar somente a sessão atual no fluxo web, sem apagar password ou outras autenticações do User.
 
 #### Scenario: SignOut de API
 - **WHEN** `DELETE /api/authentication/sign-out` recebe Bearer válido
-- **THEN** a sessão correspondente é removida
-- **AND** responde `204` sem conteúdo
-- **AND** reapresentar o mesmo token resulta em `401`
+- **THEN** remove `currentAccessToken()` e responde `204`
+- **AND** reapresentar o token removido resulta em `401`
+
+#### Scenario: Outros tokens preservados
+- **WHEN** um User possui dois Personal Access Tokens e encerra um deles
+- **THEN** somente o token atual é removido
+- **AND** o outro continua válido
 
 #### Scenario: SignOut web
-- **WHEN** o endpoint web `authentication.web.sign-out` recebe cookie e CSRF válidos
-- **THEN** a sessão correspondente é removida
-- **AND** o cookie é expirado na resposta
-- **AND** o usuário é redirecionado como visitante
-
-#### Scenario: Outras sessões preservadas
-- **WHEN** um User possui duas sessões e executa `SignOut` em uma delas
-- **THEN** somente a sessão atual é revogada
-- **AND** a outra sessão continua válida até sua própria expiração ou revogação
-
-#### Scenario: SignOut sem sessão válida
-- **WHEN** o endpoint de `SignOut` não recebe uma sessão reconhecida
-- **THEN** responde `401`
-- **AND** nenhuma credencial ou outra sessão é alterada
+- **WHEN** o endpoint web recebe sessão e CSRF válidos
+- **THEN** executa logout, invalida a sessão e regenera o token CSRF
+- **AND** redireciona como visitante sem revogar Personal Access Tokens
 
 ### Requirement: Rate limiting de SignIn
-O sistema MUST limitar `SignIn` a cinco tentativas por minuto por combinação de endereço IP e digest de uma forma operacionalmente normalizada do e-mail, MUST aplicar a regra nos transportes API e web e MUST NOT bloquear globalmente o e-mail em todos os IPs.
+O sistema MUST limitar `SignIn` a cinco tentativas por minuto por combinação de IP e digest da forma normalizada do e-mail, MUST compartilhar a regra entre API e web e MUST NOT persistir e-mail em claro na chave.
 
-#### Scenario: Limite excedido na API
-- **WHEN** a sexta tentativa de `SignIn` ocorre dentro da mesma janela para a mesma chave
-- **THEN** a API responde `429` em JSON:API
-- **AND** não verifica credencial nem cria sessão
+#### Scenario: Limite excedido
+- **WHEN** ocorre a sexta tentativa na mesma janela e chave
+- **THEN** a API responde `429` antes de verificar credenciais ou emitir token
 
 #### Scenario: Chaves independentes
-- **WHEN** outro IP tenta autenticar o mesmo e-mail ou o mesmo IP tenta outro e-mail
-- **THEN** a tentativa usa uma chave de rate limiting distinta
+- **WHEN** muda o IP ou o e-mail normalizado
+- **THEN** a tentativa usa outra chave de rate limiting
 
-#### Scenario: Chave não revela e-mail
-- **WHEN** a chave é persistida pelo backend de rate limiting
-- **THEN** ela contém um digest do e-mail operacionalmente normalizado
-- **AND** não contém o e-mail em claro
+#### Scenario: Chave opaca
+- **WHEN** a chave é persistida pelo backend
+- **THEN** contém digest do e-mail e não o e-mail em claro
 
-### Requirement: Erros de Authentication seguem JSON:API
-A API MUST responder erros de Authentication com `application/vnd.api+json`, array `errors`, status textual, título e detalhe seguros, MUST fornecer `source.pointer` para validação de entrada e MUST NOT incluir stack trace, segredo ou informação que enumere Users.
+### Requirement: Erros seguem JSON:API
+A API MUST responder erros de Authentication com `application/vnd.api+json`, array `errors`, status textual, título e detalhe seguros, e MUST fornecer `source.pointer` para validação.
 
-#### Scenario: Credenciais inválidas
-- **WHEN** `SignIn` falha por qualquer credencial inválida
-- **THEN** responde `401` com título e detalhe genéricos idênticos
+#### Scenario: Mapeamento de falhas
+- **WHEN** ocorre credencial inválida, conflito, validação ou throttling
+- **THEN** responde respectivamente `401`, `409`, `422` ou `429`
+- **AND** não inclui stack trace, password, hash ou token
 
-#### Scenario: Conflito de SignUp
-- **WHEN** o e-mail de `SignUp` já pertence a User
-- **THEN** responde `409` com erro JSON:API
-- **AND** não informa dados adicionais daquele User
-
-#### Scenario: Validação de atributo
-- **WHEN** um atributo de `SignUp` ou `SignIn` falha na validação HTTP
-- **THEN** responde `422`
-- **AND** `source.pointer` referencia `/data/attributes/<atributo>` ou o membro estrutural correspondente
-
-#### Scenario: Acesso sem autenticação
-- **WHEN** uma rota protegida recebe token ausente, inválido, expirado ou revogado
-- **THEN** responde `401` no envelope JSON:API já padronizado pela aplicação
-
-### Requirement: Authentication não concede autorização de negócio
-O sistema MUST limitar Authentication à comprovação do principal e MUST NOT interpretar uma sessão válida como permissão para listar, consultar, atualizar ou excluir recursos pertencentes a qualquer contexto.
-
-#### Scenario: Sessão válida sem regra de acesso
-- **WHEN** um User autenticado tenta operar recurso de outro contexto
-- **THEN** Authentication fornece somente seu `userId`
-- **AND** a decisão de acesso pertence à capability proprietária do recurso
+### Requirement: Authentication não concede autorização
+O sistema MUST limitar Authentication à comprovação do principal e MUST NOT interpretar sessão ou token válido como autorização sobre recursos de User ou Budget.
 
 #### Scenario: Rotas existentes
 - **WHEN** esta mudança é aplicada
-- **THEN** ela não adiciona autorização genérica aos endpoints atuais de User e Budget
-- **AND** sua proteção será definida por specs próprias com regras de ownership ou papel
+- **THEN** nenhuma autorização genérica é adicionada aos endpoints atuais de User ou Budget
+- **AND** regras de ownership permanecem responsabilidade de specs próprias
 
-### Requirement: Naming consistente de Authentication
-O sistema MUST usar `SignUp`, `SignIn` e `SignOut` em classes, arquivos, rotas, testes e documentação e MUST NOT alternar esses conceitos com `Register`, `Registration`, `Login`, `Logout` ou `Authenticate`.
+### Requirement: Naming e cobertura
+O sistema MUST usar `SignUp`, `SignIn` e `SignOut` nos adaptadores próprios, MUST usar a terminologia `AccessToken` para o recurso emitido pelo Sanctum e MUST cobrir os fluxos críticos automatizados e por Bruno.
 
-#### Scenario: Classes por ação
-- **WHEN** os adaptadores HTTP e UseCases são inspecionados
-- **THEN** usam nomes como `SignUpUseCase`, `SignInController`, `SignOutController` e `SignInApiTest`
-- **AND** Responses recebem o nome do recurso representado quando aplicável, como `AuthenticationSessionResponse`
-
-#### Scenario: Rotas nomeadas
-- **WHEN** as rotas de Authentication são listadas
-- **THEN** seus nomes contêm `sign-up`, `sign-in` ou `sign-out` sob o prefixo `authentication.api` ou `authentication.web`
-
-### Requirement: Cobertura operacional e automatizada
-O sistema MUST fornecer testes automatizados para Domain, Application, Infrastructure, Presentation e fronteiras arquiteturais de Authentication e MUST fornecer requests Bruno para os fluxos de API que não exponham segredos persistidos no repositório.
-
-#### Scenario: Cobertura dos fluxos críticos
-- **WHEN** a suíte focada de Authentication é executada
-- **THEN** ela cobre SignUp atômico, falhas de credencial, rehash, emissão, Bearer, cookie, CSRF, expiração, conflito de transportes, rate limiting e SignOut
+#### Scenario: Cobertura automatizada
+- **WHEN** a suíte focada é executada
+- **THEN** cobre SignUp atômico, falhas genéricas, token Sanctum, expiração, sessão web, CSRF, rate limiting e SignOut seletivo
 
 #### Scenario: Collection Bruno segura
-- **WHEN** o fluxo manual de Authentication é executado
-- **THEN** o token retornado é mantido apenas em variável de runtime
-- **AND** a collection executa `SignUp`, `SignIn`, `SignOut` autenticado e a rejeição posterior do token revogado
-- **AND** nenhum token real ou senha sensível é versionado
+- **WHEN** o fluxo manual da API é executado
+- **THEN** mantém o Bearer token apenas em variável de runtime
+- **AND** confirma `SignUp`, `SignIn`, `SignOut` e rejeição do token revogado sem versionar segredo real

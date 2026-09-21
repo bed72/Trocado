@@ -12,7 +12,9 @@ $layers = ['Application', 'Domain', 'Infrastructure', 'Presentation'];
 /** @var array<string, array<string, list<string>>> $allowedContextDependencies */
 $allowedContextDependencies = [
     'Budget' => [],
-    'User' => [],
+    'User' => [
+        'Infrastructure' => ['Laravel\\Sanctum'],
+    ],
 ];
 
 it('organizes application code inside known bounded context layers', function () use ($contextDirectories, $layers): void {

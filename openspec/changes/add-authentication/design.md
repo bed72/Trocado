@@ -1,118 +1,97 @@
 ## Context
 
-O projeto organiza cada capability em um bounded context com `Domain`, `Application`, `Infrastructure` e `Presentation`. `User` já representa uma identidade local composta por identificador, nome e e-mail canônico, enquanto sua spec exige que `UserEntity`, `UserModel` e a tabela `users` permaneçam sem senha, token, sessão, verificação de e-mail ou contratos de autenticação.
+O projeto usa Laravel 13, JSON:API e bounded contexts. User já mantém identificador, nome e e-mail canônico, mas seu Model ainda não participa do sistema de autenticação do framework. A versão anterior deste desenho propunha tabela, guard, principal, geração de token, digest, expiração e resolução próprios, apesar de Laravel Sanctum já fornecer essas capacidades para APIs simples e autenticação híbrida web/API.
 
-A aplicação não possui `config/auth.php` próprio, migration de sessões ou pacote de autenticação adicional. As rotas atuais são JSON:API, os erros são formatados no composition root e `UserModel` estende o Model Eloquent comum. O projeto também valida por teste que Application dependa somente de seu próprio Domain e contratos, enquanto dependências entre contextos precisam ser declaradas explicitamente.
-
-Authentication atenderá dois consumidores. Clientes de API usarão um segredo opaco como Bearer token; a aplicação web Blade usará o mesmo tipo de sessão por cookie protegido. Ambos precisam compartilhar credenciais, emissão, persistência, expiração, revogação e resolução do usuário autenticado sem forçar o navegador a armazenar um Bearer token em JavaScript.
+Sanctum 4.3 é compatível com Illuminate 13 e é o pacote recomendado pelo Laravel para aplicações que combinam interface first-party e API por token. Ele resolve dois casos deliberadamente diferentes: Personal Access Tokens para clientes Bearer e sessão Laravel para navegadores first-party. Esta mudança passa a aceitar essa separação em vez de forçar o mesmo segredo nos dois transportes.
 
 ## Goals / Non-Goals
 
 **Goals:**
 
-- Criar `Authentication` como bounded context independente e consistente com a arquitetura atual.
-- Implementar `SignUp`, `SignIn` e `SignOut` com a mesma linguagem em UseCases, Controllers, Requests, rotas e testes.
-- Preservar User como dono do e-mail e da identidade, sem dependência reversa para Authentication.
-- Persistir credenciais e sessões em estruturas próprias vinculadas somente por `userId`.
-- Usar uma sessão server-side revogável e um token opaco de alta entropia, armazenando apenas um digest irreversível.
-- Permitir que a mesma sessão seja transportada por Bearer na API ou por cookie no fluxo Blade.
-- Integrar o principal autenticado ao middleware e às APIs de autenticação do Laravel sem transformar `UserModel` em `Authenticatable`.
-- Manter entradas, respostas e erros da API compatíveis com JSON:API.
-- Garantir atomicidade no `SignUp`, falhas sem enumeração de usuários e rate limiting no `SignIn`.
-- Deixar a estrutura preparada para mover conceitos realmente compartilhados para Core sem acoplar Authentication ao namespace atual de `EmailValueObject`.
+- Usar Sanctum e autenticação nativa do Laravel como implementação padrão.
+- Evitar guard, principal, tabela de sessão, token generator, token digest e repository de sessão próprios.
+- Implementar `SignUp`, `SignIn` e `SignOut` para API e web com os mecanismos recomendados para cada transporte.
+- Manter `UserEntity` e Application de User livres de Laravel, ainda que `UserModel` se torne o principal autenticável na Infrastructure.
+- Preservar senha somente como hash adaptativo e token Sanctum somente como digest SHA-256 persistido pelo pacote.
+- Produzir erros públicos genéricos para credenciais inválidas e limitar tentativas de `SignIn`.
+- Manter autorização de negócio fora de Authentication.
 
 **Non-Goals:**
 
-- Implementar password reset, alteração de senha, verificação de e-mail, MFA, login social ou provedores OIDC/OAuth.
-- Implementar refresh token, JWT, token auto-contido ou rotação automática a cada request.
-- Listar sessões, nomear dispositivos, revogar outras sessões ou oferecer "lembrar-me".
-- Criar credenciais para Users preexistentes ou permitir que um e-mail existente seja reivindicado por `SignUp`.
-- Proteger genericamente os CRUDs de User e Budget sem suas respectivas regras de autorização.
-- Criar roles, permissions, policies de negócio ou um bounded context de Authorization.
-- Criar eventos sem consumidores, abstrações base ou um `AuthenticationService` agregador.
-- Criar Core nesta mudança ou mover antecipadamente `EmailValueObject` para ele.
+- Criar guard, token format, token model, sessão server-side ou middleware de resolução próprios.
+- Fazer o cookie web carregar um Personal Access Token.
+- Implementar password reset, alteração de senha, verificação de e-mail, MFA, OAuth/OIDC ou login social.
+- Implementar abilities/scopes de negócio, roles, permissions ou policies de ownership.
+- Listar tokens, nomear dispositivos ou revogar outras sessões.
+- Proteger genericamente os CRUDs atuais de User e Budget.
 
 ## Decisions
 
-### Authentication será um bounded context próprio
+### Sanctum será a fonte de verdade para autenticação HTTP
 
-As classes serão organizadas sob `app/Authentication/{Domain,Application,Infrastructure,Presentation}`. Domain permanecerá PHP puro; Application conterá UseCases concretos, Repositories e Ports; Infrastructure conterá Eloquent, hashing, geração de tokens, integração com User e com o guard Laravel; Presentation conterá os adaptadores HTTP de API e web.
+A implementação instalará `laravel/sanctum:^4.3` e seguirá a instalação oficial para Laravel 13. Rotas protegidas usarão `auth:sanctum`; não haverá `Auth::extend`, `Auth::viaRequest`, guard próprio ou principal paralelo.
 
-As dependências relevantes serão registradas por `AuthenticationServiceProvider`. Classes concretas resolvidas automaticamente não receberão bindings artificiais.
+Para API, Sanctum emitirá Personal Access Tokens com `createToken`, persistirá somente o hash SHA-256 em `personal_access_tokens`, resolverá Bearer tokens e disponibilizará `currentAccessToken()` para revogação. O token puro será retornado uma única vez pelo `SignIn`.
 
-Alternativa rejeitada: colocar senha e métodos de login em User. Isso contrariaria a spec existente, misturaria identidade com prova de acesso e faria outros contextos herdarem detalhes de autenticação.
+Para web first-party, será usado o guard `web`, sessão Laravel, cookie de sessão criptografado e assinado, regeneração de session ID após `SignIn`, CSRF e invalidação da sessão no `SignOut`. `auth:sanctum` reconhecerá a sessão first-party antes de procurar um Bearer token, conforme o fluxo oficial do pacote.
 
-### User continuará dono do e-mail
+Alternativa rejeitada: transportar um Personal Access Token em cookie próprio. Isso recriaria resolução de credencial, conflito entre transportes e lifecycle de cookie que Sanctum já evita ao recomendar sessão web first-party.
 
-`SignInUseCase` receberá e-mail e senha como strings. Authentication não criará outro Email VO nem importará `App\User\Domain\ValueObjects\EmailValueObject`. A Application dependerá de `UserIdentityPort`, com operações mínimas para criar uma identidade e resolver um `userId` por e-mail.
+### `UserModel` será o principal do framework
 
-`UserIdentityAdapter`, em Authentication Infrastructure, chamará os UseCases públicos de User e traduzirá seus retornos e exceções para os contratos de Authentication. A única dependência entre contextos ficará nesse Adapter e será declarada no allowlist do teste arquitetural. `CredentialRepository` nunca fará join com `users` nem buscará credenciais por e-mail.
+`UserModel`, localizado em User Infrastructure, passará a estender `Illuminate\Foundation\Auth\User` e usar `Laravel\Sanctum\HasApiTokens`. Ele será configurado como model do provider Eloquent. Não será criado `AuthenticationPrincipal`.
 
-No `SignIn`, e-mail sintaticamente inválido, identidade ausente e credencial ausente convergirão para a mesma falha. No `SignUp`, dados inválidos e e-mail já utilizado continuarão distinguíveis como `422` e `409`.
+`UserEntity` continuará representando somente identificador, nome e e-mail e não implementará `Authenticatable`, `HasApiTokens` ou qualquer contrato Laravel. O Repository continuará mapeando apenas o estado de domínio; password e tokens serão ocultados da serialização.
 
-Quando Core existir, `EmailValueObject` poderá ser movido para ele se sua semântica for realmente compartilhada. O Port de Authentication permanecerá estável, limitando a mudança a User e aos consumidores que decidirem usar diretamente o tipo compartilhado.
+Essa decisão modifica a capability User de forma explícita. A independência exigida passa a se aplicar à Entity e às camadas Domain/Application, não ao Model de Infrastructure, cujo papel já é integrar o contexto ao framework.
 
-Alternativa rejeitada: importar o Email VO de User em Authentication Application. Isso criaria dependência direta entre contextos, espalharia a localização atual do tipo e aumentaria o retrabalho de uma futura extração para Core.
+Alternativa rejeitada: principal mínimo paralelo a User. Isso exigiria provider, guard e resolução próprios e impediria o uso direto do fluxo suportado pelo Sanctum.
 
-### Credencial será um agregado separado e individual por User
+### Password hash ficará em `users`
 
-`CredentialEntity` representará uma credencial local por `userId`, contendo apenas o hash de senha e metadados de persistência. `PasswordValueObject` representará transitoriamente a senha em texto puro e protegerá sua política mínima; `PasswordHashValueObject` representará o valor persistível. Nenhum desses conceitos entrará em `UserEntity`.
+A tabela `users` receberá a coluna `password`, usada pelo provider Eloquent padrão. Ela armazenará somente hash produzido pelo hasher configurado do Laravel. Nenhuma tabela `authentication_credentials` será criada.
 
-A tabela `authentication_credentials` usará `user_id` como chave única e referência para `users.id`, além de `password_hash` e timestamps. A referência terá exclusão em cascata para impedir credenciais órfãs quando a identidade for excluída. Senha em texto puro nunca será persistida, serializada em resposta ou escrita em logs.
+Users preexistentes receberão, na migration, um hash aleatório irrecuperável para satisfazer o contrato não nulo sem lhes conceder uma senha conhecida. Eles continuarão sem conseguir autenticar até existir uma capability futura de definição/reset de senha. `SignUp` não poderá reivindicar e-mail já existente.
 
-A política inicial aceitará senhas entre 8 caracteres e 72 bytes, preservando espaços e caracteres exatamente como informados, sem impor composição arbitrária de maiúsculas, números ou símbolos. A confirmação de senha será uma preocupação do Request de `SignUp`; Application receberá apenas a senha confirmada.
+`UserEntity` não carregará password. A integração necessária para criar User e hash de maneira atômica ficará na borda de Infrastructure de Authentication, com a menor extensão possível dos contratos atuais e sem expor hash em respostas.
 
-`PasswordHasherPort` separará Application do hasher Laravel. O Adapter usará hash adaptativo configurado pelo framework, verificação segura e `needsRehash`; um `SignIn` bem-sucedido atualizará o hash quando seus parâmetros estiverem defasados.
+Alternativa rejeitada: tabela própria de credenciais. Embora preserve separação física, ela exigiria UserProvider ou verificação de senha customizada e duplicaria comportamento já esperado pelo provider Eloquent.
 
-Alternativa rejeitada: armazenar o e-mail junto à credencial para usar o provider Eloquent padrão. Isso duplicaria o estado de User e exigiria sincronização em toda alteração de e-mail.
+### Senha seguirá a política da capability
 
-### SignUp coordenará User e Credential atomicamente
+`SignUp` aceitará senha entre 8 caracteres e 72 bytes, preservando o valor exato. O Request confirmará `password_confirmation`; a regra de domínio ou aplicação protegerá os mesmos limites fora do HTTP. Os caminhos aninhados de password serão excluídos de trim e conversão de string vazia quando necessário para não alterar o segredo recebido.
 
-`SignUpUseCase` validará a senha e produzirá seu hash antes de abrir a transação. Dentro de `AuthenticationWritePort`, ele criará a identidade por `UserIdentityPort` e a credencial por `CredentialRepository`. O Adapter transacional usará a mesma conexão em que User e Authentication persistem hoje.
+O hash será criado pelo hasher Laravel. Um `SignIn` bem-sucedido poderá aplicar `needsRehash` usando a integração nativa antes de concluir a autenticação.
 
-Falha na criação da credencial reverterá também a identidade. Unicidade de `users.email` e de `authentication_credentials.user_id` permanecerá a barreira final contra concorrência. `SignUp` nunca anexará uma credencial a User preexistente e não iniciará sessão implicitamente.
+### API usará Personal Access Tokens
 
-Alternativa rejeitada: chamar `CreateUserUseCase` e depois persistir a credencial sem transação. Uma falha intermediária produziria identidades incompletas que não poderiam autenticar.
+`POST /api/authentication/sign-in` validará credenciais sem criar sessão web e emitirá um Personal Access Token Sanctum sem abilities de negócio. A resposta JSON:API representará `access-tokens`, incluirá o identificador público do registro, `token`, `token_type: Bearer` e `expires_at`, e enviará `Cache-Control: no-store` e `Pragma: no-cache`.
 
-### Uma AuthenticationSession atenderá Bearer e cookie
+A expiração padrão será 120 minutos, configurada em `config/sanctum.php` e gravada em `expires_at` na emissão. O comando oficial `sanctum:prune-expired` será agendado para remover tokens expirados após a margem operacional definida.
 
-`AuthenticationSessionEntity` representará uma sessão persistida com identificador não secreto, `userId`, digest do token, data de criação e expiração fixa. Cada `SignIn` bem-sucedido criará uma sessão nova; múltiplas sessões simultâneas por User serão permitidas.
+`DELETE /api/authentication/sign-out`, protegido por `auth:sanctum`, removerá somente `currentAccessToken()`. Outros tokens do mesmo User permanecerão válidos.
 
-`SessionTokenPort` gerará pelo menos 256 bits de entropia usando um gerador criptograficamente seguro e produzirá uma codificação adequada para header e cookie. Somente um digest SHA-256 do token será persistido, com índice único. SHA-256 é apropriado aqui porque o segredo é aleatório e de alta entropia, diferentemente de senha humana. O token puro existirá apenas no resultado imediato de `SignIn` e no transporte escolhido.
+### Web usará sessão Laravel
 
-A duração será fixa e configurável, com padrão inicial de 120 minutos. Não haverá renovação deslizante nem refresh token. Sessões expiradas serão recusadas mesmo se o registro ainda existir; um registro expirado encontrado poderá ser removido durante a consulta. `SignOut` revogará imediatamente a sessão atual removendo seu registro.
+Os endpoints web permanecerão no grupo `web`. `SignIn` autenticará com o guard `web`, regenerará a sessão e redirecionará sem token no corpo, URL ou flash data. `SignOut` executará logout, invalidará a sessão, regenerará o token CSRF e redirecionará como visitante.
 
-Alternativa rejeitada: JWT. A aplicação exige revogação imediata e já aceita estado server-side; um token auto-contido adicionaria rotação de chaves, invalidation lists e claims sem benefício atual.
+Os atributos de cookie, duração e domínio virão de `config/session.php`. Em produção, o cookie será `Secure`, `HttpOnly` e `SameSite=Lax`. Não haverá cookie de Authentication separado.
 
-Alternativa rejeitada: mecanismos independentes para web e API. Eles duplicariam persistência, regras de expiração e revogação e poderiam produzir comportamentos de segurança divergentes.
+Para um SPA first-party futuro, `statefulApi()` e `/sanctum/csrf-cookie` poderão ser habilitados conforme a documentação oficial. Esta mudança cobre Blade/web first-party e não exige criar um SPA.
 
-### O transporte será decidido na Presentation
+### SignUp continuará atômico
 
-`SignInUseCase` sempre produzirá o mesmo resultado: identificador da sessão, `userId`, token puro e expiração. Ele não conhecerá cookie, header, JSON, redirect ou Request Laravel.
+`SignUp` criará identidade e password hash em uma transação única. Como ambos residem em `users`, não haverá uma segunda tabela de credencial nem risco de identidade persistida sem hash. A constraint única de `users.email` continuará como barreira final para concorrência.
 
-No endpoint JSON:API, `AuthenticationSessionResponse` devolverá o token uma única vez, junto de `token_type: Bearer` e `expires_at`, e adicionará `Cache-Control: no-store` e `Pragma: no-cache`. Requests autenticados seguintes enviarão `Authorization: Bearer <token>`.
+O fluxo não emitirá token nem iniciará sessão implicitamente. O User criado fará `SignIn` separadamente.
 
-No fluxo web, o Controller anexará o token a um cookie Laravel criptografado e assinado, `HttpOnly`, `SameSite=Lax`, limitado ao path `/` e `Secure` em produção. O token não aparecerá no HTML, flash data, URL ou corpo da resposta. Toda operação web mutável, incluindo `SignIn`, `SignUp` e `SignOut`, permanecerá no grupo `web` e exigirá proteção CSRF.
+### Falhas e rate limiting não enumerarão Users
 
-Se uma requisição apresentar simultaneamente Bearer e cookie com valores diferentes, o resolvedor recusará a autenticação com `401`; ele não escolherá silenciosamente um dos segredos. Se ambos transportarem o mesmo valor, a sessão será tratada como uma única credencial.
+E-mail inválido, User inexistente, password irrecuperável e senha incorreta produzirão o mesmo `401`, título e detalhe na API. O Request de `SignIn` validará estrutura e tipo, mas não transformará formato de e-mail inválido em um `422` distinguível.
 
-### O Laravel receberá um principal próprio de Authentication
+Um limiter nomeado limitará cinco tentativas por minuto pela combinação de IP e SHA-256 de `lowercase(trim(email))`. API e web compartilharão a mesma definição. O backend de rate limiting não receberá o e-mail em claro na chave.
 
-Authentication Infrastructure registrará um request guard capaz de extrair Bearer ou cookie, aplicar o digest, carregar uma sessão válida e retornar um principal mínimo com `userId` e `sessionId`. Esse principal poderá implementar o contrato Laravel necessário dentro da Infrastructure, mas não será `UserEntity` nem `UserModel`.
-
-Controllers de outros contextos obterão o identificador autenticado na borda e o passarão explicitamente aos seus UseCases quando suas specs de autorização forem implementadas. Entidades e UseCases de negócio não receberão Request, guard, Model ou principal Laravel.
-
-Alternativa rejeitada: fazer `UserModel` estender a classe autenticável do framework. Isso quebraria uma decisão explícita da capability User e tornaria identidade e persistência dependentes do mecanismo de autenticação.
-
-### SignIn evitará enumeração e abuso básico
-
-`SignInUseCase` responderá com `InvalidCredentialsException` para e-mail inválido, User ausente, credencial ausente ou senha incorreta. O detalhe público será idêntico em todos os casos. Quando não houver hash real, o Adapter de hashing verificará a senha contra um hash fictício válido para reduzir diferenças observáveis de tempo.
-
-As rotas de `SignIn` receberão rate limiting de cinco tentativas por minuto por combinação de IP e digest de uma forma normalizada do e-mail usada apenas na chave operacional. O limitador não bloqueará globalmente uma identidade em todos os IPs. Excesso responderá `429` na API e seguirá o tratamento equivalente no fluxo web.
-
-Não haverá eventos próprios de `SignUp`, `SignIn` ou `SignOut` nesta mudança porque não existe consumidor. Eventos Laravel não serão usados como substitutos da regra principal dos UseCases.
-
-### A API seguirá JSON:API e a web seguirá redirects convencionais
+### API seguirá JSON:API
 
 As rotas de API serão:
 
@@ -120,44 +99,38 @@ As rotas de API serão:
 - `POST /api/authentication/sign-in`, nome `authentication.api.sign-in`.
 - `DELETE /api/authentication/sign-out`, nome `authentication.api.sign-out`.
 
-`SignUpRequest` exigirá `data.type = sign-ups` e atributos `name`, `email`, `password` e `password_confirmation`. A resposta `201` representará o resultado `sign-ups`, identificará o User criado, oferecerá relacionamento para `users` e enviará `Location` para `/api/users/{id}`, sem expor a credencial.
+`SignUp` responderá `201` com recurso `sign-ups`, relacionamento `user` e `Location` para o User criado. `SignIn` responderá `200` com recurso `access-tokens`. `SignOut` responderá `204`.
 
-`SignInRequest` exigirá `data.type = sign-ins` e atributos `email` e `password`. A resposta `200` representará `authentication-sessions`; ela não declara um novo recurso HTTP consultável porque não existe endpoint público para recuperar a sessão ou seu token. `SignOut` responderá `204` sem documento.
+As rotas web equivalentes usarão os nomes `authentication.web.sign-up`, `authentication.web.sign-in` e `authentication.web.sign-out`, com redirects convencionais e proteção CSRF.
 
-As rotas web mutáveis usarão os mesmos termos sob `/authentication/sign-up`, `/authentication/sign-in` e `/authentication/sign-out`, com nomes `authentication.web.sign-up`, `authentication.web.sign-in` e `authentication.web.sign-out`. Controllers web chamarão os mesmos UseCases, transportarão a sessão por cookie e redirecionarão sem retornar JSON:API.
+Validation errors preservarão `source.pointer`. E-mail já utilizado responderá `409`; entrada inválida, `422`; credenciais ou token inválidos, `401`; throttling, `429`.
 
-Validation errors da API preservarão `source.pointer`. E-mail já utilizado responderá `409`, entrada inválida `422`, credenciais inválidas ou sessão ausente/inválida `401` e throttling `429`, todos com `application/vnd.api+json`. Nenhuma resposta incluirá password hash ou token digest.
+### Authentication não concederá autorização
 
-### Authentication e Authorization permanecerão separadas
-
-Esta mudança disponibilizará um guard e middleware capazes de autenticar futuras rotas, mas não aplicará regras genéricas aos endpoints atuais de User e Budget. Cada contexto deverá especificar quais operações um `userId` pode executar e manter invariantes críticas de ownership em Application, usando Policies ou middleware apenas como adaptação HTTP.
-
-Alternativa rejeitada: proteger todos os endpoints apenas com `auth`. Isso impediria acesso anônimo, mas ainda permitiria que qualquer usuário autenticado manipulasse recursos de outros usuários.
+Sanctum comprovará o principal e, quando aplicável, o token. Isso não autoriza operações de User ou Budget. Rotas atuais continuarão públicas até specs próprias definirem ownership e policies.
 
 ## Risks / Trade-offs
 
-- [Uma sessão opaca exige consulta ao banco em toda autenticação] -> Indexar `token_hash`, selecionar somente os campos necessários e medir antes de introduzir cache; revogação imediata é priorizada nesta fase.
-- [O mesmo segredo pode ser aceito por cookie e Bearer] -> Manter transportes na Presentation, proteger cookie com CSRF e recusar credenciais conflitantes na mesma requisição.
-- [Um token roubado concede acesso até expirar ou ser revogado] -> Usar alta entropia, HTTPS, cookie protegido, resposta `no-store`, expiração fixa curta e persistência somente do digest.
-- [Rate limiting por IP e e-mail não impede ataques distribuídos] -> Cobrir abuso básico agora e evoluir observabilidade ou limitação adicional somente com evidência.
-- [A transação de SignUp pressupõe User e Authentication no mesmo banco] -> Aceitar essa restrição explícita no monólito atual; eventual separação de persistência exigirá um fluxo assíncrono ou compensatório próprio.
-- [Users existentes continuarão sem credenciais] -> Tratar como identidades não autenticáveis e rejeitar `SignUp` com e-mail já ocupado; convite ou credential setup terá spec separada.
-- [Exclusão em cascata remove sessões e credenciais sem passar por UseCases de Authentication] -> Aceitar a constraint como garantia de integridade e revogação imediata enquanto não existem efeitos externos ou auditoria obrigatória.
-- [Registros expirados podem permanecer sem serem apresentados novamente] -> Remover quando encontrados e adicionar limpeza agendada apenas quando volume ou requisito operacional justificar.
-- [A futura criação de Core pode mover EmailValueObject] -> Preservar o `UserIdentityPort` com primitivas e resultados próprios de Authentication para impedir propagação do namespace atual.
+- [User Infrastructure passa a depender de Sanctum e Auth] -> Manter `UserEntity`, Domain e Application livres do framework e testar essa fronteira.
+- [API e web não compartilham a mesma credencial] -> Aceitar a separação recomendada pelo Sanctum; ambos convergem em `auth:sanctum` para rotas protegidas.
+- [Password hash passa a residir em `users`] -> Ocultar no Model, não mapear para Entity e impedir serialização/logs.
+- [Users preexistentes não conhecem a senha aleatória de backfill] -> Mantê-los não autenticáveis e criar definição/reset de senha somente em capability futura.
+- [Token Bearer roubado vale até expiração ou revogação] -> HTTPS, expiração de 120 minutos, resposta `no-store`, hash persistido pelo Sanctum e revogação imediata.
+- [Sessão web depende da configuração do driver] -> Usar configuração Laravel e validar cookie, CSRF, regeneração e invalidação em feature tests.
+- [Rate limiting por IP e digest não bloqueia ataques distribuídos] -> Cobrir abuso básico agora e evoluir somente com observabilidade.
 
 ## Migration Plan
 
-1. Criar as migrations de credenciais e sessões com constraints, índices e cascata para `users.id`.
-2. Implementar Domain e Application de Authentication sem dependências Laravel ou User.
-3. Implementar Repositories, Ports, Adapters e o Adapter de integração com os UseCases de User.
-4. Registrar bindings, configuração, request guard e allowlist arquitetural no composition root.
-5. Expor e testar primeiro os endpoints JSON:API; em seguida conectar o transporte web com cookie, CSRF e redirects aos mesmos UseCases.
-6. Adicionar testes de segurança, atomicidade, concorrência relevante, expiração, revogação, transportes, JSON:API e fronteiras.
-7. Executar migrations antes dos testes de fluxo, a suíte focada, a suíte arquitetural e Pint.
+1. Instalar Sanctum com o fluxo oficial de Laravel 13 e revisar os artefatos publicados.
+2. Adicionar `password` a `users`, fazer backfill irrecuperável para registros existentes e publicar a migration de `personal_access_tokens`.
+3. Tornar `UserModel` autenticável/tokenable, ocultar password e configurar o provider Eloquent.
+4. Implementar `SignUp`, `SignIn` e `SignOut` usando Auth, sessão e Sanctum, sem infraestrutura paralela.
+5. Configurar expiração, pruning, rate limiting, JSON:API e rotas web/API.
+6. Executar migrations no Lerd antes dos testes de fluxo.
+7. Validar Domain/Application, integração Sanctum, API, web, provider, arquitetura e coleção Bruno.
 
-Em rollback, remover primeiro as rotas e o guard, depois as tabelas de sessões e credenciais. A tabela `users` e seus registros permanecem, pois User não depende de Authentication. Nenhum password hash ou token será migrado para `users`.
+No rollback, remover primeiro rotas e uso do guard Sanctum, depois tokens e coluna `password`, e por fim a dependência. A remoção da coluna descarta hashes; portanto rollback após uso real exige janela de manutenção e decisão explícita sobre perda de credenciais.
 
 ## Open Questions
 
-Nenhuma decisão bloqueadora permanece para esta capability. Password reset, verificação de e-mail, criação de credencial para User existente, duração diferenciada por dispositivo e aplicação das regras de autorização serão decididos em mudanças próprias.
+Nenhuma questão bloqueadora. Password reset, definição de senha para Users preexistentes, abilities e autorização de negócio permanecem em mudanças futuras.

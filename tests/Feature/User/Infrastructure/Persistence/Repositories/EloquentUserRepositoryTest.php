@@ -8,7 +8,9 @@ use App\User\Domain\ValueObjects\EmailValueObject;
 use App\User\Infrastructure\Persistence\Models\UserModel;
 use App\User\Infrastructure\Persistence\Repositories\EloquentUserRepository;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
+use Laravel\Sanctum\HasApiTokens;
 
 it('persists and maps only the user identity fields', function (): void {
     $repository = new EloquentUserRepository;
@@ -24,7 +26,7 @@ it('persists and maps only the user identity fields', function (): void {
         ->and($persisted->email->value())->toBe('maria.silva@example.com')
         ->and($persisted->createdAt)->toBeInstanceOf(DateTimeImmutable::class)
         ->and($persisted->updatedAt)->toBeInstanceOf(DateTimeImmutable::class)
-        ->and(Schema::getColumnListing('users'))->toBe(['id', 'name', 'email', 'created_at', 'updated_at']);
+        ->and(Schema::getColumnListing('users'))->toBe(['id', 'name', 'email', 'created_at', 'updated_at', 'password']);
 
     $this->assertDatabaseHas('users', [
         'id' => $persisted->id,
@@ -177,6 +179,24 @@ it('rejects update for an entity without a persisted identity', function (): voi
     )))->toThrow(InvalidArgumentException::class, 'A atualização de User exige uma entidade persistida.');
 });
 
-it('uses a plain Eloquent model without authentication contracts', function (): void {
-    expect(new UserModel)->not->toBeInstanceOf(Authenticatable::class);
+it('uses the user model as the framework principal without exposing its password', function (): void {
+    $model = UserModel::query()->create([
+        'name' => 'Maria',
+        'email' => 'maria@example.com',
+        'password' => 'secret-password',
+    ]);
+
+    expect($model)->toBeInstanceOf(Authenticatable::class)
+        ->and(class_uses_recursive($model))->toHaveKey(HasApiTokens::class)
+        ->and(Hash::check('secret-password', $model->password))->toBeTrue()
+        ->and($model->toArray())->not->toHaveKey('password')
+        ->and(config('auth.guards.web'))->toBe([
+            'driver' => 'session',
+            'provider' => 'users',
+        ])
+        ->and(config('auth.providers.users'))->toBe([
+            'driver' => 'eloquent',
+            'model' => UserModel::class,
+        ])
+        ->and(config('sanctum.expiration'))->toBe(120);
 });
