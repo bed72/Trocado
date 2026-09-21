@@ -60,7 +60,7 @@ final readonly class GenerateDueBudgetRecurrencesUseCase
                 return false;
             }
 
-            $this->budgetRepository->save(budget: new BudgetEntity(
+            $this->budgetRepository->create(budget: new BudgetEntity(
                 id: null,
                 amount: $recurrence->amount,
                 endDate: $interval['endDate'],

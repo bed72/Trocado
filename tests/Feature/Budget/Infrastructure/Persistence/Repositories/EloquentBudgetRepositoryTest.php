@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 it('persists and maps a new budget entity', function (): void {
     $repository = new EloquentBudgetRepository;
 
-    $persisted = $repository->save(budget: new BudgetEntity(
+    $persisted = $repository->create(budget: new BudgetEntity(
         id: null,
         endDate: '2026-09-30',
         startDate: '2026-09-01',
@@ -41,7 +41,7 @@ it('updates an existing budget without inserting another row', function (): void
     ]);
     $repository = new EloquentBudgetRepository;
 
-    $updated = $repository->save(budget: new BudgetEntity(
+    $updated = $repository->create(budget: new BudgetEntity(
         id: (int) $model->getKey(),
         endDate: '2026-10-31',
         startDate: '2026-10-01',

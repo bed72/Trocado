@@ -112,7 +112,7 @@ it('rolls back the recurrence when its initial budget cannot be persisted', func
             return false;
         }
 
-        public function save(BudgetEntity $budget): BudgetEntity
+        public function create(BudgetEntity $budget): BudgetEntity
         {
             throw new RuntimeException('Falha de persistência simulada.');
         }

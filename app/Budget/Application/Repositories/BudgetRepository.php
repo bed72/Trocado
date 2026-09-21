@@ -15,7 +15,7 @@ interface BudgetRepository
 
     public function findById(int $id): ?BudgetEntity;
 
-    public function hasOverlap(string $startDate, string $endDate, ?int $excludeId = null): bool;
+    public function create(BudgetEntity $budget): BudgetEntity;
 
-    public function save(BudgetEntity $budget): BudgetEntity;
+    public function hasOverlap(string $startDate, string $endDate, ?int $excludeId = null): bool;
 }

@@ -12,7 +12,7 @@ use DateTimeImmutable;
 
 final class EloquentBudgetRepository implements BudgetRepository
 {
-    public function save(BudgetEntity $budget): BudgetEntity
+    public function create(BudgetEntity $budget): BudgetEntity
     {
         $model = $budget->id === null
             ? new BudgetModel

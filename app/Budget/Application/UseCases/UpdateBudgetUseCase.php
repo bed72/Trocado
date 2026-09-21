@@ -40,7 +40,7 @@ final readonly class UpdateBudgetUseCase
                 throw new OverlappingBudgetException;
             }
 
-            return $this->repository->save(budget: $updated);
+            return $this->repository->create(budget: $updated);
         });
     }
 }
