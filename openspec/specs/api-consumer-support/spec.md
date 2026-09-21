@@ -1,7 +1,7 @@
 # api-consumer-support Specification
 
 ## Purpose
-TBD - created by archiving change standardize-api-consumer-support. Update Purpose after archive.
+Definir uma collection Bruno segura e uma referência operacional reproduzível para consumidores da API, preservando JSON:API, segredos efêmeros, autenticação por request e execução isolada em CI.
 ## Requirements
 ### Requirement: Headers JSON:API compartilhados sem excesso
 A collection Bruno MUST definir uma única vez `Accept: application/vnd.api+json` para os requests da API e MUST enviar `Content-Type: application/vnd.api+json` somente nos requests que transportam documento JSON:API. A configuração compartilhada MUST preservar a possibilidade de override explícito por request.
@@ -35,7 +35,7 @@ A collection Bruno MUST manter no ambiente apenas valores públicos que variam e
 - **AND** o valor não é escrito em arquivo versionado nem exposto em relatório
 
 ### Requirement: Fluxo Authentication seguro para consumidores
-Após a capability Authentication estar disponível, a collection Bruno MUST fornecer um fluxo serial `SignUp` → `SignIn` → request Bearer autenticado → `SignOut` → rejeição do token revogado. Password e token MUST existir somente durante a execução, e a collection MUST NOT aplicar Bearer por padrão aos endpoints públicos atuais de User e Budget.
+Após a capability Authentication estar disponível, a collection Bruno MUST fornecer um fluxo serial `SignUp` → `SignIn` → request Bearer autenticado → `SignOut` → rejeição do token revogado. Password e token MUST existir somente durante a execução. A collection MUST enviar Bearer nos endpoints protegidos de User, Budget e recorrência, sem aplicá-lo globalmente a health, `SignUp` ou `SignIn`.
 
 #### Scenario: Captura e uso do token
 - **WHEN** `SignIn` responde com uma AuthenticationSession válida
@@ -47,8 +47,13 @@ Após a capability Authentication estar disponível, a collection Bruno MUST for
 - **THEN** a API rejeita o token revogado com `401`
 
 #### Scenario: Requests públicos não recebem Bearer implicitamente
-- **WHEN** `SignUp`, `SignIn`, health ou um endpoint atual não protegido de User ou Budget é executado
+- **WHEN** `SignUp`, `SignIn` ou health é executado
 - **THEN** a collection não acrescenta token Bearer por herança global
+
+#### Scenario: Requests protegidos recebem Bearer explicitamente
+- **WHEN** um endpoint de User, Budget ou recorrência é executado
+- **THEN** a collection envia o Personal Access Token da variável de runtime
+- **AND** não persiste o token na collection ou no ambiente versionado
 
 ### Requirement: Documentação operacional junto da collection
 A collection Bruno MUST documentar as convenções transversais de consumo da API e cada pasta funcional MUST documentar objetivo, ordem, setup, efeitos destrutivos e cleanup quando aplicáveis. Documentação por request MUST ser usada para comportamento relevante que não esteja evidente em método, URL, payload e testes, sem duplicar integralmente as requirements OpenSpec.
@@ -101,4 +106,3 @@ O sistema MUST permitir gerar uma referência HTML compartilhável a partir da c
 #### Scenario: Mudança da collection
 - **WHEN** requests ou documentação da collection mudam
 - **THEN** a referência pode ser regenerada sem edição manual do HTML
-

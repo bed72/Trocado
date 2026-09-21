@@ -1,7 +1,7 @@
 # budget-recurrence Specification
 
 ## Purpose
-TBD - created by archiving change add-budget-recurrence. Update Purpose after archive.
+Definir a criação, evolução e geração idempotente de Budgets recorrentes, incluindo intervalos fixos, conflitos globais, atomicidade, processamento agendado e lifecycle da regra de recorrência.
 ## Requirements
 ### Requirement: Criação opcional de recorrência
 O sistema MUST permitir criar um Budget com recorrência opcional por meio do atributo booleano `recurring`, que MUST assumir `false` quando omitido. Quando `recurring` for `true`, o Budget inicial e sua regra de recorrência MUST ser persistidos atomicamente, e o Budget inicial MUST pertencer à recorrência criada.

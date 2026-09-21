@@ -4,11 +4,13 @@
 
 ## Bounded contexts e dependências
 
-Cada contexto vive em `app/<Contexto>/` e organiza seus próprios `Domain/`, `Application/`, `Infrastructure/` e `Presentation/`. O contexto existente é `Budget`; crie outros somente quando houver uma feature real. Não distribua features primariamente entre pastas globais `Models`, `Services`, `Repositories` e `Http/Controllers`.
+Cada contexto vive em `app/<Contexto>/` e organiza seus próprios `Domain/`, `Application/`, `Infrastructure/` e `Presentation/`. Os contextos existentes são `Budget`, `User` e `Authentication`; crie outros somente quando houver uma feature real. Não distribua features primariamente entre pastas globais `Models`, `Services`, `Repositories` e `Http/Controllers`.
 
 Geradores Artisan são permitidos, mas a localização padrão dos arquivos gerados não define a arquitetura do projeto. Coloque cada classe na camada e no contexto correspondentes; não crie factories, seeders ou testes por hábito.
 
 Dependências de código: `Presentation → Application → Domain` e `Infrastructure → Application/Domain`. Domain não importa nenhuma camada externa. Application conhece Domain e seus próprios contratos, mas não conhece implementações de Infrastructure ou Presentation. O container liga os contratos às implementações nas bordas.
+
+`Authentication` usa `UserModel` como principal autenticável do Laravel e, por isso, sua Infrastructure integra atualmente com Domain e Infrastructure de `User`. Essa é uma exceção explícita para a tabela compartilhada `users`; ela não autoriza dependências com Application ou Presentation de `User`. A evolução desse limite e a eliminação dos caminhos concorrentes de criação de identidade devem ser decididas antes de ampliar o lifecycle de contas.
 
 ## Responsabilidades
 

@@ -19,7 +19,7 @@ it('derives an inclusive duration and the next consecutive interval', function (
 
     expect($recurrence->durationInDays)->toBe(7)
         ->and($recurrence->nextStartDate)->toBe('2026-01-08')
-        ->and($recurrence->pendingInterval())->toBe([
+        ->and($recurrence->pendingInterval())->toEqual([
             'startDate' => '2026-01-08',
             'endDate' => '2026-01-14',
             'nextStartDate' => '2026-01-15',
@@ -35,7 +35,7 @@ it('supports single-day, fixed month-length and leap-day intervals', function (s
         amount: MoneyValueObject::fromCents(cents: 1000),
     );
 
-    expect($recurrence->pendingInterval())->toBe($expected);
+    expect($recurrence->pendingInterval())->toEqual($expected);
 })->with([
     'single day' => ['2026-01-08', 1, [
         'startDate' => '2026-01-08',

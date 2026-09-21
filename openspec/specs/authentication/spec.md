@@ -212,12 +212,13 @@ A API MUST responder erros de Authentication com `application/vnd.api+json`, arr
 - **AND** não inclui stack trace, password, hash ou token
 
 ### Requirement: Authentication não concede autorização
-O sistema MUST limitar Authentication à comprovação do principal e MUST NOT interpretar token válido como autorização sobre recursos de User ou Budget.
+O sistema MUST limitar Authentication à comprovação do principal e MUST NOT interpretar token válido como autorização de negócio ou ownership sobre recursos de User ou Budget. As rotas atuais desses contextos MUST exigir `auth:sanctum`, mas essa proteção MUST NOT ser tratada como substituta de policies e regras de ownership futuras.
 
-#### Scenario: Rotas existentes
-- **WHEN** esta mudança é aplicada
-- **THEN** nenhuma autorização genérica é adicionada aos endpoints atuais de User ou Budget
-- **AND** regras de ownership permanecem responsabilidade de specs próprias
+#### Scenario: Rotas autenticadas sem autorização de negócio
+- **WHEN** um endpoint de User ou Budget recebe uma requisição sem Personal Access Token válido
+- **THEN** responde `401`
+- **AND** um token válido somente identifica o principal, sem provar ownership ou privilégio administrativo
+- **AND** regras de autorização e ownership permanecem responsabilidade de specs próprias
 
 ### Requirement: Proteção de desenvolvimento contra N+1
 O sistema MUST impedir lazy loading do Eloquent fora de produção por meio do provider do contexto Authentication, sem depender da inicialização de outro bounded context.
