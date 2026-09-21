@@ -27,7 +27,7 @@ final class EloquentUserRepository implements UserRepository
                 'email' => $user->email->value(),
             ]);
         } catch (UniqueConstraintViolationException) {
-            throw new EmailAlreadyUsedException(email: $user->email);
+            throw new EmailAlreadyUsedException;
         }
 
         return $this->toEntity(model: $model);
@@ -51,7 +51,7 @@ final class EloquentUserRepository implements UserRepository
                 'email' => $user->email->value(),
             ])->save();
         } catch (UniqueConstraintViolationException) {
-            throw new EmailAlreadyUsedException(email: $user->email);
+            throw new EmailAlreadyUsedException;
         }
 
         return $this->toEntity(model: $model);

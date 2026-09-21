@@ -51,7 +51,7 @@ it('returns a conflict when updating to another user email', function (): void {
         ->assertExactJson(['errors' => [[
             'status' => '409',
             'title' => 'E-mail já utilizado',
-            'detail' => 'O e-mail joao@example.com já está em uso.',
+            'detail' => 'Não foi possível utilizar o e-mail informado.',
         ]]]);
 
     $this->assertDatabaseHas('users', ['id' => $this->user->getKey(), 'email' => 'maria@example.com']);

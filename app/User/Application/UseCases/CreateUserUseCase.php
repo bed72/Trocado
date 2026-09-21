@@ -22,7 +22,7 @@ final readonly class CreateUserUseCase
         );
 
         if ($this->repository->findByEmail(email: $user->email) !== null) {
-            throw new EmailAlreadyUsedException(email: $user->email);
+            throw new EmailAlreadyUsedException;
         }
 
         return $this->repository->create(user: $user);

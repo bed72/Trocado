@@ -52,7 +52,7 @@ it('returns a JSON API conflict for an email already in use', function (): void 
         ->assertExactJson(['errors' => [[
             'status' => '409',
             'title' => 'E-mail já utilizado',
-            'detail' => 'O e-mail maria@example.com já está em uso.',
+            'detail' => 'Não foi possível utilizar o e-mail informado.',
         ]]]);
 
     $this->assertDatabaseCount('users', 1);

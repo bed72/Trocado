@@ -73,4 +73,4 @@ it('rejects a canonical email already in use without persisting', function (): v
         name: 'Outra Maria',
         email: ' MARIA@EXAMPLE.COM ',
     );
-})->throws(EmailAlreadyUsedException::class, 'O e-mail maria@example.com já está em uso.');
+})->throws(EmailAlreadyUsedException::class, 'Não foi possível utilizar o e-mail informado.');

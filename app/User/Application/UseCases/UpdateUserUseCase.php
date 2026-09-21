@@ -26,7 +26,7 @@ final readonly class UpdateUserUseCase
             $userWithEmail = $this->repository->findByEmail(email: $updatedEmail);
 
             if ($userWithEmail !== null && $userWithEmail->id !== $id) {
-                throw new EmailAlreadyUsedException(email: $updatedEmail);
+                throw new EmailAlreadyUsedException;
             }
         }
 

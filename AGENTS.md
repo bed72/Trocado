@@ -1,8 +1,9 @@
 # Orientações para agentes
 
-- Leia `ARCHITECTURE.md` antes de mudanças estruturais e siga as regras em `.ai/guidelines/`. As decisões específicas do projeto prevalecem sobre sugestões genéricas do Boost.
+- Leia o [documento de arquitetura](ARCHITECTURE.md) antes de mudanças estruturais e siga as regras em `.ai/guidelines/`. As decisões específicas do projeto prevalecem sobre sugestões genéricas do Boost.
 - Para Laravel e packages Laravel instalados, consulte primeiro Laravel Boost/Search Docs antes de assumir APIs por memória; confira o código instalado quando necessário. Isso vale especialmente para Laravel 13, JSON:API Resources, Eloquent, migrations, validation, DI, Service Providers, Queue, Cache, rate limiting, Boost, AI SDK e Artisan.
 - Consulte o MCP disponível para versões, packages, schema, conexões, queries, logs, último erro e documentação antes de inferir o estado da aplicação. Para config, rotas e comandos, use o MCP quando houver ferramenta; caso contrário, consulte Artisan. Se o MCP não estiver acessível, indique a limitação.
+- Em mudanças não triviais, use as skills locais do OpenCode em `.opencode/skills/`: `trocado-sdd` para o ciclo OpenSpec, `trocado-architecture` para implementação e revisão, e `trocado-quality-gate` antes de declarar a mudança concluída ou arquivá-la.
 - Preserve os bounded contexts em `app/<Contexto>/{Domain,Application,Infrastructure,Presentation}`. Domain é PHP puro; Application não usa Eloquent, facades, HTTP, Infrastructure ou Service Locator.
 - Use os sufixos arquiteturais de `ARCHITECTURE.md`; respostas JSON:API usam `Response`, contratos de capacidade usam `Port` e suas implementações usam `Adapter`. Crie interfaces somente para fronteiras reais.
 - Em construtores de DI, nomeie uma única dependência pelo papel (`$useCase`, `$repository`, `$port`) e qualifique pelo contexto quando houver mais de uma do mesmo papel (`$budgetRepository`, `$recurrenceRepository`). Em UseCases, ordene `Port → UseCase → Repository`.
@@ -12,6 +13,7 @@
 - Se uma mudança conflitar com a arquitetura, explique o trade-off e proponha a menor alteração antes de mudar as regras.
 - Execute verificações adequadas e Laravel Pint, quando disponível, antes de concluir. Nesta POC, não adicione usuários, autenticação, Expense, Couple, filas, jobs, IA ou testes sem nova solicitação.
 - O ambiente local usa Lerd. Antes de operá-lo, leia [as instruções existentes](.ai/lerd.md).
+- No ambiente Lerd, execute `lerd artisan migrate` após atualizar o código ou criar migrations quando houver migrations pendentes e antes de testar fluxos que dependem do novo schema. Migrations não são executadas antes de cada request; não use `migrate:fresh` sem autorização explícita, pois ele apaga os dados.
 
 ===
 

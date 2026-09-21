@@ -117,7 +117,7 @@ it('translates an update uniqueness conflict into an application exception', fun
     }
 
     expect($caughtException)->toBeInstanceOf(EmailAlreadyUsedException::class)
-        ->and($caughtException?->getMessage())->toBe('O e-mail joao@example.com já está em uso.')
+        ->and($caughtException?->getMessage())->toBe('Não foi possível utilizar o e-mail informado.')
         ->and($caughtException?->getPrevious())->toBeNull();
     $this->assertDatabaseHas('users', [
         'id' => $maria->getKey(),
@@ -154,7 +154,7 @@ it('translates a database uniqueness conflict into an application exception', fu
     }
 
     expect($caughtException)->toBeInstanceOf(EmailAlreadyUsedException::class)
-        ->and($caughtException?->getMessage())->toBe('O e-mail maria@example.com já está em uso.')
+        ->and($caughtException?->getMessage())->toBe('Não foi possível utilizar o e-mail informado.')
         ->and($caughtException?->getPrevious())->toBeNull();
     $this->assertDatabaseCount('users', 1);
 });

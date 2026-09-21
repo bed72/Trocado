@@ -101,7 +101,7 @@ it('rejects an email used by another user without updating', function (): void {
         name: null,
         email: 'outra@example.com',
     );
-})->throws(EmailAlreadyUsedException::class, 'O e-mail outra@example.com já está em uso.');
+})->throws(EmailAlreadyUsedException::class, 'Não foi possível utilizar o e-mail informado.');
 
 it('does not persist invalid updates', function (?string $name, ?string $email, string $exception): void {
     $repository = $this->createMock(UserRepository::class);
