@@ -1,5 +1,8 @@
-## ADDED Requirements
+# authentication Specification
 
+## Purpose
+Definir cadastro, autenticação e encerramento de acesso à API com Laravel Sanctum, preservando as fronteiras arquiteturais, a segurança de credenciais e a revogação seletiva de tokens.
+## Requirements
 ### Requirement: Authentication usa Laravel Sanctum
 O sistema MUST usar Laravel Sanctum como mecanismo de autenticação da API e MUST NOT implementar guard, principal, formato de token, geração de token, digest, tabela de token ou resolução Bearer próprios.
 
@@ -59,14 +62,14 @@ O sistema MUST armazenar somente password hash adaptativo na coluna `users.passw
 - **AND** tokens ficam na tabela oficial `personal_access_tokens`
 
 ### Requirement: Senha válida e preservada
-O sistema MUST preservar exatamente a senha informada, MUST aceitar somente senhas com ao menos 8 caracteres e no máximo 72 bytes e MUST confirmar a senha no `SignUp` HTTP.
+O sistema MUST preservar exatamente a senha informada, MUST aceitar somente senhas entre 6 e 12 caracteres com ao menos uma letra maiúscula e um número e MUST confirmar a senha no `SignUp` HTTP.
 
 #### Scenario: Senha válida com espaços
 - **WHEN** `SignUp` recebe senha confirmada dentro dos limites contendo espaços externos
 - **THEN** o valor exato é entregue ao hasher sem trim ou normalização
 
 #### Scenario: Senha fora dos limites
-- **WHEN** a senha possui menos de 8 caracteres ou mais de 72 bytes
+- **WHEN** a senha possui menos de 6 caracteres, mais de 12 caracteres, nenhuma letra maiúscula ou nenhum número
 - **THEN** responde `422`
 - **AND** nenhum User ou token é criado
 
@@ -183,7 +186,7 @@ Rotas protegidas MUST usar `auth:sanctum` e MUST aceitar Personal Access Token v
 - **THEN** a API responde `401` em JSON:API
 
 ### Requirement: SignOut revoga somente o token atual
-O sistema MUST revogar somente o Personal Access Token usado na requisição, sem apagar password ou outros tokens do User.
+O sistema MUST revogar somente o Personal Access Token usado na requisição, sem apagar password ou outros tokens do User. O Controller MUST delegar a operação a `SignOutUseCase`, a Application MUST depender de `SignOutPort` e somente o Adapter de Infrastructure MUST resolver `currentAccessToken()` e excluir o Model do Sanctum.
 
 #### Scenario: SignOut de API
 - **WHEN** `DELETE /api/authentication/sign-out` recebe Bearer válido
@@ -194,6 +197,11 @@ O sistema MUST revogar somente o Personal Access Token usado na requisição, se
 - **WHEN** um User possui dois Personal Access Tokens e encerra um deles
 - **THEN** somente o token atual é removido
 - **AND** o outro continua válido
+
+#### Scenario: Revogação respeita as camadas
+- **WHEN** `SignOutController` processa uma requisição autenticada
+- **THEN** chama `SignOutUseCase` sem acessar o User ou o token da Request
+- **AND** `SignOutAdapter` concentra a resolução e a exclusão do token Sanctum atual
 
 ### Requirement: Erros seguem JSON:API
 A API MUST responder erros de Authentication com `application/vnd.api+json`, array `errors`, status textual, título e detalhe seguros, e MUST fornecer `source.pointer` para validação.
@@ -210,6 +218,13 @@ O sistema MUST limitar Authentication à comprovação do principal e MUST NOT i
 - **WHEN** esta mudança é aplicada
 - **THEN** nenhuma autorização genérica é adicionada aos endpoints atuais de User ou Budget
 - **AND** regras de ownership permanecem responsabilidade de specs próprias
+
+### Requirement: Proteção de desenvolvimento contra N+1
+O sistema MUST impedir lazy loading do Eloquent fora de produção por meio do provider do contexto Authentication, sem depender da inicialização de outro bounded context.
+
+#### Scenario: Provider de Authentication em desenvolvimento
+- **WHEN** `AuthenticationServiceProvider` inicializa fora de produção
+- **THEN** `Model::preventsLazyLoading()` fica habilitado
 
 ### Requirement: Naming e cobertura
 O sistema MUST usar `SignUp`, `SignIn` e `SignOut` nos adaptadores próprios, MUST usar a terminologia `AccessToken` para o recurso emitido pelo Sanctum e MUST cobrir os fluxos críticos automatizados e por Bruno.

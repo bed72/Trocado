@@ -3,7 +3,11 @@
 ### Requirement: Identidade local independente de autenticação
 O sistema MUST representar `UserEntity` como uma identidade local composta por identificador persistido, nome e e-mail, sem exigir ou armazenar senha, hash, token ou contrato de autenticação. Domain e Application de User MUST permanecer independentes de Laravel, Eloquent, HTTP, Sanctum e Infrastructure. `UserModel`, por pertencer à Infrastructure, MUST implementar os contratos de autenticação Laravel e Sanctum necessários para representar essa identidade nas bordas.
 
-#### Scenario: Usuário existe sem credencial conhecida
+#### Scenario: Usuário existe sem credenciais
+- **WHEN** um User é criado com nome e e-mail válidos pela capability User
+- **THEN** sua identidade é persistida sem senha conhecida, token, sessão ou outro dado de autenticação
+
+#### Scenario: Usuário preexistente permanece sem credencial conhecida
 - **WHEN** um User anterior a Authentication é migrado
 - **THEN** sua identidade permanece válida mesmo sem possuir uma senha conhecida
 - **AND** o backfill irrecuperável não concede acesso a terceiros

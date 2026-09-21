@@ -1,0 +1,50 @@
+meta {
+  name: Sign Up
+  type: http
+  seq: 1
+  tags: [
+    smoke
+    authentication
+  ]
+}
+
+post {
+  url: {{baseUrl}}/api/authentication/sign-up
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/vnd.api+json
+  Content-Type: application/vnd.api+json
+}
+
+body:json {
+  {
+    "data": {
+      "type": "sign-ups",
+      "attributes": {
+        "name": "Authentication Bruno",
+        "email": "AUTHENTICATION.BRUNO@EXAMPLE.COM",
+        "password": "Bruno123",
+        "password_confirmation": "Bruno123"
+      }
+    }
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 201) {
+    bru.setVar("authenticationUserId", res.getBody().data.relationships.user.data.id);
+  }
+}
+
+tests {
+  test("returns HTTP 201 without a token", function () {
+    const body = res.getBody();
+
+    expect(res.getStatus()).to.equal(201);
+    expect(body.data.type).to.equal("sign-ups");
+    expect(JSON.stringify(body)).not.to.contain("token");
+  });
+}

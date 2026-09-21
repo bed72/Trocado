@@ -14,6 +14,7 @@ Sanctum 4.3 é compatível com Illuminate 13 e pode ser usado exclusivamente par
 - Manter `UserEntity` e Application de User livres de Laravel, ainda que `UserModel` se torne o principal autenticável na Infrastructure.
 - Preservar senha somente como hash adaptativo e token Sanctum somente como digest SHA-256 persistido pelo pacote.
 - Produzir erros públicos genéricos para credenciais inválidas.
+- Impedir lazy loading do Eloquent fora de produção a partir do provider de Authentication.
 - Manter autorização de negócio fora de Authentication.
 
 **Non-Goals:**
@@ -58,7 +59,7 @@ Alternativa rejeitada: tabela própria de credenciais. Embora preserve separaç�
 
 ### Senha seguirá a política da capability
 
-`SignUp` aceitará senha entre 8 caracteres e 72 bytes, preservando o valor exato. O Request confirmará `password_confirmation`; a regra de domínio ou aplicação protegerá os mesmos limites fora do HTTP. Os caminhos aninhados de password serão excluídos de trim e conversão de string vazia quando necessário para não alterar o segredo recebido.
+`SignUp` aceitará senha entre 6 e 12 caracteres, com ao menos uma letra maiúscula e um número, preservando o valor exato. O Request confirmará `password_confirmation`; a regra de Domain protegerá os mesmos requisitos fora do HTTP. Os caminhos aninhados de password serão excluídos de trim quando necessário para não alterar o segredo recebido.
 
 O hash será criado pelo hasher Laravel. Um `SignIn` bem-sucedido poderá aplicar `needsRehash` usando a integração nativa antes de concluir a autenticação.
 
@@ -69,6 +70,10 @@ O hash será criado pelo hasher Laravel. Um `SignIn` bem-sucedido poderá aplica
 A expiração padrão será 120 minutos, configurada em `config/sanctum.php` e gravada em `expires_at` na emissão. O comando oficial `sanctum:prune-expired` será agendado para remover tokens expirados após a margem operacional definida.
 
 `DELETE /api/authentication/sign-out`, protegido por `auth:sanctum`, removerá somente `currentAccessToken()`. Outros tokens do mesmo User permanecerão válidos.
+
+A Presentation não acessará `$request->user()?->currentAccessToken()` nem excluirá diretamente o Model do Sanctum. `SignOutController` chamará `SignOutUseCase`, que delegará a revogação atual por `SignOutPort`; somente `SignOutAdapter`, em Infrastructure, resolverá o principal autenticado, obterá `currentAccessToken()` e o excluirá. Essa fronteira torna explícita a intenção de revogação e mantém Request, guard, Eloquent e Sanctum fora da Application, sem introduzir Entity, Repository ou Model de token próprios.
+
+Alternativa rejeitada: manter a chamada recomendada pelo Sanctum diretamente no Controller. Embora funcional, ela combina resolução implícita do principal com persistência em Presentation e expõe essa camada ao Model do pacote.
 
 ### SignUp continuará atômico
 

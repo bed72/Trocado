@@ -1,0 +1,39 @@
+meta {
+  name: Invalid Sign In
+  type: http
+  seq: 3
+  tags: [
+    authentication
+    invalid-credentials
+  ]
+}
+
+post {
+  url: {{baseUrl}}/api/authentication/sign-in
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/vnd.api+json
+  Content-Type: application/vnd.api+json
+}
+
+body:json {
+  {
+    "data": {
+      "type": "access-tokens",
+      "attributes": {
+        "email": "authentication.bruno@example.com",
+        "password": "incorrect password"
+      }
+    }
+  }
+}
+
+tests {
+  test("returns generic invalid credentials", function () {
+    expect(res.getStatus()).to.equal(401);
+    expect(res.getBody().errors[0].detail).to.equal("As credenciais informadas são inválidas.");
+  });
+}

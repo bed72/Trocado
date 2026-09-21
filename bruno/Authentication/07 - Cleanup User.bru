@@ -1,0 +1,29 @@
+meta {
+  name: Cleanup User
+  type: http
+  seq: 7
+  tags: [
+    authentication
+    cleanup
+  ]
+}
+
+delete {
+  url: {{baseUrl}}/api/users/{{authenticationUserId}}
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/vnd.api+json
+}
+
+script:post-response {
+  bru.deleteVar("authenticationUserId");
+}
+
+tests {
+  test("removes the sign up user", function () {
+    expect(res.getStatus()).to.equal(204);
+  });
+}

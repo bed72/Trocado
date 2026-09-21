@@ -1,0 +1,34 @@
+meta {
+  name: Reject Revoked Token
+  type: http
+  seq: 6
+  tags: [
+    authentication
+    revoked-token
+  ]
+}
+
+delete {
+  url: {{baseUrl}}/api/authentication/sign-out
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authenticationToken}}
+}
+
+headers {
+  Accept: application/vnd.api+json
+}
+
+script:post-response {
+  bru.deleteVar("authenticationToken");
+}
+
+tests {
+  test("rejects the revoked token", function () {
+    expect(res.getStatus()).to.equal(401);
+    expect(res.getHeader("content-type")).to.contain("application/vnd.api+json");
+  });
+}

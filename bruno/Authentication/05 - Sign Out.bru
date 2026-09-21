@@ -1,0 +1,29 @@
+meta {
+  name: Sign Out
+  type: http
+  seq: 5
+  tags: [
+    smoke
+    authentication
+  ]
+}
+
+delete {
+  url: {{baseUrl}}/api/authentication/sign-out
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authenticationToken}}
+}
+
+headers {
+  Accept: application/vnd.api+json
+}
+
+tests {
+  test("revokes the current token", function () {
+    expect(res.getStatus()).to.equal(204);
+  });
+}

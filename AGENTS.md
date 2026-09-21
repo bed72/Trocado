@@ -9,6 +9,7 @@
 - Em construtores de DI, nomeie uma única dependência pelo papel (`$useCase`, `$repository`, `$port`) e qualifique pelo contexto quando houver mais de uma do mesmo papel (`$budgetRepository`, `$recurrenceRepository`). Em UseCases, ordene `Port → UseCase → Repository`.
 - Repository persiste e consulta agregados; Port expõe uma capacidade de Infrastructure, como coordenação transacional. Quando uma regra exigir atomicidade, o UseCase define a unidade pelo Port e mantém checagens, locks e escritas dentro dela.
 - Commands Laravel ficam em `Infrastructure/Console/Commands`, são adaptadores finos para UseCases e recebem valores explícitos, como a data de processamento. Scheduler evita sobreposição operacional; integridade concorrente depende de transações, locks e constraints no banco.
+- Em PHP, importe explicitamente toda classe usada com `use`, inclusive classes globais usadas como atributos, como `SensitiveParameter`; não dependa da resolução pelo namespace atual nem use nomes totalmente qualificados inline.
 - Não faça refactors amplos ou crie dependências sem solicitação.
 - Se uma mudança conflitar com a arquitetura, explique o trade-off e proponha a menor alteração antes de mudar as regras.
 - Execute verificações adequadas e Laravel Pint, quando disponível, antes de concluir. Nesta POC, não adicione usuários, autenticação, Expense, Couple, filas, jobs, IA ou testes sem nova solicitação.

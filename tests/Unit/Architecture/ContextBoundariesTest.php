@@ -11,6 +11,9 @@ $layers = ['Application', 'Domain', 'Infrastructure', 'Presentation'];
 
 /** @var array<string, array<string, list<string>>> $allowedContextDependencies */
 $allowedContextDependencies = [
+    'Authentication' => [
+        'Infrastructure' => ['App\\User'],
+    ],
     'Budget' => [],
     'User' => [
         'Infrastructure' => ['Laravel\\Sanctum'],

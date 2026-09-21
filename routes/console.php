@@ -12,3 +12,7 @@ Artisan::command('inspire', function () {
 Schedule::command(ProcessDueBudgetRecurrencesCommand::class)
     ->daily()
     ->withoutOverlapping();
+
+Schedule::command('sanctum:prune-expired --hours=24')
+    ->daily()
+    ->withoutOverlapping();

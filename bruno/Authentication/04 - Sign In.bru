@@ -1,0 +1,49 @@
+meta {
+  name: Sign In
+  type: http
+  seq: 4
+  tags: [
+    smoke
+    authentication
+  ]
+}
+
+post {
+  url: {{baseUrl}}/api/authentication/sign-in
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/vnd.api+json
+  Content-Type: application/vnd.api+json
+}
+
+body:json {
+  {
+    "data": {
+      "type": "access-tokens",
+      "attributes": {
+        "email": "authentication.bruno@example.com",
+        "password": "Bruno123"
+      }
+    }
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 200) {
+    bru.setVar("authenticationToken", res.getBody().data.attributes.token);
+  }
+}
+
+tests {
+  test("returns a Bearer token without cache", function () {
+    const body = res.getBody();
+
+    expect(res.getStatus()).to.equal(200);
+    expect(body.data.type).to.equal("access-tokens");
+    expect(body.data.attributes.token_type).to.equal("Bearer");
+    expect(res.getHeader("cache-control")).to.contain("no-store");
+  });
+}

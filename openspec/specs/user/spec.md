@@ -1,18 +1,28 @@
 # user Specification
 
 ## Purpose
-TBD - created by archiving change add-user. Update Purpose after archive.
+Definir a identidade local de User, suas invariantes, persistência e operações JSON:API, mantendo Domain e Application independentes dos detalhes de framework e autenticação.
 ## Requirements
 ### Requirement: Identidade local independente de autenticação
-O sistema MUST representar User como uma identidade local composta por identificador persistido, nome e e-mail, sem exigir ou armazenar senha, hash, token, sessão ou contrato de autenticação. A entidade de User MUST permanecer independente de Laravel, Eloquent, HTTP e Infrastructure, conforme `ARCHITECTURE.md` e `.ai/guidelines/domain.md`.
+O sistema MUST representar `UserEntity` como uma identidade local composta por identificador persistido, nome e e-mail, sem exigir ou armazenar senha, hash, token ou contrato de autenticação. Domain e Application de User MUST permanecer independentes de Laravel, Eloquent, HTTP, Sanctum e Infrastructure. `UserModel`, por pertencer à Infrastructure, MUST implementar os contratos de autenticação Laravel e Sanctum necessários para representar essa identidade nas bordas.
 
 #### Scenario: Usuário existe sem credenciais
-- **WHEN** um User é criado com nome e e-mail válidos
-- **THEN** sua identidade é persistida sem senha, token, sessão ou outro dado de autenticação
+- **WHEN** um User é criado com nome e e-mail válidos pela capability User
+- **THEN** sua identidade é persistida sem senha conhecida, token, sessão ou outro dado de autenticação
+
+#### Scenario: Usuário preexistente permanece sem credencial conhecida
+- **WHEN** um User anterior a Authentication é migrado
+- **THEN** sua identidade permanece válida mesmo sem possuir uma senha conhecida
+- **AND** o backfill irrecuperável não concede acesso a terceiros
 
 #### Scenario: Entidade permanece pura
 - **WHEN** as dependências de `UserEntity` são verificadas
-- **THEN** a entidade não depende de Laravel, Illuminate, Eloquent, HTTP, Infrastructure ou contratos de autenticação
+- **THEN** a entidade não depende de Laravel, Illuminate, Eloquent, HTTP, Infrastructure, Sanctum ou contratos de autenticação
+
+#### Scenario: Model integra com o framework
+- **WHEN** `UserModel` é inspecionado após Authentication
+- **THEN** ele implementa `Authenticatable` e usa `HasApiTokens`
+- **AND** essa integração não é exposta por `UserEntity` nem pelos contratos de Application
 
 ### Requirement: Nome válido
 O sistema MUST remover espaços externos do nome antes de criar User e MUST rejeitar um nome que fique vazio após essa normalização ou exceda 255 caracteres.
@@ -172,16 +182,22 @@ O sistema MUST expor o CRUD de User em `/api/users` usando Form Requests, Contro
 - **THEN** responde em JSON:API respectivamente com `422`, `409` ou `404`
 
 ### Requirement: Persistência mínima de User
-O sistema MUST persistir somente identificador, nome, e-mail canônico e timestamps na tabela `users`. `UserModel` MUST representar a persistência em Infrastructure sem funcionar como entidade de Domain nem implementar autenticação nesta capability.
+O sistema MUST persistir identificador, nome, e-mail canônico, password hash e timestamps na tabela `users`. `UserModel` MUST representar essa persistência e o principal autenticável em Infrastructure sem funcionar como entidade de Domain. Tokens MUST permanecer na tabela oficial do Sanctum.
 
 #### Scenario: Registro persistido
-- **WHEN** um User é criado com sucesso
-- **THEN** a tabela `users` contém seu nome, e-mail canônico e timestamps
-- **AND** o registro não contém campos de senha, token, sessão ou verificação de e-mail
+- **WHEN** um User é criado por `SignUp`
+- **THEN** a tabela `users` contém nome, e-mail canônico, password hash e timestamps
+- **AND** não contém token, remember token ou password em texto puro
 
 #### Scenario: Mapping para o domínio
 - **WHEN** `EloquentUserRepository` recupera um registro existente
-- **THEN** ele retorna um `UserEntity` sem expor `UserModel` fora de Infrastructure
+- **THEN** retorna `UserEntity` sem password hash ou `UserModel`
+- **AND** não expõe relações ou tipos do Sanctum fora de Infrastructure
+
+#### Scenario: Serialização segura
+- **WHEN** `UserModel` é serializado acidentalmente em uma borda Laravel
+- **THEN** o atributo `password` permanece oculto
+- **AND** nenhum Personal Access Token é incluído automaticamente
 
 ### Requirement: Proteção de desenvolvimento contra N+1
 O sistema MUST impedir lazy loading do Eloquent fora de produção por meio do provider do contexto User, tornando visível em desenvolvimento a principal fonte de queries N+1 relacionais. Essa proteção MUST NOT depender exclusivamente da inicialização de outro bounded context.
@@ -204,4 +220,3 @@ O sistema MUST fornecer cenários Bruno executáveis para o CRUD completo de Use
 #### Scenario: Cenários destrutivos com cleanup
 - **WHEN** cenários de validação ou conflito criam Users auxiliares
 - **THEN** a collection fornece requests finais de cleanup para removê-los
-
