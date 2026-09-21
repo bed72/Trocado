@@ -1,0 +1,32 @@
+meta {
+  name: Get Missing Recurrence
+  type: http
+  seq: 1
+  tags: [
+    budget-recurrence
+    not-found
+  ]
+}
+
+get {
+  url: {{baseUrl}}/api/budget-recurrences/{{notFoundRecurrenceId}}
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/vnd.api+json
+}
+
+tests {
+  test("returns HTTP 404", function () {
+    expect(res.getStatus()).to.equal(404);
+  });
+
+  test("returns the recurrence not-found error", function () {
+    const error = res.getBody().errors[0];
+
+    expect(error.status).to.equal("404");
+    expect(error.title).to.equal("Recorr\u00eancia n\u00e3o encontrada");
+  });
+}

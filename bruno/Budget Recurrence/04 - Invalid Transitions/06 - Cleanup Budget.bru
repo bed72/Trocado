@@ -1,0 +1,26 @@
+meta {
+  name: Invalid Transitions - Cleanup Budget
+  type: http
+  seq: 6
+  tags: [
+    budget-recurrence
+    transition
+    cleanup
+  ]
+}
+
+delete {
+  url: {{baseUrl}}/api/budgets/{{transitionBudgetId}}
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/vnd.api+json
+}
+
+tests {
+  test("removes the transition budget", function () {
+    expect(res.getStatus()).to.equal(204);
+  });
+}

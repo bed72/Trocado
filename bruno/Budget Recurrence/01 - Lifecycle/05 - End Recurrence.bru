@@ -1,0 +1,35 @@
+meta {
+  name: End Recurrence
+  type: http
+  seq: 5
+  tags: [
+    smoke
+    budget-recurrence
+    lifecycle
+  ]
+}
+
+post {
+  url: {{baseUrl}}/api/budget-recurrences/{{recurrenceId}}/end
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/vnd.api+json
+}
+
+tests {
+  test("returns HTTP 200", function () {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("ends the recurrence without changing its cursor", function () {
+    const body = res.getBody();
+
+    expect(body.data.id).to.equal(String(bru.getVar("recurrenceId")));
+    expect(body.data.attributes.status).to.equal("ended");
+    expect(body.data.attributes.next_start_date).to.equal("2030-01-08");
+    expect(body.data.attributes.ended_at).to.be.a("string").and.not.be.empty;
+  });
+}

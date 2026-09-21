@@ -1,0 +1,45 @@
+meta {
+  name: Conflict - Setup Budget
+  type: http
+  seq: 1
+  tags: [
+    budget-recurrence
+    conflict
+  ]
+}
+
+post {
+  url: {{baseUrl}}/api/budgets
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/vnd.api+json
+  Content-Type: application/vnd.api+json
+}
+
+body:json {
+  {
+    "data": {
+      "type": "budgets",
+      "attributes": {
+        "amount": 90000,
+        "start_date": "2032-01-01",
+        "end_date": "2032-01-07"
+      }
+    }
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 201) {
+    bru.setVar("conflictingBudgetId", res.getBody().data.id);
+  }
+}
+
+tests {
+  test("creates the conflict target", function () {
+    expect(res.getStatus()).to.equal(201);
+  });
+}

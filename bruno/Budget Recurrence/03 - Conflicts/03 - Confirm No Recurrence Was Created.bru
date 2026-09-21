@@ -1,0 +1,31 @@
+meta {
+  name: Confirm Conflict Target Is Unchanged
+  type: http
+  seq: 3
+  tags: [
+    budget-recurrence
+    conflict
+  ]
+}
+
+get {
+  url: {{baseUrl}}/api/budgets/{{conflictingBudgetId}}
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/vnd.api+json
+}
+
+tests {
+  test("returns the original budget", function () {
+    const body = res.getBody();
+
+    expect(res.getStatus()).to.equal(200);
+    expect(body.data.id).to.equal(String(bru.getVar("conflictingBudgetId")));
+    expect(body.data.attributes.start_date).to.equal("2032-01-01");
+    expect(body.data.attributes.end_date).to.equal("2032-01-07");
+    expect(body.data).not.to.have.property("relationships");
+  });
+}

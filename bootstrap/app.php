@@ -1,8 +1,12 @@
 <?php
 
 use App\Budget\Application\Exceptions\BudgetNotFoundException;
+use App\Budget\Application\Exceptions\BudgetRecurrenceNotFoundException;
 use App\Budget\Domain\Exceptions\InvalidBudgetDateRangeException;
+use App\Budget\Domain\Exceptions\InvalidBudgetRecurrenceException;
 use App\Budget\Domain\Exceptions\InvalidMoneyAmountException;
+use App\Budget\Domain\Exceptions\InvalidRecurrenceTransitionException;
+use App\Budget\Domain\Exceptions\OverlappingBudgetException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -35,6 +39,14 @@ return Application::configure(basePath: dirname(__DIR__))
             ]]], 404)->header('Content-Type', 'application/vnd.api+json');
         });
 
+        $exceptions->render(function (BudgetRecurrenceNotFoundException $exception, Request $request) {
+            return response()->json(['errors' => [[
+                'status' => '404',
+                'title' => 'Recorrência não encontrada',
+                'detail' => $exception->getMessage(),
+            ]]], 404)->header('Content-Type', 'application/vnd.api+json');
+        });
+
         $exceptions->render(function (InvalidBudgetDateRangeException $exception, Request $request) {
             return response()->json(['errors' => [[
                 'status' => '422',
@@ -49,6 +61,30 @@ return Application::configure(basePath: dirname(__DIR__))
                 'title' => 'Dados inválidos',
                 'detail' => $exception->getMessage(),
             ]]], 422)->header('Content-Type', 'application/vnd.api+json');
+        });
+
+        $exceptions->render(function (InvalidBudgetRecurrenceException $exception, Request $request) {
+            return response()->json(['errors' => [[
+                'status' => '422',
+                'title' => 'Dados inválidos',
+                'detail' => $exception->getMessage(),
+            ]]], 422)->header('Content-Type', 'application/vnd.api+json');
+        });
+
+        $exceptions->render(function (OverlappingBudgetException $exception, Request $request) {
+            return response()->json(['errors' => [[
+                'status' => '409',
+                'title' => 'Conflito de datas',
+                'detail' => $exception->getMessage(),
+            ]]], 409)->header('Content-Type', 'application/vnd.api+json');
+        });
+
+        $exceptions->render(function (InvalidRecurrenceTransitionException $exception, Request $request) {
+            return response()->json(['errors' => [[
+                'status' => '409',
+                'title' => 'Transição de recorrência inválida',
+                'detail' => $exception->getMessage(),
+            ]]], 409)->header('Content-Type', 'application/vnd.api+json');
         });
 
         $exceptions->render(function (NotFoundHttpException $exception, Request $request) {

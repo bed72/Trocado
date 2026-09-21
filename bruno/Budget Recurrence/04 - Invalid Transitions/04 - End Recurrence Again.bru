@@ -1,0 +1,33 @@
+meta {
+  name: End Recurrence Again
+  type: http
+  seq: 4
+  tags: [
+    budget-recurrence
+    transition
+    conflict
+  ]
+}
+
+post {
+  url: {{baseUrl}}/api/budget-recurrences/{{transitionRecurrenceId}}/end
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/vnd.api+json
+}
+
+tests {
+  test("returns HTTP 409", function () {
+    expect(res.getStatus()).to.equal(409);
+  });
+
+  test("keeps the ended state terminal", function () {
+    const error = res.getBody().errors[0];
+
+    expect(error.title).to.equal("Transi\u00e7\u00e3o de recorr\u00eancia inv\u00e1lida");
+    expect(error.detail).to.contain("encerrada");
+  });
+}

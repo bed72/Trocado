@@ -17,6 +17,7 @@ final readonly class BudgetEntity
         public MoneyValueObject $amount,
         public ?DateTimeImmutable $createdAt = null,
         public ?DateTimeImmutable $updatedAt = null,
+        public ?int $recurrenceId = null,
     ) {
         if (! self::isCalendarDate(date: $startDate) || ! self::isCalendarDate(date: $endDate) || $startDate > $endDate) {
             throw new InvalidBudgetDateRangeException(message: 'O intervalo de datas deve ser válido e start_date não pode ser posterior a end_date.');

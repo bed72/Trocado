@@ -22,6 +22,7 @@ final class EloquentBudgetRepository implements BudgetRepository
             'end_date' => $budget->endDate,
             'start_date' => $budget->startDate,
             'amount' => $budget->amount->cents(),
+            'recurrence_id' => $budget->recurrenceId,
         ]);
         $model->save();
 
@@ -47,6 +48,18 @@ final class EloquentBudgetRepository implements BudgetRepository
         return BudgetModel::query()->whereKey(id: $id)->delete() > 0;
     }
 
+    public function hasOverlap(string $startDate, string $endDate, ?int $excludeId = null): bool
+    {
+        return BudgetModel::query()
+            ->whereDate(column: 'start_date', operator: '<=', value: $endDate)
+            ->whereDate(column: 'end_date', operator: '>=', value: $startDate)
+            ->when(
+                value: $excludeId !== null,
+                callback: fn ($query) => $query->whereKeyNot(id: $excludeId),
+            )
+            ->exists();
+    }
+
     private function toEntity(BudgetModel $model): BudgetEntity
     {
         return new BudgetEntity(
@@ -56,6 +69,7 @@ final class EloquentBudgetRepository implements BudgetRepository
             amount: MoneyValueObject::fromCents(cents: $model->amount),
             createdAt: $model->created_at === null ? null : DateTimeImmutable::createFromInterface(object: $model->created_at),
             updatedAt: $model->updated_at === null ? null : DateTimeImmutable::createFromInterface(object: $model->updated_at),
+            recurrenceId: $model->recurrence_id,
         );
     }
 }

@@ -1,0 +1,26 @@
+meta {
+  name: Update Validation - Cleanup Budget
+  type: http
+  seq: 8
+  tags: [
+    budget-recurrence
+    validation
+    cleanup
+  ]
+}
+
+delete {
+  url: {{baseUrl}}/api/budgets/{{validationRecurringBudgetId}}
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/vnd.api+json
+}
+
+tests {
+  test("removes the validation budget", function () {
+    expect(res.getStatus()).to.equal(204);
+  });
+}

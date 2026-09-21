@@ -1,0 +1,29 @@
+meta {
+  name: Resume Missing Recurrence
+  type: http
+  seq: 4
+  tags: [
+    budget-recurrence
+    not-found
+  ]
+}
+
+post {
+  url: {{baseUrl}}/api/budget-recurrences/{{notFoundRecurrenceId}}/resume
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/vnd.api+json
+}
+
+tests {
+  test("returns HTTP 404", function () {
+    expect(res.getStatus()).to.equal(404);
+  });
+
+  test("returns the recurrence not-found error", function () {
+    expect(res.getBody().errors[0].title).to.equal("Recorr\u00eancia n\u00e3o encontrada");
+  });
+}

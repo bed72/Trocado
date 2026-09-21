@@ -1,7 +1,7 @@
 # Nomes
 
-- Use sufixos que revelem o papel: `Entity`, `ValueObject`, `UseCase`, `Repository`, `Model`, `Request`, `Controller`, `JsonApiResource`, `ServiceProvider` e `Adapter`.
-- Exemplos: `BudgetEntity`, `MoneyValueObject`, `BudgetRepository`, `EloquentBudgetRepository`, `BudgetModel`, `CreateBudgetUseCase`, `BudgetJsonApiResource`.
-- Controllers podem ser separados por ação, como `CreateBudgetController`. O `BudgetResponse` existente é uma exceção anterior ao padrão; não copie o nome nem o renomeie em refactors não solicitados.
+- Use sufixos que revelem o papel: `Entity`, `ValueObject`, `UseCase`, `Repository`, `Port`, `Adapter`, `Model`, `Request`, `Controller`, `Response`, `Command`, `Enum`, `Exception` e `ServiceProvider`.
+- Exemplos: `BudgetEntity`, `MoneyValueObject`, `BudgetRepository`, `BudgetWritePort`, `BudgetWriteAdapter`, `EloquentBudgetRepository`, `BudgetModel`, `CreateBudgetUseCase`, `BudgetResponse` e `ProcessDueBudgetRecurrencesCommand`.
+- Controllers podem ser separados por ação, como `CreateBudgetController`. Classes de resposta JSON:API ficam em `Presentation/Http/Responses`, usam o sufixo `Response` e podem estender o recurso first-party do Laravel.
 - Evite nomes genéricos como `Service`, `Manager`, `Handler` ou `Helper` quando o papel for claro.
 - Não crie `BaseEntity`, `BaseUseCase`, `BaseRepository`, `BaseController`, `BaseService`, `BaseMapper` ou `BaseFactory` por antecipação.

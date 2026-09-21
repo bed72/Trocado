@@ -4,7 +4,11 @@
 - Para Laravel e packages Laravel instalados, consulte primeiro Laravel Boost/Search Docs antes de assumir APIs por memória; confira o código instalado quando necessário. Isso vale especialmente para Laravel 13, JSON:API Resources, Eloquent, migrations, validation, DI, Service Providers, Queue, Cache, rate limiting, Boost, AI SDK e Artisan.
 - Consulte o MCP disponível para versões, packages, schema, conexões, queries, logs, último erro e documentação antes de inferir o estado da aplicação. Para config, rotas e comandos, use o MCP quando houver ferramenta; caso contrário, consulte Artisan. Se o MCP não estiver acessível, indique a limitação.
 - Preserve os bounded contexts em `app/<Contexto>/{Domain,Application,Infrastructure,Presentation}`. Domain é PHP puro; Application não usa Eloquent, facades, HTTP, Infrastructure ou Service Locator.
-- Use os sufixos arquiteturais de `ARCHITECTURE.md`; crie interfaces somente para fronteiras reais, como persistência e integrações externas. Não faça refactors amplos ou crie dependências sem solicitação.
+- Use os sufixos arquiteturais de `ARCHITECTURE.md`; respostas JSON:API usam `Response`, contratos de capacidade usam `Port` e suas implementações usam `Adapter`. Crie interfaces somente para fronteiras reais.
+- Em construtores de DI, nomeie uma única dependência pelo papel (`$useCase`, `$repository`, `$port`) e qualifique pelo contexto quando houver mais de uma do mesmo papel (`$budgetRepository`, `$recurrenceRepository`). Em UseCases, ordene `Port → UseCase → Repository`.
+- Repository persiste e consulta agregados; Port expõe uma capacidade de Infrastructure, como coordenação transacional. Quando uma regra exigir atomicidade, o UseCase define a unidade pelo Port e mantém checagens, locks e escritas dentro dela.
+- Commands Laravel ficam em `Infrastructure/Console/Commands`, são adaptadores finos para UseCases e recebem valores explícitos, como a data de processamento. Scheduler evita sobreposição operacional; integridade concorrente depende de transações, locks e constraints no banco.
+- Não faça refactors amplos ou crie dependências sem solicitação.
 - Se uma mudança conflitar com a arquitetura, explique o trade-off e proponha a menor alteração antes de mudar as regras.
 - Execute verificações adequadas e Laravel Pint, quando disponível, antes de concluir. Nesta POC, não adicione usuários, autenticação, Expense, Couple, filas, jobs, IA ou testes sem nova solicitação.
 - O ambiente local usa Lerd. Antes de operá-lo, leia [as instruções existentes](.ai/lerd.md).
@@ -17,8 +21,10 @@
 # Application
 
 - Use UseCases concretos e injeção pelo construtor; não crie interfaces para cada UseCase.
-- Use contratos de Repository ou Ports para fronteiras reais de persistência e integrações externas.
-- Não importe Eloquent, Models, Builders, Controllers, Requests, Resources, facades, HTTP, Infrastructure ou SDKs concretos.
+- Em construtores de UseCases, ordene dependências como `Port → UseCase → Repository`. Use `$port`, `$useCase` e `$repository` quando houver uma única dependência do papel; qualifique pelo contexto quando houver mais de uma.
+- Use Repository para persistência e consultas de agregados. Use Port para capacidades de Infrastructure, como transações, locks e integrações externas.
+- Quando uma operação precisar ser atômica, o UseCase delimita a unidade pelo Port; checagens e escritas relacionadas permanecem na mesma execução.
+- Não importe Eloquent, Models, Builders, Controllers, Requests, Responses, facades, HTTP, Infrastructure ou SDKs concretos.
 - Não use `app()`, `resolve()` ou Service Locator.
 - Contratos de Repository expõem apenas operações necessárias e tipos independentes do ORM.
 
@@ -51,6 +57,9 @@
 - Use Laravel e Eloquent diretamente quando forem idiomáticos: Query Builder, Cache, Queue, Filesystem, HTTP Client, facades, SDKs e migrations são permitidos.
 - Implemente contratos da Application sem expor Model, Builder ou query do ORM neles.
 - Registre bindings de fronteira em Service Providers; não registre classes concretas resolvidas automaticamente.
+- Implemente Ports em classes com sufixo `Adapter`; o Adapter executa transações e locks, mas o UseCase define o escopo atômico.
+- Callbacks transacionais devem evitar efeitos externos não transacionais, pois uma tentativa pode ser repetida pelo banco.
+- Coloque Commands Laravel em `Infrastructure/Console/Commands`; mantenha-os finos, resolvendo config, relógio e I/O antes de chamar um UseCase com valores explícitos.
 - Deixe mapping simples no Repository; só extraia Mapper com complexidade real. Não crie wrappers de uma única chamada nem DI externo.
 
 === .ai/json-api rules ===
@@ -59,16 +68,16 @@
 
 - Antes de implementar, consulte Boost/Search Docs e o código Laravel instalado, especialmente em Laravel 13.
 - Prefira o suporte first-party `Illuminate\Http\Resources\JsonApi\JsonApiResource` quando aplicável.
-- Nomeie Resources como `BudgetJsonApiResource`; não use `JsonResource` tradicional por hábito.
+- Nomeie as classes do projeto como Responses, por exemplo `BudgetResponse`; não use `JsonResource` tradicional por hábito.
 - Deixe o suporte oficial serializar o envelope `data`; formate erros no limite HTTP segundo a API atual.
 
 === .ai/naming rules ===
 
 # Nomes
 
-- Use sufixos que revelem o papel: `Entity`, `ValueObject`, `UseCase`, `Repository`, `Model`, `Request`, `Controller`, `JsonApiResource`, `ServiceProvider` e `Adapter`.
-- Exemplos: `BudgetEntity`, `MoneyValueObject`, `BudgetRepository`, `EloquentBudgetRepository`, `BudgetModel`, `CreateBudgetUseCase`, `BudgetJsonApiResource`.
-- Controllers podem ser separados por ação, como `CreateBudgetController`. O `BudgetResponse` existente é uma exceção anterior ao padrão; não copie o nome nem o renomeie em refactors não solicitados.
+- Use sufixos que revelem o papel: `Entity`, `ValueObject`, `UseCase`, `Repository`, `Port`, `Adapter`, `Model`, `Request`, `Controller`, `Response`, `Command`, `Enum`, `Exception` e `ServiceProvider`.
+- Exemplos: `BudgetEntity`, `MoneyValueObject`, `BudgetRepository`, `BudgetWritePort`, `BudgetWriteAdapter`, `EloquentBudgetRepository`, `BudgetModel`, `CreateBudgetUseCase`, `BudgetResponse` e `ProcessDueBudgetRecurrencesCommand`.
+- Controllers podem ser separados por ação, como `CreateBudgetController`. Classes de resposta JSON:API ficam em `Presentation/Http/Responses`, usam o sufixo `Response` e podem estender o recurso first-party do Laravel.
 - Evite nomes genéricos como `Service`, `Manager`, `Handler` ou `Helper` quando o papel for claro.
 - Não crie `BaseEntity`, `BaseUseCase`, `BaseRepository`, `BaseController`, `BaseService`, `BaseMapper` ou `BaseFactory` por antecipação.
 
@@ -76,8 +85,8 @@
 
 # Presentation
 
-- Use Laravel para Controllers, Form Requests, Resources e middleware.
-- Prefira `HTTP → Form Request → Controller → UseCase → JsonApiResource → HTTP`.
+- Use Laravel para Controllers, Form Requests, Responses e middleware.
+- Prefira `HTTP → Form Request → Controller → UseCase → Response → HTTP`.
 - Controllers devem ser finos: sem consultas a Eloquent/Models, persistência ou regra de negócio.
 - Form Request valida entrada HTTP; mantenha invariantes no Domain para outros chamadores.
 - Facades são permitidas quando idiomáticas; prefira injeção para dependências relevantes.

@@ -1,0 +1,42 @@
+meta {
+  name: Update - Identifier Mismatch
+  type: http
+  seq: 2
+  tags: [
+    budget-recurrence
+    validation
+  ]
+}
+
+patch {
+  url: {{baseUrl}}/api/budget-recurrences/{{validationRecurrenceId}}
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/vnd.api+json
+  Content-Type: application/vnd.api+json
+}
+
+body:json {
+  {
+    "data": {
+      "type": "budget-recurrences",
+      "id": "999999999",
+      "attributes": {
+        "amount": 80000
+      }
+    }
+  }
+}
+
+tests {
+  test("returns HTTP 422", function () {
+    expect(res.getStatus()).to.equal(422);
+  });
+
+  test("points to the document identifier", function () {
+    expect(res.getBody().errors[0].source.pointer).to.equal("/data/id");
+  });
+}

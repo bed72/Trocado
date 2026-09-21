@@ -1,0 +1,44 @@
+meta {
+  name: Create - Invalid Recurring Type
+  type: http
+  seq: 1
+  tags: [
+    budget-recurrence
+    validation
+  ]
+}
+
+post {
+  url: {{baseUrl}}/api/budgets
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/vnd.api+json
+  Content-Type: application/vnd.api+json
+}
+
+body:json {
+  {
+    "data": {
+      "type": "budgets",
+      "attributes": {
+        "amount": 50000,
+        "start_date": "2031-01-01",
+        "end_date": "2031-01-07",
+        "recurring": "true"
+      }
+    }
+  }
+}
+
+tests {
+  test("returns HTTP 422", function () {
+    expect(res.getStatus()).to.equal(422);
+  });
+
+  test("points to the recurring attribute", function () {
+    expect(res.getBody().errors[0].source.pointer).to.equal("/data/attributes/recurring");
+  });
+}

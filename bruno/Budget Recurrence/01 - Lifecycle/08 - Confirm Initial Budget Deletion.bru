@@ -1,0 +1,30 @@
+meta {
+  name: Confirm Initial Budget Deletion
+  type: http
+  seq: 8
+  tags: [
+    budget-recurrence
+    lifecycle
+    cleanup
+  ]
+}
+
+get {
+  url: {{baseUrl}}/api/budgets/{{recurringBudgetId}}
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/vnd.api+json
+}
+
+tests {
+  test("returns HTTP 404", function () {
+    expect(res.getStatus()).to.equal(404);
+  });
+
+  test("returns the budget not-found error", function () {
+    expect(res.getBody().errors[0].title).to.equal("Budget n\u00e3o encontrado");
+  });
+}

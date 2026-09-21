@@ -17,9 +17,10 @@ final class CreateBudgetController
     {
         $attributes = $request->validated(key: 'data.attributes');
         $budget = $this->useCase->execute(
+            endDate: $attributes['end_date'],
             amount: (int) $attributes['amount'],
             startDate: $attributes['start_date'],
-            endDate: $attributes['end_date'],
+            recurring: $attributes['recurring'] ?? false,
         );
 
         return (new BudgetResponse(resource: $budget))->response()

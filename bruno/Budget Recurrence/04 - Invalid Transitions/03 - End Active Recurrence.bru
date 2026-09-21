@@ -1,0 +1,26 @@
+meta {
+  name: End Active Recurrence
+  type: http
+  seq: 3
+  tags: [
+    budget-recurrence
+    transition
+  ]
+}
+
+post {
+  url: {{baseUrl}}/api/budget-recurrences/{{transitionRecurrenceId}}/end
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/vnd.api+json
+}
+
+tests {
+  test("ends the active recurrence", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().data.attributes.status).to.equal("ended");
+  });
+}

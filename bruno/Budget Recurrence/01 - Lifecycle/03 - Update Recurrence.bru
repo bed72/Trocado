@@ -1,0 +1,50 @@
+meta {
+  name: Update Recurrence
+  type: http
+  seq: 3
+  tags: [
+    smoke
+    budget-recurrence
+    lifecycle
+  ]
+}
+
+patch {
+  url: {{baseUrl}}/api/budget-recurrences/{{recurrenceId}}
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/vnd.api+json
+  Content-Type: application/vnd.api+json
+}
+
+body:json {
+  {
+    "data": {
+      "type": "budget-recurrences",
+      "id": "{{recurrenceId}}",
+      "attributes": {
+        "amount": 125000,
+        "duration_in_days": 10
+      }
+    }
+  }
+}
+
+tests {
+  test("returns HTTP 200", function () {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("updates only the future template", function () {
+    const body = res.getBody();
+
+    expect(body.data.id).to.equal(String(bru.getVar("recurrenceId")));
+    expect(body.data.attributes.status).to.equal("active");
+    expect(body.data.attributes.amount).to.equal(125000);
+    expect(body.data.attributes.duration_in_days).to.equal(10);
+    expect(body.data.attributes.next_start_date).to.equal("2030-01-08");
+  });
+}

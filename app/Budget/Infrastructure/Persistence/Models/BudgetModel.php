@@ -14,6 +14,7 @@ final class BudgetModel extends Model
         'amount',
         'end_date',
         'start_date',
+        'recurrence_id',
     ];
 
     protected function casts(): array
@@ -22,6 +23,7 @@ final class BudgetModel extends Model
             'amount' => 'integer',
             'end_date' => 'immutable_date',
             'start_date' => 'immutable_date',
+            'recurrence_id' => 'integer',
             'created_at' => 'immutable_datetime',
             'updated_at' => 'immutable_datetime',
         ];

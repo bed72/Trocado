@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Budget\Presentation\Http\Responses;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\JsonApi\JsonApiRequest;
 use Illuminate\Http\Resources\JsonApi\JsonApiResource;
 
 final class BudgetResponse extends JsonApiResource
@@ -33,5 +34,27 @@ final class BudgetResponse extends JsonApiResource
     public function toLinks(Request $request): array
     {
         return ['self' => route(name: 'budgets.get', parameters: ['budget' => $this->resource->id])];
+    }
+
+    public function resolveResourceData(Request $request): array
+    {
+        $data = parent::resolveResourceData(request: $request);
+
+        $recurrenceRequested = ! $request instanceof JsonApiRequest
+            || ! $request->hasSparseFieldset(key: 'budgets')
+            || in_array(needle: 'recurrence', haystack: $request->sparseFields(key: 'budgets'), strict: true);
+
+        if ($this->resource->recurrenceId !== null && $recurrenceRequested) {
+            $data['relationships'] = [
+                'recurrence' => [
+                    'data' => [
+                        'type' => 'budget-recurrences',
+                        'id' => (string) $this->resource->recurrenceId,
+                    ],
+                ],
+            ];
+        }
+
+        return $data;
     }
 }
