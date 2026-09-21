@@ -107,8 +107,6 @@ openspec instructions apply --change "<change>" --json
 Read every path in `contextFiles`. Implement one pending task at a time and keep changes focused.
 
 - Follow the `trocado-architecture` skill for application changes.
-- When `tasks.md` contains review batches, load and follow the `trocado-batched-delivery` skill. Apply exactly one batch and stop at its human review gate.
-- Never start a later batch in the same turn that completes or approves the current batch.
 - Verify a task before changing `- [ ]` to `- [x]`.
 - Update the checkbox immediately after verification; never bulk-check tasks later.
 - If implementation reveals a behavioral or design change, update the artifacts and revalidate before continuing.
@@ -165,9 +163,6 @@ openspec list --specs --json
 
 - Use numbered groups and parseable `- [ ]` checkboxes.
 - Order tasks by dependency and make each independently verifiable.
-- For non-trivial work, organize tasks into dependency-ordered review batches with an objective, expected scope, a maximum budget of 20 unique changed files, and an `Estado do lote` marker.
-- Make each batch independently integrable and include its focused verification. Split a batch before implementation when the predicted scope may exceed the budget.
-- Keep human approval outside task checkboxes so OpenSpec progress reflects implementation work only.
 - Include migrations, documentation, formatting, and operational checks when applicable.
 - Trace implementation and verification work back to requirements and scenarios.
 - Never mark work complete based only on intent.

@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Authentication usa Laravel Sanctum
-O sistema MUST usar Laravel Sanctum como mecanismo de autenticação HTTP e MUST NOT implementar guard, principal, formato de token, geração de token, digest, tabela de token ou resolução Bearer próprios.
+O sistema MUST usar Laravel Sanctum como mecanismo de autenticação da API e MUST NOT implementar guard, principal, formato de token, geração de token, digest, tabela de token ou resolução Bearer próprios.
 
 #### Scenario: Dependência suportada
 - **WHEN** a implementação de Authentication é inspecionada
@@ -9,9 +9,9 @@ O sistema MUST usar Laravel Sanctum como mecanismo de autenticação HTTP e MUST
 - **AND** rotas protegidas usam o guard `sanctum`
 
 #### Scenario: Ausência de infraestrutura paralela
-- **WHEN** os componentes de sessão e token são inspecionados
+- **WHEN** os componentes de token são inspecionados
 - **THEN** tokens de API usam `personal_access_tokens` e o guard do Sanctum
-- **AND** não existem `authentication_sessions`, token generator, token digest, request guard ou principal equivalentes mantidos pela aplicação
+- **AND** não existe tabela de token própria, token generator, token digest, request guard ou principal equivalente mantido pela aplicação
 
 ### Requirement: Authentication respeita as fronteiras do projeto
 O sistema MUST manter regras de senha e orquestração próprias nas camadas adequadas, MUST manter Domain e Application livres de Laravel e MUST limitar integrações com Auth, Eloquent e Sanctum a Infrastructure ou Presentation.
@@ -28,12 +28,12 @@ O sistema MUST manter regras de senha e orquestração próprias nas camadas ade
 - **AND** contratos próprios existem somente quando preservam uma fronteira real de Application
 
 ### Requirement: UserModel é o principal autenticável
-O sistema MUST usar `UserModel` como principal Eloquent dos guards Laravel, MUST habilitá-lo com `HasApiTokens` e MUST manter `UserEntity` sem framework, password, token ou sessão.
+O sistema MUST usar `UserModel` como principal autenticável resolvido pelo Sanctum, MUST habilitá-lo com `HasApiTokens` e MUST manter `UserEntity` sem framework, password ou token.
 
 #### Scenario: Principal resolvido pelo Sanctum
-- **WHEN** uma requisição protegida é autenticada por sessão first-party ou Bearer token
+- **WHEN** uma requisição protegida é autenticada por Bearer token
 - **THEN** `$request->user()` retorna o `UserModel` correspondente
-- **AND** Sanctum disponibiliza o token atual quando o transporte for Bearer
+- **AND** Sanctum disponibiliza o token atual
 
 #### Scenario: Domain permanece puro
 - **WHEN** `UserEntity` é inspecionada
@@ -55,7 +55,7 @@ O sistema MUST armazenar somente password hash adaptativo na coluna `users.passw
 
 #### Scenario: Infraestrutura própria não é criada
 - **WHEN** o schema é inspecionado
-- **THEN** não existem tabelas `authentication_credentials` ou `authentication_sessions`
+- **THEN** não existe tabela `authentication_credentials` nem tabela de token mantida pela aplicação
 - **AND** tokens ficam na tabela oficial `personal_access_tokens`
 
 ### Requirement: Senha válida e preservada
@@ -68,7 +68,7 @@ O sistema MUST preservar exatamente a senha informada, MUST aceitar somente senh
 #### Scenario: Senha fora dos limites
 - **WHEN** a senha possui menos de 8 caracteres ou mais de 72 bytes
 - **THEN** responde `422`
-- **AND** nenhum User, token ou sessão é criado
+- **AND** nenhum User ou token é criado
 
 #### Scenario: Confirmação divergente
 - **WHEN** `password_confirmation` difere de `password`
@@ -80,12 +80,12 @@ O sistema MUST criar nome, e-mail canônico e password hash em uma única transa
 #### Scenario: SignUp bem-sucedido
 - **WHEN** nome, e-mail disponível e senha confirmada são válidos
 - **THEN** um único registro `users` é persistido com password hash
-- **AND** nenhum Personal Access Token ou sessão web é criado
+- **AND** nenhum Personal Access Token é criado
 
 #### Scenario: E-mail já utilizado
 - **WHEN** o e-mail canônico já pertence a um User
 - **THEN** responde `409` sem alterar aquele User
-- **AND** não cria password, token ou sessão adicional
+- **AND** não cria password ou token adicional
 
 #### Scenario: Concorrência no mesmo e-mail
 - **WHEN** dois `SignUp` concorrentes usam o mesmo e-mail canônico
@@ -133,7 +133,7 @@ O sistema MUST responder com o mesmo status, título e detalhe público quando o
 
 #### Scenario: Falha não emite autenticação
 - **WHEN** as credenciais não são confirmadas
-- **THEN** nenhum Personal Access Token ou sessão web é criado
+- **THEN** nenhum Personal Access Token é criado
 
 ### Requirement: Token de API é gerenciado pelo Sanctum
 O sistema MUST delegar geração, hash SHA-256, lookup, autenticação e revogação de Bearer token ao Sanctum, MUST configurar expiração fixa padrão de 120 minutos e MUST NOT renovar o token a cada request.
@@ -170,43 +170,20 @@ A API MUST responder `SignIn` válido com recurso JSON:API `access-tokens`, toke
 - **WHEN** qualquer resposta posterior usa o token
 - **THEN** o plain-text token não é recuperado da persistência nem devolvido novamente
 
-### Requirement: Web usa sessão Laravel first-party
-O fluxo web MUST usar guard `web`, sessão e cookie nativos do Laravel, MUST regenerar a sessão após `SignIn`, MUST proteger operações mutáveis por CSRF e MUST NOT colocar Personal Access Token em cookie próprio.
-
-#### Scenario: SignIn web
-- **WHEN** credenciais válidas e CSRF válido são enviados ao endpoint web
-- **THEN** o guard `web` autentica o User e regenera o session ID
-- **AND** redireciona sem token no corpo, URL ou flash data
-
-#### Scenario: Cookie protegido
-- **WHEN** a sessão web é emitida
-- **THEN** o cookie é criptografado e assinado, `HttpOnly`, `SameSite=Lax` e `Secure` em produção
-- **AND** sua configuração vem do mecanismo de sessão Laravel
-
-#### Scenario: Ausência de CSRF
-- **WHEN** uma operação web mutável não possui prova CSRF válida
-- **THEN** o middleware web rejeita a operação
-- **AND** nenhuma conta ou autenticação é alterada
-
-### Requirement: Sanctum reconhece sessão ou Bearer
-Rotas protegidas MUST usar `auth:sanctum` e MUST aceitar sessão first-party válida ou Personal Access Token Bearer válido conforme a resolução oficial do pacote.
+### Requirement: Sanctum reconhece Bearer token
+Rotas protegidas MUST usar `auth:sanctum` e MUST aceitar Personal Access Token válido enviado por `Authorization: Bearer` conforme a resolução oficial do pacote.
 
 #### Scenario: Bearer válido
 - **WHEN** uma requisição envia Personal Access Token válido em `Authorization: Bearer`
 - **THEN** Sanctum resolve o `UserModel` correspondente
 - **AND** disponibiliza `currentAccessToken()`
 
-#### Scenario: Sessão web válida
-- **WHEN** uma requisição first-party envia sessão Laravel válida
-- **THEN** Sanctum resolve o mesmo `UserModel` pelo guard web
-- **AND** não cria Personal Access Token
-
 #### Scenario: Credencial ausente ou inválida
-- **WHEN** não existe sessão first-party nem Bearer token válido
+- **WHEN** não existe Bearer token válido
 - **THEN** a API responde `401` em JSON:API
 
-### Requirement: SignOut encerra somente o mecanismo atual
-O sistema MUST revogar somente o Personal Access Token atual no fluxo API e MUST encerrar somente a sessão atual no fluxo web, sem apagar password ou outras autenticações do User.
+### Requirement: SignOut revoga somente o token atual
+O sistema MUST revogar somente o Personal Access Token usado na requisição, sem apagar password ou outros tokens do User.
 
 #### Scenario: SignOut de API
 - **WHEN** `DELETE /api/authentication/sign-out` recebe Bearer válido
@@ -218,36 +195,16 @@ O sistema MUST revogar somente o Personal Access Token atual no fluxo API e MUST
 - **THEN** somente o token atual é removido
 - **AND** o outro continua válido
 
-#### Scenario: SignOut web
-- **WHEN** o endpoint web recebe sessão e CSRF válidos
-- **THEN** executa logout, invalida a sessão e regenera o token CSRF
-- **AND** redireciona como visitante sem revogar Personal Access Tokens
-
-### Requirement: Rate limiting de SignIn
-O sistema MUST limitar `SignIn` a cinco tentativas por minuto por combinação de IP e digest da forma normalizada do e-mail, MUST compartilhar a regra entre API e web e MUST NOT persistir e-mail em claro na chave.
-
-#### Scenario: Limite excedido
-- **WHEN** ocorre a sexta tentativa na mesma janela e chave
-- **THEN** a API responde `429` antes de verificar credenciais ou emitir token
-
-#### Scenario: Chaves independentes
-- **WHEN** muda o IP ou o e-mail normalizado
-- **THEN** a tentativa usa outra chave de rate limiting
-
-#### Scenario: Chave opaca
-- **WHEN** a chave é persistida pelo backend
-- **THEN** contém digest do e-mail e não o e-mail em claro
-
 ### Requirement: Erros seguem JSON:API
 A API MUST responder erros de Authentication com `application/vnd.api+json`, array `errors`, status textual, título e detalhe seguros, e MUST fornecer `source.pointer` para validação.
 
 #### Scenario: Mapeamento de falhas
-- **WHEN** ocorre credencial inválida, conflito, validação ou throttling
-- **THEN** responde respectivamente `401`, `409`, `422` ou `429`
+- **WHEN** ocorre credencial inválida, conflito ou validação
+- **THEN** responde respectivamente `401`, `409` ou `422`
 - **AND** não inclui stack trace, password, hash ou token
 
 ### Requirement: Authentication não concede autorização
-O sistema MUST limitar Authentication à comprovação do principal e MUST NOT interpretar sessão ou token válido como autorização sobre recursos de User ou Budget.
+O sistema MUST limitar Authentication à comprovação do principal e MUST NOT interpretar token válido como autorização sobre recursos de User ou Budget.
 
 #### Scenario: Rotas existentes
 - **WHEN** esta mudança é aplicada
@@ -259,7 +216,7 @@ O sistema MUST usar `SignUp`, `SignIn` e `SignOut` nos adaptadores próprios, MU
 
 #### Scenario: Cobertura automatizada
 - **WHEN** a suíte focada é executada
-- **THEN** cobre SignUp atômico, falhas genéricas, token Sanctum, expiração, sessão web, CSRF, rate limiting e SignOut seletivo
+- **THEN** cobre SignUp atômico, falhas genéricas, token Sanctum, expiração e SignOut seletivo
 
 #### Scenario: Collection Bruno segura
 - **WHEN** o fluxo manual da API é executado

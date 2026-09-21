@@ -8,11 +8,3 @@ schema: spec-driven
 #     Tech stack: TypeScript, React, Node.js
 #     We use conventional commits
 #     Domain: e-commerce platform
-
-rules:
-  tasks:
-    - Organize non-trivial implementation work into dependency-ordered, independently integrable review batches.
-    - Give every batch an objective, dependencies, a maximum budget of 20 unique changed files, an expected scope, and an exact `**Estado do lote:** PENDING` marker.
-    - Keep each batch vertical or a coherent prerequisite foundation; do not group work only by architectural layer or by an arbitrary file count.
-    - Include implementation and verification in the same batch, and split the batch before implementation when its expected scope can exceed 20 files.
-    - Human review is a hard gate between batches; approval is not a checkbox task and must never be inferred from completed tests or a request to continue.

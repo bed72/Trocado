@@ -100,7 +100,7 @@ Run only checks relevant to the change, from narrow to broad:
 
 If migrations changed, inspect the schema and apply pending migrations with Lerd before manual HTTP or command verification. Never use `migrate:fresh` without explicit authorization.
 
-After PHP changes, run Laravel Pint with `--dirty --format agent`, then rerun affected tests. Do not add tests unless the user requested them or an approved SDD task explicitly includes them.
+After PHP changes, run Laravel Pint with `--dirty --format agent`, then rerun affected tests. Do not add tests unless the user requested them or an SDD task explicitly includes them.
 
 When the change affects live request/database behavior, use Lerd diagnostics and logs as appropriate rather than inferring success from tests alone.
 
@@ -118,19 +118,6 @@ A change is ready to archive only when:
 - Main specs will have meaningful purpose and durable requirements after archive.
 
 If any item fails, do not archive automatically. Report the smallest concrete work needed to pass.
-
-## Batch Review Gate
-
-When `tasks.md` uses review batches, evaluate only the batch being delivered while preserving change-wide architectural and behavioral consistency.
-
-- Confirm every task in the batch has evidence and later-batch tasks remain untouched.
-- Count every unique file changed by the batch, including code, tests, migrations, configuration, dependency manifests, lockfiles, documentation, and API collections.
-- Exclude only mechanical checkbox and `Estado do lote` updates in `tasks.md`; substantive OpenSpec artifact changes count.
-- Fail the gate above 20 files unless the user explicitly approved an exception before implementation.
-- Require focused tests, affected architecture checks, strict OpenSpec validation, and Pint when PHP changed.
-- Report the exact changed-file list, commands run, failures, residual risks, and deferred work.
-- A passing quality gate moves the batch only to `AWAITING_REVIEW`; it does not constitute human approval.
-- Only an explicit approval naming the batch may move it to `APPROVED`, and approval never starts the next batch in the same turn.
 
 ## Report Format
 
