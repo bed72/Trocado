@@ -3,6 +3,12 @@
 declare(strict_types=1);
 
 use App\Budget\Infrastructure\Persistence\Models\BudgetModel;
+use App\User\Infrastructure\Persistence\Models\UserModel;
+use Laravel\Sanctum\Sanctum;
+
+beforeEach(function (): void {
+    Sanctum::actingAs(new UserModel);
+});
 
 it('deletes a budget and it can no longer be retrieved', function (): void {
     $budget = BudgetModel::query()->create([

@@ -70,6 +70,24 @@ it('creates independent tokens and revokes only the current bearer token', funct
     $this->assertDatabaseCount('personal_access_tokens', 0);
 });
 
+it('accepts an issued bearer token on private application routes', function (): void {
+    authenticationCreateUser();
+    $token = $this->postJson(
+        route('authentication.api.sign-in'),
+        authenticationSignInPayload(),
+    )->assertOk()->json('data.attributes.token');
+
+    $this->withToken($token)->getJson(route('budgets.get-all'))
+        ->assertOk()
+        ->assertExactJson(['data' => []]);
+
+    app('auth')->forgetGuards();
+
+    $this->withToken($token)->getJson(route('users.get-all'))
+        ->assertOk()
+        ->assertJsonCount(1, 'data');
+});
+
 it('returns the same generic response for every invalid credential condition', function (string $condition): void {
     $email = 'maria@example.com';
     $password = 'correct password';

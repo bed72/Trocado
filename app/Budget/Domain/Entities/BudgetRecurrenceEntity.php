@@ -16,8 +16,8 @@ final readonly class BudgetRecurrenceEntity
         public ?int $id,
         public int $durationInDays,
         public string $nextStartDate,
-        public RecurrenceStatusEnum $status,
         public MoneyValueObject $amount,
+        public RecurrenceStatusEnum $status,
         public ?DateTimeImmutable $endedAt = null,
         public ?DateTimeImmutable $createdAt = null,
         public ?DateTimeImmutable $updatedAt = null,
@@ -33,8 +33,8 @@ final readonly class BudgetRecurrenceEntity
 
         $interval = self::calculateInterval(startDate: $nextStartDate, durationInDays: $durationInDays);
         self::calculateInterval(
-            startDate: $interval[2]->format(format: 'Y-m-d'),
             durationInDays: $durationInDays,
+            startDate: $interval[2]->format(format: 'Y-m-d'),
         );
     }
 
@@ -61,8 +61,8 @@ final readonly class BudgetRecurrenceEntity
         );
 
         return [
-            'startDate' => $startDate->format(format: 'Y-m-d'),
             'endDate' => $endDate->format(format: 'Y-m-d'),
+            'startDate' => $startDate->format(format: 'Y-m-d'),
             'nextStartDate' => $nextStartDate->format(format: 'Y-m-d'),
         ];
     }
@@ -125,13 +125,13 @@ final readonly class BudgetRecurrenceEntity
     }
 
     private function copy(
-        ?RecurrenceStatusEnum $status = null,
-        ?MoneyValueObject $amount = null,
         ?int $durationInDays = null,
-        ?string $nextStartDate = null,
-        ?DateTimeImmutable $blockedAt = null,
-        ?DateTimeImmutable $endedAt = null,
         bool $clearBlockedAt = false,
+        ?string $nextStartDate = null,
+        ?MoneyValueObject $amount = null,
+        ?DateTimeImmutable $endedAt = null,
+        ?RecurrenceStatusEnum $status = null,
+        ?DateTimeImmutable $blockedAt = null,
     ): self {
         return new self(
             id: $this->id,

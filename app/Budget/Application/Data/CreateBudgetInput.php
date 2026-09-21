@@ -8,8 +8,8 @@ final readonly class CreateBudgetInput
 {
     public function __construct(
         public int $amount,
-        public string $startDate,
         public string $endDate,
+        public string $startDate,
         public bool $recurring = false,
     ) {}
 }

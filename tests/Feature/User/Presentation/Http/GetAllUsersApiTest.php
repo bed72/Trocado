@@ -3,6 +3,11 @@
 declare(strict_types=1);
 
 use App\User\Infrastructure\Persistence\Models\UserModel;
+use Laravel\Sanctum\Sanctum;
+
+beforeEach(function (): void {
+    Sanctum::actingAs(new UserModel);
+});
 
 it('returns an empty JSON API user collection', function (): void {
     $this->getJson(route('users.get-all'))

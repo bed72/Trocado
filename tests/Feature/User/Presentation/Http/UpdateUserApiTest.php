@@ -3,8 +3,11 @@
 declare(strict_types=1);
 
 use App\User\Infrastructure\Persistence\Models\UserModel;
+use Laravel\Sanctum\Sanctum;
 
 beforeEach(function (): void {
+    Sanctum::actingAs(new UserModel);
+
     $this->user = UserModel::query()->create(['name' => 'Maria', 'email' => 'maria@example.com']);
 });
 

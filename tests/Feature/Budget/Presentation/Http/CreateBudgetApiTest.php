@@ -2,6 +2,13 @@
 
 declare(strict_types=1);
 
+use App\User\Infrastructure\Persistence\Models\UserModel;
+use Laravel\Sanctum\Sanctum;
+
+beforeEach(function (): void {
+    Sanctum::actingAs(new UserModel);
+});
+
 it('creates and returns a complete JSON API budget resource', function (): void {
     $response = $this->postJson(route('budgets.create'), validCreateBudgetApiPayload(), [
         'Accept' => 'application/vnd.api+json',

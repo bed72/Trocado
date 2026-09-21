@@ -3,6 +3,11 @@
 declare(strict_types=1);
 
 use App\User\Infrastructure\Persistence\Models\UserModel;
+use Laravel\Sanctum\Sanctum;
+
+beforeEach(function (): void {
+    Sanctum::actingAs(new UserModel);
+});
 
 it('creates and returns a canonical JSON API user resource', function (): void {
     $response = $this->postJson(route('users.create'), validCreateUserApiPayload(), [

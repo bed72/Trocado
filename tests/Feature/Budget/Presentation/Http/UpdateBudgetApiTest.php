@@ -3,8 +3,12 @@
 declare(strict_types=1);
 
 use App\Budget\Infrastructure\Persistence\Models\BudgetModel;
+use App\User\Infrastructure\Persistence\Models\UserModel;
+use Laravel\Sanctum\Sanctum;
 
 beforeEach(function (): void {
+    Sanctum::actingAs(new UserModel);
+
     $this->budget = BudgetModel::query()->create([
         'amount' => 12500,
         'start_date' => '2026-09-01',

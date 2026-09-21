@@ -27,10 +27,10 @@ final readonly class UpdateBudgetUseCase
                 id: $input->id,
                 createdAt: $current->createdAt,
                 updatedAt: $current->updatedAt,
+                recurrenceId: $current->recurrenceId,
                 endDate: $input->endDate ?? $current->endDate,
                 startDate: $input->startDate ?? $current->startDate,
                 amount: $input->amount === null ? $current->amount : MoneyValueObject::fromCents(cents: $input->amount),
-                recurrenceId: $current->recurrenceId,
             );
 
             if ($this->repository->hasOverlap(

@@ -3,6 +3,11 @@
 declare(strict_types=1);
 
 use App\User\Infrastructure\Persistence\Models\UserModel;
+use Laravel\Sanctum\Sanctum;
+
+beforeEach(function (): void {
+    Sanctum::actingAs(new UserModel);
+});
 
 it('deletes a user and it can no longer be retrieved', function (): void {
     $user = UserModel::query()->create(['name' => 'Maria', 'email' => 'maria@example.com']);

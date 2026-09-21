@@ -3,6 +3,12 @@
 declare(strict_types=1);
 
 use App\Budget\Infrastructure\Persistence\Models\BudgetModel;
+use App\User\Infrastructure\Persistence\Models\UserModel;
+use Laravel\Sanctum\Sanctum;
+
+beforeEach(function (): void {
+    Sanctum::actingAs(new UserModel);
+});
 
 it('returns an empty JSON API collection', function (): void {
     $this->getJson(route('budgets.get-all'))
