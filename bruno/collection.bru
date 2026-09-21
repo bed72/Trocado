@@ -1,0 +1,69 @@
+headers {
+  Accept: application/vnd.api+json
+}
+
+vars:pre-request {
+  notFoundBudgetId: 999999999
+  notFoundRecurrenceId: 999999999
+  notFoundUserId: 999999999
+}
+
+script:pre-request {
+  const baseUrl = bru.getEnvVar("baseUrl");
+  const allowedHosts = new Set(["127.0.0.1", "localhost", "trocado.test"]);
+
+  if (!baseUrl) {
+    throw new Error("Select an approved Bruno environment before running requests.");
+  }
+
+  const target = baseUrl.match(/^https?:\/\/([^/:?#]+)(?::\d+)?(?:[/?#]|$)/i);
+  const hostname = target?.[1]?.toLowerCase();
+
+  if (!hostname || !allowedHosts.has(hostname)) {
+    throw new Error(`Bruno requests are blocked for unapproved host: ${hostname ?? baseUrl}`);
+  }
+}
+
+docs {
+  # Trocado API
+
+  Referência operacional executável para consumidores da API. Os requisitos normativos permanecem em `openspec/specs/` e nas mudanças ativas de `openspec/changes/`; esta collection demonstra como exercitar esses contratos pela borda HTTP.
+
+  ## Pré-requisitos
+
+  - Execute a aplicação e as migrations em um banco apropriado para testes.
+  - Selecione um ambiente Bruno antes de enviar requests. No ambiente `Local`, `baseUrl` aponta para a aplicação servida pelo Lerd.
+  - Não execute cenários mutáveis ou destrutivos contra produção ou banco compartilhado.
+
+  ## JSON:API
+
+  Os endpoints em `/api` usam `application/vnd.api+json`. Requests com documento JSON:API enviam `Content-Type` explicitamente; requests sem body não precisam desse header. Recursos usam IDs em formato string e respostas de erro usam o membro `errors`.
+
+  O endpoint de health `/up` é uma exceção operacional e responde JSON comum.
+
+  ## Valores monetários
+
+  O atributo `amount` é um inteiro em centavos. Por exemplo, `125000` representa 1.250,00 na moeda apresentada pelo aplicativo consumidor. Não envie valores decimais nesse campo.
+
+  ## Ambientes e variáveis
+
+  `baseUrl` identifica o destino selecionado. Os IDs reservados para not-found são fixtures estáveis e não identificam recursos do destino. IDs e dados produzidos por requests de setup são variáveis de runtime e valem apenas durante a execução. Credenciais e tokens reais não devem ser gravados na collection ou em ambientes versionados.
+
+  ## Autenticação
+
+  Execute a pasta `Authentication` em ordem. O login captura o token Bearer como variável de runtime; somente requests protegidos o enviam. O logout revoga a sessão e o cenário seguinte comprova que o mesmo token deixou de ser aceito.
+
+  ## Execução segura
+
+  Execute pastas e requests em ordem crescente de `seq`. Os cenários compartilham variáveis de runtime, criam, alteram e removem dados, portanto a execução deve ser serial. Cada pasta informa seus passos de setup e cleanup; se uma execução falhar no meio, faça o cleanup indicado antes de repetir o fluxo.
+
+  ## Referência HTML
+
+  A referência compartilhável é `docs/trocado-api-documentation.html`, gerada com Bruno Desktop 4.1.0 e somente o ambiente `CI`:
+
+  1. Abra `Collection Settings > Documentation > Generate Docs`.
+  2. Selecione somente o ambiente `CI` e gere o arquivo.
+  3. Mova o resultado para `docs/trocado-api-documentation.html`.
+
+  Regere o arquivo após alterar requests ou documentação. O HTML é derivado desta collection, não deve ser editado manualmente e não substitui OpenSpec.
+}

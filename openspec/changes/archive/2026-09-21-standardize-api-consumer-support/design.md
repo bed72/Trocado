@@ -45,7 +45,7 @@ Alternativa rejeitada: manter todos os valores no arquivo de ambiente. Isso é s
 
 ### O fluxo Authentication reutilizará a sessão emitida, sem fixture secreta
 
-Os requests serão ordenados para criar uma identidade e credencial temporárias, iniciar sessão, capturar o token retornado uma única vez, provar uma chamada Bearer, encerrar a sessão e provar que o mesmo token foi revogado. Falhas de validação, credenciais inválidas, conflito e throttling continuarão em cenários próprios conforme `add-authentication`.
+Os requests serão ordenados para criar uma identidade e credencial temporárias, iniciar sessão, capturar o token retornado uma única vez, provar uma chamada Bearer, encerrar a sessão e provar que o mesmo token foi revogado. Falhas de validação, credenciais inválidas e conflito continuarão em cenários próprios conforme a spec vigente de Authentication; throttling permanece fora do escopo da capability.
 
 O token será salvo com `bru.setVar` no post-response de `SignIn`; nenhum valor real aparecerá na collection ou nos ambientes. Requests públicos de `SignUp` e `SignIn` declararão `auth: none`, e requests protegidos referenciarão a runtime variable.
 
@@ -67,7 +67,7 @@ O ambiente de CI terá `baseUrl` próprio e uma guarda impedirá destinos de pro
 
 A forma de instalar o Bruno CLI será escolhida durante a implementação entre dependência de desenvolvimento e action oficial fixada. Nenhuma dependência será adicionada sem a aprovação exigida pelo projeto.
 
-Alternativas rejeitadas: executar toda a collection em paralelo ou contra staging compartilhado. A primeira quebra encadeamento; a segunda torna dados e rate limiting não determinísticos e amplia o risco de limpeza indevida.
+Alternativas rejeitadas: executar toda a collection em paralelo ou contra staging compartilhado. A primeira quebra encadeamento; a segunda torna os dados não determinísticos e amplia o risco de limpeza indevida.
 
 ### O HTML será derivado e regenerável
 
@@ -81,7 +81,6 @@ Alternativa rejeitada: manter uma documentação HTML escrita separadamente. Ela
 
 - [A collection e os endpoints podem divergir] -> Executar smoke em CI e derivar o HTML da mesma collection, mantendo regras duráveis em OpenSpec.
 - [Cenários Bruno mutáveis podem deixar dados após falha intermediária] -> Usar dados exclusivos, cleanup explícito e banco descartável em CI; não prometer isolamento transacional entre requests HTTP.
-- [Rate limiting torna execução repetida sensível ao tempo] -> Manter o cenário de throttling fora do subconjunto smoke padrão ou usar uma chave exclusiva quando o requisito permitir.
 - [Um relatório pode capturar password ou token] -> Usar runtime/secret variables, mascaramento e reporters configurados para omitir headers e bodies sensíveis.
 - [Documentação interativa pode apontar para destino perigoso] -> Gerar com ambiente não produtivo e deixar produção fora dos ambientes publicados.
 - [A mudança depende de endpoints ainda ativos em `add-authentication`] -> Implementar a organização comum independentemente e concluir os cenários autenticados somente após a capability Authentication estar disponível.

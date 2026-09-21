@@ -1,8 +1,9 @@
 meta {
   name: Cleanup User
   type: http
-  seq: 7
+  seq: 9
   tags: [
+    smoke
     authentication
     cleanup
   ]
@@ -14,12 +15,14 @@ delete {
   auth: none
 }
 
-headers {
-  Accept: application/vnd.api+json
-}
-
 script:post-response {
-  bru.deleteVar("authenticationUserId");
+  if (res.getStatus() === 204) {
+    bru.deleteVar("authenticationUserId");
+    bru.deleteVar("authenticationToken");
+    bru.deleteVar("authenticationEmail");
+    bru.deleteVar("authenticationPassword");
+    bru.deleteVar("authenticationInvalidPassword");
+  }
 }
 
 tests {

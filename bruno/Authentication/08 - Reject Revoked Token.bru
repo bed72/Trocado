@@ -1,8 +1,9 @@
 meta {
   name: Reject Revoked Token
   type: http
-  seq: 6
+  seq: 8
   tags: [
+    smoke
     authentication
     revoked-token
   ]
@@ -11,19 +12,13 @@ meta {
 delete {
   url: {{baseUrl}}/api/authentication/sign-out
   body: none
-  auth: bearer
-}
-
-auth:bearer {
-  token: {{authenticationToken}}
-}
-
-headers {
-  Accept: application/vnd.api+json
+  auth: inherit
 }
 
 script:post-response {
-  bru.deleteVar("authenticationToken");
+  if (res.getStatus() === 401) {
+    bru.deleteVar("authenticationToken");
+  }
 }
 
 tests {

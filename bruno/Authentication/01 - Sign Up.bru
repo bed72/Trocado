@@ -15,8 +15,17 @@ post {
 }
 
 headers {
-  Accept: application/vnd.api+json
   Content-Type: application/vnd.api+json
+}
+
+script:pre-request {
+  if (!bru.getVar("authenticationEmail")) {
+    const runId = `${Date.now()}${Math.floor(Math.random() * 1000000).toString().padStart(6, "0")}`;
+
+    bru.setVar("authenticationEmail", `authentication.bruno.${runId}@example.com`);
+    bru.setVar("authenticationPassword", `B${runId.slice(-8)}x`);
+    bru.setVar("authenticationInvalidPassword", `C${runId.slice(-8)}y`);
+  }
 }
 
 body:json {
@@ -25,9 +34,9 @@ body:json {
       "type": "sign-ups",
       "attributes": {
         "name": "Authentication Bruno",
-        "email": "AUTHENTICATION.BRUNO@EXAMPLE.COM",
-        "password": "Bruno123",
-        "password_confirmation": "Bruno123"
+        "email": "{{authenticationEmail}}",
+        "password": "{{authenticationPassword}}",
+        "password_confirmation": "{{authenticationPassword}}"
       }
     }
   }
@@ -40,6 +49,12 @@ script:post-response {
 }
 
 tests {
+  test("does not inherit Bearer on a public request", function () {
+    const authorization = req.headers.authorization ?? req.headers.Authorization;
+
+    expect(authorization).to.equal(undefined);
+  });
+
   test("returns HTTP 201 without a token", function () {
     const body = res.getBody();
 

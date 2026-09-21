@@ -15,9 +15,6 @@ post {
   auth: none
 }
 
-headers {
-  Accept: application/vnd.api+json
-}
 
 tests {
   test("returns HTTP 409", function () {
@@ -31,4 +28,8 @@ tests {
     expect(error.title).to.equal("Transi\u00e7\u00e3o de recorr\u00eancia inv\u00e1lida");
     expect(error.detail).to.contain("bloqueada");
   });
+}
+
+docs {
+  Demonstra uma transição inválida: uma recorrência já ativa não pode ser retomada. O estado permanece ativo e a API responde `409`; somente uma recorrência bloqueada aceita a operação de resume.
 }

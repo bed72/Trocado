@@ -15,7 +15,6 @@ post {
 }
 
 headers {
-  Accept: application/vnd.api+json
   Content-Type: application/vnd.api+json
 }
 
@@ -25,9 +24,9 @@ body:json {
       "type": "sign-ups",
       "attributes": {
         "name": "Duplicate Authentication Bruno",
-        "email": "authentication.bruno@example.com",
-        "password": "Outra123",
-        "password_confirmation": "Outra123"
+        "email": "{{authenticationEmail}}",
+        "password": "{{authenticationPassword}}",
+        "password_confirmation": "{{authenticationPassword}}"
       }
     }
   }

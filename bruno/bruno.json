@@ -1,5 +1,6 @@
 {
   "version": "1",
+  "collectionVersion": "1.0.0",
   "name": "Trocado API",
   "type": "collection",
   "defaultEnvironment": "Local",

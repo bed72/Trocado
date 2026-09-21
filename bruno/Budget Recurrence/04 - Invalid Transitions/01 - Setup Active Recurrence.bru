@@ -15,8 +15,17 @@ post {
 }
 
 headers {
-  Accept: application/vnd.api+json
   Content-Type: application/vnd.api+json
+}
+
+script:pre-request {
+  const dayInMilliseconds = 24 * 60 * 60 * 1000;
+  const offset = (Date.now() + Math.floor(Math.random() * 36500)) % 36500;
+  const startDate = new Date(Date.UTC(2100, 0, 1) + offset * dayInMilliseconds);
+  const endDate = new Date(startDate.getTime() + 6 * dayInMilliseconds);
+
+  bru.setVar("transitionStartDate", startDate.toISOString().slice(0, 10));
+  bru.setVar("transitionEndDate", endDate.toISOString().slice(0, 10));
 }
 
 body:json {
@@ -25,8 +34,8 @@ body:json {
       "type": "budgets",
       "attributes": {
         "amount": 110000,
-        "start_date": "2033-01-01",
-        "end_date": "2033-01-07",
+        "start_date": "{{transitionStartDate}}",
+        "end_date": "{{transitionEndDate}}",
         "recurring": true
       }
     }

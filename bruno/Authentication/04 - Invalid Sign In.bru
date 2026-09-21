@@ -1,7 +1,7 @@
 meta {
   name: Invalid Sign In
   type: http
-  seq: 3
+  seq: 4
   tags: [
     authentication
     invalid-credentials
@@ -15,7 +15,6 @@ post {
 }
 
 headers {
-  Accept: application/vnd.api+json
   Content-Type: application/vnd.api+json
 }
 
@@ -24,8 +23,8 @@ body:json {
     "data": {
       "type": "access-tokens",
       "attributes": {
-        "email": "authentication.bruno@example.com",
-        "password": "incorrect password"
+        "email": "{{authenticationEmail}}",
+        "password": "{{authenticationInvalidPassword}}"
       }
     }
   }

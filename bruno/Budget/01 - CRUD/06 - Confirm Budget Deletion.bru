@@ -3,7 +3,6 @@ meta {
   type: http
   seq: 6
   tags: [
-    smoke
     budget
     crud
   ]
@@ -15,9 +14,6 @@ get {
   auth: none
 }
 
-headers {
-  Accept: application/vnd.api+json
-}
 
 tests {
   test("returns HTTP 404", function () {

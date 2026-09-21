@@ -15,7 +15,6 @@ post {
 }
 
 headers {
-  Accept: application/vnd.api+json
   Content-Type: application/vnd.api+json
 }
 
@@ -41,6 +40,6 @@ tests {
 
     expect(error.status).to.equal("409");
     expect(error.title).to.equal("E-mail j\u00e1 utilizado");
-    expect(error.detail).to.contain("bruno.user.conflict@example.com");
+    expect(error.detail).to.equal("N\u00e3o foi poss\u00edvel utilizar o e-mail informado.");
   });
 }

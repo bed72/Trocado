@@ -1,7 +1,7 @@
 meta {
   name: Sign In
   type: http
-  seq: 4
+  seq: 6
   tags: [
     smoke
     authentication
@@ -15,7 +15,6 @@ post {
 }
 
 headers {
-  Accept: application/vnd.api+json
   Content-Type: application/vnd.api+json
 }
 
@@ -24,8 +23,8 @@ body:json {
     "data": {
       "type": "access-tokens",
       "attributes": {
-        "email": "authentication.bruno@example.com",
-        "password": "Bruno123"
+        "email": "{{authenticationEmail}}",
+        "password": "{{authenticationPassword}}"
       }
     }
   }
@@ -43,7 +42,15 @@ tests {
 
     expect(res.getStatus()).to.equal(200);
     expect(body.data.type).to.equal("access-tokens");
+    expect(body.data.attributes.token).to.be.a("string").and.not.be.empty;
     expect(body.data.attributes.token_type).to.equal("Bearer");
+    expect(body.data.attributes.expires_at).to.be.a("string").and.not.be.empty;
+    expect(body.data.relationships.user.data.id).to.equal(bru.getVar("authenticationUserId"));
     expect(res.getHeader("cache-control")).to.contain("no-store");
+    expect(res.getHeader("pragma")).to.contain("no-cache");
   });
+}
+
+docs {
+  A resposta expõe o token Bearer somente neste login. O script pós-resposta o mantém como variável de runtime `authenticationToken` para os requests seguintes; não copie o valor para a collection, para um ambiente ou para documentação.
 }

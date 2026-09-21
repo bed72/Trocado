@@ -1,0 +1,13 @@
+meta {
+  name: User
+}
+
+docs {
+  # User
+
+  Exercita CRUD, validação, conflitos de e-mail e respostas not-found do recurso User.
+
+  Cada subpasta é um cenário serial independente. Em `01 - CRUD`, `Create User` faz o setup e os dois últimos requests excluem e confirmam a exclusão. Em `02 - Validation/02 - Update`, execute `Setup User` antes das validações e `Cleanup User` ao final. Em `03 - Conflicts`, preserve a ordem dos dois setups, das verificações de conflito e dos dois cleanups. `04 - Not Found` não cria dados.
+
+  Os cenários de CRUD, validação de update e conflito são mutáveis. Execute-os somente em desenvolvimento ou banco descartável. Se uma sequência falhar, conclua os requests de cleanup da própria subpasta antes de recomeçar.
+}
