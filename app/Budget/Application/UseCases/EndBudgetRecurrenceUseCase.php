@@ -23,7 +23,7 @@ final readonly class EndBudgetRecurrenceUseCase
             $recurrence = $this->repository->findByIdForUpdate(id: $id)
                 ?? throw new BudgetRecurrenceNotFoundException(id: $id);
 
-            return $this->repository->save(recurrence: $recurrence->end(endedAt: $endedAt));
+            return $this->repository->create(recurrence: $recurrence->end(endedAt: $endedAt));
         });
     }
 }

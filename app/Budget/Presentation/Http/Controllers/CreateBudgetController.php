@@ -8,6 +8,7 @@ use App\Budget\Application\UseCases\CreateBudgetUseCase;
 use App\Budget\Presentation\Http\Requests\CreateBudgetRequest;
 use App\Budget\Presentation\Http\Responses\BudgetResponse;
 use Illuminate\Http\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 final class CreateBudgetController
 {
@@ -24,7 +25,7 @@ final class CreateBudgetController
         );
 
         return (new BudgetResponse(resource: $budget))->response()
-            ->setStatusCode(code: 201)
+            ->setStatusCode(code: Response::HTTP_CREATED)
             ->header(key: 'Location', values: route(name: 'budgets.get', parameters: ['budget' => $budget->id]));
     }
 }

@@ -15,5 +15,5 @@ interface BudgetRecurrenceRepository
 
     public function findByIdForUpdate(int $id): ?BudgetRecurrenceEntity;
 
-    public function save(BudgetRecurrenceEntity $recurrence): BudgetRecurrenceEntity;
+    public function create(BudgetRecurrenceEntity $recurrence): BudgetRecurrenceEntity;
 }

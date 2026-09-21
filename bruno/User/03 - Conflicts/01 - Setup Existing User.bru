@@ -1,0 +1,44 @@
+meta {
+  name: Conflict - Setup Existing User
+  type: http
+  seq: 1
+  tags: [
+    user
+    conflict
+  ]
+}
+
+post {
+  url: {{baseUrl}}/api/users
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/vnd.api+json
+  Content-Type: application/vnd.api+json
+}
+
+body:json {
+  {
+    "data": {
+      "type": "users",
+      "attributes": {
+        "name": "Existing User",
+        "email": "bruno.user.conflict@example.com"
+      }
+    }
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 201) {
+    bru.setVar("conflictUserId", res.getBody().data.id);
+  }
+}
+
+tests {
+  test("creates the existing user", function () {
+    expect(res.getStatus()).to.equal(201);
+  });
+}

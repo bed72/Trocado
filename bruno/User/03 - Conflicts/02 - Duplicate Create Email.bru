@@ -1,0 +1,46 @@
+meta {
+  name: Conflict - Duplicate Create Email
+  type: http
+  seq: 2
+  tags: [
+    user
+    conflict
+  ]
+}
+
+post {
+  url: {{baseUrl}}/api/users
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/vnd.api+json
+  Content-Type: application/vnd.api+json
+}
+
+body:json {
+  {
+    "data": {
+      "type": "users",
+      "attributes": {
+        "name": "Duplicate User",
+        "email": " BRUNO.USER.CONFLICT@EXAMPLE.COM "
+      }
+    }
+  }
+}
+
+tests {
+  test("returns HTTP 409", function () {
+    expect(res.getStatus()).to.equal(409);
+  });
+
+  test("returns the canonical email conflict", function () {
+    const error = res.getBody().errors[0];
+
+    expect(error.status).to.equal("409");
+    expect(error.title).to.equal("E-mail j\u00e1 utilizado");
+    expect(error.detail).to.contain("bruno.user.conflict@example.com");
+  });
+}

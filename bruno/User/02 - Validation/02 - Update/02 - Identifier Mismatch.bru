@@ -1,0 +1,42 @@
+meta {
+  name: Update - Identifier Mismatch
+  type: http
+  seq: 2
+  tags: [
+    user
+    validation
+  ]
+}
+
+patch {
+  url: {{baseUrl}}/api/users/{{validationUserId}}
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/vnd.api+json
+  Content-Type: application/vnd.api+json
+}
+
+body:json {
+  {
+    "data": {
+      "type": "users",
+      "id": "{{notFoundUserId}}",
+      "attributes": {
+        "name": "Should Not Change"
+      }
+    }
+  }
+}
+
+tests {
+  test("returns HTTP 422", function () {
+    expect(res.getStatus()).to.equal(422);
+  });
+
+  test("points to the resource identifier", function () {
+    expect(res.getBody().errors[0].source.pointer).to.equal("/data/id");
+  });
+}

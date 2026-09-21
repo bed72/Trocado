@@ -1,0 +1,32 @@
+meta {
+  name: Get Invalid User Identifier
+  type: http
+  seq: 2
+  tags: [
+    user
+    not-found
+  ]
+}
+
+get {
+  url: {{baseUrl}}/api/users/not-a-number
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/vnd.api+json
+}
+
+tests {
+  test("returns HTTP 404", function () {
+    expect(res.getStatus()).to.equal(404);
+  });
+
+  test("returns the route-level error", function () {
+    const error = res.getBody().errors[0];
+
+    expect(error.status).to.equal("404");
+    expect(error.title).to.equal("Recurso n\u00e3o encontrado");
+  });
+}

@@ -8,7 +8,7 @@ use App\Budget\Application\Ports\BudgetWritePort;
 use App\Budget\Application\Repositories\BudgetRecurrenceRepository;
 use App\Budget\Application\Repositories\BudgetRepository;
 use App\Budget\Infrastructure\Adapters\BudgetWriteAdapter;
-use App\Budget\Infrastructure\Console\Commands\ProcessDueBudgetRecurrencesCommand;
+use App\Budget\Infrastructure\Commands\ProcessDueBudgetRecurrencesCommand;
 use App\Budget\Infrastructure\Persistence\Repositories\EloquentBudgetRecurrenceRepository;
 use App\Budget\Infrastructure\Persistence\Repositories\EloquentBudgetRepository;
 use Illuminate\Database\Eloquent\Model;

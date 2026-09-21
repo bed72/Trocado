@@ -7,6 +7,10 @@ use App\Budget\Domain\Exceptions\InvalidBudgetRecurrenceException;
 use App\Budget\Domain\Exceptions\InvalidMoneyAmountException;
 use App\Budget\Domain\Exceptions\InvalidRecurrenceTransitionException;
 use App\Budget\Domain\Exceptions\OverlappingBudgetException;
+use App\User\Application\Exceptions\EmailAlreadyUsedException;
+use App\User\Application\Exceptions\UserNotFoundException;
+use App\User\Domain\Exceptions\InvalidEmailException;
+use App\User\Domain\Exceptions\InvalidUserNameException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -19,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         api: [
             __DIR__.'/../app/Budget/Presentation/Routes/api.php',
+            __DIR__.'/../app/User/Presentation/Routes/api.php',
         ],
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
@@ -85,6 +90,38 @@ return Application::configure(basePath: dirname(__DIR__))
                 'title' => 'Transição de recorrência inválida',
                 'detail' => $exception->getMessage(),
             ]]], 409)->header('Content-Type', 'application/vnd.api+json');
+        });
+
+        $exceptions->render(function (UserNotFoundException $exception, Request $request) {
+            return response()->json(['errors' => [[
+                'status' => '404',
+                'title' => 'User não encontrado',
+                'detail' => $exception->getMessage(),
+            ]]], 404)->header('Content-Type', 'application/vnd.api+json');
+        });
+
+        $exceptions->render(function (EmailAlreadyUsedException $exception, Request $request) {
+            return response()->json(['errors' => [[
+                'status' => '409',
+                'title' => 'E-mail já utilizado',
+                'detail' => $exception->getMessage(),
+            ]]], 409)->header('Content-Type', 'application/vnd.api+json');
+        });
+
+        $exceptions->render(function (InvalidEmailException $exception, Request $request) {
+            return response()->json(['errors' => [[
+                'status' => '422',
+                'title' => 'Dados inválidos',
+                'detail' => $exception->getMessage(),
+            ]]], 422)->header('Content-Type', 'application/vnd.api+json');
+        });
+
+        $exceptions->render(function (InvalidUserNameException $exception, Request $request) {
+            return response()->json(['errors' => [[
+                'status' => '422',
+                'title' => 'Dados inválidos',
+                'detail' => $exception->getMessage(),
+            ]]], 422)->header('Content-Type', 'application/vnd.api+json');
         });
 
         $exceptions->render(function (NotFoundHttpException $exception, Request $request) {

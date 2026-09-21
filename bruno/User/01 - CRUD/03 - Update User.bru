@@ -1,0 +1,48 @@
+meta {
+  name: Update User
+  type: http
+  seq: 3
+  tags: [
+    smoke
+    user
+    crud
+  ]
+}
+
+patch {
+  url: {{baseUrl}}/api/users/{{userId}}
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/vnd.api+json
+  Content-Type: application/vnd.api+json
+}
+
+body:json {
+  {
+    "data": {
+      "type": "users",
+      "id": "{{userId}}",
+      "attributes": {
+        "name": "Maria Souza",
+        "email": "MARIA.SOUZA@EXAMPLE.COM"
+      }
+    }
+  }
+}
+
+tests {
+  test("returns HTTP 200", function () {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("returns the canonical updated user", function () {
+    const body = res.getBody();
+
+    expect(body.data.id).to.equal(String(bru.getVar("userId")));
+    expect(body.data.attributes.name).to.equal("Maria Souza");
+    expect(body.data.attributes.email).to.equal("maria.souza@example.com");
+  });
+}

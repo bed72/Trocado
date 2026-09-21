@@ -1,0 +1,45 @@
+meta {
+  name: Update Validation - Setup User
+  type: http
+  seq: 1
+  tags: [
+    user
+    validation
+  ]
+}
+
+post {
+  url: {{baseUrl}}/api/users
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/vnd.api+json
+  Content-Type: application/vnd.api+json
+}
+
+body:json {
+  {
+    "data": {
+      "type": "users",
+      "attributes": {
+        "name": "Validation User",
+        "email": "bruno.user.validation@example.com"
+      }
+    }
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 201) {
+    bru.setVar("validationUserId", res.getBody().data.id);
+  }
+}
+
+tests {
+  test("creates the validation target", function () {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody().data.id).to.be.a("string").and.not.be.empty;
+  });
+}

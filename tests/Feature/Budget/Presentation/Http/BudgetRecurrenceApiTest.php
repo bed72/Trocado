@@ -151,7 +151,7 @@ it('does not persist a budget when recurrence persistence fails', function (): v
             return [];
         }
 
-        public function save(BudgetRecurrenceEntity $recurrence): BudgetRecurrenceEntity
+        public function create(BudgetRecurrenceEntity $recurrence): BudgetRecurrenceEntity
         {
             throw new RuntimeException('Falha de persistência simulada.');
         }
@@ -261,13 +261,13 @@ it('rolls back only the unconfirmed occurrence and resumes from its cursor', fun
             return $this->repository->findActiveDueIds(processingDate: $processingDate);
         }
 
-        public function save(BudgetRecurrenceEntity $recurrence): BudgetRecurrenceEntity
+        public function create(BudgetRecurrenceEntity $recurrence): BudgetRecurrenceEntity
         {
             if ($recurrence->nextStartDate === '2026-01-22') {
                 throw new RuntimeException('Falha de persistência simulada.');
             }
 
-            return $this->repository->save(recurrence: $recurrence);
+            return $this->repository->create(recurrence: $recurrence);
         }
     };
     $useCase = new GenerateDueBudgetRecurrencesUseCase(

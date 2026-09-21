@@ -33,7 +33,7 @@ final readonly class ResumeBudgetRecurrenceUseCase
                 throw new OverlappingBudgetException;
             }
 
-            return $this->recurrenceRepository->save(recurrence: $recurrence->resume());
+            return $this->recurrenceRepository->create(recurrence: $recurrence->resume());
         });
     }
 }

@@ -40,7 +40,7 @@ it('updates the amount while preserving dates and timestamps', function (): void
     $repository->expects($this->once())->method('findById')->with(7)->willReturn($current);
     $repository->expects($this->once())->method('hasOverlap')->with('2026-09-01', '2026-09-30', 7)->willReturn(false);
     $repository->expects($this->once())
-        ->method('save')
+        ->method('create')
         ->with($this->callback(function (BudgetEntity $budget) use ($createdAt, $updatedAt): bool {
             expect($budget->id)->toBe(7)
                 ->and($budget->amount->cents())->toBe(0)
@@ -72,7 +72,7 @@ it('updates dates while preserving the amount', function (): void {
     $repository = $this->createMock(BudgetRepository::class);
     $repository->expects($this->once())->method('findById')->with(7)->willReturn($current);
     $repository->expects($this->once())->method('hasOverlap')->with('2026-10-01', '2026-10-31', 7)->willReturn(false);
-    $repository->expects($this->once())->method('save')
+    $repository->expects($this->once())->method('create')
         ->willReturnCallback(fn (BudgetEntity $budget): BudgetEntity => $budget);
 
     $result = (new UpdateBudgetUseCase(
@@ -89,7 +89,7 @@ it('updates dates while preserving the amount', function (): void {
 it('does not persist when the budget does not exist', function (): void {
     $repository = $this->createMock(BudgetRepository::class);
     $repository->expects($this->once())->method('findById')->with(42)->willReturn(null);
-    $repository->expects($this->never())->method('save');
+    $repository->expects($this->never())->method('create');
 
     (new UpdateBudgetUseCase(
         port: $this->port,
@@ -107,7 +107,7 @@ it('does not persist an invalid resulting date range', function (): void {
     );
     $repository = $this->createMock(BudgetRepository::class);
     $repository->expects($this->once())->method('findById')->with(7)->willReturn($current);
-    $repository->expects($this->never())->method('save');
+    $repository->expects($this->never())->method('create');
 
     (new UpdateBudgetUseCase(
         port: $this->port,
@@ -125,7 +125,7 @@ it('does not persist a negative amount', function (): void {
     );
     $repository = $this->createMock(BudgetRepository::class);
     $repository->expects($this->once())->method('findById')->with(7)->willReturn($current);
-    $repository->expects($this->never())->method('save');
+    $repository->expects($this->never())->method('create');
 
     (new UpdateBudgetUseCase(
         port: $this->port,

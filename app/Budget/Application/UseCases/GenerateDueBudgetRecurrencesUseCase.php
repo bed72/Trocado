@@ -53,7 +53,7 @@ final readonly class GenerateDueBudgetRecurrencesUseCase
                 endDate: $interval['endDate'],
                 startDate: $interval['startDate'],
             )) {
-                $this->recurrenceRepository->save(recurrence: $recurrence->block(
+                $this->recurrenceRepository->create(recurrence: $recurrence->block(
                     blockedAt: new DateTimeImmutable(datetime: $processingDate),
                 ));
 
@@ -67,7 +67,7 @@ final readonly class GenerateDueBudgetRecurrencesUseCase
                 recurrenceId: $recurrence->id,
                 startDate: $interval['startDate'],
             ));
-            $this->recurrenceRepository->save(recurrence: $recurrence->advanceToNextInterval());
+            $this->recurrenceRepository->create(recurrence: $recurrence->advanceToNextInterval());
 
             return true;
         });

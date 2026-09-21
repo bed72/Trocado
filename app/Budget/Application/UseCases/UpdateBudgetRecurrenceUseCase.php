@@ -23,7 +23,7 @@ final readonly class UpdateBudgetRecurrenceUseCase
             $recurrence = $this->repository->findByIdForUpdate(id: $id)
                 ?? throw new BudgetRecurrenceNotFoundException(id: $id);
 
-            return $this->repository->save(recurrence: $recurrence->updateTemplate(
+            return $this->repository->create(recurrence: $recurrence->updateTemplate(
                 durationInDays: $durationInDays,
                 amount: $amount === null ? null : MoneyValueObject::fromCents(cents: $amount),
             ));

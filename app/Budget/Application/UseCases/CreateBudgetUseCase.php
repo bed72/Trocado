@@ -38,7 +38,7 @@ final readonly class CreateBudgetUseCase
                 return $this->budgetRepository->create(budget: $budget);
             }
 
-            $recurrence = $this->recurrenceRepository->save(
+            $recurrence = $this->recurrenceRepository->create(
                 recurrence: BudgetRecurrenceEntity::fromInitialBudget(budget: $budget),
             );
 

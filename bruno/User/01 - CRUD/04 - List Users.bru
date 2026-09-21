@@ -1,0 +1,35 @@
+meta {
+  name: List Users
+  type: http
+  seq: 4
+  tags: [
+    smoke
+    user
+    crud
+  ]
+}
+
+get {
+  url: {{baseUrl}}/api/users
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/vnd.api+json
+}
+
+tests {
+  test("returns HTTP 200", function () {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("returns a JSON:API resource collection containing the user", function () {
+    const body = res.getBody();
+    const user = body.data.find((item) => item.id === String(bru.getVar("userId")));
+
+    expect(body.data).to.be.an("array");
+    expect(user).not.to.be.undefined;
+    expect(user.attributes.email).to.equal("maria.souza@example.com");
+  });
+}

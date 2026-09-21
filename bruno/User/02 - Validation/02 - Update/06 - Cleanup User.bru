@@ -1,0 +1,26 @@
+meta {
+  name: Update Validation - Cleanup User
+  type: http
+  seq: 6
+  tags: [
+    user
+    validation
+    cleanup
+  ]
+}
+
+delete {
+  url: {{baseUrl}}/api/users/{{validationUserId}}
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/vnd.api+json
+}
+
+tests {
+  test("removes the validation target", function () {
+    expect(res.getStatus()).to.equal(204);
+  });
+}

@@ -1,0 +1,44 @@
+meta {
+  name: Conflict - Setup Update Target
+  type: http
+  seq: 3
+  tags: [
+    user
+    conflict
+  ]
+}
+
+post {
+  url: {{baseUrl}}/api/users
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/vnd.api+json
+  Content-Type: application/vnd.api+json
+}
+
+body:json {
+  {
+    "data": {
+      "type": "users",
+      "attributes": {
+        "name": "Update Target",
+        "email": "bruno.user.conflict-target@example.com"
+      }
+    }
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 201) {
+    bru.setVar("conflictTargetUserId", res.getBody().data.id);
+  }
+}
+
+tests {
+  test("creates the update target", function () {
+    expect(res.getStatus()).to.equal(201);
+  });
+}

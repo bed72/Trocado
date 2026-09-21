@@ -29,7 +29,7 @@ it('persists a valid domain entity and returns the repository result', function 
     $repository = $this->createMock(BudgetRepository::class);
     $repository->expects($this->once())->method('hasOverlap')->willReturn(false);
     $repository->expects($this->once())
-        ->method('save')
+        ->method('create')
         ->with($this->callback(function (BudgetEntity $budget): bool {
             expect($budget->id)->toBeNull()
                 ->and($budget->amount->cents())->toBe(12500)
@@ -55,7 +55,7 @@ it('persists a valid domain entity and returns the repository result', function 
 
 it('does not persist an invalid date range', function (): void {
     $repository = $this->createMock(BudgetRepository::class);
-    $repository->expects($this->never())->method('save');
+    $repository->expects($this->never())->method('create');
 
     (new CreateBudgetUseCase(
         port: $this->port,
@@ -70,7 +70,7 @@ it('does not persist an invalid date range', function (): void {
 
 it('does not persist a negative amount', function (): void {
     $repository = $this->createMock(BudgetRepository::class);
-    $repository->expects($this->never())->method('save');
+    $repository->expects($this->never())->method('create');
 
     (new CreateBudgetUseCase(
         port: $this->port,
@@ -87,7 +87,7 @@ it('creates the recurrence before persisting its initial budget', function (): v
     $repository = $this->createMock(BudgetRepository::class);
     $repository->expects($this->once())->method('hasOverlap')->willReturn(false);
     $this->recurrenceRepository->expects($this->once())
-        ->method('save')
+        ->method('create')
         ->with($this->callback(function (BudgetRecurrenceEntity $recurrence): bool {
             expect($recurrence->amount->cents())->toBe(1000)
                 ->and($recurrence->durationInDays)->toBe(7)
@@ -103,7 +103,7 @@ it('creates the recurrence before persisting its initial budget', function (): v
             nextStartDate: '2026-01-08',
         ));
     $repository->expects($this->once())
-        ->method('save')
+        ->method('create')
         ->with($this->callback(fn (BudgetEntity $budget): bool => $budget->recurrenceId === 5))
         ->willReturnCallback(fn (BudgetEntity $budget): BudgetEntity => $budget);
 

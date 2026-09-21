@@ -1,6 +1,6 @@
 <?php
 
-use App\Budget\Infrastructure\Console\Commands\ProcessDueBudgetRecurrencesCommand;
+use App\Budget\Infrastructure\Commands\ProcessDueBudgetRecurrencesCommand;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;

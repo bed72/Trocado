@@ -13,7 +13,7 @@ use DateTimeImmutable;
 
 final class EloquentBudgetRecurrenceRepository implements BudgetRecurrenceRepository
 {
-    public function save(BudgetRecurrenceEntity $recurrence): BudgetRecurrenceEntity
+    public function create(BudgetRecurrenceEntity $recurrence): BudgetRecurrenceEntity
     {
         $model = $recurrence->id === null
             ? new BudgetRecurrenceModel
