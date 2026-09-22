@@ -8,17 +8,7 @@ $contexts = array_map(basename(...), $contextDirectories);
 sort($contexts);
 
 $layers = ['Application', 'Domain', 'Infrastructure', 'Presentation'];
-
-/** @var array<string, array<string, list<string>>> $allowedContextDependencies */
-$allowedContextDependencies = [
-    'Authentication' => [
-        'Infrastructure' => ['App\\User'],
-    ],
-    'Budget' => [],
-    'User' => [
-        'Infrastructure' => ['Laravel\\Sanctum'],
-    ],
-];
+$expectedContexts = ['Budget', 'Identity'];
 
 it('organizes application code inside known bounded context layers', function () use ($contextDirectories, $layers): void {
     expect($contextDirectories)->not->toBeEmpty();
@@ -37,14 +27,40 @@ it('organizes application code inside known bounded context layers', function ()
     }
 });
 
-it('references only existing contexts and layers in the dependency allowlist', function () use ($allowedContextDependencies, $contexts, $layers): void {
-    foreach ($allowedContextDependencies as $context => $layerDependencies) {
-        expect($contexts)->toContain($context);
+it('contains exactly the expected bounded contexts', function () use ($contexts, $expectedContexts): void {
+    expect($contexts)->toBe($expectedContexts);
+});
 
-        foreach (array_keys($layerDependencies) as $layer) {
-            expect($layers)->toContain($layer);
+it('contains no source references to retired bounded contexts', function () use ($applicationPath): void {
+    $retiredContexts = ['User', 'Authentication'];
+    $staleReferences = [];
+
+    $inspectDirectory = function (string $directory) use (&$inspectDirectory, &$staleReferences, $retiredContexts): void {
+        foreach (glob($directory.'/*') ?: [] as $entry) {
+            if (is_dir($entry)) {
+                $inspectDirectory($entry);
+
+                continue;
+            }
+
+            if (! str_ends_with($entry, '.php')) {
+                continue;
+            }
+
+            $contents = file_get_contents($entry);
+
+            foreach ($retiredContexts as $retiredContext) {
+                $namespace = 'App'.'\\'.$retiredContext.'\\';
+
+                if (is_string($contents) && str_contains($contents, $namespace)) {
+                    $staleReferences[] = $entry;
+                }
+            }
         }
-    }
+    };
+    $inspectDirectory($applicationPath);
+
+    expect(array_values(array_unique($staleReferences)))->toBe([]);
 });
 
 arch('application code uses strict types and PSR-4 casing')
@@ -122,49 +138,43 @@ foreach ($contexts as $context) {
     if (is_dir($contextPath.'/Domain')) {
         arch($context.' domain remains isolated and framework independent')
             ->expect($contextNamespace.'\\Domain')
-            ->toOnlyUse(array_merge(
-                [$contextNamespace.'\\Domain'],
-                $allowedContextDependencies[$context]['Domain'] ?? [],
-            ));
+            ->toOnlyUse([$contextNamespace.'\\Domain']);
     }
 
     if (is_dir($contextPath.'/Application')) {
         arch($context.' application depends only on its domain and own contracts')
             ->expect($contextNamespace.'\\Application')
-            ->toOnlyUse(array_merge(
-                [$contextNamespace.'\\Application', $contextNamespace.'\\Domain'],
-                $allowedContextDependencies[$context]['Application'] ?? [],
-            ));
+            ->toOnlyUse([$contextNamespace.'\\Application', $contextNamespace.'\\Domain']);
     }
 
     if (is_dir($contextPath.'/Infrastructure')) {
+        $infrastructureDependencies = [
+            $contextNamespace.'\\Infrastructure',
+            $contextNamespace.'\\Application',
+            $contextNamespace.'\\Domain',
+            'Illuminate',
+        ];
+
+        if ($context === 'Identity') {
+            $infrastructureDependencies[] = 'Laravel\\Sanctum';
+        }
+
         arch($context.' infrastructure stays behind application boundaries')
             ->expect($contextNamespace.'\\Infrastructure')
-            ->toOnlyUse(array_merge(
-                [
-                    $contextNamespace.'\\Infrastructure',
-                    $contextNamespace.'\\Application',
-                    $contextNamespace.'\\Domain',
-                    'Illuminate',
-                ],
-                $allowedContextDependencies[$context]['Infrastructure'] ?? [],
-            ));
+            ->toOnlyUse($infrastructureDependencies);
     }
 
     if (is_dir($contextPath.'/Presentation')) {
         arch($context.' presentation does not reach infrastructure')
             ->expect($contextNamespace.'\\Presentation')
-            ->toOnlyUse(array_merge(
-                [
-                    $contextNamespace.'\\Presentation',
-                    $contextNamespace.'\\Application',
-                    $contextNamespace.'\\Domain',
-                    'Illuminate',
-                    'Symfony\\Component\\HttpFoundation',
-                    'response',
-                    'route',
-                ],
-                $allowedContextDependencies[$context]['Presentation'] ?? [],
-            ));
+            ->toOnlyUse([
+                $contextNamespace.'\\Presentation',
+                $contextNamespace.'\\Application',
+                $contextNamespace.'\\Domain',
+                'Illuminate',
+                'Symfony\\Component\\HttpFoundation',
+                'response',
+                'route',
+            ]);
     }
 }

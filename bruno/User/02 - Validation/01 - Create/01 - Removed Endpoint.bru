@@ -1,0 +1,28 @@
+meta {
+  name: Removed POST Users Endpoint
+  type: http
+  seq: 1
+  tags: [
+    user
+    validation
+    breaking-contract
+  ]
+}
+
+post {
+  url: {{baseUrl}}/api/users
+  body: none
+  auth: none
+}
+
+tests {
+  test("returns HTTP 405 without creating a user", function () {
+    expect(res.getStatus()).to.equal(405);
+    expect(res.getHeader("content-type")).to.contain("application/vnd.api+json");
+    expect(res.getBody().errors[0].status).to.equal("405");
+  });
+}
+
+docs {
+  Contrato breaking dedicado ao endpoint removido. Contas devem ser criadas por `POST /api/authentication/sign-up`; este request não envia credencial nem documento de criação e espera `405` sem persistência.
+}

@@ -1,7 +1,7 @@
 meta {
   name: Conflict - Setup Update Target
   type: http
-  seq: 3
+  seq: 4
   tags: [
     user
     conflict
@@ -9,7 +9,7 @@ meta {
 }
 
 post {
-  url: {{baseUrl}}/api/users
+  url: {{baseUrl}}/api/authentication/sign-up
   body: json
   auth: none
 }
@@ -18,13 +18,22 @@ headers {
   Content-Type: application/vnd.api+json
 }
 
+script:pre-request {
+  const runId = `${Date.now()}${Math.floor(Math.random() * 1000000).toString().padStart(6, "0")}`;
+
+  bru.setVar("conflictTargetUserEmail", `bruno.user.conflict-target.${runId}@example.com`);
+  bru.setVar("conflictTargetUserPassword", `F${runId.slice(-8)}x`);
+}
+
 body:json {
   {
     "data": {
-      "type": "users",
+      "type": "sign-ups",
       "attributes": {
         "name": "Update Target",
-        "email": "bruno.user.conflict-target@example.com"
+        "email": "{{conflictTargetUserEmail}}",
+        "password": "{{conflictTargetUserPassword}}",
+        "password_confirmation": "{{conflictTargetUserPassword}}"
       }
     }
   }
@@ -32,7 +41,7 @@ body:json {
 
 script:post-response {
   if (res.getStatus() === 201) {
-    bru.setVar("conflictTargetUserId", res.getBody().data.id);
+    bru.setVar("conflictTargetUserId", res.getBody().data.relationships.user.data.id);
   }
 }
 

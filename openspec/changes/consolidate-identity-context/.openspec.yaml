@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-09-21
+goal: Establish one owner for identity and account lifecycle, making SignUp the
+  only public account-registration path.

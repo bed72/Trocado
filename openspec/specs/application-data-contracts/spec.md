@@ -4,10 +4,10 @@
 Padronizar como cada bounded context representa entradas coesas e saídas estruturadas nos contratos da Application, preservando tipos naturais e independência de framework quando wrappers não agregam clareza.
 ## Requirements
 ### Requirement: Convenção transversal por bounded context
-Cada bounded context MUST possuir seus próprios objetos de dados da Application em `Application/Data` quando um contrato exigir agrupamento de entrada ou saída estruturada. Authentication, User e Budget MUST ser avaliados pela mesma convenção, e objetos de dados MUST NOT ser colocados em uma pasta global nem compartilhados entre contextos apenas por coincidência estrutural.
+Cada bounded context MUST possuir seus próprios objetos de dados da Application em `Application/Data` quando um contrato exigir agrupamento de entrada ou saída estruturada. Identity e Budget MUST ser avaliados pela mesma convenção, e objetos de dados MUST NOT ser colocados em uma pasta global nem compartilhados entre contextos apenas por coincidência estrutural.
 
 #### Scenario: Contrato composto pertence ao contexto
-- **WHEN** um contrato da Application de Authentication, User ou Budget precisa de uma classe de dados
+- **WHEN** um contrato da Application de Identity ou Budget precisa de uma classe de dados
 - **THEN** a classe é definida em `Application/Data` do próprio bounded context
 - **AND** Infrastructure e Presentation podem depender dela sem inverter a direção arquitetural
 
@@ -97,21 +97,21 @@ Ports da Application MUST poder receber Inputs e retornar Outputs definidos pela
 - **AND** o Use Case mapeia explicitamente entre eles
 
 ### Requirement: Cobertura dos bounded contexts existentes
-Authentication, User e Budget MUST ser revisados durante a adoção desta convenção. A revisão MUST migrar os contratos que atendam aos critérios de Input ou Output e MUST preservar parâmetros explícitos e retornos naturais onde uma classe adicional não melhorar o contrato.
+Identity e Budget MUST ser revisados durante a adoção desta convenção. A revisão MUST migrar os contratos que atendam aos critérios de Input ou Output e MUST preservar parâmetros explícitos e retornos naturais onde uma classe adicional não melhorar o contrato.
 
-#### Scenario: Authentication retorna dados de SignIn
+#### Scenario: Identity retorna dados de SignIn
 - **WHEN** `SignInPort` autentica credenciais e emite um token
-- **THEN** ele retorna `SignInOutput` com identificador do token, identificador do usuário, token em texto puro e expiração fortemente tipados
+- **THEN** ele retorna `SignInOutput` com identificador do token, identificador do User, token em texto puro e expiração fortemente tipados
 - **AND** `SignInUseCase` e a Response HTTP consomem o mesmo Output sem acessar array shape
 
-#### Scenario: Entradas atuais de Authentication
-- **WHEN** SignIn ou SignUp recebe os parâmetros explícitos atuais
+#### Scenario: Entradas atuais de Identity
+- **WHEN** Registration, SignIn ou SignUp recebe os parâmetros explícitos atuais
 - **THEN** a convenção não exige um Input apenas para substituir duas ou três entradas claras
 - **AND** dados sensíveis continuam protegidos contra exposição indevida
 
-#### Scenario: Contratos atuais de User
-- **WHEN** os Use Cases e Repositories de User são avaliados
-- **THEN** parâmetros explícitos, `UserEntity`, `EmailValueObject`, scalars e listas tipadas são preservados onde representam integralmente o contrato
+#### Scenario: Contratos de identidade
+- **WHEN** os UseCases, Ports e `IdentityRepository` são avaliados
+- **THEN** parâmetros explícitos, `UserEntity`, `NameValueObject`, `EmailValueObject`, scalars e listas tipadas são preservados onde representam integralmente o contrato
 - **AND** nenhuma classe de dados é criada apenas para garantir que o contexto possua um Input ou Output
 
 #### Scenario: Entradas atuais de Budget

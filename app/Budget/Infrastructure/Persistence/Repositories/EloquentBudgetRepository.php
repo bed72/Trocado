@@ -39,7 +39,9 @@ final class EloquentBudgetRepository implements BudgetRepository
     public function all(): array
     {
         return BudgetModel::query()->orderBy(column: 'id')->get()
-            ->map(callback: fn (BudgetModel $model): BudgetEntity => $this->toEntity(model: $model))
+            ->map(callback: function (BudgetModel $model): BudgetEntity {
+                return $this->toEntity(model: $model);
+            })
             ->all();
     }
 
@@ -50,14 +52,15 @@ final class EloquentBudgetRepository implements BudgetRepository
 
     public function hasOverlap(string $startDate, string $endDate, ?int $excludeId = null): bool
     {
-        return BudgetModel::query()
+        $query = BudgetModel::query()
             ->whereDate(column: 'start_date', operator: '<=', value: $endDate)
-            ->whereDate(column: 'end_date', operator: '>=', value: $startDate)
-            ->when(
-                value: $excludeId !== null,
-                callback: fn ($query) => $query->whereKeyNot(id: $excludeId),
-            )
-            ->exists();
+            ->whereDate(column: 'end_date', operator: '>=', value: $startDate);
+
+        if ($excludeId !== null) {
+            $query->whereKeyNot(id: $excludeId);
+        }
+
+        return $query->exists();
     }
 
     private function toEntity(BudgetModel $model): BudgetEntity

@@ -8,8 +8,8 @@ use RuntimeException;
 
 final class BudgetNotFoundException extends RuntimeException
 {
-    public function __construct(int $id)
+    public function __construct()
     {
-        parent::__construct(message: "Budget {$id} não encontrado.");
+        parent::__construct(message: 'Budget não encontrado.');
     }
 }

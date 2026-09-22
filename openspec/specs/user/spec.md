@@ -1,14 +1,15 @@
 # user Specification
 
 ## Purpose
-Definir a identidade local de User, suas invariantes, persistência e operações JSON:API, mantendo Domain e Application independentes dos detalhes de framework e autenticação.
+Definir o recurso User dentro do bounded context Identity, suas invariantes, persistência e operações JSON:API preservadas, mantendo Domain e Application independentes dos detalhes de framework e autenticação.
 ## Requirements
 ### Requirement: Identidade local independente de autenticação
-O sistema MUST representar `UserEntity` como uma identidade local composta por identificador persistido, nome e e-mail, sem exigir ou armazenar senha, hash, token ou contrato de autenticação. Domain e Application de User MUST permanecer independentes de Laravel, Eloquent, HTTP, Sanctum e Infrastructure. `UserModel`, por pertencer à Infrastructure, MUST implementar os contratos de autenticação Laravel e Sanctum necessários para representar essa identidade nas bordas.
+O sistema MUST representar `UserEntity` dentro de Identity Domain como uma identidade local composta por identificador persistido, `NameValueObject` e e-mail, sem armazenar password, hash ou token. Domain e Application de Identity MUST permanecer independentes de Laravel, Eloquent, HTTP, Sanctum e Infrastructure. `UserModel`, por pertencer a Identity Infrastructure, MUST implementar os contratos de autenticação Laravel e Sanctum necessários nas bordas.
 
-#### Scenario: Usuário existe sem credenciais
-- **WHEN** um User é criado com nome e e-mail válidos pela capability User
-- **THEN** sua identidade é persistida sem senha conhecida, token, sessão ou outro dado de autenticação
+#### Scenario: Entidade criada com credencial fora do Domain
+- **WHEN** SignUp registra nome, e-mail e password válidos
+- **THEN** `UserEntity` representa somente a identidade criada
+- **AND** password hash e tokens permanecem fora da Entity
 
 #### Scenario: Usuário preexistente permanece sem credencial conhecida
 - **WHEN** um User anterior a Authentication é migrado
@@ -20,26 +21,37 @@ O sistema MUST representar `UserEntity` como uma identidade local composta por i
 - **THEN** a entidade não depende de Laravel, Illuminate, Eloquent, HTTP, Infrastructure, Sanctum ou contratos de autenticação
 
 #### Scenario: Model integra com o framework
-- **WHEN** `UserModel` é inspecionado após Authentication
+- **WHEN** `UserModel` de Identity Infrastructure é inspecionado
 - **THEN** ele implementa `Authenticatable` e usa `HasApiTokens`
 - **AND** essa integração não é exposta por `UserEntity` nem pelos contratos de Application
 
 ### Requirement: Nome válido
-O sistema MUST remover espaços externos do nome antes de criar User e MUST rejeitar um nome que fique vazio após essa normalização ou exceda 255 caracteres.
+O sistema MUST representar o nome por `NameValueObject`, MUST remover whitespace externo, MUST reduzir whitespace repetido a um único espaço e MUST aceitar somente letras Unicode separadas por espaços. O nome canônico MUST conter entre 2 e 12 letras, inclusive, sem contar os espaços. `UserEntity` MUST carregar o `NameValueObject`, e a validação HTTP de SignUp e atualização MUST aplicar as mesmas regras do Domain.
 
-#### Scenario: Nome com espaços externos
-- **WHEN** um User é criado com o nome `  Maria Silva  `
-- **THEN** o nome canônico do User é `Maria Silva`
+#### Scenario: Whitespace é normalizado
+- **WHEN** SignUp ou atualização recebe o nome `  Maria   Silva  `
+- **THEN** o nome canônico é `Maria Silva`
+- **AND** `UserEntity` carrega esse valor como `NameValueObject`
 
-#### Scenario: Nome vazio
-- **WHEN** se tenta criar um User com nome vazio ou composto somente por espaços
-- **THEN** a criação é rejeitada por uma exceção de Domain
-- **AND** nenhum User é persistido
+#### Scenario: Somente letras Unicode separadas por espaços
+- **WHEN** o nome canônico contém dígito, pontuação, símbolo ou separador diferente de espaço
+- **THEN** o Domain rejeita o nome
+- **AND** nenhuma identidade é criada ou alterada
 
-#### Scenario: Nome acima do limite
-- **WHEN** se tenta criar ou atualizar um User com nome canônico acima de 255 caracteres
-- **THEN** a operação é rejeitada por uma exceção de Domain
-- **AND** nenhuma alteração é persistida
+#### Scenario: Limites inclusivos contam somente letras
+- **WHEN** o nome canônico contém 2 ou 12 letras, inclusive com espaços internos
+- **THEN** o nome é aceito
+- **AND** os espaços não são incluídos na contagem
+
+#### Scenario: Nome fora do limite de letras
+- **WHEN** o nome canônico contém menos de 2 ou mais de 12 letras
+- **THEN** o Domain rejeita o nome
+- **AND** nenhuma identidade é criada ou alterada
+
+#### Scenario: Validação HTTP espelha o Domain
+- **WHEN** SignUp ou atualização recebe um nome que o `NameValueObject` rejeitaria
+- **THEN** a API responde `422` com pointer para `/data/attributes/name`
+- **AND** o UseCase não persiste a entrada inválida
 
 ### Requirement: E-mail válido e canônico
 O sistema MUST representar o e-mail por `EmailValueObject`, MUST remover espaços externos, MUST convertê-lo para minúsculas e MUST rejeitar valores que não sejam endereços de e-mail válidos. A mesma forma canônica MUST ser usada na criação, consulta e persistência.
@@ -52,19 +64,6 @@ O sistema MUST representar o e-mail por `EmailValueObject`, MUST remover espaço
 - **WHEN** se tenta criar um User com um valor que não representa um endereço de e-mail válido
 - **THEN** a criação é rejeitada por uma exceção de Domain
 - **AND** nenhum User é persistido
-
-### Requirement: Criação de User
-O sistema MUST disponibilizar um `CreateUserUseCase` concreto que receba nome e e-mail explícitos, aplique as invariantes de Domain e persista o novo agregado por `UserRepository::create`. A operação MUST retornar o `UserEntity` com identificador e timestamps atribuídos pela persistência.
-
-#### Scenario: Criação bem-sucedida
-- **WHEN** `CreateUserUseCase` recebe um nome válido e um e-mail ainda não utilizado
-- **THEN** exatamente um User é persistido pelo método `create`
-- **AND** a entidade retornada possui identificador, nome e e-mail canônicos e timestamps de criação e atualização
-
-#### Scenario: Criação não usa atualização genérica
-- **WHEN** o caso de uso persiste um novo User
-- **THEN** ele usa a operação explícita `UserRepository::create`
-- **AND** o contrato não exige um método genérico `save`
 
 ### Requirement: Unicidade de e-mail
 O sistema MUST impedir que dois Users possuam o mesmo e-mail canônico. A Application MUST apresentar uma falha explícita de e-mail já utilizado, e a persistência MUST manter uma restrição única como garantia definitiva inclusive para tentativas concorrentes.
@@ -103,7 +102,7 @@ O sistema MUST permitir listar Users em ordem de identificador e consultar User 
 - **THEN** o caso de uso produz uma exceção explícita de User não encontrado
 
 ### Requirement: Atualização parcial de User
-O sistema MUST permitir atualizar nome e/ou e-mail de um User existente, MUST preservar atributos omitidos e MUST reaplicar normalização, invariantes e unicidade de e-mail. A operação MUST usar `UserRepository::update` e MUST retornar a entidade persistida atualizada.
+O sistema MUST permitir atualizar nome e/ou e-mail de um User existente, MUST preservar atributos omitidos e MUST reaplicar normalização, invariantes e unicidade de e-mail. A operação MUST usar `IdentityRepository::update` e MUST retornar a entidade persistida atualizada.
 
 #### Scenario: Atualização de nome
 - **WHEN** somente um novo nome válido é informado
@@ -130,36 +129,41 @@ O sistema MUST permitir atualizar nome e/ou e-mail de um User existente, MUST pr
 - **THEN** o caso de uso produz uma exceção explícita de User não encontrado
 
 ### Requirement: Exclusão de User
-O sistema MUST permitir excluir um User por identificador usando `UserRepository::delete`. Uma identidade inexistente MUST produzir a mesma falha explícita de User não encontrado.
+O sistema MUST excluir uma conta existente dentro de `IdentityWritePort`, MUST remover todos os seus Personal Access Tokens antes de remover `users` por `IdentityRepository::delete` e MUST reverter ambos diante de falha. Uma identidade inexistente MUST produzir a mesma falha explícita de User não encontrado.
 
 #### Scenario: Exclusão bem-sucedida
-- **WHEN** um User existente é excluído
-- **THEN** seu registro é removido
-- **AND** consultas posteriores não o encontram
+- **WHEN** uma conta existente com múltiplos tokens é excluída
+- **THEN** todos os tokens dessa identidade e seu registro `users` são removidos
+- **AND** consultas e autenticação posteriores não a encontram
+
+#### Scenario: Falha durante exclusão
+- **WHEN** a remoção da identidade falha depois da tentativa de remover tokens
+- **THEN** a transação restaura os tokens e mantém o User
 
 #### Scenario: Exclusão de User inexistente
 - **WHEN** se tenta excluir um identificador inexistente
 - **THEN** o caso de uso produz uma exceção explícita de User não encontrado
 
 ### Requirement: Contrato explícito de Repository
-O sistema MUST declarar `UserRepository` na camada Application somente com `create(UserEntity): UserEntity`, `update(UserEntity): ?UserEntity`, `delete(int): bool`, `all(): array`, `findById(int): ?UserEntity` e `findByEmail(EmailValueObject): ?UserEntity`. O contrato MUST usar apenas tipos independentes do ORM, e sua implementação Eloquent MUST permanecer em Infrastructure.
+O sistema MUST declarar `IdentityRepository` na camada Application somente com `update(UserEntity): ?UserEntity`, `delete(int): bool`, `all(): array`, `findById(int): ?UserEntity` e `findByEmail(EmailValueObject): ?UserEntity`. O contrato MUST usar apenas tipos independentes do ORM, MUST NOT criar contas e sua implementação Eloquent MUST permanecer em Infrastructure.
 
 #### Scenario: Fronteira independente do ORM
-- **WHEN** o contrato `UserRepository` é verificado
+- **WHEN** o contrato `IdentityRepository` é verificado
 - **THEN** seus parâmetros e retornos não incluem Model, Builder, query, facade ou outro tipo de Infrastructure
+- **AND** ele não possui `create`, `save` ou operação de registro
 
 #### Scenario: Binding da implementação
-- **WHEN** o container resolve `UserRepository`
-- **THEN** `UserServiceProvider` fornece `EloquentUserRepository`
+- **WHEN** o container resolve `IdentityRepository`
+- **THEN** `IdentityServiceProvider` fornece `EloquentIdentityRepository`
 - **AND** nenhum Repository base ou genérico é introduzido
 
 ### Requirement: CRUD HTTP JSON:API
-O sistema MUST expor o CRUD de User em `/api/users` usando Form Requests, Controllers por ação e `UserResponse`. As respostas de recurso MUST usar o tipo `users`, identificador em string, atributos `name`, `email`, `created_at` e `updated_at`, e link `self`.
+O sistema MUST expor listagem, consulta, atualização e exclusão de User em `/api/users` usando Form Requests, Controllers por ação e `UserResponse`. As respostas de recurso MUST usar o tipo `users`, identificador em string, atributos `name`, `email`, `created_at` e `updated_at`, e link `self`. A API MUST NOT expor criação por `POST /api/users`.
 
-#### Scenario: Criação HTTP
-- **WHEN** `POST /api/users` recebe um documento JSON:API válido
-- **THEN** responde `201` com o User criado
-- **AND** inclui `Location` para `GET /api/users/{user}`
+#### Scenario: Criação HTTP removida
+- **WHEN** `POST /api/users` é executado
+- **THEN** responde `405` em JSON:API
+- **AND** orienta implicitamente o consumidor a usar o recurso de SignUp sem criar User
 
 #### Scenario: Listagem HTTP
 - **WHEN** `GET /api/users` é executado
@@ -182,15 +186,20 @@ O sistema MUST expor o CRUD de User em `/api/users` usando Form Requests, Contro
 - **THEN** responde em JSON:API respectivamente com `422`, `409` ou `404`
 
 ### Requirement: Persistência mínima de User
-O sistema MUST persistir identificador, nome, e-mail canônico, password hash e timestamps na tabela `users`. `UserModel` MUST representar essa persistência e o principal autenticável em Infrastructure sem funcionar como entidade de Domain. Tokens MUST permanecer na tabela oficial do Sanctum.
+O sistema MUST persistir identificador, nome, e-mail canônico, password hash e timestamps na tabela `users`. `UserModel` de Identity Infrastructure MUST representar essa persistência e o principal autenticável sem funcionar como entidade de Domain. Tokens MUST permanecer na tabela oficial do Sanctum, e novas contas MUST NOT receber password aleatório de fallback.
 
 #### Scenario: Registro persistido
-- **WHEN** um User é criado por `SignUp`
+- **WHEN** um User é criado por SignUp e `CreatePort`
 - **THEN** a tabela `users` contém nome, e-mail canônico, password hash e timestamps
 - **AND** não contém token, remember token ou password em texto puro
 
+#### Scenario: Ausência de fallback
+- **WHEN** código tenta criar `UserModel` sem password fora de `CreatePort`
+- **THEN** a persistência rejeita a operação
+- **AND** nenhum callback inventa uma credencial silenciosamente
+
 #### Scenario: Mapping para o domínio
-- **WHEN** `EloquentUserRepository` recupera um registro existente
+- **WHEN** `EloquentIdentityRepository` recupera um registro existente
 - **THEN** retorna `UserEntity` sem password hash ou `UserModel`
 - **AND** não expõe relações ou tipos do Sanctum fora de Infrastructure
 
@@ -200,23 +209,25 @@ O sistema MUST persistir identificador, nome, e-mail canônico, password hash e 
 - **AND** nenhum Personal Access Token é incluído automaticamente
 
 ### Requirement: Proteção de desenvolvimento contra N+1
-O sistema MUST impedir lazy loading do Eloquent fora de produção por meio do provider do contexto User, tornando visível em desenvolvimento a principal fonte de queries N+1 relacionais. Essa proteção MUST NOT depender exclusivamente da inicialização de outro bounded context.
+O sistema MUST impedir lazy loading do Eloquent fora de produção por meio de `IdentityServiceProvider`, tornando visível em desenvolvimento a principal fonte de queries N+1 relacionais.
 
 #### Scenario: Lazy loading em desenvolvimento
-- **WHEN** `UserServiceProvider` inicializa fora de produção
+- **WHEN** `IdentityServiceProvider` inicializa fora de produção
 - **THEN** `Model::preventsLazyLoading()` fica habilitado
 
 #### Scenario: User sem relações atuais
-- **WHEN** o CRUD atual lista ou consulta Users
-- **THEN** nenhum relacionamento é carregado sob demanda porque `UserModel` ainda não possui relações
+- **WHEN** a API atual lista ou consulta Users
+- **THEN** nenhum relacionamento é carregado sob demanda porque `UserModel` ainda não possui relações de domínio
 
 ### Requirement: Collection Bruno de User
-O sistema MUST fornecer cenários Bruno executáveis para o CRUD completo de User, validações de criação e atualização, conflitos de e-mail, recursos ausentes e cleanup dos registros criados.
+O sistema MUST fornecer cenários Bruno executáveis para consulta, atualização e exclusão de User, validações, conflitos de e-mail, recursos ausentes e cleanup. Qualquer User necessário ao setup MUST ser criado por SignUp, e a collection MUST NOT chamar `POST /api/users`.
 
-#### Scenario: Fluxo CRUD manual
+#### Scenario: Fluxo manual sem criação direta
 - **WHEN** o diretório CRUD é executado serialmente
-- **THEN** o fluxo cria, consulta, atualiza, lista, exclui e confirma a ausência do mesmo User usando uma variável de runtime
+- **THEN** o setup cria a conta por SignUp e salva seu identificador em runtime
+- **AND** o fluxo consulta, atualiza, lista, exclui e confirma a ausência do mesmo User
 
 #### Scenario: Cenários destrutivos com cleanup
-- **WHEN** cenários de validação ou conflito criam Users auxiliares
-- **THEN** a collection fornece requests finais de cleanup para removê-los
+- **WHEN** um cenário cria ou altera uma identidade temporária
+- **THEN** a pasta documenta a ordem e o cleanup autenticado
+- **AND** não persiste password ou token em arquivo versionado

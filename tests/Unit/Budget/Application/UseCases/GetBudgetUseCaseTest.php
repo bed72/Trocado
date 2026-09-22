@@ -26,4 +26,4 @@ it('throws a descriptive exception when the budget does not exist', function ():
     $repository->expects($this->once())->method('findById')->with(42)->willReturn(null);
 
     (new GetBudgetUseCase(repository: $repository))->execute(id: 42);
-})->throws(BudgetNotFoundException::class, 'Budget 42 não encontrado.');
+})->throws(BudgetNotFoundException::class, 'Budget não encontrado.');

@@ -51,7 +51,11 @@ docs {
 
   ## Autenticação
 
-  Execute a pasta `Authentication` em ordem. O login captura o token Bearer como variável de runtime; somente requests protegidos o enviam. O logout revoga a sessão e o cenário seguinte comprova que o mesmo token deixou de ser aceito.
+  `POST /api/authentication/sign-up` é o único caminho de criação de conta. `POST /api/users` foi removido; a collection mantém somente um request de contrato que comprova o `405`.
+
+  Execute a pasta `Authentication` em ordem. O login captura o token Bearer como variável de runtime; somente requests protegidos o enviam. O logout revoga a sessão, o cenário seguinte comprova que o mesmo token deixou de ser aceito, e um novo login fornece uma sessão válida exclusivamente para o cleanup autenticado.
+
+  As pastas `User`, `Budget` e `Budget Recurrence` herdam `authenticationToken` apenas em requests protegidos. Seus requests públicos de SignUp e SignIn declaram `auth: none`. Para executar Budget ou Budget Recurrence isoladamente, execute primeiro `Authentication/01 - Sign Up` e `Authentication/06 - Sign In`, execute o cenário protegido e depois conclua `Authentication/07` a `Authentication/10`.
 
   ## Execução segura
 

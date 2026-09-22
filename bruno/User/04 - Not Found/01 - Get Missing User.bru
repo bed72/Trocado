@@ -1,7 +1,7 @@
 meta {
   name: Get Missing User
   type: http
-  seq: 1
+  seq: 3
   tags: [
     user
     not-found
@@ -11,7 +11,7 @@ meta {
 get {
   url: {{baseUrl}}/api/users/{{notFoundUserId}}
   body: none
-  auth: none
+  auth: inherit
 }
 
 

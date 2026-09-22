@@ -17,21 +17,21 @@ O sistema MUST usar Laravel Sanctum como mecanismo de autenticação da API e MU
 - **AND** não existe tabela de token própria, token generator, token digest, request guard ou principal equivalente mantido pela aplicação
 
 ### Requirement: Authentication respeita as fronteiras do projeto
-O sistema MUST manter regras de senha e orquestração próprias nas camadas adequadas, MUST manter Domain e Application livres de Laravel e MUST limitar integrações com Auth, Eloquent e Sanctum a Infrastructure ou Presentation.
+O sistema MUST manter regras de password e orquestração nas camadas adequadas de Identity, MUST manter Domain e Application livres de Laravel e MUST limitar integrações com Auth, Eloquent e Sanctum a Identity Infrastructure ou Presentation.
 
 #### Scenario: Fronteiras arquiteturais
-- **WHEN** as dependências de Authentication são verificadas
+- **WHEN** as dependências de Identity são verificadas
 - **THEN** Domain utiliza somente tipos próprios e PHP
 - **AND** Application utiliza somente seu Domain e contratos próprios
-- **AND** Auth, Eloquent, Sanctum e tipos de User aparecem somente nas bordas permitidas
+- **AND** Auth, Eloquent e Sanctum aparecem somente nas bordas permitidas
 
 #### Scenario: Sem abstração do pacote
 - **WHEN** a integração Sanctum é inspecionada
 - **THEN** não existe wrapper que apenas renomeia uma única chamada de `createToken`, `currentAccessToken` ou `auth:sanctum`
-- **AND** contratos próprios existem somente quando preservam uma fronteira real de Application
+- **AND** `SignInPort` e `SignOutPort` existem para preservar fronteiras reais de Application
 
 ### Requirement: UserModel é o principal autenticável
-O sistema MUST usar `UserModel` como principal autenticável resolvido pelo Sanctum, MUST habilitá-lo com `HasApiTokens` e MUST manter `UserEntity` sem framework, password ou token.
+O sistema MUST usar `UserModel` de Identity Infrastructure como principal autenticável resolvido pelo Sanctum, MUST habilitá-lo com `HasApiTokens` e MUST manter `UserEntity` sem framework, password ou token.
 
 #### Scenario: Principal resolvido pelo Sanctum
 - **WHEN** uma requisição protegida é autenticada por Bearer token
@@ -41,7 +41,7 @@ O sistema MUST usar `UserModel` como principal autenticável resolvido pelo Sanc
 #### Scenario: Domain permanece puro
 - **WHEN** `UserEntity` é inspecionada
 - **THEN** ela não implementa `Authenticatable` nem usa `HasApiTokens`
-- **AND** contém somente o estado de identidade definido pela capability User
+- **AND** contém somente o estado de identidade definido por Identity
 
 ### Requirement: Password hash usa o provider Laravel
 O sistema MUST armazenar somente password hash adaptativo na coluna `users.password`, MUST ocultá-lo da serialização e MUST usar o provider e hasher configurados do Laravel para autenticação.
@@ -78,11 +78,12 @@ O sistema MUST preservar exatamente a senha informada, MUST aceitar somente senh
 - **THEN** responde `422` com pointer para `/data/attributes/password_confirmation`
 
 ### Requirement: SignUp cria conta atomicamente
-O sistema MUST criar nome, e-mail canônico e password hash em uma única transação, MUST preservar a unicidade de e-mail e MUST NOT autenticar ou emitir token implicitamente.
+O sistema MUST criar nome, e-mail canônico e password hash na unidade definida por `IdentityWritePort`, MUST provisionar o principal por `CreatePort`, MUST preservar a unicidade de e-mail e MUST NOT autenticar ou emitir token implicitamente.
 
 #### Scenario: SignUp bem-sucedido
-- **WHEN** nome, e-mail disponível e senha confirmada são válidos
-- **THEN** um único registro `users` é persistido com password hash
+- **WHEN** nome, e-mail disponível e password confirmado são válidos
+- **THEN** `SignUpUseCase` executa `CreatePort` dentro de `IdentityWritePort`
+- **AND** um único registro `users` é persistido com password hash
 - **AND** nenhum Personal Access Token é criado
 
 #### Scenario: E-mail já utilizado
@@ -93,7 +94,7 @@ O sistema MUST criar nome, e-mail canônico e password hash em uma única transa
 #### Scenario: Concorrência no mesmo e-mail
 - **WHEN** dois `SignUp` concorrentes usam o mesmo e-mail canônico
 - **THEN** a constraint única permite somente uma conta
-- **AND** a tentativa conflitante é traduzida para o mesmo `409`
+- **AND** `CreatePort` traduz a tentativa conflitante para o mesmo `409`
 
 ### Requirement: API de SignUp segue JSON:API
 A API MUST expor `POST /api/authentication/sign-up` com nome `authentication.api.sign-up`, aceitar documento `sign-ups` fechado e responder sem password ou token.
@@ -221,20 +222,20 @@ O sistema MUST limitar Authentication à comprovação do principal e MUST NOT i
 - **AND** regras de autorização e ownership permanecem responsabilidade de specs próprias
 
 ### Requirement: Proteção de desenvolvimento contra N+1
-O sistema MUST impedir lazy loading do Eloquent fora de produção por meio do provider do contexto Authentication, sem depender da inicialização de outro bounded context.
+O sistema MUST impedir lazy loading do Eloquent fora de produção por meio de `IdentityServiceProvider`, sem depender da inicialização de outro bounded context.
 
-#### Scenario: Provider de Authentication em desenvolvimento
-- **WHEN** `AuthenticationServiceProvider` inicializa fora de produção
+#### Scenario: Provider de Identity em desenvolvimento
+- **WHEN** `IdentityServiceProvider` inicializa fora de produção
 - **THEN** `Model::preventsLazyLoading()` fica habilitado
 
 ### Requirement: Naming e cobertura
-O sistema MUST usar `SignUp`, `SignIn` e `SignOut` nos adaptadores próprios, MUST usar a terminologia `AccessToken` para o recurso emitido pelo Sanctum e MUST cobrir os fluxos críticos automatizados e por Bruno.
+O sistema MUST usar `CreatePort`, `SignInPort`, `SignOutPort` e `IdentityWritePort` para as capacidades próprias, MUST usar a terminologia `AccessToken` para o recurso emitido pelo Sanctum e MUST cobrir os fluxos críticos automatizados e por Bruno.
 
 #### Scenario: Cobertura automatizada
 - **WHEN** a suíte focada é executada
-- **THEN** cobre SignUp atômico, falhas genéricas, token Sanctum, expiração e SignOut seletivo
+- **THEN** cobre registro atômico, falhas genéricas, token Sanctum, expiração, SignOut seletivo e remoção do caminho alternativo de criação
 
 #### Scenario: Collection Bruno segura
 - **WHEN** o fluxo manual da API é executado
 - **THEN** mantém o Bearer token apenas em variável de runtime
-- **AND** confirma `SignUp`, `SignIn`, `SignOut` e rejeição do token revogado sem versionar segredo real
+- **AND** confirma SignUp, SignIn, SignOut e rejeição do token revogado sem versionar segredo real

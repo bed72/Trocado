@@ -1,7 +1,7 @@
 meta {
   name: Confirm User Deletion
   type: http
-  seq: 6
+  seq: 8
   tags: [
     user
     crud
@@ -11,7 +11,7 @@ meta {
 get {
   url: {{baseUrl}}/api/users/{{userId}}
   body: none
-  auth: none
+  auth: inherit
 }
 
 

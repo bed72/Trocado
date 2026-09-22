@@ -1,0 +1,43 @@
+meta {
+  name: Not Found - Sign In Operator
+  type: http
+  seq: 2
+  tags: [
+    user
+    not-found
+  ]
+}
+
+post {
+  url: {{baseUrl}}/api/authentication/sign-in
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/vnd.api+json
+}
+
+body:json {
+  {
+    "data": {
+      "type": "access-tokens",
+      "attributes": {
+        "email": "{{notFoundOperatorEmail}}",
+        "password": "{{notFoundOperatorPassword}}"
+      }
+    }
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 200) {
+    bru.setVar("authenticationToken", res.getBody().data.attributes.token);
+  }
+}
+
+tests {
+  test("authenticates the not-found operator", function () {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

@@ -1,0 +1,71 @@
+meta {
+  name: Sign Up User
+  type: http
+  seq: 3
+  tags: [
+    user
+    crud
+  ]
+}
+
+post {
+  url: {{baseUrl}}/api/authentication/sign-up
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/vnd.api+json
+}
+
+script:pre-request {
+  const runId = `${Date.now()}${Math.floor(Math.random() * 1000000).toString().padStart(6, "0")}`;
+
+  bru.setVar("userEmail", `bruno.user.crud.${runId}@example.com`);
+  bru.setVar("userPassword", `C${runId.slice(-8)}x`);
+}
+
+body:json {
+  {
+    "data": {
+      "type": "sign-ups",
+      "attributes": {
+        "name": "  Maria Silva  ",
+        "email": "  {{userEmail}}  ",
+        "password": "{{userPassword}}",
+        "password_confirmation": "{{userPassword}}"
+      }
+    }
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 201) {
+    bru.setVar("userId", res.getBody().data.relationships.user.data.id);
+  }
+}
+
+tests {
+  test("returns HTTP 201", function () {
+    expect(res.getStatus()).to.equal(201);
+  });
+
+  test("returns the SignUp resource linked to the user", function () {
+    const body = res.getBody();
+
+    expect(body.data.type).to.equal("sign-ups");
+    expect(body.data.relationships.user.data.type).to.equal("users");
+    expect(body.data.relationships.user.data.id).to.equal(String(bru.getVar("userId")));
+    expect(JSON.stringify(body)).not.to.contain("password");
+    expect(JSON.stringify(body)).not.to.contain("token");
+  });
+
+  test("returns JSON:API and Location headers", function () {
+    expect(res.getHeader("content-type")).to.contain("application/vnd.api+json");
+    expect(res.getHeader("location")).to.contain("/api/users/");
+  });
+}
+
+docs {
+  `POST /api/authentication/sign-up` é o único caminho de criação da conta-alvo. Password e identificador são variáveis de runtime; o token da operadora permanece separado para permitir confirmar a ausência após excluir a conta-alvo.
+}

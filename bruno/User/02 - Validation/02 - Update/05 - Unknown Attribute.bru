@@ -1,7 +1,7 @@
 meta {
   name: Update - Unknown Attribute
   type: http
-  seq: 5
+  seq: 6
   tags: [
     user
     validation
@@ -11,7 +11,7 @@ meta {
 patch {
   url: {{baseUrl}}/api/users/{{validationUserId}}
   body: json
-  auth: none
+  auth: inherit
 }
 
 headers {
@@ -24,7 +24,7 @@ body:json {
       "type": "users",
       "id": "{{validationUserId}}",
       "attributes": {
-        "password": "not-accepted"
+        "unknown": true
       }
     }
   }

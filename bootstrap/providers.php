@@ -1,11 +1,9 @@
 <?php
 
-use App\Authentication\Infrastructure\Providers\AuthenticationServiceProvider;
 use App\Budget\Infrastructure\Providers\BudgetServiceProvider;
-use App\User\Infrastructure\Providers\UserServiceProvider;
+use App\Identity\Infrastructure\Providers\IdentityServiceProvider;
 
 return [
-    UserServiceProvider::class,
+    IdentityServiceProvider::class,
     BudgetServiceProvider::class,
-    AuthenticationServiceProvider::class,
 ];

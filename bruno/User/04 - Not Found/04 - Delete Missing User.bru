@@ -1,7 +1,7 @@
 meta {
   name: Delete Missing User
   type: http
-  seq: 4
+  seq: 6
   tags: [
     user
     not-found
@@ -11,7 +11,7 @@ meta {
 delete {
   url: {{baseUrl}}/api/users/{{notFoundUserId}}
   body: none
-  auth: none
+  auth: inherit
 }
 
 

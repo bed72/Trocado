@@ -21,8 +21,9 @@ docs {
   2. `Duplicate Sign Up`, `Invalid Sign Up`, `Invalid Sign In` e `Invalid Sign In Document` verificam conflito, credenciais e validação.
   3. `Sign In` captura o token como variável de runtime.
   4. `Sign Out` herda o Bearer da pasta, comprova a autenticação e revoga a sessão atual.
-  5. `Reject Revoked Token` reutiliza o token para comprovar a resposta `401` e remove a variável.
-  6. `Cleanup User` exclui o usuário criado no setup.
+  5. `Reject Revoked Token` reutiliza o token para comprovar a resposta `401` e remove a variável revogada.
+  6. `Cleanup Sign In` obtém um novo token de runtime sem enfraquecer a prova de revogação.
+  7. `Cleanup User` herda esse novo Bearer e exclui a conta criada no setup.
 
-  O fluxo cria e exclui dados. Use apenas destinos de desenvolvimento ou bancos descartáveis. Se ele parar antes do último request, execute `Cleanup User` antes de repetir. Nunca substitua as variáveis do fluxo por uma credencial ou token real versionado.
+  O fluxo cria e exclui dados. Use apenas destinos de desenvolvimento ou bancos descartáveis. Se ele parar após a revogação, execute `Cleanup Sign In` antes de `Cleanup User`; o endpoint de exclusão nunca aceita o token revogado. Nunca substitua as variáveis do fluxo por uma credencial ou token real versionado.
 }

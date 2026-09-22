@@ -13,12 +13,12 @@ use App\Budget\Domain\Entities\BudgetRecurrenceEntity;
 use App\Budget\Domain\Exceptions\InvalidBudgetRecurrenceException;
 use App\Budget\Infrastructure\Persistence\Models\BudgetModel;
 use App\Budget\Infrastructure\Persistence\Models\BudgetRecurrenceModel;
-use App\User\Infrastructure\Persistence\Models\UserModel;
+use App\Identity\Infrastructure\Persistence\Models\UserModel;
 use Illuminate\Database\QueryException;
 use Laravel\Sanctum\Sanctum;
 
 beforeEach(function (): void {
-    Sanctum::actingAs(new UserModel);
+    Sanctum::actingAs(new UserModel(['password' => 'Abc123']));
 });
 
 it('creates a simple budget by default without a recurrence relationship', function (): void {

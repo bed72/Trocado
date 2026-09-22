@@ -1,7 +1,7 @@
 meta {
   name: Conflict - Duplicate Update Email
   type: http
-  seq: 4
+  seq: 5
   tags: [
     user
     conflict
@@ -11,7 +11,7 @@ meta {
 patch {
   url: {{baseUrl}}/api/users/{{conflictTargetUserId}}
   body: json
-  auth: none
+  auth: inherit
 }
 
 headers {
@@ -24,7 +24,7 @@ body:json {
       "type": "users",
       "id": "{{conflictTargetUserId}}",
       "attributes": {
-        "email": " BRUNO.USER.CONFLICT@EXAMPLE.COM "
+        "email": " {{conflictUserEmail}} "
       }
     }
   }

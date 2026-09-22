@@ -9,7 +9,7 @@ meta {
 }
 
 post {
-  url: {{baseUrl}}/api/users
+  url: {{baseUrl}}/api/authentication/sign-up
   body: json
   auth: none
 }
@@ -18,13 +18,22 @@ headers {
   Content-Type: application/vnd.api+json
 }
 
+script:pre-request {
+  const runId = `${Date.now()}${Math.floor(Math.random() * 1000000).toString().padStart(6, "0")}`;
+
+  bru.setVar("conflictUserEmail", `bruno.user.conflict.${runId}@example.com`);
+  bru.setVar("conflictUserPassword", `E${runId.slice(-8)}x`);
+}
+
 body:json {
   {
     "data": {
-      "type": "users",
+      "type": "sign-ups",
       "attributes": {
         "name": "Existing User",
-        "email": "bruno.user.conflict@example.com"
+        "email": "{{conflictUserEmail}}",
+        "password": "{{conflictUserPassword}}",
+        "password_confirmation": "{{conflictUserPassword}}"
       }
     }
   }
@@ -32,7 +41,7 @@ body:json {
 
 script:post-response {
   if (res.getStatus() === 201) {
-    bru.setVar("conflictUserId", res.getBody().data.id);
+    bru.setVar("conflictUserId", res.getBody().data.relationships.user.data.id);
   }
 }
 

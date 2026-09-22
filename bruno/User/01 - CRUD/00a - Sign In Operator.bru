@@ -1,0 +1,44 @@
+meta {
+  name: Sign In Operator
+  type: http
+  seq: 2
+  tags: [
+    user
+    crud
+  ]
+}
+
+post {
+  url: {{baseUrl}}/api/authentication/sign-in
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/vnd.api+json
+}
+
+body:json {
+  {
+    "data": {
+      "type": "access-tokens",
+      "attributes": {
+        "email": "{{userOperatorEmail}}",
+        "password": "{{userOperatorPassword}}"
+      }
+    }
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 200) {
+    bru.setVar("authenticationToken", res.getBody().data.attributes.token);
+  }
+}
+
+tests {
+  test("stores the operator token only at runtime", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(bru.getVar("authenticationToken")).to.be.a("string").and.not.be.empty;
+  });
+}

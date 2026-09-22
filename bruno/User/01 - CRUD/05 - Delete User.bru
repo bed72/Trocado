@@ -1,7 +1,7 @@
 meta {
   name: Delete User
   type: http
-  seq: 5
+  seq: 7
   tags: [
     user
     crud
@@ -11,7 +11,7 @@ meta {
 delete {
   url: {{baseUrl}}/api/users/{{userId}}
   body: none
-  auth: none
+  auth: inherit
 }
 
 

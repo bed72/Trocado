@@ -20,4 +20,4 @@ it('throws a descriptive exception when no budget was deleted', function (): voi
     $repository->expects($this->once())->method('delete')->with(42)->willReturn(false);
 
     (new DeleteBudgetUseCase(repository: $repository))->execute(id: 42);
-})->throws(BudgetNotFoundException::class, 'Budget 42 não encontrado.');
+})->throws(BudgetNotFoundException::class, 'Budget não encontrado.');

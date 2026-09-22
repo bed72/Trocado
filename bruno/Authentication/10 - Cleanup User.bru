@@ -1,0 +1,38 @@
+meta {
+  name: Cleanup User
+  type: http
+  seq: 10
+  tags: [
+    smoke
+    authentication
+    cleanup
+  ]
+}
+
+delete {
+  url: {{baseUrl}}/api/users/{{authenticationUserId}}
+  body: none
+  auth: inherit
+}
+
+script:post-response {
+  if (res.getStatus() === 204) {
+    bru.deleteVar("authenticationUserId");
+    bru.deleteVar("authenticationToken");
+    bru.deleteVar("authenticationEmail");
+    bru.deleteVar("authenticationPassword");
+    bru.deleteVar("authenticationInvalidPassword");
+  }
+}
+
+tests {
+  test("uses the fresh runtime Bearer token", function () {
+    const authorization = req.headers.authorization ?? req.headers.Authorization;
+
+    expect(authorization?.startsWith("Bearer ")).to.equal(true);
+  });
+
+  test("removes the sign up user", function () {
+    expect(res.getStatus()).to.equal(204);
+  });
+}

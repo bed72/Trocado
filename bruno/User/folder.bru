@@ -2,12 +2,20 @@ meta {
   name: User
 }
 
+auth {
+  mode: bearer
+}
+
+auth:bearer {
+  token: {{authenticationToken}}
+}
+
 docs {
   # User
 
-  Exercita CRUD, validação, conflitos de e-mail e respostas not-found do recurso User.
+  Exercita consulta, atualização, exclusão, validação, conflitos de e-mail e respostas not-found do recurso User. Toda conta temporária é criada pelo SignUp público; `POST /api/users` aparece somente no request dedicado que comprova sua remoção com `405`.
 
-  Cada subpasta é um cenário serial independente. Em `01 - CRUD`, `Create User` faz o setup e os dois últimos requests excluem e confirmam a exclusão. Em `02 - Validation/02 - Update`, execute `Setup User` antes das validações e `Cleanup User` ao final. Em `03 - Conflicts`, preserve a ordem dos dois setups, das verificações de conflito e dos dois cleanups. `04 - Not Found` não cria dados.
+  Cada subpasta mutável é um cenário serial independente e cria password, identificadores e Bearer token somente em runtime. Em `01 - CRUD`, uma conta operadora autenticada permite excluir a conta-alvo e ainda confirmar sua ausência antes do cleanup da operadora. Em `02 - Validation/02 - Update`, execute SignUp, SignIn, validações e cleanup. Em `03 - Conflicts`, preserve a ordem dos SignUps, SignIn, verificações e cleanups. `04 - Not Found` cria uma conta operadora, executa os casos ausentes e a remove ao final.
 
-  Os cenários de CRUD, validação de update e conflito são mutáveis. Execute-os somente em desenvolvimento ou banco descartável. Se uma sequência falhar, conclua os requests de cleanup da própria subpasta antes de recomeçar.
+  Requests protegidos herdam o Bearer de `authenticationToken`; SignUp, SignIn e o contrato do endpoint removido desabilitam autenticação explicitamente. Os cenários mutáveis devem rodar somente em desenvolvimento ou banco descartável. Se uma sequência falhar, conclua os requests autenticados de cleanup da própria subpasta antes de recomeçar.
 }

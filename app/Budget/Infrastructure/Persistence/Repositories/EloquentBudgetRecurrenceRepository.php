@@ -54,7 +54,9 @@ final class EloquentBudgetRecurrenceRepository implements BudgetRecurrenceReposi
             ->orderBy(column: 'next_start_date')
             ->orderBy(column: 'id')
             ->pluck(column: 'id')
-            ->map(callback: fn (mixed $id): int => (int) $id)
+            ->map(callback: static function (mixed $id): int {
+                return (int) $id;
+            })
             ->all();
     }
 

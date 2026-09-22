@@ -3,11 +3,11 @@
 declare(strict_types=1);
 
 use App\Budget\Infrastructure\Persistence\Models\BudgetModel;
-use App\User\Infrastructure\Persistence\Models\UserModel;
+use App\Identity\Infrastructure\Persistence\Models\UserModel;
 use Laravel\Sanctum\Sanctum;
 
 beforeEach(function (): void {
-    Sanctum::actingAs(new UserModel);
+    Sanctum::actingAs(new UserModel(['password' => 'Abc123']));
 
     $this->budget = BudgetModel::query()->create([
         'amount' => 12500,
@@ -101,7 +101,7 @@ it('returns a JSON API error when the budget does not exist', function (): void 
         ->assertExactJson(['errors' => [[
             'status' => '404',
             'title' => 'Budget não encontrado',
-            'detail' => 'Budget 99999 não encontrado.',
+            'detail' => 'Budget não encontrado.',
         ]]]);
 });
 

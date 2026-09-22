@@ -35,10 +35,10 @@ A collection Bruno MUST manter no ambiente apenas valores públicos que variam e
 - **AND** o valor não é escrito em arquivo versionado nem exposto em relatório
 
 ### Requirement: Fluxo Authentication seguro para consumidores
-Após a capability Authentication estar disponível, a collection Bruno MUST fornecer um fluxo serial `SignUp` → `SignIn` → request Bearer autenticado → `SignOut` → rejeição do token revogado. Password e token MUST existir somente durante a execução. A collection MUST enviar Bearer nos endpoints protegidos de User, Budget e recorrência, sem aplicá-lo globalmente a health, `SignUp` ou `SignIn`.
+Após a consolidação em Identity, a collection Bruno MUST fornecer um fluxo serial `SignUp` → `SignIn` → request Bearer autenticado → `SignOut` → rejeição do token revogado. Password e token MUST existir somente durante a execução. A collection MUST criar contas exclusivamente por SignUp, MUST enviar Bearer nos endpoints protegidos de User, Budget e recorrência e MUST NOT chamar `POST /api/users`.
 
 #### Scenario: Captura e uso do token
-- **WHEN** `SignIn` responde com uma AuthenticationSession válida
+- **WHEN** SignIn responde com um access token válido
 - **THEN** o token retornado uma única vez é salvo como runtime variable
 - **AND** o request autenticado seguinte o envia por `Authorization: Bearer`
 
@@ -54,6 +54,11 @@ Após a capability Authentication estar disponível, a collection Bruno MUST for
 - **WHEN** um endpoint de User, Budget ou recorrência é executado
 - **THEN** a collection envia o Personal Access Token da variável de runtime
 - **AND** não persiste o token na collection ou no ambiente versionado
+
+#### Scenario: User é criado somente por SignUp
+- **WHEN** um cenário precisa de uma identidade temporária
+- **THEN** o setup chama `POST /api/authentication/sign-up`
+- **AND** nenhum request da collection chama o `POST /api/users` removido
 
 ### Requirement: Documentação operacional junto da collection
 A collection Bruno MUST documentar as convenções transversais de consumo da API e cada pasta funcional MUST documentar objetivo, ordem, setup, efeitos destrutivos e cleanup quando aplicáveis. Documentação por request MUST ser usada para comportamento relevante que não esteja evidente em método, URL, payload e testes, sem duplicar integralmente as requirements OpenSpec.

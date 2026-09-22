@@ -1,0 +1,34 @@
+meta {
+  name: Cleanup Operator
+  type: http
+  seq: 9
+  tags: [
+    user
+    crud
+    cleanup
+  ]
+}
+
+delete {
+  url: {{baseUrl}}/api/users/{{userOperatorId}}
+  body: none
+  auth: inherit
+}
+
+script:post-response {
+  if (res.getStatus() === 204) {
+    bru.deleteVar("authenticationToken");
+    bru.deleteVar("userOperatorId");
+    bru.deleteVar("userOperatorEmail");
+    bru.deleteVar("userOperatorPassword");
+    bru.deleteVar("userId");
+    bru.deleteVar("userEmail");
+    bru.deleteVar("userPassword");
+  }
+}
+
+tests {
+  test("removes the authenticated operator", function () {
+    expect(res.getStatus()).to.equal(204);
+  });
+}

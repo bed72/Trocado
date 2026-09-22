@@ -1,7 +1,7 @@
 meta {
   name: List Users
   type: http
-  seq: 4
+  seq: 6
   tags: [
     user
     crud
@@ -11,7 +11,7 @@ meta {
 get {
   url: {{baseUrl}}/api/users
   body: none
-  auth: none
+  auth: inherit
 }
 
 

@@ -14,6 +14,6 @@ final readonly class GetBudgetUseCase
 
     public function execute(int $id): BudgetEntity
     {
-        return $this->repository->findById(id: $id) ?? throw new BudgetNotFoundException(id: $id);
+        return $this->repository->findById(id: $id) ?? throw new BudgetNotFoundException;
     }
 }

@@ -14,7 +14,7 @@ final readonly class DeleteBudgetUseCase
     public function execute(int $id): void
     {
         if (! $this->repository->delete(id: $id)) {
-            throw new BudgetNotFoundException(id: $id);
+            throw new BudgetNotFoundException;
         }
     }
 }

@@ -9,7 +9,7 @@ meta {
 }
 
 post {
-  url: {{baseUrl}}/api/users
+  url: {{baseUrl}}/api/authentication/sign-up
   body: json
   auth: none
 }
@@ -18,13 +18,22 @@ headers {
   Content-Type: application/vnd.api+json
 }
 
+script:pre-request {
+  const runId = `${Date.now()}${Math.floor(Math.random() * 1000000).toString().padStart(6, "0")}`;
+
+  bru.setVar("validationUserEmail", `bruno.user.validation.${runId}@example.com`);
+  bru.setVar("validationUserPassword", `D${runId.slice(-8)}x`);
+}
+
 body:json {
   {
     "data": {
-      "type": "users",
+      "type": "sign-ups",
       "attributes": {
-        "name": "Validation User",
-        "email": "bruno.user.validation@example.com"
+        "name": "Valid User",
+        "email": "{{validationUserEmail}}",
+        "password": "{{validationUserPassword}}",
+        "password_confirmation": "{{validationUserPassword}}"
       }
     }
   }
@@ -32,7 +41,7 @@ body:json {
 
 script:post-response {
   if (res.getStatus() === 201) {
-    bru.setVar("validationUserId", res.getBody().data.id);
+    bru.setVar("validationUserId", res.getBody().data.relationships.user.data.id);
   }
 }
 
