@@ -41,6 +41,12 @@ Facades são proibidas em Domain e Application, permitidas em Infrastructure e P
 
 Para JSON:API, consulte primeiro Boost/Search Docs e o código da versão instalada. As classes do projeto ficam em `Presentation/Http/Responses`, usam o sufixo `Response` e, quando aplicável, estendem `Illuminate\Http\Resources\JsonApi\JsonApiResource`, deixando o suporte oficial montar o envelope `data`. Não use `JsonResource` tradicional por hábito. Trate erros no limite HTTP conforme a API oficial.
 
+## Cache e consistência
+
+Para os usos de cache da aplicação, a decisão é adotar Redis como store padrão compartilhado entre processos; o rate limiter conserva sua configuração independente e os testes podem usar um store isolado. Sessões e filas não mudam por causa do store de cache. **Esta é uma decisão de arquitetura para a mudança proposta em [`cache-owned-expense-pages`](openspec/changes/cache-owned-expense-pages/); até sua implementação, a configuração efetiva do ambiente continua prevalecendo.**
+
+Na listagem de Expense, o UseCase decide carregar e invalidar páginas por proprietário por meio de uma capacidade de Expense Application, implementada em Infrastructure com Laravel Cache. Chaves distinguem proprietário autenticado, tamanho e cursor; o TTL inicial é de 60 segundos. O cache armazena dados da página, não respostas HTTP; uma consulta não atendida pelo cache continua dentro de `ScopePort` e sob RLS. Após criação confirmada, a invalidação ocorre fora do callback transacional e abrange todas as páginas da conta; futuros casos de edição e exclusão individual seguem a mesma regra. Leituras concorrentes podem observar dados anteriores até o TTL, sem promessa de snapshot ou consistência imediata. Cache e cursor nunca substituem autenticação ou autorização.
+
 ## Injeção de dependências
 
 Use constructor property promotion e nomeie dependências pelo papel arquitetural quando houver apenas uma: `$useCase`, `$repository` e `$port`. Quando duas dependências tiverem o mesmo papel, qualifique-as pelo contexto, como `$identityRepository` e `$expenseRepository`; não repita o nome completo do tipo sem necessidade.

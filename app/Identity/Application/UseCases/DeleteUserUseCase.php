@@ -12,9 +12,9 @@ use App\Identity\Application\Repositories\UserRepository;
 final readonly class DeleteUserUseCase
 {
     public function __construct(
-        private TransactionPort $transactionPort,
         private UserPort $userPort,
         private UserRepository $repository,
+        private TransactionPort $transactionPort,
     ) {}
 
     public function execute(int $id): void

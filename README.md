@@ -10,6 +10,8 @@ Agentes devem começar por [AGENTS.md](AGENTS.md), [ARCHITECTURE.md](ARCHITECTUR
 
 Os bounded contexts atuais são `Identity` e `Expense`. `Identity` concentra o lifecycle da conta sem levar Laravel, Eloquent ou Sanctum para Domain e Application. Novas classes devem seguir os nomes, dependências e fronteiras definidos em `ARCHITECTURE.md`.
 
+Para os próximos usos de cache, a decisão registrada em [ARCHITECTURE.md](ARCHITECTURE.md#cache-e-consistência) é usar Redis como store padrão compartilhado. A proposta de cache da listagem de Expense, com TTL de 60 segundos e invalidação por conta após escritas confirmadas, está em [`cache-owned-expense-pages`](openspec/changes/cache-owned-expense-pages/); a implementação ainda está pendente.
+
 ## Executar localmente
 
 Requer PHP 8.3+ com `pdo_pgsql`, Composer e PostgreSQL. Com Lerd, na raiz do projeto:
