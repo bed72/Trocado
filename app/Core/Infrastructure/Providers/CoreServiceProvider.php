@@ -1,0 +1,29 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Core\Infrastructure\Providers;
+
+use App\Core\Application\Ports\ScopePort;
+use App\Core\Application\Ports\TransactionPort;
+use App\Core\Infrastructure\Adapters\DatabaseTransactionAdapter;
+use App\Core\Infrastructure\Adapters\ScopeAdapter;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\ServiceProvider;
+
+final class CoreServiceProvider extends ServiceProvider
+{
+    public function register(): void
+    {
+        $this->app->bind(abstract: ScopePort::class, concrete: ScopeAdapter::class);
+        $this->app->bind(abstract: TransactionPort::class, concrete: DatabaseTransactionAdapter::class);
+    }
+
+    public function boot(): void
+    {
+        RateLimiter::for('api.authenticated', fn (Request $request): Limit => Limit::perMinute(60)
+            ->by('api:authenticated:user:'.$request->user()->getAuthIdentifier()));
+    }
+}
