@@ -10,7 +10,7 @@ use App\Identity\Presentation\Http\Controllers\SignUpController;
 use App\Identity\Presentation\Http\Controllers\UpdateUserController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('users')->middleware('auth:sanctum')->name('users.')->group(function (): void {
+Route::prefix('users')->middleware(['auth:sanctum', 'throttle:api.authenticated'])->name('users.')->group(function (): void {
     Route::get(uri: '{user}', action: GetUserController::class)->whereNumber(parameters: 'user')->name(name: 'get');
     Route::patch(uri: '{user}', action: UpdateUserController::class)->whereNumber(parameters: 'user')->name(name: 'update');
     Route::delete(uri: '{user}', action: DeleteUserController::class)->whereNumber(parameters: 'user')->name(name: 'delete');

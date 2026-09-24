@@ -6,7 +6,7 @@ use App\Expense\Presentation\Http\Controllers\CreateExpenseController;
 use App\Expense\Presentation\Http\Controllers\ListOwnedExpensesController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('expenses')->middleware('auth:sanctum')->group(function (): void {
+Route::prefix('expenses')->middleware(['auth:sanctum', 'throttle:api.authenticated'])->group(function (): void {
     Route::post(uri: '/', action: CreateExpenseController::class)
         ->name(name: 'expenses.create');
 

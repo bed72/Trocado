@@ -8,10 +8,12 @@ use App\Identity\Application\Exceptions\UserNotFoundException;
 use App\Identity\Domain\Exceptions\InvalidEmailException;
 use App\Identity\Domain\Exceptions\InvalidNameException;
 use App\Identity\Domain\Exceptions\InvalidPasswordException;
+use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -29,6 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ],
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->prependToPriorityList(before: ThrottleRequests::class, prepend: Authenticate::class);
         $middleware->trimStrings(except: [
             'data.attributes.password',
             'data.attributes.password_confirmation',

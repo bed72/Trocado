@@ -1,10 +1,12 @@
 <?php
 
+use App\Core\Infrastructure\Providers\AuthenticatedRateLimitServiceProvider;
 use App\Core\Infrastructure\Providers\TransactionServiceProvider;
 use App\Expense\Infrastructure\Providers\ExpenseServiceProvider;
 use App\Identity\Infrastructure\Providers\IdentityServiceProvider;
 
 return [
+    AuthenticatedRateLimitServiceProvider::class,
     ExpenseServiceProvider::class,
     IdentityServiceProvider::class,
     TransactionServiceProvider::class,
