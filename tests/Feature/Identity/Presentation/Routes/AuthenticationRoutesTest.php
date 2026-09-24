@@ -43,13 +43,13 @@ it('returns the standard JSON API error for unauthenticated private requests', f
 })->with(privateApiRoutes());
 
 it('does not expose the Sanctum SPA cookie endpoint', function (): void {
-    expect(app('router')->getRoutes()->getByName('sanctum.csrf-cookie'))->toBeNull();
+    expect(app('router')->getRoutes()->getByName('sanctum.csrf-cookie'))->toBeNull()
+        ->and(app('router')->getRoutes()->getByName('users.get-all'))->toBeNull();
 });
 
 function privateApiRoutes(): iterable
 {
     yield 'create Expense' => ['POST', 'expenses.create', []];
-    yield 'list Users' => ['GET', 'users.get-all', []];
     yield 'get User' => ['GET', 'users.get', ['user' => 1]];
     yield 'update User' => ['PATCH', 'users.update', ['user' => 1]];
     yield 'delete User' => ['DELETE', 'users.delete', ['user' => 1]];

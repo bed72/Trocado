@@ -15,9 +15,9 @@ use Laravel\Sanctum\HasApiTokens;
 
 it('finds users by identifier and canonical email', function (): void {
     $model = UserModel::query()->create([
+        'password' => 'Abc123',
         'name' => 'Maria Silva',
         'email' => 'maria@example.com',
-        'password' => 'Abc123',
     ]);
     $repository = new EloquentUserRepository;
 
@@ -32,26 +32,11 @@ it('finds users by identifier and canonical email', function (): void {
         ->and($repository->findByEmail(EmailValueObject::fromString(value: 'absent@example.com')))->toBeNull();
 });
 
-it('lists users in identifier order and returns an empty list when none exist', function (): void {
-    $repository = new EloquentUserRepository;
-
-    expect($repository->all())->toBe([]);
-
-    $first = UserModel::query()->create(['name' => 'Maria', 'email' => 'maria@example.com', 'password' => 'Abc123']);
-    $second = UserModel::query()->create(['name' => 'João', 'email' => 'joao@example.com', 'password' => 'Abc123']);
-
-    $users = $repository->all();
-
-    expect($users)->toHaveCount(2)
-        ->and($users[0]->id)->toBe((int) $first->getKey())
-        ->and($users[1]->id)->toBe((int) $second->getKey());
-});
-
 it('updates and maps an existing user', function (): void {
     $model = UserModel::query()->create([
         'name' => 'Maria',
-        'email' => 'maria@example.com',
         'password' => 'Abc123',
+        'email' => 'maria@example.com',
     ]);
     $repository = new EloquentUserRepository;
 

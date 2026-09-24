@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-it('rejects direct user creation as a JSON API method error without persisting', function (): void {
+it('rejects direct user creation as a missing JSON API endpoint without persisting', function (): void {
     $this->postJson('/api/users', [
         'data' => [
             'type' => 'users',
@@ -14,12 +14,12 @@ it('rejects direct user creation as a JSON API method error without persisting',
     ], [
         'Accept' => 'application/vnd.api+json',
         'Content-Type' => 'application/vnd.api+json',
-    ])->assertStatus(405)
+    ])->assertNotFound()
         ->assertHeader('Content-Type', 'application/vnd.api+json')
         ->assertExactJson(['errors' => [[
-            'status' => '405',
-            'title' => 'Método não permitido',
-            'detail' => 'O método HTTP informado não é permitido para este recurso.',
+            'status' => '404',
+            'title' => 'Recurso não encontrado',
+            'detail' => 'O recurso solicitado não foi encontrado.',
         ]]]);
 
     $this->assertDatabaseCount('users', 0);

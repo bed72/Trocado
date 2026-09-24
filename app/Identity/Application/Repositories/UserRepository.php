@@ -10,9 +10,6 @@ use SensitiveParameter;
 
 interface UserRepository
 {
-    /** @return list<UserEntity> */
-    public function all(): array;
-
     public function delete(int $id): bool;
 
     public function findById(int $id): ?UserEntity;

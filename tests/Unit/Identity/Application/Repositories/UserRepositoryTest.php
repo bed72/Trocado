@@ -16,7 +16,7 @@ it('exposes only the explicit persistence operations', function (): void {
 
     ksort($methodsByName);
 
-    expect(array_keys($methodsByName))->toBe(['all', 'create', 'delete', 'findByEmail', 'findById', 'update'])
+    expect(array_keys($methodsByName))->toBe(['create', 'delete', 'findByEmail', 'findById', 'update'])
         ->and($methodsByName['create']->getParameters()[0]->getType()?->getName())->toBe(UserEntity::class)
         ->and($methodsByName['create']->getParameters()[1]->getType()?->getName())->toBe('string')
         ->and($methodsByName['create']->getParameters()[1]->getAttributes(SensitiveParameter::class))->toHaveCount(1)
@@ -26,7 +26,6 @@ it('exposes only the explicit persistence operations', function (): void {
         ->and($methodsByName['update']->getReturnType()?->allowsNull())->toBeTrue()
         ->and($methodsByName['delete']->getParameters()[0]->getType()?->getName())->toBe('int')
         ->and($methodsByName['delete']->getReturnType()?->getName())->toBe('bool')
-        ->and($methodsByName['all']->getReturnType()?->getName())->toBe('array')
         ->and($methodsByName['findById']->getParameters()[0]->getType()?->getName())->toBe('int')
         ->and($methodsByName['findById']->getReturnType()?->getName())->toBe(UserEntity::class)
         ->and($methodsByName['findById']->getReturnType()?->allowsNull())->toBeTrue()

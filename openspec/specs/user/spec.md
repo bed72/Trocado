@@ -79,15 +79,7 @@ O sistema MUST impedir que dois Users possuam o mesmo e-mail canônico. A Applic
 - **AND** a tentativa conflitante produz a mesma falha explícita de e-mail já utilizado, sem vazar uma exceção do banco
 
 ### Requirement: Consulta de User
-O sistema MUST permitir listar Users em ordem de identificador e consultar User por identificador e por e-mail canônico por meio de UseCases concretos. Uma identidade inexistente MUST produzir uma falha explícita da Application e MUST NOT expor Model, Builder ou consulta Eloquent.
-
-#### Scenario: Listagem vazia
-- **WHEN** nenhum User está persistido
-- **THEN** a listagem retorna uma coleção vazia
-
-#### Scenario: Listagem ordenada
-- **WHEN** existem múltiplos Users persistidos
-- **THEN** a listagem retorna `UserEntity` em ordem crescente de identificador
+O sistema MUST permitir consultar User por identificador e por e-mail canônico por meio de UseCases concretos. Uma identidade inexistente MUST produzir uma falha explícita da Application e MUST NOT expor Model, Builder ou consulta Eloquent.
 
 #### Scenario: Consulta por identificador existente
 - **WHEN** um User é consultado por seu identificador persistido
@@ -151,7 +143,7 @@ O sistema MUST excluir uma conta existente dentro de `Core` `TransactionPort`, M
 - **THEN** o caso de uso produz uma exceção explícita de User não encontrado
 
 ### Requirement: Contrato explícito de Repository
-O sistema MUST declarar `UserRepository` na camada Application com `create(UserEntity, string password): UserEntity`, `update(UserEntity): ?UserEntity`, `delete(int): bool`, `all(): array`, `findById(int): ?UserEntity` e `findByEmail(EmailValueObject): ?UserEntity`. A senha de criação MUST ser tratada como sensível e transitória; o contrato MUST usar apenas tipos independentes do ORM e sua implementação Eloquent MUST permanecer em Infrastructure. Apenas SignUp MUST criar contas no fluxo atual.
+O sistema MUST declarar `UserRepository` na camada Application com `create(UserEntity, string password): UserEntity`, `update(UserEntity): ?UserEntity`, `delete(int): bool`, `findById(int): ?UserEntity` e `findByEmail(EmailValueObject): ?UserEntity`. A senha de criação MUST ser tratada como sensível e transitória; o contrato MUST usar apenas tipos independentes do ORM e sua implementação Eloquent MUST permanecer em Infrastructure. Apenas SignUp MUST criar contas no fluxo atual.
 
 #### Scenario: Fronteira independente do ORM
 - **WHEN** o contrato `UserRepository` é verificado
@@ -174,16 +166,12 @@ O sistema MUST declarar `UserRepository` na camada Application com `create(UserE
 - **AND** nenhum Repository base ou genérico é introduzido
 
 ### Requirement: CRUD HTTP JSON:API
-O sistema MUST expor listagem, consulta, atualização e exclusão de User em `/api/users` usando Form Requests, Controllers por ação e `UserResponse`. As respostas de recurso MUST usar o tipo `users`, identificador em string, atributos `name`, `email`, `created_at` e `updated_at`, e link `self`. A API MUST NOT expor criação por `POST /api/users`.
+O sistema MUST expor consulta, atualização e exclusão de User em `/api/users/{user}` usando Form Requests, Controllers por ação e `UserResponse`. O sistema MUST NOT expor listagem global de contas em `GET /api/users`. As respostas de recurso MUST usar o tipo `users`, identificador em string, atributos `name`, `email`, `created_at` e `updated_at`, e link `self`. A API MUST NOT expor criação por `POST /api/users`.
 
 #### Scenario: Criação HTTP removida
 - **WHEN** `POST /api/users` é executado
-- **THEN** responde `405` em JSON:API
+- **THEN** responde `404` em JSON:API
 - **AND** orienta implicitamente o consumidor a usar o recurso de SignUp sem criar User
-
-#### Scenario: Listagem HTTP
-- **WHEN** `GET /api/users` é executado
-- **THEN** responde `200` com uma coleção JSON:API
 
 #### Scenario: Consulta HTTP
 - **WHEN** `GET /api/users/{user}` referencia um User existente

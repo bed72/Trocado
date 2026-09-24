@@ -85,15 +85,6 @@ final class EloquentUserRepository implements UserRepository
         return (bool) $model->delete();
     }
 
-    public function all(): array
-    {
-        return UserModel::query()
-            ->orderBy(column: 'id')
-            ->get()
-            ->map(callback: $this->toEntity(...))
-            ->all();
-    }
-
     public function findById(int $id): ?UserEntity
     {
         $model = UserModel::query()->find(id: $id);

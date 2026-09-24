@@ -71,15 +71,15 @@ it('creates independent tokens and revokes only the current bearer token', funct
 });
 
 it('accepts an issued bearer token on private application routes', function (): void {
-    signUpIdentityByApi($this);
+    $userId = signUpIdentityByApi($this);
     $token = $this->postJson(
         route('authentication.api.sign-in'),
         authenticationSignInPayload(),
     )->assertOk()->json('data.attributes.token');
 
-    $this->withToken($token)->getJson(route('users.get-all'))
+    $this->withToken($token)->getJson(route('users.get', ['user' => $userId]))
         ->assertOk()
-        ->assertJsonCount(1, 'data');
+        ->assertJsonPath('data.id', (string) $userId);
 });
 
 it('returns the same generic response for every invalid credential condition', function (string $condition): void {
