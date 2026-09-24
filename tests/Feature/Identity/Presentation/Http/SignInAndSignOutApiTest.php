@@ -77,12 +77,6 @@ it('accepts an issued bearer token on private application routes', function (): 
         authenticationSignInPayload(),
     )->assertOk()->json('data.attributes.token');
 
-    $this->withToken($token)->getJson(route('budgets.get-all'))
-        ->assertOk()
-        ->assertExactJson(['data' => []]);
-
-    app('auth')->forgetGuards();
-
     $this->withToken($token)->getJson(route('users.get-all'))
         ->assertOk()
         ->assertJsonCount(1, 'data');

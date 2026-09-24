@@ -6,7 +6,7 @@
 - Em mudanças não triviais, use as skills locais do OpenCode em `.opencode/skills/`: `trocado-sdd` para o ciclo OpenSpec, `trocado-architecture` para implementação e revisão, e `trocado-quality-gate` antes de declarar uma mudança concluída ou arquivável.
 - Preserve os bounded contexts em `app/<Contexto>/{Domain,Application,Infrastructure,Presentation}`. Domain é PHP puro; Application não usa Eloquent, facades, HTTP, Infrastructure ou Service Locator.
 - Use os sufixos arquiteturais de `ARCHITECTURE.md`; respostas JSON:API usam `Response`, contratos de capacidade usam `Port` e suas implementações usam `Adapter`. Crie interfaces somente para fronteiras reais.
-- Em construtores de DI, nomeie uma única dependência pelo papel (`$useCase`, `$repository`, `$port`) e qualifique pelo contexto quando houver mais de uma do mesmo papel (`$budgetRepository`, `$recurrenceRepository`). Em UseCases, ordene `Port → UseCase → Repository`.
+- Em construtores de DI, nomeie uma única dependência pelo papel (`$useCase`, `$repository`, `$port`) e qualifique pelo contexto quando houver mais de uma do mesmo papel (`$identityRepository`, `$expenseRepository`). Em UseCases, ordene `Port → UseCase → Repository`.
 - Repository persiste e consulta agregados; Port expõe uma capacidade de Infrastructure, como coordenação transacional. Quando uma regra exigir atomicidade, o UseCase define a unidade pelo Port e mantém checagens, locks e escritas dentro dela.
 - Commands Laravel ficam em `Infrastructure/Console/Commands`, são adaptadores finos para UseCases e recebem valores explícitos, como a data de processamento. Scheduler evita sobreposição operacional; integridade concorrente depende de transações, locks e constraints no banco.
 - Em PHP, importe explicitamente toda classe usada com `use`, inclusive classes globais usadas como atributos, como `SensitiveParameter`; não dependa da resolução pelo namespace atual nem use nomes totalmente qualificados inline.
@@ -76,7 +76,7 @@
 
 - Antes de implementar, consulte Boost/Search Docs e o código Laravel instalado, especialmente em Laravel 13.
 - Prefira o suporte first-party `Illuminate\Http\Resources\JsonApi\JsonApiResource` quando aplicável.
-- Nomeie as classes do projeto como Responses, por exemplo `BudgetResponse`; não use `JsonResource` tradicional por hábito.
+- Nomeie as classes do projeto como Responses, por exemplo `ExpenseResponse`; não use `JsonResource` tradicional por hábito.
 - Deixe o suporte oficial serializar o envelope `data`; formate erros no limite HTTP segundo a API atual.
 
 === .ai/naming rules ===
@@ -84,9 +84,9 @@
 # Nomes
 
 - Use sufixos que revelem o papel: `Entity`, `ValueObject`, `Input`, `Output`, `UseCase`, `Repository`, `Port`, `Adapter`, `Model`, `Request`, `Controller`, `Response`, `Command`, `Enum`, `Exception` e `ServiceProvider`.
-- Exemplos: `BudgetEntity`, `MoneyValueObject`, `CreateBudgetInput`, `SignInOutput`, `BudgetRepository`, `BudgetWritePort`, `BudgetWriteAdapter`, `EloquentBudgetRepository`, `BudgetModel`, `CreateBudgetUseCase`, `BudgetResponse` e `ProcessDueBudgetRecurrencesCommand`.
+- Exemplos: `ExpenseEntity`, `CreateExpenseInput`, `SignInOutput`, `ExpenseRepository`, `IdentityWritePort`, `IdentityWriteAdapter`, `EloquentExpenseRepository`, `ExpenseModel`, `CreateExpenseUseCase` e `ExpenseResponse`.
 - Reserve `Input` e `Output` para contratos em `Application/Data`; não use `Result` como sufixo de saída da Application nem `Response` fora da Presentation.
-- Controllers podem ser separados por ação, como `CreateBudgetController`. Classes de resposta JSON:API ficam em `Presentation/Http/Responses`, usam o sufixo `Response` e podem estender o recurso first-party do Laravel.
+- Controllers podem ser separados por ação, como `CreateExpenseController`. Classes de resposta JSON:API ficam em `Presentation/Http/Responses`, usam o sufixo `Response` e podem estender o recurso first-party do Laravel.
 - Evite nomes genéricos como `Service`, `Manager`, `Handler` ou `Helper` quando o papel for claro.
 - Não crie `BaseEntity`, `BaseUseCase`, `BaseRepository`, `BaseController`, `BaseService`, `BaseMapper` ou `BaseFactory` por antecipação.
 

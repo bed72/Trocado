@@ -28,7 +28,7 @@
 
 - [x] 4.1 Manter rastreabilidade entre cada cenário de `specs/user/spec.md` e ao menos um teste automatizado no nível mais baixo adequado.
 - [x] 4.2 Executar separadamente os testes de Domain, Application, persistência, provider e arquitetura do contexto `User`.
-- [x] 4.3 Executar a suíte completa para confirmar que a introdução de User não altera Budget ou suas recorrências.
+- [x] 4.3 Executar a suíte completa para confirmar que a introdução de User não causa regressões.
 - [x] 4.4 Executar `vendor/bin/pint --dirty --format agent` e repetir os testes afetados após a formatação.
 
 ## 5. CRUD de User
@@ -45,5 +45,4 @@
 
 - [x] 6.1 Substituir códigos HTTP mágicos nas Controllers pelas constantes semânticas declaradas em `Symfony\Component\HttpFoundation\Response`.
 - [x] 6.2 Habilitar e testar a prevenção de lazy loading no `UserServiceProvider` fora de produção.
-- [x] 6.3 Criar a collection Bruno de User com CRUD, validações, conflitos, not-found e cleanup.
 - [x] 6.4 Documentar detalhadamente o bounded context User no Obsidian e conectá-lo aos índices e documentos de API/operação.

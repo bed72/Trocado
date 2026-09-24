@@ -81,7 +81,7 @@ Namespaces, providers, bindings e testes serão movidos sem renomear tabelas ou 
 
 Como o Sanctum persiste o morph type do principal em `personal_access_tokens.tokenable_type`, `IdentityServiceProvider` manterá o discriminador já armazenado apontando para o novo `UserModel`. Assim tokens emitidos antes da consolidação continuam resolvíveis e revogáveis sem migration de dados, embora o namespace antigo deixe de existir como dependência de código.
 
-O teste arquitetural deixará de permitir `Authentication Infrastructure -> App\User`; apenas `Identity` e `Budget` serão contextos conhecidos após a mudança.
+O teste arquitetural deixará de permitir `Authentication Infrastructure -> App\User`; `Identity` e `Expense` são os contextos existentes.
 
 ## Matriz de rastreabilidade
 
@@ -96,11 +96,10 @@ O teste arquitetural deixará de permitir `Authentication Infrastructure -> App\
 | Exclusão remove todos os tokens e a identidade na mesma unidade atômica | `tests/Unit/Identity/Application/UseCases/DeleteUserUseCaseTest.php`, `tests/Feature/Identity/Infrastructure/Persistence/Repositories/EloquentIdentityRepositoryTest.php` e `tests/Feature/Identity/Presentation/Http/DeleteUserApiTest.php` | Comprovado para sucesso e rollback sequenciais; corrida com emissão concorrente não exercitada |
 | `POST /api/users` não existe e as demais rotas preservam nomes e middleware | `tests/Feature/Identity/Presentation/Http/CreateUserApiTest.php` e `tests/Feature/Identity/Presentation/Routes/AuthenticationRoutesTest.php` | Comprovado |
 | Respostas não expõem password, hash ou token indevido | `tests/Feature/Identity/Security/SecretExposureTest.php` e testes HTTP de Identity | Comprovado |
-| Collection Bruno usa SignUp, autenticação em runtime e cleanup válido | smoke da collection Bruno | Comprovado; referência HTML derivada permanece bloqueada pela tarefa 6.3 |
 
 ## Risks / Trade-offs
 
-- [Mudança breaking remove `POST /api/users`] -> Atualizar Bruno, README e consumidores identificados; responder `405` e orientar criação por SignUp.
+- [Mudança breaking remove `POST /api/users`] -> Atualizar README e consumidores identificados; responder `405` e orientar criação por SignUp.
 - [Mudança ampla de namespaces produz imports órfãos] -> Migrar verticalmente, buscar referências antigas e executar teste arquitetural e suíte completa.
 - [CreatePort persiste parte central da conta] -> Restringir o contrato somente ao provisionamento principal+credencial e impedir operações CRUD adicionais.
 - [Exclusão de conta passa a remover tokens] -> Testar múltiplos tokens e rollback conjunto quando a exclusão falhar.
@@ -117,7 +116,7 @@ O teste arquitetural deixará de permitir `Authentication Infrastructure -> App\
 5. Remover `CreateUserUseCase`, `CreateUserRequest`, `CreateUserController` e `POST /api/users`.
 6. Tornar `DeleteUserUseCase` transacional e remover todos os tokens da identidade antes do registro `users`.
 7. Atualizar composition roots, exception mapping, testes arquiteturais, providers e paths de testes.
-8. Atualizar OpenSpec, Bruno, referência HTML, README, ARCHITECTURE e Obsidian.
+8. Atualizar OpenSpec, README, ARCHITECTURE e Obsidian.
 9. Executar migrations pendentes, suítes por camada, suíte completa, Pint e validação OpenSpec strict.
 10. Remover os diretórios vazios `app/User`, `app/Authentication` e seus equivalentes em testes.
 

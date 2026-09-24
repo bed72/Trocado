@@ -48,15 +48,7 @@ it('does not expose the Sanctum SPA cookie endpoint', function (): void {
 
 function privateApiRoutes(): iterable
 {
-    yield 'create Budget' => ['POST', 'budgets.create', []];
-    yield 'list Budgets' => ['GET', 'budgets.get-all', []];
-    yield 'get Budget' => ['GET', 'budgets.get', ['budget' => 1]];
-    yield 'update Budget' => ['PATCH', 'budgets.update', ['budget' => 1]];
-    yield 'delete Budget' => ['DELETE', 'budgets.delete', ['budget' => 1]];
-    yield 'get Budget recurrence' => ['GET', 'budget-recurrences.get', ['recurrence' => 1]];
-    yield 'end Budget recurrence' => ['POST', 'budget-recurrences.end', ['recurrence' => 1]];
-    yield 'update Budget recurrence' => ['PATCH', 'budget-recurrences.update', ['recurrence' => 1]];
-    yield 'resume Budget recurrence' => ['POST', 'budget-recurrences.resume', ['recurrence' => 1]];
+    yield 'create Expense' => ['POST', 'expenses.create', []];
     yield 'list Users' => ['GET', 'users.get-all', []];
     yield 'get User' => ['GET', 'users.get', ['user' => 1]];
     yield 'update User' => ['PATCH', 'users.update', ['user' => 1]];

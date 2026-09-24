@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Route;
 
 it('normalizes HTTP errors as JSON API responses', function (): void {
-    $this->putJson('/api/budgets')
+    $this->postJson('/api/users')
         ->assertStatus(405)
         ->assertHeader('Content-Type', 'application/vnd.api+json')
         ->assertExactJson(['errors' => [[

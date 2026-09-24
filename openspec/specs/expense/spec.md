@@ -1,13 +1,13 @@
 # expense Specification
 
 ## Purpose
-Definir a criação de despesas independentes de Budget, pertencentes ao User autenticado, com invariantes de valor, data e categoria, persistência com exclusão lógica e relacionamento Eloquent protegido contra N+1.
+Definir a criação de despesas pertencentes ao User autenticado, com invariantes de valor, data e categoria, persistência com exclusão lógica e relacionamento Eloquent protegido contra N+1.
 ## Requirements
 ### Requirement: Despesa pertence a uma identidade existente
-O sistema MUST permitir criar Expense somente para o User autenticado e existente em Identity. `user_id` MUST ser definido pela identidade autenticada, MUST NOT ser escolhido pelo cliente e MUST NOT exigir Budget.
+O sistema MUST permitir criar Expense somente para o User autenticado e existente em Identity. `user_id` MUST ser definido pela identidade autenticada e MUST NOT ser escolhido pelo cliente.
 
-#### Scenario: Criação sem Budget
-- **WHEN** um User autenticado sem Budget cria uma despesa válida
+#### Scenario: Criação de despesa
+- **WHEN** um User autenticado cria uma despesa válida
 - **THEN** a despesa é vinculada ao seu identificador e persistida
 
 #### Scenario: Tentativa de atribuição a terceiro

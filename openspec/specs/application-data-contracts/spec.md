@@ -4,10 +4,10 @@
 Padronizar como cada bounded context representa entradas coesas e saídas estruturadas nos contratos da Application, preservando tipos naturais e independência de framework quando wrappers não agregam clareza.
 ## Requirements
 ### Requirement: Convenção transversal por bounded context
-Cada bounded context MUST possuir seus próprios objetos de dados da Application em `Application/Data` quando um contrato exigir agrupamento de entrada ou saída estruturada. Identity e Budget MUST ser avaliados pela mesma convenção, e objetos de dados MUST NOT ser colocados em uma pasta global nem compartilhados entre contextos apenas por coincidência estrutural.
+Cada bounded context MUST possuir seus próprios objetos de dados da Application em `Application/Data` quando um contrato exigir agrupamento de entrada ou saída estruturada. Identity e Expense MUST ser avaliados pela mesma convenção, e objetos de dados MUST NOT ser colocados em uma pasta global nem compartilhados entre contextos apenas por coincidência estrutural.
 
 #### Scenario: Contrato composto pertence ao contexto
-- **WHEN** um contrato da Application de Identity ou Budget precisa de uma classe de dados
+- **WHEN** um contrato da Application de Identity ou Expense precisa de uma classe de dados
 - **THEN** a classe é definida em `Application/Data` do próprio bounded context
 - **AND** Infrastructure e Presentation podem depender dela sem inverter a direção arquitetural
 
@@ -97,7 +97,7 @@ Ports da Application MUST poder receber Inputs e retornar Outputs definidos pela
 - **AND** o Use Case mapeia explicitamente entre eles
 
 ### Requirement: Cobertura dos bounded contexts existentes
-Identity e Budget MUST ser revisados durante a adoção desta convenção. A revisão MUST migrar os contratos que atendam aos critérios de Input ou Output e MUST preservar parâmetros explícitos e retornos naturais onde uma classe adicional não melhorar o contrato.
+Identity e Expense MUST seguir esta convenção. Contratos que atendam aos critérios de Input ou Output MUST usar esses tipos, preservando parâmetros explícitos e retornos naturais onde uma classe adicional não melhorar o contrato.
 
 #### Scenario: Identity retorna dados de SignIn
 - **WHEN** `SignInPort` autentica credenciais e emite um token
@@ -114,15 +114,10 @@ Identity e Budget MUST ser revisados durante a adoção desta convenção. A rev
 - **THEN** parâmetros explícitos, `UserEntity`, `NameValueObject`, `EmailValueObject`, scalars e listas tipadas são preservados onde representam integralmente o contrato
 - **AND** nenhuma classe de dados é criada apenas para garantir que o contexto possua um Input ou Output
 
-#### Scenario: Entradas atuais de Budget
-- **WHEN** Create Budget ou Update Budget recebe quatro valores coesos da operação
-- **THEN** a entrada é representada respectivamente por `CreateBudgetInput` ou `UpdateBudgetInput`
-- **AND** os Use Cases continuam retornando `BudgetEntity` em vez de Outputs redundantes
-
-#### Scenario: Retornos atuais de Budget
-- **WHEN** um Use Case ou Repository de Budget retorna uma Entity, lista homogênea, identificador, contagem ou booleano suficiente
-- **THEN** o retorno natural é preservado
-- **AND** a convenção não alcança array shapes privados do Domain nem arrays exigidos pelas bordas do Laravel
+#### Scenario: Entrada de criação de despesa
+- **WHEN** Create Expense recebe dados coesos da operação
+- **THEN** a entrada é representada por `CreateExpenseInput`
+- **AND** o Use Case continua retornando `ExpenseEntity` em vez de um Output redundante
 
 ### Requirement: Organização proporcional ao volume
 Cada `Application/Data` MUST permanecer organizado pela propriedade sem introduzir hierarquias antecipadas. Subpastas por capacidade ou Use Case MAY ser criadas quando múltiplas classes relacionadas tornarem a pasta plana difícil de navegar, mas divisões genéricas por camada consumidora MUST NOT ser exigidas.

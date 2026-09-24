@@ -72,7 +72,7 @@ Identity Application MUST declarar `IdentityWritePort`, `CreatePort`, `SignInPor
 - **AND** essas operações pertencem a `IdentityRepository`
 
 ### Requirement: Identity não depende de allowlist cross-context
-O teste arquitetural MUST reconhecer Identity e Budget como os bounded contexts existentes e MUST NOT conceder a Identity acesso especial a outro contexto para autenticar ou persistir Users.
+O teste arquitetural MUST reconhecer Identity e Expense como os bounded contexts existentes e MUST NOT conceder a Identity acesso especial a outro contexto para autenticar ou persistir Users.
 
 #### Scenario: Dependências após consolidação
 - **WHEN** o teste de fronteiras é executado

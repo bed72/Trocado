@@ -54,13 +54,8 @@ O sistema MUST impedir lazy loading do Eloquent fora de produção por meio de `
 - **THEN** `Model::preventsLazyLoading()` fica habilitado
 
 ### Requirement: Naming e cobertura
-O sistema MUST usar `CreatePort`, `SignInPort`, `SignOutPort` e `IdentityWritePort` para as capacidades próprias, MUST usar a terminologia `AccessToken` para o recurso emitido pelo Sanctum e MUST cobrir os fluxos críticos automatizados e por Bruno.
+O sistema MUST usar `CreatePort`, `SignInPort`, `SignOutPort` e `IdentityWritePort` para as capacidades próprias, MUST usar a terminologia `AccessToken` para o recurso emitido pelo Sanctum e MUST cobrir os fluxos críticos automatizados.
 
 #### Scenario: Cobertura automatizada
 - **WHEN** a suíte focada é executada
 - **THEN** cobre registro atômico, falhas genéricas, token Sanctum, expiração, SignOut seletivo e remoção do caminho alternativo de criação
-
-#### Scenario: Collection Bruno segura
-- **WHEN** o fluxo manual da API é executado
-- **THEN** mantém o Bearer token apenas em variável de runtime
-- **AND** confirma SignUp, SignIn, SignOut e rejeição do token revogado sem versionar segredo real

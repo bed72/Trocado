@@ -25,7 +25,7 @@ Sanctum 4.3 é compatível com Illuminate 13 e pode ser usado exclusivamente par
 - Implementar password reset, alteração de senha, verificação de e-mail, MFA, OAuth/OIDC ou login social.
 - Implementar abilities/scopes de negócio, roles, permissions ou policies de ownership.
 - Listar tokens, nomear dispositivos ou revogar outros tokens.
-- Proteger genericamente os CRUDs atuais de User e Budget.
+- Proteger genericamente o CRUD de User.
 
 ## Decisions
 
@@ -99,7 +99,7 @@ Validation errors preservarão `source.pointer`. E-mail já utilizado responder�
 
 ### Authentication não concederá autorização
 
-Sanctum comprovará o principal e, quando aplicável, o token. Isso não autoriza operações de User ou Budget. Rotas atuais continuarão públicas até specs próprias definirem ownership e policies.
+Sanctum comprovará o principal e, quando aplicável, o token. Isso não autoriza operações de User. Rotas atuais continuarão públicas até specs próprias definirem ownership e policies.
 
 ## Risks / Trade-offs
 
@@ -117,7 +117,7 @@ Sanctum comprovará o principal e, quando aplicável, o token. Isso não autoriz
 5. Implementar `SignUp`, `SignIn` e `SignOut` usando Auth e Sanctum, sem infraestrutura paralela.
 6. Configurar expiração, pruning, JSON:API e rotas de API.
 7. Executar migrations no Lerd antes dos testes de fluxo.
-8. Validar Domain/Application, integração Sanctum por Bearer token, provider, arquitetura e coleção Bruno.
+8. Validar Domain/Application, integração Sanctum por Bearer token, provider e arquitetura.
 
 No rollback, remover primeiro rotas e uso do guard Sanctum, depois tokens e coluna `password`, e por fim a dependência. A remoção da coluna descarta hashes; portanto rollback após uso real exige janela de manutenção e decisão explícita sobre perda de credenciais.
 

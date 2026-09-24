@@ -213,10 +213,10 @@ A API MUST responder erros de Authentication com `application/vnd.api+json`, arr
 - **AND** não inclui stack trace, password, hash ou token
 
 ### Requirement: Authentication não concede autorização
-O sistema MUST limitar Authentication à comprovação do principal e MUST NOT interpretar token válido como autorização de negócio ou ownership sobre recursos de User ou Budget. As rotas atuais desses contextos MUST exigir `auth:sanctum`, mas essa proteção MUST NOT ser tratada como substituta de policies e regras de ownership futuras.
+O sistema MUST limitar Authentication à comprovação do principal e MUST NOT interpretar token válido como autorização de negócio ou ownership sobre recursos de User ou Expense. As rotas atuais desses contextos MUST exigir `auth:sanctum`, mas essa proteção MUST NOT ser tratada como substituta de policies e regras de ownership futuras.
 
 #### Scenario: Rotas autenticadas sem autorização de negócio
-- **WHEN** um endpoint de User ou Budget recebe uma requisição sem Personal Access Token válido
+- **WHEN** um endpoint de User ou Expense recebe uma requisição sem Personal Access Token válido
 - **THEN** responde `401`
 - **AND** um token válido somente identifica o principal, sem provar ownership ou privilégio administrativo
 - **AND** regras de autorização e ownership permanecem responsabilidade de specs próprias
@@ -229,13 +229,8 @@ O sistema MUST impedir lazy loading do Eloquent fora de produção por meio de `
 - **THEN** `Model::preventsLazyLoading()` fica habilitado
 
 ### Requirement: Naming e cobertura
-O sistema MUST usar `CreatePort`, `SignInPort`, `SignOutPort` e `IdentityWritePort` para as capacidades próprias, MUST usar a terminologia `AccessToken` para o recurso emitido pelo Sanctum e MUST cobrir os fluxos críticos automatizados e por Bruno.
+O sistema MUST usar `CreatePort`, `SignInPort`, `SignOutPort` e `IdentityWritePort` para as capacidades próprias, MUST usar a terminologia `AccessToken` para o recurso emitido pelo Sanctum e MUST cobrir os fluxos críticos automatizados.
 
 #### Scenario: Cobertura automatizada
 - **WHEN** a suíte focada é executada
 - **THEN** cobre registro atômico, falhas genéricas, token Sanctum, expiração, SignOut seletivo e remoção do caminho alternativo de criação
-
-#### Scenario: Collection Bruno segura
-- **WHEN** o fluxo manual da API é executado
-- **THEN** mantém o Bearer token apenas em variável de runtime
-- **AND** confirma SignUp, SignIn, SignOut e rejeição do token revogado sem versionar segredo real

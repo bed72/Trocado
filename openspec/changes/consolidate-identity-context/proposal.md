@@ -13,7 +13,7 @@
 - Definir as capacidades de Infrastructure `IdentityWritePort`, `CreatePort`, `SignInPort` e `SignOutPort`, cada uma com Adapter próprio e sem objetos Laravel nos contratos.
 - Manter `IdentityRepository` para consultas, listagens, atualizações e exclusão ordinária da identidade; `CreatePort` fica restrita ao provisionamento composto do principal autenticável e sua credencial.
 - Fazer exclusão de conta revogar seus Personal Access Tokens dentro da unidade atômica antes de remover a identidade.
-- Remover as dependências e allowlists cross-context entre Authentication e User e atualizar providers, composition roots, testes, OpenSpec, Bruno e documentação.
+- Remover as dependências e allowlists cross-context entre Authentication e User e atualizar providers, composition roots, testes, OpenSpec e documentação.
 
 ## Capabilities
 
@@ -26,7 +26,6 @@
 - `authentication`: Torna `SignUp` o único cadastro público e move os fluxos de registro, login, token e logout para o contexto Identity com Ports explícitas.
 - `user`: Remove a criação por `POST /api/users`, preserva consulta e manutenção da identidade e integra exclusão ao lifecycle completo da conta.
 - `application-data-contracts`: Substitui User e Authentication por Identity na lista de bounded contexts e preserva os contratos de dados na nova propriedade.
-- `api-consumer-support`: Atualiza a collection e a documentação consumidora para criar identidades somente por SignUp e não chamar o endpoint removido.
 
 ## Impact
 
@@ -34,4 +33,4 @@
 - `POST /api/users` deixará de existir; GET, PATCH e DELETE de User e os endpoints de Authentication permanecerão com os contratos HTTP atuais, exceto pelo cleanup integrado de tokens na exclusão.
 - A tabela `users`, a tabela Sanctum e os resource types `users`, `sign-ups` e `access-tokens` serão preservados; não há renomeação destrutiva de tabela nesta mudança.
 - A dependência `Authentication Infrastructure -> App\User` e sua allowlist arquitetural serão removidas.
-- A collection Bruno, a referência derivada, `ARCHITECTURE.md`, `README.md` e a documentação Obsidian precisarão refletir Identity como owner do lifecycle.
+- `ARCHITECTURE.md`, `README.md` e a documentação Obsidian precisarão refletir Identity como owner do lifecycle.

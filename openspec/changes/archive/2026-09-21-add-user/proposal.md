@@ -1,6 +1,6 @@
 ## Why
 
-Budgets e futuras Expenses precisam pertencer a uma identidade estável, mas a aplicação ainda não representa usuários. Essa identidade deve existir independentemente do mecanismo de autenticação para que os contextos financeiros dependam apenas do proprietário dos dados, sem conhecer senhas, tokens, sessões ou detalhes do Laravel.
+As futuras despesas precisam pertencer a uma identidade estável, mas a aplicação ainda não representa usuários. Essa identidade deve existir independentemente do mecanismo de autenticação para que os dados financeiros dependam apenas do proprietário, sem conhecer senhas, tokens, sessões ou detalhes do Laravel.
 
 ## What Changes
 
@@ -12,7 +12,6 @@ Budgets e futuras Expenses precisam pertencer a uma identidade estável, mas a a
 - Persistir usuários com unicidade de e-mail garantida pelo banco em criação e atualização, traduzindo conflitos para uma falha explícita da aplicação.
 - Adicionar cobertura automatizada das invariantes, dos casos de uso, do contrato de persistência, da restrição de unicidade e da API.
 - Tornar explícita em desenvolvimento a prevenção de lazy loading que revela a principal fonte de queries N+1 em Eloquent.
-- Adicionar uma collection Bruno completa para CRUD, validações, conflitos, not-found e cleanup de User.
 - Manter autenticação, senha, token, sessão, middleware e autorização fora desta mudança.
 
 ## Capabilities
@@ -30,7 +29,7 @@ Nenhuma capability existente.
 - Um novo bounded context será criado em `app/User/{Domain,Application,Infrastructure,Presentation}` seguindo `Presentation -> Application -> Domain` e `Infrastructure -> Application/Domain`.
 - A persistência receberá uma tabela `users`, um `UserModel`, um `EloquentUserRepository` e o binding `UserRepository -> EloquentUserRepository` em `UserServiceProvider`.
 - O contrato de Repository usará operações explícitas de CRUD e não um método genérico `save`.
-- O composition root registrará as rotas e os erros de User no mesmo formato JSON:API adotado pelo contexto Budget.
-- `UserServiceProvider` habilitará a proteção de lazy loading fora de produção, e `bruno/User` documentará os cenários manuais executáveis.
+- O composition root registrará as rotas e os erros de User no formato JSON:API.
+- `UserServiceProvider` habilitará a proteção de lazy loading fora de produção.
 - Nenhuma dependência nova será adicionada e nenhum mecanismo de autenticação do Laravel será configurado nesta mudança.
-- Budget e Expense não serão alterados agora; mudanças de propriedade e escopo terão specs próprias depois que a identidade de User estiver disponível.
+- Expense será especificado separadamente depois que a identidade de User estiver disponível.

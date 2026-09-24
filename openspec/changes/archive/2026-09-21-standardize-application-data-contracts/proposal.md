@@ -10,7 +10,7 @@ Os contratos internos da Application podem depender de array shapes repetidos e 
 - Preferir um `Output` quando um contrato da Application precisar retornar múltiplos valores heterogêneos identificados por nome, especialmente a partir de três valores, em vez de expor array shapes estruturais.
 - Definir classes `Input` e `Output` como objetos `final`, imutáveis, constructor-only, fortemente tipados, sem setters, comportamento de domínio ou dependências de framework.
 - Preservar retornos naturais de Repositories como Entities, Value Objects, scalars e coleções homogêneas, usando objetos específicos somente para consultas ou operações que realmente produzam uma estrutura composta.
-- Aplicar a convenção aos bounded contexts existentes `Authentication`, `User` e `Budget`, sem conversão mecânica de contratos que já sejam claros.
+- Aplicar a convenção aos contratos de `Authentication` e `User`, sem conversão mecânica dos contratos que já sejam claros.
 - Padronizar o retorno estruturado de `SignInPort` e `SignInUseCase` como o primeiro caso concreto de `Output`.
 
 ## Capabilities
@@ -21,11 +21,11 @@ Os contratos internos da Application podem depender de array shapes repetidos e 
 
 ### Modified Capabilities
 
-Nenhuma. Os comportamentos funcionais e HTTP de Authentication, User e Budget permanecem inalterados; a mudança padroniza seus contratos internos da Application.
+Nenhuma. Os comportamentos funcionais e HTTP de Authentication e User permanecem inalterados; a mudança padroniza seus contratos internos da Application.
 
 ## Impact
 
-- `app/Authentication/Application`, `app/User/Application` e `app/Budget/Application` passam a seguir a mesma convenção para novos contratos e para contratos existentes alterados por esta mudança.
+- `app/Authentication/Application` e `app/User/Application` passam a seguir a mesma convenção para novos contratos e para contratos existentes alterados por esta mudança.
 - `SignInPort`, seu Adapter, `SignInUseCase` e a Response HTTP correspondente terão o array shape substituído por um `Output` da Application sem mudar o documento JSON:API observado pelo consumidor.
 - `ARCHITECTURE.md` e as guidelines arquiteturais deverão registrar `Input`, `Output` e `Application/Data` como convenções do projeto.
 - Não há mudança de banco, endpoint, payload, dependência externa ou framework.

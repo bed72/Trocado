@@ -1,12 +1,5 @@
 <?php
 
-use App\Budget\Application\Exceptions\BudgetNotFoundException;
-use App\Budget\Application\Exceptions\BudgetRecurrenceNotFoundException;
-use App\Budget\Domain\Exceptions\InvalidBudgetDateRangeException;
-use App\Budget\Domain\Exceptions\InvalidBudgetRecurrenceException;
-use App\Budget\Domain\Exceptions\InvalidMoneyAmountException;
-use App\Budget\Domain\Exceptions\InvalidRecurrenceTransitionException;
-use App\Budget\Domain\Exceptions\OverlappingBudgetException;
 use App\Expense\Application\Exceptions\ExpenseOwnerNotFoundException;
 use App\Expense\Domain\Exceptions\InvalidExpenseException;
 use App\Identity\Application\Exceptions\EmailAlreadyUsedException;
@@ -31,7 +24,6 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
         commands: __DIR__.'/../routes/console.php',
         api: [
-            __DIR__.'/../app/Budget/Presentation/Routes/api.php',
             __DIR__.'/../app/Identity/Presentation/Routes/api.php',
             __DIR__.'/../app/Expense/Presentation/Routes/api.php',
         ],
@@ -74,55 +66,6 @@ return Application::configure(basePath: dirname(__DIR__))
             'source' => ['pointer' => '/data/attributes/password'],
             'status' => (string) Response::HTTP_UNPROCESSABLE_ENTITY,
         ]]], Response::HTTP_UNPROCESSABLE_ENTITY)->header('Content-Type', 'application/vnd.api+json')
-        );
-
-        $exceptions->render(fn (BudgetNotFoundException $exception) => response()->json(['errors' => [[
-            'title' => 'Budget não encontrado',
-            'detail' => $exception->getMessage(),
-            'status' => (string) Response::HTTP_NOT_FOUND,
-        ]]], Response::HTTP_NOT_FOUND)->header('Content-Type', 'application/vnd.api+json')
-        );
-
-        $exceptions->render(fn (BudgetRecurrenceNotFoundException $exception) => response()->json(['errors' => [[
-            'detail' => $exception->getMessage(),
-            'title' => 'Recorrência não encontrada',
-            'status' => (string) Response::HTTP_NOT_FOUND,
-        ]]], Response::HTTP_NOT_FOUND)->header('Content-Type', 'application/vnd.api+json')
-        );
-
-        $exceptions->render(fn (InvalidBudgetDateRangeException $exception) => response()->json(['errors' => [[
-            'title' => 'Dados inválidos',
-            'detail' => $exception->getMessage(),
-            'status' => (string) Response::HTTP_UNPROCESSABLE_ENTITY,
-        ]]], Response::HTTP_UNPROCESSABLE_ENTITY)->header('Content-Type', 'application/vnd.api+json')
-        );
-
-        $exceptions->render(fn (InvalidMoneyAmountException $exception) => response()->json(['errors' => [[
-            'title' => 'Dados inválidos',
-            'detail' => $exception->getMessage(),
-            'status' => (string) Response::HTTP_UNPROCESSABLE_ENTITY,
-        ]]], Response::HTTP_UNPROCESSABLE_ENTITY)->header('Content-Type', 'application/vnd.api+json')
-        );
-
-        $exceptions->render(fn (InvalidBudgetRecurrenceException $exception) => response()->json(['errors' => [[
-            'title' => 'Dados inválidos',
-            'detail' => $exception->getMessage(),
-            'status' => (string) Response::HTTP_UNPROCESSABLE_ENTITY,
-        ]]], Response::HTTP_UNPROCESSABLE_ENTITY)->header('Content-Type', 'application/vnd.api+json')
-        );
-
-        $exceptions->render(fn (OverlappingBudgetException $exception) => response()->json(['errors' => [[
-            'title' => 'Conflito de datas',
-            'detail' => $exception->getMessage(),
-            'status' => (string) Response::HTTP_CONFLICT,
-        ]]], Response::HTTP_CONFLICT)->header('Content-Type', 'application/vnd.api+json')
-        );
-
-        $exceptions->render(fn (InvalidRecurrenceTransitionException $exception) => response()->json(['errors' => [[
-            'detail' => $exception->getMessage(),
-            'status' => (string) Response::HTTP_CONFLICT,
-            'title' => 'Transição de recorrência inválida',
-        ]]], Response::HTTP_CONFLICT)->header('Content-Type', 'application/vnd.api+json')
         );
 
         $exceptions->render(fn (UserNotFoundException $exception) => response()->json(['errors' => [[

@@ -37,9 +37,8 @@
 
 - [x] 4.1 Verificar que logs, exceptions, dumps, Responses e serialização do Model não contêm password, hash ou token puro indevido.
 - [x] 4.2 Atualizar o allowlist arquitetural somente para integrações entre Authentication Infrastructure e User necessárias ao uso de Auth/Sanctum.
-- [x] 4.3 Adicionar collection Bruno de `SignUp`, `SignIn`, `SignOut`, falhas e token revogado usando variável de runtime para o Bearer token.
 - [x] 4.4 Executar testes focados de User, Authentication, Sanctum, API, provider e arquitetura.
-- [x] 4.5 Executar a suíte completa e confirmar que rotas atuais de User e Budget continuam sem autorização genérica.
+- [x] 4.5 Executar a suíte completa e confirmar que as rotas de User continuam sem autorização genérica.
 - [x] 4.6 Executar `vendor/bin/pint --dirty --format agent` e revisar o diff para segredos, infraestrutura própria duplicada e escopo indevido.
 - [x] 4.7 Validar a mudança OpenSpec em modo strict e aplicar o quality gate final antes de preparar o arquivamento.
 - [x] 4.8 Habilitar e testar a proteção contra lazy loading fora de produção no provider de Authentication.

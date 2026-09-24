@@ -87,19 +87,6 @@ Route -> Form Request -> invokable Controller -> UseCase -> Response
 
 `bootstrap/app.php`, `bootstrap/providers.php`, `routes/console.php`, and `database/migrations/` may connect contexts to Laravel. They must not absorb business rules.
 
-## Preserve Budget Write Integrity
-
-When touching Budget creation, updates, recurrence processing, locks, or related migrations, verify all of the following:
-
-- Overlap checks and related writes remain inside `BudgetWritePort::execute`.
-- The UseCase, not `BudgetWriteAdapter`, chooses the complete atomic operation.
-- Recurrence processing re-reads mutable state with a row lock.
-- Occurrence creation and cursor advancement commit together.
-- A conflict or failure does not advance the cursor.
-- Resume validates the pending interval inside the transaction.
-- The unique recurrence occurrence constraint remains a final integrity barrier.
-- Scheduler `withoutOverlapping()` is not treated as a database consistency guarantee.
-
 ## Naming And Style
 
 - Use role suffixes: `Entity`, `ValueObject`, `UseCase`, `Repository`, `Port`, `Adapter`, `Model`, `Request`, `Controller`, `Response`, `Command`, `Enum`, `Exception`, `ServiceProvider`.

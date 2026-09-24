@@ -209,11 +209,11 @@ A API MUST responder erros de Authentication com `application/vnd.api+json`, arr
 - **AND** não inclui stack trace, password, hash ou token
 
 ### Requirement: Authentication não concede autorização
-O sistema MUST limitar Authentication à comprovação do principal e MUST NOT interpretar token válido como autorização sobre recursos de User ou Budget.
+O sistema MUST limitar Authentication à comprovação do principal e MUST NOT interpretar token válido como autorização sobre recursos de User.
 
 #### Scenario: Rotas existentes
 - **WHEN** esta mudança é aplicada
-- **THEN** nenhuma autorização genérica é adicionada aos endpoints atuais de User ou Budget
+- **THEN** nenhuma autorização genérica é adicionada aos endpoints de User
 - **AND** regras de ownership permanecem responsabilidade de specs próprias
 
 ### Requirement: Proteção de desenvolvimento contra N+1
@@ -224,13 +224,8 @@ O sistema MUST impedir lazy loading do Eloquent fora de produção por meio do p
 - **THEN** `Model::preventsLazyLoading()` fica habilitado
 
 ### Requirement: Naming e cobertura
-O sistema MUST usar `SignUp`, `SignIn` e `SignOut` nos adaptadores próprios, MUST usar a terminologia `AccessToken` para o recurso emitido pelo Sanctum e MUST cobrir os fluxos críticos automatizados e por Bruno.
+O sistema MUST usar `SignUp`, `SignIn` e `SignOut` nos adaptadores próprios, MUST usar a terminologia `AccessToken` para o recurso emitido pelo Sanctum e MUST cobrir os fluxos críticos automatizados.
 
 #### Scenario: Cobertura automatizada
 - **WHEN** a suíte focada é executada
 - **THEN** cobre SignUp atômico, falhas genéricas, token Sanctum, expiração e SignOut seletivo
-
-#### Scenario: Collection Bruno segura
-- **WHEN** o fluxo manual da API é executado
-- **THEN** mantém o Bearer token apenas em variável de runtime
-- **AND** confirma `SignUp`, `SignIn`, `SignOut` e rejeição do token revogado sem versionar segredo real

@@ -8,7 +8,7 @@ $contexts = array_map(basename(...), $contextDirectories);
 sort($contexts);
 
 $layers = ['Application', 'Domain', 'Infrastructure', 'Presentation'];
-$expectedContexts = ['Budget', 'Expense', 'Identity'];
+$expectedContexts = ['Expense', 'Identity'];
 
 it('organizes application code inside known bounded context layers', function () use ($contextDirectories, $layers): void {
     expect($contextDirectories)->not->toBeEmpty();
@@ -32,7 +32,7 @@ it('contains exactly the expected bounded contexts', function () use ($contexts,
 });
 
 it('contains no source references to retired bounded contexts', function () use ($applicationPath): void {
-    $retiredContexts = ['User', 'Authentication'];
+    $retiredContexts = ['User', 'Authentication', 'Budget'];
     $staleReferences = [];
 
     $inspectDirectory = function (string $directory) use (&$inspectDirectory, &$staleReferences, $retiredContexts): void {

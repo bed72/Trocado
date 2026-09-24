@@ -1,6 +1,6 @@
 ## 1. Fronteira e estrutura de Identity
 
-- [x] 1.1 Atualizar primeiro os testes de arquitetura para reconhecer somente `Identity` e `Budget`, remover a allowlist `Authentication Infrastructure -> App\User` e provar a matriz normal de dependências.
+- [x] 1.1 Atualizar os testes de arquitetura para reconhecer os contextos existentes, remover a allowlist `Authentication Infrastructure -> App\User` e provar a matriz normal de dependências.
 - [x] 1.2 Criar `app/Identity/{Domain,Application,Infrastructure,Presentation}` e migrar `UserEntity`, `EmailValueObject`, `PasswordValueObject`, enums e exceções de Domain com namespaces Identity e testes unitários equivalentes.
 - [x] 1.3 Migrar Inputs, Outputs, exceções e UseCases de User e Authentication para Identity Application, preservando retornos naturais e `SignInOutput`.
 - [x] 1.4 Remover os diretórios antigos somente depois de atualizar todos os imports e adicionar uma verificação que não reste referência a `App\User` ou `App\Authentication`.
@@ -37,7 +37,7 @@
 
 ## 5. Composition roots e configuração
 
-- [x] 5.1 Registrar somente `IdentityServiceProvider` e `BudgetServiceProvider` em `bootstrap/providers.php`.
+- [x] 5.1 Registrar o provider de Identity em `bootstrap/providers.php`.
 - [x] 5.2 Atualizar `bootstrap/app.php` para carregar as rotas Identity e mapear exceções pelos novos namespaces sem alterar os documentos de erro.
 - [x] 5.3 Atualizar `config/auth.php` e demais referências ao principal para o novo namespace de `UserModel`.
 - [x] 5.4 Confirmar por `route:list` que `POST /api/users` não existe, as rotas preservadas mantêm nomes e middleware e não restam rotas duplicadas.
@@ -45,16 +45,13 @@
 
 ## 6. Consumidores e documentação
 
-- [x] 6.1 Atualizar a collection Bruno para usar SignUp em todo setup de User, remover requests de `POST /api/users` e manter Bearer somente em runtime.
-- [x] 6.2 Corrigir o fluxo smoke para executar cleanup autenticado antes de revogar o token ou obter uma sessão própria válida para exclusão.
-- [ ] 6.3 Regenerar a referência HTML derivada e verificar que ela não contém password, token, header real ou documentação do endpoint removido.
 - [x] 6.4 Atualizar `ARCHITECTURE.md`, `README.md` e Obsidian para apresentar Identity como owner do lifecycle e registrar `POST /api/users` como breaking change.
 - [x] 6.5 Atualizar as main specs e a matriz de rastreabilidade para os novos namespaces, Ports, remoção de endpoint e cleanup de tokens.
 
 ## 7. Verificação completa
 
 - [x] 7.1 Executar separadamente testes de Identity Domain, Application, Infrastructure, Presentation e arquitetura e corrigir todas as falhas.
-- [x] 7.2 Executar a suíte Budget para confirmar que a consolidação de identidade não altera comportamento financeiro existente.
+- [x] 7.2 Executar as suítes dos contextos existentes para confirmar a consolidação de identidade.
 - [x] 7.3 Executar a suíte completa, confirmar ausência de referências aos contextos removidos e registrar a contagem final de 273 testes e 1.186 assertions.
 - [x] 7.4 Executar `vendor/bin/pint --dirty --format agent` depois da última alteração PHP e repetir os testes afetados.
 - [x] 7.5 Executar `openspec validate consolidate-identity-context --type change --strict --json --no-interactive` e manter todas as tarefas não comprovadas desmarcadas.

@@ -1,19 +1,19 @@
 ## Context
 
-Os bounded contexts `Authentication`, `User` e `Budget` seguem a separação `Domain/Application/Infrastructure/Presentation`, mas a Application ainda não possui uma convenção para estruturas compostas que não sejam Entities ou Value Objects. O caso mais evidente é `SignIn`: Port e Use Case repetem um array shape com quatro campos, o Adapter monta chaves textuais e a Response conhece essa estrutura indiretamente.
+Os bounded contexts `Authentication` e `User` seguem a separação `Domain/Application/Infrastructure/Presentation`, mas a Application ainda não possui uma convenção para estruturas compostas que não sejam Entities ou Value Objects. O caso mais evidente é `SignIn`: Port e Use Case repetem um array shape com quatro campos, o Adapter monta chaves textuais e a Response conhece essa estrutura indiretamente.
 
-Ao mesmo tempo, a maioria dos contratos atuais já é expressiva com parâmetros explícitos e retornos naturais. Os Repositories de User e Budget retornam Entities, scalars e listas homogêneas; transformar cada assinatura em um objeto acrescentaria classes sem melhorar o contrato. A convenção precisa eliminar estruturas frágeis sem importar o padrão de DTO indiscriminado que motivou esta mudança.
+Ao mesmo tempo, a maioria dos contratos atuais já é expressiva com parâmetros explícitos e retornos naturais. O Repository de User retorna Entities, scalars e listas homogêneas; transformar cada assinatura em um objeto acrescentaria classes sem melhorar o contrato. A convenção precisa eliminar estruturas frágeis sem importar o padrão de DTO indiscriminado que motivou esta mudança.
 
 ## Goals / Non-Goals
 
 **Goals:**
 
-- Definir uma convenção única de `Input` e `Output` para toda Application de Authentication, User e Budget.
+- Definir uma convenção única de `Input` e `Output` para a Application.
 - Tornar retornos estruturados verificáveis pelo sistema de tipos nativo do PHP.
 - Usar coesão e clareza como critérios principais, com limites numéricos apenas como heurística.
 - Manter os objetos independentes de Laravel, Eloquent, Sanctum, HTTP e serialização.
 - Preservar Entities, Value Objects e coleções homogêneas como retornos preferenciais de Repositories.
-- Aplicar a convenção ao `SignIn` e aos casos atuais de Budget que ultrapassam o gatilho de entrada.
+- Aplicar a convenção ao `SignIn`.
 
 **Non-Goals:**
 
@@ -40,7 +40,7 @@ Um `Input` agrupa dados coesos necessários para invocar uma operação da Appli
 
 O limite não será aplicado mecanicamente. Muitos parâmetros sem coesão podem indicar responsabilidade excessiva e devem provocar revisão da operação, não apenas ser escondidos em uma classe. Métodos simples como `findByEmail(EmailValueObject $email)` não receberão wrappers.
 
-No estado atual, `CreateBudgetUseCase` e `UpdateBudgetUseCase` possuem quatro parâmetros relacionados e serão migrados para `CreateBudgetInput` e `UpdateBudgetInput`. Authentication e User continuarão com parâmetros explícitos nos contratos atuais porque possuem no máximo três parâmetros relevantes e não apresentam benefício suficiente para uma classe adicional.
+Authentication e User continuarão com parâmetros explícitos nos contratos atuais porque possuem no máximo três parâmetros relevantes e não apresentam benefício suficiente para uma classe adicional.
 
 Alternativas rejeitadas: adotar `Command`, que conflita com CQRS e Laravel Console Commands; `Payload`, que sugere transporte; `Parameters`, que descreve mecanismo; e `DTO`, que não revela o papel da classe.
 
@@ -72,9 +72,9 @@ Authentication continuará usando Ports para a capacidade de autenticar e emitir
 
 Alternativa rejeitada: criar taxonomias separadas como `UseCaseOutput`, `PortOutput` e `RepositoryOutput`. A separação será feita pelo significado e pela propriedade do contrato, não por hierarquias paralelas.
 
-### A adoção será seletiva nos três contextos existentes
+### A adoção será seletiva nos contratos existentes
 
-Authentication migrará o array shape de `SignIn` para `SignInOutput` e manterá os parâmetros explícitos de SignIn e SignUp. User será revisado e permanecerá sem Input ou Output enquanto seus contratos atuais continuarem adequadamente representados por até três parâmetros, Entities, Value Objects, scalars e listas. Budget adotará Inputs nos Use Cases atuais com quatro parâmetros coesos e preservará retornos em Entities e listas.
+Authentication migrará o array shape de `SignIn` para `SignInOutput` e manterá os parâmetros explícitos de SignIn e SignUp. User será revisado e permanecerá sem Input ou Output enquanto seus contratos atuais continuarem adequadamente representados por até três parâmetros, Entities, Value Objects, scalars e listas.
 
 Essa assimetria é intencional: cobrir todos os bounded contexts significa aplicar o mesmo critério, não fabricar ao menos uma classe em cada contexto.
 
@@ -92,9 +92,8 @@ Essa assimetria é intencional: cobrir todos os bounded contexts significa aplic
 
 1. Registrar `Application/Data`, `Input` e `Output` em `ARCHITECTURE.md` e nas guidelines aplicáveis.
 2. Criar `Authentication/Application/Data/SignInOutput` e migrar Port, Adapter, Use Case e Response sem mudar o contrato HTTP.
-3. Criar `CreateBudgetInput` e `UpdateBudgetInput`, migrar os Use Cases e seus chamadores preservando comportamento e named arguments relevantes.
-4. Revisar User e os demais contratos de Authentication e Budget para confirmar, com evidência, que não exigem classes adicionais pela convenção.
-5. Adicionar verificações arquiteturais para imutabilidade, localização e ausência de dependências proibidas, além dos testes comportamentais afetados.
+3. Revisar User e os demais contratos de Authentication para confirmar, com evidência, que não exigem classes adicionais pela convenção.
+4. Adicionar verificações arquiteturais para imutabilidade, localização e ausência de dependências proibidas, além dos testes comportamentais afetados.
 
 Rollback reverte as assinaturas migradas e a documentação da convenção. Não há migration de banco, dados persistidos ou mudança de API externa a desfazer.
 

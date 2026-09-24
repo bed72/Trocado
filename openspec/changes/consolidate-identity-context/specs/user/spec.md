@@ -168,19 +168,6 @@ O sistema MUST impedir lazy loading do Eloquent fora de produção por meio de `
 - **WHEN** a API atual lista ou consulta Users
 - **THEN** nenhum relacionamento é carregado sob demanda porque `UserModel` ainda não possui relações de domínio
 
-### Requirement: Collection Bruno de User
-O sistema MUST fornecer cenários Bruno executáveis para consulta, atualização e exclusão de User, validações, conflitos de e-mail, recursos ausentes e cleanup. Qualquer User necessário ao setup MUST ser criado por SignUp, e a collection MUST NOT chamar `POST /api/users`.
-
-#### Scenario: Fluxo manual sem criação direta
-- **WHEN** o diretório User é executado serialmente
-- **THEN** o setup cria a conta por SignUp e salva seu identificador em runtime
-- **AND** o fluxo consulta, atualiza, lista, exclui e confirma a ausência do mesmo User
-
-#### Scenario: Cenários destrutivos com cleanup
-- **WHEN** um cenário cria ou altera uma identidade temporária
-- **THEN** a pasta documenta a ordem e o cleanup autenticado
-- **AND** não persiste password ou token em arquivo versionado
-
 ## REMOVED Requirements
 
 ### Requirement: Criação de User

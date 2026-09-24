@@ -31,4 +31,4 @@ A aplicação já possui identidades locais, mas ainda não autentica requisiç�
 - A tabela `users` receberá apenas a coluna de password hash necessária ao provider nativo; tokens continuarão na tabela do Sanctum.
 - `UserModel` passará a estender `Authenticatable` e usar `HasApiTokens`; `UserEntity` continuará sem password, token ou dependências Laravel.
 - Authentication poderá integrar-se a User nas bordas de Infrastructure, com dependência declarada no allowlist arquitetural.
-- As rotas atuais de User e Budget não receberão autorização genérica nesta mudança.
+- As rotas de User não receberão autorização genérica nesta mudança.

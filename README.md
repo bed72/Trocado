@@ -1,6 +1,6 @@
 # Trocado - POC Laravel 13
 
-API JSON:API com `Identity` como owner de identidade, credenciais e tokens Sanctum, e `Budget` como owner de Budgets e recorrências. Veja [ARCHITECTURE.md](ARCHITECTURE.md) para as fronteiras das camadas.
+API JSON:API para registrar gastos de uma pessoa. `Identity` cuida da conta, credenciais e tokens Sanctum; `Expense` cuida das despesas. Veja [ARCHITECTURE.md](ARCHITECTURE.md) para as fronteiras das camadas.
 
 ## Padrão de desenvolvimento
 
@@ -8,7 +8,7 @@ API JSON:API com `Identity` como owner de identidade, credenciais e tokens Sanct
 
 Agentes devem começar por [AGENTS.md](AGENTS.md), [ARCHITECTURE.md](ARCHITECTURE.md) e pelas skills locais em [`.opencode/skills/`](.opencode/skills/). O Laravel Boost já está instalado para desenvolvimento assistido; consulte seu Search Docs antes de assumir APIs do Laravel ou de packages Laravel instalados. Não instale Laravel AI SDK sem uma feature de IA do produto.
 
-Os bounded contexts atuais são `Identity` e `Budget`. `Identity` concentra o lifecycle da conta sem levar Laravel, Eloquent ou Sanctum para Domain e Application. Novas classes devem seguir os nomes, dependências e fronteiras definidos em `ARCHITECTURE.md`.
+Os bounded contexts atuais são `Identity` e `Expense`. `Identity` concentra o lifecycle da conta sem levar Laravel, Eloquent ou Sanctum para Domain e Application. Novas classes devem seguir os nomes, dependências e fronteiras definidos em `ARCHITECTURE.md`.
 
 ## Executar localmente
 
@@ -27,7 +27,7 @@ O `.env.example` usa SQLite. Configure `APP_URL` se iniciar o servidor em outra 
 
 ## Autenticação
 
-As rotas de User, Budget e recorrência exigem um Personal Access Token do Sanctum. `SignUp` e `SignIn` são públicos; `SignOut` exige o Bearer token atual. `POST /api/authentication/sign-up` é o único cadastro público de conta.
+As rotas de User e Expense exigem um Personal Access Token do Sanctum. `SignUp` e `SignIn` são públicos; `SignOut` exige o Bearer token atual. `POST /api/authentication/sign-up` é o único cadastro público de conta.
 
 `POST /api/users` foi removido em uma mudança breaking e responde `405`; consumidores que criavam User diretamente devem migrar para SignUp. `GET`, `PATCH` e `DELETE /api/users` permanecem protegidos e preservam seus contratos JSON:API.
 
@@ -49,25 +49,15 @@ curl -i -X POST http://127.0.0.1:8000/api/authentication/sign-in \
 
 Mantenha `EMAIL`, `PASSWORD` e o valor retornado em `data.attributes.token` como variáveis somente durante a sessão de desenvolvimento. O token puro não pode ser recuperado do banco.
 
-## Chamadas de Budget
+## Registrar uma despesa
 
-`amount` é **inteiro em centavos**. As escritas usam o documento JSON:API com `data.type = budgets`; `PATCH` exige `data.id` igual ao identificador da URL. Use `Accept: application/vnd.api+json` e, nas escritas, `Content-Type: application/vnd.api+json`.
+`amount` é **inteiro em centavos**. Envie um documento JSON:API com `data.type = expenses`, `Accept: application/vnd.api+json` e `Content-Type: application/vnd.api+json`.
 
 ```sh
-curl -i -X POST http://127.0.0.1:8000/api/budgets \
+curl -i -X POST http://127.0.0.1:8000/api/expenses \
   -H "Authorization: Bearer $TOKEN" \
   -H 'Accept: application/vnd.api+json' -H 'Content-Type: application/vnd.api+json' \
-  -d '{"data":{"type":"budgets","attributes":{"amount":12500,"start_date":"2026-09-01","end_date":"2026-09-30"}}}'
-
-curl -i -H "Authorization: Bearer $TOKEN" -H 'Accept: application/vnd.api+json' http://127.0.0.1:8000/api/budgets
-curl -i -H "Authorization: Bearer $TOKEN" -H 'Accept: application/vnd.api+json' http://127.0.0.1:8000/api/budgets/1
-
-curl -i -X PATCH http://127.0.0.1:8000/api/budgets/1 \
-  -H "Authorization: Bearer $TOKEN" \
-  -H 'Accept: application/vnd.api+json' -H 'Content-Type: application/vnd.api+json' \
-  -d '{"data":{"type":"budgets","id":"1","attributes":{"amount":19000}}}'
-
-curl -i -X DELETE -H "Authorization: Bearer $TOKEN" -H 'Accept: application/vnd.api+json' http://127.0.0.1:8000/api/budgets/1
+  -d '{"data":{"type":"expenses","attributes":{"amount":12500,"category":"other","occurred_on":"2026-09-24"}}}'
 ```
 
-Criação retorna `201` e `Location`; listagem, busca e atualização retornam `200`; exclusão retorna `204`; recurso ausente retorna `404` com `errors` JSON:API. Substitua `1` pelo `id` retornado na criação.
+Criação retorna `201` com o recurso criado; erros de validação retornam `422` em JSON:API.

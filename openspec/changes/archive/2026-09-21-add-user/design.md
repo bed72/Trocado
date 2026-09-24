@@ -1,6 +1,6 @@
 ## Context
 
-A aplicação possui apenas o bounded context `Budget` e não tem tabela, entidade, contrato ou API de usuário. Budgets são globais hoje, mas Budget e a futura Expense precisarão referenciar um proprietário estável antes que autenticação determine quem está executando uma requisição.
+A aplicação não tem tabela, entidade, contrato ou API de usuário. A futura Expense precisará referenciar um proprietário estável antes que autenticação determine quem está executando uma requisição.
 
 O desenho segue `ARCHITECTURE.md` e `.ai/guidelines/`: Domain permanece PHP puro, Application contém UseCases concretos e contratos independentes do ORM, Infrastructure usa Laravel/Eloquent e registra bindings, e Presentation expõe o CRUD HTTP com Form Requests, Controllers e Responses JSON:API. Os sufixos `Entity`, `ValueObject`, `UseCase`, `Repository`, `Model`, `Request`, `Controller`, `Response`, `Exception` e `ServiceProvider` identificam os papéis das classes.
 
@@ -11,7 +11,7 @@ O desenho segue `ARCHITECTURE.md` e `.ai/guidelines/`: Domain permanece PHP puro
 - Criar uma identidade local de User independente de autenticação.
 - Proteger no Domain as invariantes de nome e e-mail.
 - Criar, listar, consultar, atualizar e excluir usuários por casos de uso concretos.
-- Expor essas operações por endpoints JSON:API consistentes com a API de Budget.
+- Expor essas operações por endpoints JSON:API.
 - Garantir unicidade do e-mail normalizado inclusive sob concorrência.
 - Definir um contrato explícito de persistência com operações de CRUD, sem recorrer a `save` ou Repository genérico.
 - Manter tipos Laravel e Eloquent restritos à Infrastructure.
@@ -20,7 +20,7 @@ O desenho segue `ARCHITECTURE.md` e `.ai/guidelines/`: Domain permanece PHP puro
 
 - Implementar registro público, login, logout, senha, hashing, token, sessão, middleware, autorização, verificação de e-mail ou recuperação de acesso.
 - Fazer `UserEntity` implementar `Authenticatable` ou qualquer contrato Laravel.
-- Alterar Budget, recorrência ou implementar Expense.
+- Implementar Expense.
 - Criar abstrações base/genéricas.
 - Proteger as rotas com autenticação ou autorização antes que essas capabilities sejam especificadas.
 
@@ -82,15 +82,13 @@ A tabela `users` conterá `id`, `name`, `email`, `created_at` e `updated_at`, co
 
 Presentation seguirá `HTTP -> Form Request -> Controller -> UseCase -> Response -> HTTP`. As rotas serão `POST /api/users`, `GET /api/users`, `GET /api/users/{user}`, `PATCH /api/users/{user}` e `DELETE /api/users/{user}`. `UserResponse` estenderá o recurso JSON:API first-party do Laravel; criação retornará `201` e `Location`, exclusão retornará `204`, ausências retornarão `404`, e-mail duplicado retornará `409` e entradas inválidas retornarão `422`.
 
-As rotas permanecerão sem autenticação nesta POC, assim como as rotas atuais de Budget. Isso disponibiliza o CRUD solicitado sem introduzir password, sessão, token ou autorização implicitamente; uma capability posterior deverá proteger essas operações antes de uso fora do ambiente previsto para a POC.
+As rotas permanecerão sem autenticação nesta POC. Isso disponibiliza o CRUD solicitado sem introduzir password, sessão, token ou autorização implicitamente; uma capability posterior deverá proteger essas operações antes de uso fora do ambiente previsto para a POC.
 
-### Desenvolvimento detectará lazy loading e a collection Bruno cobrirá a API
+### Desenvolvimento detectará lazy loading
 
-`UserServiceProvider` chamará `Model::preventLazyLoading(! $this->app->isProduction())`. A proteção é global no Eloquent, mas será declarada pelo contexto para que sua operação em desenvolvimento não dependa acidentalmente do provider de Budget. Hoje `UserModel` não possui relações; a configuração prepara o contexto para falhar cedo quando relações futuras forem acessadas sem eager loading.
+`UserServiceProvider` chamará `Model::preventLazyLoading(! $this->app->isProduction())`. A proteção é global no Eloquent, mas será declarada pelo contexto. Hoje `UserModel` não possui relações; a configuração prepara o contexto para falhar cedo quando relações futuras forem acessadas sem eager loading.
 
 Essa proteção cobre N+1 causado por lazy loading. Loops que executem consultas explícitas continuam dependendo da captura e análise de queries do ambiente Lerd.
-
-A pasta `bruno/User` espelhará a organização operacional existente: fluxo CRUD serial, validações de create/update, conflitos de unicidade, not-found e cleanup. IDs criados serão guardados em variáveis de runtime, e o ambiente Local fornecerá apenas `baseUrl` e um ID reservado para ausência.
 
 ## Risks / Trade-offs
 
@@ -112,4 +110,4 @@ A pasta `bruno/User` espelhará a organização operacional existente: fluxo CRU
 
 ## Open Questions
 
-Nenhuma decisão permanece aberta nesta capability. Autenticação, propriedade de Budget e propriedade de Expense serão especificadas separadamente.
+Nenhuma decisão permanece aberta nesta capability. Autenticação e propriedade de Expense serão especificadas separadamente.

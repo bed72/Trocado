@@ -7,7 +7,7 @@ use App\Expense\Application\Exceptions\ExpenseOwnerNotFoundException;
 use App\Expense\Application\UseCases\CreateExpenseUseCase;
 use Illuminate\Support\Facades\DB;
 
-it('creates an expense without a budget using the authenticated owner and defaults', function (): void {
+it('creates an expense using the authenticated owner and defaults', function (): void {
     $userId = signUpIdentityByApi($this);
     $token = signInIdentityByApi($this);
 
@@ -33,7 +33,6 @@ it('creates an expense without a budget using the authenticated owner and defaul
         'description' => null,
         'deleted_at' => null,
     ]);
-    $this->assertDatabaseCount('budgets', 0);
 });
 
 it('uses a chosen category and date', function (): void {

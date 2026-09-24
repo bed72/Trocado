@@ -1,16 +1,16 @@
 ## Context
 
-Identity já é o owner da conta, e Budget continua existindo durante esta mudança. Expense precisa aceitar gastos independentemente de Budget e aproveitar a autenticação atual. A exclusão de conta em Identity já é transacional e definitiva.
+Identity já é o owner da conta. Expense precisa aceitar gastos da conta autenticada. A exclusão de conta em Identity já é transacional e definitiva.
 
 ## Goals / Non-Goals
 
 **Goals:** Criar Expense pertencente à conta autenticada com data, centavos em BRL, descrição opcional e categoria fechada com padrão `other`; manter exclusão de conta consistente.
 
-**Non-Goals:** Remover Budget, criar endpoints de listagem/edição/exclusão individual, adicionar `updated_at` ou criar novas contas.
+**Non-Goals:** Criar endpoints de listagem/edição/exclusão individual, adicionar `updated_at` ou criar novas contas.
 
 ## Decisions
 
-1. **Contexto separado `Expense`.** Domain valida invariantes sem framework, Application orquestra a criação com um Repository próprio, Infrastructure implementa persistência e Presentation obtém o User autenticado e devolve JSON:API. Isso mantém Expense independente de Budget. Alternativa rejeitada: acrescentar despesas ao agregado Budget, perpetuando o cadastro obrigatório.
+1. **Contexto separado `Expense`.** Domain valida invariantes sem framework, Application orquestra a criação com um Repository próprio, Infrastructure implementa persistência e Presentation obtém o User autenticado e devolve JSON:API.
 2. **Proprietário derivado da autenticação.** `user_id` vem do principal autenticado na Presentation, não do payload. A Application de Expense recebe apenas o identificador; não importa Models, Repositories nem UseCases de Identity. O banco impõe FK para `users` com `ON DELETE CASCADE`, pois a exclusão definitiva do User já ocorre numa transação e deve remover inclusive despesas com `deleted_at`. Infrastructure traduz a violação de FK por conta removida em falha explícita, sem deixar vazar exceção de banco. Alternativa rejeitada: permitir `user_id` arbitrário ou implementar deleção manual cross-context em Identity. A FK também protege concorrência entre criação de despesa e exclusão da conta. A navegação Eloquent entre os dois contextos fica restrita a `UserModel::expenses()` e `ExpenseModel::user()`; não afeta Domain ou Application.
 3. **Valores e datas explícitos.** `amount` é inteiro positivo em centavos BRL, `occurred_on` é `DATE`, categoria é enum de string validada no Domain e descrição é nula ou tem até 64 caracteres. A data padrão é calculada na borda usando o fuso da aplicação e entregue explicitamente ao caso de uso; `created_at` guarda o instante da criação, `deleted_at` permite exclusão lógica futura. Não há `updated_at` nesta versão. Alternativa rejeitada: timestamp em `occurred_on` ou dinheiro decimal.
 4. **Categoria opcional com padrão `other`.** O cliente pode escolher uma categoria dentre as opções permitidas; a ausência usa `other`, enquanto um valor desconhecido é rejeitado antes da persistência. Alternativa rejeitada: texto livre como categoria.
@@ -24,4 +24,4 @@ Identity já é o owner da conta, e Budget continua existindo durante esta mudan
 
 ## Migration Plan
 
-Criar `expenses` com FK e índice composto sem modificar Budget nem dados atuais. Aplicar a migration antes de habilitar o endpoint. Se precisar reverter, desabilitar o endpoint antes de reverter a migration; a reversão da tabela apaga despesas já criadas e exige backup para preservar dados.
+Criar `expenses` com FK e índice composto sem modificar dados atuais. Aplicar a migration antes de habilitar o endpoint. Se precisar reverter, desabilitar o endpoint antes de reverter a migration; a reversão da tabela apaga despesas já criadas e exige backup para preservar dados.

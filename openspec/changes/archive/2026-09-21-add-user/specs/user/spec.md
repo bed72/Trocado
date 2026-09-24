@@ -190,14 +190,3 @@ O sistema MUST impedir lazy loading do Eloquent fora de produção por meio do p
 #### Scenario: User sem relações atuais
 - **WHEN** o CRUD atual lista ou consulta Users
 - **THEN** nenhum relacionamento é carregado sob demanda porque `UserModel` ainda não possui relações
-
-### Requirement: Collection Bruno de User
-O sistema MUST fornecer cenários Bruno executáveis para o CRUD completo de User, validações de criação e atualização, conflitos de e-mail, recursos ausentes e cleanup dos registros criados.
-
-#### Scenario: Fluxo CRUD manual
-- **WHEN** o diretório CRUD é executado serialmente
-- **THEN** o fluxo cria, consulta, atualiza, lista, exclui e confirma a ausência do mesmo User usando uma variável de runtime
-
-#### Scenario: Cenários destrutivos com cleanup
-- **WHEN** cenários de validação ou conflito criam Users auxiliares
-- **THEN** a collection fornece requests finais de cleanup para removê-los

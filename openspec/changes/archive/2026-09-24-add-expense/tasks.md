@@ -6,7 +6,7 @@
 
 - [x] 2.1 Implementar invariantes de valor, data, descrição e categorias fechadas no Domain, incluindo `other` quando categoria é omitida; verificar entradas inválidas fora de HTTP.
 - [x] 2.2 Criar migration de `expenses` com PK, FK `user_id` com cascade, `DATE` para `occurred_on`, campos e defaults acordados, `deleted_at` e índice (`user_id`, `occurred_on`); verificar schema e exclusão de User com despesas ativas e logicamente excluídas.
-- [x] 2.3 Implementar Repository e binding no contexto Expense sem expor Eloquent à Application; verificar criação sem Budget e persistência dos valores corretos.
+- [x] 2.3 Implementar Repository e binding no contexto Expense sem expor Eloquent à Application; verificar criação e persistência dos valores corretos.
 
 ## 3. Criação
 
