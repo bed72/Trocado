@@ -29,6 +29,19 @@ it('returns a complete JSON API error when the user does not exist', function ()
         ]]]);
 });
 
+it('hides another account exactly like a missing account', function (): void {
+    $otherId = signUpIdentityByApi($this, name: 'João', email: 'joao@example.com');
+    $missing = $this->withToken($this->token)->getJson('/api/users/99999')->json();
+
+    $this->withToken($this->token)->getJson("/api/users/{$otherId}")
+        ->assertNotFound()->assertExactJson($missing);
+});
+
+it('requires authentication to read a user', function (): void {
+    $this->withToken('invalid')->getJson("/api/users/{$this->userId}")
+        ->assertUnauthorized()->assertHeader('Content-Type', 'application/vnd.api+json');
+});
+
 it('returns a route level JSON API error for a non numeric ID', function (): void {
     $this->withToken($this->token)->getJson('/api/users/not-a-number')
         ->assertNotFound()

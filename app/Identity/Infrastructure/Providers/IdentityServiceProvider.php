@@ -6,9 +6,11 @@ namespace App\Identity\Infrastructure\Providers;
 
 use App\Identity\Application\Ports\SignInPort;
 use App\Identity\Application\Ports\SignOutPort;
+use App\Identity\Application\Ports\UserPort;
 use App\Identity\Application\Repositories\UserRepository;
 use App\Identity\Infrastructure\Adapters\SignInAdapter;
 use App\Identity\Infrastructure\Adapters\SignOutAdapter;
+use App\Identity\Infrastructure\Adapters\UserAdapter;
 use App\Identity\Infrastructure\Persistence\Repositories\EloquentUserRepository;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
@@ -22,6 +24,7 @@ final class IdentityServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        $this->app->bind(abstract: UserPort::class, concrete: UserAdapter::class);
         $this->app->bind(abstract: SignInPort::class, concrete: SignInAdapter::class);
         $this->app->bind(abstract: SignOutPort::class, concrete: SignOutAdapter::class);
         $this->app->bind(abstract: UserRepository::class, concrete: EloquentUserRepository::class);

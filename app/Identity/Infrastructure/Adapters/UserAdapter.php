@@ -4,25 +4,23 @@ declare(strict_types=1);
 
 namespace App\Identity\Infrastructure\Adapters;
 
-use App\Identity\Application\Ports\SignOutPort;
+use App\Identity\Application\Ports\UserPort;
 use App\Identity\Infrastructure\Persistence\Models\UserModel;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\AuthManager;
-use Illuminate\Database\Eloquent\Model;
 
-final readonly class SignOutAdapter implements SignOutPort
+final readonly class UserAdapter implements UserPort
 {
     public function __construct(private AuthManager $manager) {}
 
-    public function revokeToken(): void
+    public function id(): int
     {
         $user = $this->manager->guard(name: 'sanctum')->user();
-        $token = $user instanceof UserModel ? $user->currentAccessToken() : null;
 
-        if (! $token instanceof Model) {
+        if (! $user instanceof UserModel) {
             throw new AuthenticationException;
         }
 
-        $token->delete();
+        return (int) $user->getKey();
     }
 }

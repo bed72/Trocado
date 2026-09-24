@@ -29,7 +29,7 @@ it('revokes only the access token attached to the authenticated user', function 
         ->with('sanctum')
         ->willReturn($guard);
 
-    (new SignOutAdapter(auth: $auth))->revokeToken();
+    (new SignOutAdapter(manager: $auth))->revokeToken();
 
     expect(PersonalAccessToken::query()->find($currentToken->getKey()))->toBeNull()
         ->and(PersonalAccessToken::query()->find($otherToken->getKey()))->not->toBeNull();
@@ -46,6 +46,6 @@ it('rejects revocation when the authenticated user has no persisted current toke
     $auth = $this->createStub(AuthManager::class);
     $auth->method('guard')->willReturn($guard);
 
-    expect(fn () => (new SignOutAdapter(auth: $auth))->revokeToken())
+    expect(fn () => (new SignOutAdapter(manager: $auth))->revokeToken())
         ->toThrow(AuthenticationException::class);
 });

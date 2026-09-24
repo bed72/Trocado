@@ -92,6 +92,21 @@ it('returns a JSON API error when updating an absent user', function (): void {
         ->assertJsonPath('errors.0.title', 'User não encontrado');
 });
 
+it('cannot update another account', function (): void {
+    $otherId = signUpIdentityByApi($this, name: 'João', email: 'joao@example.com');
+    $payload = updateUserApiPayload($otherId, ['name' => 'Maria Souza']);
+    $missing = $this->withToken($this->token)->patchJson('/api/users/99999', updateUserApiPayload(99999, ['name' => 'Maria Souza']))->json();
+
+    $this->withToken($this->token)->patchJson("/api/users/{$otherId}", $payload)
+        ->assertNotFound()->assertExactJson($missing);
+    $this->assertDatabaseHas('users', ['id' => $otherId, 'name' => 'João', 'email' => 'joao@example.com']);
+});
+
+it('requires authentication to update a user', function (): void {
+    $this->withToken('invalid')->patchJson("/api/users/{$this->userId}", updateUserApiPayload($this->userId, ['name' => 'Maria Souza']))
+        ->assertUnauthorized()->assertHeader('Content-Type', 'application/vnd.api+json');
+});
+
 function updateUserApiPayload(int $id, array $attributes): array
 {
     return [

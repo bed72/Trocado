@@ -6,6 +6,7 @@ namespace App\Identity\Application\UseCases;
 
 use App\Identity\Application\Exceptions\EmailAlreadyUsedException;
 use App\Identity\Application\Exceptions\UserNotFoundException;
+use App\Identity\Application\Ports\UserPort;
 use App\Identity\Application\Repositories\UserRepository;
 use App\Identity\Domain\Entities\UserEntity;
 use App\Identity\Domain\ValueObjects\EmailValueObject;
@@ -13,10 +14,14 @@ use App\Identity\Domain\ValueObjects\NameValueObject;
 
 final readonly class UpdateUserUseCase
 {
-    public function __construct(private UserRepository $repository) {}
+    public function __construct(private UserPort $port, private UserRepository $repository) {}
 
     public function execute(int $id, ?string $name, ?string $email): UserEntity
     {
+        if ($this->port->id() !== $id) {
+            throw new UserNotFoundException;
+        }
+
         $current = $this->repository->findById(id: $id)
             ?? throw new UserNotFoundException;
         $updatedEmail = $email === null
