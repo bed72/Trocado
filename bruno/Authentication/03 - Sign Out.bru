@@ -1,0 +1,25 @@
+meta {
+  name: Sign Out
+  type: http
+  seq: 3
+}
+
+delete {
+  url: {{baseUrl}}/api/authentication/sign-out
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Accept: application/vnd.api+json
+}
+
+script:post-response {
+  if (res.status === 204) {
+    bru.deleteVar('accessToken');
+  }
+}

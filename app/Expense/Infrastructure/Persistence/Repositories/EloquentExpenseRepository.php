@@ -4,15 +4,46 @@ declare(strict_types=1);
 
 namespace App\Expense\Infrastructure\Persistence\Repositories;
 
+use App\Expense\Application\Data\ExpensePageOutput;
 use App\Expense\Application\Exceptions\ExpenseOwnerNotFoundException;
 use App\Expense\Application\Repositories\ExpenseRepository;
 use App\Expense\Domain\Entities\ExpenseEntity;
 use App\Expense\Infrastructure\Persistence\Models\ExpenseModel;
 use DateTimeImmutable;
 use Illuminate\Database\QueryException;
+use Illuminate\Pagination\Cursor;
 
 final class EloquentExpenseRepository implements ExpenseRepository
 {
+    public function listByUser(int $userId, int $size, ?string $cursor): ExpensePageOutput
+    {
+        $page = ExpenseModel::query()
+            ->where('user_id', $userId)
+            ->orderByDesc('occurred_on')
+            ->orderByDesc('id')
+            ->cursorPaginate(perPage: $size, cursor: $cursor === null ? null : Cursor::fromEncoded($cursor));
+
+        $items = [];
+
+        foreach ($page->items() as $model) {
+            $items[] = new ExpenseEntity(
+                id: (int) $model->getKey(),
+                userId: $model->user_id,
+                amount: $model->amount,
+                category: $model->category,
+                occurredOn: $model->occurred_on,
+                description: $model->description,
+                createdAt: DateTimeImmutable::createFromInterface($model->created_at),
+            );
+        }
+
+        return new ExpensePageOutput(
+            items: $items,
+            nextCursor: $page->nextCursor()?->encode(),
+            previousCursor: $page->previousCursor()?->encode(),
+        );
+    }
+
     public function create(ExpenseEntity $expense): ExpenseEntity
     {
         try {

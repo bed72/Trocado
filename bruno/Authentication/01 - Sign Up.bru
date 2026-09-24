@@ -1,0 +1,30 @@
+meta {
+  name: Sign Up
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/authentication/sign-up
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/vnd.api+json
+  Content-Type: application/vnd.api+json
+}
+
+body:json {
+  {
+    "data": {
+      "type": "sign-ups",
+      "attributes": {
+        "name": "Maria",
+        "email": "maria@example.com",
+        "password": "Correct1",
+        "password_confirmation": "Correct1"
+      }
+    }
+  }
+}

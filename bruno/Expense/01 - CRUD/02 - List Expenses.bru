@@ -1,0 +1,24 @@
+meta {
+  name: List Expenses
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/expenses?page[size]=20
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Accept: application/vnd.api+json
+}
+
+params:query {
+  page[size]: 20
+  ~page[cursor]:
+}

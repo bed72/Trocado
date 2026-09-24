@@ -1,0 +1,19 @@
+meta {
+  name: Get User
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/users/{{userId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Accept: application/vnd.api+json
+}

@@ -1,0 +1,19 @@
+meta {
+  name: Delete User
+  type: http
+  seq: 3
+}
+
+delete {
+  url: {{baseUrl}}/api/users/{{userId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Accept: application/vnd.api+json
+}
