@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Identity\Application\Exceptions\EmailAlreadyUsedException;
 use App\Identity\Application\Exceptions\UserNotFoundException;
-use App\Identity\Application\Repositories\IdentityRepository;
+use App\Identity\Application\Repositories\UserRepository;
 use App\Identity\Application\UseCases\UpdateUserUseCase;
 use App\Identity\Domain\Entities\UserEntity;
 use App\Identity\Domain\Exceptions\InvalidEmailException;
@@ -23,7 +23,7 @@ beforeEach(function (): void {
 });
 
 it('updates the name while preserving email and persistence data', function (): void {
-    $repository = $this->createMock(IdentityRepository::class);
+    $repository = $this->createMock(UserRepository::class);
     $repository->expects($this->once())->method('findById')->with(10)->willReturn($this->currentUser);
     $repository->expects($this->never())->method('findByEmail');
     $repository->expects($this->once())
@@ -49,7 +49,7 @@ it('updates the name while preserving email and persistence data', function (): 
 });
 
 it('normalizes a new email while preserving the name', function (): void {
-    $repository = $this->createMock(IdentityRepository::class);
+    $repository = $this->createMock(UserRepository::class);
     $repository->expects($this->once())->method('findById')->willReturn($this->currentUser);
     $repository->expects($this->once())
         ->method('findByEmail')
@@ -70,7 +70,7 @@ it('normalizes a new email while preserving the name', function (): void {
 });
 
 it('allows another representation of the current canonical email', function (): void {
-    $repository = $this->createMock(IdentityRepository::class);
+    $repository = $this->createMock(UserRepository::class);
     $repository->expects($this->once())->method('findById')->willReturn($this->currentUser);
     $repository->expects($this->never())->method('findByEmail');
     $repository->expects($this->once())
@@ -92,7 +92,7 @@ it('rejects an email used by another user without updating', function (): void {
         name: NameValueObject::fromString(value: 'Outra Maria'),
         email: EmailValueObject::fromString(value: 'outra@example.com'),
     );
-    $repository = $this->createMock(IdentityRepository::class);
+    $repository = $this->createMock(UserRepository::class);
     $repository->expects($this->once())->method('findById')->willReturn($this->currentUser);
     $repository->expects($this->once())->method('findByEmail')->willReturn($otherUser);
     $repository->expects($this->never())->method('update');
@@ -105,7 +105,7 @@ it('rejects an email used by another user without updating', function (): void {
 })->throws(EmailAlreadyUsedException::class, 'Não foi possível utilizar o e-mail informado.');
 
 it('does not persist invalid updates', function (?string $name, ?string $email, string $exception): void {
-    $repository = $this->createMock(IdentityRepository::class);
+    $repository = $this->createMock(UserRepository::class);
     $repository->expects($this->once())->method('findById')->willReturn($this->currentUser);
     $repository->expects($this->never())->method('update');
 
@@ -121,7 +121,7 @@ it('does not persist invalid updates', function (?string $name, ?string $email, 
 ]);
 
 it('fails when the user is absent before updating', function (): void {
-    $repository = $this->createMock(IdentityRepository::class);
+    $repository = $this->createMock(UserRepository::class);
     $repository->expects($this->once())->method('findById')->with(10)->willReturn(null);
     $repository->expects($this->never())->method('update');
 
@@ -129,7 +129,7 @@ it('fails when the user is absent before updating', function (): void {
 })->throws(UserNotFoundException::class, 'User não encontrado.');
 
 it('fails when the user disappears during updating', function (): void {
-    $repository = $this->createMock(IdentityRepository::class);
+    $repository = $this->createMock(UserRepository::class);
     $repository->expects($this->once())->method('findById')->willReturn($this->currentUser);
     $repository->expects($this->once())->method('update')->willReturn(null);
 

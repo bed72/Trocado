@@ -31,17 +31,17 @@ Domain e Application de Identity MUST permanecer livres de Laravel, Illuminate, 
 - **AND** nenhuma dessas responsabilidades é exposta por `UserEntity`
 
 ### Requirement: Ports de Identity possuem responsabilidades separadas
-Identity Application MUST declarar `IdentityWritePort`, `CreatePort`, `SignInPort` e `SignOutPort`. Cada Port MUST representar somente sua capacidade nomeada, MUST usar tipos independentes do framework e MUST possuir Adapter em Infrastructure.
+Core Application MUST declarar `TransactionPort` para coordenação transacional compartilhada entre contextos; Identity Application MUST declarar `SignInPort` e `SignOutPort` para autenticação com emissão de token e revogação do token atual, respectivamente. Cada Port MUST usar tipos independentes do framework e MUST possuir Adapter em Infrastructure. Criação e demais operações de persistência da identidade MUST pertencer a `UserRepository`, não a uma Port de criação.
 
 #### Scenario: Coordenação transacional
 - **WHEN** um UseCase precisa confirmar múltiplos passos atomicamente
-- **THEN** ele define a operação completa em `IdentityWritePort::execute`
+- **THEN** ele define a operação completa em `TransactionPort::execute`
 - **AND** o Adapter limita-se a transação, retry e propagação do resultado
 
-#### Scenario: Provisionamento de conta
+#### Scenario: Registro pertence ao Repository
 - **WHEN** `SignUpUseCase` registra uma nova conta
-- **THEN** `CreatePort` cria o principal autenticável e seu password hash como uma única capacidade
-- **AND** a Port não oferece consulta, listagem, atualização ou exclusão de identidade
+- **THEN** ele usa `UserRepository::create` dentro de `TransactionPort::execute`
+- **AND** `CreatePort` e `RegistrationAdapter` não participam da criação
 
 #### Scenario: Emissão de token
 - **WHEN** credenciais válidas são autenticadas
@@ -52,24 +52,6 @@ Identity Application MUST declarar `IdentityWritePort`, `CreatePort`, `SignInPor
 - **WHEN** o logout é solicitado por uma requisição autenticada
 - **THEN** `SignOutPort` resolve e revoga somente o token atual
 - **AND** Request, principal e token Model não atravessam para a Application
-
-### Requirement: CreatePort é exclusiva para criação autenticável
-`CreatePort` MUST ser o único contrato da Application autorizado a criar uma nova linha em `users`. Ela MUST receber a identidade válida e o password transitório, MUST persistir somente o hash e MUST traduzir conflito de e-mail sem expor detalhes do banco.
-
-#### Scenario: Registro bem-sucedido
-- **WHEN** SignUp recebe nome, e-mail e password válidos
-- **THEN** `CreatePort` persiste exatamente um User com password hash
-- **AND** retorna `UserEntity` com identidade e timestamps sem password
-
-#### Scenario: Concorrência de registro
-- **WHEN** duas tentativas registram simultaneamente o mesmo e-mail canônico
-- **THEN** a constraint única permite no máximo uma conta
-- **AND** a tentativa conflitante produz a exceção de Application esperada
-
-#### Scenario: Contrato não vira CRUD
-- **WHEN** as operações de `CreatePort` são inspecionadas
-- **THEN** não existem métodos de find, list, update, delete ou save genérico
-- **AND** essas operações pertencem a `IdentityRepository`
 
 ### Requirement: Identity não depende de allowlist cross-context
 O teste arquitetural MUST reconhecer Identity e Expense como os bounded contexts existentes e MUST NOT conceder a Identity acesso especial a outro contexto para autenticar ou persistir Users.

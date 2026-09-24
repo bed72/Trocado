@@ -11,9 +11,9 @@ final class DeleteUserController
 {
     public function __construct(private readonly DeleteUserUseCase $useCase) {}
 
-    public function __invoke(int $user): Response
+    public function __invoke(int $id): Response
     {
-        $this->useCase->execute(id: $user);
+        $this->useCase->execute(id: $id);
 
         return response()->noContent();
     }

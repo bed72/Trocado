@@ -78,11 +78,11 @@ O sistema MUST preservar exatamente a senha informada, MUST aceitar somente senh
 - **THEN** responde `422` com pointer para `/data/attributes/password_confirmation`
 
 ### Requirement: SignUp cria conta atomicamente
-O sistema MUST criar nome, e-mail canônico e password hash na unidade definida por `IdentityWritePort`, MUST provisionar o principal por `CreatePort`, MUST preservar a unicidade de e-mail e MUST NOT autenticar ou emitir token implicitamente.
+O sistema MUST criar nome, e-mail canônico e password hash na unidade definida por `Core` `TransactionPort`, MUST persistir o principal por `UserRepository::create`, MUST preservar a unicidade de e-mail e MUST NOT autenticar ou emitir token implicitamente.
 
 #### Scenario: SignUp bem-sucedido
 - **WHEN** nome, e-mail disponível e password confirmado são válidos
-- **THEN** `SignUpUseCase` executa `CreatePort` dentro de `IdentityWritePort`
+- **THEN** `SignUpUseCase` executa `UserRepository::create` dentro de `TransactionPort`
 - **AND** um único registro `users` é persistido com password hash
 - **AND** nenhum Personal Access Token é criado
 
@@ -94,7 +94,7 @@ O sistema MUST criar nome, e-mail canônico e password hash na unidade definida 
 #### Scenario: Concorrência no mesmo e-mail
 - **WHEN** dois `SignUp` concorrentes usam o mesmo e-mail canônico
 - **THEN** a constraint única permite somente uma conta
-- **AND** `CreatePort` traduz a tentativa conflitante para o mesmo `409`
+- **AND** `UserRepository` traduz a tentativa conflitante para o mesmo `409`
 
 ### Requirement: API de SignUp segue JSON:API
 A API MUST expor `POST /api/authentication/sign-up` com nome `authentication.api.sign-up`, aceitar documento `sign-ups` fechado e responder sem password ou token.
@@ -229,8 +229,8 @@ O sistema MUST impedir lazy loading do Eloquent fora de produção por meio de `
 - **THEN** `Model::preventsLazyLoading()` fica habilitado
 
 ### Requirement: Naming e cobertura
-O sistema MUST usar `CreatePort`, `SignInPort`, `SignOutPort` e `IdentityWritePort` para as capacidades próprias, MUST usar a terminologia `AccessToken` para o recurso emitido pelo Sanctum e MUST cobrir os fluxos críticos automatizados.
+O sistema MUST usar `UserRepository` para persistência de User, `SignInPort` e `SignOutPort` para autenticação e `Core` `TransactionPort` para coordenação transacional, MUST usar a terminologia `AccessToken` para o recurso emitido pelo Sanctum e MUST cobrir os fluxos críticos automatizados.
 
 #### Scenario: Cobertura automatizada
 - **WHEN** a suíte focada é executada
-- **THEN** cobre registro atômico, falhas genéricas, token Sanctum, expiração, SignOut seletivo e remoção do caminho alternativo de criação
+- **THEN** cobre registro atômico pelo Repository, falhas genéricas, token Sanctum, expiração, SignOut seletivo e ausência de outro caminho público de criação

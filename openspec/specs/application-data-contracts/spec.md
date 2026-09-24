@@ -110,7 +110,7 @@ Identity e Expense MUST seguir esta convenção. Contratos que atendam aos crit�
 - **AND** dados sensíveis continuam protegidos contra exposição indevida
 
 #### Scenario: Contratos de identidade
-- **WHEN** os UseCases, Ports e `IdentityRepository` são avaliados
+- **WHEN** os UseCases, Ports e `UserRepository` são avaliados
 - **THEN** parâmetros explícitos, `UserEntity`, `NameValueObject`, `EmailValueObject`, scalars e listas tipadas são preservados onde representam integralmente o contrato
 - **AND** nenhuma classe de dados é criada apenas para garantir que o contexto possua um Input ou Output
 

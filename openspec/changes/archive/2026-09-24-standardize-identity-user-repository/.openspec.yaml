@@ -1,0 +1,3 @@
+schema: spec-driven
+created: 2026-09-24
+goal: Move account persistence into UserRepository while keeping authentication and transaction capabilities in Ports.

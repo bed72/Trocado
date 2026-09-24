@@ -6,8 +6,9 @@ namespace App\Identity\Application\Repositories;
 
 use App\Identity\Domain\Entities\UserEntity;
 use App\Identity\Domain\ValueObjects\EmailValueObject;
+use SensitiveParameter;
 
-interface IdentityRepository
+interface UserRepository
 {
     /** @return list<UserEntity> */
     public function all(): array;
@@ -19,4 +20,6 @@ interface IdentityRepository
     public function update(UserEntity $user): ?UserEntity;
 
     public function findByEmail(EmailValueObject $email): ?UserEntity;
+
+    public function create(UserEntity $user, #[SensitiveParameter] string $password): UserEntity;
 }

@@ -4,17 +4,13 @@ declare(strict_types=1);
 
 namespace App\Identity\Infrastructure\Providers;
 
-use App\Identity\Application\Ports\CreatePort;
-use App\Identity\Application\Ports\IdentityWritePort;
 use App\Identity\Application\Ports\SignInPort;
 use App\Identity\Application\Ports\SignOutPort;
-use App\Identity\Application\Repositories\IdentityRepository;
-use App\Identity\Infrastructure\Adapters\IdentityWriteAdapter;
-use App\Identity\Infrastructure\Adapters\RegistrationAdapter;
+use App\Identity\Application\Repositories\UserRepository;
 use App\Identity\Infrastructure\Adapters\SignInAdapter;
 use App\Identity\Infrastructure\Adapters\SignOutAdapter;
 use App\Identity\Infrastructure\Persistence\Models\UserModel;
-use App\Identity\Infrastructure\Persistence\Repositories\EloquentIdentityRepository;
+use App\Identity\Infrastructure\Persistence\Repositories\EloquentUserRepository;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\ServiceProvider;
@@ -27,9 +23,7 @@ final class IdentityServiceProvider extends ServiceProvider
     {
         $this->app->bind(abstract: SignInPort::class, concrete: SignInAdapter::class);
         $this->app->bind(abstract: SignOutPort::class, concrete: SignOutAdapter::class);
-        $this->app->bind(abstract: CreatePort::class, concrete: RegistrationAdapter::class);
-        $this->app->bind(abstract: IdentityWritePort::class, concrete: IdentityWriteAdapter::class);
-        $this->app->bind(abstract: IdentityRepository::class, concrete: EloquentIdentityRepository::class);
+        $this->app->bind(abstract: UserRepository::class, concrete: EloquentUserRepository::class);
     }
 
     public function boot(): void

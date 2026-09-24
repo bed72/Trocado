@@ -8,7 +8,7 @@ $contexts = array_map(basename(...), $contextDirectories);
 sort($contexts);
 
 $layers = ['Application', 'Domain', 'Infrastructure', 'Presentation'];
-$expectedContexts = ['Expense', 'Identity'];
+$expectedContexts = ['Core', 'Expense', 'Identity'];
 
 it('organizes application code inside known bounded context layers', function () use ($contextDirectories, $layers): void {
     expect($contextDirectories)->not->toBeEmpty();
@@ -169,9 +169,15 @@ foreach ($contexts as $context) {
     }
 
     if (is_dir($contextPath.'/Application')) {
+        $applicationDependencies = [$contextNamespace.'\\Application', $contextNamespace.'\\Domain'];
+
+        if ($context !== 'Core') {
+            $applicationDependencies[] = 'App\\Core\\Application\\Ports\\TransactionPort';
+        }
+
         arch($context.' application depends only on its domain and own contracts')
             ->expect($contextNamespace.'\\Application')
-            ->toOnlyUse([$contextNamespace.'\\Application', $contextNamespace.'\\Domain']);
+            ->toOnlyUse($applicationDependencies);
     }
 
     if (is_dir($contextPath.'/Infrastructure')) {

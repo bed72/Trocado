@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-use App\Identity\Application\Ports\IdentityWritePort;
+use App\Core\Application\Ports\TransactionPort;
 use App\Identity\Infrastructure\Persistence\Models\UserModel;
-use App\Identity\Infrastructure\Persistence\Repositories\EloquentIdentityRepository;
+use App\Identity\Infrastructure\Persistence\Repositories\EloquentUserRepository;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
-it('rolls back the complete identity write operation on failure', function (): void {
-    $port = app(IdentityWritePort::class);
+it('rolls back the complete database transaction on failure', function (): void {
+    $port = app(TransactionPort::class);
 
     expect(fn () => $port->execute(operation: function (): never {
         DB::table('users')->insert([
@@ -34,8 +34,8 @@ it('restores the user and every token when account deletion fails', function ():
     ]);
     $user->createToken(name: 'first');
     $user->createToken(name: 'second');
-    $repository = new EloquentIdentityRepository;
-    $port = app(IdentityWritePort::class);
+    $repository = new EloquentUserRepository;
+    $port = app(TransactionPort::class);
 
     expect(fn () => $port->execute(operation: function () use ($repository, $user): never {
         expect($repository->delete(id: (int) $user->getKey()))->toBeTrue();

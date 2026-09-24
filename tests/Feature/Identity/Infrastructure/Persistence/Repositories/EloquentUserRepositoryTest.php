@@ -7,7 +7,7 @@ use App\Identity\Domain\Entities\UserEntity;
 use App\Identity\Domain\ValueObjects\EmailValueObject;
 use App\Identity\Domain\ValueObjects\NameValueObject;
 use App\Identity\Infrastructure\Persistence\Models\UserModel;
-use App\Identity\Infrastructure\Persistence\Repositories\EloquentIdentityRepository;
+use App\Identity\Infrastructure\Persistence\Repositories\EloquentUserRepository;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Hash;
@@ -19,7 +19,7 @@ it('finds users by identifier and canonical email', function (): void {
         'email' => 'maria@example.com',
         'password' => 'Abc123',
     ]);
-    $repository = new EloquentIdentityRepository;
+    $repository = new EloquentUserRepository;
 
     $byId = $repository->findById(id: (int) $model->getKey());
     $byEmail = $repository->findByEmail(email: EmailValueObject::fromString(value: ' MARIA@EXAMPLE.COM '));
@@ -33,7 +33,7 @@ it('finds users by identifier and canonical email', function (): void {
 });
 
 it('lists users in identifier order and returns an empty list when none exist', function (): void {
-    $repository = new EloquentIdentityRepository;
+    $repository = new EloquentUserRepository;
 
     expect($repository->all())->toBe([]);
 
@@ -53,7 +53,7 @@ it('updates and maps an existing user', function (): void {
         'email' => 'maria@example.com',
         'password' => 'Abc123',
     ]);
-    $repository = new EloquentIdentityRepository;
+    $repository = new EloquentUserRepository;
 
     $updated = $repository->update(user: new UserEntity(
         id: (int) $model->getKey(),
@@ -72,7 +72,7 @@ it('updates and maps an existing user', function (): void {
 });
 
 it('returns null when updating an absent user', function (): void {
-    $updated = (new EloquentIdentityRepository)->update(user: new UserEntity(
+    $updated = (new EloquentUserRepository)->update(user: new UserEntity(
         id: 99999,
         name: NameValueObject::fromString(value: 'Maria'),
         email: EmailValueObject::fromString(value: 'maria@example.com'),
@@ -84,7 +84,7 @@ it('returns null when updating an absent user', function (): void {
 it('translates an update uniqueness conflict into an application exception', function (): void {
     $maria = UserModel::query()->create(['name' => 'Maria', 'email' => 'maria@example.com', 'password' => 'Abc123']);
     UserModel::query()->create(['name' => 'João', 'email' => 'joao@example.com', 'password' => 'Abc123']);
-    $repository = new EloquentIdentityRepository;
+    $repository = new EloquentUserRepository;
 
     $caughtException = null;
 
@@ -115,7 +115,7 @@ it('deletes every token before the user and reports when the identity is absent'
     ]);
     $model->createToken(name: 'first');
     $model->createToken(name: 'second');
-    $repository = new EloquentIdentityRepository;
+    $repository = new EloquentUserRepository;
 
     expect($repository->delete(id: (int) $model->getKey()))->toBeTrue()
         ->and($repository->delete(id: (int) $model->getKey()))->toBeFalse();
@@ -125,7 +125,7 @@ it('deletes every token before the user and reports when the identity is absent'
 });
 
 it('rejects update for an entity without a persisted identity', function (): void {
-    expect(fn (): ?UserEntity => (new EloquentIdentityRepository)->update(user: new UserEntity(
+    expect(fn (): ?UserEntity => (new EloquentUserRepository)->update(user: new UserEntity(
         id: null,
         name: NameValueObject::fromString(value: 'Maria'),
         email: EmailValueObject::fromString(value: 'maria@example.com'),

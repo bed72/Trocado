@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 use App\Identity\Application\Exceptions\EmailAlreadyUsedException;
 use App\Identity\Application\Exceptions\InvalidCredentialsException;
-use App\Identity\Application\Ports\CreatePort;
 use App\Identity\Application\Ports\SignInPort;
+use App\Identity\Application\Repositories\UserRepository;
 use App\Identity\Application\UseCases\SignInUseCase;
 use App\Identity\Application\UseCases\SignUpUseCase;
 use App\Identity\Domain\Exceptions\InvalidPasswordException;
-use App\Identity\Infrastructure\Adapters\RegistrationAdapter;
 use App\Identity\Infrastructure\Adapters\SignInAdapter;
+use App\Identity\Infrastructure\Persistence\Repositories\EloquentUserRepository;
 use Illuminate\Foundation\Exceptions\Handler;
 
 it('does not report expected authentication failures', function (): void {
@@ -29,9 +29,9 @@ it('marks every production password parameter as sensitive', function (string $c
         ->and($parameter->getAttributes(SensitiveParameter::class))->toHaveCount(1);
 })->with([
     [SignInPort::class, 'issue'],
-    [CreatePort::class, 'create'],
+    [UserRepository::class, 'create'],
     [SignInAdapter::class, 'issue'],
     [SignInUseCase::class, 'execute'],
     [SignUpUseCase::class, 'execute'],
-    [RegistrationAdapter::class, 'create'],
+    [EloquentUserRepository::class, 'create'],
 ]);

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Core\Application\Ports\TransactionPort;
 use App\Identity\Application\Exceptions\EmailAlreadyUsedException;
-use App\Identity\Application\Ports\CreatePort;
-use App\Identity\Application\Ports\IdentityWritePort;
+use App\Identity\Application\Repositories\UserRepository;
 use App\Identity\Application\UseCases\SignUpUseCase;
 use App\Identity\Domain\Entities\UserEntity;
 use App\Identity\Domain\ValueObjects\EmailValueObject;
@@ -32,11 +32,11 @@ it('persists a canonical user with an adaptive password hash and no token', func
 });
 
 it('rolls back registration when the surrounding identity operation fails', function (): void {
-    $createPort = app(CreatePort::class);
-    $writePort = app(IdentityWritePort::class);
+    $repository = app(UserRepository::class);
+    $writePort = app(TransactionPort::class);
 
-    expect(fn () => $writePort->execute(operation: function () use ($createPort): never {
-        $createPort->create(
+    expect(fn () => $writePort->execute(operation: function () use ($repository): never {
+        $repository->create(
             password: 'Abc123',
             user: new UserEntity(
                 id: null,
@@ -86,7 +86,7 @@ it('translates a unique constraint race to the same sign up conflict', function 
         ]);
     });
 
-    expect(fn (): UserEntity => app(CreatePort::class)->create(
+    expect(fn (): UserEntity => app(UserRepository::class)->create(
         user: new UserEntity(
             id: null,
             name: NameValueObject::fromString(value: 'Race Loser'),

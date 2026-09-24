@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Identity\Infrastructure\Adapters;
+namespace App\Identity\Infrastructure\Persistence\Repositories;
 
 use App\Identity\Application\Exceptions\EmailAlreadyUsedException;
-use App\Identity\Application\Ports\CreatePort;
+use App\Identity\Application\Repositories\UserRepository;
 use App\Identity\Domain\Entities\UserEntity;
 use App\Identity\Domain\ValueObjects\EmailValueObject;
 use App\Identity\Domain\ValueObjects\NameValueObject;
@@ -21,7 +21,7 @@ use UnexpectedValueException;
 
 use function is_string;
 
-final class RegistrationAdapter implements CreatePort
+final class EloquentUserRepository implements UserRepository
 {
     public function create(UserEntity $user, #[SensitiveParameter] string $password): UserEntity
     {
@@ -45,6 +45,71 @@ final class RegistrationAdapter implements CreatePort
             throw new RuntimeException(message: 'Não foi possível persistir a nova conta.');
         }
 
+        return $this->toEntity(model: $model);
+    }
+
+    public function update(UserEntity $user): ?UserEntity
+    {
+        if ($user->id === null) {
+            throw new InvalidArgumentException(message: 'A atualização de User exige uma entidade persistida.');
+        }
+
+        $model = UserModel::query()->find(id: $user->id);
+
+        if ($model === null) {
+            return null;
+        }
+
+        try {
+            $model->fill([
+                'name' => $user->name->value(),
+                'email' => $user->email->value(),
+            ])->save();
+        } catch (UniqueConstraintViolationException) {
+            throw new EmailAlreadyUsedException;
+        }
+
+        return $this->toEntity(model: $model);
+    }
+
+    public function delete(int $id): bool
+    {
+        $model = UserModel::query()->find(id: $id);
+
+        if ($model === null) {
+            return false;
+        }
+
+        $model->tokens()->delete();
+
+        return (bool) $model->delete();
+    }
+
+    public function all(): array
+    {
+        return UserModel::query()
+            ->orderBy(column: 'id')
+            ->get()
+            ->map(callback: $this->toEntity(...))
+            ->all();
+    }
+
+    public function findById(int $id): ?UserEntity
+    {
+        $model = UserModel::query()->find(id: $id);
+
+        return $model === null ? null : $this->toEntity(model: $model);
+    }
+
+    public function findByEmail(EmailValueObject $email): ?UserEntity
+    {
+        $model = UserModel::query()->where(column: 'email', operator: '=', value: $email->value())->first();
+
+        return $model === null ? null : $this->toEntity(model: $model);
+    }
+
+    private function toEntity(UserModel $model): UserEntity
+    {
         $name = $model->getAttribute(key: 'name');
         $email = $model->getAttribute(key: 'email');
         $createdAt = $model->getAttribute(key: 'created_at');

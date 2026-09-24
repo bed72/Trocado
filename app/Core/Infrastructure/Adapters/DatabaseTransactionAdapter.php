@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Identity\Infrastructure\Adapters;
+namespace App\Core\Infrastructure\Adapters;
 
-use App\Identity\Application\Ports\IdentityWritePort;
+use App\Core\Application\Ports\TransactionPort;
 use Illuminate\Support\Facades\DB;
 
-final class IdentityWriteAdapter implements IdentityWritePort
+final class DatabaseTransactionAdapter implements TransactionPort
 {
     public function execute(callable $operation): mixed
     {

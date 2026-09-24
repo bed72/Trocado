@@ -2,25 +2,22 @@
 
 declare(strict_types=1);
 
-use App\Identity\Application\Ports\CreatePort;
-use App\Identity\Application\Ports\IdentityWritePort;
+use App\Core\Application\Ports\TransactionPort;
+use App\Core\Infrastructure\Adapters\DatabaseTransactionAdapter;
 use App\Identity\Application\Ports\SignInPort;
 use App\Identity\Application\Ports\SignOutPort;
-use App\Identity\Application\Repositories\IdentityRepository;
-use App\Identity\Infrastructure\Adapters\IdentityWriteAdapter;
-use App\Identity\Infrastructure\Adapters\RegistrationAdapter;
+use App\Identity\Application\Repositories\UserRepository;
 use App\Identity\Infrastructure\Adapters\SignInAdapter;
 use App\Identity\Infrastructure\Adapters\SignOutAdapter;
 use App\Identity\Infrastructure\Persistence\Models\UserModel;
-use App\Identity\Infrastructure\Persistence\Repositories\EloquentIdentityRepository;
+use App\Identity\Infrastructure\Persistence\Repositories\EloquentUserRepository;
 use App\Identity\Infrastructure\Providers\IdentityServiceProvider;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 
-it('binds the identity repository and four ports to their Laravel adapters', function (): void {
-    expect(app(IdentityRepository::class))->toBeInstanceOf(EloquentIdentityRepository::class)
-        ->and(app(IdentityWritePort::class))->toBeInstanceOf(IdentityWriteAdapter::class)
-        ->and(app(CreatePort::class))->toBeInstanceOf(RegistrationAdapter::class)
+it('binds identity dependencies and resolves the shared transaction port', function (): void {
+    expect(app(UserRepository::class))->toBeInstanceOf(EloquentUserRepository::class)
+        ->and(app(TransactionPort::class))->toBeInstanceOf(DatabaseTransactionAdapter::class)
         ->and(app(SignInPort::class))->toBeInstanceOf(SignInAdapter::class)
         ->and(app(SignOutPort::class))->toBeInstanceOf(SignOutAdapter::class)
         ->and(config('sanctum.guard'))->toBe([])

@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Identity\Application\Ports\CreatePort;
-use App\Identity\Application\Ports\IdentityWritePort;
+use App\Core\Application\Ports\TransactionPort;
+use App\Identity\Application\Repositories\UserRepository;
 use App\Identity\Application\UseCases\SignUpUseCase;
 use App\Identity\Domain\Entities\UserEntity;
 use App\Identity\Domain\Exceptions\InvalidPasswordException;
@@ -16,12 +16,12 @@ it('registers the canonical identity inside the transaction and returns its iden
         name: NameValueObject::fromString(value: 'Maria'),
         email: EmailValueObject::fromString(value: 'maria@example.com'),
     );
-    $writePort = $this->createMock(IdentityWritePort::class);
-    $registrationPort = $this->createMock(CreatePort::class);
+    $writePort = $this->createMock(TransactionPort::class);
+    $repository = $this->createMock(UserRepository::class);
     $writePort->expects($this->once())
         ->method('execute')
         ->willReturnCallback(static fn (callable $operation): mixed => $operation());
-    $registrationPort->expects($this->once())
+    $repository->expects($this->once())
         ->method('create')
         ->with(
             $this->callback(fn (UserEntity $user): bool => $user->id === null
@@ -32,8 +32,8 @@ it('registers the canonical identity inside the transaction and returns its iden
         ->willReturn($persisted);
 
     $result = (new SignUpUseCase(
-        createPort: $registrationPort,
-        identityPort: $writePort,
+        port: $writePort,
+        repository: $repository,
     ))->execute(
         name: ' Maria ',
         email: ' MARIA@EXAMPLE.COM ',
@@ -44,14 +44,14 @@ it('registers the canonical identity inside the transaction and returns its iden
 });
 
 it('rejects an invalid password before opening a transaction', function (): void {
-    $writePort = $this->createMock(IdentityWritePort::class);
-    $registrationPort = $this->createMock(CreatePort::class);
+    $writePort = $this->createMock(TransactionPort::class);
+    $repository = $this->createMock(UserRepository::class);
     $writePort->expects($this->never())->method('execute');
-    $registrationPort->expects($this->never())->method('create');
+    $repository->expects($this->never())->method('create');
 
     (new SignUpUseCase(
-        createPort: $registrationPort,
-        identityPort: $writePort,
+        port: $writePort,
+        repository: $repository,
     ))->execute(
         name: 'Maria',
         email: 'maria@example.com',

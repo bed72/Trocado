@@ -12,12 +12,12 @@ final class UpdateUserController
 {
     public function __construct(private readonly UpdateUserUseCase $useCase) {}
 
-    public function __invoke(UpdateUserRequest $request, int $user): UserResponse
+    public function __invoke(UpdateUserRequest $request, int $id): UserResponse
     {
         $attributes = $request->validated(key: 'data.attributes');
 
         return new UserResponse(resource: $this->useCase->execute(
-            id: $user,
+            id: $id,
             name: $attributes['name'] ?? null,
             email: $attributes['email'] ?? null,
         ));

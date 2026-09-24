@@ -102,7 +102,7 @@ O sistema MUST permitir listar Users em ordem de identificador e consultar User 
 - **THEN** o caso de uso produz uma exceção explícita de User não encontrado
 
 ### Requirement: Atualização parcial de User
-O sistema MUST permitir atualizar nome e/ou e-mail de um User existente, MUST preservar atributos omitidos e MUST reaplicar normalização, invariantes e unicidade de e-mail. A operação MUST usar `IdentityRepository::update` e MUST retornar a entidade persistida atualizada.
+O sistema MUST permitir atualizar nome e/ou e-mail de um User existente, MUST preservar atributos omitidos e MUST reaplicar normalização, invariantes e unicidade de e-mail. A operação MUST usar `UserRepository::update` e MUST retornar a entidade persistida atualizada.
 
 #### Scenario: Atualização de nome
 - **WHEN** somente um novo nome válido é informado
@@ -129,7 +129,7 @@ O sistema MUST permitir atualizar nome e/ou e-mail de um User existente, MUST pr
 - **THEN** o caso de uso produz uma exceção explícita de User não encontrado
 
 ### Requirement: Exclusão de User
-O sistema MUST excluir uma conta existente dentro de `IdentityWritePort`, MUST remover todos os seus Personal Access Tokens antes de remover `users` por `IdentityRepository::delete` e MUST reverter ambos diante de falha. A exclusão definitiva do User MUST remover também todas as suas despesas, inclusive as que possuírem `deleted_at` preenchido, na mesma transação. Uma identidade inexistente MUST produzir a mesma falha explícita de User não encontrado.
+O sistema MUST excluir uma conta existente dentro de `Core` `TransactionPort`, MUST remover todos os seus Personal Access Tokens antes de remover `users` por `UserRepository::delete` e MUST reverter ambos diante de falha. A exclusão definitiva do User MUST remover também todas as suas despesas, inclusive as que possuírem `deleted_at` preenchido, na mesma transação. Uma identidade inexistente MUST produzir a mesma falha explícita de User não encontrado.
 
 #### Scenario: Exclusão bem-sucedida
 - **WHEN** uma conta existente com múltiplos tokens é excluída
@@ -151,16 +151,26 @@ O sistema MUST excluir uma conta existente dentro de `IdentityWritePort`, MUST r
 - **THEN** o caso de uso produz uma exceção explícita de User não encontrado
 
 ### Requirement: Contrato explícito de Repository
-O sistema MUST declarar `IdentityRepository` na camada Application somente com `update(UserEntity): ?UserEntity`, `delete(int): bool`, `all(): array`, `findById(int): ?UserEntity` e `findByEmail(EmailValueObject): ?UserEntity`. O contrato MUST usar apenas tipos independentes do ORM, MUST NOT criar contas e sua implementação Eloquent MUST permanecer em Infrastructure.
+O sistema MUST declarar `UserRepository` na camada Application com `create(UserEntity, string password): UserEntity`, `update(UserEntity): ?UserEntity`, `delete(int): bool`, `all(): array`, `findById(int): ?UserEntity` e `findByEmail(EmailValueObject): ?UserEntity`. A senha de criação MUST ser tratada como sensível e transitória; o contrato MUST usar apenas tipos independentes do ORM e sua implementação Eloquent MUST permanecer em Infrastructure. Apenas SignUp MUST criar contas no fluxo atual.
 
 #### Scenario: Fronteira independente do ORM
-- **WHEN** o contrato `IdentityRepository` é verificado
+- **WHEN** o contrato `UserRepository` é verificado
 - **THEN** seus parâmetros e retornos não incluem Model, Builder, query, facade ou outro tipo de Infrastructure
-- **AND** ele não possui `create`, `save` ou operação de registro
+- **AND** a criação não expõe password hash ou `save` genérico
+
+#### Scenario: Criação com credencial válida
+- **WHEN** `SignUpUseCase` entrega uma `UserEntity` ainda não persistida e password válido
+- **THEN** `UserRepository::create` retorna `UserEntity` com ID e timestamps
+- **AND** o password hash é persistido sem inserir password em texto puro ou emitir token
+
+#### Scenario: Conflito na criação
+- **WHEN** o e-mail canônico já existe ou conflita sob concorrência
+- **THEN** a constraint única permite no máximo uma identidade
+- **AND** `EloquentUserRepository` traduz o conflito para a exceção de Application esperada
 
 #### Scenario: Binding da implementação
-- **WHEN** o container resolve `IdentityRepository`
-- **THEN** `IdentityServiceProvider` fornece `EloquentIdentityRepository`
+- **WHEN** o container resolve `UserRepository`
+- **THEN** `IdentityServiceProvider` fornece `EloquentUserRepository`
 - **AND** nenhum Repository base ou genérico é introduzido
 
 ### Requirement: CRUD HTTP JSON:API
@@ -195,17 +205,17 @@ O sistema MUST expor listagem, consulta, atualização e exclusão de User em `/
 O sistema MUST persistir identificador, nome, e-mail canônico, password hash e timestamps na tabela `users`. `UserModel` de Identity Infrastructure MUST representar essa persistência e o principal autenticável sem funcionar como entidade de Domain. Tokens MUST permanecer na tabela oficial do Sanctum, e novas contas MUST NOT receber password aleatório de fallback.
 
 #### Scenario: Registro persistido
-- **WHEN** um User é criado por SignUp e `CreatePort`
+- **WHEN** um User é criado por SignUp e `UserRepository::create`
 - **THEN** a tabela `users` contém nome, e-mail canônico, password hash e timestamps
 - **AND** não contém token, remember token ou password em texto puro
 
 #### Scenario: Ausência de fallback
-- **WHEN** código tenta criar `UserModel` sem password fora de `CreatePort`
+- **WHEN** código tenta criar `UserModel` sem password fora do fluxo de registro
 - **THEN** a persistência rejeita a operação
 - **AND** nenhum callback inventa uma credencial silenciosamente
 
 #### Scenario: Mapping para o domínio
-- **WHEN** `EloquentIdentityRepository` recupera um registro existente
+- **WHEN** `EloquentUserRepository` cria ou recupera um registro existente
 - **THEN** retorna `UserEntity` sem password hash ou `UserModel`
 - **AND** não expõe relações ou tipos do Sanctum fora de Infrastructure
 

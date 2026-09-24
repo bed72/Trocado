@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-use App\Identity\Application\Repositories\IdentityRepository;
+use App\Identity\Application\Repositories\UserRepository;
 use App\Identity\Domain\Entities\UserEntity;
 use App\Identity\Domain\ValueObjects\EmailValueObject;
 
 it('exposes only the explicit persistence operations', function (): void {
-    $methods = (new ReflectionClass(IdentityRepository::class))->getMethods();
+    $methods = (new ReflectionClass(UserRepository::class))->getMethods();
     $methodsByName = [];
 
     foreach ($methods as $method) {
@@ -16,7 +16,11 @@ it('exposes only the explicit persistence operations', function (): void {
 
     ksort($methodsByName);
 
-    expect(array_keys($methodsByName))->toBe(['all', 'delete', 'findByEmail', 'findById', 'update'])
+    expect(array_keys($methodsByName))->toBe(['all', 'create', 'delete', 'findByEmail', 'findById', 'update'])
+        ->and($methodsByName['create']->getParameters()[0]->getType()?->getName())->toBe(UserEntity::class)
+        ->and($methodsByName['create']->getParameters()[1]->getType()?->getName())->toBe('string')
+        ->and($methodsByName['create']->getParameters()[1]->getAttributes(SensitiveParameter::class))->toHaveCount(1)
+        ->and($methodsByName['create']->getReturnType()?->getName())->toBe(UserEntity::class)
         ->and($methodsByName['update']->getParameters()[0]->getType()?->getName())->toBe(UserEntity::class)
         ->and($methodsByName['update']->getReturnType()?->getName())->toBe(UserEntity::class)
         ->and($methodsByName['update']->getReturnType()?->allowsNull())->toBeTrue()
