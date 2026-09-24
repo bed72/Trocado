@@ -9,16 +9,17 @@ use App\Identity\Application\Ports\SignOutPort;
 use App\Identity\Application\Repositories\UserRepository;
 use App\Identity\Infrastructure\Adapters\SignInAdapter;
 use App\Identity\Infrastructure\Adapters\SignOutAdapter;
-use App\Identity\Infrastructure\Persistence\Models\UserModel;
 use App\Identity\Infrastructure\Persistence\Repositories\EloquentUserRepository;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+
+use function is_string;
 
 final class IdentityServiceProvider extends ServiceProvider
 {
-    private const string USER_TOKENABLE_MORPH_TYPE = 'App'.'\\User\\Infrastructure\\Persistence\\Models\\UserModel';
-
     public function register(): void
     {
         $this->app->bind(abstract: SignInPort::class, concrete: SignInAdapter::class);
@@ -28,10 +29,21 @@ final class IdentityServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        Relation::enforceMorphMap([
-            self::USER_TOKENABLE_MORPH_TYPE => UserModel::class,
-        ]);
+        Model::preventLazyLoading(! $this->app->environment('production'));
 
-        Model::preventLazyLoading(! $this->app->isProduction());
+        RateLimiter::for('authentication.sign-up', fn (Request $request): Limit => Limit::perHour(3)
+            ->by('sign-up:ip:'.$request->ip()));
+
+        RateLimiter::for('authentication.sign-in', function (Request $request): array {
+            $ip = $request->ip();
+            $email = $request->input('data.attributes.email');
+            $canonicalEmail = is_string($email) ? strtolower(trim($email)) : '';
+            $identifier = hash('sha256', "$ip|$canonicalEmail");
+
+            return [
+                Limit::perMinute(30)->by("sign-in:ip:$ip"),
+                Limit::perMinute(5)->by("sign-in:email:$identifier"),
+            ];
+        });
     }
 }

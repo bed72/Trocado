@@ -16,7 +16,7 @@ Dependências de código: `Presentation → Application → Domain` e `Infrastru
 
 `POST /api/authentication/sign-up` é o único caminho público de criação de conta. `POST /api/users` e a listagem global `GET /api/users` não existem e respondem `404`. `GET`, `PATCH` e `DELETE /api/users/{user}`, os resource types `users`, `sign-ups` e `access-tokens` e os endpoints de Authentication permanecem orientados ao consumidor.
 
-O morph type persistido pelo Sanctum permanece estável por configuração no `IdentityServiceProvider`, mesmo com a mudança interna de namespace do `UserModel`. Isso preserva tokens já emitidos sem migration de dados e desacopla sua resolução do nome atual da classe.
+O Sanctum usa o morph type padrão do `UserModel` atual para novos tokens. Como a aplicação ainda está em desenvolvimento e não há tokens legados, não há mapeamento de compatibilidade com namespaces anteriores.
 
 ## Responsabilidades
 

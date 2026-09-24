@@ -17,8 +17,8 @@ Route::prefix('users')->middleware('auth:sanctum')->name('users.')->group(functi
 });
 
 Route::prefix('authentication')->name('authentication.api.')->group(function (): void {
-    Route::post(uri: 'sign-up', action: SignUpController::class)->name(name: 'sign-up');
-    Route::post(uri: 'sign-in', action: SignInController::class)->name(name: 'sign-in');
+    Route::post(uri: 'sign-up', action: SignUpController::class)->middleware('throttle:authentication.sign-up')->name(name: 'sign-up');
+    Route::post(uri: 'sign-in', action: SignInController::class)->middleware('throttle:authentication.sign-in')->name(name: 'sign-in');
     Route::delete(uri: 'sign-out', action: SignOutController::class)
         ->middleware('auth:sanctum')
         ->name(name: 'sign-out');

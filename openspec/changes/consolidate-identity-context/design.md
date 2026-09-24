@@ -79,7 +79,7 @@ Controllers, Requests e Responses serão movidos para `App\Identity\Presentation
 
 Namespaces, providers, bindings e testes serão movidos sem renomear tabelas ou colunas. `IdentityServiceProvider` substituirá `UserServiceProvider` e `AuthenticationServiceProvider`, registrará o Repository, as quatro Ports e a política de lazy loading. `bootstrap/app.php` carregará as rotas Identity e manterá as traduções JSON:API.
 
-Como o Sanctum persiste o morph type do principal em `personal_access_tokens.tokenable_type`, `IdentityServiceProvider` manterá o discriminador já armazenado apontando para o novo `UserModel`. Assim tokens emitidos antes da consolidação continuam resolvíveis e revogáveis sem migration de dados, embora o namespace antigo deixe de existir como dependência de código.
+Como a aplicação ainda está em desenvolvimento e não há tokens emitidos a preservar, o Sanctum usará o morph type padrão do novo `UserModel` sem mapeamento de compatibilidade para o namespace antigo.
 
 O teste arquitetural deixará de permitir `Authentication Infrastructure -> App\User`; `Identity` e `Expense` são os contextos existentes.
 

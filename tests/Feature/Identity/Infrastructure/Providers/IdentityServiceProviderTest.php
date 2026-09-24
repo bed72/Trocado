@@ -9,11 +9,9 @@ use App\Identity\Application\Ports\SignOutPort;
 use App\Identity\Application\Repositories\UserRepository;
 use App\Identity\Infrastructure\Adapters\SignInAdapter;
 use App\Identity\Infrastructure\Adapters\SignOutAdapter;
-use App\Identity\Infrastructure\Persistence\Models\UserModel;
 use App\Identity\Infrastructure\Persistence\Repositories\EloquentUserRepository;
 use App\Identity\Infrastructure\Providers\IdentityServiceProvider;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\Relation;
 
 it('binds identity dependencies and resolves the shared transaction port', function (): void {
     expect(app(UserRepository::class))->toBeInstanceOf(EloquentUserRepository::class)
@@ -31,11 +29,4 @@ it('prevents lazy loading outside production independently of other contexts', f
     (new IdentityServiceProvider(app: app()))->boot();
 
     expect(Model::preventsLazyLoading())->toBeTrue();
-});
-
-it('keeps the persisted Sanctum tokenable type stable across the context consolidation', function (): void {
-    $persistedType = 'App'.'\\User\\Infrastructure\\Persistence\\Models\\UserModel';
-
-    expect((new UserModel)->getMorphClass())->toBe($persistedType)
-        ->and(Relation::getMorphedModel($persistedType))->toBe(UserModel::class);
 });
