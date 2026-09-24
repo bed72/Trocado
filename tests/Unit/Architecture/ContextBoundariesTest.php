@@ -175,6 +175,10 @@ foreach ($contexts as $context) {
             $applicationDependencies[] = 'App\\Core\\Application\\Ports\\TransactionPort';
         }
 
+        if ($context === 'Expense') {
+            $applicationDependencies[] = 'App\\Core\\Application\\Ports\\ScopePort';
+        }
+
         arch($context.' application depends only on its domain and own contracts')
             ->expect($contextNamespace.'\\Application')
             ->toOnlyUse($applicationDependencies);

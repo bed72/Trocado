@@ -26,6 +26,12 @@ abstract class TestCase extends BaseTestCase
             throw new RuntimeException('The effective test connection must point to trocado_testing.');
         }
 
+        $role = $database->connection()->selectOne('select current_user as name, rolsuper, rolbypassrls from pg_roles where rolname = current_user');
+
+        if ($role->name !== 'trocado_runtime' || $role->rolsuper || $role->rolbypassrls) {
+            throw new RuntimeException('Tests require the limited trocado_runtime role.');
+        }
+
         return $app;
     }
 }

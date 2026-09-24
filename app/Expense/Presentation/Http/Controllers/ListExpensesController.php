@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Expense\Presentation\Http\Controllers;
 
-use App\Expense\Application\UseCases\ListOwnedExpensesUseCase;
+use App\Expense\Application\UseCases\ListExpensesUseCase;
 use App\Expense\Presentation\Http\Requests\ListOwnedExpensesRequest;
 use App\Expense\Presentation\Http\Responses\ExpenseResponse;
 use Illuminate\Http\JsonResponse;
 
-final readonly class ListOwnedExpensesController
+final readonly class ListExpensesController
 {
-    public function __construct(private ListOwnedExpensesUseCase $useCase) {}
+    public function __construct(private ListExpensesUseCase $useCase) {}
 
     public function __invoke(ListOwnedExpensesRequest $request): JsonResponse
     {

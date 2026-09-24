@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\FeatureTestCase;
 use Tests\TestCase;
 
-pest()->extend(TestCase::class)->use(RefreshDatabase::class)->in('Feature');
+pest()->extend(FeatureTestCase::class)->in('Feature');
 
 function signUpIdentityByApi(
     TestCase $test,

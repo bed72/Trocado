@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Core\Application\Ports\ScopePort;
 use App\Expense\Application\Data\CreateExpenseInput;
 use App\Expense\Application\UseCases\CreateExpenseUseCase;
 use Illuminate\Pagination\Cursor;
@@ -20,7 +21,7 @@ it('lists only active expenses of the authenticated owner in date and id order a
     $new = $create->execute(new CreateExpenseInput(userId: $owner, amount: 300, occurredOn: '2026-09-21'));
     $deleted = $create->execute(new CreateExpenseInput(userId: $owner, amount: 400, occurredOn: '2026-09-22'));
     $create->execute(new CreateExpenseInput(userId: $other, amount: 500, occurredOn: '2026-09-23'));
-    DB::table('expenses')->where('id', $deleted->id)->update(['deleted_at' => now()]);
+    app(ScopePort::class)->execute($owner, fn () => DB::table('expenses')->where('id', $deleted->id)->update(['deleted_at' => now()]));
 
     $first = $this->withToken($token)->getJson('/api/expenses?page[size]=2')
         ->assertOk()->assertHeader('Content-Type', 'application/vnd.api+json');

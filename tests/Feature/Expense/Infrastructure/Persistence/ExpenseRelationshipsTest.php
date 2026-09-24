@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Core\Application\Ports\ScopePort;
 use App\Expense\Application\Data\CreateExpenseInput;
 use App\Expense\Application\UseCases\CreateExpenseUseCase;
 use App\Expense\Infrastructure\Persistence\Models\ExpenseModel;
@@ -21,36 +22,39 @@ beforeEach(function (): void {
 });
 
 it('eager loads users with expenses using two queries for multiple owners', function (): void {
+    $firstUserId = (int) UserModel::query()->orderBy('id')->value('id');
     $archivedExpense = app(CreateExpenseUseCase::class)->execute(new CreateExpenseInput(
-        userId: (int) UserModel::query()->orderBy('id')->value('id'),
+        userId: $firstUserId,
         amount: 300,
         occurredOn: '2026-09-22',
     ));
-    ExpenseModel::query()->findOrFail($archivedExpense->id)->delete();
+    app(ScopePort::class)->execute($firstUserId, fn () => ExpenseModel::query()->findOrFail($archivedExpense->id)->delete());
 
     DB::enableQueryLog();
     DB::flushQueryLog();
 
-    $users = UserModel::query()->with('expenses')->orderBy('id')->get();
+    $users = app(ScopePort::class)->execute($firstUserId, fn () => UserModel::query()->with('expenses')->orderBy('id')->get());
 
     expect($users)->toHaveCount(2)
         ->and($users[0]->relationLoaded('expenses'))->toBeTrue()
         ->and($users[0]->expenses)->toHaveCount(1)
-        ->and($users[1]->expenses)->toHaveCount(1)
-        ->and(DB::getQueryLog())->toHaveCount(2);
+        ->and($users[1]->expenses)->toHaveCount(0)
+        ->and(array_filter(DB::getQueryLog(), fn (array $query): bool => ! str_contains($query['query'], 'set_config')))->toHaveCount(2);
 });
 
 it('eager loads expenses with their users using two queries for multiple expenses', function (): void {
+    $firstUserId = (int) UserModel::query()->orderBy('id')->value('id');
+    app(CreateExpenseUseCase::class)->execute(new CreateExpenseInput($firstUserId, 300, '2026-09-22'));
     DB::enableQueryLog();
     DB::flushQueryLog();
 
-    $expenses = ExpenseModel::query()->with('user')->orderBy('id')->get();
+    $expenses = app(ScopePort::class)->execute($firstUserId, fn () => ExpenseModel::query()->with('user')->orderBy('id')->get());
 
     expect($expenses)->toHaveCount(2)
         ->and($expenses[0]->relationLoaded('user'))->toBeTrue()
         ->and($expenses[0]->user)->toBeInstanceOf(UserModel::class)
-        ->and($expenses[1]->user->id)->not->toBe($expenses[0]->user->id)
-        ->and(DB::getQueryLog())->toHaveCount(2);
+        ->and($expenses[1]->user->id)->toBe($expenses[0]->user->id)
+        ->and(array_filter(DB::getQueryLog(), fn (array $query): bool => ! str_contains($query['query'], 'set_config')))->toHaveCount(2);
 });
 
 it('rejects lazy loading of expenses from a collection of users', function (): void {
@@ -60,7 +64,9 @@ it('rejects lazy loading of expenses from a collection of users', function (): v
 });
 
 it('rejects lazy loading of users from a collection of expenses', function (): void {
-    $expenses = ExpenseModel::query()->orderBy('id')->get();
+    $firstUserId = (int) UserModel::query()->orderBy('id')->value('id');
+    app(CreateExpenseUseCase::class)->execute(new CreateExpenseInput($firstUserId, 300, '2026-09-22'));
+    $expenses = app(ScopePort::class)->execute($firstUserId, fn () => ExpenseModel::query()->orderBy('id')->get());
 
     expect(fn () => $expenses[0]->user)->toThrow(LazyLoadingViolationException::class);
 });

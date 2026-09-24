@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Core\Application\Ports\ScopePort;
 use App\Expense\Application\Data\CreateExpenseInput;
 use App\Expense\Application\Exceptions\ExpenseOwnerNotFoundException;
 use App\Expense\Application\UseCases\CreateExpenseUseCase;
@@ -32,7 +33,7 @@ it('creates an expense using the authenticated owner and defaults', function ():
         'category' => 'other',
         'description' => null,
         'deleted_at' => null,
-    ]);
+    ], 'pgsql_maintenance');
 });
 
 it('uses a chosen category and date', function (): void {
@@ -53,14 +54,14 @@ it('uses a chosen category and date', function (): void {
         'category' => 'transport',
         'description' => 'Ônibus',
         'occurred_on' => '2026-09-20',
-    ]);
+    ], 'pgsql_maintenance');
 });
 
 it('rejects unauthenticated expense creation', function (): void {
     $this->postJson('/api/expenses', ['data' => ['type' => 'expenses', 'attributes' => ['amount' => 1250]]])
         ->assertUnauthorized();
 
-    $this->assertDatabaseCount('expenses', 0);
+    $this->assertDatabaseCount('expenses', 0, 'pgsql_maintenance');
 });
 
 it('rejects invalid attributes and arbitrary ownership', function (array $attributes): void {
@@ -71,7 +72,7 @@ it('rejects invalid attributes and arbitrary ownership', function (array $attrib
         'data' => ['type' => 'expenses', 'attributes' => $attributes],
     ])->assertUnprocessable()->assertHeader('Content-Type', 'application/vnd.api+json');
 
-    $this->assertDatabaseCount('expenses', 0);
+    $this->assertDatabaseCount('expenses', 0, 'pgsql_maintenance');
 })->with([
     'zero' => [['amount' => 0]],
     'fractional' => [['amount' => 12.5]],
@@ -84,10 +85,10 @@ it('rejects invalid attributes and arbitrary ownership', function (array $attrib
 it('rejects a removed owner through the use case', function (): void {
     $useCase = app(CreateExpenseUseCase::class);
 
-    expect(fn () => DB::transaction(fn () => $useCase->execute(new CreateExpenseInput(userId: 999, amount: 1250, occurredOn: '2026-09-20'))))
+    expect(fn () => $useCase->execute(new CreateExpenseInput(userId: 999, amount: 1250, occurredOn: '2026-09-20')))
         ->toThrow(ExpenseOwnerNotFoundException::class);
 
-    $this->assertDatabaseCount('expenses', 0);
+    $this->assertDatabaseCount('expenses', 0, 'pgsql_maintenance');
 });
 
 it('cascades both active and soft deleted expenses with the owner and rolls back together', function (): void {
@@ -97,7 +98,7 @@ it('cascades both active and soft deleted expenses with the owner and rolls back
 
     $active = $useCase->execute(new CreateExpenseInput(userId: $userId, amount: 1250, occurredOn: '2026-09-20'));
     $deleted = $useCase->execute(new CreateExpenseInput(userId: $userId, amount: 500, occurredOn: '2026-09-21'));
-    DB::table('expenses')->where('id', $deleted->id)->update(['deleted_at' => now()]);
+    app(ScopePort::class)->execute($userId, fn () => DB::table('expenses')->where('id', $deleted->id)->update(['deleted_at' => now()]));
 
     try {
         DB::transaction(function () use ($userId): void {
@@ -109,11 +110,11 @@ it('cascades both active and soft deleted expenses with the owner and rolls back
         expect($exception->getMessage())->toBe('rollback');
     }
 
-    $this->assertDatabaseHas('expenses', ['id' => $active->id, 'user_id' => $userId]);
-    $this->assertDatabaseHas('expenses', ['id' => $deleted->id, 'user_id' => $userId]);
+    $this->assertDatabaseHas('expenses', ['id' => $active->id, 'user_id' => $userId], 'pgsql_maintenance');
+    $this->assertDatabaseHas('expenses', ['id' => $deleted->id, 'user_id' => $userId], 'pgsql_maintenance');
 
     $this->withToken($token)->deleteJson("/api/users/{$userId}")->assertNoContent();
 
-    $this->assertDatabaseCount('expenses', 0);
+    $this->assertDatabaseCount('expenses', 0, 'pgsql_maintenance');
     $this->assertDatabaseCount('personal_access_tokens', 0);
 });

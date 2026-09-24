@@ -49,7 +49,7 @@ it('cannot delete another account or its tokens', function (): void {
     $this->withToken($token)->deleteJson("/api/users/{$otherId}")
         ->assertNotFound()->assertExactJson($missing);
     $this->assertDatabaseHas('users', ['id' => $otherId, 'email' => 'joao@example.com']);
-    $this->assertDatabaseHas('expenses', ['id' => $expenseId, 'user_id' => $otherId, 'amount' => 1250]);
+    $this->assertDatabaseHas('expenses', ['id' => $expenseId, 'user_id' => $otherId, 'amount' => 1250], 'pgsql_maintenance');
     $this->assertDatabaseCount('personal_access_tokens', 2);
     app('auth')->forgetGuards();
     $this->withToken($otherToken)->getJson("/api/users/{$otherId}")->assertOk();
