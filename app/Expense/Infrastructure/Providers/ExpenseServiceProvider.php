@@ -7,7 +7,7 @@ namespace App\Expense\Infrastructure\Providers;
 use App\Expense\Application\Ports\ExpenseListCachePort;
 use App\Expense\Application\Repositories\ExpenseRepository;
 use App\Expense\Infrastructure\Adapters\Cache\ExpenseListCacheAdapter;
-use App\Expense\Infrastructure\Persistence\Repositories\EloquentExpenseRepository;
+use App\Expense\Infrastructure\Repositories\Persistence\EloquentExpenseRepository;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\ServiceProvider;
 

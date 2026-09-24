@@ -1,6 +1,6 @@
 <?php
 
-use App\Identity\Infrastructure\Persistence\Models\UserModel;
+use App\Identity\Infrastructure\Repositories\Persistence\Models\UserModel;
 
 return [
 

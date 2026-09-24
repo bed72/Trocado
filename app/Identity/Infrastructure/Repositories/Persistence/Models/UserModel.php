@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Identity\Infrastructure\Persistence\Models;
+namespace App\Identity\Infrastructure\Repositories\Persistence\Models;
 
-use App\Expense\Infrastructure\Persistence\Models\ExpenseModel;
+use App\Expense\Infrastructure\Repositories\Persistence\Models\ExpenseModel;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;

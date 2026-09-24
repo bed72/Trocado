@@ -11,7 +11,7 @@ use App\Identity\Application\Repositories\UserRepository;
 use App\Identity\Infrastructure\Adapters\SignInAdapter;
 use App\Identity\Infrastructure\Adapters\SignOutAdapter;
 use App\Identity\Infrastructure\Adapters\UserAdapter;
-use App\Identity\Infrastructure\Persistence\Repositories\EloquentUserRepository;
+use App\Identity\Infrastructure\Repositories\Persistence\EloquentUserRepository;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;

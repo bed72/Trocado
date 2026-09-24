@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Expense\Infrastructure\Persistence\Repositories;
+namespace App\Expense\Infrastructure\Repositories\Persistence;
 
 use App\Expense\Application\Data\ExpensePageOutput;
 use App\Expense\Application\Exceptions\ExpenseOwnerNotFoundException;
 use App\Expense\Application\Repositories\ExpenseRepository;
 use App\Expense\Domain\Entities\ExpenseEntity;
-use App\Expense\Infrastructure\Persistence\Models\ExpenseModel;
+use App\Expense\Infrastructure\Repositories\Persistence\Models\ExpenseModel;
 use DateTimeImmutable;
 use Illuminate\Database\QueryException;
 use Illuminate\Pagination\Cursor;

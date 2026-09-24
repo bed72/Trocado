@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Expense\Infrastructure\Persistence\Models;
+namespace App\Expense\Infrastructure\Repositories\Persistence\Models;
 
-use App\Identity\Infrastructure\Persistence\Models\UserModel;
+use App\Identity\Infrastructure\Repositories\Persistence\Models\UserModel;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;

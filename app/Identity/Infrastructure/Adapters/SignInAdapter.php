@@ -9,7 +9,7 @@ use App\Identity\Application\Exceptions\InvalidCredentialsException;
 use App\Identity\Application\Ports\SignInPort;
 use App\Identity\Domain\Exceptions\InvalidEmailException;
 use App\Identity\Domain\ValueObjects\EmailValueObject;
-use App\Identity\Infrastructure\Persistence\Models\UserModel;
+use App\Identity\Infrastructure\Repositories\Persistence\Models\UserModel;
 use DateTimeImmutable;
 use Illuminate\Auth\AuthManager;
 use Illuminate\Contracts\Config\Repository;

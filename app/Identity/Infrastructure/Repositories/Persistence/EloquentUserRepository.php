@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Identity\Infrastructure\Persistence\Repositories;
+namespace App\Identity\Infrastructure\Repositories\Persistence;
 
 use App\Identity\Application\Exceptions\EmailAlreadyUsedException;
 use App\Identity\Application\Repositories\UserRepository;
 use App\Identity\Domain\Entities\UserEntity;
 use App\Identity\Domain\ValueObjects\EmailValueObject;
 use App\Identity\Domain\ValueObjects\NameValueObject;
-use App\Identity\Infrastructure\Persistence\Models\UserModel;
+use App\Identity\Infrastructure\Repositories\Persistence\Models\UserModel;
 use DateTimeImmutable;
 use DateTimeInterface;
 use Illuminate\Database\UniqueConstraintViolationException;

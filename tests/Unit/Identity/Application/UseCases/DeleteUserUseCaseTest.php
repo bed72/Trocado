@@ -18,7 +18,7 @@ it('deletes an existing user inside the identity transaction', function (): void
         ->willReturnCallback(static fn (callable $operation): mixed => $operation());
     $repository->expects($this->once())->method('delete')->with(10)->willReturn(true);
 
-    (new DeleteUserUseCase($writePort, $userPort, $repository))->execute(id: 10);
+    (new DeleteUserUseCase($userPort, $repository, $writePort))->execute(id: 10);
 });
 
 it('fails inside the identity transaction when deleting an absent user', function (): void {
@@ -31,7 +31,7 @@ it('fails inside the identity transaction when deleting an absent user', functio
         ->willReturnCallback(static fn (callable $operation): mixed => $operation());
     $repository->expects($this->once())->method('delete')->with(10)->willReturn(false);
 
-    (new DeleteUserUseCase($writePort, $userPort, $repository))->execute(id: 10);
+    (new DeleteUserUseCase($userPort, $repository, $writePort))->execute(id: 10);
 })->throws(UserNotFoundException::class, 'User não encontrado.');
 
 it('does not start a transaction or delete another user', function (): void {
@@ -41,5 +41,5 @@ it('does not start a transaction or delete another user', function (): void {
     $userPort->method('id')->willReturn(20);
     $repository = $this->createMock(UserRepository::class);
     $repository->expects($this->never())->method('delete');
-    (new DeleteUserUseCase($writePort, $userPort, $repository))->execute(id: 10);
+    (new DeleteUserUseCase($userPort, $repository, $writePort))->execute(id: 10);
 })->throws(UserNotFoundException::class);

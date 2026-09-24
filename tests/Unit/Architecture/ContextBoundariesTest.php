@@ -65,13 +65,13 @@ it('contains no source references to retired bounded contexts', function () use 
 
 it('limits cross-context Eloquent model references to the two relationship models', function () use ($applicationPath): void {
     $allowedReferences = [
-        'App\\Expense\\Infrastructure\\Persistence\\Models\\ExpenseModel' => [
+        'App\\Expense\\Infrastructure\\Repositories\\Persistence\\Models\\ExpenseModel' => [
             $applicationPath.'/Identity',
-            $applicationPath.'/Identity/Infrastructure/Persistence/Models/UserModel.php',
+            $applicationPath.'/Identity/Infrastructure/Repositories/Persistence/Models/UserModel.php',
         ],
-        'App\\Identity\\Infrastructure\\Persistence\\Models\\UserModel' => [
+        'App\\Identity\\Infrastructure\\Repositories\\Persistence\\Models\\UserModel' => [
             $applicationPath.'/Expense',
-            $applicationPath.'/Expense/Infrastructure/Persistence/Models/ExpenseModel.php',
+            $applicationPath.'/Expense/Infrastructure/Repositories/Persistence/Models/ExpenseModel.php',
         ],
     ];
 
@@ -194,11 +194,11 @@ foreach ($contexts as $context) {
 
         if ($context === 'Identity') {
             $infrastructureDependencies[] = 'Laravel\\Sanctum';
-            $infrastructureDependencies[] = 'App\\Expense\\Infrastructure\\Persistence\\Models\\ExpenseModel';
+            $infrastructureDependencies[] = 'App\\Expense\\Infrastructure\\Repositories\\Persistence\\Models\\ExpenseModel';
         }
 
         if ($context === 'Expense') {
-            $infrastructureDependencies[] = 'App\\Identity\\Infrastructure\\Persistence\\Models\\UserModel';
+            $infrastructureDependencies[] = 'App\\Identity\\Infrastructure\\Repositories\\Persistence\\Models\\UserModel';
         }
 
         arch($context.' infrastructure stays behind application boundaries')
