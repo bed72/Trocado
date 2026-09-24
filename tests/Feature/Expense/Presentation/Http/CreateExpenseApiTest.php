@@ -84,7 +84,7 @@ it('rejects invalid attributes and arbitrary ownership', function (array $attrib
 it('rejects a removed owner through the use case', function (): void {
     $useCase = app(CreateExpenseUseCase::class);
 
-    expect(fn () => $useCase->execute(new CreateExpenseInput(userId: 999, amount: 1250, occurredOn: '2026-09-20')))
+    expect(fn () => DB::transaction(fn () => $useCase->execute(new CreateExpenseInput(userId: 999, amount: 1250, occurredOn: '2026-09-20'))))
         ->toThrow(ExpenseOwnerNotFoundException::class);
 
     $this->assertDatabaseCount('expenses', 0);

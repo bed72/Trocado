@@ -10,6 +10,7 @@ use App\Identity\Infrastructure\Persistence\Models\UserModel;
 use App\Identity\Infrastructure\Persistence\Repositories\EloquentUserRepository;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\HasApiTokens;
 
@@ -74,11 +75,11 @@ it('translates an update uniqueness conflict into an application exception', fun
     $caughtException = null;
 
     try {
-        $repository->update(user: new UserEntity(
+        DB::transaction(fn () => $repository->update(user: new UserEntity(
             id: (int) $maria->getKey(),
             name: NameValueObject::fromString(value: 'Maria'),
             email: EmailValueObject::fromString(value: 'joao@example.com'),
-        ));
+        )));
     } catch (EmailAlreadyUsedException $exception) {
         $caughtException = $exception;
     }
@@ -95,8 +96,8 @@ it('translates an update uniqueness conflict into an application exception', fun
 it('deletes every token before the user and reports when the identity is absent', function (): void {
     $model = UserModel::query()->create([
         'name' => 'Maria',
-        'email' => 'maria@example.com',
         'password' => 'Abc123',
+        'email' => 'maria@example.com',
     ]);
     $model->createToken(name: 'first');
     $model->createToken(name: 'second');
@@ -118,10 +119,10 @@ it('rejects update for an entity without a persisted identity', function (): voi
 });
 
 it('rejects model persistence without a password instead of inventing a credential', function (): void {
-    expect(fn (): UserModel => UserModel::query()->create([
+    expect(fn (): UserModel => DB::transaction(fn (): UserModel => UserModel::query()->create([
         'name' => 'Maria',
         'email' => 'maria@example.com',
-    ]))->toThrow(QueryException::class);
+    ])))->toThrow(QueryException::class);
 
     $this->assertDatabaseCount('users', 0);
 });

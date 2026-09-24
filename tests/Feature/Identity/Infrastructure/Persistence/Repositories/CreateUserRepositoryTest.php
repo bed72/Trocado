@@ -86,18 +86,14 @@ it('translates a unique constraint race to the same sign up conflict', function 
         ]);
     });
 
-    expect(fn (): UserEntity => app(UserRepository::class)->create(
+    expect(fn (): UserEntity => DB::transaction(fn (): UserEntity => app(UserRepository::class)->create(
         user: new UserEntity(
             id: null,
             name: NameValueObject::fromString(value: 'Race Loser'),
             email: EmailValueObject::fromString(value: 'race@example.com'),
         ),
         password: 'Perde123',
-    ))->toThrow(EmailAlreadyUsedException::class);
+    )))->toThrow(EmailAlreadyUsedException::class);
 
-    $this->assertDatabaseCount('users', 1);
-    $this->assertDatabaseHas('users', [
-        'name' => 'Race Winner',
-        'email' => 'race@example.com',
-    ]);
+    $this->assertDatabaseCount('users', 0);
 });

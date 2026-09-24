@@ -12,18 +12,19 @@ Os bounded contexts atuais são `Identity` e `Expense`. `Identity` concentra o l
 
 ## Executar localmente
 
-Requer PHP 8.3+ com SQLite e Composer. Na raiz do projeto:
+Requer PHP 8.3+ com `pdo_pgsql`, Composer e PostgreSQL. Com Lerd, na raiz do projeto:
 
 ```sh
 composer install
-cp .env.example .env
-php artisan key:generate
-touch database/database.sqlite
-php artisan migrate
-php artisan serve
+lerd link
+lerd db set postgres
+lerd env setup
+lerd artisan migrate
 ```
 
-O `.env.example` usa SQLite. Configure `APP_URL` se iniciar o servidor em outra URL. O bootstrap foi validado com PHP 8.5.10, Composer 2.10.3 e Laravel Framework 13.32.0.
+`lerd db set postgres` provisiona `trocado` e `trocado_testing`; `lerd env setup` configura a conexão local em `.env`. O Lerd também oferece `lerd setup` para os demais passos de instalação. Para executar sem Lerd, copie `.env.example` para `.env`, configure `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME` e `DB_PASSWORD` localmente, crie os bancos PostgreSQL `trocado` e `trocado_testing`, gere a chave com `php artisan key:generate` e rode `php artisan migrate`. Configure `APP_URL` para a URL usada pelo servidor. Não inclua credenciais em arquivos versionados.
+
+Os testes usam exclusivamente `trocado_testing` em PostgreSQL: configure as credenciais/host no `.env` local e execute `lerd test` (ou `php artisan test` com acesso ao PostgreSQL). A suíte recusa conexões SQLite, `DB_URL` e bancos diferentes antes de executar `RefreshDatabase`; não aponte os testes para `trocado`. Dados existentes no SQLite não são copiados. O bootstrap foi validado com PHP 8.5.10, Composer 2.10.3 e Laravel Framework 13.32.0.
 
 ## Autenticação
 

@@ -7,6 +7,7 @@ framework_version: "13"
 secured: true
 services:
   - mailpit
+  - postgres
   - redis
 workers:
   - queue
