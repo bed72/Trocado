@@ -7,6 +7,8 @@ use App\Budget\Domain\Exceptions\InvalidBudgetRecurrenceException;
 use App\Budget\Domain\Exceptions\InvalidMoneyAmountException;
 use App\Budget\Domain\Exceptions\InvalidRecurrenceTransitionException;
 use App\Budget\Domain\Exceptions\OverlappingBudgetException;
+use App\Expense\Application\Exceptions\ExpenseOwnerNotFoundException;
+use App\Expense\Domain\Exceptions\InvalidExpenseException;
 use App\Identity\Application\Exceptions\EmailAlreadyUsedException;
 use App\Identity\Application\Exceptions\InvalidCredentialsException;
 use App\Identity\Application\Exceptions\UserNotFoundException;
@@ -31,6 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
         api: [
             __DIR__.'/../app/Budget/Presentation/Routes/api.php',
             __DIR__.'/../app/Identity/Presentation/Routes/api.php',
+            __DIR__.'/../app/Expense/Presentation/Routes/api.php',
         ],
     )
     ->withMiddleware(function (Middleware $middleware): void {
@@ -127,6 +130,20 @@ return Application::configure(basePath: dirname(__DIR__))
             'detail' => $exception->getMessage(),
             'status' => (string) Response::HTTP_NOT_FOUND,
         ]]], Response::HTTP_NOT_FOUND)->header('Content-Type', 'application/vnd.api+json')
+        );
+
+        $exceptions->render(fn (ExpenseOwnerNotFoundException $exception) => response()->json(['errors' => [[
+            'title' => 'User não encontrado',
+            'detail' => $exception->getMessage(),
+            'status' => (string) Response::HTTP_NOT_FOUND,
+        ]]], Response::HTTP_NOT_FOUND)->header('Content-Type', 'application/vnd.api+json')
+        );
+
+        $exceptions->render(fn (InvalidExpenseException $exception) => response()->json(['errors' => [[
+            'title' => 'Dados inválidos',
+            'detail' => $exception->getMessage(),
+            'status' => (string) Response::HTTP_UNPROCESSABLE_ENTITY,
+        ]]], Response::HTTP_UNPROCESSABLE_ENTITY)->header('Content-Type', 'application/vnd.api+json')
         );
 
         $exceptions->render(fn (EmailAlreadyUsedException $exception) => response()->json(['errors' => [[

@@ -8,7 +8,7 @@ $contexts = array_map(basename(...), $contextDirectories);
 sort($contexts);
 
 $layers = ['Application', 'Domain', 'Infrastructure', 'Presentation'];
-$expectedContexts = ['Budget', 'Identity'];
+$expectedContexts = ['Budget', 'Expense', 'Identity'];
 
 it('organizes application code inside known bounded context layers', function () use ($contextDirectories, $layers): void {
     expect($contextDirectories)->not->toBeEmpty();
@@ -61,6 +61,33 @@ it('contains no source references to retired bounded contexts', function () use 
     $inspectDirectory($applicationPath);
 
     expect(array_values(array_unique($staleReferences)))->toBe([]);
+});
+
+it('limits cross-context Eloquent model references to the two relationship models', function () use ($applicationPath): void {
+    $allowedReferences = [
+        'App\\Expense\\Infrastructure\\Persistence\\Models\\ExpenseModel' => [
+            $applicationPath.'/Identity',
+            $applicationPath.'/Identity/Infrastructure/Persistence/Models/UserModel.php',
+        ],
+        'App\\Identity\\Infrastructure\\Persistence\\Models\\UserModel' => [
+            $applicationPath.'/Expense',
+            $applicationPath.'/Expense/Infrastructure/Persistence/Models/ExpenseModel.php',
+        ],
+    ];
+
+    foreach ($allowedReferences as $namespace => [$contextPath, $allowedFile]) {
+        $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($contextPath));
+
+        foreach ($files as $file) {
+            if (! $file->isFile() || $file->getExtension() !== 'php') {
+                continue;
+            }
+
+            if (str_contains((string) file_get_contents($file->getPathname()), 'use '.$namespace.';')) {
+                expect($file->getPathname())->toBe($allowedFile);
+            }
+        }
+    }
 });
 
 arch('application code uses strict types and PSR-4 casing')
@@ -157,6 +184,11 @@ foreach ($contexts as $context) {
 
         if ($context === 'Identity') {
             $infrastructureDependencies[] = 'Laravel\\Sanctum';
+            $infrastructureDependencies[] = 'App\\Expense\\Infrastructure\\Persistence\\Models\\ExpenseModel';
+        }
+
+        if ($context === 'Expense') {
+            $infrastructureDependencies[] = 'App\\Identity\\Infrastructure\\Persistence\\Models\\UserModel';
         }
 
         arch($context.' infrastructure stays behind application boundaries')

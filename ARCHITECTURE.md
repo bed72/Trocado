@@ -4,13 +4,15 @@
 
 ## Bounded contexts e dependências
 
-Cada contexto vive em `app/<Contexto>/` e organiza seus próprios `Domain/`, `Application/`, `Infrastructure/` e `Presentation/`. Os contextos existentes são `Identity` e `Budget`; crie outros somente quando houver uma feature real. Não distribua features primariamente entre pastas globais `Models`, `Services`, `Repositories` e `Http/Controllers`.
+Cada contexto vive em `app/<Contexto>/` e organiza seus próprios `Domain/`, `Application/`, `Infrastructure/` e `Presentation/`. Os contextos existentes são `Identity`, `Budget` e `Expense`; crie outros somente quando houver uma feature real. Não distribua features primariamente entre pastas globais `Models`, `Services`, `Repositories` e `Http/Controllers`.
 
 Geradores Artisan são permitidos, mas a localização padrão dos arquivos gerados não define a arquitetura do projeto. Coloque cada classe na camada e no contexto correspondentes; não crie factories, seeders ou testes por hábito.
 
 Dependências de código: `Presentation → Application → Domain` e `Infrastructure → Application/Domain`. Domain não importa nenhuma camada externa. Application conhece Domain e seus próprios contratos, mas não conhece implementações de Infrastructure ou Presentation. O container liga os contratos às implementações nas bordas.
 
 `Identity` é o único owner da identidade local, registro, credencial, autenticação, Personal Access Tokens e encerramento da conta. `UserEntity` carrega `NameValueObject`, que normaliza whitespace externo e repetido, aceita somente letras Unicode separadas por espaços e exige de 2 a 12 letras sem contar espaços; a validação HTTP espelha essa regra. A Entity e os Value Objects permanecem puros em Identity Domain; `UserModel`, hashing, Auth, Eloquent e Sanctum permanecem em Identity Infrastructure. Não existe allowlist cross-context para acessar a tabela `users`.
+
+`UserModel::expenses()` e `ExpenseModel::user()` representam a associação Eloquent pela FK `expenses.user_id`. A exceção cross-context limita-se a esses dois Models de Infrastructure; Domain e Application não importam o outro contexto. O lazy loading é bloqueado fora de produção para revelar N+1, e consultas que precisem das relações devem usar eager loading. Despesas excluídas logicamente não aparecem em `UserModel::expenses()` por padrão; a FK remove todas quando a conta é apagada.
 
 `POST /api/authentication/sign-up` é o único caminho público de criação de conta. A remoção de `POST /api/users` é breaking e o método responde `405` sem criar identidade; `GET`, `PATCH` e `DELETE /api/users`, os resource types `users`, `sign-ups` e `access-tokens` e os endpoints de Authentication permanecem orientados ao consumidor.
 
