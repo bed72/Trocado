@@ -1,5 +1,6 @@
 <?php
 
+use App\Core\Presentation\Http\Middleware\AssignRequestIdMiddleware;
 use App\Expense\Application\Exceptions\ExpenseNotFoundException;
 use App\Expense\Application\Exceptions\ExpenseOwnerNotFoundException;
 use App\Expense\Domain\Exceptions\InvalidExpenseException;
@@ -32,6 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ],
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->prepend(AssignRequestIdMiddleware::class);
         $middleware->prependToPriorityList(before: ThrottleRequests::class, prepend: Authenticate::class);
         $middleware->trimStrings(except: [
             'data.attributes.password',

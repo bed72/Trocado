@@ -6,6 +6,7 @@ namespace App\Expense\Infrastructure\Agents;
 
 use App\Expense\Domain\Enums\ExpenseCategoryEnum;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Support\Facades\Config;
 use Laravel\Ai\Contracts\Agent;
 use Laravel\Ai\Contracts\HasStructuredOutput;
 use Laravel\Ai\Promptable;
@@ -26,17 +27,17 @@ INSTRUCTIONS;
 
     public function provider(): string
     {
-        return (string) config('expense.classification.provider');
+        return Config::string('expense.classification.provider');
     }
 
     public function model(): string
     {
-        return (string) config('expense.classification.model');
+        return Config::string('expense.classification.model');
     }
 
     public function timeout(): int
     {
-        return max(1, (int) config('expense.classification.timeout'));
+        return max(1, Config::integer('expense.classification.timeout'));
     }
 
     public function schema(JsonSchema $schema): array

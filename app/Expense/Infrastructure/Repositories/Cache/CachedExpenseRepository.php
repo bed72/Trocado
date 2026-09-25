@@ -40,9 +40,9 @@ final readonly class CachedExpenseRepository implements ExpenseRepository
         return $this->repository->findClassificationAttempt(expenseId: $expenseId, token: $token);
     }
 
-    public function cancelClassificationAttempt(int $expenseId, string $token): void
+    public function cancelClassification(int $expenseId, string $token): void
     {
-        $this->repository->cancelClassificationAttempt(expenseId: $expenseId, token: $token);
+        $this->repository->cancelClassification(expenseId: $expenseId, token: $token);
     }
 
     public function applyClassificationAttempt(int $expenseId, string $token, string $description, ExpenseCategoryEnum $category): ?int

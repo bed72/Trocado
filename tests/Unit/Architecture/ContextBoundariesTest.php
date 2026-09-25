@@ -169,6 +169,10 @@ foreach ($contexts as $context) {
             $applicationDependencies[] = 'App\\Core\\Application\\Ports\\TransactionPort';
         }
 
+        if ($context === 'Expense') {
+            $applicationDependencies[] = 'App\\Core\\Application\\Ports\\ObservabilityPort';
+        }
+
         arch($context.' application depends only on its domain and own contracts')
             ->expect($contextNamespace.'\\Application')
             ->toOnlyUse($applicationDependencies);
@@ -184,6 +188,11 @@ foreach ($contexts as $context) {
 
         if ($context === 'Identity') {
             $infrastructureDependencies[] = 'Laravel\\Sanctum';
+        }
+
+        if ($context === 'Core') {
+            $infrastructureDependencies[] = 'Monolog\\Formatter\\JsonFormatter';
+            $infrastructureDependencies[] = 'Monolog\\LogRecord';
         }
 
         if ($context === 'Expense') {

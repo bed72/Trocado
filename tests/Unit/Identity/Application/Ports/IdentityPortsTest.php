@@ -12,9 +12,10 @@ it('keeps identity capabilities separated behind exact port contracts', function
     $signInMethods = (new ReflectionClass(SignInPort::class))->getMethods();
     $signOutMethods = (new ReflectionClass(SignOutPort::class))->getMethods();
 
-    expect(array_column($writeMethods, 'name'))->toBe(['execute'])
+    expect(array_column($writeMethods, 'name'))->toBe(['execute', 'afterCommit'])
         ->and($writeMethods[0]->getParameters())->toHaveCount(1)
         ->and($writeMethods[0]->getParameters()[0]->getType()?->getName())->toBe('callable')
+        ->and($writeMethods[1]->getParameters()[0]->getType()?->getName())->toBe('callable')
         ->and(array_column($signInMethods, 'name'))->toBe(['issue'])
         ->and($signInMethods[0]->getReturnType()?->getName())->toBe(SignInOutput::class)
         ->and(array_column($signOutMethods, 'name'))->toBe(['revokeToken']);

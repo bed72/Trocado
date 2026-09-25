@@ -17,7 +17,7 @@ interface ExpenseRepository
 
     public function create(ExpenseEntity $expense): ExpenseEntity;
 
-    public function cancelClassificationAttempt(int $expenseId, string $token): void;
+    public function cancelClassification(int $expenseId, string $token): void;
 
     public function listByUser(int $userId, int $size, ?string $cursor): ExpensePageOutput;
 

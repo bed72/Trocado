@@ -22,7 +22,7 @@ final readonly class ClassifyExpenseUseCase
         $category = $this->port->suggest(description: $attempt->description);
 
         if ($category === null) {
-            $this->repository->cancelClassificationAttempt(expenseId: $expenseId, token: $token);
+            $this->repository->cancelClassification(expenseId: $expenseId, token: $token);
 
             return;
         }
@@ -37,6 +37,6 @@ final readonly class ClassifyExpenseUseCase
 
     public function fail(int $expenseId, string $token): void
     {
-        $this->repository->cancelClassificationAttempt(expenseId: $expenseId, token: $token);
+        $this->repository->cancelClassification(expenseId: $expenseId, token: $token);
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Core\Infrastructure\Adapters\Observability\ObservabilityJsonFormatter;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
@@ -19,6 +20,8 @@ return [
     */
 
     'default' => env('LOG_CHANNEL', 'stack'),
+
+    'observability_channel' => env('LOG_OBSERVABILITY_CHANNEL', 'observability'),
 
     /*
     |--------------------------------------------------------------------------
@@ -51,6 +54,14 @@ return [
     */
 
     'channels' => [
+
+        'observability' => [
+            'driver' => 'monolog',
+            'handler' => StreamHandler::class,
+            'handler_with' => ['stream' => env('LOG_OBSERVABILITY_STREAM', storage_path('logs/observability.log'))],
+            'formatter' => ObservabilityJsonFormatter::class,
+            'level' => 'info',
+        ],
 
         'stack' => [
             'driver' => 'stack',

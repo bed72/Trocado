@@ -60,7 +60,7 @@ function cachedRepositoryFixture(): array
             return $expenseId === 10 ? 1 : null;
         }
 
-        public function cancelClassificationAttempt(int $expenseId, string $token): void {}
+        public function cancelClassification(int $expenseId, string $token): void {}
 
         public function deleteByUser(int $id, int $userId): bool
         {

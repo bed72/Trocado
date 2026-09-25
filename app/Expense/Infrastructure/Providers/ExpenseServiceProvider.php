@@ -15,6 +15,7 @@ use App\Expense\Infrastructure\Repositories\Cache\CachedExpenseRepository;
 use App\Expense\Infrastructure\Repositories\Persistence\EloquentExpenseRepository;
 use Illuminate\Cache\CacheManager;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
 
 final class ExpenseServiceProvider extends ServiceProvider
@@ -35,12 +36,12 @@ final class ExpenseServiceProvider extends ServiceProvider
     {
         Model::preventLazyLoading(! $this->app->environment('production'));
 
-        $apiKey = config('expense.classification.api_key');
+        $apiKey = Config::get('expense.classification.api_key');
 
         if (is_string($apiKey) && $apiKey !== '') {
-            $provider = config('expense.classification.provider');
+            $provider = Config::string('expense.classification.provider');
 
-            config()->set("ai.providers.{$provider}.key", $apiKey);
+            Config::set("ai.providers.{$provider}.key", $apiKey);
         }
     }
 }

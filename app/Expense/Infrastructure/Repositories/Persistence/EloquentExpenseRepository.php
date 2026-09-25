@@ -102,7 +102,7 @@ final class EloquentExpenseRepository implements ExpenseRepository
         }
 
         if ($model->classification_expires_at === null || $model->classification_expires_at <= new DateTimeImmutable) {
-            $this->cancelClassificationAttempt(expenseId: $expenseId, token: $token);
+            $this->cancelClassification(expenseId: $expenseId, token: $token);
 
             return null;
         }
@@ -143,7 +143,7 @@ final class EloquentExpenseRepository implements ExpenseRepository
         return $updated === 1 ? $model->user_id : null;
     }
 
-    public function cancelClassificationAttempt(int $expenseId, string $token): void
+    public function cancelClassification(int $expenseId, string $token): void
     {
         ExpenseModel::query()
             ->whereKey($expenseId)

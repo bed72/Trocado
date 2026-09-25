@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Expense\Application\UseCases;
 
+use App\Core\Application\Ports\ObservabilityPort;
 use App\Core\Application\Ports\TransactionPort;
 use App\Expense\Application\Data\CreateExpenseInput;
 use App\Expense\Application\Ports\ExpenseClassificationDispatchPort;
@@ -17,9 +18,10 @@ final readonly class CreateExpenseUseCase
 {
     public function __construct(
         private UserPort $userPort,
-        private ExpenseRepository $repository,
         private TransactionPort $transactionPort,
+        private ObservabilityPort $observabilityPort,
         private ExpenseClassificationDispatchPort $dispatchPort,
+        private ExpenseRepository $repository,
     ) {}
 
     public function execute(CreateExpenseInput $input): ExpenseEntity
@@ -33,6 +35,13 @@ final readonly class CreateExpenseUseCase
                 occurredOn: $input->occurredOn,
                 description: $input->description,
             ));
+
+            $this->transactionPort->afterCommit(function () use ($expense): void {
+                $this->observabilityPort->emit('expense.created', [
+                    'expense_id' => $expense->id,
+                    'user_id' => $expense->userId,
+                ]);
+            });
 
             if ($input->category !== null || ! ExpenseEntity::isDescriptionEligibleForClassification($input->description)) {
                 return $expense;
@@ -51,7 +60,7 @@ final readonly class CreateExpenseUseCase
             try {
                 $this->dispatchPort->dispatch(expenseId: (int) $expense->id, token: $token);
             } catch (Throwable) {
-                $this->repository->cancelClassificationAttempt(expenseId: (int) $expense->id, token: $token);
+                $this->repository->cancelClassification(expenseId: (int) $expense->id, token: $token);
             }
 
             return $expense;

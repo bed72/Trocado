@@ -9,6 +9,11 @@ use Illuminate\Support\Facades\DB;
 
 final class TransactionAdapter implements TransactionPort
 {
+    public function afterCommit(callable $callback): void
+    {
+        DB::afterCommit($callback);
+    }
+
     public function execute(callable $operation): mixed
     {
         return DB::transaction(callback: $operation, attempts: 3);
