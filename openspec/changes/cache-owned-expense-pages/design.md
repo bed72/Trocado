@@ -1,6 +1,6 @@
 ## Context
 
-`ListExpensesUseCase` consulta `ExpenseRepository::listByUser` com o proprietário explícito recebido da borda HTTP. A página contém `ExpenseEntity` e os cursores de navegação, e a Presentation monta o documento JSON:API e seus links. Redis já está configurado como serviço local. A listagem paginada está definida na mudança ativa `list-owned-expenses-with-cursor-pagination`; esta proposta se aplica à listagem resultante sem mudar seus contratos.
+`ListExpensesUseCase` consulta `ExpenseRepository::listByUser` com o proprietário obtido pelo `UserPort`. A página contém `ExpenseEntity` e os cursores de navegação, e a Presentation monta o documento JSON:API e seus links. Redis já está configurado como serviço local. A listagem paginada está definida na mudança ativa `list-owned-expenses-with-cursor-pagination`; esta proposta se aplica à listagem resultante sem mudar seus contratos.
 
 ## Goals / Non-Goals
 

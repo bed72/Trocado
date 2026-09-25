@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Listagem de despesas restrita ao proprietário
-O sistema MUST disponibilizar `GET /api/expenses` somente a um User autenticado. A consulta MUST filtrar por `user_id` obtido da identidade autenticada antes de paginar, MUST omitir despesas com `deleted_at` preenchido e MUST NOT aceitar `user_id` fornecido pelo cliente para definir o proprietário. A Application MUST receber o identificador autenticado explicitamente e MUST NOT depender de HTTP, autenticação Laravel ou Eloquent; o contrato de Repository MUST expor somente tipos independentes do ORM.
+O sistema MUST disponibilizar `GET /api/expenses` somente a um User autenticado. A consulta MUST filtrar por `user_id` obtido da identidade autenticada antes de paginar, MUST omitir despesas com `deleted_at` preenchido e MUST NOT aceitar `user_id` fornecido pelo cliente para definir o proprietário. O UseCase MUST obter o identificador autenticado por `Expense\Application\Ports\UserPort` e entregá-lo explicitamente ao Repository; a Application MUST NOT depender de HTTP, autenticação Laravel ou Eloquent; o contrato de Repository MUST expor somente tipos independentes do ORM.
 
 #### Scenario: Despesas da própria conta
 - **WHEN** uma conta autenticada possui despesas ativas e outras contas também possuem despesas

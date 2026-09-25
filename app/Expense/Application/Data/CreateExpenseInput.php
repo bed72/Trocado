@@ -7,7 +7,6 @@ namespace App\Expense\Application\Data;
 final readonly class CreateExpenseInput
 {
     public function __construct(
-        public int $userId,
         public int $amount,
         public string $occurredOn,
         public ?string $category = null,

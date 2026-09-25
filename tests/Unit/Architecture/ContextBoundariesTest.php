@@ -192,16 +192,18 @@ foreach ($contexts as $context) {
     }
 
     if (is_dir($contextPath.'/Presentation')) {
+        $presentationDependencies = [
+            $contextNamespace.'\\Presentation',
+            $contextNamespace.'\\Application',
+            $contextNamespace.'\\Domain',
+            'Illuminate',
+            'Symfony\\Component\\HttpFoundation',
+            'response',
+            'route',
+        ];
+
         arch($context.' presentation does not reach infrastructure')
             ->expect($contextNamespace.'\\Presentation')
-            ->toOnlyUse([
-                $contextNamespace.'\\Presentation',
-                $contextNamespace.'\\Application',
-                $contextNamespace.'\\Domain',
-                'Illuminate',
-                'Symfony\\Component\\HttpFoundation',
-                'response',
-                'route',
-            ]);
+            ->toOnlyUse($presentationDependencies);
     }
 }

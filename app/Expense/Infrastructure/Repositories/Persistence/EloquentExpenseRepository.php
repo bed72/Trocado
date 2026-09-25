@@ -75,4 +75,12 @@ final class EloquentExpenseRepository implements ExpenseRepository
             createdAt: DateTimeImmutable::createFromInterface(object: $model->created_at),
         );
     }
+
+    public function deleteByUser(int $id, int $userId): bool
+    {
+        return ExpenseModel::query()
+            ->whereKey($id)
+            ->where('user_id', $userId)
+            ->delete() === 1;
+    }
 }

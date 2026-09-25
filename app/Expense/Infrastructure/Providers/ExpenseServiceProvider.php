@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Expense\Infrastructure\Providers;
 
+use App\Expense\Application\Ports\UserPort;
 use App\Expense\Application\Repositories\ExpenseRepository;
+use App\Expense\Infrastructure\Adapters\UserAdapter;
 use App\Expense\Infrastructure\Repositories\Cache\CachedExpenseRepository;
 use App\Expense\Infrastructure\Repositories\Persistence\EloquentExpenseRepository;
 use Illuminate\Cache\CacheManager;
@@ -16,6 +18,7 @@ final class ExpenseServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(abstract: EloquentExpenseRepository::class);
+        $this->app->bind(abstract: UserPort::class, concrete: UserAdapter::class);
         $this->app->bind(abstract: ExpenseRepository::class, concrete: fn (): CachedExpenseRepository => new CachedExpenseRepository(
             cache: $this->app->make(CacheManager::class),
             repository: $this->app->make(EloquentExpenseRepository::class),

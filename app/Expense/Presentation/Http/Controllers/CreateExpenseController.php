@@ -20,7 +20,6 @@ final class CreateExpenseController
     {
         $attributes = $request->validated(key: 'data.attributes');
         $expense = $this->useCase->execute(input: new CreateExpenseInput(
-            userId: (int) $request->user()->getAuthIdentifier(),
             amount: $attributes['amount'],
             category: $attributes['category'] ?? null,
             description: $attributes['description'] ?? null,

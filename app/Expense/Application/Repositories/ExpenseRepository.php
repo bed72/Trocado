@@ -11,5 +11,7 @@ interface ExpenseRepository
 {
     public function create(ExpenseEntity $expense): ExpenseEntity;
 
+    public function deleteByUser(int $id, int $userId): bool;
+
     public function listByUser(int $userId, int $size, ?string $cursor): ExpensePageOutput;
 }

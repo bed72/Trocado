@@ -1,5 +1,6 @@
 <?php
 
+use App\Expense\Application\Exceptions\ExpenseNotFoundException;
 use App\Expense\Application\Exceptions\ExpenseOwnerNotFoundException;
 use App\Expense\Domain\Exceptions\InvalidExpenseException;
 use App\Identity\Application\Exceptions\EmailAlreadyUsedException;
@@ -80,6 +81,13 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $exceptions->render(fn (ExpenseOwnerNotFoundException $exception) => response()->json(['errors' => [[
             'title' => 'User não encontrado',
+            'detail' => $exception->getMessage(),
+            'status' => (string) Response::HTTP_NOT_FOUND,
+        ]]], Response::HTTP_NOT_FOUND)->header('Content-Type', 'application/vnd.api+json')
+        );
+
+        $exceptions->render(fn (ExpenseNotFoundException $exception) => response()->json(['errors' => [[
+            'title' => 'Despesa não encontrada',
             'detail' => $exception->getMessage(),
             'status' => (string) Response::HTTP_NOT_FOUND,
         ]]], Response::HTTP_NOT_FOUND)->header('Content-Type', 'application/vnd.api+json')

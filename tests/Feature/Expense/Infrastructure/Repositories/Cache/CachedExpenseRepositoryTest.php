@@ -19,6 +19,8 @@ function cachedRepositoryFixture(): array
 
         public int $createCalls = 0;
 
+        public int $deleteCalls = 0;
+
         public function create(ExpenseEntity $expense): ExpenseEntity
         {
             $this->createCalls++;
@@ -31,6 +33,13 @@ function cachedRepositoryFixture(): array
                 description: $expense->description,
                 category: $expense->category->value,
             );
+        }
+
+        public function deleteByUser(int $id, int $userId): bool
+        {
+            $this->deleteCalls++;
+
+            return $id === 10 && $userId === 1;
         }
 
         public function listByUser(int $userId, int $size, ?string $cursor): ExpensePageOutput
@@ -105,6 +114,28 @@ it('invalidates cached owner pages after creating an expense', function (): void
 
     expect($inner->createCalls)->toBe(1)
         ->and($inner->listCalls)->toBe(2);
+});
+
+it('invalidates cached owner pages after deleting an expense', function (): void {
+    [$inner, $repository] = cachedRepositoryFixture();
+
+    $repository->listByUser(userId: 1, size: 20, cursor: null);
+    $repository->deleteByUser(id: 10, userId: 1);
+    $repository->listByUser(userId: 1, size: 20, cursor: null);
+
+    expect($inner->deleteCalls)->toBe(1)
+        ->and($inner->listCalls)->toBe(2);
+});
+
+it('keeps cached owner pages when deleting an absent expense', function (): void {
+    [$inner, $repository] = cachedRepositoryFixture();
+
+    $repository->listByUser(userId: 1, size: 20, cursor: null);
+    $repository->deleteByUser(id: 99, userId: 1);
+    $repository->listByUser(userId: 1, size: 20, cursor: null);
+
+    expect($inner->deleteCalls)->toBe(1)
+        ->and($inner->listCalls)->toBe(1);
 });
 
 it('implements the expense repository contract', function (): void {

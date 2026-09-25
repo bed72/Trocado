@@ -7,7 +7,7 @@ namespace App\Core\Infrastructure\Adapters;
 use App\Core\Application\Ports\TransactionPort;
 use Illuminate\Support\Facades\DB;
 
-final class DatabaseTransactionAdapter implements TransactionPort
+final class TransactionAdapter implements TransactionPort
 {
     public function execute(callable $operation): mixed
     {

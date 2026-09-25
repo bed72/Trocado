@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Expense\Presentation\Http\Controllers\CreateExpenseController;
+use App\Expense\Presentation\Http\Controllers\DeleteExpenseController;
 use App\Expense\Presentation\Http\Controllers\ListExpensesController;
 use Illuminate\Support\Facades\Route;
 
@@ -12,4 +13,8 @@ Route::prefix('expenses')->middleware(['auth:sanctum', 'throttle:api.authenticat
 
     Route::get(uri: '/', action: ListExpensesController::class)
         ->name(name: 'expenses.index');
+
+    Route::delete(uri: '{expense}', action: DeleteExpenseController::class)
+        ->whereNumber(parameters: 'expense')
+        ->name(name: 'expenses.delete');
 });

@@ -26,6 +26,17 @@ final readonly class CachedExpenseRepository implements ExpenseRepository
         return $created;
     }
 
+    public function deleteByUser(int $id, int $userId): bool
+    {
+        $deleted = $this->repository->deleteByUser(id: $id, userId: $userId);
+
+        if ($deleted) {
+            $this->cache->tags($this->tag($userId))->flush();
+        }
+
+        return $deleted;
+    }
+
     public function listByUser(int $userId, int $size, ?string $cursor): ExpensePageOutput
     {
         $cursorKey = $cursor === null ? 'none' : "cursor:{$cursor}";

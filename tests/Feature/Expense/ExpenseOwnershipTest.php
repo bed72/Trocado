@@ -69,6 +69,38 @@ it('creates expenses for the authenticated user only', function (): void {
         ->and(ExpenseModel::query()->where('user_id', $secondUserId)->exists())->toBeFalse();
 });
 
+it('deletes expenses for the authenticated user only', function (): void {
+    $firstUserId = signUpIdentityByApi($this, email: 'maria@example.com');
+    $firstToken = signInIdentityByApi($this, email: 'maria@example.com');
+    $secondUserId = signUpIdentityByApi($this, name: 'Joana', email: 'joana@example.com');
+
+    $firstExpense = ExpenseModel::query()->create([
+        'user_id' => $firstUserId,
+        'amount' => 1000,
+        'occurred_on' => '2026-09-24',
+        'category' => 'food',
+        'description' => 'own',
+    ]);
+    $secondExpense = ExpenseModel::query()->create([
+        'user_id' => $secondUserId,
+        'amount' => 9999,
+        'occurred_on' => '2026-09-24',
+        'category' => 'other',
+        'description' => 'other',
+    ]);
+
+    withToken($firstToken)->deleteJson(route('expenses.delete', ['expense' => $secondExpense->getKey()]))
+        ->assertNotFound();
+
+    expect(ExpenseModel::query()->whereKey($secondExpense->getKey())->exists())->toBeTrue();
+
+    withToken($firstToken)->deleteJson(route('expenses.delete', ['expense' => $firstExpense->getKey()]))
+        ->assertNoContent();
+
+    expect(ExpenseModel::query()->whereKey($firstExpense->getKey())->exists())->toBeFalse()
+        ->and(ExpenseModel::query()->whereKey($secondExpense->getKey())->exists())->toBeTrue();
+});
+
 it('keeps the expenses foreign key and cascade without Eloquent cross-context relations', function (): void {
     $user = UserModel::query()->create([
         'name' => 'Maria',

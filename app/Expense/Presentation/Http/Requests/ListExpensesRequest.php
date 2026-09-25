@@ -14,7 +14,7 @@ use function is_bool;
 use function is_int;
 use function is_string;
 
-final class ListOwnedExpensesRequest extends FormRequest
+final class ListExpensesRequest extends FormRequest
 {
     public function authorize(): bool
     {
