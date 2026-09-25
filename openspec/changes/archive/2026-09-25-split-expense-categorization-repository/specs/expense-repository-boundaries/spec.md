@@ -53,12 +53,12 @@ Os caminhos de cache de CRUD e de categorização MUST compartilhar a política 
 - **THEN** as páginas desse proprietário são invalidadas após a confirmação
 - **AND** a separação dos contratos não elimina a invalidação já existente
 
-### Requirement: Despacho e consumo da fila compatíveis
-A separação MUST manter o job de categorização serializado somente com os dados necessários à tentativa e à execução, resolvendo o caso de uso e seus novos bindings no momento do processamento. O despacho MUST ocorrer após commit da criação; falha de despacho, uso de fila síncrona desabilitada para esse fluxo, sugestão inválida ou falha definitiva MUST cancelar apenas a tentativa correspondente, sem sobrescrever eventual edição do usuário, e manter `other` quando a despesa não tiver sido editada. O agente de IA MUST continuar isolado da persistência e MUST NOT ser chamado durante a criação HTTP.
+### Requirement: Despacho e consumo da fila com os contratos separados
+A separação MUST enfileirar novos jobs de categorização com os dados necessários à tentativa e à execução, resolvendo o caso de uso e seus bindings no momento do processamento, sem serializar repositories ou serviços. O despacho MUST ocorrer após commit da criação; falha de despacho, uso de fila síncrona desabilitada para esse fluxo, sugestão inválida ou falha definitiva MUST cancelar apenas a tentativa correspondente, sem sobrescrever eventual edição do usuário, e manter `other` quando a despesa não tiver sido editada. O agente de IA MUST continuar isolado da persistência e MUST NOT ser chamado durante a criação HTTP.
 
-#### Scenario: Job enfileirado antes da troca de bindings
-- **WHEN** um job já enfileirado com ID da despesa e token é consumido depois da separação dos repositories
-- **THEN** ele resolve o caso de uso com o contrato de categorização e mantém o comportamento de aplicação condicional sem mudança de payload
+#### Scenario: Novo job processado com os contratos separados
+- **WHEN** um job criado após a separação é consumido pelo worker de classificação
+- **THEN** ele resolve o caso de uso com o contrato de categorização e aplica a sugestão apenas à tentativa ainda válida
 
 #### Scenario: Enfileiramento após commit ou rollback
 - **WHEN** uma criação elegível é confirmada ou revertida

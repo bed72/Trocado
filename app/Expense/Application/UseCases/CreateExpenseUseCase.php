@@ -9,6 +9,7 @@ use App\Core\Application\Ports\TransactionPort;
 use App\Expense\Application\Data\CreateExpenseInput;
 use App\Expense\Application\Ports\ExpenseClassificationDispatchPort;
 use App\Expense\Application\Ports\UserPort;
+use App\Expense\Application\Repositories\ExpenseCategorizationRepository;
 use App\Expense\Application\Repositories\ExpenseRepository;
 use App\Expense\Domain\Entities\ExpenseEntity;
 use DateTimeImmutable;
@@ -21,13 +22,14 @@ final readonly class CreateExpenseUseCase
         private TransactionPort $transactionPort,
         private ObservabilityPort $observabilityPort,
         private ExpenseClassificationDispatchPort $dispatchPort,
-        private ExpenseRepository $repository,
+        private ExpenseRepository $expenseRepository,
+        private ExpenseCategorizationRepository $expenseCategorizationRepository,
     ) {}
 
     public function execute(CreateExpenseInput $input): ExpenseEntity
     {
         return $this->transactionPort->execute(function () use ($input): ExpenseEntity {
-            $expense = $this->repository->create(expense: new ExpenseEntity(
+            $expense = $this->expenseRepository->create(expense: new ExpenseEntity(
                 id: null,
                 amount: $input->amount,
                 category: $input->category,
@@ -49,9 +51,9 @@ final readonly class CreateExpenseUseCase
 
             $token = bin2hex(random_bytes(16));
 
-            if (! $this->repository->beginClassificationAttempt(
-                expenseId: (int) $expense->id,
+            if (! $this->expenseCategorizationRepository->beginClassificationAttempt(
                 token: $token,
+                expenseId: (int) $expense->id,
                 expiresAt: new DateTimeImmutable('+5 minutes'),
             )) {
                 return $expense;
@@ -60,7 +62,7 @@ final readonly class CreateExpenseUseCase
             try {
                 $this->dispatchPort->dispatch(expenseId: (int) $expense->id, token: $token);
             } catch (Throwable) {
-                $this->repository->cancelClassification(expenseId: (int) $expense->id, token: $token);
+                $this->expenseCategorizationRepository->cancelClassification(expenseId: (int) $expense->id, token: $token);
             }
 
             return $expense;

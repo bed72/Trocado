@@ -3,6 +3,10 @@
 ### Requirement: Categorias fechadas e categoria padrão
 O sistema MUST aceitar somente `food`, `health`, `housing`, `leisure`, `shopping`, `services`, `transport`, `education`, `subscriptions` e `other` como categorias de Expense. MUST rejeitar valores fora da lista e MUST preservar a categoria válida informada pelo cliente, inclusive `other`. Quando o cliente omitir `category`, MUST usar `other` na criação; se houver descrição elegível, MUST permitir substituí-la posteriormente apenas por uma categoria válida sugerida em segundo plano. Se não houver descrição elegível ou a classificação não tiver sucesso, MUST manter `other`.
 
+#### Scenario: Categoria omitida
+- **WHEN** uma despesa é criada sem categoria informada
+- **THEN** a categoria inicial persistida é `other`, mesmo quando uma classificação futura estiver pendente
+
 #### Scenario: Categoria omitida sem descrição elegível
 - **WHEN** uma despesa é criada sem categoria e sem descrição elegível
 - **THEN** a categoria persistida é `other`
@@ -23,6 +27,11 @@ O sistema MUST aceitar somente `food`, `health`, `housing`, `leisure`, `shopping
 
 ### Requirement: Criação HTTP JSON:API
 O sistema MUST disponibilizar `POST /api/expenses` autenticado com documento JSON:API do tipo `expenses` e atributos de entrada `amount`, `occurred_on` opcional, `category` opcional e `description` opcional. MUST responder `201` com o recurso criado, identificador em string e atributos `amount`, `occurred_on`, `category`, `description` e `created_at`. Na ausência de `category`, a resposta de criação MUST apresentar `other` mesmo quando uma classificação futura estiver pendente; a chamada ao provedor de IA MUST NOT bloquear essa resposta. Dados inválidos MUST produzir erro JSON:API `422` sem criar uma despesa.
+
+#### Scenario: Criação autenticada
+- **WHEN** `POST /api/expenses` recebe um documento válido e autenticação de User existente
+- **THEN** responde `201` com a despesa pertencente a esse User
+- **AND** a resposta contém a categoria informada ou `other` quando omitida, sem aguardar a IA
 
 #### Scenario: Criação autenticada com categoria explícita
 - **WHEN** `POST /api/expenses` recebe um documento válido, categoria informada e autenticação de User existente

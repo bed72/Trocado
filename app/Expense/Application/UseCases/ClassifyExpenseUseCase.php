@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Expense\Application\UseCases;
 
+use App\Expense\Application\Data\ApplyExpenseClassificationInput;
 use App\Expense\Application\Ports\ExpenseClassificationPort;
-use App\Expense\Application\Repositories\ExpenseRepository;
+use App\Expense\Application\Repositories\ExpenseCategorizationRepository;
 
 final readonly class ClassifyExpenseUseCase
 {
-    public function __construct(private ExpenseClassificationPort $port, private ExpenseRepository $repository) {}
+    public function __construct(private ExpenseClassificationPort $port, private ExpenseCategorizationRepository $repository) {}
 
     public function execute(int $expenseId, string $token): void
     {
@@ -27,12 +28,12 @@ final readonly class ClassifyExpenseUseCase
             return;
         }
 
-        $this->repository->applyClassificationAttempt(
-            token: $token,
-            category: $category,
+        $this->repository->applyClassificationAttempt(input: new ApplyExpenseClassificationInput(
             expenseId: $expenseId,
+            token: $token,
             description: $attempt->description,
-        );
+            category: $category,
+        ));
     }
 
     public function fail(int $expenseId, string $token): void

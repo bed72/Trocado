@@ -68,6 +68,7 @@ it('does not couple Eloquent models across bounded contexts', function () use ($
         'App\\Expense\\Infrastructure\\Repositories\\Persistence\\Models\\ExpenseModel' => $applicationPath.'/Identity',
         'App\\Identity\\Infrastructure\\Repositories\\Persistence\\Models\\UserModel' => $applicationPath.'/Expense',
     ];
+    $violations = [];
 
     foreach ($forbiddenReferences as $namespace => $contextPath) {
         $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($contextPath));
@@ -78,10 +79,12 @@ it('does not couple Eloquent models across bounded contexts', function () use ($
             }
 
             if (str_contains((string) file_get_contents($file->getPathname()), 'use '.$namespace.';')) {
-                expect($file->getPathname())->toBeNull();
+                $violations[] = $file->getPathname();
             }
         }
     }
+
+    expect($violations)->toBe([]);
 });
 
 arch('application code uses strict types and PSR-4 casing')

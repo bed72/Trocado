@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Expense\Application\Data\ApplyExpenseClassificationInput;
 use App\Expense\Application\Ports\ExpenseClassificationDispatchPort;
+use App\Expense\Application\Repositories\ExpenseCategorizationRepository;
 use App\Expense\Application\UseCases\ClassifyExpenseUseCase;
 use App\Expense\Domain\Enums\ExpenseCategoryEnum;
 use App\Expense\Infrastructure\Agents\ExpenseClassificationAgent;
@@ -411,4 +413,54 @@ it('keeps the cached list on rollback and invalidates it after a committed creat
     createClassifiableExpense(userId: $userId, token: $token);
 
     withToken($token)->getJson(route('expenses.index'))->assertOk()->assertJsonCount(1, 'data');
+});
+
+it('refreshes the owner cached page only after a real classification commits', function (): void {
+    $userId = signUpIdentityByApi($this);
+    $token = signInIdentityByApi($this);
+    $expense = createClassifiableExpense(userId: $userId, token: $token);
+
+    withToken($token)->getJson(route('expenses.index'))
+        ->assertOk()->assertJsonPath('data.0.attributes.category', 'other');
+
+    $repository = app(ExpenseCategorizationRepository::class);
+
+    try {
+        DB::transaction(function () use ($repository, $expense, $token): void {
+            expect($repository->applyClassificationAttempt(new ApplyExpenseClassificationInput(
+                expenseId: $expense->id,
+                token: $expense->classification_token,
+                description: $expense->description,
+                category: ExpenseCategoryEnum::Food,
+            )))->toBe($expense->user_id);
+
+            expect($expense->fresh()->category)->toBe('food');
+            withToken($token)->getJson(route('expenses.index'))
+                ->assertOk()->assertJsonPath('data.0.attributes.category', 'other');
+
+            throw new RuntimeException('Rollback.');
+        });
+    } catch (RuntimeException) {
+    }
+
+    expect($expense->fresh()->category)->toBe('other');
+    withToken($token)->getJson(route('expenses.index'))
+        ->assertOk()->assertJsonPath('data.0.attributes.category', 'other');
+
+    DB::transaction(function () use ($repository, $expense, $token): void {
+        expect($repository->applyClassificationAttempt(new ApplyExpenseClassificationInput(
+            expenseId: $expense->id,
+            token: $expense->classification_token,
+            description: $expense->description,
+            category: ExpenseCategoryEnum::Food,
+        )))->toBe($expense->user_id);
+
+        withToken($token)->getJson(route('expenses.index'))
+            ->assertOk()->assertJsonPath('data.0.attributes.category', 'other');
+    });
+
+    expect($expense->fresh()->category)->toBe('food')
+        ->and($expense->fresh()->classification_token)->toBeNull();
+    withToken($token)->getJson(route('expenses.index'))
+        ->assertOk()->assertJsonPath('data.0.attributes.category', 'food');
 });

@@ -4,10 +4,10 @@
 
 ## 2. Cache de Expense
 
-- [ ] 2.1 Manter `ExpenseRepository` como único contrato da Application para cache e persistência, sem dependências Laravel ou acesso à identidade global.
+- [ ] 2.1 Manter `ExpenseRepository` como contrato de CRUD da Application para cache e persistência e `ExpenseCategorizationRepository` para tentativas de classificação, sem dependências Laravel ou acesso à identidade global.
 - [ ] 2.2 Implementar em Expense Infrastructure um `CachedExpenseRepository` decorando `EloquentExpenseRepository`, com tag da conta, chave por usuário/tamanho/cursor e TTL de 60 segundos, mantendo os dados armazenados em formato seguro sem serializar objetos PHP arbitrários.
 - [ ] 2.3 Integrar a leitura ao binding de `ExpenseRepository`: hit sem consulta ao banco, miss com `ExpenseRepository::listByUser` no repository interno e apresentação JSON:API inalterada.
-- [ ] 2.4 Integrar a invalidação ao decorator somente após retorno bem-sucedido da escrita no repository interno; usar a mesma regra para futuros métodos de edição/exclusão individual, sem implementá-los agora.
+- [ ] 2.4 Integrar a invalidação após commit das escritas confirmadas nos respectivos decorators de CRUD e categorização; manter a mesma regra para edição e exclusão individual.
 - [ ] 2.5 Registrar o binding arquitetural de Expense e confirmar que o cache não cria dependências entre contextos ou muda o driver das sessões/filas.
 
 ## 3. Verificação

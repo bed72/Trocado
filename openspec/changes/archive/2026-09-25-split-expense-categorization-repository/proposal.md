@@ -7,8 +7,8 @@
 - Separar o contrato de persistência de despesas do contrato que gerencia tentativas de categorização, sem introduzir um novo bounded context.
 - Separar as implementações de persistência e os caminhos de cache correspondentes; a categorização bem-sucedida continuará invalidando as páginas apenas do proprietário afetado após confirmação da escrita.
 - Atualizar os consumidores e bindings para que criação, edição, listagem e exclusão usem `ExpenseRepository`, enquanto o processamento assíncrono usa o contrato de categorização; a criação usa ambos quando inicia uma tentativa.
-- Preservar o payload dos jobs, o agente de IA, a API JSON:API e as regras atuais de tentativa, expiração, falha, edição concorrente e fallback `other`.
-- **BREAKING (interno):** consumidores que chamam os métodos de tentativa pelo antigo `ExpenseRepository` deverão passar a depender do novo contrato; não há mudança no contrato HTTP nem no formato dos jobs já enfileirados.
+- Preservar o processamento assíncrono, o agente de IA, a API JSON:API e as regras atuais de tentativa, expiração, falha, edição concorrente e fallback `other`.
+- **BREAKING (interno):** consumidores que chamam os métodos de tentativa pelo antigo `ExpenseRepository` deverão passar a depender do novo contrato; não há mudança no contrato HTTP. Não é exigida compatibilidade com jobs anteriores à mudança.
 
 ## Capabilities
 

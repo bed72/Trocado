@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace App\Expense\Infrastructure\Repositories\Cache;
 
-use App\Expense\Application\Data\ExpenseClassificationOutput;
 use App\Expense\Application\Data\ExpensePageOutput;
 use App\Expense\Application\Data\UpdateExpenseInput;
 use App\Expense\Application\Repositories\ExpenseRepository;
 use App\Expense\Domain\Entities\ExpenseEntity;
-use App\Expense\Domain\Enums\ExpenseCategoryEnum;
 use DateTimeImmutable;
 use Illuminate\Cache\CacheManager;
 use Illuminate\Support\Facades\DB;
@@ -28,37 +26,6 @@ final readonly class CachedExpenseRepository implements ExpenseRepository
         $this->invalidateAfterCommit(userId: $created->userId);
 
         return $created;
-    }
-
-    public function beginClassificationAttempt(int $expenseId, string $token, DateTimeImmutable $expiresAt): bool
-    {
-        return $this->repository->beginClassificationAttempt(expenseId: $expenseId, token: $token, expiresAt: $expiresAt);
-    }
-
-    public function findClassificationAttempt(int $expenseId, string $token): ?ExpenseClassificationOutput
-    {
-        return $this->repository->findClassificationAttempt(expenseId: $expenseId, token: $token);
-    }
-
-    public function cancelClassification(int $expenseId, string $token): void
-    {
-        $this->repository->cancelClassification(expenseId: $expenseId, token: $token);
-    }
-
-    public function applyClassificationAttempt(int $expenseId, string $token, string $description, ExpenseCategoryEnum $category): ?int
-    {
-        $userId = $this->repository->applyClassificationAttempt(
-            expenseId: $expenseId,
-            token: $token,
-            description: $description,
-            category: $category,
-        );
-
-        if ($userId !== null) {
-            $this->invalidateAfterCommit(userId: $userId);
-        }
-
-        return $userId;
     }
 
     public function deleteByUser(int $id, int $userId): bool
@@ -85,9 +52,9 @@ final readonly class CachedExpenseRepository implements ExpenseRepository
 
     public function listByUser(int $userId, int $size, ?string $cursor): ExpensePageOutput
     {
+        $tagged = $this->cache->tags($this->tag($userId));
         $cursorKey = $cursor === null ? 'none' : "cursor:{$cursor}";
         $key = "expense:pages:v1:{$userId}:{$size}:".hash('sha256', $cursorKey);
-        $tagged = $this->cache->tags($this->tag($userId));
 
         /** @var array{items: list<array{id: ?int, userId: int, amount: int, occurredOn: string, category: string, description: ?string, createdAt: ?string}>, nextCursor: ?string, previousCursor: ?string} $page */
         $page = $tagged->remember($key, 60, function () use ($userId, $size, $cursor): array {
@@ -130,8 +97,6 @@ final readonly class CachedExpenseRepository implements ExpenseRepository
 
     private function invalidateAfterCommit(int $userId): void
     {
-        DB::afterCommit(callback: function () use ($userId): void {
-            $this->cache->tags($this->tag($userId))->flush();
-        });
+        DB::afterCommit(callback: $this->cache->tags($this->tag($userId))->flush(...));
     }
 }

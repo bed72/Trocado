@@ -2,12 +2,10 @@
 
 declare(strict_types=1);
 
-use App\Expense\Application\Data\ExpenseClassificationOutput;
 use App\Expense\Application\Data\ExpensePageOutput;
 use App\Expense\Application\Data\UpdateExpenseInput;
 use App\Expense\Application\Repositories\ExpenseRepository;
 use App\Expense\Domain\Entities\ExpenseEntity;
-use App\Expense\Domain\Enums\ExpenseCategoryEnum;
 use App\Expense\Infrastructure\Repositories\Cache\CachedExpenseRepository;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -27,8 +25,6 @@ function cachedRepositoryFixture(): array
 
         public int $updateCalls = 0;
 
-        public int $classificationCalls = 0;
-
         public function create(ExpenseEntity $expense): ExpenseEntity
         {
             $this->createCalls++;
@@ -42,25 +38,6 @@ function cachedRepositoryFixture(): array
                 category: $expense->category->value,
             );
         }
-
-        public function beginClassificationAttempt(int $expenseId, string $token, DateTimeImmutable $expiresAt): bool
-        {
-            return false;
-        }
-
-        public function findClassificationAttempt(int $expenseId, string $token): ?ExpenseClassificationOutput
-        {
-            return null;
-        }
-
-        public function applyClassificationAttempt(int $expenseId, string $token, string $description, ExpenseCategoryEnum $category): ?int
-        {
-            $this->classificationCalls++;
-
-            return $expenseId === 10 ? 1 : null;
-        }
-
-        public function cancelClassification(int $expenseId, string $token): void {}
 
         public function deleteByUser(int $id, int $userId): bool
         {
@@ -194,24 +171,6 @@ it('invalidates cached owner pages after updating an expense', function (): void
         ->and($inner->listCalls)->toBe(2);
 });
 
-it('invalidates only the affected owner pages after applying a classification', function (): void {
-    [$inner, $repository] = cachedRepositoryFixture();
-
-    $repository->listByUser(userId: 1, size: 20, cursor: null);
-    $repository->listByUser(userId: 2, size: 20, cursor: null);
-    $repository->applyClassificationAttempt(
-        expenseId: 10,
-        token: 'token',
-        description: 'Mercado - 2 itens',
-        category: ExpenseCategoryEnum::Food,
-    );
-    $repository->listByUser(userId: 1, size: 20, cursor: null);
-    $repository->listByUser(userId: 2, size: 20, cursor: null);
-
-    expect($inner->classificationCalls)->toBe(1)
-        ->and($inner->listCalls)->toBe(3);
-});
-
 it('keeps cached owner pages when updating an absent expense', function (): void {
     [$inner, $repository] = cachedRepositoryFixture();
 
@@ -277,43 +236,6 @@ it('does not invalidate cached pages when a creation rolls back', function (): v
 
     expect($inner->createCalls)->toBe(1)
         ->and($inner->listCalls)->toBe(1);
-});
-
-it('defers a classification cache invalidation until commit and discards it on rollback', function (): void {
-    [$inner, $repository] = cachedRepositoryFixture();
-    $repository->listByUser(userId: 1, size: 20, cursor: null);
-
-    try {
-        DB::transaction(callback: function () use ($repository, $inner): void {
-            $repository->applyClassificationAttempt(
-                expenseId: 10,
-                token: 'token',
-                description: 'Mercado - 2 itens',
-                category: ExpenseCategoryEnum::Food,
-            );
-
-            $repository->listByUser(userId: 1, size: 20, cursor: null);
-            expect($inner->listCalls)->toBe(1);
-
-            throw new RuntimeException('Rollback.');
-        });
-    } catch (RuntimeException) {
-    }
-
-    $repository->listByUser(userId: 1, size: 20, cursor: null);
-    expect($inner->listCalls)->toBe(1);
-
-    DB::transaction(callback: function () use ($repository): void {
-        $repository->applyClassificationAttempt(
-            expenseId: 10,
-            token: 'token',
-            description: 'Mercado - 2 itens',
-            category: ExpenseCategoryEnum::Food,
-        );
-    });
-
-    $repository->listByUser(userId: 1, size: 20, cursor: null);
-    expect($inner->listCalls)->toBe(2);
 });
 
 it('does not invalidate on a nested rollback even if the outer transaction commits', function (): void {
