@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Identity\Infrastructure\Repositories\Persistence\Models;
 
-use App\Expense\Infrastructure\Repositories\Persistence\Models\ExpenseModel;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
 
@@ -24,11 +22,6 @@ final class UserModel extends Authenticatable
     protected $hidden = [
         'password',
     ];
-
-    public function expenses(): HasMany
-    {
-        return $this->hasMany(related: ExpenseModel::class, foreignKey: 'user_id');
-    }
 
     protected function casts(): array
     {

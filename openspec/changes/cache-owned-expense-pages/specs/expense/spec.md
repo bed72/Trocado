@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Cache de páginas de despesas isolado por proprietário
-O sistema MUST reutilizar por até 60 segundos uma página da listagem autenticada de despesas para a mesma conta, tamanho e cursor, incluindo os dados e cursores de navegação. MUST diferenciar contas e parâmetros, MUST manter o filtro de proprietário e a RLS nas consultas ao banco e MUST NOT usar o cache ou o cursor como autorização. O conteúdo devolvido MUST preservar o contrato e a ordem da listagem JSON:API, sem armazenar documento HTTP ou links dependentes da requisição.
+O sistema MUST reutilizar por até 60 segundos uma página da listagem autenticada de despesas para a mesma conta, tamanho e cursor, incluindo os dados e cursores de navegação. MUST diferenciar contas e parâmetros, MUST manter o filtro de proprietário nas consultas ao banco e MUST NOT usar o cache ou o cursor como autorização. O conteúdo devolvido MUST preservar o contrato e a ordem da listagem JSON:API, sem armazenar documento HTTP ou links dependentes da requisição.
 
 #### Scenario: Repetição da mesma página
 - **WHEN** a conta autenticada solicita novamente uma página com o mesmo tamanho e cursor antes do TTL e não houve invalidação

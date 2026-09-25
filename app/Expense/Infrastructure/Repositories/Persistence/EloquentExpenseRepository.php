@@ -67,8 +67,8 @@ final class EloquentExpenseRepository implements ExpenseRepository
 
         return new ExpenseEntity(
             id: (int) $model->getKey(),
-            userId: $model->user_id,
             amount: $model->amount,
+            userId: $model->user_id,
             category: $model->category,
             occurredOn: $model->occurred_on,
             description: $model->description,

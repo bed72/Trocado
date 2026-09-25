@@ -2,33 +2,39 @@
 
 declare(strict_types=1);
 
-namespace App\Expense\Infrastructure\Adapters\Cache;
+namespace App\Expense\Infrastructure\Repositories\Cache;
 
 use App\Expense\Application\Data\ExpensePageOutput;
-use App\Expense\Application\Ports\ExpenseListCachePort;
+use App\Expense\Application\Repositories\ExpenseRepository;
 use App\Expense\Domain\Entities\ExpenseEntity;
-use Closure;
 use DateTimeImmutable;
 use Illuminate\Cache\CacheManager;
 
-final readonly class ExpenseListCacheAdapter implements ExpenseListCachePort
+final readonly class CachedExpenseRepository implements ExpenseRepository
 {
-    public function __construct(private CacheManager $cache) {}
+    public function __construct(
+        private CacheManager $cache,
+        private ExpenseRepository $repository,
+    ) {}
 
-    public function invalidate(int $userId): void
+    public function create(ExpenseEntity $expense): ExpenseEntity
     {
-        $this->cache->tags($this->tag($userId))->flush();
+        $created = $this->repository->create($expense);
+
+        $this->cache->tags($this->tag($created->userId))->flush();
+
+        return $created;
     }
 
-    public function load(int $userId, int $size, ?string $cursor, Closure $load): ExpensePageOutput
+    public function listByUser(int $userId, int $size, ?string $cursor): ExpensePageOutput
     {
         $cursorKey = $cursor === null ? 'none' : "cursor:{$cursor}";
         $key = "expense:pages:v1:{$userId}:{$size}:".hash('sha256', $cursorKey);
         $tagged = $this->cache->tags($this->tag($userId));
 
         /** @var array{items: list<array{id: ?int, userId: int, amount: int, occurredOn: string, category: string, description: ?string, createdAt: ?string}>, nextCursor: ?string, previousCursor: ?string} $page */
-        $page = $tagged->remember($key, 60, static function () use ($load): array {
-            $output = $load();
+        $page = $tagged->remember($key, 60, function () use ($userId, $size, $cursor): array {
+            $output = $this->repository->listByUser(userId: $userId, size: $size, cursor: $cursor);
 
             return [
                 'items' => array_map(static fn (ExpenseEntity $item): array => [

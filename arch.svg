@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1190" viewBox="0 0 1600 1190" role="img" aria-labelledby="title desc">
+  <title id="title">Arquitetura da POC Trocado</title>
+  <desc id="desc">Diagrama dos contextos Identity, Expense e Core, suas camadas implementadas, pontos de entrada HTTP e dependências com PostgreSQL, Sanctum e Redis. Setas sólidas indicam fluxo e setas tracejadas indicam resolução de contratos.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#52647a"/></marker>
+    <marker id="dashed-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#a36b27"/></marker>
+    <style>
+      text { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; fill: #182b40; }
+      .title { font-size: 31px; font-weight: 750; fill: #fff; }
+      .subtitle { font-size: 15px; fill: #d5e3f2; }
+      .section { font-size: 22px; font-weight: 750; fill: #fff; }
+      .minor { font-size: 14px; fill: #d5e3f2; }
+      .layer { font-size: 15px; font-weight: 750; }
+      .item { font-size: 14px; }
+      .note { font-size: 13px; fill: #4b5d70; }
+      .tech { font-size: 16px; font-weight: 700; }
+      .flow { stroke: #52647a; stroke-width: 2.5; fill: none; marker-end: url(#arrow); }
+      .implements { stroke: #a36b27; stroke-width: 2.3; stroke-dasharray: 8 5; fill: none; marker-end: url(#dashed-arrow); }
+    </style>
+  </defs>
+  <rect width="1600" height="1190" fill="#f3f7fa"/>
+  <rect width="1600" height="102" fill="#14283e"/>
+  <text x="58" y="45" class="title">Trocado · arquitetura por contextos</text>
+  <text x="58" y="75" class="subtitle">PHP / Laravel · JSON:API · dependências para o núcleo, implementações nas bordas</text>
+
+  <!-- HTTP entry and framework composition -->
+  <rect x="58" y="126" width="1484" height="104" rx="14" fill="#fff" stroke="#c7d5e3" stroke-width="2"/>
+  <text x="82" y="156" class="layer">Entrada HTTP e composition root</text>
+  <text x="82" y="184" class="item">Cliente → auth:sanctum / throttle → rotas por contexto → Form Request → Controller → UseCase → Response JSON:API</text>
+  <text x="82" y="208" class="note">bootstrap/app.php: rotas e erros JSON:API   ·   bootstrap/providers.php: bindings   ·   database/migrations/: schema</text>
+  <path d="M 422 230 V 263" class="flow"/>
+  <path d="M 1178 230 V 263" class="flow"/>
+
+  <!-- Identity -->
+  <rect x="58" y="264" width="714" height="562" rx="16" fill="#ffffff" stroke="#bfd5ee" stroke-width="2"/>
+  <path d="M 74 264 H 756 Q 772 264 772 280 V 327 H 58 V 280 Q 58 264 74 264" fill="#245489"/>
+  <text x="82" y="293" class="section">Identity</text>
+  <text x="82" y="315" class="minor">Owner de users, credenciais e personal_access_tokens</text>
+  <rect x="82" y="344" width="666" height="84" rx="9" fill="#e9f3fd"/>
+  <text x="100" y="367" class="layer">Presentation · HTTP</text>
+  <text x="100" y="390" class="item">sign-up / sign-in / sign-out; GET / PATCH / DELETE users/{user}</text>
+  <text x="100" y="412" class="item">Requests · Controllers · User / SignUp / AccessToken Responses</text>
+  <rect x="82" y="449" width="666" height="108" rx="9" fill="#edf5e7"/>
+  <text x="100" y="472" class="layer">Application · orquestração e contratos</text>
+  <text x="100" y="495" class="item">SignUp, SignIn, SignOut, GetUser, UpdateUser, DeleteUser UseCases</text>
+  <text x="100" y="518" class="item">UserRepository · UserPort · SignInPort · SignOutPort</text>
+  <text x="100" y="541" class="item">SignInOutput · colaboração com Core/TransactionPort</text>
+  <rect x="82" y="579" width="666" height="85" rx="9" fill="#fff1db"/>
+  <text x="100" y="602" class="layer">Domain · PHP puro</text>
+  <text x="100" y="625" class="item">UserEntity · NameValueObject · EmailValueObject</text>
+  <text x="100" y="648" class="item">PasswordValueObject · invariantes e exceções</text>
+  <rect x="82" y="686" width="666" height="115" rx="9" fill="#eeeafa"/>
+  <text x="100" y="709" class="layer">Infrastructure · Laravel / Eloquent / Sanctum</text>
+  <text x="100" y="732" class="item">EloquentUserRepository → UserModel · hash de senha</text>
+  <text x="100" y="755" class="item">SignIn / SignOut / User Adapters · IdentityServiceProvider</text>
+  <text x="100" y="778" class="item">Credenciais, emissão / revogação de tokens, rate limiting</text>
+  <path d="M 414 429 V 443" class="flow"/>
+  <path d="M 414 558 V 573" class="flow"/>
+  <path d="M 82 528 H 70 V 742 H 81" class="implements"/>
+
+  <!-- Expense -->
+  <rect x="828" y="264" width="714" height="562" rx="16" fill="#ffffff" stroke="#b6ded8" stroke-width="2"/>
+  <path d="M 844 264 H 1526 Q 1542 264 1542 280 V 327 H 828 V 280 Q 828 264 844 264" fill="#197466"/>
+  <text x="852" y="293" class="section">Expense</text>
+  <text x="852" y="315" class="minor">Owner de expenses; proprietário informado pela borda autenticada</text>
+  <rect x="852" y="344" width="666" height="84" rx="9" fill="#e5f7f3"/>
+  <text x="870" y="367" class="layer">Presentation · HTTP autenticado</text>
+  <text x="870" y="390" class="item">POST / GET /api/expenses · Requests · Controllers</text>
+  <text x="870" y="412" class="item">ExpenseResponse · links de paginação por cursor</text>
+  <rect x="852" y="449" width="666" height="108" rx="9" fill="#edf5e7"/>
+  <text x="870" y="472" class="layer">Application · orquestração e contratos</text>
+  <text x="870" y="495" class="item">CreateExpenseUseCase · ListExpensesUseCase</text>
+  <text x="870" y="518" class="item">ExpenseRepository · CreateExpenseInput · ExpensePageOutput</text>
+  <text x="870" y="541" class="item">CreateExpenseInput · ExpensePageOutput</text>
+  <rect x="852" y="579" width="666" height="85" rx="9" fill="#fff1db"/>
+  <text x="870" y="602" class="layer">Domain · PHP puro</text>
+  <text x="870" y="625" class="item">ExpenseEntity · ExpenseCategoryEnum · InvalidExpenseException</text>
+  <text x="870" y="648" class="item">Centavos inteiros, data civil, categoria e descrição</text>
+  <rect x="852" y="686" width="666" height="115" rx="9" fill="#eeeafa"/>
+  <text x="870" y="709" class="layer">Infrastructure · Eloquent / cache</text>
+  <text x="870" y="732" class="item">EloquentExpenseRepository → ExpenseModel (soft deletes)</text>
+  <text x="870" y="755" class="item">CachedExpenseRepository · ExpenseServiceProvider</text>
+  <text x="870" y="778" class="item">Páginas por usuário / tamanho / cursor; TTL 60 s</text>
+  <path d="M 1184 429 V 443" class="flow"/>
+  <path d="M 1184 558 V 573" class="flow"/>
+  <path d="M 852 528 H 840 V 742 H 851" class="implements"/>
+
+  <!-- Cross-context: database foreign key only -->
+  <path d="M 772 748 H 826" stroke="#52647a" stroke-width="2" stroke-dasharray="4 4"/>
+  <text x="663" y="843" class="note">Sem relação Eloquent cross-context; FK expenses.user_id no banco</text>
+
+  <!-- Core -->
+  <rect x="58" y="861" width="1484" height="139" rx="14" fill="#fff" stroke="#c3d0e2" stroke-width="2"/>
+  <rect x="58" y="861" width="1484" height="39" rx="12" fill="#3c5069"/>
+  <rect x="58" y="886" width="1484" height="14" fill="#3c5069"/>
+  <text x="82" y="888" class="section" style="font-size:19px">Core · capacidades transversais (sem Domain ou Presentation artificiais)</text>
+  <text x="82" y="930" class="tech">TransactionPort → DatabaseTransactionAdapter</text>
+  <text x="82" y="963" class="item">Unidade atômica definida pelo UseCase; DB::transaction com tentativas.</text>
+  <text x="808" y="930" class="tech">Ownership explícito</text>
+  <text x="808" y="963" class="item">Repositories consultam despesas pelo user_id recebido.</text>
+  <path d="M 570 827 V 853" class="implements"/>
+  <path d="M 1100 827 V 853" class="implements"/>
+
+  <!-- Runtime dependencies -->
+  <path d="M 435 1001 V 1030" class="flow"/>
+  <path d="M 1150 1001 V 1030" class="flow"/>
+  <rect x="58" y="1032" width="714" height="91" rx="12" fill="#e9f0f8" stroke="#b8cade"/>
+  <text x="82" y="1063" class="tech">PostgreSQL</text>
+  <text x="82" y="1088" class="item">users · personal_access_tokens · expenses (FK + cascade)</text>
+  <text x="82" y="1110" class="note">Sem Row Level Security; ownership filtrado por user_id explícito</text>
+  <rect x="828" y="1032" width="714" height="91" rx="12" fill="#e5f7f3" stroke="#a9d5cd"/>
+  <text x="852" y="1063" class="tech">Redis · cache padrão</text>
+  <text x="852" y="1088" class="item">Páginas Expense por proprietário; invalidação após criação</text>
+  <text x="852" y="1110" class="note">Cache não substitui autenticação, ownership ou fonte de verdade</text>
+
+  <path d="M 60 1152 H 123" class="flow"/>
+  <text x="137" y="1157" class="note">Fluxo / dependência permitida</text>
+  <path d="M 445 1152 H 508" class="implements"/>
+  <text x="522" y="1157" class="note">Port / Repository resolvido para implementação</text>
+  <text x="1010" y="1157" class="note">Presentation → Application → Domain</text>
+</svg>

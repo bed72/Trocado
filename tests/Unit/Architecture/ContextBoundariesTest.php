@@ -63,19 +63,13 @@ it('contains no source references to retired bounded contexts', function () use 
     expect(array_values(array_unique($staleReferences)))->toBe([]);
 });
 
-it('limits cross-context Eloquent model references to the two relationship models', function () use ($applicationPath): void {
-    $allowedReferences = [
-        'App\\Expense\\Infrastructure\\Repositories\\Persistence\\Models\\ExpenseModel' => [
-            $applicationPath.'/Identity',
-            $applicationPath.'/Identity/Infrastructure/Repositories/Persistence/Models/UserModel.php',
-        ],
-        'App\\Identity\\Infrastructure\\Repositories\\Persistence\\Models\\UserModel' => [
-            $applicationPath.'/Expense',
-            $applicationPath.'/Expense/Infrastructure/Repositories/Persistence/Models/ExpenseModel.php',
-        ],
+it('does not couple Eloquent models across bounded contexts', function () use ($applicationPath): void {
+    $forbiddenReferences = [
+        'App\\Expense\\Infrastructure\\Repositories\\Persistence\\Models\\ExpenseModel' => $applicationPath.'/Identity',
+        'App\\Identity\\Infrastructure\\Repositories\\Persistence\\Models\\UserModel' => $applicationPath.'/Expense',
     ];
 
-    foreach ($allowedReferences as $namespace => [$contextPath, $allowedFile]) {
+    foreach ($forbiddenReferences as $namespace => $contextPath) {
         $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($contextPath));
 
         foreach ($files as $file) {
@@ -84,7 +78,7 @@ it('limits cross-context Eloquent model references to the two relationship model
             }
 
             if (str_contains((string) file_get_contents($file->getPathname()), 'use '.$namespace.';')) {
-                expect($file->getPathname())->toBe($allowedFile);
+                expect($file->getPathname())->toBeNull();
             }
         }
     }
@@ -175,10 +169,6 @@ foreach ($contexts as $context) {
             $applicationDependencies[] = 'App\\Core\\Application\\Ports\\TransactionPort';
         }
 
-        if ($context === 'Expense') {
-            $applicationDependencies[] = 'App\\Core\\Application\\Ports\\ScopePort';
-        }
-
         arch($context.' application depends only on its domain and own contracts')
             ->expect($contextNamespace.'\\Application')
             ->toOnlyUse($applicationDependencies);
@@ -194,11 +184,6 @@ foreach ($contexts as $context) {
 
         if ($context === 'Identity') {
             $infrastructureDependencies[] = 'Laravel\\Sanctum';
-            $infrastructureDependencies[] = 'App\\Expense\\Infrastructure\\Repositories\\Persistence\\Models\\ExpenseModel';
-        }
-
-        if ($context === 'Expense') {
-            $infrastructureDependencies[] = 'App\\Identity\\Infrastructure\\Repositories\\Persistence\\Models\\UserModel';
         }
 
         arch($context.' infrastructure stays behind application boundaries')

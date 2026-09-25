@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Expense\Infrastructure\Providers;
 
-use App\Expense\Application\Ports\ExpenseListCachePort;
 use App\Expense\Application\Repositories\ExpenseRepository;
-use App\Expense\Infrastructure\Adapters\Cache\ExpenseListCacheAdapter;
+use App\Expense\Infrastructure\Repositories\Cache\CachedExpenseRepository;
 use App\Expense\Infrastructure\Repositories\Persistence\EloquentExpenseRepository;
+use Illuminate\Cache\CacheManager;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\ServiceProvider;
 
@@ -15,8 +15,11 @@ final class ExpenseServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->app->bind(abstract: ExpenseRepository::class, concrete: EloquentExpenseRepository::class);
-        $this->app->bind(abstract: ExpenseListCachePort::class, concrete: ExpenseListCacheAdapter::class);
+        $this->app->bind(abstract: EloquentExpenseRepository::class);
+        $this->app->bind(abstract: ExpenseRepository::class, concrete: fn (): CachedExpenseRepository => new CachedExpenseRepository(
+            cache: $this->app->make(CacheManager::class),
+            repository: $this->app->make(EloquentExpenseRepository::class),
+        ));
     }
 
     public function boot(): void
