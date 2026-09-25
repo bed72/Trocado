@@ -25,3 +25,15 @@ it('rejects invalid expenses outside HTTP', function (int $userId, int $amount, 
     'long category' => [1, 1250, '2026-09-20', str_repeat('a', 33), null],
     'long description' => [1, 1250, '2026-09-20', null, str_repeat('a', 65)],
 ])->throws(InvalidExpenseException::class);
+
+it('only considers useful expense descriptions eligible for classification', function (?string $description, bool $eligible): void {
+    expect(ExpenseEntity::isDescriptionEligibleForClassification($description))->toBe($eligible);
+})->with([
+    'null' => [null, false],
+    'empty' => ['', false],
+    'unicode whitespace' => ["\u{00A0}\u{2003}", false],
+    'sql injection payload' => ["' OR '1'='1", false],
+    'xss payload' => ["<script>alert('hack')</script>", false],
+    'numbered transport' => ['Uber 123', true],
+    'punctuated grocery purchase' => ['Mercado - 2 itens', true],
+]);

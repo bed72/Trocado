@@ -186,6 +186,13 @@ foreach ($contexts as $context) {
             $infrastructureDependencies[] = 'Laravel\\Sanctum';
         }
 
+        if ($context === 'Expense') {
+            $infrastructureDependencies[] = 'Laravel\\Ai';
+            $infrastructureDependencies[] = 'app';
+            $infrastructureDependencies[] = 'config';
+            $infrastructureDependencies[] = 'report';
+        }
+
         arch($context.' infrastructure stays behind application boundaries')
             ->expect($contextNamespace.'\\Infrastructure')
             ->toOnlyUse($infrastructureDependencies);

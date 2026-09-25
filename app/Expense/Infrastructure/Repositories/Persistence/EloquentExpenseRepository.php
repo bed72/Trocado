@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Expense\Infrastructure\Repositories\Persistence;
 
+use App\Expense\Application\Data\ExpenseClassificationOutput;
 use App\Expense\Application\Data\ExpensePageOutput;
 use App\Expense\Application\Data\UpdateExpenseInput;
 use App\Expense\Application\Exceptions\ExpenseOwnerNotFoundException;
 use App\Expense\Application\Repositories\ExpenseRepository;
 use App\Expense\Domain\Entities\ExpenseEntity;
+use App\Expense\Domain\Enums\ExpenseCategoryEnum;
 use App\Expense\Infrastructure\Repositories\Persistence\Models\ExpenseModel;
 use DateTimeImmutable;
 use Illuminate\Database\QueryException;
@@ -77,6 +79,81 @@ final class EloquentExpenseRepository implements ExpenseRepository
         );
     }
 
+    public function beginClassificationAttempt(int $expenseId, string $token, DateTimeImmutable $expiresAt): bool
+    {
+        return ExpenseModel::query()
+            ->whereKey($expenseId)
+            ->where('category', ExpenseCategoryEnum::Other->value)
+            ->update([
+                'classification_token' => $token,
+                'classification_expires_at' => $expiresAt,
+            ]) === 1;
+    }
+
+    public function findClassificationAttempt(int $expenseId, string $token): ?ExpenseClassificationOutput
+    {
+        $model = ExpenseModel::query()
+            ->whereKey($expenseId)
+            ->where('classification_token', $token)
+            ->first();
+
+        if ($model === null) {
+            return null;
+        }
+
+        if ($model->classification_expires_at === null || $model->classification_expires_at <= new DateTimeImmutable) {
+            $this->cancelClassificationAttempt(expenseId: $expenseId, token: $token);
+
+            return null;
+        }
+
+        if ($model->category !== ExpenseCategoryEnum::Other->value || $model->description === null) {
+            return null;
+        }
+
+        return new ExpenseClassificationOutput(description: $model->description);
+    }
+
+    public function applyClassificationAttempt(int $expenseId, string $token, string $description, ExpenseCategoryEnum $category): ?int
+    {
+        $model = ExpenseModel::query()
+            ->whereKey($expenseId)
+            ->where('classification_token', $token)
+            ->where('classification_expires_at', '>', new DateTimeImmutable)
+            ->where('category', ExpenseCategoryEnum::Other->value)
+            ->where('description', $description)
+            ->first(['id', 'user_id']);
+
+        if ($model === null) {
+            return null;
+        }
+
+        $updated = ExpenseModel::query()
+            ->whereKey($expenseId)
+            ->where('classification_token', $token)
+            ->where('classification_expires_at', '>', new DateTimeImmutable)
+            ->where('category', ExpenseCategoryEnum::Other->value)
+            ->where('description', $description)
+            ->update([
+                'category' => $category->value,
+                'classification_token' => null,
+                'classification_expires_at' => null,
+            ]);
+
+        return $updated === 1 ? $model->user_id : null;
+    }
+
+    public function cancelClassificationAttempt(int $expenseId, string $token): void
+    {
+        ExpenseModel::query()
+            ->whereKey($expenseId)
+            ->where('classification_token', $token)
+            ->update([
+                'classification_token' => null,
+                'classification_expires_at' => null,
+            ]);
+    }
+
     public function deleteByUser(int $id, int $userId): bool
     {
         return ExpenseModel::query()
@@ -106,12 +183,19 @@ final class EloquentExpenseRepository implements ExpenseRepository
             occurredOn: $input->hasOccurredOn ? (string) $input->occurredOn : $model->occurred_on,
         );
 
-        $model->fill([
+        $attributes = [
             'amount' => $expense->amount,
             'occurred_on' => $expense->occurredOn,
-            'category' => $expense->category->value,
             'description' => $expense->description,
-        ])->save();
+            'category' => $expense->category->value,
+        ];
+
+        if ($input->hasCategory || $input->hasDescription) {
+            $attributes['classification_token'] = null;
+            $attributes['classification_expires_at'] = null;
+        }
+
+        $model->fill($attributes)->save();
 
         return $expense;
     }

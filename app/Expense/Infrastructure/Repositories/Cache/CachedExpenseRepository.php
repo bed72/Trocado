@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\Expense\Infrastructure\Repositories\Cache;
 
+use App\Expense\Application\Data\ExpenseClassificationOutput;
 use App\Expense\Application\Data\ExpensePageOutput;
 use App\Expense\Application\Data\UpdateExpenseInput;
 use App\Expense\Application\Repositories\ExpenseRepository;
 use App\Expense\Domain\Entities\ExpenseEntity;
+use App\Expense\Domain\Enums\ExpenseCategoryEnum;
 use DateTimeImmutable;
 use Illuminate\Cache\CacheManager;
+use Illuminate\Support\Facades\DB;
 
 final readonly class CachedExpenseRepository implements ExpenseRepository
 {
@@ -20,11 +23,42 @@ final readonly class CachedExpenseRepository implements ExpenseRepository
 
     public function create(ExpenseEntity $expense): ExpenseEntity
     {
-        $created = $this->repository->create($expense);
+        $created = $this->repository->create(expense: $expense);
 
-        $this->cache->tags($this->tag($created->userId))->flush();
+        $this->invalidateAfterCommit(userId: $created->userId);
 
         return $created;
+    }
+
+    public function beginClassificationAttempt(int $expenseId, string $token, DateTimeImmutable $expiresAt): bool
+    {
+        return $this->repository->beginClassificationAttempt(expenseId: $expenseId, token: $token, expiresAt: $expiresAt);
+    }
+
+    public function findClassificationAttempt(int $expenseId, string $token): ?ExpenseClassificationOutput
+    {
+        return $this->repository->findClassificationAttempt(expenseId: $expenseId, token: $token);
+    }
+
+    public function cancelClassificationAttempt(int $expenseId, string $token): void
+    {
+        $this->repository->cancelClassificationAttempt(expenseId: $expenseId, token: $token);
+    }
+
+    public function applyClassificationAttempt(int $expenseId, string $token, string $description, ExpenseCategoryEnum $category): ?int
+    {
+        $userId = $this->repository->applyClassificationAttempt(
+            expenseId: $expenseId,
+            token: $token,
+            description: $description,
+            category: $category,
+        );
+
+        if ($userId !== null) {
+            $this->invalidateAfterCommit(userId: $userId);
+        }
+
+        return $userId;
     }
 
     public function deleteByUser(int $id, int $userId): bool
@@ -32,7 +66,7 @@ final readonly class CachedExpenseRepository implements ExpenseRepository
         $deleted = $this->repository->deleteByUser(id: $id, userId: $userId);
 
         if ($deleted) {
-            $this->cache->tags($this->tag($userId))->flush();
+            $this->invalidateAfterCommit(userId: $userId);
         }
 
         return $deleted;
@@ -43,7 +77,7 @@ final readonly class CachedExpenseRepository implements ExpenseRepository
         $updated = $this->repository->updateByUser(id: $id, userId: $userId, input: $input);
 
         if ($updated !== null) {
-            $this->cache->tags($this->tag($userId))->flush();
+            $this->invalidateAfterCommit(userId: $userId);
         }
 
         return $updated;
@@ -92,5 +126,12 @@ final readonly class CachedExpenseRepository implements ExpenseRepository
     private function tag(int $userId): string
     {
         return "expense:pages:owner:{$userId}";
+    }
+
+    private function invalidateAfterCommit(int $userId): void
+    {
+        DB::afterCommit(callback: function () use ($userId): void {
+            $this->cache->tags($this->tag($userId))->flush();
+        });
     }
 }

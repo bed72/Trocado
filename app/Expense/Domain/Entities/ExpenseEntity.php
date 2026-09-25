@@ -44,4 +44,15 @@ final readonly class ExpenseEntity
             : (ExpenseCategoryEnum::tryFrom(value: $category)
                 ?? throw new InvalidExpenseException(message: 'A categoria da despesa é inválida.'));
     }
+
+    public static function isDescriptionEligibleForClassification(?string $description): bool
+    {
+        if ($description === null || preg_match('/^\s*$/u', $description) === 1) {
+            return false;
+        }
+
+        $value = trim($description);
+
+        return preg_match('/^(?:[\'\"]\s*or\s*[\'\"]?1[\'\"]?\s*=\s*[\'\"]?1[\'\"]?|<script\b[^>]*>.*<\/script>)$/iu', $value) !== 1;
+    }
 }

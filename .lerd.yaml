@@ -10,6 +10,17 @@ services:
   - postgres
   - redis
 workers:
+  - expense-classification
   - queue
   - schedule
   - vite
+custom_workers:
+  expense-classification:
+    label: Expense Classification Queue
+    command: php artisan queue:work redis --queue=expense-classification --tries=3 --timeout=60 --sleep=1
+    restart: always
+    check:
+      composer: laravel/ai
+worker_options:
+  queue:
+    queue: default
