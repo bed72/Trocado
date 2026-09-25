@@ -24,6 +24,7 @@ final class UserResponse extends JsonApiResource
         return [
             'name' => $this->resource->name->value(),
             'email' => $this->resource->email->value(),
+            'status' => $this->resource->status->value,
             'created_at' => $this->resource->createdAt?->format(format: DATE_ATOM),
             'updated_at' => $this->resource->updatedAt?->format(format: DATE_ATOM),
         ];

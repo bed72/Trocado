@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Identity\Domain\Entities;
 
+use App\Identity\Domain\Enums\UserStatusEnum;
 use App\Identity\Domain\ValueObjects\EmailValueObject;
 use App\Identity\Domain\ValueObjects\NameValueObject;
 use DateTimeImmutable;
@@ -16,5 +17,6 @@ final readonly class UserEntity
         public EmailValueObject $email,
         public ?DateTimeImmutable $createdAt = null,
         public ?DateTimeImmutable $updatedAt = null,
+        public UserStatusEnum $status = UserStatusEnum::Pending,
     ) {}
 }

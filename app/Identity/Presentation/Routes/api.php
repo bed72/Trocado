@@ -10,7 +10,7 @@ use App\Identity\Presentation\Http\Controllers\SignUpController;
 use App\Identity\Presentation\Http\Controllers\UpdateUserController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('users')->middleware(['auth:sanctum', 'throttle:api.authenticated'])->name('users.')->group(function (): void {
+Route::prefix('users')->middleware(['auth:sanctum', 'user.active', 'throttle:api.authenticated'])->name('users.')->group(function (): void {
     Route::get(uri: '{user}', action: GetUserController::class)->whereNumber(parameters: 'user')->name(name: 'get');
     Route::patch(uri: '{user}', action: UpdateUserController::class)->whereNumber(parameters: 'user')->name(name: 'update');
     Route::delete(uri: '{user}', action: DeleteUserController::class)->whereNumber(parameters: 'user')->name(name: 'delete');
@@ -20,6 +20,6 @@ Route::prefix('authentication')->name('authentication.api.')->group(function ():
     Route::post(uri: 'sign-up', action: SignUpController::class)->middleware('throttle:authentication.sign-up')->name(name: 'sign-up');
     Route::post(uri: 'sign-in', action: SignInController::class)->middleware('throttle:authentication.sign-in')->name(name: 'sign-in');
     Route::delete(uri: 'sign-out', action: SignOutController::class)
-        ->middleware('auth:sanctum')
+        ->middleware(['auth:sanctum', 'user.active'])
         ->name(name: 'sign-out');
 });

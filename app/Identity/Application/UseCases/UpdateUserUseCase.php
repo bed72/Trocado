@@ -39,6 +39,7 @@ final readonly class UpdateUserUseCase
         $updated = new UserEntity(
             id: $id,
             email: $updatedEmail,
+            status: $current->status,
             createdAt: $current->createdAt,
             updatedAt: $current->updatedAt,
             name: $name === null ? $current->name : NameValueObject::fromString(value: $name),

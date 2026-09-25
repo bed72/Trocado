@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Identity\Domain\Enums\UserStatusEnum;
+use App\Identity\Infrastructure\Repositories\Persistence\Models\UserModel;
 use Tests\FeatureTestCase;
 use Tests\TestCase;
 
@@ -25,7 +27,10 @@ function signUpIdentityByApi(
         ],
     ])->assertCreated();
 
-    return (int) $response->json('data.relationships.user.data.id');
+    $userId = (int) $response->json('data.relationships.user.data.id');
+    UserModel::query()->whereKey($userId)->update(['status' => UserStatusEnum::Active->value]);
+
+    return $userId;
 }
 
 function signInIdentityByApi(

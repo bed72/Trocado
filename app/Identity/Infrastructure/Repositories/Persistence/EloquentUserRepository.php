@@ -7,6 +7,7 @@ namespace App\Identity\Infrastructure\Repositories\Persistence;
 use App\Identity\Application\Exceptions\EmailAlreadyUsedException;
 use App\Identity\Application\Repositories\UserRepository;
 use App\Identity\Domain\Entities\UserEntity;
+use App\Identity\Domain\Enums\UserStatusEnum;
 use App\Identity\Domain\ValueObjects\EmailValueObject;
 use App\Identity\Domain\ValueObjects\NameValueObject;
 use App\Identity\Infrastructure\Repositories\Persistence\Models\UserModel;
@@ -38,6 +39,7 @@ final class EloquentUserRepository implements UserRepository
                 'password' => $password,
                 'name' => $user->name->value(),
                 'email' => $user->email->value(),
+                'status' => UserStatusEnum::Pending,
             ]);
         } catch (UniqueConstraintViolationException) {
             throw new EmailAlreadyUsedException;
@@ -117,6 +119,7 @@ final class EloquentUserRepository implements UserRepository
 
         return new UserEntity(
             id: (int) $model->getKey(),
+            status: $model->status,
             name: NameValueObject::fromString(value: $name),
             email: EmailValueObject::fromString(value: $email),
             createdAt: $createdAt === null ? null : DateTimeImmutable::createFromInterface(object: $createdAt),

@@ -5,11 +5,14 @@ use App\Expense\Application\Exceptions\ExpenseNotFoundException;
 use App\Expense\Application\Exceptions\ExpenseOwnerNotFoundException;
 use App\Expense\Domain\Exceptions\InvalidExpenseException;
 use App\Identity\Application\Exceptions\EmailAlreadyUsedException;
+use App\Identity\Application\Exceptions\InactiveUserException;
 use App\Identity\Application\Exceptions\InvalidCredentialsException;
 use App\Identity\Application\Exceptions\UserNotFoundException;
+use App\Identity\Domain\Enums\UserStatusEnum;
 use App\Identity\Domain\Exceptions\InvalidEmailException;
 use App\Identity\Domain\Exceptions\InvalidNameException;
 use App\Identity\Domain\Exceptions\InvalidPasswordException;
+use App\Identity\Presentation\Http\Middleware\EnsureActiveUserMiddleware;
 use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -34,6 +37,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->prepend(AssignRequestIdMiddleware::class);
+        $middleware->alias(['user.active' => EnsureActiveUserMiddleware::class]);
         $middleware->prependToPriorityList(before: ThrottleRequests::class, prepend: Authenticate::class);
         $middleware->trimStrings(except: [
             'data.attributes.password',
@@ -42,6 +46,7 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions) use ($pageExpiredStatusCode): void {
         $exceptions->dontReport([
+            InactiveUserException::class,
             InvalidPasswordException::class,
             EmailAlreadyUsedException::class,
             InvalidCredentialsException::class,
@@ -57,6 +62,20 @@ return Application::configure(basePath: dirname(__DIR__))
             'status' => (string) Response::HTTP_UNAUTHORIZED,
         ]]], Response::HTTP_UNAUTHORIZED)->header('Content-Type', 'application/vnd.api+json')
         );
+
+        $exceptions->render(function (InactiveUserException $exception) {
+            [$title, $detail] = match ($exception->status) {
+                UserStatusEnum::Pending => ['Conta pendente', 'A conta aguarda ativação.'],
+                UserStatusEnum::Blocked => ['Conta bloqueada', 'A conta está bloqueada.'],
+                UserStatusEnum::Active => ['Acesso negado', 'A conta não está disponível.'],
+            };
+
+            return response()->json(['errors' => [[
+                'title' => $title,
+                'detail' => $detail,
+                'status' => (string) Response::HTTP_FORBIDDEN,
+            ]]], Response::HTTP_FORBIDDEN)->header('Content-Type', 'application/vnd.api+json');
+        });
 
         $exceptions->render(fn (EmailAlreadyUsedException $exception) => response()->json(['errors' => [[
             'title' => 'E-mail já utilizado',
