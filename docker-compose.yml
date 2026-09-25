@@ -1,0 +1,46 @@
+x-app: &app
+  build:
+    context: .
+    dockerfile: Dockerfile
+  image: trocado-app:local
+  env_file:
+    - .env
+  restart: unless-stopped
+  volumes:
+    - app-storage:/var/www/html/storage
+  networks:
+    - dokploy-network
+
+services:
+  web:
+    <<: *app
+    expose:
+      - "80"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1/up"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  queue:
+    <<: *app
+    user: www-data
+    command: ["php", "artisan", "queue:work", "redis", "--queue=default", "--tries=3", "--timeout=60", "--sleep=1"]
+
+  expense-classification:
+    <<: *app
+    user: www-data
+    command: ["php", "artisan", "queue:work", "redis", "--queue=expense-classification", "--tries=3", "--timeout=60", "--sleep=1"]
+
+  scheduler:
+    <<: *app
+    user: www-data
+    command: ["php", "artisan", "schedule:work"]
+
+volumes:
+  app-storage:
+
+networks:
+  dokploy-network:
+    external: true
