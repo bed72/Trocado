@@ -1,0 +1,19 @@
+meta {
+  name: Delete Expense
+  type: http
+  seq: 4
+}
+
+delete {
+  url: {{baseUrl}}/api/expenses/{{expenseId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Accept: application/vnd.api+json
+}
