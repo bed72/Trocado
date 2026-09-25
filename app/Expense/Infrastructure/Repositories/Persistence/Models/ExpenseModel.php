@@ -4,18 +4,26 @@ declare(strict_types=1);
 
 namespace App\Expense\Infrastructure\Repositories\Persistence\Models;
 
+use DateTimeImmutable;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property int $amount
+ * @property int $user_id
+ * @property string $category
+ * @property string $occurred_on
+ * @property string|null $description
+ * @property DateTimeImmutable $created_at
+ * @property DateTimeImmutable $updated_at
+ */
+#[Table('expenses')]
+#[Fillable('user_id', 'amount', 'occurred_on', 'category', 'description')]
 final class ExpenseModel extends Model
 {
     use SoftDeletes;
-
-    public const UPDATED_AT = null;
-
-    protected $table = 'expenses';
-
-    protected $fillable = ['user_id', 'amount', 'occurred_on', 'category', 'description'];
 
     protected function casts(): array
     {
@@ -23,6 +31,7 @@ final class ExpenseModel extends Model
             'user_id' => 'integer',
             'amount' => 'integer',
             'created_at' => 'immutable_datetime',
+            'updated_at' => 'immutable_datetime',
             'deleted_at' => 'immutable_datetime',
         ];
     }

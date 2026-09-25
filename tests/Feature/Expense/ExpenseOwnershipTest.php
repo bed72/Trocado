@@ -13,18 +13,18 @@ it('lists only expenses owned by the authenticated user', function (): void {
     $secondUserId = signUpIdentityByApi($this, name: 'Joana', email: 'joana@example.com');
 
     ExpenseModel::query()->create([
-        'user_id' => $firstUserId,
         'amount' => 1000,
-        'occurred_on' => '2026-09-24',
         'category' => 'food',
         'description' => 'own',
+        'user_id' => $firstUserId,
+        'occurred_on' => '2026-09-24',
     ]);
     ExpenseModel::query()->create([
-        'user_id' => $secondUserId,
         'amount' => 9999,
-        'occurred_on' => '2026-09-24',
         'category' => 'other',
         'description' => 'other',
+        'user_id' => $secondUserId,
+        'occurred_on' => '2026-09-24',
     ]);
 
     withToken($firstToken)->getJson(route('expenses.index'))
@@ -43,10 +43,10 @@ it('creates expenses for the authenticated user only', function (): void {
             'type' => 'expenses',
             'attributes' => [
                 'amount' => 1500,
-                'occurred_on' => '2026-09-24',
                 'category' => 'food',
                 'description' => 'created',
                 'user_id' => $secondUserId,
+                'occurred_on' => '2026-09-24',
             ],
         ],
     ])->assertUnprocessable();
@@ -58,9 +58,9 @@ it('creates expenses for the authenticated user only', function (): void {
             'type' => 'expenses',
             'attributes' => [
                 'amount' => 1500,
-                'occurred_on' => '2026-09-24',
                 'category' => 'food',
                 'description' => 'created',
+                'occurred_on' => '2026-09-24',
             ],
         ],
     ])->assertCreated();
@@ -75,18 +75,18 @@ it('deletes expenses for the authenticated user only', function (): void {
     $secondUserId = signUpIdentityByApi($this, name: 'Joana', email: 'joana@example.com');
 
     $firstExpense = ExpenseModel::query()->create([
-        'user_id' => $firstUserId,
         'amount' => 1000,
-        'occurred_on' => '2026-09-24',
         'category' => 'food',
         'description' => 'own',
+        'user_id' => $firstUserId,
+        'occurred_on' => '2026-09-24',
     ]);
     $secondExpense = ExpenseModel::query()->create([
-        'user_id' => $secondUserId,
         'amount' => 9999,
-        'occurred_on' => '2026-09-24',
         'category' => 'other',
         'description' => 'other',
+        'user_id' => $secondUserId,
+        'occurred_on' => '2026-09-24',
     ]);
 
     withToken($firstToken)->deleteJson(route('expenses.delete', ['expense' => $secondExpense->getKey()]))
@@ -101,17 +101,68 @@ it('deletes expenses for the authenticated user only', function (): void {
         ->and(ExpenseModel::query()->whereKey($secondExpense->getKey())->exists())->toBeTrue();
 });
 
+it('updates expenses for the authenticated user only', function (): void {
+    $firstUserId = signUpIdentityByApi($this, email: 'maria@example.com');
+    $firstToken = signInIdentityByApi($this, email: 'maria@example.com');
+    $secondUserId = signUpIdentityByApi($this, name: 'Joana', email: 'joana@example.com');
+
+    $firstExpense = ExpenseModel::query()->create([
+        'amount' => 1000,
+        'category' => 'food',
+        'description' => 'own',
+        'user_id' => $firstUserId,
+        'occurred_on' => '2026-09-24',
+    ]);
+    $secondExpense = ExpenseModel::query()->create([
+        'amount' => 9999,
+        'category' => 'other',
+        'description' => 'other',
+        'user_id' => $secondUserId,
+        'occurred_on' => '2026-09-24',
+    ]);
+
+    withToken($firstToken)->patchJson(route('expenses.update', ['expense' => $secondExpense->getKey()]), [
+        'data' => [
+            'type' => 'expenses',
+            'attributes' => [
+                'amount' => 2000,
+            ],
+        ],
+    ])->assertNotFound();
+
+    expect($secondExpense->refresh()->amount)->toBe(9999);
+
+    withToken($firstToken)->patchJson(route('expenses.update', ['expense' => $firstExpense->getKey()]), [
+        'data' => [
+            'type' => 'expenses',
+            'attributes' => [
+                'amount' => 2000,
+                'description' => null,
+            ],
+        ],
+    ])->assertOk()
+        ->assertJsonPath('data.attributes.amount', 2000)
+        ->assertJsonPath('data.attributes.description', null);
+
+    $firstExpense->refresh();
+
+    expect($firstExpense->amount)->toBe(2000)
+        ->and($firstExpense->description)->toBeNull()
+        ->and($firstExpense->occurred_on)->toBe('2026-09-24')
+        ->and($secondExpense->refresh()->amount)->toBe(9999);
+});
+
 it('keeps the expenses foreign key and cascade without Eloquent cross-context relations', function (): void {
     $user = UserModel::query()->create([
         'name' => 'Maria',
-        'email' => 'maria@example.com',
         'password' => 'Correct1',
+        'email' => 'maria@example.com',
     ]);
     $expense = ExpenseModel::query()->create([
-        'user_id' => $user->getKey(),
         'amount' => 1000,
-        'occurred_on' => '2026-09-24',
         'category' => 'food',
+        'user_id' => $user->getKey(),
+        'occurred_on' => '2026-09-24',
     ]);
 
     expect($expense->user_id)->toBe($user->getKey());

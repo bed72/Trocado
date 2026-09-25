@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Expense\Application\Data\ExpensePageOutput;
+use App\Expense\Application\Data\UpdateExpenseInput;
 use App\Expense\Application\Repositories\ExpenseRepository;
 use App\Expense\Domain\Entities\ExpenseEntity;
 use App\Expense\Infrastructure\Repositories\Cache\CachedExpenseRepository;
@@ -20,6 +21,8 @@ function cachedRepositoryFixture(): array
         public int $createCalls = 0;
 
         public int $deleteCalls = 0;
+
+        public int $updateCalls = 0;
 
         public function create(ExpenseEntity $expense): ExpenseEntity
         {
@@ -40,6 +43,24 @@ function cachedRepositoryFixture(): array
             $this->deleteCalls++;
 
             return $id === 10 && $userId === 1;
+        }
+
+        public function updateByUser(int $id, int $userId, UpdateExpenseInput $input): ?ExpenseEntity
+        {
+            $this->updateCalls++;
+
+            if ($id !== 10 || $userId !== 1) {
+                return null;
+            }
+
+            return new ExpenseEntity(
+                id: $id,
+                userId: $userId,
+                amount: $input->amount ?? 2000,
+                category: $input->category,
+                description: $input->description,
+                occurredOn: $input->occurredOn ?? '2026-09-24',
+            );
         }
 
         public function listByUser(int $userId, int $size, ?string $cursor): ExpensePageOutput
@@ -135,6 +156,28 @@ it('keeps cached owner pages when deleting an absent expense', function (): void
     $repository->listByUser(userId: 1, size: 20, cursor: null);
 
     expect($inner->deleteCalls)->toBe(1)
+        ->and($inner->listCalls)->toBe(1);
+});
+
+it('invalidates cached owner pages after updating an expense', function (): void {
+    [$inner, $repository] = cachedRepositoryFixture();
+
+    $repository->listByUser(userId: 1, size: 20, cursor: null);
+    $repository->updateByUser(id: 10, userId: 1, input: new UpdateExpenseInput(amount: 3000, hasAmount: true));
+    $repository->listByUser(userId: 1, size: 20, cursor: null);
+
+    expect($inner->updateCalls)->toBe(1)
+        ->and($inner->listCalls)->toBe(2);
+});
+
+it('keeps cached owner pages when updating an absent expense', function (): void {
+    [$inner, $repository] = cachedRepositoryFixture();
+
+    $repository->listByUser(userId: 1, size: 20, cursor: null);
+    $repository->updateByUser(id: 99, userId: 1, input: new UpdateExpenseInput(amount: 3000, hasAmount: true));
+    $repository->listByUser(userId: 1, size: 20, cursor: null);
+
+    expect($inner->updateCalls)->toBe(1)
         ->and($inner->listCalls)->toBe(1);
 });
 

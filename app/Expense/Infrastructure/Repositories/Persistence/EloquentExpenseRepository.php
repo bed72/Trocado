@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Expense\Infrastructure\Repositories\Persistence;
 
 use App\Expense\Application\Data\ExpensePageOutput;
+use App\Expense\Application\Data\UpdateExpenseInput;
 use App\Expense\Application\Exceptions\ExpenseOwnerNotFoundException;
 use App\Expense\Application\Repositories\ExpenseRepository;
 use App\Expense\Domain\Entities\ExpenseEntity;
@@ -82,5 +83,36 @@ final class EloquentExpenseRepository implements ExpenseRepository
             ->whereKey($id)
             ->where('user_id', $userId)
             ->delete() === 1;
+    }
+
+    public function updateByUser(int $id, int $userId, UpdateExpenseInput $input): ?ExpenseEntity
+    {
+        $model = ExpenseModel::query()
+            ->whereKey($id)
+            ->where('user_id', $userId)
+            ->first();
+
+        if ($model === null) {
+            return null;
+        }
+
+        $expense = new ExpenseEntity(
+            id: (int) $model->getKey(),
+            userId: $model->user_id,
+            amount: $input->hasAmount ? (int) $input->amount : $model->amount,
+            category: $input->hasCategory ? $input->category : $model->category,
+            createdAt: DateTimeImmutable::createFromInterface(object: $model->created_at),
+            description: $input->hasDescription ? $input->description : $model->description,
+            occurredOn: $input->hasOccurredOn ? (string) $input->occurredOn : $model->occurred_on,
+        );
+
+        $model->fill([
+            'amount' => $expense->amount,
+            'occurred_on' => $expense->occurredOn,
+            'category' => $expense->category->value,
+            'description' => $expense->description,
+        ])->save();
+
+        return $expense;
     }
 }
