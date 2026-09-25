@@ -12,8 +12,16 @@ x-app: &app
     - dokploy-network
 
 services:
+  migrate:
+    <<: *app
+    restart: "no"
+    command: ["php", "artisan", "migrate", "--force"]
+
   web:
     <<: *app
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
     expose:
       - "80"
     healthcheck:
@@ -26,16 +34,25 @@ services:
   queue:
     <<: *app
     user: www-data
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
     command: ["php", "artisan", "queue:work", "redis", "--queue=default", "--tries=3", "--timeout=60", "--sleep=1"]
 
   expense-classification:
     <<: *app
     user: www-data
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
     command: ["php", "artisan", "queue:work", "redis", "--queue=expense-classification", "--tries=3", "--timeout=60", "--sleep=1"]
 
   scheduler:
     <<: *app
     user: www-data
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
     command: ["php", "artisan", "schedule:work"]
 
 volumes:
