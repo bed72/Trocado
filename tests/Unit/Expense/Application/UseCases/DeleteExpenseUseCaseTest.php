@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Core\Application\Ports\ObservabilityPort;
+use App\Core\Application\Ports\TransactionPort;
 use App\Expense\Application\Exceptions\ExpenseNotFoundException;
 use App\Expense\Application\Ports\UserPort;
 use App\Expense\Application\Repositories\ExpenseRepository;
@@ -13,7 +15,7 @@ it('deletes an owned expense through the expense repository', function (): void 
     $repository = $this->createMock(ExpenseRepository::class);
     $repository->expects($this->once())->method('deleteByUser')->with(10, 20)->willReturn(true);
 
-    (new DeleteExpenseUseCase($port, $repository))->execute(id: 10);
+    (new DeleteExpenseUseCase(userPort: $port, transactionPort: $this->createMock(TransactionPort::class), observabilityPort: $this->createMock(ObservabilityPort::class), repository: $repository))->execute(id: 10);
 });
 
 it('fails when the expense is absent or owned by another user', function (): void {
@@ -22,5 +24,5 @@ it('fails when the expense is absent or owned by another user', function (): voi
     $repository = $this->createMock(ExpenseRepository::class);
     $repository->expects($this->once())->method('deleteByUser')->with(10, 20)->willReturn(false);
 
-    (new DeleteExpenseUseCase($port, $repository))->execute(id: 10);
+    (new DeleteExpenseUseCase(userPort: $port, transactionPort: $this->createMock(TransactionPort::class), observabilityPort: $this->createMock(ObservabilityPort::class), repository: $repository))->execute(id: 10);
 })->throws(ExpenseNotFoundException::class, 'Despesa não encontrada.');

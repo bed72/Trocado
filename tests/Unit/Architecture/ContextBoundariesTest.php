@@ -172,7 +172,7 @@ foreach ($contexts as $context) {
             $applicationDependencies[] = 'App\\Core\\Application\\Ports\\TransactionPort';
         }
 
-        if ($context === 'Expense') {
+        if (in_array($context, ['Expense', 'Identity'], true)) {
             $applicationDependencies[] = 'App\\Core\\Application\\Ports\\ObservabilityPort';
         }
 

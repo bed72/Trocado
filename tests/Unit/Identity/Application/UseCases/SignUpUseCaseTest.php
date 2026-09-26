@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Core\Application\Ports\ObservabilityPort;
 use App\Core\Application\Ports\TransactionPort;
 use App\Identity\Application\Repositories\UserRepository;
 use App\Identity\Application\UseCases\SignUpUseCase;
@@ -17,6 +18,7 @@ it('registers the canonical identity inside the transaction and returns its iden
         email: EmailValueObject::fromString(value: 'maria@example.com'),
     );
     $writePort = $this->createMock(TransactionPort::class);
+    $observabilityPort = $this->createMock(ObservabilityPort::class);
     $repository = $this->createMock(UserRepository::class);
     $writePort->expects($this->once())
         ->method('execute')
@@ -32,7 +34,8 @@ it('registers the canonical identity inside the transaction and returns its iden
         ->willReturn($persisted);
 
     $result = (new SignUpUseCase(
-        port: $writePort,
+        transactionPort: $writePort,
+        observabilityPort: $observabilityPort,
         repository: $repository,
     ))->execute(
         name: ' Maria ',
@@ -45,12 +48,14 @@ it('registers the canonical identity inside the transaction and returns its iden
 
 it('rejects an invalid password before opening a transaction', function (): void {
     $writePort = $this->createMock(TransactionPort::class);
+    $observabilityPort = $this->createMock(ObservabilityPort::class);
     $repository = $this->createMock(UserRepository::class);
     $writePort->expects($this->never())->method('execute');
     $repository->expects($this->never())->method('create');
 
     (new SignUpUseCase(
-        port: $writePort,
+        transactionPort: $writePort,
+        observabilityPort: $observabilityPort,
         repository: $repository,
     ))->execute(
         name: 'Maria',

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Identity\Application\UseCases;
 
+use App\Core\Application\Ports\ObservabilityPort;
+use App\Core\Application\Ports\TransactionPort;
 use App\Identity\Application\Exceptions\EmailAlreadyUsedException;
 use App\Identity\Application\Exceptions\UserNotFoundException;
 use App\Identity\Application\Ports\UserPort;
@@ -14,11 +16,16 @@ use App\Identity\Domain\ValueObjects\NameValueObject;
 
 final readonly class UpdateUserUseCase
 {
-    public function __construct(private UserPort $port, private UserRepository $repository) {}
+    public function __construct(
+        private UserPort $userPort,
+        private UserRepository $repository,
+        private TransactionPort $transactionPort,
+        private ObservabilityPort $observabilityPort,
+    ) {}
 
     public function execute(int $id, ?string $name, ?string $email): UserEntity
     {
-        if ($this->port->id() !== $id) {
+        if ($this->userPort->id() !== $id) {
             throw new UserNotFoundException;
         }
 
@@ -45,7 +52,13 @@ final readonly class UpdateUserUseCase
             name: $name === null ? $current->name : NameValueObject::fromString(value: $name),
         );
 
-        return $this->repository->update(user: $updated)
+        $saved = $this->repository->update(user: $updated)
             ?? throw new UserNotFoundException;
+
+        $this->transactionPort->afterCommit(fn () => $this->observabilityPort->emit('user.updated', [
+            'user_id' => $id,
+        ]));
+
+        return $saved;
     }
 }

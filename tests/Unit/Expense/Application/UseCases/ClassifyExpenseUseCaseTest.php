@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Core\Application\Ports\ObservabilityPort;
+use App\Core\Application\Ports\TransactionPort;
 use App\Expense\Application\Data\ApplyExpenseClassificationInput;
 use App\Expense\Application\Data\ExpenseClassificationOutput;
 use App\Expense\Application\Ports\ExpenseClassificationPort;
@@ -18,7 +20,7 @@ it('applies a valid suggestion only through the pending attempt', function (): v
     $repository->expects($this->once())->method('applyClassificationAttempt')
         ->with(new ApplyExpenseClassificationInput(10, 'token', 'Mercado - 2 itens', ExpenseCategoryEnum::Food))->willReturn(20);
 
-    (new ClassifyExpenseUseCase(port: $port, repository: $repository))->execute(expenseId: 10, token: 'token');
+    (new ClassifyExpenseUseCase(classificationPort: $port, transactionPort: $this->createMock(TransactionPort::class), observabilityPort: $this->createMock(ObservabilityPort::class), repository: $repository))->execute(expenseId: 10, token: 'token');
 });
 
 it('clears an attempt when the provider returns an invalid suggestion', function (): void {
@@ -29,7 +31,7 @@ it('clears an attempt when the provider returns an invalid suggestion', function
         ->willReturn(new ExpenseClassificationOutput('Uber 123'));
     $repository->expects($this->once())->method('cancelClassification')->with(10, 'token');
 
-    (new ClassifyExpenseUseCase(port: $port, repository: $repository))->execute(expenseId: 10, token: 'token');
+    (new ClassifyExpenseUseCase(classificationPort: $port, transactionPort: $this->createMock(TransactionPort::class), observabilityPort: $this->createMock(ObservabilityPort::class), repository: $repository))->execute(expenseId: 10, token: 'token');
 });
 
 it('does not call the provider for a cancelled or expired attempt', function (): void {
@@ -38,5 +40,5 @@ it('does not call the provider for a cancelled or expired attempt', function ():
     $repository = $this->createMock(ExpenseCategorizationRepository::class);
     $repository->expects($this->once())->method('findClassificationAttempt')->with(10, 'token')->willReturn(null);
 
-    (new ClassifyExpenseUseCase(port: $port, repository: $repository))->execute(expenseId: 10, token: 'token');
+    (new ClassifyExpenseUseCase(classificationPort: $port, transactionPort: $this->createMock(TransactionPort::class), observabilityPort: $this->createMock(ObservabilityPort::class), repository: $repository))->execute(expenseId: 10, token: 'token');
 });

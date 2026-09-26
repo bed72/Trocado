@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Identity\Application\UseCases;
 
+use App\Core\Application\Ports\ObservabilityPort;
 use App\Core\Application\Ports\TransactionPort;
 use App\Identity\Application\Exceptions\UserNotFoundException;
 use App\Identity\Application\Ports\UserPort;
@@ -15,6 +16,7 @@ final readonly class DeleteUserUseCase
         private UserPort $userPort,
         private UserRepository $repository,
         private TransactionPort $transactionPort,
+        private ObservabilityPort $observabilityPort,
     ) {}
 
     public function execute(int $id): void
@@ -27,6 +29,10 @@ final readonly class DeleteUserUseCase
             if (! $this->repository->delete(id: $id)) {
                 throw new UserNotFoundException;
             }
+
+            $this->transactionPort->afterCommit(fn () => $this->observabilityPort->emit('user.deleted', [
+                'user_id' => $id,
+            ]));
         });
     }
 }

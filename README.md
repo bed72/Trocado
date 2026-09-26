@@ -1,12 +1,12 @@
-# Trocado - POC Laravel 13
+# Trocado
 
-API JSON:API para registrar gastos de uma pessoa. `Identity` cuida da conta, credenciais e tokens Sanctum; `Expense` cuida das despesas. Veja [ARCHITECTURE.md](ARCHITECTURE.md) para as fronteiras das camadas.
+API JSON:API em Laravel 13 para gerenciar despesas pessoais. `Identity` cuida de contas, aprovação de acesso, credenciais e tokens Sanctum; `Expense` cuida das despesas e da classificação assíncrona. Veja [ARCHITECTURE.md](ARCHITECTURE.md) para as fronteiras das camadas.
 
 ## Padrão de desenvolvimento
 
 `ARCHITECTURE.md` é a referência para decisões estruturais. Features pertencem ao próprio bounded context em `app/<Contexto>/{Domain,Application,Infrastructure,Presentation}`. Domain usa PHP puro; Application depende de Domain e de seus contratos; Laravel é usado diretamente em Infrastructure e Presentation.
 
-Agentes devem começar por [AGENTS.md](AGENTS.md), [ARCHITECTURE.md](ARCHITECTURE.md) e pelas skills locais em [`.opencode/skills/`](.opencode/skills/). O Laravel Boost já está instalado para desenvolvimento assistido; consulte seu Search Docs antes de assumir APIs do Laravel ou de packages Laravel instalados. Não instale Laravel AI SDK sem uma feature de IA do produto.
+Agentes devem começar por [AGENTS.md](AGENTS.md), [ARCHITECTURE.md](ARCHITECTURE.md) e pelas skills locais em [`.opencode/skills/`](.opencode/skills/). Laravel Boost auxilia o desenvolvimento; o Laravel AI SDK é usado na classificação de despesas.
 
 Os bounded contexts atuais são `Identity` e `Expense`. `Identity` concentra o lifecycle da conta sem levar Laravel, Eloquent ou Sanctum para Domain e Application. Novas classes devem seguir os nomes, dependências e fronteiras definidos em `ARCHITECTURE.md`.
 
@@ -14,7 +14,7 @@ O cache da listagem de Expense é implementado em Infrastructure por decorator d
 
 ## Executar localmente
 
-Requer PHP 8.3+ com `pdo_pgsql`, Composer e PostgreSQL. Com Lerd, na raiz do projeto:
+Requer PHP 8.3+ com `pdo_pgsql`, Composer e PostgreSQL. O cache e as filas usam Redis; para compilar os assets, use Node 22 e npm. Com Lerd, na raiz do projeto:
 
 ```sh
 composer install
@@ -28,7 +28,13 @@ lerd artisan migrate
 
 Para executar sem Lerd, copie `.env.example` para `.env`, configure `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME` e `DB_PASSWORD` localmente, crie os bancos PostgreSQL `trocado` e `trocado_testing`, gere a chave com `php artisan key:generate` e rode `php artisan migrate`. Configure `APP_URL` para a URL usada pelo servidor. Não inclua credenciais em arquivos versionados.
 
-Os testes usam exclusivamente `trocado_testing` em PostgreSQL. Migre esse banco antes dos testes (`APP_ENV=testing php artisan migrate --no-interaction` no ambiente PHP) e então rode `lerd test` ou `php artisan test`. A suíte recusa conexões SQLite, `DB_URL` e bancos diferentes; não aponte os testes para `trocado`. Dados existentes no SQLite não são copiados. O bootstrap foi validado com PHP 8.5.10, Composer 2.10.3 e Laravel Framework 13.32.0.
+Os testes usam exclusivamente `trocado_testing` em PostgreSQL. Migre esse banco antes dos testes (`APP_ENV=testing php artisan migrate --no-interaction` no ambiente PHP) e então rode `lerd test` ou `php artisan test`. A suíte recusa conexões SQLite, `DB_URL` e bancos diferentes; não aponte os testes para `trocado`. Dados existentes no SQLite não são copiados.
+
+## Produção
+
+O Dokploy publica `docker-compose.yml`: o serviço `migrate` aplica as migrations antes de iniciar `web`, os workers `queue` e `expense-classification`, e `scheduler`. A imagem é construída com PHP 8.5 e os assets com Node 22. PostgreSQL e Redis são serviços separados, acessados pelos hosts internos do Dokploy; suas portas não precisam ser publicadas na internet.
+
+Configure os valores de produção na aba **Environment** do Compose, sem versionar `.env` nem credenciais: `APP_ENV=production`, `APP_DEBUG=false`, uma `APP_KEY` própria, `APP_URL` com HTTPS, `DB_*`, `REDIS_*`, `QUEUE_CONNECTION=redis`, `CACHE_STORE=redis` e `CACHE_LIMITER_STORE=redis`. Para usar a classificação automática, configure `EXPENSE_CLASSIFICATION_API_KEY` ou a credencial do provedor de IA selecionado. Confira o resultado do deploy nos logs do Dokploy e pelo endpoint `/up`; esse endpoint confirma o boot da aplicação, não substitui a verificação do banco, Redis e workers.
 
 ## CI e deploy
 
@@ -79,3 +85,9 @@ curl -i -X POST http://127.0.0.1:8000/api/expenses \
 ```
 
 Criação retorna `201` com o recurso criado; erros de validação retornam `422` em JSON:API.
+
+## Eventos de observabilidade
+
+Com `LOG_OBSERVABILITY_STREAM=php://stderr`, os eventos JSON aparecem nos logs do container que executou a operação. Alterações confirmadas de conta e autenticação emitem `user.registered`, `user.updated`, `user.deleted`, `identity.signed_in` e `identity.signed_out`; despesas emitem `expense.created`, `expense.updated`, `expense.deleted` e `expense.classified`. Leituras não emitem eventos de negócio. Eventos HTTP incluem o `request_id` devolvido em `X-Request-Id`.
+
+Nos workers, `queue.job_processed` e `queue.job_failed` identificam fila, conexão, job e tentativa. Falhas incluem apenas a classe da exceção, sem sua mensagem ou payload. Esses registros são eventos estruturados, não métricas agregadas ou um dashboard; descrições, valores de despesas, senhas e tokens não são enviados ao canal de observabilidade.

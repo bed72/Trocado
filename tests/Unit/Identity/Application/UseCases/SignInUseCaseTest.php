@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Core\Application\Ports\ObservabilityPort;
 use App\Identity\Application\Data\SignInOutput;
 use App\Identity\Application\Ports\SignInPort;
 use App\Identity\Application\UseCases\SignInUseCase;
@@ -20,7 +21,7 @@ it('delegates credential verification and token issuance to the authentication p
         ->with(' Maria@Example.COM ', 'Abc123')
         ->willReturn($issuedToken);
 
-    expect((new SignInUseCase(port: $port))->execute(
+    expect((new SignInUseCase(signInPort: $port, observabilityPort: $this->createMock(ObservabilityPort::class)))->execute(
         email: ' Maria@Example.COM ',
         password: 'Abc123',
     ))->toBe($issuedToken);

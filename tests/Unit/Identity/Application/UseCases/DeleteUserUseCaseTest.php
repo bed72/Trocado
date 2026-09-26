@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Core\Application\Ports\ObservabilityPort;
 use App\Core\Application\Ports\TransactionPort;
 use App\Identity\Application\Exceptions\UserNotFoundException;
 use App\Identity\Application\Ports\UserPort;
@@ -18,7 +19,7 @@ it('deletes an existing user inside the identity transaction', function (): void
         ->willReturnCallback(static fn (callable $operation): mixed => $operation());
     $repository->expects($this->once())->method('delete')->with(10)->willReturn(true);
 
-    (new DeleteUserUseCase($userPort, $repository, $writePort))->execute(id: 10);
+    (new DeleteUserUseCase(userPort: $userPort, transactionPort: $writePort, observabilityPort: $this->createMock(ObservabilityPort::class), repository: $repository))->execute(id: 10);
 });
 
 it('fails inside the identity transaction when deleting an absent user', function (): void {
@@ -31,7 +32,7 @@ it('fails inside the identity transaction when deleting an absent user', functio
         ->willReturnCallback(static fn (callable $operation): mixed => $operation());
     $repository->expects($this->once())->method('delete')->with(10)->willReturn(false);
 
-    (new DeleteUserUseCase($userPort, $repository, $writePort))->execute(id: 10);
+    (new DeleteUserUseCase(userPort: $userPort, transactionPort: $writePort, observabilityPort: $this->createMock(ObservabilityPort::class), repository: $repository))->execute(id: 10);
 })->throws(UserNotFoundException::class, 'User não encontrado.');
 
 it('does not start a transaction or delete another user', function (): void {
@@ -41,5 +42,5 @@ it('does not start a transaction or delete another user', function (): void {
     $userPort->method('id')->willReturn(20);
     $repository = $this->createMock(UserRepository::class);
     $repository->expects($this->never())->method('delete');
-    (new DeleteUserUseCase($userPort, $repository, $writePort))->execute(id: 10);
+    (new DeleteUserUseCase(userPort: $userPort, transactionPort: $writePort, observabilityPort: $this->createMock(ObservabilityPort::class), repository: $repository))->execute(id: 10);
 })->throws(UserNotFoundException::class);

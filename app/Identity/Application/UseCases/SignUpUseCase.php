@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Identity\Application\UseCases;
 
+use App\Core\Application\Ports\ObservabilityPort;
 use App\Core\Application\Ports\TransactionPort;
 use App\Identity\Application\Repositories\UserRepository;
 use App\Identity\Domain\Entities\UserEntity;
@@ -16,8 +17,9 @@ use SensitiveParameter;
 final readonly class SignUpUseCase
 {
     public function __construct(
-        private TransactionPort $port,
         private UserRepository $repository,
+        private TransactionPort $transactionPort,
+        private ObservabilityPort $observabilityPort,
     ) {}
 
     public function execute(string $name, string $email, #[SensitiveParameter] string $password): int
@@ -29,12 +31,17 @@ final readonly class SignUpUseCase
         );
         $validPassword = PasswordValueObject::fromString(value: $password);
 
-        $registered = $this->port->execute(
-            operation: fn (): UserEntity => $this->repository->create(
-                user: $user,
-                password: $validPassword->value(),
-            ),
-        );
+        $registered = $this->transactionPort->execute(function () use ($user, $validPassword): UserEntity {
+            $registered = $this->repository->create(user: $user, password: $validPassword->value());
+            $registeredId = $registered->id
+                ?? throw new LogicException(message: 'O registro deve retornar uma identidade persistida.');
+
+            $this->transactionPort->afterCommit(fn () => $this->observabilityPort->emit('user.registered', [
+                'user_id' => $registeredId,
+            ]));
+
+            return $registered;
+        });
 
         return $registered->id
             ?? throw new LogicException(message: 'O registro deve retornar uma identidade persistida.');

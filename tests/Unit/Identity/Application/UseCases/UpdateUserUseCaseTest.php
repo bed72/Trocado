@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Core\Application\Ports\ObservabilityPort;
+use App\Core\Application\Ports\TransactionPort;
 use App\Identity\Application\Exceptions\EmailAlreadyUsedException;
 use App\Identity\Application\Exceptions\UserNotFoundException;
 use App\Identity\Application\Ports\UserPort;
@@ -14,6 +16,8 @@ use App\Identity\Domain\ValueObjects\EmailValueObject;
 use App\Identity\Domain\ValueObjects\NameValueObject;
 
 beforeEach(function (): void {
+    $this->transactionPort = $this->createMock(TransactionPort::class);
+    $this->observabilityPort = $this->createMock(ObservabilityPort::class);
     $this->userPort = $this->createMock(UserPort::class);
     $this->userPort->method('id')->willReturn(10);
     $this->currentUser = new UserEntity(
@@ -42,7 +46,7 @@ it('updates the name while preserving email and persistence data', function (): 
         }))
         ->willReturnCallback(fn (UserEntity $user): UserEntity => $user);
 
-    $updated = (new UpdateUserUseCase(port: $this->userPort, repository: $repository))->execute(
+    $updated = (new UpdateUserUseCase(userPort: $this->userPort, transactionPort: $this->transactionPort, observabilityPort: $this->observabilityPort, repository: $repository))->execute(
         id: 10,
         email: null,
         name: '  Maria Souza  ',
@@ -62,7 +66,7 @@ it('normalizes a new email while preserving the name', function (): void {
         ->method('update')
         ->willReturnCallback(fn (UserEntity $user): UserEntity => $user);
 
-    $updated = (new UpdateUserUseCase(port: $this->userPort, repository: $repository))->execute(
+    $updated = (new UpdateUserUseCase(userPort: $this->userPort, transactionPort: $this->transactionPort, observabilityPort: $this->observabilityPort, repository: $repository))->execute(
         id: 10,
         name: null,
         email: ' NOVA@EXAMPLE.COM ',
@@ -80,7 +84,7 @@ it('allows another representation of the current canonical email', function (): 
         ->method('update')
         ->willReturnCallback(fn (UserEntity $user): UserEntity => $user);
 
-    $updated = (new UpdateUserUseCase(port: $this->userPort, repository: $repository))->execute(
+    $updated = (new UpdateUserUseCase(userPort: $this->userPort, transactionPort: $this->transactionPort, observabilityPort: $this->observabilityPort, repository: $repository))->execute(
         id: 10,
         name: null,
         email: ' MARIA@EXAMPLE.COM ',
@@ -100,7 +104,7 @@ it('rejects an email used by another user without updating', function (): void {
     $repository->expects($this->once())->method('findByEmail')->willReturn($otherUser);
     $repository->expects($this->never())->method('update');
 
-    (new UpdateUserUseCase(port: $this->userPort, repository: $repository))->execute(
+    (new UpdateUserUseCase(userPort: $this->userPort, transactionPort: $this->transactionPort, observabilityPort: $this->observabilityPort, repository: $repository))->execute(
         id: 10,
         name: null,
         email: 'outra@example.com',
@@ -112,7 +116,7 @@ it('does not persist invalid updates', function (?string $name, ?string $email, 
     $repository->expects($this->once())->method('findById')->willReturn($this->currentUser);
     $repository->expects($this->never())->method('update');
 
-    expect(fn (): UserEntity => (new UpdateUserUseCase(port: $this->userPort, repository: $repository))->execute(
+    expect(fn (): UserEntity => (new UpdateUserUseCase(userPort: $this->userPort, transactionPort: $this->transactionPort, observabilityPort: $this->observabilityPort, repository: $repository))->execute(
         id: 10,
         name: $name,
         email: $email,
@@ -128,7 +132,7 @@ it('fails when the user is absent before updating', function (): void {
     $repository->expects($this->once())->method('findById')->with(10)->willReturn(null);
     $repository->expects($this->never())->method('update');
 
-    (new UpdateUserUseCase(port: $this->userPort, repository: $repository))->execute(id: 10, name: 'Maria', email: null);
+    (new UpdateUserUseCase(userPort: $this->userPort, transactionPort: $this->transactionPort, observabilityPort: $this->observabilityPort, repository: $repository))->execute(id: 10, name: 'Maria', email: null);
 })->throws(UserNotFoundException::class, 'User não encontrado.');
 
 it('fails when the user disappears during updating', function (): void {
@@ -136,7 +140,7 @@ it('fails when the user disappears during updating', function (): void {
     $repository->expects($this->once())->method('findById')->willReturn($this->currentUser);
     $repository->expects($this->once())->method('update')->willReturn(null);
 
-    (new UpdateUserUseCase(port: $this->userPort, repository: $repository))->execute(id: 10, name: 'Maria', email: null);
+    (new UpdateUserUseCase(userPort: $this->userPort, transactionPort: $this->transactionPort, observabilityPort: $this->observabilityPort, repository: $repository))->execute(id: 10, name: 'Maria', email: null);
 })->throws(UserNotFoundException::class, 'User não encontrado.');
 
 it('does not read or write another user', function (): void {
@@ -146,5 +150,5 @@ it('does not read or write another user', function (): void {
     $repository->expects($this->never())->method('findById');
     $repository->expects($this->never())->method('findByEmail');
     $repository->expects($this->never())->method('update');
-    (new UpdateUserUseCase($port, $repository))->execute(id: 10, name: 'Maria', email: null);
+    (new UpdateUserUseCase(userPort: $port, transactionPort: $this->transactionPort, observabilityPort: $this->observabilityPort, repository: $repository))->execute(id: 10, name: 'Maria', email: null);
 })->throws(UserNotFoundException::class);

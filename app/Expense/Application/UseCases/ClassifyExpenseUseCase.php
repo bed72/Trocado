@@ -4,13 +4,20 @@ declare(strict_types=1);
 
 namespace App\Expense\Application\UseCases;
 
+use App\Core\Application\Ports\ObservabilityPort;
+use App\Core\Application\Ports\TransactionPort;
 use App\Expense\Application\Data\ApplyExpenseClassificationInput;
 use App\Expense\Application\Ports\ExpenseClassificationPort;
 use App\Expense\Application\Repositories\ExpenseCategorizationRepository;
 
 final readonly class ClassifyExpenseUseCase
 {
-    public function __construct(private ExpenseClassificationPort $port, private ExpenseCategorizationRepository $repository) {}
+    public function __construct(
+        private TransactionPort $transactionPort,
+        private ObservabilityPort $observabilityPort,
+        private ExpenseCategorizationRepository $repository,
+        private ExpenseClassificationPort $classificationPort,
+    ) {}
 
     public function execute(int $expenseId, string $token): void
     {
@@ -20,7 +27,7 @@ final readonly class ClassifyExpenseUseCase
             return;
         }
 
-        $category = $this->port->suggest(description: $attempt->description);
+        $category = $this->classificationPort->suggest(description: $attempt->description);
 
         if ($category === null) {
             $this->repository->cancelClassification(expenseId: $expenseId, token: $token);
@@ -28,12 +35,20 @@ final readonly class ClassifyExpenseUseCase
             return;
         }
 
-        $this->repository->applyClassificationAttempt(input: new ApplyExpenseClassificationInput(
-            expenseId: $expenseId,
+        $userId = $this->repository->applyClassificationAttempt(input: new ApplyExpenseClassificationInput(
             token: $token,
-            description: $attempt->description,
             category: $category,
+            expenseId: $expenseId,
+            description: $attempt->description,
         ));
+
+        if ($userId !== null) {
+            $this->transactionPort->afterCommit(fn () => $this->observabilityPort->emit('expense.classified', [
+                'user_id' => $userId,
+                'expense_id' => $expenseId,
+                'category' => $category->value,
+            ]));
+        }
     }
 
     public function fail(int $expenseId, string $token): void

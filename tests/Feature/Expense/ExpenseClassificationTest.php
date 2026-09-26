@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Core\Application\Ports\ObservabilityPort;
 use App\Expense\Application\Data\ApplyExpenseClassificationInput;
 use App\Expense\Application\Ports\ExpenseClassificationDispatchPort;
 use App\Expense\Application\Repositories\ExpenseCategorizationRepository;
@@ -151,6 +152,13 @@ it('updates the category after the queued job receives a valid suggestion', func
     $token = signInIdentityByApi($this);
     $expense = createClassifiableExpense(userId: $userId, token: $token);
     ExpenseClassificationAgent::fake([['category' => 'food']]);
+    $observabilityPort = $this->createMock(ObservabilityPort::class);
+    $observabilityPort->expects($this->once())->method('emit')->with('expense.classified', [
+        'expense_id' => $expense->id,
+        'user_id' => $userId,
+        'category' => ExpenseCategoryEnum::Food->value,
+    ]);
+    $this->app->instance(ObservabilityPort::class, $observabilityPort);
 
     (new ClassifyExpenseQueue(token: $expense->classification_token, expenseId: $expense->id, tries: 3, timeout: 15))
         ->handle(useCase: app(ClassifyExpenseUseCase::class));

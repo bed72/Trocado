@@ -10,13 +10,13 @@ post {
   auth: bearer
 }
 
-auth:bearer {
-  token: {{accessToken}}
-}
-
 headers {
   Accept: application/vnd.api+json
   Content-Type: application/vnd.api+json
+}
+
+auth:bearer {
+  token: {{accessToken}}
 }
 
 body:json {
@@ -25,7 +25,7 @@ body:json {
       "type": "expenses",
       "attributes": {
         "amount": 1250,
-        "occurred_on": "2026-09-20",
+        "occurred_on": "2026-09-26",
         "category": "transport",
         "description": "Ônibus"
       }
