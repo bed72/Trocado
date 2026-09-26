@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      APP_ENV: testing
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: trocado_testing
+      DB_USERNAME: postgres
+      DB_PASSWORD: lerd
+      CACHE_STORE: array
+      CACHE_LIMITER_STORE: array
+      QUEUE_CONNECTION: sync
+      SESSION_DRIVER: array
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: trocado_testing
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: lerd
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d trocado_testing"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: dom, mbstring, pdo_pgsql, pcntl
+          coverage: none
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Check PHP formatting
+        run: vendor/bin/pint --test
+
+      - name: Prepare test application
+        run: |
+          cp .env.example .env
+          php artisan key:generate --no-interaction
+          php artisan migrate --force --no-interaction
+
+      - name: Run tests
+        run: php artisan test --compact
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Build assets
+        run: |
+          npm ci
+          npm run build

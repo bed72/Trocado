@@ -1,0 +1,40 @@
+name: Deploy to Dokploy
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dokploy-production
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: verify
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      DOKPLOY_COMPOSE_ID: ${{ vars.DOKPLOY_COMPOSE_ID }}
+      DOKPLOY_API_KEY: ${{ secrets.DOKPLOY_API_KEY }}
+    steps:
+      - name: Check Dokploy configuration
+        run: |
+          if [ -z "$DOKPLOY_COMPOSE_ID" ] || [ -z "$DOKPLOY_API_KEY" ]; then
+            echo 'Configure DOKPLOY_COMPOSE_ID and DOKPLOY_API_KEY before deploying.'
+            exit 1
+          fi
+
+      - name: Request Dokploy Compose deployment
+        run: |
+          curl --fail-with-body --silent --show-error \
+            --request POST \
+            --url 'https://dokploy.cordato.cloud/api/compose.deploy' \
+            --header 'Content-Type: application/json' \
+            --header "x-api-key: $DOKPLOY_API_KEY" \
+            --data "{\"composeId\":\"$DOKPLOY_COMPOSE_ID\"}"
