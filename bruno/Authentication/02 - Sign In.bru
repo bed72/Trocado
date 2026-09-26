@@ -27,9 +27,14 @@ body:json {
   }
 }
 
+vars:pre-request {
+  authEmail: developer.bed@gmail.com
+  authPassword: C!c@dA3301
+}
+
 script:post-response {
   const token = res.body?.data?.attributes?.token;
-
+  
   if (res.status === 200 && typeof token === 'string' && token.length > 0) {
     bru.setVar('accessToken', token);
     bru.setVar('userId', res.body.data.relationships.user.data.id);
