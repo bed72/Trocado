@@ -14,7 +14,7 @@ WORKDIR /var/www/html
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends libpq-dev unzip git curl $PHPIZE_DEPS \
-    && docker-php-ext-install -j"$(nproc)" pdo_pgsql pcntl opcache \
+    && docker-php-ext-install -j"$(nproc)" pdo_pgsql pcntl \
     && pecl install redis \
     && docker-php-ext-enable redis \
     && a2enmod rewrite \
