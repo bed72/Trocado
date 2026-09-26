@@ -13,12 +13,14 @@ FROM php:8.5-apache-bookworm
 WORKDIR /var/www/html
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends libpq-dev libxml2-dev unzip git curl $PHPIZE_DEPS \
-    && docker-php-ext-install -j"$(nproc)" dom pdo_pgsql pcntl opcache \
+    && apt-get install -y --no-install-recommends libpq-dev unzip git curl $PHPIZE_DEPS \
+    && docker-php-ext-install -j"$(nproc)" pdo_pgsql pcntl opcache \
     && pecl install redis \
     && docker-php-ext-enable redis \
     && a2enmod rewrite \
     && rm -rf /var/lib/apt/lists/*
+
+RUN php -r 'if (! extension_loaded("dom")) { fwrite(STDERR, "The base PHP image must provide ext-dom.\n"); exit(1); }'
 
 COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
 COPY . .
