@@ -12,7 +12,7 @@ interface TransactionPort
      * @param  callable(): TResult  $operation
      * @return TResult
      */
-    public function execute(callable $operation): mixed;
+    public function commit(callable $operation): mixed;
 
     /** @param callable(): void $callback */
     public function afterCommit(callable $callback): void;

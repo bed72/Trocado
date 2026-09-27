@@ -33,7 +33,7 @@ final readonly class SignUpUseCase
         );
         $validPassword = PasswordValueObject::fromString(value: $password);
 
-        $registered = $this->transactionPort->execute(function () use ($user, $validPassword): UserEntity {
+        $registered = $this->transactionPort->commit(function () use ($user, $validPassword): UserEntity {
             $registered = $this->repository->create(user: $user, password: $validPassword->value());
             $registeredId = $registered->id
                 ?? throw new LogicException(message: 'O registro deve retornar uma identidade persistida.');

@@ -25,7 +25,7 @@ final readonly class DeleteUserUseCase
             throw new UserNotFoundException;
         }
 
-        $this->transactionPort->execute(function () use ($id): void {
+        $this->transactionPort->commit(function () use ($id): void {
             if (! $this->repository->delete(id: $id)) {
                 throw new UserNotFoundException;
             }

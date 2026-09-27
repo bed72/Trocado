@@ -1,7 +1,7 @@
 ## 1. Contratos e fluxo de Identity
 
 - [x] 1.1 Substituir `IdentityRepository` por `UserRepository` e incluir criação autenticável com password sensível, retorno `UserEntity` e tipos independentes do ORM.
-- [x] 1.2 Fazer `SignUpUseCase` usar `UserRepository::create` dentro de `TransactionPort::execute`; remover `CreatePort` da Application.
+- [x] 1.2 Fazer `SignUpUseCase` usar `UserRepository::create` dentro de `TransactionPort::commit`; remover `CreatePort` da Application.
 - [x] 1.3 Atualizar os demais UseCases de consulta, atualização e exclusão para o novo contrato, preservando a transação de exclusão.
 
 ## 2. Infrastructure

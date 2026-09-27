@@ -29,7 +29,7 @@ O fato de o Repository receber a senha transitória não faz dela estado de `Use
 
 ### SignUp mantém a unidade de trabalho
 
-`SignUpUseCase` valida `UserEntity` e `PasswordValueObject` e executa `UserRepository::create` dentro de `TransactionPort::execute`. Somente SignUp chama essa criação na Application atual. O registro continua sem login ou emissão implícita de token e mantém os mesmos erros públicos para e-mail duplicado e falhas.
+`SignUpUseCase` valida `UserEntity` e `PasswordValueObject` e executa `UserRepository::create` dentro de `TransactionPort::commit`. Somente SignUp chama essa criação na Application atual. O registro continua sem login ou emissão implícita de token e mantém os mesmos erros públicos para e-mail duplicado e falhas.
 
 ### Ports representam capacidades distintas
 

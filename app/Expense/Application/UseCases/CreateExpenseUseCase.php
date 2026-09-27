@@ -28,7 +28,7 @@ final readonly class CreateExpenseUseCase
 
     public function execute(CreateExpenseInput $input): ExpenseEntity
     {
-        return $this->transactionPort->execute(function () use ($input): ExpenseEntity {
+        return $this->transactionPort->commit(function () use ($input): ExpenseEntity {
             $expense = $this->expenseRepository->create(expense: new ExpenseEntity(
                 id: null,
                 amount: $input->amount,

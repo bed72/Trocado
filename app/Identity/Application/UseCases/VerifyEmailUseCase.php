@@ -13,7 +13,7 @@ final readonly class VerifyEmailUseCase
 
     public function execute(int $userId, string $hash): bool
     {
-        return $this->transactionPort->execute(
+        return $this->transactionPort->commit(
             fn (): bool => $this->port->verify(userId: $userId, hash: $hash),
         );
     }

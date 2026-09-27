@@ -121,7 +121,7 @@ it('discards the verification callback from a transaction attempt rolled back af
     {
         public function __construct(private int &$attempts) {}
 
-        public function execute(callable $operation): mixed
+        public function commit(callable $operation): mixed
         {
             return DB::transaction(function () use ($operation): mixed {
                 $result = $operation();

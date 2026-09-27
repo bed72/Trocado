@@ -14,7 +14,7 @@ final class TransactionAdapter implements TransactionPort
         DB::afterCommit($callback);
     }
 
-    public function execute(callable $operation): mixed
+    public function commit(callable $operation): mixed
     {
         return DB::transaction(callback: $operation, attempts: 3);
     }

@@ -5,12 +5,12 @@ Core Application MUST declarar `TransactionPort` para coordenação transacional
 
 #### Scenario: Coordenação transacional
 - **WHEN** um UseCase precisa confirmar passos relacionados atomicamente
-- **THEN** ele define a operação completa em `TransactionPort::execute`
+- **THEN** ele define a operação completa em `TransactionPort::commit`
 - **AND** o Adapter limita-se a transação, retry e propagação do resultado
 
 #### Scenario: Registro pertence ao Repository
 - **WHEN** `SignUpUseCase` registra uma nova conta
-- **THEN** ele usa `UserRepository::create` dentro de `TransactionPort::execute`
+- **THEN** ele usa `UserRepository::create` dentro de `TransactionPort::commit`
 - **AND** `CreatePort` e `RegistrationAdapter` não participam da criação
 
 #### Scenario: Emissão de token
