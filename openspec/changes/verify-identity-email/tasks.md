@@ -21,8 +21,8 @@
 
 ## 4. Testes e verificação da futura implementação
 
-- [ ] 4.1 Testes de SignUp e Repository: pending/null, hash de password, `201`/`Location`/relacionamento, nenhum token, um envio pós-commit, nenhum no rollback/retry/conflito. Rollback e conflito estão cobertos; falta demonstrar retry real.
-- [ ] 4.2 Testes da notification/queue: `ShouldQueue`, Redis/worker, assinatura e expiração, transporte local isolado, falha/retry e supressão de envio obsoleto após alteração externa/exclusão. Job simulado e expiração cobertos; faltam falha/retry e consumo pelo worker real.
+- [x] 4.1 Testes de SignUp e Repository: pending/null, hash de password, `201`/`Location`/relacionamento, nenhum token, um envio pós-commit, nenhum no rollback/retry/conflito. Retry de `DB::transaction` exercitado com erro de concorrência simulado após registrar o callback; não simula duas transações concorrentes reais.
+- [x] 4.2 Testes da notification/queue: `ShouldQueue`, Redis/worker, assinatura e expiração, transporte local isolado, falha/retry e supressão de envio obsoleto após alteração externa/exclusão. Worker Redis exercitado em fila isolada com mailer `array` e falha temporária simulada.
 - [x] 4.3 Testes HTTP de confirmação: pending/blocked mantêm status; link válido e repetido; ID/hash errados, URL adulterada/expirada; evento `Verified` uma vez após commit; rollback sem evento; nenhum token; respostas JSON:API.
 - [x] 4.4 Testes de SignIn e rotas protegidas: credencial errada preserva `401`, active/null recebe falha sem token, verified/pending continua proibido, verified/active recebe token; token antigo sem verificação é negado em User e Expense.
 - [x] 4.5 Testes de PATCH: e-mail diferente ou equivalente recebe `422` e preserva User/verificação/tokens; edição só de nome mantém tokens; terceiro recebe `404`; Repository não persiste e-mail em update.

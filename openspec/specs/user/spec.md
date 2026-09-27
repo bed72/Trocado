@@ -179,8 +179,8 @@ O sistema MUST expor consulta, atualização e exclusão de User em `/api/users/
 - **THEN** responde `204` sem conteúdo
 
 #### Scenario: Erros HTTP
-- **WHEN** a API recebe dados inválidos, e-mail duplicado ou identificador inexistente
-- **THEN** responde em JSON:API respectivamente com `422`, `409` ou `404`
+- **WHEN** a API recebe dados inválidos ou identificador inexistente
+- **THEN** responde em JSON:API respectivamente com `422` ou `404`
 
 #### Scenario: Conta de outra pessoa
 - **WHEN** um token válido da conta A solicita GET, PATCH ou DELETE `/api/users/{user}` com o ID da conta B

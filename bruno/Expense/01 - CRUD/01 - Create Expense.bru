@@ -34,7 +34,7 @@ body:json {
 
 script:post-response {
   const expenseId = res.body?.data?.id;
-  
+
   if (res.status === 201 && typeof expenseId === 'string' && expenseId.length > 0) {
     bru.setVar('expenseId', expenseId);
   }

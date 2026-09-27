@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Core\Application\Ports\TransactionPort;
 use App\Identity\Application\UseCases\SignUpUseCase;
 use App\Identity\Application\UseCases\VerifyEmailUseCase;
 use App\Identity\Domain\Entities\UserEntity;
@@ -14,14 +15,18 @@ use App\Identity\Infrastructure\Repositories\Persistence\Models\UserModel;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\DeadlockException;
+use Illuminate\Mail\Events\MessageSending;
+use Illuminate\Mail\Transport\ArrayTransport;
 use Illuminate\Notifications\ChannelManager;
 use Illuminate\Notifications\Events\NotificationSent;
 use Illuminate\Notifications\Events\NotificationSkipped;
 use Illuminate\Notifications\SendQueuedNotifications;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\URL;
@@ -108,6 +113,41 @@ it('retries a transient concurrency error during registration without duplicatin
     Notification::assertSentTo(UserModel::query()->findOrFail($userId), VerifyEmailNotification::class, 1);
 });
 
+it('discards the verification callback from a transaction attempt rolled back after registration', function (): void {
+    Notification::fake();
+    $attempts = 0;
+
+    $this->app->instance(TransactionPort::class, new class($attempts) implements TransactionPort
+    {
+        public function __construct(private int &$attempts) {}
+
+        public function execute(callable $operation): mixed
+        {
+            return DB::transaction(function () use ($operation): mixed {
+                $result = $operation();
+                $this->attempts++;
+
+                if ($this->attempts === 1) {
+                    throw new DeadlockException('deadlock detected after callback registration');
+                }
+
+                return $result;
+            }, attempts: 3);
+        }
+
+        public function afterCommit(callable $callback): void
+        {
+            DB::afterCommit($callback);
+        }
+    });
+
+    $userId = app(SignUpUseCase::class)->execute('Maria', 'maria@example.com', 'Correct1');
+
+    expect($attempts)->toBe(2)
+        ->and(UserModel::query()->where('email', 'maria@example.com')->count())->toBe(1);
+    Notification::assertSentTo(UserModel::query()->findOrFail($userId), VerifyEmailNotification::class, 1);
+});
+
 it('does not retry or expose unrelated persistence errors', function (): void {
     Notification::fake();
     $attempts = 0;
@@ -170,6 +210,82 @@ it('delivers a signed expiring verification link when the queued job is processe
     $this->travel(61)->minutes();
     $this->getJson($url)->assertForbidden();
     expect($user->refresh()->email_verified_at)->toBeNull();
+});
+
+it('delivers verification through the real Redis worker and retries a temporary mail failure', function (): void {
+    $queue = 'identity-verification-test-'.bin2hex(random_bytes(8));
+    config()->set('queue.default', 'redis');
+    config()->set('queue.connections.redis.queue', $queue);
+    config()->set('database.redis.default.host', 'lerd-redis');
+    $transport = Mail::mailer('array')->getSymfonyTransport();
+    expect($transport)->toBeInstanceOf(ArrayTransport::class);
+
+    $attempts = 0;
+    Event::listen(MessageSending::class, function () use (&$attempts): void {
+        $attempts++;
+
+        if ($attempts === 1) {
+            throw new RuntimeException('Temporary mail failure.');
+        }
+    });
+
+    $response = $this->postJson(route('authentication.api.sign-up'), [
+        'data' => ['type' => 'sign-ups', 'attributes' => [
+            'name' => 'Maria',
+            'email' => 'maria@example.com',
+            'password' => 'Correct1',
+            'password_confirmation' => 'Correct1',
+        ]],
+    ])->assertCreated();
+
+    $user = UserModel::query()->findOrFail($response->json('data.relationships.user.data.id'));
+    expect($transport->messages())->toHaveCount(0)
+        ->and(Queue::connection('redis')->size($queue))->toBe(1);
+
+    Artisan::call('queue:work', ['connection' => 'redis', '--queue' => $queue, '--once' => true, '--tries' => 3, '--backoff' => 0]);
+
+    expect($attempts)->toBe(1)
+        ->and($transport->messages())->toHaveCount(0)
+        ->and(Queue::connection('redis')->size($queue))->toBe(1)
+        ->and($user->fresh()->email_verified_at)->toBeNull();
+
+    Artisan::call('queue:work', ['connection' => 'redis', '--queue' => $queue, '--once' => true, '--tries' => 3, '--backoff' => 0]);
+
+    expect($attempts)->toBe(2)
+        ->and($transport->messages())->toHaveCount(1)
+        ->and(Queue::connection('redis')->size($queue))->toBe(0)
+        ->and($user->fresh()->status)->toBe(UserStatusEnum::Pending);
+
+    $message = $transport->messages()->sole();
+    expect($message->getEnvelope()->getRecipients()[0]->getAddress())->toBe('maria@example.com')
+        ->and($message->getOriginalMessage()->toString())->toContain('email-verification/', 'signature=', 'expires=');
+
+    $changed = UserModel::query()->create([
+        'name' => 'Ana',
+        'email' => 'old@example.com',
+        'password' => 'Correct1',
+    ]);
+    $changed->sendEmailVerificationNotification();
+    $changed->update(['email' => 'new@example.com']);
+
+    Artisan::call('queue:work', ['connection' => 'redis', '--queue' => $queue, '--once' => true]);
+
+    expect($transport->messages())->toHaveCount(1)
+        ->and(Queue::connection('redis')->size($queue))->toBe(0)
+        ->and($changed->fresh()->email_verified_at)->toBeNull();
+
+    $deleted = UserModel::query()->create([
+        'name' => 'Bruna',
+        'email' => 'removed@example.com',
+        'password' => 'Correct1',
+    ]);
+    $deleted->sendEmailVerificationNotification();
+    $deleted->delete();
+
+    Artisan::call('queue:work', ['connection' => 'redis', '--queue' => $queue, '--once' => true]);
+
+    expect($transport->messages())->toHaveCount(1)
+        ->and(Queue::connection('redis')->size($queue))->toBe(0);
 });
 
 it('verifies an email through a public signed link without activating the account', function (): void {
