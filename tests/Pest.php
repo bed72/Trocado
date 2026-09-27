@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Identity\Domain\Enums\UserStatusEnum;
 use App\Identity\Infrastructure\Repositories\Persistence\Models\UserModel;
+use Illuminate\Support\Facades\Notification;
 use Tests\FeatureTestCase;
 use Tests\TestCase;
 
@@ -15,6 +16,8 @@ function signUpIdentityByApi(
     string $password = 'Correct1',
     string $email = 'maria@example.com',
 ): int {
+    Notification::fake();
+
     $response = $test->postJson(route('authentication.api.sign-up'), [
         'data' => [
             'type' => 'sign-ups',
@@ -28,7 +31,10 @@ function signUpIdentityByApi(
     ])->assertCreated();
 
     $userId = (int) $response->json('data.relationships.user.data.id');
-    UserModel::query()->whereKey($userId)->update(['status' => UserStatusEnum::Active->value]);
+    UserModel::query()->whereKey($userId)->update([
+        'status' => UserStatusEnum::Active->value,
+        'email_verified_at' => now(),
+    ]);
 
     return $userId;
 }

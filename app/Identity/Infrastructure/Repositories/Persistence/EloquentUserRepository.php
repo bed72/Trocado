@@ -13,6 +13,7 @@ use App\Identity\Domain\ValueObjects\NameValueObject;
 use App\Identity\Infrastructure\Repositories\Persistence\Models\UserModel;
 use DateTimeImmutable;
 use DateTimeInterface;
+use Illuminate\Contracts\Database\ConcurrencyErrorDetector;
 use Illuminate\Database\UniqueConstraintViolationException;
 use InvalidArgumentException;
 use RuntimeException;
@@ -24,6 +25,8 @@ use function is_string;
 
 final class EloquentUserRepository implements UserRepository
 {
+    public function __construct(private readonly ConcurrencyErrorDetector $detector) {}
+
     public function create(UserEntity $user, #[SensitiveParameter] string $password): UserEntity
     {
         if ($user->id !== null) {
@@ -43,7 +46,11 @@ final class EloquentUserRepository implements UserRepository
             ]);
         } catch (UniqueConstraintViolationException) {
             throw new EmailAlreadyUsedException;
-        } catch (Throwable) {
+        } catch (Throwable $exception) {
+            if ($this->detector->causedByConcurrencyError($exception)) {
+                throw $exception;
+            }
+
             throw new RuntimeException(message: 'Não foi possível persistir a nova conta.');
         }
 
@@ -62,14 +69,7 @@ final class EloquentUserRepository implements UserRepository
             return null;
         }
 
-        try {
-            $model->fill([
-                'name' => $user->name->value(),
-                'email' => $user->email->value(),
-            ])->save();
-        } catch (UniqueConstraintViolationException) {
-            throw new EmailAlreadyUsedException;
-        }
+        $model->fill(['name' => $user->name->value()])->save();
 
         return $this->toEntity(model: $model);
     }

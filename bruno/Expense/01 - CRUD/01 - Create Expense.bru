@@ -24,10 +24,9 @@ body:json {
     "data": {
       "type": "expenses",
       "attributes": {
-        "amount": 1250,
+        "amount": 7200,
         "occurred_on": "2026-09-26",
-        "category": "transport",
-        "description": "Ônibus"
+        "description": "Padaria"
       }
     }
   }
@@ -35,7 +34,7 @@ body:json {
 
 script:post-response {
   const expenseId = res.body?.data?.id;
-
+  
   if (res.status === 201 && typeof expenseId === 'string' && expenseId.length > 0) {
     bru.setVar('expenseId', expenseId);
   }

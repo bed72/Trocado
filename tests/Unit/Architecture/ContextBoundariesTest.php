@@ -191,6 +191,7 @@ foreach ($contexts as $context) {
 
         if ($context === 'Identity') {
             $infrastructureDependencies[] = 'Laravel\\Sanctum';
+            $infrastructureDependencies[] = 'App\\Core\\Application\\Ports\\ObservabilityPort';
         }
 
         if ($context === 'Core') {

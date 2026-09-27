@@ -32,3 +32,4 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 .env.lerd_override
+.env.before_lerd

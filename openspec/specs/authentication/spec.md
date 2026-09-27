@@ -277,15 +277,20 @@ O sistema MUST limitar `POST /api/authentication/sign-in` a 5 requisições por 
 - **AND** tentativas de SignUp não consomem a cota de SignIn
 
 ### Requirement: SignUp público limita cadastros por origem
-O sistema MUST limitar `POST /api/authentication/sign-up` a 3 requisições por hora por IP, contando requisições admitidas independentemente de resultarem em cadastro, erro de validação ou conflito de e-mail. O limite MUST ser independente dos limites de SignIn.
+O sistema MUST limitar `POST /api/authentication/sign-up` por IP e por hora usando o rate limiter nativo configurado pelo ambiente, com padrão de 3 requisições por hora quando não houver override. O ambiente local MAY definir uma cota maior em `IDENTITY_SIGN_UP_PER_HOUR`, sem desabilitar o limiter ou modificar a cota padrão de produção. Requisições admitidas MUST ser contabilizadas independentemente de resultarem em cadastro, erro de validação ou conflito de e-mail. O limite MUST ser independente dos limites de SignIn.
 
 #### Scenario: Cadastros sucessivos pela mesma origem
-- **WHEN** um IP envia 3 requisições de SignUp dentro de uma hora
+- **WHEN** um IP envia 3 requisições de SignUp dentro de uma hora sem override da cota padrão
 - **THEN** a quarta requisição desse IP recebe `429` antes de validar ou criar User
 
 #### Scenario: Origem distinta
 - **WHEN** outro IP envia SignUp dentro de sua própria cota
 - **THEN** o esgotamento da cota do primeiro IP não impede essa requisição
+
+#### Scenario: Cota configurada no ambiente local
+- **WHEN** o ambiente local configura `IDENTITY_SIGN_UP_PER_HOUR=100`
+- **THEN** a centésima requisição do mesmo IP dentro de uma hora é admitida
+- **AND** a seguinte recebe `429` sem afetar o padrão de 3/h de ambientes sem override
 
 ### Requirement: Esgotamento de limite de Authentication responde com erro seguro
 O sistema MUST responder ao esgotamento de qualquer limite público de Authentication com `429`, `Content-Type: application/vnd.api+json`, um erro JSON:API com título, detalhe e status textual `429`, e header `Retry-After`. A resposta MUST NOT revelar a existência de User, a senha, o token ou o e-mail informado. Requisições dentro da cota MUST preservar os contratos existentes de SignIn e SignUp.
@@ -302,4 +307,3 @@ O sistema MUST responder ao esgotamento de qualquer limite público de Authentic
 #### Scenario: Reabertura após a janela
 - **WHEN** o tempo de espera indicado para o limite esgotado termina e não há novo consumo da cota
 - **THEN** uma nova requisição da mesma origem pode ser processada novamente
-

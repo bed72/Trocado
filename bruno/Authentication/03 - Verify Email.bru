@@ -1,0 +1,15 @@
+meta {
+  name: Verify Email
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{verificationUrl}}
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/vnd.api+json
+}

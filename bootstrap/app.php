@@ -7,6 +7,7 @@ use App\Expense\Domain\Exceptions\InvalidExpenseException;
 use App\Identity\Application\Exceptions\EmailAlreadyUsedException;
 use App\Identity\Application\Exceptions\InactiveUserException;
 use App\Identity\Application\Exceptions\InvalidCredentialsException;
+use App\Identity\Application\Exceptions\UnverifiedEmailException;
 use App\Identity\Application\Exceptions\UserNotFoundException;
 use App\Identity\Domain\Enums\UserStatusEnum;
 use App\Identity\Domain\Exceptions\InvalidEmailException;
@@ -50,6 +51,7 @@ return Application::configure(basePath: dirname(__DIR__))
             InvalidPasswordException::class,
             EmailAlreadyUsedException::class,
             InvalidCredentialsException::class,
+            UnverifiedEmailException::class,
         ]);
 
         $exceptions->shouldRenderJsonWhen(
@@ -61,6 +63,13 @@ return Application::configure(basePath: dirname(__DIR__))
             'detail' => $exception->getMessage(),
             'status' => (string) Response::HTTP_UNAUTHORIZED,
         ]]], Response::HTTP_UNAUTHORIZED)->header('Content-Type', 'application/vnd.api+json')
+        );
+
+        $exceptions->render(fn (UnverifiedEmailException $exception) => response()->json(['errors' => [[
+            'title' => 'E-mail não confirmado',
+            'detail' => $exception->getMessage(),
+            'status' => (string) Response::HTTP_FORBIDDEN,
+        ]]], Response::HTTP_FORBIDDEN)->header('Content-Type', 'application/vnd.api+json')
         );
 
         $exceptions->render(function (InactiveUserException $exception) {

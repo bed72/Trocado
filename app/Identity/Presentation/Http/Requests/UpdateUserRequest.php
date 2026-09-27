@@ -22,10 +22,9 @@ final class UpdateUserRequest extends FormRequest
         return [
             'data.type' => ['required', 'in:users'],
             'data' => ['required', 'array:type,id,attributes'],
-            'data.attributes' => ['required', 'array:name,email', 'min:1'],
+            'data.attributes' => ['required', 'array:name', 'min:1'],
             'data.attributes.name' => [
                 'bail',
-                'sometimes',
                 'required',
                 'string',
                 static function (string $attribute, mixed $value, Closure $fail): void {
@@ -36,7 +35,7 @@ final class UpdateUserRequest extends FormRequest
                     }
                 },
             ],
-            'data.attributes.email' => ['sometimes', 'required', 'string', 'email', 'max:255'],
+            'data.attributes.email' => ['prohibited'],
             'data.id' => ['required', 'string', Rule::in(values: [(string) $this->route(param: 'user')])],
         ];
     }

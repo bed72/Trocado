@@ -6,6 +6,7 @@ namespace App\Identity\Application\UseCases;
 
 use App\Core\Application\Ports\ObservabilityPort;
 use App\Core\Application\Ports\TransactionPort;
+use App\Identity\Application\Ports\EmailVerificationPort;
 use App\Identity\Application\Repositories\UserRepository;
 use App\Identity\Domain\Entities\UserEntity;
 use App\Identity\Domain\ValueObjects\EmailValueObject;
@@ -17,9 +18,10 @@ use SensitiveParameter;
 final readonly class SignUpUseCase
 {
     public function __construct(
-        private UserRepository $repository,
         private TransactionPort $transactionPort,
+        private EmailVerificationPort $emailPort,
         private ObservabilityPort $observabilityPort,
+        private UserRepository $repository,
     ) {}
 
     public function execute(string $name, string $email, #[SensitiveParameter] string $password): int
@@ -39,6 +41,10 @@ final readonly class SignUpUseCase
             $this->transactionPort->afterCommit(fn () => $this->observabilityPort->emit('user.registered', [
                 'user_id' => $registeredId,
             ]));
+
+            $this->transactionPort->afterCommit(
+                fn () => $this->emailPort->requestForRegistration(userId: $registeredId),
+            );
 
             return $registered;
         });

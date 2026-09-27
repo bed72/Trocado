@@ -1,7 +1,7 @@
 meta {
   name: Sign In
   type: http
-  seq: 2
+  seq: 4
 }
 
 post {
@@ -25,11 +25,6 @@ body:json {
       }
     }
   }
-}
-
-vars:pre-request {
-  authEmail: developer.bed@gmail.com
-  authPassword: C!c@dA3301
 }
 
 script:post-response {

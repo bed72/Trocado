@@ -94,27 +94,20 @@ O sistema MUST permitir consultar User por identificador e por e-mail canônico 
 - **THEN** o caso de uso produz uma exceção explícita de User não encontrado
 
 ### Requirement: Atualização parcial de User
-O sistema MUST permitir atualizar nome e/ou e-mail de um User existente, MUST preservar atributos omitidos e MUST reaplicar normalização, invariantes e unicidade de e-mail. A operação MUST usar `UserRepository::update` e MUST retornar a entidade persistida atualizada.
+O sistema MUST permitir atualizar somente o nome de um User existente pelo `UserRepository::update`, MUST preservar e-mail, status, verificação e tokens, MUST reaplicar normalização e invariantes do nome e MUST retornar a entidade persistida atualizada. O e-mail não é editável por este endpoint nesta etapa.
 
 #### Scenario: Atualização de nome
-- **WHEN** somente um novo nome válido é informado
+- **WHEN** um novo nome válido é informado
 - **THEN** o nome canônico é atualizado
-- **AND** o e-mail existente é preservado
+- **AND** o e-mail existente, a verificação e os tokens são preservados
 
-#### Scenario: Atualização de e-mail
-- **WHEN** um novo e-mail ainda não utilizado é informado
-- **THEN** o e-mail canônico é atualizado
-- **AND** o nome existente é preservado
+#### Scenario: E-mail enviado
+- **WHEN** a requisição tenta atualizar ou reenviar o e-mail existente
+- **THEN** responde `422` JSON:API e nenhuma atualização ou revogação é executada
 
-#### Scenario: Manutenção do próprio e-mail
-- **WHEN** o User é atualizado com outra representação do seu próprio e-mail canônico
-- **THEN** a atualização é permitida
-- **AND** nenhum conflito de unicidade é produzido
-
-#### Scenario: E-mail de outro User
-- **WHEN** a atualização tenta usar o e-mail canônico de outro User
-- **THEN** a atualização é rejeitada como e-mail já utilizado
-- **AND** o User permanece inalterado
+#### Scenario: Nome inválido
+- **WHEN** o nome informado viola as regras de `NameValueObject`
+- **THEN** a atualização é rejeitada sem alterar a conta
 
 #### Scenario: Atualização de User inexistente
 - **WHEN** se tenta atualizar um identificador inexistente

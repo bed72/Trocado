@@ -14,9 +14,9 @@ final readonly class DeleteUserUseCase
 {
     public function __construct(
         private UserPort $userPort,
-        private UserRepository $repository,
         private TransactionPort $transactionPort,
         private ObservabilityPort $observabilityPort,
+        private UserRepository $repository,
     ) {}
 
     public function execute(int $id): void

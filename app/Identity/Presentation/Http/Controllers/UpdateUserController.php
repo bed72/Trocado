@@ -18,8 +18,7 @@ final class UpdateUserController
 
         return new UserResponse(resource: $this->useCase->execute(
             id: $id,
-            name: $attributes['name'] ?? null,
-            email: $attributes['email'] ?? null,
+            name: $attributes['name'],
         ));
     }
 }

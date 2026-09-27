@@ -16,9 +16,9 @@ final readonly class UpdateExpenseUseCase
 {
     public function __construct(
         private UserPort $userPort,
-        private ExpenseRepository $repository,
         private TransactionPort $transactionPort,
         private ObservabilityPort $observabilityPort,
+        private ExpenseRepository $repository,
     ) {}
 
     public function execute(int $id, UpdateExpenseInput $input): ExpenseEntity

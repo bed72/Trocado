@@ -7,6 +7,7 @@ namespace App\Identity\Infrastructure\Adapters;
 use App\Identity\Application\Data\SignInOutput;
 use App\Identity\Application\Exceptions\InactiveUserException;
 use App\Identity\Application\Exceptions\InvalidCredentialsException;
+use App\Identity\Application\Exceptions\UnverifiedEmailException;
 use App\Identity\Application\Ports\SignInPort;
 use App\Identity\Domain\Enums\UserStatusEnum;
 use App\Identity\Domain\Exceptions\InvalidEmailException;
@@ -55,6 +56,10 @@ final readonly class SignInAdapter implements SignInPort
                 throw new InactiveUserException(status: $user->status);
             }
 
+            if (! $user->hasVerifiedEmail()) {
+                throw new UnverifiedEmailException;
+            }
+
             $provider->rehashPasswordIfRequired(user: $user, credentials: $credentials);
 
             $expiresAt = DateTimeImmutable::createFromInterface(
@@ -66,6 +71,8 @@ final readonly class SignInAdapter implements SignInPort
         } catch (InvalidCredentialsException) {
             throw new InvalidCredentialsException;
         } catch (InactiveUserException $exception) {
+            throw $exception;
+        } catch (UnverifiedEmailException $exception) {
             throw $exception;
         } catch (Throwable) {
             throw new RuntimeException(message: 'Não foi possível concluir a autenticação.');

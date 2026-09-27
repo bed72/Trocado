@@ -15,8 +15,8 @@ final readonly class ClassifyExpenseUseCase
     public function __construct(
         private TransactionPort $transactionPort,
         private ObservabilityPort $observabilityPort,
-        private ExpenseCategorizationRepository $repository,
         private ExpenseClassificationPort $classificationPort,
+        private ExpenseCategorizationRepository $repository,
     ) {}
 
     public function execute(int $expenseId, string $token): void
