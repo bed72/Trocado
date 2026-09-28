@@ -17,7 +17,7 @@ RUN apt-get update \
     && docker-php-ext-install -j"$(nproc)" pdo_pgsql pcntl \
     && pecl install redis \
     && docker-php-ext-enable redis \
-    && a2enmod rewrite \
+    && a2enmod rewrite deflate filter \
     && rm -rf /var/lib/apt/lists/*
 
 RUN php -r 'if (! extension_loaded("dom")) { fwrite(STDERR, "The base PHP image must provide ext-dom.\n"); exit(1); }'
@@ -26,6 +26,10 @@ COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
 COPY . .
 COPY --from=assets /app/public/build ./public/build
 COPY deploy/apache.conf /etc/apache2/sites-available/000-default.conf
+COPY deploy/apache-global.conf /etc/apache2/conf-available/trocado.conf
+COPY deploy/php.ini /usr/local/etc/php/conf.d/trocado.ini
+
+RUN a2enconf trocado && apache2ctl -t
 
 RUN mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
     && composer install --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader \

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Expense\Infrastructure\Repositories\Persistence\Models\ExpenseModel;
 use App\Identity\Infrastructure\Repositories\Persistence\Models\UserModel;
+use Illuminate\Support\Facades\DB;
 
 use function Pest\Laravel\withToken;
 
@@ -97,7 +98,7 @@ it('deletes expenses for the authenticated user only', function (): void {
     withToken($firstToken)->deleteJson(route('expenses.delete', ['expense' => $firstExpense->getKey()]))
         ->assertNoContent();
 
-    expect(ExpenseModel::query()->whereKey($firstExpense->getKey())->exists())->toBeFalse()
+    expect(DB::table('expenses')->where('id', $firstExpense->getKey())->exists())->toBeFalse()
         ->and(ExpenseModel::query()->whereKey($secondExpense->getKey())->exists())->toBeTrue();
 });
 
@@ -169,5 +170,5 @@ it('keeps the expenses foreign key and cascade without Eloquent cross-context re
 
     $user->delete();
 
-    expect(ExpenseModel::withTrashed()->whereKey($expense->getKey())->exists())->toBeFalse();
+    expect(DB::table('expenses')->where('id', $expense->getKey())->exists())->toBeFalse();
 });

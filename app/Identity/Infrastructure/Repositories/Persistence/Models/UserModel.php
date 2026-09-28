@@ -42,9 +42,9 @@ final class UserModel extends Authenticatable implements MustVerifyEmail
         return [
             'password' => 'hashed',
             'status' => UserStatusEnum::class,
+            'email_verified_at' => 'immutable_datetime',
             'created_at' => 'immutable_datetime',
             'updated_at' => 'immutable_datetime',
-            'email_verified_at' => 'immutable_datetime',
         ];
     }
 }

@@ -114,7 +114,7 @@ O sistema MUST permitir atualizar somente o nome de um User existente pelo `User
 - **THEN** o caso de uso produz uma exceção explícita de User não encontrado
 
 ### Requirement: Exclusão de User
-O sistema MUST excluir uma conta existente dentro de `Core` `TransactionPort`, MUST remover todos os seus Personal Access Tokens antes de remover `users` por `UserRepository::delete` e MUST reverter ambos diante de falha. A exclusão definitiva do User MUST remover também todas as suas despesas, inclusive as que possuírem `deleted_at` preenchido, na mesma transação. Uma identidade inexistente MUST produzir a mesma falha explícita de User não encontrado.
+O sistema MUST excluir uma conta existente dentro de `Core` `TransactionPort`, MUST remover todos os seus Personal Access Tokens antes de remover `users` por `UserRepository::delete` e MUST reverter ambos diante de falha. A exclusão definitiva do User MUST remover também todas as suas despesas na mesma transação. Uma identidade inexistente MUST produzir a mesma falha explícita de User não encontrado.
 
 #### Scenario: Exclusão bem-sucedida
 - **WHEN** uma conta existente com múltiplos tokens é excluída
@@ -122,7 +122,7 @@ O sistema MUST excluir uma conta existente dentro de `Core` `TransactionPort`, M
 - **AND** consultas e autenticação posteriores não a encontram
 
 #### Scenario: Exclusão com despesas
-- **WHEN** uma conta com despesas ativas e logicamente excluídas é removida
+- **WHEN** uma conta com despesas é removida
 - **THEN** todas as despesas dessa conta são removidas definitivamente na mesma transação
 - **AND** não restam despesas órfãs
 
@@ -217,7 +217,7 @@ O sistema MUST persistir identificador, nome, e-mail canônico, password hash e 
 - **AND** nenhum Personal Access Token é incluído automaticamente
 
 ### Requirement: Proteção de desenvolvimento contra N+1
-O sistema MUST impedir lazy loading do Eloquent fora de produção por meio de `IdentityServiceProvider`, tornando visível em desenvolvimento a principal fonte de queries N+1 relacionais. `UserModel` MUST declarar `expenses()` como relação `HasMany` pelo campo `expenses.user_id`; a exclusão lógica de Expense MUST ser respeitada pela relação. Consultas de múltiplos Users que acessem despesas MUST carregar a relação antecipadamente.
+O sistema MUST impedir lazy loading do Eloquent fora de produção por meio de `IdentityServiceProvider`, tornando visível em desenvolvimento a principal fonte de queries N+1 relacionais. `UserModel` MUST declarar `expenses()` como relação `HasMany` pelo campo `expenses.user_id`. Consultas de múltiplos Users que acessem despesas MUST carregar a relação antecipadamente.
 
 #### Scenario: Lazy loading em desenvolvimento
 - **WHEN** `IdentityServiceProvider` inicializa fora de produção

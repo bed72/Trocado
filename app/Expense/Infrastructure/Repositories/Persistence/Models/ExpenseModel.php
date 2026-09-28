@@ -8,7 +8,6 @@ use DateTimeImmutable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @property int $amount
@@ -25,17 +24,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 #[Fillable('user_id', 'amount', 'occurred_on', 'category', 'description', 'classification_token', 'classification_expires_at')]
 final class ExpenseModel extends Model
 {
-    use SoftDeletes;
-
     protected function casts(): array
     {
         return [
             'user_id' => 'integer',
             'amount' => 'integer',
+            'classification_expires_at' => 'immutable_datetime',
             'created_at' => 'immutable_datetime',
             'updated_at' => 'immutable_datetime',
-            'deleted_at' => 'immutable_datetime',
-            'classification_expires_at' => 'immutable_datetime',
         ];
     }
 }

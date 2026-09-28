@@ -1,7 +1,7 @@
 # expense Specification
 
 ## Purpose
-Definir a criação de despesas pertencentes ao User autenticado, com invariantes de valor, data e categoria, persistência com exclusão lógica e relacionamento Eloquent protegido contra N+1.
+Definir a criação de despesas pertencentes ao User autenticado, com invariantes de valor, data e categoria e exclusão definitiva individual.
 ## Requirements
 ### Requirement: Despesa pertence a uma identidade existente
 O sistema MUST permitir criar Expense somente para o User autenticado e existente em Identity. `user_id` MUST ser definido pela identidade autenticada e MUST NOT ser escolhido pelo cliente.
@@ -65,11 +65,11 @@ O sistema MUST aceitar somente `food`, `health`, `housing`, `leisure`, `shopping
 - **THEN** a criação é rejeitada sem persistência
 
 ### Requirement: Persistência e ciclo de vida inicial
-O sistema MUST persistir despesas em `expenses` com `id` como chave primária, `user_id` obrigatório como chave estrangeira para `users`, `amount` inteiro em centavos, `occurred_on` como data, `category` obrigatória, `description` anulável, `created_at` preenchido na criação e `deleted_at` inicialmente nulo. MUST manter um índice composto em (`user_id`, `occurred_on`) e preparar exclusão lógica individual por `deleted_at`, sem exigir edição ou exclusão individual nesta mudança.
+O sistema MUST persistir despesas em `expenses` com `id` como chave primária, `user_id` obrigatório como chave estrangeira para `users`, `amount` inteiro em centavos, `occurred_on` como data, `category` obrigatória, `description` anulável e `created_at` preenchido na criação. MUST manter um índice composto em (`user_id`, `occurred_on`), excluir definitivamente as despesas removidas individualmente e não usar `deleted_at`.
 
 #### Scenario: Despesa persistida
 - **WHEN** uma despesa válida é criada
-- **THEN** recebe identificador único, timestamp de criação e `deleted_at` nulo
+- **THEN** recebe identificador único e timestamp de criação
 - **AND** a referência ao User e os campos do gasto são persistidos
 
 #### Scenario: Consulta eficiente por proprietário e período
@@ -111,16 +111,16 @@ O sistema MUST disponibilizar `POST /api/expenses` autenticado com documento JSO
 - **AND** nenhuma despesa é criada ou enviada à classificação
 
 ### Requirement: Listagem de despesas restrita ao proprietário
-O sistema MUST disponibilizar `GET /api/expenses` somente a um User autenticado. A consulta MUST filtrar por `user_id` obtido da identidade autenticada antes de paginar, MUST omitir despesas com `deleted_at` preenchido e MUST NOT aceitar `user_id` fornecido pelo cliente para definir o proprietário. O UseCase MUST obter o identificador autenticado por `Expense\Application\Ports\UserPort` e entregá-lo explicitamente ao Repository; a Application MUST NOT depender de HTTP, autenticação Laravel ou Eloquent; o contrato de Repository MUST expor somente tipos independentes do ORM.
+O sistema MUST disponibilizar `GET /api/expenses` somente a um User autenticado. A consulta MUST filtrar por `user_id` obtido da identidade autenticada antes de paginar e MUST NOT aceitar `user_id` fornecido pelo cliente para definir o proprietário. Despesas excluídas definitivamente MUST NOT aparecer na listagem. O UseCase MUST obter o identificador autenticado por `Expense\Application\Ports\UserPort` e entregá-lo explicitamente ao Repository; a Application MUST NOT depender de HTTP, autenticação Laravel ou Eloquent; o contrato de Repository MUST expor somente tipos independentes do ORM.
 
 #### Scenario: Despesas da própria conta
 - **WHEN** uma conta autenticada possui despesas ativas e outras contas também possuem despesas
 - **THEN** `GET /api/expenses` retorna somente as despesas ativas da conta autenticada
 - **AND** os links de paginação não permitem acessar registros de outra conta
 
-#### Scenario: Despesas excluídas logicamente
-- **WHEN** a conta possui despesas ativas e despesas com `deleted_at` preenchido
-- **THEN** somente as despesas ativas aparecem na listagem e nas páginas seguintes
+#### Scenario: Despesas excluídas
+- **WHEN** uma conta exclui uma despesa individualmente
+- **THEN** o registro é removido definitivamente e não aparece na listagem nem nas páginas seguintes
 
 #### Scenario: Conta sem despesas
 - **WHEN** a conta autenticada não possui despesas ativas
@@ -273,4 +273,3 @@ O sistema MUST usar Redis como store padrão de cache da aplicação em operaç�
 #### Scenario: Testes isolados
 - **WHEN** a suíte automatizada usa o store de cache `array`
 - **THEN** exercita cache e invalidação sem exigir um servidor Redis
-
