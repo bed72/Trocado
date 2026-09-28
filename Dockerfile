@@ -15,10 +15,12 @@ WORKDIR /var/www/html
 RUN apt-get update \
     && apt-get install -y --no-install-recommends libpq-dev unzip git curl $PHPIZE_DEPS \
     && docker-php-ext-install -j"$(nproc)" pdo_pgsql pcntl \
-    && pecl install redis \
+    && curl --fail --show-error --silent --location --retry 5 --retry-all-errors --retry-delay 2 \
+        https://pecl.php.net/get/redis-6.3.0.tgz --output /tmp/redis-6.3.0.tgz \
+    && pecl install /tmp/redis-6.3.0.tgz \
     && docker-php-ext-enable redis \
     && a2enmod rewrite deflate filter \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* /tmp/redis-6.3.0.tgz
 
 RUN php -r 'if (! extension_loaded("dom")) { fwrite(STDERR, "The base PHP image must provide ext-dom.\n"); exit(1); }'
 
