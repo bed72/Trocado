@@ -216,7 +216,6 @@ it('delivers verification through the real Redis worker and retries a temporary 
     $queue = 'identity-verification-test-'.bin2hex(random_bytes(8));
     config()->set('queue.default', 'redis');
     config()->set('queue.connections.redis.queue', $queue);
-    config()->set('database.redis.default.host', 'lerd-redis');
     $transport = Mail::mailer('array')->getSymfonyTransport();
     expect($transport)->toBeInstanceOf(ArrayTransport::class);
 
