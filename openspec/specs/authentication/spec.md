@@ -62,14 +62,14 @@ O sistema MUST armazenar somente password hash adaptativo na coluna `users.passw
 - **AND** tokens ficam na tabela oficial `personal_access_tokens`
 
 ### Requirement: Senha válida e preservada
-O sistema MUST preservar exatamente a senha informada, MUST aceitar somente senhas entre 6 e 12 caracteres com ao menos uma letra maiúscula e um número e MUST confirmar a senha no `SignUp` HTTP.
+O sistema MUST preservar exatamente a senha informada, MUST aceitar somente senhas entre 6 e 32 caracteres, com até 72 bytes para evitar truncamento pelo bcrypt, ao menos uma letra maiúscula e um número, e MUST confirmar a senha no `SignUp` HTTP.
 
 #### Scenario: Senha válida com espaços
 - **WHEN** `SignUp` recebe senha confirmada dentro dos limites contendo espaços externos
 - **THEN** o valor exato é entregue ao hasher sem trim ou normalização
 
 #### Scenario: Senha fora dos limites
-- **WHEN** a senha possui menos de 6 caracteres, mais de 12 caracteres, nenhuma letra maiúscula ou nenhum número
+- **WHEN** a senha possui menos de 6 caracteres, mais de 32 caracteres, mais de 72 bytes, nenhuma letra maiúscula ou nenhum número
 - **THEN** responde `422`
 - **AND** nenhum User ou token é criado
 

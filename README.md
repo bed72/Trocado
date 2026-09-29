@@ -24,7 +24,7 @@ lerd env setup
 lerd artisan migrate
 ```
 
-`lerd db set postgres` provisiona `trocado` e `trocado_testing`; `lerd env setup` configura a conexão local em `.env`. O projeto não usa PostgreSQL Row Level Security nem role de runtime específica para isso. Rode migrations com a conexão normal do ambiente.
+`lerd db set postgres` provisiona `trocado` e `trocado_testing`; `lerd env setup` configura a conexão local em `.env`. No Lerd, defina `TRUSTED_PROXIES=*` no `.env` local para reconhecer o HTTPS do proxy. O projeto não usa PostgreSQL Row Level Security nem role de runtime específica para isso. Rode migrations com a conexão normal do ambiente.
 
 Para executar sem Lerd, copie `.env.example` para `.env`, configure `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME` e `DB_PASSWORD` localmente, crie os bancos PostgreSQL `trocado` e `trocado_testing`, gere a chave com `php artisan key:generate` e rode `php artisan migrate`. Configure `APP_URL` para a URL usada pelo servidor. Não inclua credenciais em arquivos versionados.
 
@@ -32,9 +32,13 @@ Os testes usam exclusivamente `trocado_testing` em PostgreSQL. Migre esse banco 
 
 ## Produção
 
-O Dokploy publica `docker-compose.yml`: o serviço `migrate` aplica as migrations antes de iniciar `web`, os workers `queue` e `expense-classification`, e `scheduler`. A imagem é construída com PHP 8.5 e os assets com Node 22. PostgreSQL e Redis são serviços separados, acessados pelos hosts internos do Dokploy; suas portas não precisam ser publicadas na internet.
+O Dokploy publica `docker-compose.yml`: o serviço `migrate` aplica as migrations antes de iniciar `web`, os workers `queue` e `expense-classification`, e `scheduler`. A imagem usa PHP 8.5 com Apache, atrás do Traefik; os assets são compilados com Node 22. A extensão PHP Redis é instalada a partir do arquivo da versão 6.3.0, com tentativas de download, sem consultar o catálogo do PECL. PostgreSQL e Redis são serviços separados, acessados pelos hosts internos do Dokploy; suas portas não precisam ser publicadas na internet.
 
 Configure os valores de produção na aba **Environment** do Compose, sem versionar `.env` nem credenciais: `APP_ENV=production`, `APP_DEBUG=false`, uma `APP_KEY` própria, `APP_URL` com HTTPS, `DB_*`, `REDIS_*`, `QUEUE_CONNECTION=redis`, `CACHE_STORE=redis` e `CACHE_LIMITER_STORE=redis`. Para usar a classificação automática, configure `EXPENSE_CLASSIFICATION_API_KEY` ou a credencial do provedor de IA selecionado. Confira o resultado do deploy nos logs do Dokploy e pelo endpoint `/up`; esse endpoint confirma o boot da aplicação, não substitui a verificação do banco, Redis e workers.
+
+Defina `TRUSTED_PROXIES` com o IP interno do Traefik na rede `dokploy-network`, em vez do fallback `*`: consulte o IP atual com `docker inspect -f '{{json .NetworkSettings.Networks}}' dokploy-traefik` e confirme nos logs de `web` que ele aparece como origem de uma requisição externa. Ao recriar o Traefik, confira novamente o IP. O proxy termina o HTTPS e encaminha a requisição ao Apache por HTTP; `APP_URL` com HTTPS e o proxy confiável permitem validar os links assinados de confirmação de e-mail. Após mudar essas configurações, solicite um novo link para testar.
+
+Para envio via Resend, configure `MAIL_MAILER=resend`, `RESEND_API_KEY`, `MAIL_FROM_NAME` e `MAIL_FROM_ADDRESS` na aba **Environment**. O domínio de `MAIL_FROM_ADDRESS` precisa estar verificado na conta Resend da chave usada; não precisa ser o mesmo domínio da API. O worker `queue` processa as notificações. No Apache, `ServerTokens Prod` e `ServerSignature Off` omitem a versão nos cabeçalhos/erros, e `expose_php=Off` remove o cabeçalho de versão do PHP; o servidor ainda pode se identificar como Apache. `mod_deflate` comprime HTML, CSS, JavaScript e respostas JSON/JSON:API quando o cliente aceita gzip. No Lerd local, o servidor é Nginx; nesta máquina, o override deste site usa `server_tokens off` e gzip para tipos textuais. Esse override não é distribuído pelo repositório.
 
 ## CI e deploy
 
@@ -46,7 +50,9 @@ Para usar o deploy manual, configure a variável `DOKPLOY_COMPOSE_ID` com o ID d
 
 As rotas de User e Expense exigem um Personal Access Token do Sanctum. `SignUp` e `SignIn` são públicos; `SignOut` exige o Bearer token atual. `POST /api/authentication/sign-up` é o único cadastro público de conta.
 
-Cada cadastro começa com `users.status = pending`. Para liberar a conta, altere o status para `active` diretamente no PostgreSQL após conferir o ID retornado por SignUp: `UPDATE users SET status = 'active' WHERE id = <ID>;`. Use `blocked` para suspender o acesso; o banco aceita somente `pending`, `active` e `blocked`. A migration também deixa as contas anteriores em `pending`. Cadastros pendentes/bloqueados recebem `403` no SignIn, com seu estado na resposta JSON:API, e não recebem token. As rotas autenticadas verificam o status a cada requisição; mudar o status para `blocked` impede imediatamente o uso de tokens já emitidos. Reativar a conta permite usar novamente tokens ainda não expirados ou revogados. O status aparece em `GET /api/users/{user}` e não pode ser alterado pela API.
+Cada cadastro começa com `users.status = pending` e `email_verified_at = null`. O SignUp solicita por fila o envio de um link assinado e temporário; a aceitação do cadastro não comprova a entrega do e-mail. A confirmação por `GET /api/email-verification/{id}/{hash}` é pública, retorna `204` e marca o e-mail como verificado, sem ativar a conta nem emitir token. Um link expirado ou inválido retorna `403`; o reenvio pode ser solicitado em `POST /api/authentication/email-verification/resend`.
+
+Para liberar a conta, altere o status para `active` diretamente no PostgreSQL após conferir o ID retornado por SignUp: `UPDATE users SET status = 'active' WHERE id = <ID>;`. Use `blocked` para suspender o acesso; o banco aceita somente `pending`, `active` e `blocked`. A migration também deixa as contas anteriores em `pending`. Contas pendentes/bloqueadas recebem `403` no SignIn, com seu estado na resposta JSON:API, e não recebem token; mesmo com status `active`, um e-mail não verificado recebe `403` e não recebe token. As rotas autenticadas verificam o status a cada requisição; mudar o status para `blocked` impede imediatamente o uso de tokens já emitidos. Reativar a conta permite usar novamente tokens ainda não expirados ou revogados. O status aparece em `GET /api/users/{user}` e não pode ser alterado pela API.
 
 Status controla quem pode usar a API, mas não impede que terceiros alcancem endpoints públicos ou solicitem cadastro; para acesso exclusivo à VPS, restrinja a exposição da aplicação por VPN.
 
@@ -63,7 +69,7 @@ curl -i -X POST http://127.0.0.1:8000/api/authentication/sign-up \
   -H 'Accept: application/vnd.api+json' -H 'Content-Type: application/vnd.api+json' \
   -d "{\"data\":{\"type\":\"sign-ups\",\"attributes\":{\"name\":\"Maria Silva\",\"email\":\"${EMAIL}\",\"password\":\"${PASSWORD}\",\"password_confirmation\":\"${PASSWORD}\"}}}"
 
-# Ative o ID retornado por SignUp no PostgreSQL antes de tentar SignIn.
+# Confirme o e-mail recebido e ative o ID retornado por SignUp antes de tentar SignIn.
 # UPDATE users SET status = 'active' WHERE id = <ID>;
 
 curl -i -X POST http://127.0.0.1:8000/api/authentication/sign-in \
@@ -84,7 +90,7 @@ curl -i -X POST http://127.0.0.1:8000/api/expenses \
   -d '{"data":{"type":"expenses","attributes":{"amount":12500,"category":"other","occurred_on":"2026-09-24"}}}'
 ```
 
-Criação retorna `201` com o recurso criado; erros de validação retornam `422` em JSON:API.
+Criação retorna `201` com o recurso criado; erros de validação retornam `422` em JSON:API. `DELETE /api/expenses/{expense}` remove a despesa definitivamente. A migration `remove_soft_deletes_from_expenses_table` apaga as despesas que já estavam excluídas logicamente e remove `expenses.deleted_at`; revertê-la não recupera esses registros.
 
 ## Eventos de observabilidade
 

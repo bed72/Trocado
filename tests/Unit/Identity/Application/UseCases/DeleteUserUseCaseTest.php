@@ -15,7 +15,7 @@ it('deletes an existing user inside the identity transaction', function (): void
     $userPort = $this->createMock(UserPort::class);
     $userPort->method('id')->willReturn(10);
     $writePort->expects($this->once())
-        ->method('execute')
+        ->method('commit')
         ->willReturnCallback(static fn (callable $operation): mixed => $operation());
     $repository->expects($this->once())->method('delete')->with(10)->willReturn(true);
 
@@ -28,7 +28,7 @@ it('fails inside the identity transaction when deleting an absent user', functio
     $userPort = $this->createMock(UserPort::class);
     $userPort->method('id')->willReturn(10);
     $writePort->expects($this->once())
-        ->method('execute')
+        ->method('commit')
         ->willReturnCallback(static fn (callable $operation): mixed => $operation());
     $repository->expects($this->once())->method('delete')->with(10)->willReturn(false);
 
@@ -37,7 +37,7 @@ it('fails inside the identity transaction when deleting an absent user', functio
 
 it('does not start a transaction or delete another user', function (): void {
     $writePort = $this->createMock(TransactionPort::class);
-    $writePort->expects($this->never())->method('execute');
+    $writePort->expects($this->never())->method('commit');
     $userPort = $this->createMock(UserPort::class);
     $userPort->method('id')->willReturn(20);
     $repository = $this->createMock(UserRepository::class);

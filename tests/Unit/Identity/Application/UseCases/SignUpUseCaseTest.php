@@ -23,7 +23,7 @@ it('registers the canonical identity inside the transaction and returns its iden
     $emailVerificationPort = $this->createMock(EmailVerificationPort::class);
     $repository = $this->createMock(UserRepository::class);
     $writePort->expects($this->once())
-        ->method('execute')
+        ->method('commit')
         ->willReturnCallback(static fn (callable $operation): mixed => $operation());
     $repository->expects($this->once())
         ->method('create')
@@ -54,7 +54,7 @@ it('rejects an invalid password before opening a transaction', function (): void
     $observabilityPort = $this->createMock(ObservabilityPort::class);
     $emailVerificationPort = $this->createMock(EmailVerificationPort::class);
     $repository = $this->createMock(UserRepository::class);
-    $writePort->expects($this->never())->method('execute');
+    $writePort->expects($this->never())->method('commit');
     $repository->expects($this->never())->method('create');
 
     (new SignUpUseCase(

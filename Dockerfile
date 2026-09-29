@@ -19,7 +19,7 @@ RUN apt-get update \
         https://pecl.php.net/get/redis-6.3.0.tgz --output /tmp/redis-6.3.0.tgz \
     && pecl install /tmp/redis-6.3.0.tgz \
     && docker-php-ext-enable redis \
-    && a2enmod rewrite deflate filter \
+    && a2enmod rewrite deflate filter headers \
     && rm -rf /var/lib/apt/lists/* /tmp/redis-6.3.0.tgz
 
 RUN php -r 'if (! extension_loaded("dom")) { fwrite(STDERR, "The base PHP image must provide ext-dom.\n"); exit(1); }'

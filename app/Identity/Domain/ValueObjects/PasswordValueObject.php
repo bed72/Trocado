@@ -7,6 +7,8 @@ namespace App\Identity\Domain\ValueObjects;
 use App\Identity\Domain\Exceptions\InvalidPasswordException;
 use SensitiveParameter;
 
+use function strlen;
+
 final readonly class PasswordValueObject
 {
     private function __construct(#[SensitiveParameter] private string $value)
@@ -15,8 +17,12 @@ final readonly class PasswordValueObject
             throw new InvalidPasswordException(message: 'A senha deve possuir ao menos 6 caracteres.');
         }
 
-        if (mb_strlen($value) > 12) {
-            throw new InvalidPasswordException(message: 'A senha não pode exceder 12 caracteres.');
+        if (mb_strlen($value) > 32) {
+            throw new InvalidPasswordException(message: 'A senha não pode exceder 32 caracteres.');
+        }
+
+        if (strlen($value) > 72) {
+            throw new InvalidPasswordException(message: 'A senha não pode exceder 72 bytes.');
         }
 
         if (preg_match('/\p{Lu}/u', $value) !== 1) {

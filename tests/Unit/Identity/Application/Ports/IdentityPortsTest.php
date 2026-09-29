@@ -14,7 +14,7 @@ it('keeps identity capabilities separated behind exact port contracts', function
     $signOutMethods = (new ReflectionClass(SignOutPort::class))->getMethods();
     $emailVerificationMethods = (new ReflectionClass(EmailVerificationPort::class))->getMethods();
 
-    expect(array_column($writeMethods, 'name'))->toBe(['execute', 'afterCommit'])
+    expect(array_column($writeMethods, 'name'))->toBe(['commit', 'afterCommit'])
         ->and($writeMethods[0]->getParameters())->toHaveCount(1)
         ->and($writeMethods[0]->getParameters()[0]->getType()?->getName())->toBe('callable')
         ->and($writeMethods[1]->getParameters()[0]->getType()?->getName())->toBe('callable')
