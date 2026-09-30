@@ -204,7 +204,11 @@ it('delivers a signed expiring verification link when the queued job is processe
     $job->handle(app(ChannelManager::class));
 
     Event::assertDispatchedTimes(NotificationSent::class, 1);
-    $url = $job->notification->toMail($user)->actionUrl;
+    $frontendUrl = $job->notification->toMail($user)->actionUrl;
+    expect($frontendUrl)->toStartWith(rtrim(config('app.url'), '/').'/authentication/confirm-email?verification_url=');
+
+    parse_str((string) parse_url($frontendUrl, PHP_URL_QUERY), $parameters);
+    $url = $parameters['verification_url'];
     expect($url)->toContain('email-verification/', 'signature=', 'expires=');
 
     $this->travel(61)->minutes();
@@ -257,7 +261,7 @@ it('delivers verification through the real Redis worker and retries a temporary 
 
     $message = $transport->messages()->sole();
     expect($message->getEnvelope()->getRecipients()[0]->getAddress())->toBe('maria@example.com')
-        ->and($message->getOriginalMessage()->toString())->toContain('email-verification/', 'signature=', 'expires=');
+        ->and($message->getOriginalMessage()->getHtmlBody())->toContain('/authentication/confirm-email', 'verification_url=');
 
     $changed = UserModel::query()->create([
         'name' => 'Ana',

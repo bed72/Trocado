@@ -38,7 +38,6 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->prepend(AssignRequestIdMiddleware::class);
-        $middleware->trustProxies(at: env('TRUSTED_PROXIES', '*'));
         $middleware->alias(['user.active' => EnsureActiveUserMiddleware::class]);
         $middleware->prependToPriorityList(before: ThrottleRequests::class, prepend: Authenticate::class);
         $middleware->trimStrings(except: [

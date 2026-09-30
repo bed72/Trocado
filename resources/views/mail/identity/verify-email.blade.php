@@ -17,12 +17,12 @@
 
                             <h1 style="margin: 0 0 14px; color: #181D19; font-size: 28px; font-weight: 700; line-height: 1.25;">Confirme seu e-mail</h1>
 
-                            <p style="margin: 0 0 26px; color: #414942; font-size: 16px; line-height: 1.5;">Para confirmar seu endereço de e-mail e continuar no Trocado, clique no botão abaixo.</p>
+                            <p style="margin: 0 0 26px; color: #414942; font-size: 16px; line-height: 1.5;">Para confirmar seu endereço de e-mail e continuar no Trocado, abra a página abaixo e confirme por lá.</p>
 
                             <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
                                 <tr>
                                     <td align="center" bgcolor="#2B6A46" style="background-color: #2B6A46; border-radius: 14px;">
-                                        <a href="{{ $verificationUrl }}" style="display: block; padding: 18px 16px; color: #FFFFFF; font-size: 16px; font-weight: 700; line-height: 1.25; text-align: center; text-decoration: none;">Confirmar e-mail</a>
+                                        <a href="{{ $verificationUrl }}" style="display: block; padding: 18px 16px; color: #FFFFFF; font-size: 16px; font-weight: 700; line-height: 1.25; text-align: center; text-decoration: none;">Abrir página de confirmação</a>
                                     </td>
                                 </tr>
                             </table>
