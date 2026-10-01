@@ -14,6 +14,7 @@ use App\Identity\Domain\Exceptions\InvalidEmailException;
 use App\Identity\Domain\Exceptions\InvalidNameException;
 use App\Identity\Domain\Exceptions\InvalidPasswordException;
 use App\Identity\Presentation\Http\Middleware\EnsureActiveUserMiddleware;
+use App\Identity\Presentation\Http\Middleware\ExtendSessionMiddleware;
 use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -38,7 +39,10 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->prepend(AssignRequestIdMiddleware::class);
-        $middleware->alias(['user.active' => EnsureActiveUserMiddleware::class]);
+        $middleware->alias([
+            'user.active' => EnsureActiveUserMiddleware::class,
+            'session.extend' => ExtendSessionMiddleware::class,
+        ]);
         $middleware->prependToPriorityList(before: ThrottleRequests::class, prepend: Authenticate::class);
         $middleware->trimStrings(except: [
             'data.attributes.password',

@@ -46,13 +46,13 @@ return [
     | Expiration Minutes
     |--------------------------------------------------------------------------
     |
-    | This value controls the number of minutes until an issued token will be
-    | considered expired. This will override any values set in the token's
-    | "expires_at" attribute, but first-party sessions are not affected.
+    | Only per-token expires_at limits API tokens. A global expiration would
+    | also expire tokens based on their original creation time, even after
+    | their individual expiration has been extended.
     |
     */
 
-    'expiration' => (int) env('SANCTUM_EXPIRATION', 120),
+    'expiration' => null,
 
     /*
     |--------------------------------------------------------------------------

@@ -62,11 +62,7 @@ final readonly class SignInAdapter implements SignInPort
 
             $provider->rehashPasswordIfRequired(user: $user, credentials: $credentials);
 
-            $expiresAt = DateTimeImmutable::createFromInterface(
-                object: Date::now()->addMinutes(
-                    value: (int) $this->repository->get(key: 'sanctum.expiration', default: 120),
-                ),
-            );
+            $expiresAt = DateTimeImmutable::createFromInterface(object: Date::now()->addDays(30));
             $accessToken = $user->createToken(name: 'api', abilities: [], expiresAt: $expiresAt);
         } catch (InvalidCredentialsException) {
             throw new InvalidCredentialsException;

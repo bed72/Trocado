@@ -17,7 +17,7 @@ Route::get(uri: 'email-verification/{id}/{hash}', action: VerifyEmailController:
     ->whereNumber(parameters: 'id')
     ->name(name: 'verification.verify');
 
-Route::prefix('users')->middleware(['auth:sanctum', 'user.active', 'verified', 'throttle:api.authenticated'])->name('users.')->group(function (): void {
+Route::prefix('users')->middleware(['auth:sanctum', 'user.active', 'verified', 'throttle:api.authenticated', 'session.extend'])->name('users.')->group(function (): void {
     Route::get(uri: '{user}', action: GetUserController::class)->whereNumber(parameters: 'user')->name(name: 'get');
     Route::patch(uri: '{user}', action: UpdateUserController::class)->whereNumber(parameters: 'user')->name(name: 'update');
     Route::delete(uri: '{user}', action: DeleteUserController::class)->whereNumber(parameters: 'user')->name(name: 'delete');
