@@ -12,7 +12,7 @@ x-app: &app
     - app-storage:/var/www/html/storage
   networks:
     - dokploy-network
-    - nightwatch-network
+    - default
 
 services:
   migrate:
@@ -62,7 +62,7 @@ services:
     <<: *app
     user: www-data
     networks:
-      - nightwatch-network
+      - default
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -80,4 +80,4 @@ volumes:
 networks:
   dokploy-network:
     external: true
-  nightwatch-network:
+  default:
