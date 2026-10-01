@@ -56,6 +56,12 @@ return [
     'channels' => [
 
         'observability' => [
+            'driver' => 'stack',
+            'channels' => ['observability_stderr', 'nightwatch'],
+            'ignore_exceptions' => false,
+        ],
+
+        'observability_stderr' => [
             'driver' => 'monolog',
             'handler' => StreamHandler::class,
             'handler_with' => ['stream' => env('LOG_OBSERVABILITY_STREAM', storage_path('logs/observability.log'))],

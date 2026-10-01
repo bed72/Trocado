@@ -16,12 +16,14 @@ use function Pest\Laravel\withToken;
 
 beforeEach(function (): void {
     $this->observabilityPath = storage_path('logs/observability-test-'.uniqid().'.log');
-    config()->set('logging.channels.observability.handler_with.stream', $this->observabilityPath);
+    config()->set('logging.channels.observability_stderr.handler_with.stream', $this->observabilityPath);
     Log::forgetChannel('observability');
+    Log::forgetChannel('observability_stderr');
 });
 
 afterEach(function (): void {
     Log::forgetChannel('observability');
+    Log::forgetChannel('observability_stderr');
     @unlink($this->observabilityPath);
 });
 
@@ -137,8 +139,9 @@ it('keeps a confirmed creation successful when the log destination fails', funct
     signUpIdentityByApi($this);
     $token = signInIdentityByApi($this);
     $this->app->bind(ObservabilityPort::class, fn (): ObservabilityPort => new ObservabilityAdapter);
-    config()->set('logging.channels.observability.handler_with.stream', '/nonexistent/observability/output.log');
+    config()->set('logging.channels.observability_stderr.handler_with.stream', '/nonexistent/observability/output.log');
     Log::forgetChannel('observability');
+    Log::forgetChannel('observability_stderr');
 
     withToken($token)->postJson(route('expenses.create'), [
         'data' => ['type' => 'expenses', 'attributes' => [
