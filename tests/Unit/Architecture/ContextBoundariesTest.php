@@ -223,6 +223,10 @@ foreach ($contexts as $context) {
             'route',
         ];
 
+        if ($context === 'Core') {
+            $presentationDependencies[] = 'Laravel\\Nightwatch\\Core';
+        }
+
         arch($context.' presentation does not reach infrastructure')
             ->expect($contextNamespace.'\\Presentation')
             ->toOnlyUse($presentationDependencies);
