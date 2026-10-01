@@ -197,6 +197,7 @@ foreach ($contexts as $context) {
         if ($context === 'Core') {
             $infrastructureDependencies[] = 'Monolog\\Formatter\\JsonFormatter';
             $infrastructureDependencies[] = 'Monolog\\LogRecord';
+            $infrastructureDependencies[] = 'Laravel\\Nightwatch';
         }
 
         if ($context === 'Expense') {

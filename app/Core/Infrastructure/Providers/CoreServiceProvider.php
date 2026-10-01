@@ -15,6 +15,8 @@ use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Nightwatch\Facades\Nightwatch;
+use Laravel\Nightwatch\Records\Request as NightwatchRequest;
 
 final class CoreServiceProvider extends ServiceProvider
 {
@@ -26,6 +28,11 @@ final class CoreServiceProvider extends ServiceProvider
 
     public function boot(ObservabilityPort $port): void
     {
+        Nightwatch::redactRequests(static function (NightwatchRequest $request): void {
+            $url = explode('?', $request->url, 2)[0];
+            $request->url = preg_replace('~(/api/email-verification/)[^/]+/[^/]+$~', '$1[redacted]/[redacted]', $url) ?? $url;
+        });
+
         RateLimiter::for('api.authenticated', fn (Request $request): Limit => Limit::perMinute(60)
             ->by('api:authenticated:user:'.$request->user()->getAuthIdentifier()));
 

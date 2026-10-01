@@ -5,11 +5,14 @@ x-app: &app
   image: trocado-app:local
   env_file:
     - .env
+  environment:
+    NIGHTWATCH_INGEST_URI: nightwatch-agent:2407
   restart: unless-stopped
   volumes:
     - app-storage:/var/www/html/storage
   networks:
     - dokploy-network
+    - nightwatch-network
 
 services:
   migrate:
@@ -55,9 +58,26 @@ services:
         condition: service_completed_successfully
     command: ["php", "artisan", "schedule:work"]
 
+  nightwatch-agent:
+    <<: *app
+    user: www-data
+    networks:
+      - nightwatch-network
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    command: ["php", "artisan", "nightwatch:agent", "--listen-on=0.0.0.0:2407"]
+    healthcheck:
+      test: ["CMD", "php", "artisan", "nightwatch:status"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
 volumes:
   app-storage:
 
 networks:
   dokploy-network:
     external: true
+  nightwatch-network:

@@ -9,6 +9,7 @@
         "php": "^8.3",
         "laravel/ai": "^1.0",
         "laravel/framework": "^13.17",
+        "laravel/nightwatch": "^1.11",
         "laravel/sanctum": "^4.3",
         "laravel/tinker": "^3.0",
         "resend/resend-php": "^1.16"
