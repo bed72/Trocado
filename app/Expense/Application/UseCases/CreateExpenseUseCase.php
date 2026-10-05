@@ -23,7 +23,7 @@ final readonly class CreateExpenseUseCase
         private ObservabilityPort $observabilityPort,
         private ExpenseClassificationDispatchPort $dispatchPort,
         private ExpenseRepository $expenseRepository,
-        private ExpenseCategorizationRepository $expenseCategorizationRepository,
+        private ExpenseCategorizationRepository $categorizationRepository,
     ) {}
 
     public function execute(CreateExpenseInput $input): ExpenseEntity
@@ -51,7 +51,7 @@ final readonly class CreateExpenseUseCase
 
             $token = bin2hex(random_bytes(16));
 
-            if (! $this->expenseCategorizationRepository->beginClassificationAttempt(
+            if (! $this->categorizationRepository->beginClassificationAttempt(
                 token: $token,
                 expenseId: (int) $expense->id,
                 expiresAt: new DateTimeImmutable('+5 minutes'),
@@ -62,7 +62,7 @@ final readonly class CreateExpenseUseCase
             try {
                 $this->dispatchPort->dispatch(expenseId: (int) $expense->id, token: $token);
             } catch (Throwable) {
-                $this->expenseCategorizationRepository->cancelClassification(expenseId: (int) $expense->id, token: $token);
+                $this->categorizationRepository->cancelClassification(expenseId: (int) $expense->id, token: $token);
             }
 
             return $expense;

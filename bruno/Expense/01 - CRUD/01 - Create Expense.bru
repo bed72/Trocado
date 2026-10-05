@@ -24,9 +24,9 @@ body:json {
     "data": {
       "type": "expenses",
       "attributes": {
-        "amount": 7200,
-        "occurred_on": "2026-09-26",
-        "description": "Padaria"
+        "amount": 80,
+        "occurred_on": "2026-10-01",
+        "description": "Passeio"
       }
     }
   }
@@ -34,7 +34,7 @@ body:json {
 
 script:post-response {
   const expenseId = res.body?.data?.id;
-
+  
   if (res.status === 201 && typeof expenseId === 'string' && expenseId.length > 0) {
     bru.setVar('expenseId', expenseId);
   }

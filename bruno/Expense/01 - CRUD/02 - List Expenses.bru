@@ -10,15 +10,15 @@ get {
   auth: bearer
 }
 
-auth:bearer {
-  token: {{accessToken}}
+params:query {
+  page[size]: 20
+  ~page[cursor]: 2
 }
 
 headers {
   Accept: application/vnd.api+json
 }
 
-params:query {
-  page[size]: 20
-  ~page[cursor]:
+auth:bearer {
+  token: {{accessToken}}
 }
