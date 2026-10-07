@@ -9,14 +9,11 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\Interruptible;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\Attributes\CountCrashesAsExceptions;
-use Illuminate\Queue\Attributes\MaxExceptions;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
-#[MaxExceptions(3), CountCrashesAsExceptions]
 final class ClassifyExpenseQueue implements Interruptible, ShouldQueue
 {
     use Dispatchable;
