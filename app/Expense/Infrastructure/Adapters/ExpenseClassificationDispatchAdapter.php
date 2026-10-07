@@ -33,7 +33,7 @@ final readonly class ExpenseClassificationDispatchAdapter implements ExpenseClas
                     token: $token,
                     expenseId: $expenseId,
                     tries: max(1, Config::integer('expense.classification.tries')),
-                    timeout: max(1, Config::integer('expense.classification.timeout')),
+                    timeout: max(1, Config::integer('expense.classification.job_timeout')),
                 );
                 $job->onQueue(Config::string('expense.classification.queue'));
 

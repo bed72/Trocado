@@ -42,11 +42,12 @@ final class CoreServiceProvider extends ServiceProvider
             }
 
             $port->emit('queue.job_processed', [
-                'connection' => $event->connectionName,
+                'duration_ms' => $event->duration,
                 'queue' => $event->job->getQueue(),
                 'job_id' => $event->job->getJobId(),
                 'job' => $event->job->resolveName(),
                 'attempts' => $event->job->attempts(),
+                'connection' => $event->connectionName,
             ]);
         });
 
