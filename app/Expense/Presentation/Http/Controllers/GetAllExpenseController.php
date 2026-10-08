@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Expense\Presentation\Http\Controllers;
 
-use App\Expense\Application\UseCases\ListExpensesUseCase;
-use App\Expense\Presentation\Http\Requests\ListExpensesRequest;
+use App\Expense\Application\UseCases\GetAllExpenseUseCase;
+use App\Expense\Presentation\Http\Requests\GetAllExpenseRequest;
 use App\Expense\Presentation\Http\Responses\ExpenseResponse;
 use Illuminate\Http\JsonResponse;
 
-final readonly class ListExpensesController
+final readonly class GetAllExpenseController
 {
-    public function __construct(private ListExpensesUseCase $useCase) {}
+    public function __construct(private GetAllExpenseUseCase $useCase) {}
 
-    public function __invoke(ListExpensesRequest $request): JsonResponse
+    public function __invoke(GetAllExpenseRequest $request): JsonResponse
     {
         $page = $this->useCase->execute(
             cursor: $request->validated('page.cursor'),

@@ -17,7 +17,7 @@ it('updates an owned expense through the expense repository', function (): void 
     $port = $this->createMock(UserPort::class);
     $port->expects($this->once())->method('id')->willReturn(20);
     $repository = $this->createMock(ExpenseRepository::class);
-    $repository->expects($this->once())->method('updateByUser')->with(10, 20, $input)->willReturn($expense);
+    $repository->expects($this->once())->method('update')->with(10, 20, $input)->willReturn($expense);
 
     $updated = (new UpdateExpenseUseCase(userPort: $port, transactionPort: $this->createMock(TransactionPort::class), observabilityPort: $this->createMock(ObservabilityPort::class), repository: $repository))->execute(id: 10, input: $input);
 
@@ -29,7 +29,7 @@ it('fails when the expense is absent or owned by another user', function (): voi
     $port = $this->createMock(UserPort::class);
     $port->expects($this->once())->method('id')->willReturn(20);
     $repository = $this->createMock(ExpenseRepository::class);
-    $repository->expects($this->once())->method('updateByUser')->with(10, 20, $input)->willReturn(null);
+    $repository->expects($this->once())->method('update')->with(10, 20, $input)->willReturn(null);
 
     (new UpdateExpenseUseCase(userPort: $port, transactionPort: $this->createMock(TransactionPort::class), observabilityPort: $this->createMock(ObservabilityPort::class), repository: $repository))->execute(id: 10, input: $input);
 })->throws(ExpenseNotFoundException::class, 'Despesa não encontrada.');

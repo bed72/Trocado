@@ -10,11 +10,13 @@ use App\Expense\Domain\Entities\ExpenseEntity;
 
 interface ExpenseRepository
 {
-    public function deleteByUser(int $id, int $userId): bool;
+    public function delete(int $id, int $userId): bool;
 
     public function create(ExpenseEntity $expense): ExpenseEntity;
 
-    public function listByUser(int $userId, int $size, ?string $cursor): ExpensePageOutput;
+    public function getById(int $id, int $userId): ?ExpenseEntity;
 
-    public function updateByUser(int $id, int $userId, UpdateExpenseInput $input): ?ExpenseEntity;
+    public function getAll(int $userId, int $size, ?string $cursor): ExpensePageOutput;
+
+    public function update(int $id, int $userId, UpdateExpenseInput $input): ?ExpenseEntity;
 }

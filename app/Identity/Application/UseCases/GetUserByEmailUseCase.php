@@ -15,9 +15,9 @@ final readonly class GetUserByEmailUseCase
 
     public function execute(string $email): UserEntity
     {
-        $canonicalEmail = EmailValueObject::fromString(value: $email);
+        $value = EmailValueObject::fromString(value: $email);
 
-        return $this->repository->findByEmail(email: $canonicalEmail)
+        return $this->repository->getByEmail(email: $value)
             ?? throw new UserNotFoundException;
     }
 }

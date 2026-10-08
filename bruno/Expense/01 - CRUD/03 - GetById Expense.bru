@@ -1,0 +1,19 @@
+meta {
+  name: GetById Expense
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/expenses/{{expenseId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Accept: application/vnd.api+json
+}

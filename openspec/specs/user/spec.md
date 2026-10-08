@@ -136,7 +136,7 @@ O sistema MUST excluir uma conta existente dentro de `Core` `TransactionPort`, M
 - **THEN** o caso de uso produz uma exceção explícita de User não encontrado
 
 ### Requirement: Contrato explícito de Repository
-O sistema MUST declarar `UserRepository` na camada Application com `create(UserEntity, string password): UserEntity`, `update(UserEntity): ?UserEntity`, `delete(int): bool`, `findById(int): ?UserEntity` e `findByEmail(EmailValueObject): ?UserEntity`. A senha de criação MUST ser tratada como sensível e transitória; o contrato MUST usar apenas tipos independentes do ORM e sua implementação Eloquent MUST permanecer em Infrastructure. Apenas SignUp MUST criar contas no fluxo atual.
+O sistema MUST declarar `UserRepository` na camada Application com `create(UserEntity, string password): UserEntity`, `update(UserEntity): ?UserEntity`, `delete(int): bool`, `getById(int): ?UserEntity` e `getByEmail(EmailValueObject): ?UserEntity`. A senha de criação MUST ser tratada como sensível e transitória; o contrato MUST usar apenas tipos independentes do ORM e sua implementação Eloquent MUST permanecer em Infrastructure. Apenas SignUp MUST criar contas no fluxo atual.
 
 #### Scenario: Fronteira independente do ORM
 - **WHEN** o contrato `UserRepository` é verificado

@@ -87,14 +87,14 @@ final class EloquentUserRepository implements UserRepository
         return (bool) $model->delete();
     }
 
-    public function findById(int $id): ?UserEntity
+    public function getById(int $id): ?UserEntity
     {
         $model = UserModel::query()->find(id: $id);
 
         return $model === null ? null : $this->toEntity(model: $model);
     }
 
-    public function findByEmail(EmailValueObject $email): ?UserEntity
+    public function getByEmail(EmailValueObject $email): ?UserEntity
     {
         $model = UserModel::query()->where(column: 'email', operator: '=', value: $email->value())->first();
 

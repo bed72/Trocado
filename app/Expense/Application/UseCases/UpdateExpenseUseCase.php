@@ -23,7 +23,7 @@ final readonly class UpdateExpenseUseCase
 
     public function execute(int $id, UpdateExpenseInput $input): ExpenseEntity
     {
-        $updated = $this->repository->updateByUser(id: $id, userId: $this->userPort->id(), input: $input)
+        $updated = $this->repository->update(id: $id, userId: $this->userPort->id(), input: $input)
             ?? throw new ExpenseNotFoundException;
 
         $this->transactionPort->afterCommit(fn () => $this->observabilityPort->emit('expense.updated', [

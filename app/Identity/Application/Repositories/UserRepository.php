@@ -12,11 +12,11 @@ interface UserRepository
 {
     public function delete(int $id): bool;
 
-    public function findById(int $id): ?UserEntity;
+    public function getById(int $id): ?UserEntity;
 
     public function update(UserEntity $user): ?UserEntity;
 
-    public function findByEmail(EmailValueObject $email): ?UserEntity;
+    public function getByEmail(EmailValueObject $email): ?UserEntity;
 
     public function create(UserEntity $user, #[SensitiveParameter] string $password): UserEntity;
 }

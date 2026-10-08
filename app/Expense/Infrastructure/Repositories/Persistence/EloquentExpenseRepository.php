@@ -14,9 +14,33 @@ use DateTimeImmutable;
 use Illuminate\Database\QueryException;
 use Illuminate\Pagination\Cursor;
 
+use function in_array;
+
 final class EloquentExpenseRepository implements ExpenseRepository
 {
-    public function listByUser(int $userId, int $size, ?string $cursor): ExpensePageOutput
+    public function getById(int $id, int $userId): ?ExpenseEntity
+    {
+        $model = ExpenseModel::query()
+            ->whereKey($id)
+            ->where('user_id', $userId)
+            ->first();
+
+        if ($model === null) {
+            return null;
+        }
+
+        return new ExpenseEntity(
+            id: (int) $model->getKey(),
+            userId: $model->user_id,
+            amount: $model->amount,
+            category: $model->category,
+            occurredOn: $model->occurred_on,
+            description: $model->description,
+            createdAt: DateTimeImmutable::createFromInterface(object: $model->created_at),
+        );
+    }
+
+    public function getAll(int $userId, int $size, ?string $cursor): ExpensePageOutput
     {
         $page = ExpenseModel::query()
             ->where('user_id', $userId)
@@ -77,7 +101,7 @@ final class EloquentExpenseRepository implements ExpenseRepository
         );
     }
 
-    public function deleteByUser(int $id, int $userId): bool
+    public function delete(int $id, int $userId): bool
     {
         return ExpenseModel::query()
             ->whereKey($id)
@@ -85,7 +109,7 @@ final class EloquentExpenseRepository implements ExpenseRepository
             ->delete() === 1;
     }
 
-    public function updateByUser(int $id, int $userId, UpdateExpenseInput $input): ?ExpenseEntity
+    public function update(int $id, int $userId, UpdateExpenseInput $input): ?ExpenseEntity
     {
         $model = ExpenseModel::query()
             ->whereKey($id)

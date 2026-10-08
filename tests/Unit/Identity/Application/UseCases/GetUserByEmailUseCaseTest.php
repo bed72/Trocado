@@ -17,7 +17,7 @@ it('normalizes the email and returns the matching user', function (): void {
     );
     $repository = $this->createMock(UserRepository::class);
     $repository->expects($this->once())
-        ->method('findByEmail')
+        ->method('getByEmail')
         ->with($this->callback(fn (EmailValueObject $email): bool => $email->equals($user->email)))
         ->willReturn($user);
 
@@ -28,7 +28,7 @@ it('normalizes the email and returns the matching user', function (): void {
 
 it('throws an application exception when the canonical email is absent', function (): void {
     $repository = $this->createMock(UserRepository::class);
-    $repository->expects($this->once())->method('findByEmail')->willReturn(null);
+    $repository->expects($this->once())->method('getByEmail')->willReturn(null);
 
     (new GetUserByEmailUseCase(repository: $repository))->execute(email: ' Maria@Example.COM ');
 })->throws(UserNotFoundException::class, 'User não encontrado.');

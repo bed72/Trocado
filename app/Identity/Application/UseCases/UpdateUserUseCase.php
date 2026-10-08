@@ -25,7 +25,7 @@ final readonly class UpdateUserUseCase
             throw new UserNotFoundException;
         }
 
-        $current = $this->repository->findById(id: $id)
+        $current = $this->repository->getById(id: $id)
             ?? throw new UserNotFoundException;
 
         $updated = new UserEntity(

@@ -23,7 +23,7 @@ final readonly class DeleteExpenseUseCase
     {
         $userId = $this->userPort->id();
 
-        if (! $this->repository->deleteByUser(id: $id, userId: $userId)) {
+        if (! $this->repository->delete(id: $id, userId: $userId)) {
             throw new ExpenseNotFoundException;
         }
 

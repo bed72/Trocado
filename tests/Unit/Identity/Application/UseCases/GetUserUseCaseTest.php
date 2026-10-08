@@ -17,7 +17,7 @@ it('returns the user found by identifier', function (): void {
         email: EmailValueObject::fromString(value: 'maria@example.com'),
     );
     $repository = $this->createMock(UserRepository::class);
-    $repository->expects($this->once())->method('findById')->with(42)->willReturn($user);
+    $repository->expects($this->once())->method('getById')->with(42)->willReturn($user);
 
     $port = $this->createMock(UserPort::class);
     $port->method('id')->willReturn(42);
@@ -26,7 +26,7 @@ it('returns the user found by identifier', function (): void {
 
 it('throws an application exception when the identifier is absent', function (): void {
     $repository = $this->createMock(UserRepository::class);
-    $repository->expects($this->once())->method('findById')->with(42)->willReturn(null);
+    $repository->expects($this->once())->method('getById')->with(42)->willReturn(null);
 
     $port = $this->createMock(UserPort::class);
     $port->method('id')->willReturn(42);
@@ -37,6 +37,6 @@ it('does not consult another user', function (): void {
     $port = $this->createMock(UserPort::class);
     $port->method('id')->willReturn(10);
     $repository = $this->createMock(UserRepository::class);
-    $repository->expects($this->never())->method('findById');
+    $repository->expects($this->never())->method('getById');
     (new GetUserUseCase($port, $repository))->execute(id: 42);
 })->throws(UserNotFoundException::class);

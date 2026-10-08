@@ -19,6 +19,6 @@ final readonly class GetUserUseCase
             throw new UserNotFoundException;
         }
 
-        return $this->repository->findById(id: $id) ?? throw new UserNotFoundException;
+        return $this->repository->getById(id: $id) ?? throw new UserNotFoundException;
     }
 }

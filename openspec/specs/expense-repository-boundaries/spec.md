@@ -4,10 +4,10 @@
 Definir as fronteiras de persistência de despesas e de tentativas de categorização, preservando as garantias transacionais, o processamento assíncrono e a invalidação de páginas em cache por proprietário.
 ## Requirements
 ### Requirement: Contratos de persistência de Expense segregados por responsabilidade
-O contexto Expense MUST expor `ExpenseRepository` somente para criar, listar por proprietário, atualizar por proprietário e excluir por proprietário; MUST expor `ExpenseCategorizationRepository` somente para iniciar, localizar, aplicar e cancelar tentativas de categorização. Os contratos MUST usar tipos independentes do ORM, permanecer na Application e ter implementações de persistência distintas na Infrastructure. Casos de uso MUST depender apenas dos contratos necessários à sua operação: a criação pode usar ambos, o processamento assíncrono MUST usar apenas o de categorização e listagem/edição/exclusão MUST usar apenas o de despesas.
+O contexto Expense MUST expor `ExpenseRepository` somente para criar, consultar individualmente por proprietário, listar por proprietário, atualizar por proprietário e excluir por proprietário; MUST expor `ExpenseCategorizationRepository` somente para iniciar, localizar, aplicar e cancelar tentativas de categorização. Os contratos MUST usar tipos independentes do ORM, permanecer na Application e ter implementações de persistência distintas na Infrastructure. Casos de uso MUST depender apenas dos contratos necessários à sua operação: a criação pode usar ambos, o processamento assíncrono MUST usar apenas o de categorização e consulta individual/listagem/edição/exclusão MUST usar apenas o de despesas.
 
 #### Scenario: Consumidores de CRUD
-- **WHEN** os casos de uso de listagem, edição e exclusão de despesas são resolvidos
+- **WHEN** os casos de uso de consulta individual, listagem, edição e exclusão de despesas são resolvidos
 - **THEN** suas dependências de persistência expõem as operações de `ExpenseRepository`
 - **AND** eles não dependem das operações de tentativa de categorização
 

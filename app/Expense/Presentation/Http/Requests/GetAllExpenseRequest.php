@@ -13,8 +13,9 @@ use function is_array;
 use function is_bool;
 use function is_int;
 use function is_string;
+use function strlen;
 
-final class ListExpensesRequest extends FormRequest
+final class GetAllExpenseRequest extends FormRequest
 {
     public function authorize(): bool
     {

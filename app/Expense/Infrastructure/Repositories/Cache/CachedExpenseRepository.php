@@ -19,6 +19,11 @@ final readonly class CachedExpenseRepository implements ExpenseRepository
         private ExpenseRepository $repository,
     ) {}
 
+    public function getById(int $id, int $userId): ?ExpenseEntity
+    {
+        return $this->repository->getById(id: $id, userId: $userId);
+    }
+
     public function create(ExpenseEntity $expense): ExpenseEntity
     {
         $created = $this->repository->create(expense: $expense);
@@ -28,9 +33,9 @@ final readonly class CachedExpenseRepository implements ExpenseRepository
         return $created;
     }
 
-    public function deleteByUser(int $id, int $userId): bool
+    public function delete(int $id, int $userId): bool
     {
-        $deleted = $this->repository->deleteByUser(id: $id, userId: $userId);
+        $deleted = $this->repository->delete(id: $id, userId: $userId);
 
         if ($deleted) {
             $this->invalidateAfterCommit(userId: $userId);
@@ -39,9 +44,9 @@ final readonly class CachedExpenseRepository implements ExpenseRepository
         return $deleted;
     }
 
-    public function updateByUser(int $id, int $userId, UpdateExpenseInput $input): ?ExpenseEntity
+    public function update(int $id, int $userId, UpdateExpenseInput $input): ?ExpenseEntity
     {
-        $updated = $this->repository->updateByUser(id: $id, userId: $userId, input: $input);
+        $updated = $this->repository->update(id: $id, userId: $userId, input: $input);
 
         if ($updated !== null) {
             $this->invalidateAfterCommit(userId: $userId);
@@ -50,7 +55,7 @@ final readonly class CachedExpenseRepository implements ExpenseRepository
         return $updated;
     }
 
-    public function listByUser(int $userId, int $size, ?string $cursor): ExpensePageOutput
+    public function getAll(int $userId, int $size, ?string $cursor): ExpensePageOutput
     {
         $tagged = $this->cache->tags($this->tag($userId));
         $cursorKey = $cursor === null ? 'none' : "cursor:{$cursor}";
@@ -58,7 +63,7 @@ final readonly class CachedExpenseRepository implements ExpenseRepository
 
         /** @var array{items: list<array{id: ?int, userId: int, amount: int, occurredOn: string, category: string, description: ?string, createdAt: ?string}>, nextCursor: ?string, previousCursor: ?string} $page */
         $page = $tagged->remember($key, 60, function () use ($userId, $size, $cursor): array {
-            $output = $this->repository->listByUser(userId: $userId, size: $size, cursor: $cursor);
+            $output = $this->repository->getAll(userId: $userId, size: $size, cursor: $cursor);
 
             return [
                 'items' => array_map(static fn (ExpenseEntity $item): array => [

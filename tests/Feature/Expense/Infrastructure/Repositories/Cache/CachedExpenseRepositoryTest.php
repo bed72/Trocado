@@ -17,13 +17,18 @@ function cachedRepositoryFixture(): array
 
     $inner = new class implements ExpenseRepository
     {
-        public int $listCalls = 0;
+        public int $getAllCalls = 0;
 
         public int $createCalls = 0;
 
         public int $deleteCalls = 0;
 
         public int $updateCalls = 0;
+
+        public function getById(int $id, int $userId): ?ExpenseEntity
+        {
+            return null;
+        }
 
         public function create(ExpenseEntity $expense): ExpenseEntity
         {
@@ -39,14 +44,14 @@ function cachedRepositoryFixture(): array
             );
         }
 
-        public function deleteByUser(int $id, int $userId): bool
+        public function delete(int $id, int $userId): bool
         {
             $this->deleteCalls++;
 
             return $id === 10 && $userId === 1;
         }
 
-        public function updateByUser(int $id, int $userId, UpdateExpenseInput $input): ?ExpenseEntity
+        public function update(int $id, int $userId, UpdateExpenseInput $input): ?ExpenseEntity
         {
             $this->updateCalls++;
 
@@ -57,20 +62,20 @@ function cachedRepositoryFixture(): array
             return new ExpenseEntity(
                 id: $id,
                 userId: $userId,
-                amount: $input->amount ?? 2000,
                 category: $input->category,
+                amount: $input->amount ?? 2000,
                 description: $input->description,
                 occurredOn: $input->occurredOn ?? '2026-09-24',
             );
         }
 
-        public function listByUser(int $userId, int $size, ?string $cursor): ExpensePageOutput
+        public function getAll(int $userId, int $size, ?string $cursor): ExpensePageOutput
         {
-            $this->listCalls++;
+            $this->getAllCalls++;
 
             return new ExpensePageOutput(
                 items: [new ExpenseEntity(
-                    id: $this->listCalls,
+                    id: $this->getAllCalls,
                     userId: $userId,
                     amount: 1234,
                     category: 'food',
@@ -92,9 +97,9 @@ function cachedRepositoryFixture(): array
 it('serves cache misses through the decorated expense repository', function (): void {
     [$inner, $repository] = cachedRepositoryFixture();
 
-    $page = $repository->listByUser(userId: 1, size: 20, cursor: null);
+    $page = $repository->getAll(userId: 1, size: 20, cursor: null);
 
-    expect($inner->listCalls)->toBe(1)
+    expect($inner->getAllCalls)->toBe(1)
         ->and($page->items)->toHaveCount(1)
         ->and($page->items[0])->toBeInstanceOf(ExpenseEntity::class)
         ->and($page->items[0]->id)->toBe(1)
@@ -104,82 +109,82 @@ it('serves cache misses through the decorated expense repository', function (): 
 it('serves cache hits without querying the decorated expense repository again', function (): void {
     [$inner, $repository] = cachedRepositoryFixture();
 
-    $first = $repository->listByUser(userId: 1, size: 20, cursor: null);
-    $second = $repository->listByUser(userId: 1, size: 20, cursor: null);
+    $first = $repository->getAll(userId: 1, size: 20, cursor: null);
+    $second = $repository->getAll(userId: 1, size: 20, cursor: null);
 
-    expect($inner->listCalls)->toBe(1)
+    expect($inner->getAllCalls)->toBe(1)
         ->and($second->items[0]->id)->toBe($first->items[0]->id);
 });
 
 it('keeps owner, size, and cursor pages isolated in cache', function (): void {
     [$inner, $repository] = cachedRepositoryFixture();
 
-    $repository->listByUser(userId: 1, size: 20, cursor: null);
-    $repository->listByUser(userId: 2, size: 20, cursor: null);
-    $repository->listByUser(userId: 1, size: 10, cursor: null);
-    $repository->listByUser(userId: 1, size: 20, cursor: 'abc');
+    $repository->getAll(userId: 1, size: 20, cursor: null);
+    $repository->getAll(userId: 2, size: 20, cursor: null);
+    $repository->getAll(userId: 1, size: 10, cursor: null);
+    $repository->getAll(userId: 1, size: 20, cursor: 'abc');
 
-    expect($inner->listCalls)->toBe(4);
+    expect($inner->getAllCalls)->toBe(4);
 });
 
 it('invalidates cached owner pages after creating an expense', function (): void {
     [$inner, $repository] = cachedRepositoryFixture();
 
-    $repository->listByUser(userId: 1, size: 20, cursor: null);
+    $repository->getAll(userId: 1, size: 20, cursor: null);
     $repository->create(new ExpenseEntity(
         id: null,
         userId: 1,
         amount: 2000,
         occurredOn: '2026-09-24',
     ));
-    $repository->listByUser(userId: 1, size: 20, cursor: null);
+    $repository->getAll(userId: 1, size: 20, cursor: null);
 
     expect($inner->createCalls)->toBe(1)
-        ->and($inner->listCalls)->toBe(2);
+        ->and($inner->getAllCalls)->toBe(2);
 });
 
 it('invalidates cached owner pages after deleting an expense', function (): void {
     [$inner, $repository] = cachedRepositoryFixture();
 
-    $repository->listByUser(userId: 1, size: 20, cursor: null);
-    $repository->deleteByUser(id: 10, userId: 1);
-    $repository->listByUser(userId: 1, size: 20, cursor: null);
+    $repository->getAll(userId: 1, size: 20, cursor: null);
+    $repository->delete(id: 10, userId: 1);
+    $repository->getAll(userId: 1, size: 20, cursor: null);
 
     expect($inner->deleteCalls)->toBe(1)
-        ->and($inner->listCalls)->toBe(2);
+        ->and($inner->getAllCalls)->toBe(2);
 });
 
 it('keeps cached owner pages when deleting an absent expense', function (): void {
     [$inner, $repository] = cachedRepositoryFixture();
 
-    $repository->listByUser(userId: 1, size: 20, cursor: null);
-    $repository->deleteByUser(id: 99, userId: 1);
-    $repository->listByUser(userId: 1, size: 20, cursor: null);
+    $repository->getAll(userId: 1, size: 20, cursor: null);
+    $repository->delete(id: 99, userId: 1);
+    $repository->getAll(userId: 1, size: 20, cursor: null);
 
     expect($inner->deleteCalls)->toBe(1)
-        ->and($inner->listCalls)->toBe(1);
+        ->and($inner->getAllCalls)->toBe(1);
 });
 
 it('invalidates cached owner pages after updating an expense', function (): void {
     [$inner, $repository] = cachedRepositoryFixture();
 
-    $repository->listByUser(userId: 1, size: 20, cursor: null);
-    $repository->updateByUser(id: 10, userId: 1, input: new UpdateExpenseInput(amount: 3000, hasAmount: true));
-    $repository->listByUser(userId: 1, size: 20, cursor: null);
+    $repository->getAll(userId: 1, size: 20, cursor: null);
+    $repository->update(id: 10, userId: 1, input: new UpdateExpenseInput(amount: 3000, hasAmount: true));
+    $repository->getAll(userId: 1, size: 20, cursor: null);
 
     expect($inner->updateCalls)->toBe(1)
-        ->and($inner->listCalls)->toBe(2);
+        ->and($inner->getAllCalls)->toBe(2);
 });
 
 it('keeps cached owner pages when updating an absent expense', function (): void {
     [$inner, $repository] = cachedRepositoryFixture();
 
-    $repository->listByUser(userId: 1, size: 20, cursor: null);
-    $repository->updateByUser(id: 99, userId: 1, input: new UpdateExpenseInput(amount: 3000, hasAmount: true));
-    $repository->listByUser(userId: 1, size: 20, cursor: null);
+    $repository->getAll(userId: 1, size: 20, cursor: null);
+    $repository->update(id: 99, userId: 1, input: new UpdateExpenseInput(amount: 3000, hasAmount: true));
+    $repository->getAll(userId: 1, size: 20, cursor: null);
 
     expect($inner->updateCalls)->toBe(1)
-        ->and($inner->listCalls)->toBe(1);
+        ->and($inner->getAllCalls)->toBe(1);
 });
 
 it('implements the expense repository contract', function (): void {
@@ -191,8 +196,8 @@ it('implements the expense repository contract', function (): void {
 
 it('keeps cached pages until the outer creation commits, then invalidates only that owner', function (): void {
     [$inner, $repository] = cachedRepositoryFixture();
-    $repository->listByUser(userId: 1, size: 20, cursor: null);
-    $repository->listByUser(userId: 2, size: 20, cursor: null);
+    $repository->getAll(userId: 1, size: 20, cursor: null);
+    $repository->getAll(userId: 2, size: 20, cursor: null);
 
     DB::transaction(callback: function () use ($repository, $inner): void {
         DB::transaction(callback: function () use ($repository): void {
@@ -204,19 +209,19 @@ it('keeps cached pages until the outer creation commits, then invalidates only t
             ));
         });
 
-        $repository->listByUser(userId: 1, size: 20, cursor: null);
-        expect($inner->listCalls)->toBe(2);
+        $repository->getAll(userId: 1, size: 20, cursor: null);
+        expect($inner->getAllCalls)->toBe(2);
     });
 
-    $repository->listByUser(userId: 1, size: 20, cursor: null);
-    $repository->listByUser(userId: 2, size: 20, cursor: null);
+    $repository->getAll(userId: 1, size: 20, cursor: null);
+    $repository->getAll(userId: 2, size: 20, cursor: null);
 
-    expect($inner->listCalls)->toBe(3);
+    expect($inner->getAllCalls)->toBe(3);
 });
 
 it('does not invalidate cached pages when a creation rolls back', function (): void {
     [$inner, $repository] = cachedRepositoryFixture();
-    $repository->listByUser(userId: 1, size: 20, cursor: null);
+    $repository->getAll(userId: 1, size: 20, cursor: null);
 
     try {
         DB::transaction(callback: function () use ($repository): void {
@@ -232,15 +237,15 @@ it('does not invalidate cached pages when a creation rolls back', function (): v
     } catch (RuntimeException) {
     }
 
-    $repository->listByUser(userId: 1, size: 20, cursor: null);
+    $repository->getAll(userId: 1, size: 20, cursor: null);
 
     expect($inner->createCalls)->toBe(1)
-        ->and($inner->listCalls)->toBe(1);
+        ->and($inner->getAllCalls)->toBe(1);
 });
 
 it('does not invalidate on a nested rollback even if the outer transaction commits', function (): void {
     [$inner, $repository] = cachedRepositoryFixture();
-    $repository->listByUser(userId: 1, size: 20, cursor: null);
+    $repository->getAll(userId: 1, size: 20, cursor: null);
 
     DB::transaction(callback: function () use ($repository): void {
         try {
@@ -258,22 +263,22 @@ it('does not invalidate on a nested rollback even if the outer transaction commi
         }
     });
 
-    $repository->listByUser(userId: 1, size: 20, cursor: null);
-    expect($inner->listCalls)->toBe(1);
+    $repository->getAll(userId: 1, size: 20, cursor: null);
+    expect($inner->getAllCalls)->toBe(1);
 });
 
 it('invalidates edited or deleted pages only after the corresponding transaction commits', function (string $operation): void {
     [$inner, $repository] = cachedRepositoryFixture();
-    $repository->listByUser(userId: 1, size: 20, cursor: null);
+    $repository->getAll(userId: 1, size: 20, cursor: null);
 
     $write = function () use ($repository, $operation): void {
         if ($operation === 'update') {
-            $repository->updateByUser(id: 10, userId: 1, input: new UpdateExpenseInput(amount: 3000, hasAmount: true));
+            $repository->update(id: 10, userId: 1, input: new UpdateExpenseInput(amount: 3000, hasAmount: true));
 
             return;
         }
 
-        $repository->deleteByUser(id: 10, userId: 1);
+        $repository->delete(id: 10, userId: 1);
     };
 
     try {
@@ -285,15 +290,15 @@ it('invalidates edited or deleted pages only after the corresponding transaction
     } catch (RuntimeException) {
     }
 
-    $repository->listByUser(userId: 1, size: 20, cursor: null);
-    expect($inner->listCalls)->toBe(1);
+    $repository->getAll(userId: 1, size: 20, cursor: null);
+    expect($inner->getAllCalls)->toBe(1);
 
     DB::transaction(callback: function () use ($write, $repository, $inner): void {
         $write();
-        $repository->listByUser(userId: 1, size: 20, cursor: null);
-        expect($inner->listCalls)->toBe(1);
+        $repository->getAll(userId: 1, size: 20, cursor: null);
+        expect($inner->getAllCalls)->toBe(1);
     });
 
-    $repository->listByUser(userId: 1, size: 20, cursor: null);
-    expect($inner->listCalls)->toBe(2);
+    $repository->getAll(userId: 1, size: 20, cursor: null);
+    expect($inner->getAllCalls)->toBe(2);
 })->with(['update', 'delete']);

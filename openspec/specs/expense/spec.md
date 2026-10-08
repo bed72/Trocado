@@ -134,6 +134,25 @@ O sistema MUST disponibilizar `GET /api/expenses` somente a um User autenticado.
 - **WHEN** uma conta autenticada envia `user_id` de terceiro nos parâmetros da listagem
 - **THEN** a API rejeita o parâmetro com `422` em JSON:API e não altera o escopo da consulta
 
+### Requirement: Consulta individual de despesa restrita ao proprietário
+O sistema MUST disponibilizar `GET /api/expenses/{expense}` no mesmo grupo de autenticação e middlewares da listagem. O UseCase MUST obter o identificador autenticado por `Expense\Application\Ports\UserPort` e passá-lo explicitamente ao Repository junto ao ID da despesa. A consulta MUST filtrar pelo ID e por `user_id` no banco. A API MUST responder `200` com um recurso JSON:API do tipo `expenses`, ID em string e os mesmos atributos públicos da resposta de criação. Uma despesa inexistente, excluída ou pertencente a outra conta MUST produzir o mesmo erro JSON:API `404`. O ID da rota MUST ser numérico. A leitura individual MUST consultar a persistência sem reutilizar o cache de páginas.
+
+#### Scenario: Consulta da própria despesa
+- **WHEN** uma conta autenticada consulta uma despesa que lhe pertence
+- **THEN** a API responde `200` com o recurso JSON:API correspondente e seus atributos atuais
+
+#### Scenario: Despesa inexistente, excluída ou de outra conta
+- **WHEN** uma conta autenticada consulta um ID inexistente, excluído ou pertencente a outra conta
+- **THEN** a API responde `404` em JSON:API sem revelar dados da despesa
+
+#### Scenario: Consulta individual sem autenticação
+- **WHEN** `GET /api/expenses/{expense}` é chamado sem Bearer token válido
+- **THEN** a API responde `401` em JSON:API sem revelar despesas
+
+#### Scenario: Identificador não numérico
+- **WHEN** o identificador da despesa na rota não é numérico
+- **THEN** a API responde `404` em JSON:API
+
 ### Requirement: Paginação por cursor de despesas
 O sistema MUST ordenar as despesas por `occurred_on` decrescente e, em caso de empate, por `id` decrescente. MUST paginar no banco usando cursor e índice compatível com o filtro por `user_id` e a ordenação, sem carregar todos os registros ou usar offset. `page[size]` MUST ser opcional, com valor padrão `20` e limite inclusivo de `1` a `100`; `page[cursor]` MUST ser opcional e representar a posição opaca devolvida pela API. Um cursor inválido ou tamanho fora do intervalo MUST produzir `422` em JSON:API, sem retornar implicitamente a primeira página. Cada página MUST conter no máximo o tamanho solicitado e MUST preservar o escopo da conta autenticada, inclusive ao seguir um cursor.
 

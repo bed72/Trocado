@@ -8,6 +8,8 @@ use App\Expense\Application\Ports\UserPort;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\AuthManager;
 
+use function is_int;
+
 final readonly class UserAdapter implements UserPort
 {
     public function __construct(private AuthManager $manager) {}
