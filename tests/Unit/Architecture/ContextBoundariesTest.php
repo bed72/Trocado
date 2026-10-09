@@ -174,6 +174,7 @@ foreach ($contexts as $context) {
 
         if (in_array($context, ['Expense', 'Identity'], true)) {
             $applicationDependencies[] = 'App\\Core\\Application\\Ports\\ObservabilityPort';
+            $applicationDependencies[] = 'App\\Core\\Application\\Ports\\UserPort';
         }
 
         arch($context.' application depends only on its domain and own contracts')
@@ -225,6 +226,10 @@ foreach ($contexts as $context) {
 
         if ($context === 'Core') {
             $presentationDependencies[] = 'Laravel\\Nightwatch\\Core';
+        }
+
+        if ($context === 'Identity') {
+            $presentationDependencies[] = 'App\\Core\\Application\\Ports\\UserPort';
         }
 
         arch($context.' presentation does not reach infrastructure')

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Identity\Application\UseCases;
 
 use App\Core\Application\Ports\ObservabilityPort;
+use App\Core\Application\Ports\UserPort;
 use App\Identity\Application\Ports\SignOutPort;
-use App\Identity\Application\Ports\UserPort;
 
 final readonly class SignOutUseCase
 {

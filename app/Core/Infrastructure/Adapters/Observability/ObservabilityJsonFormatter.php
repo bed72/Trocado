@@ -15,6 +15,7 @@ final class ObservabilityJsonFormatter extends JsonFormatter
             'event' => $record->message,
             'level' => $record->level->getName(),
             'timestamp' => $record->datetime->format('Y-m-d\TH:i:s.uP'),
+            ...$record->extra,
             ...$record->context,
         ], true)."\n";
     }

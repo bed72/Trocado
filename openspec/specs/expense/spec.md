@@ -111,7 +111,7 @@ O sistema MUST disponibilizar `POST /api/expenses` autenticado com documento JSO
 - **AND** nenhuma despesa é criada ou enviada à classificação
 
 ### Requirement: Listagem de despesas restrita ao proprietário
-O sistema MUST disponibilizar `GET /api/expenses` somente a um User autenticado. A consulta MUST filtrar por `user_id` obtido da identidade autenticada antes de paginar e MUST NOT aceitar `user_id` fornecido pelo cliente para definir o proprietário. Despesas excluídas definitivamente MUST NOT aparecer na listagem. O UseCase MUST obter o identificador autenticado por `Expense\Application\Ports\UserPort` e entregá-lo explicitamente ao Repository; a Application MUST NOT depender de HTTP, autenticação Laravel ou Eloquent; o contrato de Repository MUST expor somente tipos independentes do ORM.
+O sistema MUST disponibilizar `GET /api/expenses` somente a um User autenticado. A consulta MUST filtrar por `user_id` obtido da identidade autenticada antes de paginar e MUST NOT aceitar `user_id` fornecido pelo cliente para definir o proprietário. Despesas excluídas definitivamente MUST NOT aparecer na listagem. O UseCase MUST obter o identificador autenticado por `Core\Application\Ports\UserPort` e entregá-lo explicitamente ao Repository; a Application MUST NOT depender de HTTP, autenticação Laravel ou Eloquent; o contrato de Repository MUST expor somente tipos independentes do ORM.
 
 #### Scenario: Despesas da própria conta
 - **WHEN** uma conta autenticada possui despesas ativas e outras contas também possuem despesas
@@ -135,7 +135,7 @@ O sistema MUST disponibilizar `GET /api/expenses` somente a um User autenticado.
 - **THEN** a API rejeita o parâmetro com `422` em JSON:API e não altera o escopo da consulta
 
 ### Requirement: Consulta individual de despesa restrita ao proprietário
-O sistema MUST disponibilizar `GET /api/expenses/{expense}` no mesmo grupo de autenticação e middlewares da listagem. O UseCase MUST obter o identificador autenticado por `Expense\Application\Ports\UserPort` e passá-lo explicitamente ao Repository junto ao ID da despesa. A consulta MUST filtrar pelo ID e por `user_id` no banco. A API MUST responder `200` com um recurso JSON:API do tipo `expenses`, ID em string e os mesmos atributos públicos da resposta de criação. Uma despesa inexistente, excluída ou pertencente a outra conta MUST produzir o mesmo erro JSON:API `404`. O ID da rota MUST ser numérico. A leitura individual MUST consultar a persistência sem reutilizar o cache de páginas.
+O sistema MUST disponibilizar `GET /api/expenses/{expense}` no mesmo grupo de autenticação e middlewares da listagem. O UseCase MUST obter o identificador autenticado por `Core\Application\Ports\UserPort` e passá-lo explicitamente ao Repository junto ao ID da despesa. A consulta MUST filtrar pelo ID e por `user_id` no banco. A API MUST responder `200` com um recurso JSON:API do tipo `expenses`, ID em string e os mesmos atributos públicos da resposta de criação. Uma despesa inexistente, excluída ou pertencente a outra conta MUST produzir o mesmo erro JSON:API `404`. O ID da rota MUST ser numérico. A leitura individual MUST consultar a persistência sem reutilizar o cache de páginas.
 
 #### Scenario: Consulta da própria despesa
 - **WHEN** uma conta autenticada consulta uma despesa que lhe pertence

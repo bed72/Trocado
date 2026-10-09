@@ -2,13 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\Expense\Infrastructure\Adapters;
+namespace App\Core\Infrastructure\Adapters;
 
-use App\Expense\Application\Ports\UserPort;
+use App\Core\Application\Ports\UserPort;
+use BackedEnum;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\AuthManager;
 
 use function is_int;
+use function is_string;
 
 final readonly class UserAdapter implements UserPort
 {
@@ -23,5 +25,20 @@ final readonly class UserAdapter implements UserPort
         }
 
         return $id;
+    }
+
+    public function status(): string
+    {
+        $status = $this->manager->guard(name: 'sanctum')->user()?->status;
+
+        if ($status instanceof BackedEnum) {
+            $status = $status->value;
+        }
+
+        if (! is_string($status)) {
+            throw new AuthenticationException;
+        }
+
+        return $status;
     }
 }

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use App\Core\Application\Ports\ObservabilityPort;
 use App\Core\Application\Ports\TransactionPort;
+use App\Core\Application\Ports\UserPort;
 use App\Expense\Application\Exceptions\ExpenseNotFoundException;
-use App\Expense\Application\Ports\UserPort;
 use App\Expense\Application\Repositories\ExpenseRepository;
 use App\Expense\Application\UseCases\DeleteExpenseUseCase;
 

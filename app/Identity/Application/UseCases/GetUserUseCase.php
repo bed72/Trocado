@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Identity\Application\UseCases;
 
+use App\Core\Application\Ports\UserPort;
 use App\Identity\Application\Exceptions\UserNotFoundException;
-use App\Identity\Application\Ports\UserPort;
 use App\Identity\Application\Repositories\UserRepository;
 use App\Identity\Domain\Entities\UserEntity;
 

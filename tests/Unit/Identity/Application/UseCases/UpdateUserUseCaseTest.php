@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use App\Core\Application\Ports\ObservabilityPort;
+use App\Core\Application\Ports\UserPort;
 use App\Identity\Application\Exceptions\UserNotFoundException;
-use App\Identity\Application\Ports\UserPort;
 use App\Identity\Application\Repositories\UserRepository;
 use App\Identity\Application\UseCases\UpdateUserUseCase;
 use App\Identity\Domain\Entities\UserEntity;

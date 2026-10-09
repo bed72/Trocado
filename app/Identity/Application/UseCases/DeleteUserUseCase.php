@@ -6,8 +6,8 @@ namespace App\Identity\Application\UseCases;
 
 use App\Core\Application\Ports\ObservabilityPort;
 use App\Core\Application\Ports\TransactionPort;
+use App\Core\Application\Ports\UserPort;
 use App\Identity\Application\Exceptions\UserNotFoundException;
-use App\Identity\Application\Ports\UserPort;
 use App\Identity\Application\Repositories\UserRepository;
 
 final readonly class DeleteUserUseCase

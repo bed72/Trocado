@@ -8,13 +8,11 @@ use App\Identity\Application\Ports\EmailVerificationPort;
 use App\Identity\Application\Ports\SessionExtensionPort;
 use App\Identity\Application\Ports\SignInPort;
 use App\Identity\Application\Ports\SignOutPort;
-use App\Identity\Application\Ports\UserPort;
 use App\Identity\Application\Repositories\UserRepository;
 use App\Identity\Infrastructure\Adapters\EmailVerificationAdapter;
 use App\Identity\Infrastructure\Adapters\SessionExtensionAdapter;
 use App\Identity\Infrastructure\Adapters\SignInAdapter;
 use App\Identity\Infrastructure\Adapters\SignOutAdapter;
-use App\Identity\Infrastructure\Adapters\UserAdapter;
 use App\Identity\Infrastructure\Repositories\Persistence\EloquentUserRepository;
 use DateTimeImmutable;
 use DateTimeInterface;
@@ -34,7 +32,6 @@ final class IdentityServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->app->bind(abstract: UserPort::class, concrete: UserAdapter::class);
         $this->app->bind(abstract: SignInPort::class, concrete: SignInAdapter::class);
         $this->app->bind(abstract: SignOutPort::class, concrete: SignOutAdapter::class);
         $this->app->bind(abstract: UserRepository::class, concrete: EloquentUserRepository::class);

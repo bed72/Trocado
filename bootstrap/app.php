@@ -1,6 +1,7 @@
 <?php
 
-use App\Core\Presentation\Http\Middleware\AssignRequestIdMiddleware;
+use App\Core\Presentation\Http\Middleware\AuthenticatedRequestMiddleware;
+use App\Core\Presentation\Http\Middleware\TraceRequestMiddleware;
 use App\Expense\Application\Exceptions\ExpenseNotFoundException;
 use App\Expense\Application\Exceptions\ExpenseOwnerNotFoundException;
 use App\Expense\Domain\Exceptions\InvalidExpenseException;
@@ -20,6 +21,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
@@ -38,12 +40,17 @@ return Application::configure(basePath: dirname(__DIR__))
         ],
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->prepend(AssignRequestIdMiddleware::class);
+        $middleware->append(TraceRequestMiddleware::class);
         $middleware->alias([
+            'request.authenticated' => AuthenticatedRequestMiddleware::class,
             'user.active' => EnsureActiveUserMiddleware::class,
             'session.extend' => ExtendSessionMiddleware::class,
         ]);
         $middleware->prependToPriorityList(before: ThrottleRequests::class, prepend: Authenticate::class);
+        $middleware->prependToPriorityList(
+            before: [ThrottleRequests::class, SubstituteBindings::class],
+            prepend: AuthenticatedRequestMiddleware::class,
+        );
         $middleware->trimStrings(except: [
             'data.attributes.password',
             'data.attributes.password_confirmation',

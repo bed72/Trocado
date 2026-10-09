@@ -4,14 +4,20 @@ declare(strict_types=1);
 
 namespace App\Core\Infrastructure\Providers;
 
+use App\Core\Application\Ports\ContextPort;
 use App\Core\Application\Ports\ObservabilityPort;
 use App\Core\Application\Ports\TransactionPort;
+use App\Core\Application\Ports\UserPort;
+use App\Core\Infrastructure\Adapters\ContextAdapter;
 use App\Core\Infrastructure\Adapters\Observability\ObservabilityAdapter;
 use App\Core\Infrastructure\Adapters\TransactionAdapter;
+use App\Core\Infrastructure\Adapters\UserAdapter;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
+use Illuminate\Routing\Events\RouteMatched;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
@@ -22,19 +28,25 @@ final class CoreServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        $this->app->bind(abstract: UserPort::class, concrete: UserAdapter::class);
+        $this->app->bind(abstract: ContextPort::class, concrete: ContextAdapter::class);
         $this->app->bind(abstract: TransactionPort::class, concrete: TransactionAdapter::class);
         $this->app->bind(abstract: ObservabilityPort::class, concrete: ObservabilityAdapter::class);
     }
 
     public function boot(ObservabilityPort $port): void
     {
+        Event::listen(RouteMatched::class, function (RouteMatched $event): void {
+            $this->app->make(ContextPort::class)->identifyRoute($event->route->uri());
+        });
+
         Nightwatch::redactRequests(static function (NightwatchRequest $request): void {
             $url = explode('?', $request->url, 2)[0];
             $request->url = preg_replace('~(/api/email-verification/)[^/]+/[^/]+$~', '$1[redacted]/[redacted]', $url) ?? $url;
         });
 
         RateLimiter::for('api.authenticated', fn (Request $request): Limit => Limit::perMinute(60)
-            ->by('api:authenticated:user:'.$request->user()->getAuthIdentifier()));
+            ->by('api:authenticated:user:'.$this->app->make(UserPort::class)->id()));
 
         Queue::after(function (JobProcessed $event) use ($port): void {
             if ($event->job->hasFailed() || $event->job->isReleased()) {

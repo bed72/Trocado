@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Expense\Application\UseCases;
 
+use App\Core\Application\Ports\UserPort;
 use App\Expense\Application\Data\ExpensePageOutput;
-use App\Expense\Application\Ports\UserPort;
 use App\Expense\Application\Repositories\ExpenseRepository;
 
 final readonly class GetAllExpenseUseCase
