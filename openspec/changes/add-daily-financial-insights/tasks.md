@@ -20,15 +20,15 @@
 
 ## 4. Compor mensagens e disponibilizar a API
 
-- [ ] 4.1 Implementar o catálogo aprovado e sua interpolação de fatos; validar título de até 32 e descrição de até 110 caracteres Unicode com alternativas completas, sem truncamento de evidência.
-- [ ] 4.2 Implementar rotação determinística por conta, chave editorial e dia, preservando variante no mesmo dia e mudando no dia seguinte para o mesmo conjunto; não persistir histórico nem congelar valores.
+- [x] 4.1 Implementar o catálogo aprovado e sua interpolação de fatos; validar título de até 32 e descrição de até 110 caracteres Unicode com alternativas completas, sem truncamento de evidência.
+- [x] 4.2 Implementar rotação determinística por conta, chave editorial e dia, preservando variante no mesmo dia e mudando no dia seguinte para o mesmo conjunto; não persistir histórico nem congelar valores.
 - [ ] 4.3 Implementar `GetInsightsUseCase` com referência civil explícita e IDs derivados, retornando Outputs próprios sem persistência, cache específico, IA, jobs ou efeitos de escrita nas despesas.
 - [ ] 4.4 Consultar Boost/Search Docs e o código instalado para wiring e JSON:API; disponibilizar `GET /api/insights` com as proteções HTTP existentes, rejeição de query params e `InsightResponse` com `group`, `type` e período.
 
 ## 5. Verificar o comportamento e preparar entrega
 
 - [x] 5.1 Verificar as regras e seleção com cenários de base pequena/zero, limiares, empate, liderança incompleta, `other`, redundância e ausência de registros, conforme os requisitos da spec.
-- [ ] 5.2 Verificar rotação no mesmo dia, em dias consecutivos e após um ciclo; mudanças de números sem troca de variante, transições de conjunto e limites Unicode após interpolação.
+- [x] 5.2 Verificar rotação no mesmo dia, em dias consecutivos e após um ciclo; mudanças de números sem troca de variante, transições de conjunto e limites Unicode após interpolação.
 - [ ] 5.3 Verificar queries e projeções com contas distintas, registros retroativos/futuros, meses de durações diferentes, somas grandes e consistência de fatos relacionados; verificar leitura após edição, exclusão e recategorização confirmadas.
 - [ ] 5.4 Verificar contrato HTTP, autenticação e demais proteções, parâmetros rejeitados, IDs, grupos/tipos, períodos, onboarding e falha explícita de leitura, sem expor dados de outras contas.
 - [ ] 5.5 Executar verificações arquiteturais e medir as queries do fluxo em Lerd, examinando plano e ausência de consultas por regra/categoria; propor cache ou índices somente se houver evidência de necessidade.

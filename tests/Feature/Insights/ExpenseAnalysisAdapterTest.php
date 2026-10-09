@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Insights\Application\Ports\ExpenseAnalysisPort;
+use App\Insights\Application\UseCases\ComposeInsightMessageUseCase;
 use App\Insights\Application\UseCases\GenerateInsightCandidatesUseCase;
 use App\Insights\Application\UseCases\SelectInsightCandidatesUseCase;
 use App\Insights\Domain\Enums\InsightTypeEnum;
@@ -171,4 +172,11 @@ it('generates candidates from the real analytical projection', function (): void
 
     expect($selected)->toBe([$candidates[1]])
         ->and($selected[0]->type)->toBe(InsightTypeEnum::CategoryLeadStreak);
+
+    $message = app(ComposeInsightMessageUseCase::class)->execute($userId, $selected[0], '2026-10-12');
+
+    expect(str_contains($message->description, 'Alimentação'))->toBeTrue()
+        ->and(str_contains($message->description, 'dois meses anteriores'))->toBeTrue()
+        ->and(mb_strlen($message->title, 'UTF-8'))->toBeLessThanOrEqual(32)
+        ->and(mb_strlen($message->description, 'UTF-8'))->toBeLessThanOrEqual(110);
 });
