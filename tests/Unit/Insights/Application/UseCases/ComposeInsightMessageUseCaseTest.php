@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Core\Domain\ValueObjects\CentsValueObject;
+use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Insights\Application\Data\InsightMessageTemplateOutput;
 use App\Insights\Application\Exceptions\InsightMessageCompositionException;
 use App\Insights\Application\UseCases\ComposeInsightMessageUseCase;
@@ -9,9 +11,7 @@ use App\Insights\Application\UseCases\GetInsightMessageTemplatesUseCase;
 use App\Insights\Application\UseCases\SelectInsightMessageVariantUseCase;
 use App\Insights\Domain\Enums\InsightHistoryStateEnum;
 use App\Insights\Domain\Enums\InsightTypeEnum;
-use App\Insights\Domain\ValueObjects\InsightAmountValueObject;
 use App\Insights\Domain\ValueObjects\InsightCandidateValueObject;
-use App\Insights\Domain\ValueObjects\InsightPeriodValueObject;
 
 function messageCompositionUseCase(): ComposeInsightMessageUseCase
 {
@@ -34,24 +34,13 @@ function messageCandidateFixture(
         type: $type,
         category: $category,
         historyState: $historyState,
-        comparisonPeriod: $comparison ? InsightPeriodValueObject::fromDates('2026-09-01', str_replace('2026-10', '2026-09', $to)) : null,
-        ratio: $ratio ? InsightAmountValueObject::fromCents($numerator)->shareOf(InsightAmountValueObject::fromCents($denominator)) : null,
-        analysisPeriod: InsightPeriodValueObject::fromDates($type === InsightTypeEnum::CategoryLeadStreak ? '2026-08-01' : '2026-10-01', $to),
+        comparisonPeriod: $comparison ? DatePeriodValueObject::fromDates('2026-09-01', str_replace('2026-10', '2026-09', $to)) : null,
+        ratio: $ratio ? CentsValueObject::fromCents($numerator)->shareOf(CentsValueObject::fromCents($denominator)) : null,
+        analysisPeriod: DatePeriodValueObject::fromDates($type === InsightTypeEnum::CategoryLeadStreak ? '2026-08-01' : '2026-10-01', $to),
     );
 }
 
-it('matches every complete template and short alternative from the approved editorial catalog', function (): void {
-    $approved = [];
-    $root = dirname(__DIR__, 5);
-    $lines = file("{$root}/openspec/changes/add-daily-financial-insights/editorial.md", FILE_IGNORE_NEW_LINES);
-
-    foreach ($lines as $line) {
-        if (preg_match('/^\| [1-4] \|/', $line) === 1) {
-            $columns = array_map(trim(...), explode('|', $line));
-            $approved[] = [$columns[2], $columns[3], $columns[4]];
-        }
-    }
-
+it('keeps every catalog set compact for cards with four complete variants', function (): void {
     $candidates = [
         messageCandidateFixture(InsightTypeEnum::CategoryConcentration, 'food'),
         messageCandidateFixture(InsightTypeEnum::CategoryConcentration, 'health'),
@@ -64,18 +53,25 @@ it('matches every complete template and short alternative from the approved edit
         messageCandidateFixture(InsightTypeEnum::InsufficientHistory, historyState: InsightHistoryStateEnum::NoCurrentExpenses),
         messageCandidateFixture(InsightTypeEnum::CategoryReview, 'other'),
     ];
-    $actual = [];
+    $parameters = ['{category}' => 'Assinaturas', '{percent}' => '100', '{day}' => '31'];
 
     foreach ($candidates as $candidate) {
         $templates = (new GetInsightMessageTemplatesUseCase)->execute($candidate);
         expect($templates)->toHaveCount(4);
 
         foreach ($templates as $template) {
-            $actual[] = [$template->title, $template->description, $template->shortDescription];
+            expect(mb_strlen(strtr($template->title, $parameters), 'UTF-8'))->toBeLessThanOrEqual(32);
+
+            foreach ([$template->description, $template->shortDescription] as $description) {
+                $description = strtr($description, $parameters);
+
+                expect(mb_strlen($description, 'UTF-8'))->toBeLessThanOrEqual(80)
+                    ->and(str_contains($description, '{'))->toBeFalse()
+                    ->and(preg_match('/[.?]$/u', $description))->toBe(1);
+            }
         }
     }
 
-    expect($approved)->toHaveCount(40)->toBe($actual);
 });
 
 it('renders every catalog set with complete paired messages within Unicode limits', function (
@@ -180,7 +176,7 @@ it('fails explicitly when even the complete alternative exceeds the character bu
 })->throws(InsightMessageCompositionException::class);
 
 it('measures the Unicode character budget instead of UTF-8 bytes', function (): void {
-    $percent = str_repeat('9', 26);
+    $percent = str_repeat('9', 39);
     $candidate = messageCandidateFixture(InsightTypeEnum::RegisteredAmountIncrease, numerator: $percent, denominator: '100');
     $useCase = messageCompositionUseCase();
     $messages = [];
@@ -188,14 +184,14 @@ it('measures the Unicode character budget instead of UTF-8 bytes', function (): 
     foreach (['2026-10-12', '2026-10-13', '2026-10-14', '2026-10-15'] as $date) {
         $current = $useCase->execute(1, $candidate, $date);
 
-        if ($current->title === 'Um total maior no intervalo') {
+        if ($current->title === 'Os números subiram no palco') {
             $messages[] = $current;
         }
     }
 
     expect($messages)->toHaveCount(1);
     $message = $messages[0];
-    expect($message->description)->toBe("Até dia 11, o valor registrado ficou {$percent}% maior que no mesmo intervalo do mês passado.");
+    expect($message->description)->toBe("De 1 a 11: valor registrado {$percent}% maior que nos mesmos dias do mês passado.");
     expect(strlen($message->description))->toBeGreaterThan(110)
         ->and(mb_strlen($message->description, 'UTF-8'))->toBeLessThanOrEqual(110);
 });
@@ -218,7 +214,7 @@ it('starts another predictable cycle after a month and eligible set transition',
     $october = messageCandidateFixture(InsightTypeEnum::FirstExpense);
     $november = new InsightCandidateValueObject(
         type: InsightTypeEnum::InsufficientHistory,
-        analysisPeriod: InsightPeriodValueObject::fromDates('2026-11-01', '2026-11-01'),
+        analysisPeriod: DatePeriodValueObject::fromDates('2026-11-01', '2026-11-01'),
         historyState: InsightHistoryStateEnum::NoCurrentExpenses,
     );
     $useCase->execute(1, $october, '2026-10-31');

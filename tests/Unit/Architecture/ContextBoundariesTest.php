@@ -9,7 +9,15 @@ $contexts = array_map(basename(...), $contextDirectories);
 sort($contexts);
 
 $layers = ['Application', 'Domain', 'Infrastructure', 'Presentation'];
-$expectedContexts = ['Core', 'Expense', 'Identity', 'Insights'];
+$expectedContexts = ['Core', 'Expense', 'Identity', 'Insights', 'Metrics'];
+$sharedDomainDependencies = [
+    'App\\Core\\Domain\\ValueObjects\\CentsValueObject',
+    'App\\Core\\Domain\\ValueObjects\\DatePeriodValueObject',
+    'App\\Core\\Domain\\ValueObjects\\RatioValueObject',
+    'App\\Core\\Domain\\Exceptions\\InvalidCentsException',
+    'App\\Core\\Domain\\Exceptions\\InvalidDatePeriodException',
+    'App\\Core\\Domain\\Exceptions\\InvalidRatioException',
+];
 
 it('organizes application code inside known bounded context layers', function () use ($contextDirectories, $layers): void {
     expect(count($contextDirectories))->toBeGreaterThan(0);
@@ -164,9 +172,11 @@ foreach ($contexts as $context) {
     if (is_dir("{$contextPath}/Domain")) {
         $domainDependencies = ["{$contextNamespace}\\Domain"];
 
-        if ($context === 'Insights') {
+        if ($context === 'Core') {
             $domainDependencies[] = 'Brick\\Math\\BigInteger';
             $domainDependencies[] = 'Brick\\Math\\RoundingMode';
+        } else {
+            $domainDependencies = [...$domainDependencies, ...$sharedDomainDependencies];
         }
 
         arch("{$context} domain remains isolated and framework independent")
@@ -176,6 +186,10 @@ foreach ($contexts as $context) {
 
     if (is_dir("{$contextPath}/Application")) {
         $applicationDependencies = ["{$contextNamespace}\\Application", "{$contextNamespace}\\Domain"];
+
+        if ($context !== 'Core') {
+            $applicationDependencies = [...$applicationDependencies, ...$sharedDomainDependencies];
+        }
 
         if ($context !== 'Core') {
             $applicationDependencies[] = 'App\\Core\\Application\\Ports\\TransactionPort';
@@ -201,6 +215,10 @@ foreach ($contexts as $context) {
             "{$contextNamespace}\\Domain",
             'Illuminate',
         ];
+
+        if ($context !== 'Core') {
+            $infrastructureDependencies = [...$infrastructureDependencies, ...$sharedDomainDependencies];
+        }
 
         if ($context === 'Identity') {
             $infrastructureDependencies[] = 'Laravel\\Sanctum';
@@ -235,6 +253,10 @@ foreach ($contexts as $context) {
             'response',
             'route',
         ];
+
+        if ($context !== 'Core') {
+            $presentationDependencies = [...$presentationDependencies, ...$sharedDomainDependencies];
+        }
 
         if ($context === 'Core') {
             $presentationDependencies[] = 'Laravel\\Nightwatch\\Core';

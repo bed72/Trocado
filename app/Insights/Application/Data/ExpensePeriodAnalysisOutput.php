@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Insights\Application\Data;
 
-use App\Insights\Domain\ValueObjects\InsightPeriodValueObject;
+use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 
 final readonly class ExpensePeriodAnalysisOutput
 {
@@ -20,6 +20,6 @@ final readonly class ExpensePeriodAnalysisOutput
         public int $distinctDateCount,
         public string $largestExpenseAmount,
         public ?string $largestExpenseCategory,
-        public InsightPeriodValueObject $period,
+        public DatePeriodValueObject $period,
     ) {}
 }

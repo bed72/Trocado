@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Insights\Application\UseCases;
 
+use App\Core\Domain\ValueObjects\CentsValueObject;
+use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Insights\Application\Data\ExpenseAnalysisOutput;
 use App\Insights\Application\Data\ExpensePeriodAnalysisOutput;
 use App\Insights\Domain\Enums\InsightHistoryStateEnum;
 use App\Insights\Domain\Enums\InsightTypeEnum;
 use App\Insights\Domain\Exceptions\InvalidInsightAnalysisException;
 use App\Insights\Domain\ValueObjects\ExpensePeriodSummaryValueObject;
-use App\Insights\Domain\ValueObjects\InsightAmountValueObject;
 use App\Insights\Domain\ValueObjects\InsightCandidateValueObject;
-use App\Insights\Domain\ValueObjects\InsightPeriodValueObject;
 use DateTimeImmutable;
 use DateTimeZone;
 
@@ -47,8 +47,8 @@ final class GenerateInsightCandidatesUseCase
             }
 
             return [new InsightCandidateValueObject(
-                type: InsightTypeEnum::FirstExpense,
                 analysisPeriod: $current->period,
+                type: InsightTypeEnum::FirstExpense,
             )];
         }
 
@@ -110,7 +110,7 @@ final class GenerateInsightCandidatesUseCase
                 $candidates[] = new InsightCandidateValueObject(
                     category: $leader,
                     type: InsightTypeEnum::CategoryLeadStreak,
-                    analysisPeriod: InsightPeriodValueObject::fromDates($twoMonthsAgo->period->from(), $current->period->to()),
+                    analysisPeriod: DatePeriodValueObject::fromDates($twoMonthsAgo->period->from(), $current->period->to()),
                 );
             }
         }
@@ -145,7 +145,7 @@ final class GenerateInsightCandidatesUseCase
         ExpensePeriodSummaryValueObject $previous,
         string $referenceDate,
     ): ?InsightCandidateValueObject {
-        InsightPeriodValueObject::fromDates($referenceDate, $referenceDate);
+        DatePeriodValueObject::fromDates($referenceDate, $referenceDate);
         $reference = new DateTimeImmutable($referenceDate, new DateTimeZone('UTC'));
         $previousStart = new DateTimeImmutable($previous->period->from(), new DateTimeZone('UTC'));
         $commonDays = min((int) $reference->format('j') - 1, (int) $previousStart->format('t'));
@@ -193,8 +193,8 @@ final class GenerateInsightCandidatesUseCase
         }
 
         return [new InsightCandidateValueObject(
-            type: InsightTypeEnum::InsufficientHistory,
             analysisPeriod: $current->period,
+            type: InsightTypeEnum::InsufficientHistory,
             historyState: $current->expenseCount > 0 ? InsightHistoryStateEnum::CurrentExpenses : InsightHistoryStateEnum::NoCurrentExpenses,
         )];
     }
@@ -245,7 +245,7 @@ final class GenerateInsightCandidatesUseCase
                 throw new InvalidInsightAnalysisException('A projeção contém categorias duplicadas.');
             }
 
-            $categories[$category->category] = InsightAmountValueObject::fromCents($category->totalAmount);
+            $categories[$category->category] = CentsValueObject::fromCents($category->totalAmount);
         }
 
         return new ExpensePeriodSummaryValueObject(
@@ -254,8 +254,8 @@ final class GenerateInsightCandidatesUseCase
             expenseCount: $projection->expenseCount,
             distinctDateCount: $projection->distinctDateCount,
             largestExpenseCategory: $projection->largestExpenseCategory,
-            totalAmount: InsightAmountValueObject::fromCents($projection->totalAmount),
-            largestExpenseAmount: InsightAmountValueObject::fromCents($projection->largestExpenseAmount),
+            totalAmount: CentsValueObject::fromCents($projection->totalAmount),
+            largestExpenseAmount: CentsValueObject::fromCents($projection->largestExpenseAmount),
         );
     }
 }

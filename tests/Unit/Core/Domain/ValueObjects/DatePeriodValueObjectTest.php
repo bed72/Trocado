@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-use App\Insights\Domain\Exceptions\InvalidInsightPeriodException;
-use App\Insights\Domain\ValueObjects\InsightPeriodValueObject;
+use App\Core\Domain\Exceptions\InvalidDatePeriodException;
+use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 
 it('preserves canonical endpoints and counts both boundary days', function (string $from, string $to, int $days): void {
-    $period = InsightPeriodValueObject::fromDates(from: $from, to: $to);
+    $period = DatePeriodValueObject::fromDates(from: $from, to: $to);
 
     expect($period->from())->toBe($from)
         ->and($period->to())->toBe($to)
@@ -23,7 +23,7 @@ it('preserves canonical endpoints and counts both boundary days', function (stri
 ]);
 
 it('rejects impossible and noncanonical dates at either endpoint', function (string $date, string $endpoint): void {
-    InsightPeriodValueObject::fromDates(
+    DatePeriodValueObject::fromDates(
         from: $endpoint === 'from' ? $date : '2026-01-01',
         to: $endpoint === 'to' ? $date : '2028-12-31',
     );
@@ -41,18 +41,18 @@ it('rejects impossible and noncanonical dates at either endpoint', function (str
     'surrounding spaces' => ' 2026-10-12 ',
     'relative date' => 'tomorrow',
 ])->with(['from', 'to'])
-    ->throws(InvalidInsightPeriodException::class, 'O período deve conter datas civis válidas em Y-m-d.');
+    ->throws(InvalidDatePeriodException::class, 'O período deve conter datas civis válidas em Y-m-d.');
 
 it('rejects an end date before the start', function (): void {
-    InsightPeriodValueObject::fromDates(from: '2026-10-12', to: '2026-10-11');
-})->throws(InvalidInsightPeriodException::class, 'O início do período não pode ser posterior ao fim.');
+    DatePeriodValueObject::fromDates(from: '2026-10-12', to: '2026-10-11');
+})->throws(InvalidDatePeriodException::class, 'O início do período não pode ser posterior ao fim.');
 
 it('compares periods by both endpoints rather than their duration', function (): void {
-    $period = InsightPeriodValueObject::fromDates(from: '2026-10-01', to: '2026-10-11');
-    $equal = InsightPeriodValueObject::fromDates(from: '2026-10-01', to: '2026-10-11');
-    $otherMonth = InsightPeriodValueObject::fromDates(from: '2026-09-01', to: '2026-09-11');
-    $otherStart = InsightPeriodValueObject::fromDates(from: '2026-10-02', to: '2026-10-11');
-    $otherEnd = InsightPeriodValueObject::fromDates(from: '2026-10-01', to: '2026-10-12');
+    $period = DatePeriodValueObject::fromDates(from: '2026-10-01', to: '2026-10-11');
+    $equal = DatePeriodValueObject::fromDates(from: '2026-10-01', to: '2026-10-11');
+    $otherMonth = DatePeriodValueObject::fromDates(from: '2026-09-01', to: '2026-09-11');
+    $otherStart = DatePeriodValueObject::fromDates(from: '2026-10-02', to: '2026-10-11');
+    $otherEnd = DatePeriodValueObject::fromDates(from: '2026-10-01', to: '2026-10-12');
 
     expect($period->equals($equal))->toBeTrue()
         ->and($equal->equals($period))->toBeTrue()
@@ -63,8 +63,8 @@ it('compares periods by both endpoints rather than their duration', function ():
 });
 
 it('compares duration independently of month and endpoint identity', function (string $from, string $to, bool $equivalent): void {
-    $period = InsightPeriodValueObject::fromDates(from: '2027-03-01', to: '2027-03-28');
-    $other = InsightPeriodValueObject::fromDates(from: $from, to: $to);
+    $period = DatePeriodValueObject::fromDates(from: '2027-03-01', to: '2027-03-28');
+    $other = DatePeriodValueObject::fromDates(from: $from, to: $to);
 
     expect($period->hasSameDurationAs($other))->toBe($equivalent)
         ->and($other->hasSameDurationAs($period))->toBe($equivalent);
@@ -81,21 +81,21 @@ it('counts civil days independently of the process timezone and daylight saving'
 
     try {
         date_default_timezone_set(timezoneId: 'America/New_York');
-        $period = InsightPeriodValueObject::fromDates(from: '2026-03-07', to: '2026-03-09');
+        $period = DatePeriodValueObject::fromDates(from: '2026-03-07', to: '2026-03-09');
 
         expect($period->days())->toBe(3);
 
         date_default_timezone_set(timezoneId: 'Pacific/Auckland');
 
         expect($period->days())->toBe(3)
-            ->and($period->equals(InsightPeriodValueObject::fromDates(from: '2026-03-07', to: '2026-03-09')))->toBeTrue();
+            ->and($period->equals(DatePeriodValueObject::fromDates(from: '2026-03-07', to: '2026-03-09')))->toBeTrue();
     } finally {
         date_default_timezone_set(timezoneId: $originalTimezone);
     }
 });
 
 it('identifies month starts and complete calendar months', function (string $from, string $to, bool $startsAtMonthStart, bool $complete): void {
-    $period = InsightPeriodValueObject::fromDates($from, $to);
+    $period = DatePeriodValueObject::fromDates($from, $to);
 
     expect($period->startsAtMonthStart())->toBe($startsAtMonthStart)
         ->and($period->isCompleteMonth())->toBe($complete);
@@ -111,8 +111,8 @@ it('identifies month starts and complete calendar months', function (string $fro
 ]);
 
 it('recognizes the immediately preceding month across years and month lengths', function (string $from, string $to, string $otherFrom, string $otherTo, bool $previous): void {
-    $period = InsightPeriodValueObject::fromDates($from, $to);
-    $other = InsightPeriodValueObject::fromDates($otherFrom, $otherTo);
+    $period = DatePeriodValueObject::fromDates($from, $to);
+    $other = DatePeriodValueObject::fromDates($otherFrom, $otherTo);
 
     expect($period->isPreviousMonthOf($other))->toBe($previous);
 })->with([

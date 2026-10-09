@@ -1,6 +1,7 @@
 # Domain
 
 - Mantenha Domain em PHP puro: Entities, Value Objects, Domain Services, exceções e invariantes.
+- Conceitos puros repetidos com invariantes equivalentes usam os Value Objects de `Core/Domain` documentados em `ARCHITECTURE.md`; preserve regras específicas no contexto proprietário. Core não importa os contextos consumidores.
 - Proíba dependências de Laravel, Illuminate, Eloquent, facades, HTTP, container, banco, migrations, Infrastructure e Presentation.
 - Domain não conhece persistência nem serialização. Proteja invariantes também fora do Form Request.
 - Crie Value Objects só para conceitos reais; prefira imutabilidade e não crie interfaces para Entities ou Value Objects.

@@ -1,5 +1,6 @@
 # Application
 
+- Os Value Objects e exceções compartilhados de `Core/Domain` documentados em `ARCHITECTURE.md` são dependências puras permitidas; não importe Domain de outro contexto de negócio.
 - Use UseCases concretos e injeção pelo construtor; não crie interfaces para cada UseCase.
 - Em construtores de UseCases, ordene dependências como `Port → UseCase → Repository`. Use `$port`, `$useCase` e `$repository` quando houver uma única dependência do papel; qualifique pelo contexto quando houver mais de uma.
 - Use Repository para persistência e consultas de agregados. Use Port para capacidades de Infrastructure, como transações, locks e integrações externas.

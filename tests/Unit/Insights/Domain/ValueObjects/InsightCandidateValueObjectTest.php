@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
+use App\Core\Domain\ValueObjects\CentsValueObject;
+use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Insights\Domain\Enums\InsightHistoryStateEnum;
 use App\Insights\Domain\Enums\InsightTypeEnum;
 use App\Insights\Domain\Exceptions\InvalidInsightAnalysisException;
-use App\Insights\Domain\ValueObjects\InsightAmountValueObject;
 use App\Insights\Domain\ValueObjects\InsightCandidateValueObject;
-use App\Insights\Domain\ValueObjects\InsightPeriodValueObject;
 
 function candidateValueObjectFixture(
     InsightTypeEnum $type,
@@ -21,9 +21,9 @@ function candidateValueObjectFixture(
         type: $type,
         category: $category,
         historyState: $historyState,
-        analysisPeriod: InsightPeriodValueObject::fromDates('2026-10-01', '2026-10-11'),
-        comparisonPeriod: $withComparison ? InsightPeriodValueObject::fromDates('2026-09-01', $previousTo) : null,
-        ratio: $withRatio ? InsightAmountValueObject::fromCents('5000')->shareOf(InsightAmountValueObject::fromCents('10000')) : null,
+        analysisPeriod: DatePeriodValueObject::fromDates('2026-10-01', '2026-10-11'),
+        comparisonPeriod: $withComparison ? DatePeriodValueObject::fromDates('2026-09-01', $previousTo) : null,
+        ratio: $withRatio ? CentsValueObject::fromCents('5000')->shareOf(CentsValueObject::fromCents('10000')) : null,
     );
 }
 
@@ -101,7 +101,7 @@ it('rejects comparison periods of different durations', function (InsightTypeEnu
     ->throws(InvalidInsightAnalysisException::class, 'Uma comparação exige períodos de mesma duração.');
 
 it('preserves the full three period span for recurring leadership', function (): void {
-    $span = InsightPeriodValueObject::fromDates('2026-08-01', '2026-10-12');
+    $span = DatePeriodValueObject::fromDates('2026-08-01', '2026-10-12');
     $candidate = new InsightCandidateValueObject(
         type: InsightTypeEnum::CategoryLeadStreak,
         analysisPeriod: $span,
@@ -121,7 +121,7 @@ it('identifies the same information independently of the calculated ratio', func
         type: $candidate->type,
         category: $candidate->category,
         analysisPeriod: $candidate->analysisPeriod,
-        ratio: InsightAmountValueObject::fromCents('7000')->shareOf(InsightAmountValueObject::fromCents('10000')),
+        ratio: CentsValueObject::fromCents('7000')->shareOf(CentsValueObject::fromCents('10000')),
     );
 
     expect($candidate->hasSameInformationAs($updated))->toBeTrue()

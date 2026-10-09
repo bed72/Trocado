@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Core\Domain\Exceptions\InvalidDatePeriodException;
 use App\Insights\Application\Data\SelectInsightMessageVariantInput;
 use App\Insights\Application\Exceptions\InsightMessageCompositionException;
 use App\Insights\Application\UseCases\SelectInsightMessageVariantUseCase;
-use App\Insights\Domain\Exceptions\InvalidInsightPeriodException;
 
 it('preserves the same variant within the day and visits every variant before repeating', function (int $variantCount, string $firstDay): void {
     $useCase = new SelectInsightMessageVariantUseCase;
@@ -66,4 +66,4 @@ it('rejects invalid rotation inputs', function (int $userId, string $key, int $c
 it('rejects noncanonical or impossible reference dates', function (string $date): void {
     (new SelectInsightMessageVariantUseCase)->execute(new SelectInsightMessageVariantInput(userId: 1, editorialKey: 'v1|food', referenceDate: $date, variantCount: 4));
 })->with(['2026-02-29', '2026-10-1', 'tomorrow'])
-    ->throws(InvalidInsightPeriodException::class);
+    ->throws(InvalidDatePeriodException::class);

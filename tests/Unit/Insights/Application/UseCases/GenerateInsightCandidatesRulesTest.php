@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Core\Domain\ValueObjects\CentsValueObject;
+use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Insights\Application\Data\ExpenseAnalysisOutput;
 use App\Insights\Application\Data\ExpenseCategoryAnalysisOutput;
 use App\Insights\Application\Data\ExpensePeriodAnalysisOutput;
@@ -10,9 +12,7 @@ use App\Insights\Domain\Enums\InsightHistoryStateEnum;
 use App\Insights\Domain\Enums\InsightTypeEnum;
 use App\Insights\Domain\Exceptions\InvalidInsightAnalysisException;
 use App\Insights\Domain\ValueObjects\ExpensePeriodSummaryValueObject;
-use App\Insights\Domain\ValueObjects\InsightAmountValueObject;
 use App\Insights\Domain\ValueObjects\InsightCandidateValueObject;
-use App\Insights\Domain\ValueObjects\InsightPeriodValueObject;
 
 /** @param array<string, string> $categories */
 function insightSummary(
@@ -25,10 +25,10 @@ function insightSummary(
     array $categories = ['food' => '6000', 'other' => '4000'],
 ): ExpensePeriodSummaryValueObject {
     $amounts = [];
-    $total = InsightAmountValueObject::fromCents('0');
+    $total = CentsValueObject::fromCents('0');
 
     foreach ($categories as $category => $cents) {
-        $amounts[$category] = InsightAmountValueObject::fromCents($cents);
+        $amounts[$category] = CentsValueObject::fromCents($cents);
         $total = $total->plus($amounts[$category]);
     }
 
@@ -38,8 +38,8 @@ function insightSummary(
         expenseCount: $count,
         distinctDateCount: $dates,
         largestExpenseCategory: $largestCategory,
-        period: InsightPeriodValueObject::fromDates($from, $to),
-        largestExpenseAmount: InsightAmountValueObject::fromCents($largest),
+        period: DatePeriodValueObject::fromDates($from, $to),
+        largestExpenseAmount: CentsValueObject::fromCents($largest),
     );
 }
 
@@ -273,6 +273,6 @@ it('rejects impossible summaries rather than inventing facts', function (): void
 it('rejects candidate facts that do not match their type', function (): void {
     new InsightCandidateValueObject(
         type: InsightTypeEnum::CategoryConcentration,
-        analysisPeriod: InsightPeriodValueObject::fromDates('2026-10-01', '2026-10-12'),
+        analysisPeriod: DatePeriodValueObject::fromDates('2026-10-01', '2026-10-12'),
     );
 })->throws(InvalidInsightAnalysisException::class);

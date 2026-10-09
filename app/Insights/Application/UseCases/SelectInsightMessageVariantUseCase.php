@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Insights\Application\UseCases;
 
+use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Insights\Application\Data\SelectInsightMessageVariantInput;
 use App\Insights\Application\Exceptions\InsightMessageCompositionException;
-use App\Insights\Domain\ValueObjects\InsightPeriodValueObject;
 use DateTimeImmutable;
 use DateTimeZone;
 
@@ -18,7 +18,7 @@ final readonly class SelectInsightMessageVariantUseCase
             throw new InsightMessageCompositionException('A rotação exige conta, chave editorial e pelo menos quatro variantes.');
         }
 
-        InsightPeriodValueObject::fromDates($input->referenceDate, $input->referenceDate);
+        DatePeriodValueObject::fromDates($input->referenceDate, $input->referenceDate);
         $timezone = new DateTimeZone('UTC');
         $epoch = new DateTimeImmutable('2020-01-01', $timezone);
         $reference = new DateTimeImmutable($input->referenceDate, $timezone);

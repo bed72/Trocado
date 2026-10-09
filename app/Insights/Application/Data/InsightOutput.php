@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Insights\Application\Data;
 
+use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Insights\Domain\Enums\InsightGroupEnum;
 use App\Insights\Domain\Enums\InsightTypeEnum;
-use App\Insights\Domain\ValueObjects\InsightPeriodValueObject;
 
 final readonly class InsightOutput
 {
@@ -16,7 +16,7 @@ final readonly class InsightOutput
         public string $description,
         public InsightTypeEnum $type,
         public InsightGroupEnum $group,
-        public ?InsightPeriodValueObject $period,
-        public ?InsightPeriodValueObject $comparisonPeriod,
+        public ?DatePeriodValueObject $period,
+        public ?DatePeriodValueObject $comparisonPeriod,
     ) {}
 }

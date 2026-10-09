@@ -4,22 +4,22 @@ declare(strict_types=1);
 
 namespace App\Insights\Infrastructure\Adapters;
 
+use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Insights\Application\Data\ExpenseAnalysisOutput;
 use App\Insights\Application\Data\ExpenseCategoryAnalysisOutput;
 use App\Insights\Application\Data\ExpensePeriodAnalysisOutput;
 use App\Insights\Application\Ports\ExpenseAnalysisPort;
-use App\Insights\Domain\ValueObjects\InsightPeriodValueObject;
 use DateTimeImmutable;
 use DateTimeZone;
 use Illuminate\Support\Facades\DB;
 
 /**
  * @phpstan-type AnalysisPeriods array{
- *     current_month: InsightPeriodValueObject,
- *     previous_month: InsightPeriodValueObject,
- *     two_months_ago: InsightPeriodValueObject,
- *     current_comparison?: InsightPeriodValueObject,
- *     previous_comparison?: InsightPeriodValueObject
+ *     current_month: DatePeriodValueObject,
+ *     previous_month: DatePeriodValueObject,
+ *     two_months_ago: DatePeriodValueObject,
+ *     current_comparison?: DatePeriodValueObject,
+ *     previous_comparison?: DatePeriodValueObject
  * }
  * @phpstan-type AnalysisRow object{
  *     has_history: bool
@@ -46,25 +46,25 @@ final class ExpenseAnalysisAdapter implements ExpenseAnalysisPort
     /** @return AnalysisPeriods */
     private function buildPeriods(string $referenceDate): array
     {
-        InsightPeriodValueObject::fromDates(from: $referenceDate, to: $referenceDate);
+        DatePeriodValueObject::fromDates(from: $referenceDate, to: $referenceDate);
 
         $reference = new DateTimeImmutable($referenceDate, new DateTimeZone('UTC'));
         $currentMonth = $reference->modify('first day of this month');
         $previousMonth = $currentMonth->modify('-1 month');
         $twoMonthsAgo = $currentMonth->modify('-2 months');
         $periods = [
-            'current_month' => InsightPeriodValueObject::fromDates($currentMonth->format('Y-m-d'), $referenceDate),
-            'previous_month' => InsightPeriodValueObject::fromDates($previousMonth->format('Y-m-d'), $currentMonth->modify('-1 day')->format('Y-m-d')),
-            'two_months_ago' => InsightPeriodValueObject::fromDates($twoMonthsAgo->format('Y-m-d'), $previousMonth->modify('-1 day')->format('Y-m-d')),
+            'current_month' => DatePeriodValueObject::fromDates($currentMonth->format('Y-m-d'), $referenceDate),
+            'previous_month' => DatePeriodValueObject::fromDates($previousMonth->format('Y-m-d'), $currentMonth->modify('-1 day')->format('Y-m-d')),
+            'two_months_ago' => DatePeriodValueObject::fromDates($twoMonthsAgo->format('Y-m-d'), $previousMonth->modify('-1 day')->format('Y-m-d')),
         ];
         $comparisonDays = min((int) $reference->format('j') - 1, (int) $previousMonth->format('t'));
 
         if ($comparisonDays > 0) {
-            $periods['current_comparison'] = InsightPeriodValueObject::fromDates(
+            $periods['current_comparison'] = DatePeriodValueObject::fromDates(
                 $currentMonth->format('Y-m-d'),
                 $currentMonth->modify('+'.($comparisonDays - 1).' days')->format('Y-m-d'),
             );
-            $periods['previous_comparison'] = InsightPeriodValueObject::fromDates(
+            $periods['previous_comparison'] = DatePeriodValueObject::fromDates(
                 $previousMonth->format('Y-m-d'),
                 $previousMonth->modify('+'.($comparisonDays - 1).' days')->format('Y-m-d'),
             );
@@ -105,7 +105,7 @@ final class ExpenseAnalysisAdapter implements ExpenseAnalysisPort
     }
 
     /** @param non-empty-list<AnalysisRow> $rows */
-    private function mapPeriod(InsightPeriodValueObject $period, array $rows): ExpensePeriodAnalysisOutput
+    private function mapPeriod(DatePeriodValueObject $period, array $rows): ExpensePeriodAnalysisOutput
     {
         $categories = [];
 

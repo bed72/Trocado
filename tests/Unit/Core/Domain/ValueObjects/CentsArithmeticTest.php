@@ -2,12 +2,13 @@
 
 declare(strict_types=1);
 
-use App\Insights\Domain\Exceptions\InvalidInsightAnalysisException;
-use App\Insights\Domain\ValueObjects\InsightAmountValueObject;
+use App\Core\Domain\Exceptions\InvalidCentsException;
+use App\Core\Domain\Exceptions\InvalidRatioException;
+use App\Core\Domain\ValueObjects\CentsValueObject;
 
 it('keeps sums differences and comparisons exact above native integer limits', function (): void {
-    $amount = InsightAmountValueObject::fromCents('18446744073709551614');
-    $other = InsightAmountValueObject::fromCents('9223372036854775807');
+    $amount = CentsValueObject::fromCents('18446744073709551614');
+    $other = CentsValueObject::fromCents('9223372036854775807');
 
     expect($amount->plus($other)->cents())->toBe('27670116110564327421')
         ->and($amount->absoluteDifference($other)->cents())->toBe('9223372036854775807')
@@ -17,12 +18,12 @@ it('keeps sums differences and comparisons exact above native integer limits', f
 });
 
 it('rejects noncanonical noninteger or negative cents', function (string $amount): void {
-    InsightAmountValueObject::fromCents($amount);
+    CentsValueObject::fromCents($amount);
 })->with(['-1', '1.5', '1e3', '01', '+1', ' 1 ', '', '1\n'])
-    ->throws(InvalidInsightAnalysisException::class);
+    ->throws(InvalidCentsException::class);
 
 it('evaluates thresholds before rounding and rounds only on request', function (): void {
-    $ratio = InsightAmountValueObject::fromCents('295')->shareOf(InsightAmountValueObject::fromCents('1000'));
+    $ratio = CentsValueObject::fromCents('295')->shareOf(CentsValueObject::fromCents('1000'));
 
     expect($ratio->isAtLeastPercent(30))->toBeFalse()
         ->and($ratio->roundedPercent())->toBe('30')
@@ -31,7 +32,7 @@ it('evaluates thresholds before rounding and rounds only on request', function (
 });
 
 it('rounds half up without overflowing large percentages', function (string $numerator, string $denominator, string $expected): void {
-    $ratio = InsightAmountValueObject::fromCents($numerator)->shareOf(InsightAmountValueObject::fromCents($denominator));
+    $ratio = CentsValueObject::fromCents($numerator)->shareOf(CentsValueObject::fromCents($denominator));
 
     expect($ratio->roundedPercent())->toBe($expected);
 })->with([
@@ -43,5 +44,5 @@ it('rounds half up without overflowing large percentages', function (string $num
 ]);
 
 it('rejects zero denominators', function (): void {
-    InsightAmountValueObject::fromCents('100')->shareOf(InsightAmountValueObject::fromCents('0'));
-})->throws(InvalidInsightAnalysisException::class);
+    CentsValueObject::fromCents('100')->shareOf(CentsValueObject::fromCents('0'));
+})->throws(InvalidRatioException::class);

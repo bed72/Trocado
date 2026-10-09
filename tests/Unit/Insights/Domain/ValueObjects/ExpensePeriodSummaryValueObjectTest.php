@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Core\Domain\ValueObjects\CentsValueObject;
+use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Insights\Domain\Exceptions\InvalidInsightAnalysisException;
 use App\Insights\Domain\ValueObjects\ExpensePeriodSummaryValueObject;
-use App\Insights\Domain\ValueObjects\InsightAmountValueObject;
-use App\Insights\Domain\ValueObjects\InsightPeriodValueObject;
 
 /** @param array<string, string> $categories */
 function periodSummaryValueObjectFixture(
@@ -22,10 +22,10 @@ function periodSummaryValueObjectFixture(
         expenseCount: $count,
         distinctDateCount: $dates,
         largestExpenseCategory: $largestCategory,
-        period: InsightPeriodValueObject::fromDates($from, $to),
-        totalAmount: InsightAmountValueObject::fromCents($total),
-        largestExpenseAmount: InsightAmountValueObject::fromCents($largest),
-        categories: array_map(InsightAmountValueObject::fromCents(...), $categories),
+        period: DatePeriodValueObject::fromDates($from, $to),
+        totalAmount: CentsValueObject::fromCents($total),
+        largestExpenseAmount: CentsValueObject::fromCents($largest),
+        categories: array_map(CentsValueObject::fromCents(...), $categories),
     );
 }
 
@@ -62,12 +62,12 @@ it('rejects negative or impossible counts', function (int $count, int $dates): v
 ])->throws(InvalidInsightAnalysisException::class, 'As contagens do período são inconsistentes.');
 
 it('rejects invalid category keys values and zero category totals', function (string $case): void {
-    $amount = InsightAmountValueObject::fromCents('10000');
+    $amount = CentsValueObject::fromCents('10000');
     $categories = match ($case) {
         'empty category' => ['' => $amount],
         'numeric category' => [1 => $amount],
         'raw amount' => ['food' => '10000'],
-        'zero amount' => ['food' => $amount, 'other' => InsightAmountValueObject::fromCents('0')],
+        'zero amount' => ['food' => $amount, 'other' => CentsValueObject::fromCents('0')],
     };
 
     new ExpensePeriodSummaryValueObject(
@@ -76,8 +76,8 @@ it('rejects invalid category keys values and zero category totals', function (st
         distinctDateCount: 3,
         categories: $categories,
         largestExpenseCategory: 'food',
-        largestExpenseAmount: InsightAmountValueObject::fromCents('4000'),
-        period: InsightPeriodValueObject::fromDates('2026-10-01', '2026-10-12'),
+        largestExpenseAmount: CentsValueObject::fromCents('4000'),
+        period: DatePeriodValueObject::fromDates('2026-10-01', '2026-10-12'),
     );
 })->with(['empty category', 'numeric category', 'raw amount', 'zero amount'])
     ->throws(InvalidInsightAnalysisException::class, 'A distribuição de categorias é inválida.');

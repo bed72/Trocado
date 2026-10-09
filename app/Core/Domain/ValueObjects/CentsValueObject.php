@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace App\Insights\Domain\ValueObjects;
+namespace App\Core\Domain\ValueObjects;
 
-use App\Insights\Domain\Exceptions\InvalidInsightAnalysisException;
+use App\Core\Domain\Exceptions\InvalidCentsException;
 use Brick\Math\BigInteger;
 
-final readonly class InsightAmountValueObject
+final readonly class CentsValueObject
 {
     private function __construct(private string $cents) {}
 
     public static function fromCents(string $cents): self
     {
         if (preg_match('/\A(?:0|[1-9][0-9]*)\z/', $cents) !== 1) {
-            throw new InvalidInsightAnalysisException('O valor deve conter centavos inteiros não negativos em formato canônico.');
+            throw new InvalidCentsException('O valor deve conter centavos inteiros não negativos em formato canônico.');
         }
 
         return new self(cents: $cents);
@@ -50,8 +50,8 @@ final readonly class InsightAmountValueObject
         return new self(cents: (string) BigInteger::of($this->cents)->minus($other->cents)->abs());
     }
 
-    public function shareOf(self $total): InsightRatioValueObject
+    public function shareOf(self $total): RatioValueObject
     {
-        return InsightRatioValueObject::fromAmounts(numerator: $this, denominator: $total);
+        return RatioValueObject::fromCents(numerator: $this, denominator: $total);
     }
 }

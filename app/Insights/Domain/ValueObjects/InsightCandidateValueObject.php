@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Insights\Domain\ValueObjects;
 
+use App\Core\Domain\ValueObjects\DatePeriodValueObject;
+use App\Core\Domain\ValueObjects\RatioValueObject;
 use App\Insights\Domain\Enums\InsightGroupEnum;
 use App\Insights\Domain\Enums\InsightHistoryStateEnum;
 use App\Insights\Domain\Enums\InsightTypeEnum;
@@ -15,11 +17,11 @@ final readonly class InsightCandidateValueObject
 {
     public function __construct(
         public InsightTypeEnum $type,
-        public InsightPeriodValueObject $analysisPeriod,
+        public DatePeriodValueObject $analysisPeriod,
         public ?string $category = null,
-        public ?InsightRatioValueObject $ratio = null,
+        public ?RatioValueObject $ratio = null,
         public ?InsightHistoryStateEnum $historyState = null,
-        public ?InsightPeriodValueObject $comparisonPeriod = null,
+        public ?DatePeriodValueObject $comparisonPeriod = null,
     ) {
         $isTotalComparison = in_array($type, [InsightTypeEnum::RegisteredAmountIncrease, InsightTypeEnum::RegisteredAmountDecrease], true);
         $needsRatio = in_array($type, [InsightTypeEnum::CategoryConcentration, InsightTypeEnum::ExpenseConcentration,
@@ -48,7 +50,7 @@ final readonly class InsightCandidateValueObject
         return $this->type->group() !== InsightGroupEnum::Onboarding;
     }
 
-    public function period(): ?InsightPeriodValueObject
+    public function period(): ?DatePeriodValueObject
     {
         return $this->type->group() === InsightGroupEnum::Onboarding ? null : $this->analysisPeriod;
     }

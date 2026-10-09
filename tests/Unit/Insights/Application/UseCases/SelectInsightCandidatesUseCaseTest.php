@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
+use App\Core\Domain\ValueObjects\CentsValueObject;
+use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Insights\Application\UseCases\SelectInsightCandidatesUseCase;
 use App\Insights\Domain\Enums\InsightHistoryStateEnum;
 use App\Insights\Domain\Enums\InsightTypeEnum;
-use App\Insights\Domain\ValueObjects\InsightAmountValueObject;
 use App\Insights\Domain\ValueObjects\InsightCandidateValueObject;
-use App\Insights\Domain\ValueObjects\InsightPeriodValueObject;
 
 function selectionCandidate(
     InsightTypeEnum $type,
     ?string $category = null,
     string $from = '2026-10-01',
     string $to = '2026-10-12',
-    ?InsightPeriodValueObject $comparison = null,
+    ?DatePeriodValueObject $comparison = null,
 ): InsightCandidateValueObject {
     $withRatio = in_array($type, [InsightTypeEnum::CategoryConcentration, InsightTypeEnum::ExpenseConcentration,
         InsightTypeEnum::RegisteredAmountIncrease, InsightTypeEnum::RegisteredAmountDecrease, InsightTypeEnum::CategoryReview], true);
@@ -23,15 +23,15 @@ function selectionCandidate(
         type: $type,
         category: $category,
         comparisonPeriod: $comparison,
-        analysisPeriod: InsightPeriodValueObject::fromDates($from, $to),
+        analysisPeriod: DatePeriodValueObject::fromDates($from, $to),
         historyState: $type === InsightTypeEnum::InsufficientHistory ? InsightHistoryStateEnum::CurrentExpenses : null,
-        ratio: $withRatio ? InsightAmountValueObject::fromCents('6000')->shareOf(InsightAmountValueObject::fromCents('10000')) : null,
+        ratio: $withRatio ? CentsValueObject::fromCents('6000')->shareOf(CentsValueObject::fromCents('10000')) : null,
     );
 }
 
 it('orders candidates by the approved priorities without changing the input', function (): void {
     $comparison = selectionCandidate(InsightTypeEnum::RegisteredAmountIncrease, to: '2026-10-11',
-        comparison: InsightPeriodValueObject::fromDates('2026-09-01', '2026-09-11'));
+        comparison: DatePeriodValueObject::fromDates('2026-09-01', '2026-09-11'));
     $streak = selectionCandidate(InsightTypeEnum::CategoryLeadStreak, 'food', from: '2026-08-01');
     $category = selectionCandidate(InsightTypeEnum::CategoryConcentration, 'health');
     $expense = selectionCandidate(InsightTypeEnum::ExpenseConcentration, 'transport');
@@ -92,9 +92,9 @@ it('deduplicates separate candidate objects representing the same information', 
 
 it('keeps distinct comparison periods rather than deduplicating only by type', function (): void {
     $previousMonth = selectionCandidate(InsightTypeEnum::RegisteredAmountIncrease, to: '2026-10-11',
-        comparison: InsightPeriodValueObject::fromDates('2026-09-01', '2026-09-11'));
+        comparison: DatePeriodValueObject::fromDates('2026-09-01', '2026-09-11'));
     $olderMonth = selectionCandidate(InsightTypeEnum::RegisteredAmountIncrease, to: '2026-10-11',
-        comparison: InsightPeriodValueObject::fromDates('2026-08-01', '2026-08-11'));
+        comparison: DatePeriodValueObject::fromDates('2026-08-01', '2026-08-11'));
 
     expect((new SelectInsightCandidatesUseCase)->execute([$previousMonth, $olderMonth]))->toBe([$olderMonth, $previousMonth]);
 });
@@ -145,9 +145,9 @@ it('uses deterministic category and period tie breakers regardless of input orde
 
 it('gives both comparison directions equal priority and breaks ties by type', function (): void {
     $increase = selectionCandidate(InsightTypeEnum::RegisteredAmountIncrease, to: '2026-10-11',
-        comparison: InsightPeriodValueObject::fromDates('2026-09-01', '2026-09-11'));
+        comparison: DatePeriodValueObject::fromDates('2026-09-01', '2026-09-11'));
     $decrease = selectionCandidate(InsightTypeEnum::RegisteredAmountDecrease, from: '2026-09-01', to: '2026-09-11',
-        comparison: InsightPeriodValueObject::fromDates('2026-08-01', '2026-08-11'));
+        comparison: DatePeriodValueObject::fromDates('2026-08-01', '2026-08-11'));
 
     expect($increase->type->priority())->toBe($decrease->type->priority())
         ->and((new SelectInsightCandidatesUseCase)->execute([$increase, $decrease]))->toBe([$decrease, $increase])

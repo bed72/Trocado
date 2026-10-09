@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use App\Core\Application\Ports\UserPort;
+use App\Core\Domain\ValueObjects\CentsValueObject;
+use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Insights\Application\Data\ExpenseAnalysisOutput;
 use App\Insights\Application\Data\ExpenseCategoryAnalysisOutput;
 use App\Insights\Application\Data\ExpensePeriodAnalysisOutput;
@@ -15,13 +17,11 @@ use App\Insights\Application\UseCases\SelectInsightCandidatesUseCase;
 use App\Insights\Application\UseCases\SelectInsightMessageVariantUseCase;
 use App\Insights\Domain\Enums\InsightGroupEnum;
 use App\Insights\Domain\Enums\InsightTypeEnum;
-use App\Insights\Domain\ValueObjects\InsightAmountValueObject;
-use App\Insights\Domain\ValueObjects\InsightPeriodValueObject;
 
 function getInsightsAnalysisFixture(string $categoryAmount = '30000', string $category = 'food', string $to = '2026-10-12'): ExpenseAnalysisOutput
 {
     $empty = static fn (string $from, string $to): ExpensePeriodAnalysisOutput => new ExpensePeriodAnalysisOutput(
-        period: InsightPeriodValueObject::fromDates($from, $to),
+        period: DatePeriodValueObject::fromDates($from, $to),
         expenseCount: 0, distinctDateCount: 0, totalAmount: '0',
         largestExpenseAmount: '0', largestExpenseCategory: null, categories: [],
     );
@@ -29,19 +29,19 @@ function getInsightsAnalysisFixture(string $categoryAmount = '30000', string $ca
     return new ExpenseAnalysisOutput(
         hasHistoricalExpenses: true,
         currentMonth: new ExpensePeriodAnalysisOutput(
-            period: InsightPeriodValueObject::fromDates('2026-10-01', $to),
             expenseCount: 5,
             distinctDateCount: 3,
-            totalAmount: InsightAmountValueObject::fromCents($categoryAmount)->plus(InsightAmountValueObject::fromCents('20000'))->cents(),
             largestExpenseAmount: '10000',
             largestExpenseCategory: $category,
+            period: DatePeriodValueObject::fromDates('2026-10-01', $to),
+            totalAmount: CentsValueObject::fromCents($categoryAmount)->plus(CentsValueObject::fromCents('20000'))->cents(),
             categories: [
                 new ExpenseCategoryAnalysisOutput($category, $categoryAmount),
                 new ExpenseCategoryAnalysisOutput('other', '20000'),
             ],
         ),
-        previousMonth: $empty('2026-09-01', '2026-09-30'),
         twoMonthsAgo: $empty('2026-08-01', '2026-08-31'),
+        previousMonth: $empty('2026-09-01', '2026-09-30'),
         currentComparison: null,
         previousComparison: null,
     );

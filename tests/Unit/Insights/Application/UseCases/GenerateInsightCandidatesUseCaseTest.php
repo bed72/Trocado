@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Insights\Application\Data\ExpenseAnalysisOutput;
 use App\Insights\Application\Data\ExpenseCategoryAnalysisOutput;
 use App\Insights\Application\Data\ExpensePeriodAnalysisOutput;
@@ -10,7 +11,6 @@ use App\Insights\Domain\Enums\InsightHistoryStateEnum;
 use App\Insights\Domain\Enums\InsightTypeEnum;
 use App\Insights\Domain\Exceptions\InvalidInsightAnalysisException;
 use App\Insights\Domain\ValueObjects\InsightCandidateValueObject;
-use App\Insights\Domain\ValueObjects\InsightPeriodValueObject;
 
 function candidateProjection(string $from, string $to, string $total = '10000'): ExpensePeriodAnalysisOutput
 {
@@ -22,7 +22,7 @@ function candidateProjection(string $from, string $to, string $total = '10000'):
         distinctDateCount: $empty ? 0 : 3,
         largestExpenseAmount: $empty ? '0' : '2000',
         largestExpenseCategory: $empty ? null : 'food',
-        period: InsightPeriodValueObject::fromDates($from, $to),
+        period: DatePeriodValueObject::fromDates($from, $to),
         categories: $empty ? [] : [new ExpenseCategoryAnalysisOutput(category: 'food', totalAmount: $total)],
     );
 }
@@ -92,7 +92,7 @@ it('rejects inconsistent category totals at the domain boundary', function (): v
         totalAmount: '10000',
         largestExpenseAmount: '2000',
         largestExpenseCategory: 'food',
-        period: InsightPeriodValueObject::fromDates('2026-10-01', '2026-10-12'),
+        period: DatePeriodValueObject::fromDates('2026-10-01', '2026-10-12'),
         categories: [new ExpenseCategoryAnalysisOutput(category: 'food', totalAmount: '9000')],
     );
 
