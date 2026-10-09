@@ -8,7 +8,7 @@ $contexts = array_map(basename(...), $contextDirectories);
 sort($contexts);
 
 $layers = ['Application', 'Domain', 'Infrastructure', 'Presentation'];
-$expectedContexts = ['Core', 'Expense', 'Identity'];
+$expectedContexts = ['Core', 'Expense', 'Identity', 'Insights'];
 
 it('organizes application code inside known bounded context layers', function () use ($contextDirectories, $layers): void {
     expect($contextDirectories)->not->toBeEmpty();
