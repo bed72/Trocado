@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Expense\Application\Ports;
 
-use App\Expense\Domain\Enums\ExpenseCategoryEnum;
+use App\Core\Domain\Enums\ExpenseCategoryEnum;
 
 interface ExpenseClassificationPort
 {

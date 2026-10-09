@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Expense\Infrastructure\Agents;
 
-use App\Expense\Domain\Enums\ExpenseCategoryEnum;
+use App\Core\Domain\Enums\ExpenseCategoryEnum;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Support\Facades\Config;
 use Laravel\Ai\Contracts\Agent;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Expense\Presentation\Http\Requests;
 
-use App\Expense\Domain\Enums\ExpenseCategoryEnum;
+use App\Core\Domain\Enums\ExpenseCategoryEnum;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 

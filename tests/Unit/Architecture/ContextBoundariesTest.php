@@ -11,6 +11,7 @@ sort($contexts);
 $layers = ['Application', 'Domain', 'Infrastructure', 'Presentation'];
 $expectedContexts = ['Core', 'Expense', 'Identity', 'Insights', 'Metrics'];
 $sharedDomainDependencies = [
+    'App\\Core\\Domain\\Enums\\ExpenseCategoryEnum',
     'App\\Core\\Domain\\ValueObjects\\CentsValueObject',
     'App\\Core\\Domain\\ValueObjects\\DatePeriodValueObject',
     'App\\Core\\Domain\\ValueObjects\\RatioValueObject',
@@ -199,7 +200,7 @@ foreach ($contexts as $context) {
             $applicationDependencies[] = 'App\\Core\\Application\\Ports\\ObservabilityPort';
         }
 
-        if (in_array($context, ['Expense', 'Identity', 'Insights'], true)) {
+        if (in_array($context, ['Expense', 'Identity', 'Insights', 'Metrics'], true)) {
             $applicationDependencies[] = 'App\\Core\\Application\\Ports\\UserPort';
         }
 

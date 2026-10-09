@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
+use App\Core\Domain\Enums\ExpenseCategoryEnum;
 use App\Expense\Application\Data\ApplyExpenseClassificationInput;
 use App\Expense\Application\Data\ExpenseClassificationOutput;
 use App\Expense\Application\Data\ExpensePageOutput;
 use App\Expense\Application\Repositories\ExpenseCategorizationRepository;
 use App\Expense\Application\Repositories\ExpenseRepository;
 use App\Expense\Domain\Entities\ExpenseEntity;
-use App\Expense\Domain\Enums\ExpenseCategoryEnum;
 use App\Expense\Infrastructure\Repositories\Cache\CachedExpenseCategorizationRepository;
 use App\Expense\Infrastructure\Repositories\Cache\CachedExpenseRepository;
 use Illuminate\Support\Facades\Cache;

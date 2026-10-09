@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Expense\Domain\Entities;
 
-use App\Expense\Domain\Enums\ExpenseCategoryEnum;
+use App\Core\Domain\Enums\ExpenseCategoryEnum;
 use App\Expense\Domain\Exceptions\InvalidExpenseException;
 use DateTimeImmutable;
 

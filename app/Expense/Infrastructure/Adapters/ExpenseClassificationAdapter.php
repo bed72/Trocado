@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Expense\Infrastructure\Adapters;
 
+use App\Core\Domain\Enums\ExpenseCategoryEnum;
 use App\Expense\Application\Ports\ExpenseClassificationPort;
-use App\Expense\Domain\Enums\ExpenseCategoryEnum;
 use App\Expense\Infrastructure\Agents\ExpenseClassificationAgent;
 
 use function is_string;

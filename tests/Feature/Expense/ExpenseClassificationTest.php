@@ -3,11 +3,11 @@
 declare(strict_types=1);
 
 use App\Core\Application\Ports\ObservabilityPort;
+use App\Core\Domain\Enums\ExpenseCategoryEnum;
 use App\Expense\Application\Data\ApplyExpenseClassificationInput;
 use App\Expense\Application\Ports\ExpenseClassificationDispatchPort;
 use App\Expense\Application\Repositories\ExpenseCategorizationRepository;
 use App\Expense\Application\UseCases\ClassifyExpenseUseCase;
-use App\Expense\Domain\Enums\ExpenseCategoryEnum;
 use App\Expense\Infrastructure\Agents\ExpenseClassificationAgent;
 use App\Expense\Infrastructure\Providers\ExpenseServiceProvider;
 use App\Expense\Infrastructure\Queues\ClassifyExpenseQueue;

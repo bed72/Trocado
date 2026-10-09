@@ -53,6 +53,12 @@ O sistema MUST manter `Metrics` como bounded context responsável pela consulta 
 - **WHEN** Metrics e Insights precisam de centavos, períodos civis ou razões exatas
 - **THEN** reutilizam os Value Objects normalizados de Core Domain
 - **AND** Core não depende dos contextos consumidores nem incorpora regras editoriais ou de persistência
+
+#### Scenario: Catálogo de categorias compartilhado
+- **WHEN** Expense ou Metrics precisa reconhecer um identificador de categoria
+- **THEN** reutiliza `Core\Domain\Enums\ExpenseCategoryEnum`, sem duplicar o catálogo ou importar o contexto consumidor
+- **AND** os cases e identificadores persistidos permanecem iguais aos do catálogo existente
+- **AND** Expense continua responsável pela categorização das despesas e Metrics apenas valida os identificadores da projeção
 - **AND** as participações de Metrics são limitadas a 100%, enquanto razões de variação de Insights podem exceder esse valor
 
 ### Requirement: Uma rota GET com dois modos de consulta
@@ -393,7 +399,7 @@ O sistema MUST representar `total_amount` como uma string inteira decimal canôn
 
 ### Requirement: Categorias somente com despesas e identificadores estáveis
 
-No modo agrupado, o sistema MUST retornar um item por categoria que tenha pelo menos uma despesa considerada no período. MUST NOT adicionar categorias sem registros, duplicar categorias ou retornar rótulos traduzidos. Cada item MUST conter `category`, `total_amount` e `percentage`. `category` MUST usar o identificador persistido já pertencente ao catálogo de Expense: `food`, `health`, `housing`, `leisure`, `shopping`, `services`, `transport`, `education`, `subscriptions` ou `other`. `other` MUST participar normalmente, sem ser ocultada, renomeada ou tratada como registro inválido. O total de cada categoria MUST seguir a mesma representação monetária exata do total geral.
+No modo agrupado, o sistema MUST retornar um item por categoria que tenha pelo menos uma despesa considerada no período. MUST NOT adicionar categorias sem registros, duplicar categorias ou retornar rótulos traduzidos. Cada item MUST conter `category`, `total_amount` e `percentage`. `category` MUST usar o identificador persistido do catálogo compartilhado `Core\Domain\Enums\ExpenseCategoryEnum`: `food`, `health`, `housing`, `leisure`, `shopping`, `services`, `transport`, `education`, `subscriptions` ou `other`. `other` MUST participar normalmente, sem ser ocultada, renomeada ou tratada como registro inválido. O total de cada categoria MUST seguir a mesma representação monetária exata do total geral.
 
 #### Scenario: Categoria presente e categoria sem despesas
 - **WHEN** o período contém duas despesas `food` e nenhuma `health`

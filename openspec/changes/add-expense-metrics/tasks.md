@@ -1,15 +1,15 @@
 ## 1. Autorizar e preparar a implementação futura
 
-- [x] 1.1 Obter autorização explícita para implementar/apply. Autorização recebida para começar pelo Domain e seus testes; as demais camadas ficam para etapas posteriores.
-- [x] 1.2 Confirmar o escopo de verificação autorizado. Criar e executar testes puros de Metrics e ajustar/executar as verificações existentes de fronteira; HTTP, Application e PostgreSQL não são comprovados nesta etapa.
+- [x] 1.1 Obter autorização explícita para implementar/apply. Autorização recebida para Domain, normalização de VOs e, em seguida, camada Application; Infrastructure e Presentation ficam para etapas posteriores.
+- [x] 1.2 Confirmar o escopo de verificação autorizado. Testes puros de Domain e Application e verificações existentes de fronteira; HTTP e PostgreSQL de Metrics não são comprovados nesta etapa.
 - [ ] 1.3 Reconsultar versões, documentação Laravel/JSON:API, schema de `expenses`, conexões, índices e grupo de proteções das rotas analíticas com os MCPs/Artisan apropriados; documentar qualquer divergência relevante antes de alterar o desenho.
 
 ## 2. Estabelecer Metrics e seus contratos puros
 
 - [x] 2.1 Introduzir somente as camadas necessárias de `app/Metrics/`, preservando o ownership de fatos quantitativos e ausência de imports de Expense, Identity e Insights, conforme o requisito de contexto dedicado.
 - [x] 2.2 Definir tipos puros mínimos para período civil inclusivo e modo de agrupamento, protegendo datas reais, ordem e dia único também fora de HTTP; manter relógio/timezone fora de Domain e Application.
-- [ ] 2.3 Definir `ExpenseMetricsPort` com proprietário, período e modo explícitos e projeção própria tipada; não expor Model, Builder, connection, collection Laravel ou Output HTTP no contrato.
-- [ ] 2.4 Definir Input/Outputs próprios em `Application/Data`, `final readonly`, constructor-only, distinguindo agrupamento ausente de agrupamento presente e vazio, sem carriers redundantes por conveniência.
+- [x] 2.3 Definir `ExpenseMetricsPort` com proprietário, período e modo explícitos e projeção própria tipada; não expor Model, Builder, connection, collection Laravel ou Output HTTP no contrato.
+- [x] 2.4 Definir Input/Outputs próprios em `Application/Data`, `final readonly`, constructor-only, distinguindo agrupamento ausente de agrupamento presente e vazio, sem carriers redundantes por conveniência.
 - [x] 2.5 Definir aritmética exata de centavos e percentual com duas casas/half-up em tipos puros, sem overflow, float, arredondamento intermediário ou correção artificial da soma de percentuais; usar somente dependência pura já instalada e atualizar a permissão arquitetural pertinente.
 
 ## 3. Implementar a leitura analítica PostgreSQL
@@ -23,11 +23,11 @@
 
 ## 4. Orquestrar o resumo na Application
 
-- [ ] 4.1 Implementar `GetExpenseMetricsUseCase` concreto, obtendo a conta exclusivamente por `Core\Application\Ports\UserPort` e passando o proprietário explicitamente ao Port, com DI nomeada por papel e ordem arquitetural.
-- [ ] 4.2 Resolver o período efetivo a partir da entrada explícita preparada pela borda, usando mês inteiro quando as datas estão ausentes; usar a mesma referência para leitura, resposta e ID, sem relógio ou config na Application.
-- [ ] 4.3 Calcular percentuais finais com o total geral do mesmo snapshot, mantendo categorias com participação arredondada `"0.00"` e evitando divisão por zero no conjunto vazio.
-- [ ] 4.4 Produzir ID opaco determinístico por conta, datas efetivas e modo, independente de valores, ordem/espaços de filtros e origem explícita/default do período; não persistir ID nem expor a conta bruta.
-- [ ] 4.5 Produzir Output final com datas canônicas, total exato e semântica de presença de categorias, sem serialização JSON:API ou configuração de gráficos na Application.
+- [x] 4.1 Implementar `GetExpenseMetricsUseCase` concreto, obtendo a conta exclusivamente por `Core\Application\Ports\UserPort` e passando o proprietário explicitamente ao Port, com DI nomeada por papel e ordem arquitetural.
+- [x] 4.2 Receber o período efetivo validado no Input, preparado explicitamente pela borda com `fromDates()` ou `monthContaining()` para o mês inteiro; conservar o mesmo período na leitura, saída e ID, sem relógio ou config na Application. A resolução de relógio/timezone na borda continua na tarefa 5.7.
+- [x] 4.3 Calcular percentuais finais com o total geral da mesma projeção do Port, mantendo categorias com participação arredondada `"0.00"` e evitando divisão por zero no conjunto vazio. A prova do snapshot PostgreSQL continua nas tarefas 3.6 e 7.6.
+- [x] 4.4 Produzir ID opaco determinístico por conta, datas efetivas e modo, independente de valores e origem explícita/default do período; não persistir ID nem expor a conta bruta. Normalização e ordem de filtros HTTP permanecem na Presentation.
+- [x] 4.5 Produzir Output final com período de datas canônicas, total exato e semântica de presença de categorias, sem serialização JSON:API ou configuração de gráficos na Application.
 
 ## 5. Implementar a borda de query e resposta HTTP
 
@@ -45,7 +45,7 @@
 
 - [ ] 6.1 Registrar provider com o binding do Port para o Adapter, reutilizando o binding de identidade de Core e sem registrar concretos desnecessários.
 - [ ] 6.2 Registrar somente `GET /api/metrics/expenses` no contexto e composition root, com autenticação, metadados autenticados, conta ativa, e-mail verificado, throttle compartilhado e extensão de sessão existentes.
-- [ ] 6.3 Atualizar `ARCHITECTURE.md` para reconhecer o ownership de Metrics, sua integração somente de leitura e aritmética pura exata; não reintroduzir funcionalidades inferidas ou dependências cross-context.
+- [x] 6.3 Atualizar `ARCHITECTURE.md` para reconhecer o ownership de Metrics, sua integração somente de leitura e aritmética pura exata; não reintroduzir funcionalidades inferidas ou dependências cross-context.
 - [x] 6.4 Atualizar o reconhecimento de Metrics nas verificações de fronteira já existentes, se autorizado, sem abrir allowlist para classes de Expense, Identity ou Insights.
 
 ## 7. Verificar os requisitos com evidências autorizadas
@@ -74,22 +74,22 @@ Esta tabela identifica evidências esperadas para os requisitos e todos os cená
 
 | Blocos de requisitos da spec | Tarefas | Evidência preferida futura | Estado atual |
 | --- | --- | --- | --- |
-| Contexto dedicado; dados para gráficos sem acoplamento | 2.1, 2.3–2.4, 6.3–6.4, 7.9 | Verificação arquitetural e revisão de fronteiras/contratos. | Parcial: Metrics Domain isolado em `ContextBoundariesTest.php`; contratos e demais camadas pendentes. |
+| Contexto dedicado; dados para gráficos sem acoplamento | 2.1, 2.3–2.4, 6.3–6.4, 7.9 | Verificação arquitetural e revisão de fronteiras/contratos. | Domain e Application verificados por `ContextBoundariesTest.php`, incluindo Data imutáveis e dependência explícita de `UserPort`; demais camadas pendentes. |
 | Rota GET com dois modos; JSON:API singular | 5.7–5.9, 6.2, 7.8 | Verificação HTTP com respostas completas de ambos os modos. | Não comprovado; somente especificado. |
 | Acesso autenticado e proteções existentes | 6.2, 7.8 | Verificação HTTP de `401`, `403`, política de e-mail, cota e sessão. | Não comprovado; somente especificado. |
-| Isolamento pela conta | 3.1, 4.1, 7.4, 7.8 | Integração do Adapter/HTTP com duas contas e mesmos período/categorias. | Não comprovado; somente especificado. |
+| Isolamento pela conta | 3.1, 4.1, 7.4, 7.8 | Integração do Adapter/HTTP com duas contas e mesmos período/categorias. | Parcial: teste unitário prova ID obtido por `UserPort` e encaminhado ao Port; isolamento real no SQL/HTTP pendente. |
 | Mês inteiro; timezone; presença conjunta; formato; ordem; futuros/duração | 2.2, 4.2, 5.4, 5.7, 7.1–7.2 | Invariantes puras e verificações HTTP com relógio controlado e limites inclusivos. | Parcial: `tests/Unit/Core/Domain/ValueObjects/DatePeriodCalendarTest.php` e `DatePeriodValueObjectTest.php` provam calendário, extremos, ordem, inclusividade e mês inteiro por referência explícita; relógio da borda, presença e HTTP pendentes. |
 | Normalização; vazios; group_by fechado; allowlist; estruturas; repetição | 5.1–5.6, 7.2–7.3 | Verificação HTTP preservando a query textual original e a presença após middleware. | Não comprovado; somente especificado. |
 | Validação independente dos dados | 5.1–5.6, 7.2 | `422` para conta vazia e comprovação de ausência de leitura analítica. | Não comprovado; somente especificado. |
 | occurred_on; estado atual; total exato | 3.1–3.2, 7.4, 7.7 | Integração PostgreSQL com registros nos limites, retroativos/futuros e soma acima do inteiro nativo. | Não comprovado; somente especificado. |
-| Categorias presentes; ordenação | 3.3–3.4, 7.4 | Integração com todas as categorias, `other`, empate e valores de dígitos distintos. | Não comprovado; somente especificado. |
+| Categorias presentes; ordenação | 3.3–3.4, 7.4 | Integração com todas as categorias, `other`, empate e valores de dígitos distintos. | Application comprovada com projeções tipadas, todas as categorias, `other`, empates, valores grandes e percentuais iguais; origem SQL pendente. |
 | Percentuais exatos; arredondamento independente | 2.5, 4.3, 7.5 | Verificação pura de aritmética e reconciliação da representação HTTP. | Comprovado no Domain pelos testes de `CentsValueObject` e `RatioValueObject` em `tests/Unit/Core/Domain/ValueObjects/`, incluindo overflow e 99,99%/100,01%; integração/representação HTTP pendentes. |
 | Mesmo snapshot | 3.3, 3.6, 7.6 | Evidência de um statement PostgreSQL; prova concorrente adicional se autorizada e executada. | Não comprovado; somente especificado. |
-| Período vazio | 3.2–3.3, 4.3, 5.9, 7.8 | Verificação HTTP de zero, recurso singular e omissão/`[]`. | Não comprovado; somente especificado. |
-| Identidade determinística | 4.4, 7.8 | Verificação por conta/período/modo, default equivalente, ordem/trim e alteração de valores. | Não comprovado; somente especificado. |
+| Período vazio | 3.2–3.3, 4.3, 5.9, 7.8 | Verificação HTTP de zero, recurso singular e omissão/`[]`. | Application comprovada: total `"0"`, período preservado, categorias `null` ou `[]`, sem divisão por zero; SQL e omissão HTTP pendentes. |
+| Identidade determinística | 4.4, 7.8 | Verificação por conta/período/modo, default equivalente, ordem/trim e alteração de valores. | Application comprovada por conta, ambos os limites, modo, período default equivalente e alteração de fatos; ordem/trim de filtros HTTP pendentes. |
 | Erros de query existentes | 5.6, 7.8 | Comparação com padrão de Insights e verificação HTTP de campos/media type/status. | Não comprovado em Metrics; padrão existente conferido para a spec. |
 | Sem cache/estado; agregação em lote | 3.5, 7.4, 7.7, 7.10 | Contagem de statements, leituras sucessivas após confirmação e observabilidade Lerd. | Não comprovado; somente especificado. |
-| Falhas operacionais explícitas | 5.9, 7.7 | Verificação de indisponibilidade/falha sem fallback de sucesso e sem dados internos no erro. | Não comprovado; somente especificado. |
+| Falhas operacionais explícitas | 5.9, 7.7 | Verificação de indisponibilidade/falha sem fallback de sucesso e sem dados internos no erro. | Application comprovada: falhas de identidade/leitura propagadas e projeções inconsistentes rejeitadas sem zero fabricado; tratamento HTTP pendente. |
 
 ## Critérios para encerrar a fase de especificação
 
@@ -132,3 +132,22 @@ Esta tabela identifica evidências esperadas para os requisitos e todos os cená
 - Verificação inicial de Core Domain e Insights Unit: **369 testes, 1668 assertions, passando**. Fronteiras arquiteturais: **23 testes, 247 assertions, passando**, incluindo a pureza de Core Domain e allowlist explícita de tipos compartilhados.
 - Após Pint, suíte completa via `vendor_run pest --compact`: **587 testes, 586 passando, 3292 assertions**. Uma falha em `tests/Feature/Insights/ExpenseAnalysisAdapterTest.php:179`: o teste espera o trecho `dois meses anteriores`, enquanto o catálogo editorial modificado antes desta normalização usa `dois anteriores`. A normalização preserva o catálogo e a expectativa editorial existente; a suíte completa não está verde.
 - `vendor_run pint --dirty --format agent`, validação OpenSpec estrita e `git diff --check` executados. Busca nos arquivos PHP do projeto não encontrou referências aos seis nomes antigos nem às exceções removidas. `migrate:status` confirmou ausência de migrations pendentes.
+
+## Evidências da etapa Application
+
+- Implementação em `app/Metrics/Application/`: `ExpenseMetricsPort`, `GetExpenseMetricsUseCase`, cinco Data próprios e `InvalidExpenseMetricsProjectionException`. Os Data são constructor-only; a validação da projeção é explícita no UseCase e usa as invariantes dos VOs de Core.
+- `GetExpenseMetricsInput` recebe somente período efetivo e modo, sem proprietário ou relógio. `ExpenseMetricsOutput` conserva o período e representa categorias não solicitadas por `null`, distinguindo a lista agrupada vazia. A futura borda resolve defaults e serializa a omissão.
+- O Port documenta leitura por conta/período inclusivo/modo, valores canônicos exatos e reconciliação no mesmo snapshot. O UseCase faz uma chamada por execução; isso não comprova contagem de statements nem isolamento no futuro Adapter.
+- `vendor_run pest tests/Unit/Metrics --compact`: **39 testes, 92 assertions, passando**, incluindo identidade, períodos equivalentes, valores acima do inteiro nativo, categorias completas/ordenadas, percentuais independentes, ID determinístico e falhas explícitas.
+- `vendor_run pint --dirty --format agent`: **passou**. Após Pint: `vendor_run pest tests/Unit/Metrics tests/Unit/Core/Domain tests/Unit/Architecture/ContextBoundariesTest.php --compact`: **240 testes, 858 assertions, passando**.
+- `openspec validate add-expense-metrics --type change --strict --json --no-interactive`: **passou, sem issues**. `git diff --check`: **passou**. Quality gate desta etapa: contratos puros, Data imutáveis, fronteiras e comportamento de Application verificados no nível unitário.
+- A etapa não altera Core ou os fluxos existentes de Insights. A suíte completa não foi repetida; a evidência histórica e sua divergência editorial continuam registradas acima, sem inferir o estado atual de testes não executados.
+- Infrastructure, Presentation, bindings, SQL/snapshot, isolamento real, validação da query original, timezone da borda e observabilidade continuam pendentes; a mudança completa não está pronta para arquivamento.
+
+## Extração autorizada do catálogo de categorias
+
+- `ExpenseCategoryEnum` foi movido de Expense para `Core/Domain/Enums`, preservando todos os cases e valores persistidos. Os consumidores existentes, o seeder e seus testes usam o novo namespace.
+- `GetExpenseMetricsUseCase` valida os identificadores com `ExpenseCategoryEnum::tryFrom()`, sem a lista local duplicada. A ordenação conserva a arrow function estática e os mesmos critérios.
+- Arquitetura, design e spec reconhecem o catálogo compartilhado; as verificações de fronteira permitem somente o enum explícito, sem imports entre contextos de negócio.
+- A expectativa existente de totais por categoria no teste de Metrics foi alinhada à propriedade `totalCents` do Output.
+- Após Pint, `vendor_run pest tests/Unit/Metrics tests/Unit/Expense tests/Unit/Architecture/ContextBoundariesTest.php tests/Feature/Expense/ExpenseClassificationTest.php tests/Feature/Expense/Infrastructure/Repositories/Cache/CachedExpenseCategorizationRepositoryTest.php --compact`: **116 testes, 712 assertions, passando**. A suíte completa não foi repetida.

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Expense\Domain\Enums;
+namespace App\Core\Domain\Enums;
 
 enum ExpenseCategoryEnum: string
 {

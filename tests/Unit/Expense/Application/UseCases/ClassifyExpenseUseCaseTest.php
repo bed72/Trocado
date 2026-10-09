@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 use App\Core\Application\Ports\ObservabilityPort;
 use App\Core\Application\Ports\TransactionPort;
+use App\Core\Domain\Enums\ExpenseCategoryEnum;
 use App\Expense\Application\Data\ApplyExpenseClassificationInput;
 use App\Expense\Application\Data\ExpenseClassificationOutput;
 use App\Expense\Application\Ports\ExpenseClassificationPort;
 use App\Expense\Application\Repositories\ExpenseCategorizationRepository;
 use App\Expense\Application\UseCases\ClassifyExpenseUseCase;
-use App\Expense\Domain\Enums\ExpenseCategoryEnum;
 
 it('applies a valid suggestion only through the pending attempt', function (): void {
     $port = $this->createMock(ExpenseClassificationPort::class);

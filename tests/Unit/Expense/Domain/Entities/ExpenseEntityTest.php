@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Core\Domain\Enums\ExpenseCategoryEnum;
 use App\Expense\Domain\Entities\ExpenseEntity;
-use App\Expense\Domain\Enums\ExpenseCategoryEnum;
 use App\Expense\Domain\Exceptions\InvalidExpenseException;
 
 it('defaults the category and keeps valid civil dates and descriptions', function (): void {

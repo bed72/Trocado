@@ -40,6 +40,8 @@ Fontes consultadas para estes artefatos: `ARCHITECTURE.md`, `.ai/guidelines/`, s
 
 Criar as camadas necessárias de `app/Metrics/` quando apply for autorizado. A responsabilidade é fornecer fatos quantitativos próprios, sem interpretar ou selecionar mensagens. Metrics não deve importar modelos, enums de categoria, repositories, use cases ou Data de Expense ou Insights. Também não deve consultar o contexto Identity para obter o dono: reutiliza `Core\Application\Ports\UserPort` e o binding já existente.
 
+Após autorização explícita para compartilhar o catálogo, `ExpenseCategoryEnum` pertence a `Core\Domain\Enums` e é reutilizado por Expense e Metrics. Essa dependência pura e explícita não permite imports entre os contextos consumidores.
+
 A leitura direta de `expenses` pertence exclusivamente à Infrastructure de Metrics. Seu contrato semântico é:
 
 | Campo | Uso | Regra |
@@ -89,9 +91,11 @@ Agrupamentos de dados ficam em `Application/Data`, com `final readonly`, constru
 
 Evitar Data redundante apenas para repetir a estrutura; os contratos do Port e do UseCase têm papéis distintos, mesmo se alguns campos coincidirem. Os nomes são orientação técnica, não justificativa para criar todos os objetos antecipadamente.
 
-Período civil válido e valores monetários/razões exatas possuem invariantes reais. Após a revisão autorizada dos conceitos repetidos, Metrics e Insights reutilizam `Core\Domain\ValueObjects\DatePeriodValueObject`, `CentsValueObject` e `RatioValueObject`, com exceções puras de Core. O enum de agrupamento continua pertencendo a Metrics. `RatioValueObject::fromShare()` exige parcela menor ou igual ao total; `fromAmounts()` conserva razões acima de 100% usadas por Insights. Não criar Entity persistível, Domain Service genérico, interface por UseCase ou VO para toda string. A Application não importa Infrastructure, facades ou HTTP; Domain não importa Application Data nem outro contexto de negócio.
+Período civil válido e valores monetários/razões exatas possuem invariantes reais. Após a revisão autorizada dos conceitos repetidos, Metrics e Insights reutilizam `Core\Domain\ValueObjects\DatePeriodValueObject`, `CentsValueObject` e `RatioValueObject`, com exceções puras de Core. O enum de agrupamento continua pertencendo a Metrics. `RatioValueObject::fromShare()` exige parcela menor ou igual ao total; `fromCents()` conserva razões acima de 100% usadas por Insights. Não criar Entity persistível, Domain Service genérico, interface por UseCase ou VO para toda string. A Application não importa Infrastructure, facades ou HTTP; Domain não importa Application Data nem outro contexto de negócio.
 
 O construtor do UseCase deve seguir `Port → UseCase → Repository`, com `$userPort` e `$metricsPort` quando existirem dois Ports. O container resolve UseCases concretos e registra somente os bindings de fronteira necessários.
+
+Na etapa de Application, `GetExpenseMetricsInput` recebe o `DatePeriodValueObject` efetivo e o enum de agrupamento. Para datas ausentes, a futura borda constrói o período com `monthContaining()` sobre a referência civil resolvida uma vez; para datas explícitas, usa `fromDates()`. O UseCase não recebe dados de transporte nem precisa de uma segunda referência. `ExpenseMetricsOutput` conserva esse período, o ID, o total e categorias nullable (`null` sem agrupamento; lista inclusive vazia no agrupado). A projeção do Port tem total e lista de `ExpenseCategoryTotalOutput`; no modo simples essa lista é vazia. A Application rejeita projeções inconsistentes, sem corrigir totais, fundir duplicatas ou descartar parcelas, e garante ordenação exata na saída mesmo se a projeção vier em outra ordem.
 
 ### 3. Período efetivo e responsabilidade do relógio
 
@@ -218,7 +222,7 @@ A biblioteca PHP pura `brick/math` já está instalada. A aritmética exata com 
 
 Retornar todos os grupos com despesas elegíveis; não preencher grupos vazios. Não oferecer paginação ou top-N: omitir uma categoria impediria reconciliar a soma com o total geral.
 
-Os identificadores são os persistidos no catálogo de Expense, incluindo `other`. Não importar o enum de Expense para compartilhar uma conveniência estrutural. A integração de leitura deve validar/transportar o significado desses identificadores sem tomar ownership de criação ou edição de categorias. Uma mudança no catálogo deve motivar revisão dessa integração.
+Os identificadores são os persistidos no catálogo compartilhado `Core\Domain\Enums\ExpenseCategoryEnum`, incluindo `other`. O enum foi extraído de Expense sem mudar cases ou valores, por autorização explícita. `GetExpenseMetricsUseCase` valida os identificadores com `tryFrom()`, sem lista local duplicada. Expense continua dono da categorização das despesas; Metrics apenas valida e transporta os identificadores. Uma mudança no catálogo deve motivar revisão dessa integração.
 
 Ordenar por soma numérica exata decrescente e por identificador crescente no empate. O banco pode produzir essa ordenação sobre o agregado numérico antes de converter em texto; se houver ordenação na aplicação, usar comparação de inteiros exatos. Não ordenar strings como `"900"` e `"10000"` lexicograficamente, nem pelo percentual já arredondado.
 

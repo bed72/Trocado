@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Expense\Infrastructure\Repositories\Persistence;
 
+use App\Core\Domain\Enums\ExpenseCategoryEnum;
 use App\Expense\Application\Data\ApplyExpenseClassificationInput;
 use App\Expense\Application\Data\ExpenseClassificationOutput;
 use App\Expense\Application\Repositories\ExpenseCategorizationRepository;
-use App\Expense\Domain\Enums\ExpenseCategoryEnum;
 use App\Expense\Infrastructure\Repositories\Persistence\Models\ExpenseModel;
 use DateTimeImmutable;
 
