@@ -114,3 +114,31 @@ it('preserves the full three period span for recurring leadership', function ():
         ->and($candidate->comparisonPeriod)->toBeNull()
         ->and($candidate->ratio)->toBeNull();
 });
+
+it('identifies the same information independently of the calculated ratio', function (): void {
+    $candidate = candidateValueObjectFixture(InsightTypeEnum::CategoryConcentration, 'food', true, false);
+    $updated = new InsightCandidateValueObject(
+        type: $candidate->type,
+        category: $candidate->category,
+        analysisPeriod: $candidate->analysisPeriod,
+        ratio: InsightAmountValueObject::fromCents('7000')->shareOf(InsightAmountValueObject::fromCents('10000')),
+    );
+
+    expect($candidate->hasSameInformationAs($updated))->toBeTrue()
+        ->and($updated->hasSameInformationAs($candidate))->toBeTrue()
+        ->and($candidate->supersedes($updated))->toBeTrue();
+});
+
+it('distinguishes subjects types and contextual history states', function (): void {
+    $category = candidateValueObjectFixture(InsightTypeEnum::CategoryConcentration, 'food', true, false);
+    $otherCategory = candidateValueObjectFixture(InsightTypeEnum::CategoryConcentration, 'health', true, false);
+    $expense = candidateValueObjectFixture(InsightTypeEnum::ExpenseConcentration, 'food', true, false);
+    $currentHistory = candidateValueObjectFixture(InsightTypeEnum::InsufficientHistory, null, false, false, InsightHistoryStateEnum::CurrentExpenses);
+    $oldHistory = candidateValueObjectFixture(InsightTypeEnum::InsufficientHistory, null, false, false, InsightHistoryStateEnum::NoCurrentExpenses);
+
+    expect($category->hasSameInformationAs($otherCategory))->toBeFalse()
+        ->and($category->hasSameInformationAs($expense))->toBeFalse()
+        ->and($currentHistory->hasSameInformationAs($oldHistory))->toBeFalse()
+        ->and($category->supersedes($expense))->toBeTrue()
+        ->and($expense->supersedes($category))->toBeFalse();
+});

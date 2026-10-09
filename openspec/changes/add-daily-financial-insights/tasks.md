@@ -14,9 +14,9 @@
 
 - [x] 3.1 Implementar consultas agregadas por proprietário para o mês corrente e dois anteriores, mais existência histórica, sem Eloquent Models de Expense, paginação do CRUD ou uma query por regra/categoria.
 - [ ] 3.2 Garantir datas por ocorrência, exclusão de datas futuras, inclusão de `other`, períodos equivalentes, cálculo exato, arredondamento editorial e snapshot consistente de fatos relacionados.
-- [ ] 3.3 Implementar concentração por categoria e lançamento, variação do total e liderança recorrente com o perfil de elegibilidade aprovado, sem inferências de completude, economia ou excesso financeiro.
-- [ ] 3.4 Implementar onboarding por existência histórica e evidência recente, incluindo revisão de `other`, sem consultas a perfil ou configurações de Identity.
-- [ ] 3.5 Implementar priorização, desempates determinísticos, deduplicação semântica e máximo de seis candidatos, sem quantidade mínima ou preenchimento artificial.
+- [x] 3.3 Implementar concentração por categoria e lançamento, variação do total e liderança recorrente com o perfil de elegibilidade aprovado, sem inferências de completude, economia ou excesso financeiro.
+- [x] 3.4 Implementar onboarding por existência histórica e evidência recente, incluindo revisão de `other`, sem consultas a perfil ou configurações de Identity.
+- [x] 3.5 Implementar priorização, desempates determinísticos, deduplicação semântica e máximo de seis candidatos, sem quantidade mínima ou preenchimento artificial.
 
 ## 4. Compor mensagens e disponibilizar a API
 
@@ -27,7 +27,7 @@
 
 ## 5. Verificar o comportamento e preparar entrega
 
-- [ ] 5.1 Verificar as regras e seleção com cenários de base pequena/zero, limiares, empate, liderança incompleta, `other`, redundância e ausência de registros, conforme os requisitos da spec.
+- [x] 5.1 Verificar as regras e seleção com cenários de base pequena/zero, limiares, empate, liderança incompleta, `other`, redundância e ausência de registros, conforme os requisitos da spec.
 - [ ] 5.2 Verificar rotação no mesmo dia, em dias consecutivos e após um ciclo; mudanças de números sem troca de variante, transições de conjunto e limites Unicode após interpolação.
 - [ ] 5.3 Verificar queries e projeções com contas distintas, registros retroativos/futuros, meses de durações diferentes, somas grandes e consistência de fatos relacionados; verificar leitura após edição, exclusão e recategorização confirmadas.
 - [ ] 5.4 Verificar contrato HTTP, autenticação e demais proteções, parâmetros rejeitados, IDs, grupos/tipos, períodos, onboarding e falha explícita de leitura, sem expor dados de outras contas.

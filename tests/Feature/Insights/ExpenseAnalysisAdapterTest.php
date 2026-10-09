@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Insights\Application\Ports\ExpenseAnalysisPort;
 use App\Insights\Application\UseCases\GenerateInsightCandidatesUseCase;
+use App\Insights\Application\UseCases\SelectInsightCandidatesUseCase;
 use App\Insights\Domain\Enums\InsightTypeEnum;
 use App\Insights\Domain\ValueObjects\InsightCandidateValueObject;
 use App\Insights\Infrastructure\Adapters\ExpenseAnalysisAdapter;
@@ -24,9 +25,9 @@ function insightExpenseAnalysisPort(): ExpenseAnalysisPort
 function insertInsightExpense(int $userId, string $date, int $amount, string $category = 'other'): int
 {
     return DB::table('expenses')->insertGetId([
-        'user_id' => $userId, 'occurred_on' => $date, 'amount' => $amount,
-        'category' => $category, 'created_at' => '2026-10-12 12:00:00',
         'updated_at' => '2026-10-12 12:00:00',
+        'category' => $category, 'created_at' => '2026-10-12 12:00:00',
+        'user_id' => $userId, 'occurred_on' => $date, 'amount' => $amount,
     ]);
 }
 
@@ -165,4 +166,9 @@ it('generates candidates from the real analytical projection', function (): void
     expect($types)->toBe([InsightTypeEnum::CategoryConcentration, InsightTypeEnum::CategoryLeadStreak])
         ->and($candidates[0]->ratio->roundedPercent())->toBe('100')
         ->and($candidates[1]->analysisPeriod->from())->toBe('2026-08-01');
+
+    $selected = app(SelectInsightCandidatesUseCase::class)->execute($candidates);
+
+    expect($selected)->toBe([$candidates[1]])
+        ->and($selected[0]->type)->toBe(InsightTypeEnum::CategoryLeadStreak);
 });

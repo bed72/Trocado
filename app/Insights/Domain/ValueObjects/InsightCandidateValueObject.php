@@ -52,4 +52,42 @@ final readonly class InsightCandidateValueObject
     {
         return $this->type->group() === InsightGroupEnum::Onboarding ? null : $this->analysisPeriod;
     }
+
+    public function hasSameInformationAs(self $other): bool
+    {
+        $sameComparison = ($this->comparisonPeriod === null && $other->comparisonPeriod === null)
+            || ($this->comparisonPeriod !== null && $other->comparisonPeriod !== null
+                && $this->comparisonPeriod->equals($other->comparisonPeriod));
+
+        return $this->type === $other->type
+            && $this->category === $other->category
+            && $this->historyState === $other->historyState
+            && $this->analysisPeriod->equals($other->analysisPeriod)
+            && $sameComparison;
+    }
+
+    public function supersedes(self $other): bool
+    {
+        if ($this->hasSameInformationAs($other)) {
+            return true;
+        }
+
+        if ($this->category === null || $this->category !== $other->category) {
+            return false;
+        }
+
+        if ($this->type === InsightTypeEnum::CategoryConcentration && $other->type === InsightTypeEnum::ExpenseConcentration) {
+            return $this->analysisPeriod->equals($other->analysisPeriod);
+        }
+
+        if ($this->type === InsightTypeEnum::CategoryLeadStreak
+            && in_array($other->type, [InsightTypeEnum::CategoryConcentration, InsightTypeEnum::ExpenseConcentration], true)) {
+            $currentMonth = substr($this->analysisPeriod->to(), 0, 7);
+
+            return $other->analysisPeriod->from() === "{$currentMonth}-01"
+                && $other->analysisPeriod->to() === $this->analysisPeriod->to();
+        }
+
+        return false;
+    }
 }
