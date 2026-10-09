@@ -37,6 +37,7 @@ return Application::configure(basePath: dirname(__DIR__))
         api: [
             __DIR__.'/../app/Identity/Presentation/Routes/api.php',
             __DIR__.'/../app/Expense/Presentation/Routes/api.php',
+            __DIR__.'/../app/Insights/Presentation/Routes/api.php',
         ],
     )
     ->withMiddleware(function (Middleware $middleware): void {

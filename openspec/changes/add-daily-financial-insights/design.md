@@ -30,14 +30,14 @@ Fluxo proposto:
 
 ```text
 GetInsightsController -> GetInsightsUseCase
-                         |-> UserPort -> UserAdapter (guard autenticado)
+                         |-> Core.UserPort -> Core.UserAdapter (guard autenticado)
                          |-> ExpenseAnalysisPort -> ExpenseAnalysisAdapter (PostgreSQL)
                          |-> políticas puras de Insights
                          |-> catálogo e composição -> InsightOutput
                          -> InsightResponse
 ```
 
-`UserPort` e `ExpenseAnalysisPort` pertencem à Application de Insights. O primeiro acompanha o padrão atual de identidade autenticada; o segundo fornece uma capacidade de leitura analítica, não persistência de um agregado Insight. O adapter retorna uma projeção tipada própria, como `ExpenseAnalysisOutput`, e não o Output final do UseCase. Carrier objects permanecem `final readonly`, constructor-only, em `Application/Data`.
+Insights reutiliza `Core\Application\Ports\UserPort` e seu binding existente para obter a identidade autenticada; não cria outro contrato ou adapter de identidade. `ExpenseAnalysisPort` pertence à Application de Insights e fornece uma capacidade de leitura analítica, não persistência de um agregado Insight. Seu adapter retorna uma projeção tipada própria, como `ExpenseAnalysisOutput`, e não o Output final do UseCase. Carrier objects permanecem `final readonly`, constructor-only, em `Application/Data`.
 
 O UseCase recebe a data civil de referência explicitamente; a borda resolve relógio e `app.timezone`. Seu construtor segue `Port -> UseCase -> Repository`, qualificando os nomes quando houver mais de um Port. Não introduzir interface para o UseCase.
 

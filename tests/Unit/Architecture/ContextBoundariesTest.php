@@ -183,6 +183,9 @@ foreach ($contexts as $context) {
 
         if (in_array($context, ['Expense', 'Identity'], true)) {
             $applicationDependencies[] = 'App\\Core\\Application\\Ports\\ObservabilityPort';
+        }
+
+        if (in_array($context, ['Expense', 'Identity', 'Insights'], true)) {
             $applicationDependencies[] = 'App\\Core\\Application\\Ports\\UserPort';
         }
 
