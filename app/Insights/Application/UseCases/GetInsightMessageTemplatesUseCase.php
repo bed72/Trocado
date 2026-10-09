@@ -59,7 +59,7 @@ final readonly class GetInsightMessageTemplatesUseCase
         ],
         'current_history' => [
             ['Ainda sem observações', 'Há registros neste mês, mas ainda não há uma observação financeira elegível.', 'Seus registros deste mês ainda não permitem uma observação financeira.'],
-            ['Cada registro traz contexto', 'Continue registrando suas despesas. Por enquanto, os registros não sustentam uma observação financeira.', 'Por enquanto, seus registros não sustentam uma observação financeira.'],
+            ['Cada registro traz contexto', 'Por enquanto, os registros não sustentam uma observação financeira.', 'Por enquanto, seus registros não sustentam uma observação financeira.'],
             ['O histórico está em construção', 'Os registros deste mês ainda não oferecem evidência para os insights financeiros.', 'Ainda não há evidência para insights financeiros nos registros deste mês.'],
             ['Sem apressar conclusões', 'Há registros neste mês. Vamos esperar evidência suficiente antes de apresentar uma observação financeira.', 'Há registros neste mês, mas ainda falta evidência para uma observação financeira.'],
         ],
