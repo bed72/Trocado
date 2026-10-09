@@ -8,9 +8,9 @@ final readonly class ExpenseAnalysisOutput
 {
     public function __construct(
         public bool $hasHistoricalExpenses,
+        public ExpensePeriodAnalysisOutput $twoMonthsAgo,
         public ExpensePeriodAnalysisOutput $currentMonth,
         public ExpensePeriodAnalysisOutput $previousMonth,
-        public ExpensePeriodAnalysisOutput $twoMonthsAgo,
         public ?ExpensePeriodAnalysisOutput $currentComparison,
         public ?ExpensePeriodAnalysisOutput $previousComparison,
     ) {}

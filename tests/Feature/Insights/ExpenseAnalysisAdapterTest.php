@@ -3,15 +3,23 @@
 declare(strict_types=1);
 
 use App\Insights\Application\Ports\ExpenseAnalysisPort;
+use App\Insights\Application\UseCases\GenerateInsightCandidatesUseCase;
+use App\Insights\Domain\Enums\InsightTypeEnum;
+use App\Insights\Domain\ValueObjects\InsightCandidateValueObject;
 use App\Insights\Infrastructure\Adapters\ExpenseAnalysisAdapter;
 use Illuminate\Support\Facades\DB;
 
-beforeEach(function (): void {
-    $this->userId = DB::table('users')->insertGetId([
+function createInsightUser(): int
+{
+    return DB::table('users')->insertGetId([
         'name' => 'Maria', 'email' => 'insights@example.com', 'password' => 'unused',
     ]);
-    $this->port = $this->app->make(ExpenseAnalysisPort::class);
-});
+}
+
+function insightExpenseAnalysisPort(): ExpenseAnalysisPort
+{
+    return app(ExpenseAnalysisPort::class);
+}
 
 function insertInsightExpense(int $userId, string $date, int $amount, string $category = 'other'): int
 {
@@ -23,26 +31,28 @@ function insertInsightExpense(int $userId, string $date, int $amount, string $ca
 }
 
 it('aggregates only the owner occurrence periods in one read without writes', function (): void {
+    $userId = createInsightUser();
+    $port = insightExpenseAnalysisPort();
     $otherUserId = DB::table('users')->insertGetId([
         'name' => 'Pedro', 'email' => 'other-insights@example.com', 'password' => 'unused',
     ]);
-    insertInsightExpense($this->userId, '2026-10-01', 20000, 'food');
-    insertInsightExpense($this->userId, '2026-10-02', 30000, 'other');
-    insertInsightExpense($this->userId, '2026-10-12', 10000, 'food');
-    insertInsightExpense($this->userId, '2026-10-13', 99999);
-    insertInsightExpense($this->userId, '2026-09-11', 15000, 'food');
-    insertInsightExpense($this->userId, '2026-09-12', 25000, 'other');
-    insertInsightExpense($this->userId, '2026-08-31', 5000);
+    insertInsightExpense($userId, '2026-10-01', 20000, 'food');
+    insertInsightExpense($userId, '2026-10-02', 30000, 'other');
+    insertInsightExpense($userId, '2026-10-12', 10000, 'food');
+    insertInsightExpense($userId, '2026-10-13', 99999);
+    insertInsightExpense($userId, '2026-09-11', 15000, 'food');
+    insertInsightExpense($userId, '2026-09-12', 25000, 'other');
+    insertInsightExpense($userId, '2026-08-31', 5000);
     insertInsightExpense($otherUserId, '2026-10-01', 999999, 'health');
     $before = DB::table('expenses')->orderBy('id')->get()->all();
     DB::enableQueryLog();
     DB::flushQueryLog();
 
-    $output = $this->port->analyze($this->userId, '2026-10-12');
+    $output = $port->analyze($userId, '2026-10-12');
     $queries = DB::getQueryLog();
     DB::disableQueryLog();
 
-    expect($this->port)->toBeInstanceOf(ExpenseAnalysisAdapter::class)
+    expect($port)->toBeInstanceOf(ExpenseAnalysisAdapter::class)
         ->and($queries)->toHaveCount(1)
         ->and($queries[0]['query'])->toStartWith('WITH periods')
         ->and($output->hasHistoricalExpenses)->toBeTrue()
@@ -65,7 +75,9 @@ it('aggregates only the owner occurrence periods in one read without writes', fu
 });
 
 it('caps equivalent windows by the shorter previous month', function (string $reference, string $currentEnd, string $previousEnd, int $days): void {
-    $output = $this->port->analyze($this->userId, $reference);
+    $userId = createInsightUser();
+    $port = insightExpenseAnalysisPort();
+    $output = $port->analyze($userId, $reference);
 
     expect($output->currentComparison->period->to())->toBe($currentEnd)
         ->and($output->previousComparison->period->to())->toBe($previousEnd)
@@ -79,8 +91,10 @@ it('caps equivalent windows by the shorter previous month', function (string $re
 ]);
 
 it('distinguishes empty history from old history and excludes future history', function (): void {
-    insertInsightExpense($this->userId, '2026-10-02', 10000);
-    $output = $this->port->analyze($this->userId, '2026-10-01');
+    $userId = createInsightUser();
+    $port = insightExpenseAnalysisPort();
+    insertInsightExpense($userId, '2026-10-02', 10000);
+    $output = $port->analyze($userId, '2026-10-01');
 
     expect($output->hasHistoricalExpenses)->toBeFalse()
         ->and($output->currentMonth->totalAmount)->toBe('0')
@@ -92,8 +106,8 @@ it('distinguishes empty history from old history and excludes future history', f
         ->and($output->currentComparison)->toBeNull()
         ->and($output->previousComparison)->toBeNull();
 
-    insertInsightExpense($this->userId, '2020-01-01', 10000);
-    $output = $this->port->analyze($this->userId, '2026-10-01');
+    insertInsightExpense($userId, '2020-01-01', 10000);
+    $output = $port->analyze($userId, '2026-10-01');
 
     expect($output->hasHistoricalExpenses)->toBeTrue()
         ->and($output->currentMonth->totalAmount)->toBe('0')
@@ -101,10 +115,12 @@ it('distinguishes empty history from old history and excludes future history', f
 });
 
 it('preserves totals above machine integer limits and breaks largest expense ties deterministically', function (): void {
-    insertInsightExpense($this->userId, '2026-10-01', PHP_INT_MAX, 'other');
-    insertInsightExpense($this->userId, '2026-10-01', PHP_INT_MAX, 'food');
-    insertInsightExpense($this->userId, '2026-10-02', PHP_INT_MAX, 'food');
-    $output = $this->port->analyze($this->userId, '2026-10-12');
+    $userId = createInsightUser();
+    $port = insightExpenseAnalysisPort();
+    insertInsightExpense($userId, '2026-10-01', PHP_INT_MAX, 'other');
+    insertInsightExpense($userId, '2026-10-01', PHP_INT_MAX, 'food');
+    insertInsightExpense($userId, '2026-10-02', PHP_INT_MAX, 'food');
+    $output = $port->analyze($userId, '2026-10-12');
 
     expect($output->currentMonth->totalAmount)->toBe('27670116110564327421')
         ->and($output->currentMonth->distinctDateCount)->toBe(2)
@@ -114,19 +130,39 @@ it('preserves totals above machine integer limits and breaks largest expense tie
 });
 
 it('reads confirmed edits recategorizations and deletions without cached facts', function (): void {
-    $id = insertInsightExpense($this->userId, '2026-10-01', 10000);
-    expect($this->port->analyze($this->userId, '2026-10-12')->currentMonth->categories[0]->category)->toBe('other');
+    $userId = createInsightUser();
+    $port = insightExpenseAnalysisPort();
+    $id = insertInsightExpense($userId, '2026-10-01', 10000);
+    expect($port->analyze($userId, '2026-10-12')->currentMonth->categories[0]->category)->toBe('other');
 
     DB::table('expenses')->where('id', $id)->update(['amount' => 20000, 'category' => 'food']);
-    $output = $this->port->analyze($this->userId, '2026-10-12');
+    $output = $port->analyze($userId, '2026-10-12');
     expect($output->currentMonth->totalAmount)->toBe('20000')
         ->and($output->currentMonth->categories[0]->category)->toBe('food');
 
     DB::table('expenses')->where('id', $id)->update(['occurred_on' => '2026-09-01']);
-    $output = $this->port->analyze($this->userId, '2026-10-12');
+    $output = $port->analyze($userId, '2026-10-12');
     expect($output->currentMonth->totalAmount)->toBe('0')
         ->and($output->previousMonth->totalAmount)->toBe('20000');
 
     DB::table('expenses')->where('id', $id)->delete();
-    expect($this->port->analyze($this->userId, '2026-10-12')->hasHistoricalExpenses)->toBeFalse();
+    expect($port->analyze($userId, '2026-10-12')->hasHistoricalExpenses)->toBeFalse();
+});
+
+it('generates candidates from the real analytical projection', function (): void {
+    $userId = createInsightUser();
+    $port = insightExpenseAnalysisPort();
+    foreach (['2026-08', '2026-09', '2026-10'] as $month) {
+        foreach (['01', '02', '03', '04', '05'] as $day) {
+            insertInsightExpense($userId, "{$month}-{$day}", 2000, 'food');
+        }
+    }
+
+    $analysis = $port->analyze($userId, '2026-10-12');
+    $candidates = app(GenerateInsightCandidatesUseCase::class)->execute($analysis);
+    $types = array_map(static fn (InsightCandidateValueObject $candidate): InsightTypeEnum => $candidate->type, $candidates);
+
+    expect($types)->toBe([InsightTypeEnum::CategoryConcentration, InsightTypeEnum::CategoryLeadStreak])
+        ->and($candidates[0]->ratio->roundedPercent())->toBe('100')
+        ->and($candidates[1]->analysisPeriod->from())->toBe('2026-08-01');
 });

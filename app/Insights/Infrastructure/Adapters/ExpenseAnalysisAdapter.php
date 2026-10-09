@@ -22,15 +22,15 @@ use Illuminate\Support\Facades\DB;
  *     previous_comparison?: InsightPeriodValueObject
  * }
  * @phpstan-type AnalysisRow object{
+ *     has_history: bool
  *     period_key: string,
- *     expense_count: int|string,
- *     distinct_date_count: int|string,
  *     total_amount: string,
+ *     expense_count: int|string,
  *     largest_expense_amount: string,
- *     largest_expense_category: ?string,
+ *     distinct_date_count: int|string,
  *     category: ?string,
  *     category_amount: ?string,
- *     has_history: bool
+ *     largest_expense_category: ?string,
  * }
  */
 final class ExpenseAnalysisAdapter implements ExpenseAnalysisPort

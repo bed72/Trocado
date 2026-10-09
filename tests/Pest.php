@@ -54,7 +54,8 @@ function signInIdentityByApi(
         ],
     ])->assertOk()->json('data.attributes.token');
 
-    expect($token)->toBeString()->not->toBeEmpty();
+    expect($token)->toBeString();
+    expect(strlen($token))->toBeGreaterThan(0);
 
     return $token;
 }

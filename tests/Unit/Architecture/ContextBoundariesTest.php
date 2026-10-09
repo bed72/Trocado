@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-$applicationPath = dirname(__DIR__, 3).'/app';
-$contextDirectories = glob($applicationPath.'/*', GLOB_ONLYDIR) ?: [];
+$projectPath = dirname(__DIR__, 3);
+$applicationPath = "{$projectPath}/app";
+$contextDirectories = glob("{$applicationPath}/*", GLOB_ONLYDIR) ?: [];
 $contexts = array_map(basename(...), $contextDirectories);
 sort($contexts);
 
@@ -11,10 +12,10 @@ $layers = ['Application', 'Domain', 'Infrastructure', 'Presentation'];
 $expectedContexts = ['Core', 'Expense', 'Identity', 'Insights'];
 
 it('organizes application code inside known bounded context layers', function () use ($contextDirectories, $layers): void {
-    expect($contextDirectories)->not->toBeEmpty();
+    expect(count($contextDirectories))->toBeGreaterThan(0);
 
     foreach ($contextDirectories as $contextDirectory) {
-        $entries = glob($contextDirectory.'/*') ?: [];
+        $entries = glob("{$contextDirectory}/*") ?: [];
         $unexpectedEntries = array_values(array_filter(
             $entries,
             fn (string $entry): bool => is_file($entry) || ! in_array(basename($entry), $layers, true),
@@ -36,7 +37,7 @@ it('contains no source references to retired bounded contexts', function () use 
     $staleReferences = [];
 
     $inspectDirectory = function (string $directory) use (&$inspectDirectory, &$staleReferences, $retiredContexts): void {
-        foreach (glob($directory.'/*') ?: [] as $entry) {
+        foreach (glob("{$directory}/*") ?: [] as $entry) {
             if (is_dir($entry)) {
                 $inspectDirectory($entry);
 
@@ -50,7 +51,7 @@ it('contains no source references to retired bounded contexts', function () use 
             $contents = file_get_contents($entry);
 
             foreach ($retiredContexts as $retiredContext) {
-                $namespace = 'App'.'\\'.$retiredContext.'\\';
+                $namespace = "App\\{$retiredContext}\\";
 
                 if (is_string($contents) && str_contains($contents, $namespace)) {
                     $staleReferences[] = $entry;
@@ -65,8 +66,8 @@ it('contains no source references to retired bounded contexts', function () use 
 
 it('does not couple Eloquent models across bounded contexts', function () use ($applicationPath): void {
     $forbiddenReferences = [
-        'App\\Expense\\Infrastructure\\Repositories\\Persistence\\Models\\ExpenseModel' => $applicationPath.'/Identity',
-        'App\\Identity\\Infrastructure\\Repositories\\Persistence\\Models\\UserModel' => $applicationPath.'/Expense',
+        'App\\Expense\\Infrastructure\\Repositories\\Persistence\\Models\\ExpenseModel' => "{$applicationPath}/Identity",
+        'App\\Identity\\Infrastructure\\Repositories\\Persistence\\Models\\UserModel' => "{$applicationPath}/Expense",
     ];
     $violations = [];
 
@@ -78,7 +79,7 @@ it('does not couple Eloquent models across bounded contexts', function () use ($
                 continue;
             }
 
-            if (str_contains((string) file_get_contents($file->getPathname()), 'use '.$namespace.';')) {
+            if (str_contains((string) file_get_contents($file->getPathname()), "use {$namespace};")) {
                 $violations[] = $file->getPathname();
             }
         }
@@ -95,7 +96,7 @@ arch('application code uses strict types and PSR-4 casing')
 it('keeps application data contracts immutable, constructor-only, and conventionally located', function () use ($applicationPath): void {
     $phpFiles = [];
     $collectPhpFiles = function (string $directory) use (&$collectPhpFiles, &$phpFiles): void {
-        foreach (glob($directory.'/*') ?: [] as $entry) {
+        foreach (glob("{$directory}/*") ?: [] as $entry) {
             if (is_dir($entry)) {
                 $collectPhpFiles($entry);
 
@@ -123,13 +124,14 @@ it('keeps application data contracts immutable, constructor-only, and convention
         fn (string $file): bool => str_contains($file, '/Application/') && str_ends_with($file, 'Result.php'),
     ));
 
-    expect($dataFiles)->not->toBeEmpty()
+    expect(count($dataFiles))->toBeGreaterThan(0)
         ->and($misplacedDataContracts)->toBe([])
         ->and($applicationResults)->toBe([]);
 
     foreach ($dataFiles as $file) {
         $relativeClass = substr($file, strlen($applicationPath) + 1, -4);
-        $class = 'App\\'.str_replace('/', '\\', $relativeClass);
+        $relativeNamespace = str_replace('/', '\\', $relativeClass);
+        $class = "App\\{$relativeNamespace}";
         $reflection = new ReflectionClass($class);
         $declaredMethods = array_values(array_filter(
             $reflection->getMethods(),
@@ -140,7 +142,7 @@ it('keeps application data contracts immutable, constructor-only, and convention
         expect(basename($file))->toMatch('/(?:Input|Output)\.php$/')
             ->and($reflection->isFinal())->toBeTrue()
             ->and($reflection->isReadOnly())->toBeTrue()
-            ->and($reflection->getConstructor())->not->toBeNull()
+            ->and($reflection->getConstructor() instanceof ReflectionMethod)->toBeTrue()
             ->and($declaredMethods)->toBe([])
             ->and($reflection->getParentClass())->toBeFalse()
             ->and($reflection->getInterfaceNames())->toBe([]);
@@ -156,17 +158,24 @@ it('keeps application data contracts immutable, constructor-only, and convention
 });
 
 foreach ($contexts as $context) {
-    $contextPath = $applicationPath.'/'.$context;
-    $contextNamespace = 'App\\'.$context;
+    $contextPath = "{$applicationPath}/{$context}";
+    $contextNamespace = "App\\{$context}";
 
-    if (is_dir($contextPath.'/Domain')) {
-        arch($context.' domain remains isolated and framework independent')
-            ->expect($contextNamespace.'\\Domain')
-            ->toOnlyUse([$contextNamespace.'\\Domain']);
+    if (is_dir("{$contextPath}/Domain")) {
+        $domainDependencies = ["{$contextNamespace}\\Domain"];
+
+        if ($context === 'Insights') {
+            $domainDependencies[] = 'Brick\\Math\\BigInteger';
+            $domainDependencies[] = 'Brick\\Math\\RoundingMode';
+        }
+
+        arch("{$context} domain remains isolated and framework independent")
+            ->expect("{$contextNamespace}\\Domain")
+            ->toOnlyUse($domainDependencies);
     }
 
-    if (is_dir($contextPath.'/Application')) {
-        $applicationDependencies = [$contextNamespace.'\\Application', $contextNamespace.'\\Domain'];
+    if (is_dir("{$contextPath}/Application")) {
+        $applicationDependencies = ["{$contextNamespace}\\Application", "{$contextNamespace}\\Domain"];
 
         if ($context !== 'Core') {
             $applicationDependencies[] = 'App\\Core\\Application\\Ports\\TransactionPort';
@@ -177,16 +186,16 @@ foreach ($contexts as $context) {
             $applicationDependencies[] = 'App\\Core\\Application\\Ports\\UserPort';
         }
 
-        arch($context.' application depends only on its domain and own contracts')
-            ->expect($contextNamespace.'\\Application')
+        arch("{$context} application depends only on its domain and own contracts")
+            ->expect("{$contextNamespace}\\Application")
             ->toOnlyUse($applicationDependencies);
     }
 
-    if (is_dir($contextPath.'/Infrastructure')) {
+    if (is_dir("{$contextPath}/Infrastructure")) {
         $infrastructureDependencies = [
-            $contextNamespace.'\\Infrastructure',
-            $contextNamespace.'\\Application',
-            $contextNamespace.'\\Domain',
+            "{$contextNamespace}\\Infrastructure",
+            "{$contextNamespace}\\Application",
+            "{$contextNamespace}\\Domain",
             'Illuminate',
         ];
 
@@ -208,16 +217,16 @@ foreach ($contexts as $context) {
             $infrastructureDependencies[] = 'report';
         }
 
-        arch($context.' infrastructure stays behind application boundaries')
-            ->expect($contextNamespace.'\\Infrastructure')
+        arch("{$context} infrastructure stays behind application boundaries")
+            ->expect("{$contextNamespace}\\Infrastructure")
             ->toOnlyUse($infrastructureDependencies);
     }
 
-    if (is_dir($contextPath.'/Presentation')) {
+    if (is_dir("{$contextPath}/Presentation")) {
         $presentationDependencies = [
-            $contextNamespace.'\\Presentation',
-            $contextNamespace.'\\Application',
-            $contextNamespace.'\\Domain',
+            "{$contextNamespace}\\Presentation",
+            "{$contextNamespace}\\Application",
+            "{$contextNamespace}\\Domain",
             'Illuminate',
             'Symfony\\Component\\HttpFoundation',
             'response',
@@ -232,8 +241,8 @@ foreach ($contexts as $context) {
             $presentationDependencies[] = 'App\\Core\\Application\\Ports\\UserPort';
         }
 
-        arch($context.' presentation does not reach infrastructure')
-            ->expect($contextNamespace.'\\Presentation')
+        arch("{$context} presentation does not reach infrastructure")
+            ->expect("{$contextNamespace}\\Presentation")
             ->toOnlyUse($presentationDependencies);
     }
 }

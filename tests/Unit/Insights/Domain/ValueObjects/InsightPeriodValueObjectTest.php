@@ -93,3 +93,35 @@ it('counts civil days independently of the process timezone and daylight saving'
         date_default_timezone_set(timezoneId: $originalTimezone);
     }
 });
+
+it('identifies month starts and complete calendar months', function (string $from, string $to, bool $startsAtMonthStart, bool $complete): void {
+    $period = InsightPeriodValueObject::fromDates($from, $to);
+
+    expect($period->startsAtMonthStart())->toBe($startsAtMonthStart)
+        ->and($period->isCompleteMonth())->toBe($complete);
+})->with([
+    'current partial month' => ['2026-10-01', '2026-10-12', true, false],
+    'complete thirty day month' => ['2026-09-01', '2026-09-30', true, true],
+    'complete thirty one day month' => ['2026-08-01', '2026-08-31', true, true],
+    'complete non leap february' => ['2027-02-01', '2027-02-28', true, true],
+    'complete leap february' => ['2028-02-01', '2028-02-29', true, true],
+    'incomplete leap february' => ['2028-02-01', '2028-02-28', true, false],
+    'missing first day' => ['2026-09-02', '2026-09-30', false, false],
+    'crosses into the following month' => ['2026-09-01', '2026-10-01', true, false],
+]);
+
+it('recognizes the immediately preceding month across years and month lengths', function (string $from, string $to, string $otherFrom, string $otherTo, bool $previous): void {
+    $period = InsightPeriodValueObject::fromDates($from, $to);
+    $other = InsightPeriodValueObject::fromDates($otherFrom, $otherTo);
+
+    expect($period->isPreviousMonthOf($other))->toBe($previous);
+})->with([
+    'consecutive closed and partial months' => ['2026-09-01', '2026-09-30', '2026-10-01', '2026-10-12', true],
+    'equivalent comparison windows' => ['2026-09-01', '2026-09-11', '2026-10-01', '2026-10-11', true],
+    'year boundary' => ['2026-12-01', '2026-12-31', '2027-01-01', '2027-01-12', true],
+    'leap february before march' => ['2028-02-01', '2028-02-29', '2028-03-01', '2028-03-31', true],
+    'same month' => ['2026-10-01', '2026-10-11', '2026-10-01', '2026-10-12', false],
+    'skipped month' => ['2026-08-01', '2026-08-31', '2026-10-01', '2026-10-12', false],
+    'reversed month order' => ['2026-11-01', '2026-11-30', '2026-10-01', '2026-10-12', false],
+    'candidate spans more than one month' => ['2026-09-01', '2026-10-01', '2026-10-01', '2026-10-12', false],
+]);

@@ -32,6 +32,26 @@ final readonly class InsightPeriodValueObject
         return $this->days() === $other->days();
     }
 
+    public function startsAtMonthStart(): bool
+    {
+        return substr($this->from, 8) === '01';
+    }
+
+    public function isCompleteMonth(): bool
+    {
+        $from = new DateTimeImmutable($this->from, new DateTimeZone('UTC'));
+
+        return $this->startsAtMonthStart() && $from->format('Y-m-t') === $this->to;
+    }
+
+    public function isPreviousMonthOf(self $other): bool
+    {
+        $otherFrom = new DateTimeImmutable($other->from, new DateTimeZone('UTC'));
+
+        return substr($this->from, 0, 7) === $otherFrom->modify('first day of previous month')->format('Y-m')
+            && substr($this->to, 0, 7) === substr($this->from, 0, 7);
+    }
+
     public function days(): int
     {
         $timezone = new DateTimeZone(timezone: 'UTC');
@@ -51,7 +71,7 @@ final readonly class InsightPeriodValueObject
             );
 
             if ($date === false || $date->format(format: 'Y-m-d') !== $value) {
-                throw new InvalidInsightPeriodException(message: 'O período deve conter datas válidas.');
+                throw new InvalidInsightPeriodException(message: 'O período deve conter datas civis válidas em Y-m-d.');
             }
         }
 
