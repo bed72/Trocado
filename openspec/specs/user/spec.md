@@ -26,7 +26,7 @@ O sistema MUST representar `UserEntity` dentro de Identity Domain como uma ident
 - **AND** essa integração não é exposta por `UserEntity` nem pelos contratos de Application
 
 ### Requirement: Nome válido
-O sistema MUST representar o nome por `NameValueObject`, MUST remover whitespace externo, MUST reduzir whitespace repetido a um único espaço e MUST aceitar somente letras Unicode separadas por espaços. O nome canônico MUST conter entre 2 e 12 letras, inclusive, sem contar os espaços. `UserEntity` MUST carregar o `NameValueObject`, e a validação HTTP de SignUp e atualização MUST aplicar as mesmas regras do Domain.
+O sistema MUST representar o nome por `NameValueObject`, MUST remover whitespace externo, MUST reduzir whitespace repetido a um único espaço e MUST aceitar somente letras Unicode separadas por espaços. O nome canônico MUST conter entre 2 e 32 letras, inclusive, sem contar os espaços. `UserEntity` MUST carregar o `NameValueObject`, e a validação HTTP de SignUp e atualização MUST aplicar as mesmas regras do Domain.
 
 #### Scenario: Whitespace é normalizado
 - **WHEN** SignUp ou atualização recebe o nome `  Maria   Silva  `
@@ -39,12 +39,12 @@ O sistema MUST representar o nome por `NameValueObject`, MUST remover whitespace
 - **AND** nenhuma identidade é criada ou alterada
 
 #### Scenario: Limites inclusivos contam somente letras
-- **WHEN** o nome canônico contém 2 ou 12 letras, inclusive com espaços internos
+- **WHEN** o nome canônico contém 2 ou 32 letras, inclusive com espaços internos
 - **THEN** o nome é aceito
 - **AND** os espaços não são incluídos na contagem
 
 #### Scenario: Nome fora do limite de letras
-- **WHEN** o nome canônico contém menos de 2 ou mais de 12 letras
+- **WHEN** o nome canônico contém menos de 2 ou mais de 32 letras
 - **THEN** o Domain rejeita o nome
 - **AND** nenhuma identidade é criada ou alterada
 

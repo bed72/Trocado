@@ -30,8 +30,8 @@ final readonly class NameValueObject
             throw new InvalidNameException(message: 'O nome do usuário deve conter pelo menos 2 letras.');
         }
 
-        if ($letterCount > 12) {
-            throw new InvalidNameException(message: 'O nome do usuário não pode exceder 12 letras.');
+        if ($letterCount > 32) {
+            throw new InvalidNameException(message: 'O nome do usuário não pode exceder 32 letras.');
         }
 
         return new self(value: $normalizedValue);

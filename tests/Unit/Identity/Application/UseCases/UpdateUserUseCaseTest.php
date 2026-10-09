@@ -60,7 +60,7 @@ it('does not persist invalid names', function (string $name) use ($createCurrent
         id: 10,
         name: $name,
     );
-})->with(['   ', str_repeat('a', 13)])->throws(InvalidNameException::class);
+})->with(['   ', str_repeat('a', 33)])->throws(InvalidNameException::class);
 
 it('fails when the user is absent before updating', function (): void {
     $port = $this->createMock(ObservabilityPort::class);

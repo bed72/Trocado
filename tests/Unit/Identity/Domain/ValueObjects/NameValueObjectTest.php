@@ -28,10 +28,12 @@ it('requires at least two letters', function (): void {
         ->toThrow(InvalidNameException::class, 'O nome do usuário deve conter pelo menos 2 letras.');
 });
 
-it('allows at most twelve letters', function (): void {
-    expect(NameValueObject::fromString(value: str_repeat('a', 12))->value())->toBe(str_repeat('a', 12))
-        ->and(fn (): NameValueObject => NameValueObject::fromString(value: str_repeat('a', 13)))
-        ->toThrow(InvalidNameException::class, 'O nome do usuário não pode exceder 12 letras.');
+it('allows at most thirty two letters excluding spaces', function (): void {
+    $name = str_repeat('á', 16).' '.str_repeat('b', 16);
+
+    expect(NameValueObject::fromString(value: $name)->value())->toBe($name)
+        ->and(fn (): NameValueObject => NameValueObject::fromString(value: $name.'c'))
+        ->toThrow(InvalidNameException::class, 'O nome do usuário não pode exceder 32 letras.');
 });
 
 it('rejects characters other than letters and spaces', function (string $name): void {

@@ -30,6 +30,10 @@ Para executar sem Lerd, copie `.env.example` para `.env`, configure `DB_HOST`, `
 
 Os testes usam exclusivamente `trocado_testing` em PostgreSQL. Migre esse banco antes dos testes (`APP_ENV=testing php artisan migrate --no-interaction` no ambiente PHP) e então rode `lerd test` ou `php artisan test`. A suíte recusa conexões SQLite, `DB_URL` e bancos diferentes; não aponte os testes para `trocado`. Dados existentes no SQLite não são copiados.
 
+### Dados demonstrativos
+
+Execute `lerd artisan db:seed` e informe a senha quando solicitada no terminal; a entrada fica oculta e é usada para os dois usuários demonstrativos. Os seeders garantem Gabriel Ramos (`developer.bed@gmail.com`) e Kelly Codolino (`kelly.cordolino@gmail.com`) como contas ativas e verificadas. Gabriel recebe despesas do mês atual até a data da execução e dos cinco meses anteriores; Kelly não recebe despesas. Despesas existentes são preservadas, e executar novamente não duplica os registros demonstrativos identificados por `[Demo]`.
+
 ## Produção
 
 O Dokploy publica `docker-compose.yml`: o serviço `migrate` aplica as migrations antes de iniciar `web`, os workers `queue` e `expense-classification`, e `scheduler`. A imagem usa PHP 8.5 com Apache, atrás do Traefik; os assets são compilados com Node 22. A extensão PHP Redis é instalada a partir do arquivo da versão 6.3.0, com tentativas de download, sem consultar o catálogo do PECL. PostgreSQL e Redis são serviços separados, acessados pelos hosts internos do Dokploy; suas portas não precisam ser publicadas na internet.
@@ -58,7 +62,7 @@ Status controla quem pode usar a API, mas não impede que terceiros alcancem end
 
 `POST /api/users` e a listagem global `GET /api/users` não existem e respondem `404`; consumidores que criavam User diretamente devem migrar para SignUp. `GET`, `PATCH` e `DELETE /api/users/{user}` permanecem protegidos e preservam seus contratos JSON:API.
 
-Nomes têm o whitespace externo e repetido normalizado, aceitam somente letras Unicode separadas por espaços e devem conter de 2 a 12 letras, sem contar os espaços. SignUp e atualização aplicam a mesma validação protegida por `NameValueObject` no Domain.
+Nomes têm o whitespace externo e repetido normalizado, aceitam somente letras Unicode separadas por espaços e devem conter de 2 a 32 letras, sem contar os espaços. SignUp e atualização aplicam a mesma validação protegida por `NameValueObject` no Domain.
 
 ```sh
 RUN_ID=$(date +%s)
