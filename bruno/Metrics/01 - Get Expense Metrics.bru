@@ -1,0 +1,25 @@
+meta {
+  name: Get Expense Metrics
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/metrics/expenses
+  body: none
+  auth: bearer
+}
+
+params:query {
+  ~start_date: 2026-10-01
+  ~end_date: 2026-10-31
+  ~group_by: category
+}
+
+headers {
+  Accept: application/vnd.api+json
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}

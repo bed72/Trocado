@@ -6,7 +6,7 @@ namespace App\Metrics\Application\UseCases;
 
 use App\Core\Application\Ports\UserPort;
 use App\Core\Domain\Enums\ExpenseCategoryEnum;
-use App\Core\Domain\ValueObjects\CentsValueObject;
+use App\Core\Domain\ValueObjects\AmountValueObject;
 use App\Core\Domain\ValueObjects\RatioValueObject;
 use App\Metrics\Application\Data\ExpenseCategoryMetricsOutput;
 use App\Metrics\Application\Data\ExpenseCategoryTotalOutput;
@@ -32,7 +32,7 @@ final readonly class GetExpenseMetricsUseCase
             period: $input->period,
             grouping: $input->grouping,
         );
-        $total = CentsValueObject::fromCents($projection->totalCents);
+        $total = AmountValueObject::fromAmount($projection->totalAmount);
 
         if ($input->grouping === ExpenseMetricsGroupingEnum::Total && $projection->categories !== []) {
             throw new InvalidExpenseMetricsProjectionException('Uma consulta sem agrupamento não deve fornecer categorias.');
@@ -41,12 +41,12 @@ final readonly class GetExpenseMetricsUseCase
         return new ExpenseMetricsOutput(
             id: hash('sha256', implode('|', [
                 (string) $userId,
-                $input->period->from(),
                 $input->period->to(),
+                $input->period->from(),
                 $input->grouping->value,
             ])),
             period: $input->period,
-            totalCents: $total->cents(),
+            totalAmount: $total->amount(),
             categories: $input->grouping === ExpenseMetricsGroupingEnum::Category
                 ? $this->categoryMetrics($projection, $total)
                 : null,
@@ -54,11 +54,11 @@ final readonly class GetExpenseMetricsUseCase
     }
 
     /** @return list<ExpenseCategoryMetricsOutput> */
-    private function categoryMetrics(ExpenseMetricsProjectionOutput $projection, CentsValueObject $total): array
+    private function categoryMetrics(ExpenseMetricsProjectionOutput $projection, AmountValueObject $total): array
     {
-        $cents = [];
+        $amounts = [];
         $categories = [];
-        $sum = CentsValueObject::fromCents('0');
+        $sum = AmountValueObject::fromAmount('0');
 
         if (! array_is_list($projection->categories)) {
             throw new InvalidExpenseMetricsProjectionException('A projeção deve fornecer uma lista de categorias.');
@@ -66,33 +66,33 @@ final readonly class GetExpenseMetricsUseCase
 
         foreach ($projection->categories as $category) {
             if (! $category instanceof ExpenseCategoryTotalOutput || ExpenseCategoryEnum::tryFrom($category->category) === null
-                || isset($cents[$category->category])) {
+                || isset($amounts[$category->category])) {
                 throw new InvalidExpenseMetricsProjectionException('A projeção deve conter categorias identificadas e únicas.');
             }
 
-            $amount = CentsValueObject::fromCents($category->totalCents);
+            $amount = AmountValueObject::fromAmount($category->totalAmount);
 
             if ($amount->isZero()) {
                 throw new InvalidExpenseMetricsProjectionException('Uma categoria presente deve possuir total positivo.');
             }
 
             $sum = $sum->plus($amount);
-            $cents[$category->category] = $amount;
+            $amounts[$category->category] = $amount;
         }
 
         if ($sum->compareTo($total) !== 0) {
             throw new InvalidExpenseMetricsProjectionException('As categorias devem representar o total do período.');
         }
 
-        foreach ($cents as $category => $amount) {
+        foreach ($amounts as $category => $amount) {
             $categories[] = new ExpenseCategoryMetricsOutput(
                 category: $category,
-                totalCents: $amount->cents(),
-                percentage: RatioValueObject::fromShare(cent: $amount, total: $total)->roundedPercent(decimalPlaces: 2),
+                totalAmount: $amount->amount(),
+                percentage: RatioValueObject::fromShare(amount: $amount, total: $total)->roundedPercent(decimalPlaces: 2),
             );
         }
 
-        usort($categories, static fn (ExpenseCategoryMetricsOutput $left, ExpenseCategoryMetricsOutput $right): int => $cents[$right->category]->compareTo($cents[$left->category])
+        usort($categories, static fn (ExpenseCategoryMetricsOutput $left, ExpenseCategoryMetricsOutput $right): int => $amounts[$right->category]->compareTo($amounts[$left->category])
             ?: strcmp($left->category, $right->category));
 
         return $categories;

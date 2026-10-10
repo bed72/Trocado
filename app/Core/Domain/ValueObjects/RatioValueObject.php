@@ -11,11 +11,11 @@ use Brick\Math\RoundingMode;
 final readonly class RatioValueObject
 {
     private function __construct(
-        public CentsValueObject $numerator,
-        public CentsValueObject $denominator,
+        public AmountValueObject $numerator,
+        public AmountValueObject $denominator,
     ) {}
 
-    public static function fromCents(CentsValueObject $numerator, CentsValueObject $denominator): self
+    public static function fromAmounts(AmountValueObject $numerator, AmountValueObject $denominator): self
     {
         if ($denominator->isZero()) {
             throw new InvalidRatioException('Uma participação exige denominador positivo.');
@@ -24,11 +24,11 @@ final readonly class RatioValueObject
         return new self(numerator: $numerator, denominator: $denominator);
     }
 
-    public static function fromShare(CentsValueObject $cent, CentsValueObject $total): self
+    public static function fromShare(AmountValueObject $amount, AmountValueObject $total): self
     {
-        $ratio = self::fromCents(numerator: $cent, denominator: $total);
+        $ratio = self::fromAmounts(numerator: $amount, denominator: $total);
 
-        if ($cent->compareTo($total) > 0) {
+        if ($amount->compareTo($total) > 0) {
             throw new InvalidRatioException('Uma participação não pode superar o total.');
         }
 
@@ -41,8 +41,8 @@ final readonly class RatioValueObject
             throw new InvalidRatioException('O percentual mínimo não pode ser negativo.');
         }
 
-        return BigInteger::of($this->numerator->cents())->multipliedBy(100)
-            ->isGreaterThanOrEqualTo(BigInteger::of($this->denominator->cents())->multipliedBy($percent));
+        return BigInteger::of($this->numerator->amount())->multipliedBy(100)
+            ->isGreaterThanOrEqualTo(BigInteger::of($this->denominator->amount())->multipliedBy($percent));
     }
 
     public function roundedPercent(int $decimalPlaces = 0): string
@@ -51,9 +51,9 @@ final readonly class RatioValueObject
             throw new InvalidRatioException('A quantidade de casas decimais não pode ser negativa.');
         }
 
-        $rounded = (string) BigInteger::of($this->numerator->cents())
+        $rounded = (string) BigInteger::of($this->numerator->amount())
             ->multipliedBy(BigInteger::of(100)->multipliedBy(BigInteger::of(10)->power($decimalPlaces)))
-            ->dividedBy($this->denominator->cents(), RoundingMode::HalfUp);
+            ->dividedBy($this->denominator->amount(), RoundingMode::HalfUp);
 
         if ($decimalPlaces === 0) {
             return $rounded;

@@ -38,9 +38,11 @@ return Application::configure(basePath: dirname(__DIR__))
             __DIR__.'/../app/Identity/Presentation/Routes/api.php',
             __DIR__.'/../app/Expense/Presentation/Routes/api.php',
             __DIR__.'/../app/Insights/Presentation/Routes/api.php',
+            __DIR__.'/../app/Metrics/Presentation/Routes/api.php',
         ],
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->redirectGuestsTo(fn (Request $request): ?string => $request->is('api/*') ? null : route('login'));
         $middleware->append(TraceRequestMiddleware::class);
         $middleware->alias([
             'request.authenticated' => AuthenticatedRequestMiddleware::class,

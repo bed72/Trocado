@@ -12,10 +12,10 @@ $layers = ['Application', 'Domain', 'Infrastructure', 'Presentation'];
 $expectedContexts = ['Core', 'Expense', 'Identity', 'Insights', 'Metrics'];
 $sharedDomainDependencies = [
     'App\\Core\\Domain\\Enums\\ExpenseCategoryEnum',
-    'App\\Core\\Domain\\ValueObjects\\CentsValueObject',
+    'App\\Core\\Domain\\ValueObjects\\AmountValueObject',
     'App\\Core\\Domain\\ValueObjects\\DatePeriodValueObject',
     'App\\Core\\Domain\\ValueObjects\\RatioValueObject',
-    'App\\Core\\Domain\\Exceptions\\InvalidCentsException',
+    'App\\Core\\Domain\\Exceptions\\InvalidAmountException',
     'App\\Core\\Domain\\Exceptions\\InvalidDatePeriodException',
     'App\\Core\\Domain\\Exceptions\\InvalidRatioException',
 ];

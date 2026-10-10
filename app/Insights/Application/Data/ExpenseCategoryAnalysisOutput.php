@@ -6,7 +6,7 @@ namespace App\Insights\Application\Data;
 
 final readonly class ExpenseCategoryAnalysisOutput
 {
-    /** Amounts are exact integer cents, including sums beyond PHP_INT_MAX. */
+    /** Amounts are exact integers in minor units, including sums beyond PHP_INT_MAX. */
     public function __construct(
         public string $category,
         public string $totalAmount,

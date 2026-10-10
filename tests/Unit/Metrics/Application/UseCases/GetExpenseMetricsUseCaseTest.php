@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Core\Application\Ports\UserPort;
-use App\Core\Domain\Exceptions\InvalidCentsException;
+use App\Core\Domain\Exceptions\InvalidAmountException;
 use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Metrics\Application\Data\ExpenseCategoryTotalOutput;
 use App\Metrics\Application\Data\ExpenseMetricsProjectionOutput;
@@ -27,11 +27,11 @@ function expenseMetricsProjectionFixture(string $total, array $totals = []): Exp
 {
     $categories = [];
 
-    foreach ($totals as $category => $cents) {
-        $categories[] = new ExpenseCategoryTotalOutput(category: $category, totalCents: $cents);
+    foreach ($totals as $category => $amount) {
+        $categories[] = new ExpenseCategoryTotalOutput(category: $category, totalAmount: $amount);
     }
 
-    return new ExpenseMetricsProjectionOutput(totalCents: $total, categories: $categories);
+    return new ExpenseMetricsProjectionOutput(totalAmount: $total, categories: $categories);
 }
 
 /** @return array{UserPort&MockObject, ExpenseMetricsPort&MockObject, GetExpenseMetricsUseCase} */
@@ -53,7 +53,7 @@ it('reads the authenticated owner once and forwards the exact effective period a
 
     expect($output->id)->toMatch('/\A[0-9a-f]{64}\z/')
         ->and($output->period)->toBe($input->period)
-        ->and($output->totalCents)->toBe('123456');
+        ->and($output->totalAmount)->toBe('123456');
 
     if ($grouping === ExpenseMetricsGroupingEnum::Total) {
         expect($output->categories)->toBeNull();
@@ -72,9 +72,9 @@ it('distinguishes absent grouping from an explicitly grouped empty result withou
     $total = $useCase->execute(expenseMetricsInputFixture());
     $grouped = $useCase->execute(expenseMetricsInputFixture(ExpenseMetricsGroupingEnum::Category));
 
-    expect($total->totalCents)->toBe('0')
+    expect($total->totalAmount)->toBe('0')
         ->and($total->categories)->toBeNull()
-        ->and($grouped->totalCents)->toBe('0')
+        ->and($grouped->totalAmount)->toBe('0')
         ->and($grouped->categories)->toBe([])
         ->and($grouped->period->from())->toBe('2026-10-01')
         ->and($grouped->period->to())->toBe('2026-10-31')
@@ -94,9 +94,9 @@ it('reconciles large totals and orders numerically with alphabetical tie breakin
 
     $output = $useCase->execute(expenseMetricsInputFixture(ExpenseMetricsGroupingEnum::Category));
 
-    expect($output->totalCents)->toBe('12000000000000010900')
+    expect($output->totalAmount)->toBe('12000000000000010900')
         ->and(array_column($output->categories, 'category'))->toBe(['food', 'other', 'transport', 'housing', 'health'])
-        ->and(array_column($output->categories, 'totalCents'))->toBe([
+        ->and(array_column($output->categories, 'totalAmount'))->toBe([
             '4000000000000000000', '4000000000000000000', '4000000000000000000', '10000', '900',
         ])
         ->and(array_column($output->categories, 'percentage'))->toBe(['33.33', '33.33', '33.33', '0.00', '0.00']);
@@ -115,7 +115,7 @@ it('calculates percentages from the same exact total with independent final roun
     '99.99 percent' => ['3', ['food' => '1', 'health' => '1', 'other' => '1'], ['food' => '33.33', 'health' => '33.33', 'other' => '33.33']],
     '100.01 percent' => ['100000', ['food' => '16665', 'health' => '16665', 'housing' => '16670', 'other' => '50000'], ['other' => '50.00', 'housing' => '16.67', 'food' => '16.67', 'health' => '16.67']],
     'minimum positive share' => ['1000000', ['food' => '1', 'other' => '999999'], ['other' => '100.00', 'food' => '0.00']],
-    'one cent' => ['1', ['other' => '1'], ['other' => '100.00']],
+    'minimum amount' => ['1', ['other' => '1'], ['other' => '100.00']],
 ]);
 
 it('returns every supported category without pagination or artificial empty groups', function (): void {
@@ -144,8 +144,8 @@ it('keeps identity stable when values and category order change while performing
     $second = $useCase->execute($input);
 
     expect($first->id)->toBe($second->id)
-        ->and($first->totalCents)->toBe('10000')
-        ->and($second->totalCents)->toBe('12500')
+        ->and($first->totalAmount)->toBe('10000')
+        ->and($second->totalAmount)->toBe('12500')
         ->and($first->categories[0]->percentage)->toBe('60.00')
         ->and($second->categories[0]->percentage)->toBe('68.00');
 });
@@ -220,7 +220,7 @@ it('rejects noncanonical exact amounts in the projection', function (string $amo
     $metricsPort->method('summarize')->willReturn($projection);
 
     $useCase->execute(expenseMetricsInputFixture($categoryAmount ? ExpenseMetricsGroupingEnum::Category : ExpenseMetricsGroupingEnum::Total));
-})->with(['-1', '01', '1.00', '1e3', ''])->with([false, true])->throws(InvalidCentsException::class);
+})->with(['-1', '01', '1.00', '1e3', ''])->with([false, true])->throws(InvalidAmountException::class);
 
 it('rejects categories unexpectedly provided in total only mode', function (): void {
     [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsPort::class));

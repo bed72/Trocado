@@ -9,7 +9,7 @@ use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 final readonly class ExpensePeriodAnalysisOutput
 {
     /**
-     * Amounts are exact integer cents, including sums beyond PHP_INT_MAX.
+     * Amounts are exact integers in minor units, including sums beyond PHP_INT_MAX.
      *
      * @param  list<ExpenseCategoryAnalysisOutput>  $categories
      */

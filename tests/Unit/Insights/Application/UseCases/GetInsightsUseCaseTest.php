@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Core\Application\Ports\UserPort;
-use App\Core\Domain\ValueObjects\CentsValueObject;
+use App\Core\Domain\ValueObjects\AmountValueObject;
 use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Insights\Application\Data\ExpenseAnalysisOutput;
 use App\Insights\Application\Data\ExpenseCategoryAnalysisOutput;
@@ -34,7 +34,7 @@ function getInsightsAnalysisFixture(string $categoryAmount = '30000', string $ca
             largestExpenseAmount: '10000',
             largestExpenseCategory: $category,
             period: DatePeriodValueObject::fromDates('2026-10-01', $to),
-            totalAmount: CentsValueObject::fromCents($categoryAmount)->plus(CentsValueObject::fromCents('20000'))->cents(),
+            totalAmount: AmountValueObject::fromAmount($categoryAmount)->plus(AmountValueObject::fromAmount('20000'))->amount(),
             categories: [
                 new ExpenseCategoryAnalysisOutput($category, $categoryAmount),
                 new ExpenseCategoryAnalysisOutput('other', '20000'),

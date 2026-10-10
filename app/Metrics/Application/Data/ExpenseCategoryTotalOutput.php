@@ -8,6 +8,6 @@ final readonly class ExpenseCategoryTotalOutput
 {
     public function __construct(
         public string $category,
-        public string $totalCents,
+        public string $totalAmount,
     ) {}
 }

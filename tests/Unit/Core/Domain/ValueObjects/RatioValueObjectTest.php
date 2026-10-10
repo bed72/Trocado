@@ -3,13 +3,13 @@
 declare(strict_types=1);
 
 use App\Core\Domain\Exceptions\InvalidRatioException;
-use App\Core\Domain\ValueObjects\CentsValueObject;
+use App\Core\Domain\ValueObjects\AmountValueObject;
 use App\Core\Domain\ValueObjects\RatioValueObject;
 
 it('preserves the original numerator and denominator without reducing the facts', function (): void {
-    $numerator = CentsValueObject::fromCents('5000');
-    $denominator = CentsValueObject::fromCents('25000');
-    $ratio = RatioValueObject::fromCents($numerator, $denominator);
+    $numerator = AmountValueObject::fromAmount('5000');
+    $denominator = AmountValueObject::fromAmount('25000');
+    $ratio = RatioValueObject::fromAmounts($numerator, $denominator);
 
     expect($ratio->numerator)->toBe($numerator)
         ->and($ratio->denominator)->toBe($denominator)
@@ -18,9 +18,9 @@ it('preserves the original numerator and denominator without reducing the facts'
 });
 
 it('supports zero participation and increases above one hundred percent', function (string $numerator, string $denominator, int $threshold, bool $eligible): void {
-    $ratio = RatioValueObject::fromCents(
-        CentsValueObject::fromCents($numerator),
-        CentsValueObject::fromCents($denominator),
+    $ratio = RatioValueObject::fromAmounts(
+        AmountValueObject::fromAmount($numerator),
+        AmountValueObject::fromAmount($denominator),
     );
 
     expect($ratio->isAtLeastPercent($threshold))->toBe($eligible);
@@ -33,9 +33,9 @@ it('supports zero participation and increases above one hundred percent', functi
 ]);
 
 it('compares percentage products exactly beyond native integer limits', function (string $numerator, bool $eligible): void {
-    $ratio = RatioValueObject::fromCents(
-        CentsValueObject::fromCents($numerator),
-        CentsValueObject::fromCents('25000000000000000000'),
+    $ratio = RatioValueObject::fromAmounts(
+        AmountValueObject::fromAmount($numerator),
+        AmountValueObject::fromAmount('25000000000000000000'),
     );
 
     expect($ratio->isAtLeastPercent(20))->toBe($eligible);
@@ -46,27 +46,27 @@ it('compares percentage products exactly beyond native integer limits', function
 ]);
 
 it('rejects negative percentage thresholds', function (): void {
-    $ratio = RatioValueObject::fromCents(
-        CentsValueObject::fromCents('5000'),
-        CentsValueObject::fromCents('25000'),
+    $ratio = RatioValueObject::fromAmounts(
+        AmountValueObject::fromAmount('5000'),
+        AmountValueObject::fromAmount('25000'),
     );
 
     $ratio->isAtLeastPercent(-1);
 })->throws(InvalidRatioException::class, 'O percentual mínimo não pode ser negativo.');
 
 it('rejects undefined ratios even when the numerator is also zero', function (): void {
-    RatioValueObject::fromCents(
-        CentsValueObject::fromCents('0'),
-        CentsValueObject::fromCents('0'),
+    RatioValueObject::fromAmounts(
+        AmountValueObject::fromAmount('0'),
+        AmountValueObject::fromAmount('0'),
     );
 })->throws(InvalidRatioException::class, 'Uma participação exige denominador positivo.');
 
 it('rejects negative precision without changing the exact ratio', function (): void {
-    CentsValueObject::fromCents('1')->shareOf(CentsValueObject::fromCents('3'))->roundedPercent(decimalPlaces: -1);
+    AmountValueObject::fromAmount('1')->shareOf(AmountValueObject::fromAmount('3'))->roundedPercent(decimalPlaces: -1);
 })->throws(InvalidRatioException::class);
 
 it('rounds the same exact ratio independently for each requested precision', function (): void {
-    $ratio = CentsValueObject::fromCents('16665')->shareOf(CentsValueObject::fromCents('100000'));
+    $ratio = AmountValueObject::fromAmount('16665')->shareOf(AmountValueObject::fromAmount('100000'));
 
     expect($ratio->roundedPercent())->toBe('17')
         ->and($ratio->roundedPercent(decimalPlaces: 2))->toBe('16.67')

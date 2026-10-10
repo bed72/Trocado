@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Core\Domain\ValueObjects\CentsValueObject;
+use App\Core\Domain\ValueObjects\AmountValueObject;
 use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Insights\Domain\Exceptions\InvalidInsightAnalysisException;
 use App\Insights\Domain\ValueObjects\ExpensePeriodSummaryValueObject;
@@ -23,9 +23,9 @@ function periodSummaryValueObjectFixture(
         distinctDateCount: $dates,
         largestExpenseCategory: $largestCategory,
         period: DatePeriodValueObject::fromDates($from, $to),
-        totalAmount: CentsValueObject::fromCents($total),
-        largestExpenseAmount: CentsValueObject::fromCents($largest),
-        categories: array_map(CentsValueObject::fromCents(...), $categories),
+        totalAmount: AmountValueObject::fromAmount($total),
+        largestExpenseAmount: AmountValueObject::fromAmount($largest),
+        categories: array_map(AmountValueObject::fromAmount(...), $categories),
     );
 }
 
@@ -34,13 +34,13 @@ it('preserves valid facts and returns the recorded category amounts', function (
 
     expect($summary->expenseCount)->toBe(5)
         ->and($summary->distinctDateCount)->toBe(3)
-        ->and($summary->totalAmount->cents())->toBe('10000')
-        ->and($summary->largestExpenseAmount->cents())->toBe('4000')
+        ->and($summary->totalAmount->amount())->toBe('10000')
+        ->and($summary->largestExpenseAmount->amount())->toBe('4000')
         ->and($summary->largestExpenseCategory)->toBe('food')
         ->and($summary->period->to())->toBe('2026-10-12')
         ->and($summary->categoryAmount('food'))->toBe($summary->categories['food'])
-        ->and($summary->categoryAmount('other')->cents())->toBe('4000')
-        ->and($summary->categoryAmount('health')->cents())->toBe('0')
+        ->and($summary->categoryAmount('other')->amount())->toBe('4000')
+        ->and($summary->categoryAmount('health')->amount())->toBe('0')
         ->and(array_keys($summary->categories))->toBe(['food', 'other']);
 });
 
@@ -62,12 +62,12 @@ it('rejects negative or impossible counts', function (int $count, int $dates): v
 ])->throws(InvalidInsightAnalysisException::class, 'As contagens do período são inconsistentes.');
 
 it('rejects invalid category keys values and zero category totals', function (string $case): void {
-    $amount = CentsValueObject::fromCents('10000');
+    $amount = AmountValueObject::fromAmount('10000');
     $categories = match ($case) {
         'empty category' => ['' => $amount],
         'numeric category' => [1 => $amount],
         'raw amount' => ['food' => '10000'],
-        'zero amount' => ['food' => $amount, 'other' => CentsValueObject::fromCents('0')],
+        'zero amount' => ['food' => $amount, 'other' => AmountValueObject::fromAmount('0')],
     };
 
     new ExpensePeriodSummaryValueObject(
@@ -76,7 +76,7 @@ it('rejects invalid category keys values and zero category totals', function (st
         distinctDateCount: 3,
         categories: $categories,
         largestExpenseCategory: 'food',
-        largestExpenseAmount: CentsValueObject::fromCents('4000'),
+        largestExpenseAmount: AmountValueObject::fromAmount('4000'),
         period: DatePeriodValueObject::fromDates('2026-10-01', '2026-10-12'),
     );
 })->with(['empty category', 'numeric category', 'raw amount', 'zero amount'])
@@ -132,7 +132,7 @@ it('preserves exact category totals and rankings beyond native integer precision
         largestCategory: 'other',
     );
 
-    expect($summary->totalAmount->cents())->toBe('18446744073709551617')
+    expect($summary->totalAmount->amount())->toBe('18446744073709551617')
         ->and($summary->uniqueLeadingCategory())->toBe('other')
-        ->and($summary->categoryAmount('food')->cents())->toBe('9223372036854775808');
+        ->and($summary->categoryAmount('food')->amount())->toBe('9223372036854775808');
 });

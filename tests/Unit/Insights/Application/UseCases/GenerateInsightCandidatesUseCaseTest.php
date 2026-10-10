@@ -49,7 +49,7 @@ it('converts analytical projections into independent domain candidates with orig
         InsightTypeEnum::CategoryLeadStreak,
         InsightTypeEnum::RegisteredAmountIncrease,
     ])
-        ->and($candidates[0]->ratio->numerator->cents())->toBe('30000')
+        ->and($candidates[0]->ratio->numerator->amount())->toBe('30000')
         ->and($candidates[0]->analysisPeriod->equals($analysis->currentMonth->period))->toBeTrue()
         ->and($analysis->currentMonth->totalAmount)->toBe('30000');
 });

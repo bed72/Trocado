@@ -48,7 +48,7 @@ Contexts live under `app/<Context>/{Domain,Application,Infrastructure,Presentati
 - Keep it pure PHP: no Laravel, Illuminate, Eloquent, HTTP, container, database, migrations, Infrastructure, or Presentation.
 - Protect invariants here even when Form Requests also reject invalid transport input.
 - Prefer immutable entities and value objects for real concepts only.
-- Keep money as integer cents and calendar dates at Application boundaries as canonical `Y-m-d` strings.
+- Keep monetary amounts as integers in minor units and calendar dates at Application boundaries as canonical `Y-m-d` strings.
 
 ### Application
 

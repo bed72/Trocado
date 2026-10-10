@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Insights\Application\UseCases;
 
-use App\Core\Domain\ValueObjects\CentsValueObject;
+use App\Core\Domain\ValueObjects\AmountValueObject;
 use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Insights\Application\Data\ExpenseAnalysisOutput;
 use App\Insights\Application\Data\ExpensePeriodAnalysisOutput;
@@ -32,9 +32,9 @@ final class GenerateInsightCandidatesUseCase
 
     private const int MinimumVariationPercent = 20;
 
-    private const string MinimumTotalCents = '10000';
+    private const string MinimumTotalAmount = '10000';
 
-    private const string MinimumDifferenceCents = '5000';
+    private const string MinimumDifferenceAmount = '5000';
 
     /** @return list<InsightCandidateValueObject> */
     public function execute(ExpenseAnalysisOutput $analysis): array
@@ -165,7 +165,7 @@ final class GenerateInsightCandidatesUseCase
         $difference = $current->totalAmount->absoluteDifference($previous->totalAmount);
         $variation = $difference->shareOf($previous->totalAmount);
 
-        if (! $difference->isAtLeast(self::MinimumDifferenceCents)
+        if (! $difference->isAtLeast(self::MinimumDifferenceAmount)
             || ! $variation->isAtLeastPercent(self::MinimumVariationPercent)) {
             return null;
         }
@@ -217,7 +217,7 @@ final class GenerateInsightCandidatesUseCase
     {
         return $summary->expenseCount >= self::MinimumExpenseCount
             && $summary->distinctDateCount >= self::MinimumDistinctDates
-            && $summary->totalAmount->isAtLeast(self::MinimumTotalCents);
+            && $summary->totalAmount->isAtLeast(self::MinimumTotalAmount);
     }
 
     private function eligibleLeadingCategory(ExpensePeriodSummaryValueObject $summary): ?string
@@ -245,7 +245,7 @@ final class GenerateInsightCandidatesUseCase
                 throw new InvalidInsightAnalysisException('A projeção contém categorias duplicadas.');
             }
 
-            $categories[$category->category] = CentsValueObject::fromCents($category->totalAmount);
+            $categories[$category->category] = AmountValueObject::fromAmount($category->totalAmount);
         }
 
         return new ExpensePeriodSummaryValueObject(
@@ -254,8 +254,8 @@ final class GenerateInsightCandidatesUseCase
             expenseCount: $projection->expenseCount,
             distinctDateCount: $projection->distinctDateCount,
             largestExpenseCategory: $projection->largestExpenseCategory,
-            totalAmount: CentsValueObject::fromCents($projection->totalAmount),
-            largestExpenseAmount: CentsValueObject::fromCents($projection->largestExpenseAmount),
+            totalAmount: AmountValueObject::fromAmount($projection->totalAmount),
+            largestExpenseAmount: AmountValueObject::fromAmount($projection->largestExpenseAmount),
         );
     }
 }

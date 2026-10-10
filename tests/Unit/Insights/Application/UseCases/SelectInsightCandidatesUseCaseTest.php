@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Core\Domain\ValueObjects\CentsValueObject;
+use App\Core\Domain\ValueObjects\AmountValueObject;
 use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Insights\Application\UseCases\SelectInsightCandidatesUseCase;
 use App\Insights\Domain\Enums\InsightHistoryStateEnum;
@@ -25,7 +25,7 @@ function selectionCandidate(
         comparisonPeriod: $comparison,
         analysisPeriod: DatePeriodValueObject::fromDates($from, $to),
         historyState: $type === InsightTypeEnum::InsufficientHistory ? InsightHistoryStateEnum::CurrentExpenses : null,
-        ratio: $withRatio ? CentsValueObject::fromCents('6000')->shareOf(CentsValueObject::fromCents('10000')) : null,
+        ratio: $withRatio ? AmountValueObject::fromAmount('6000')->shareOf(AmountValueObject::fromAmount('10000')) : null,
     );
 }
 

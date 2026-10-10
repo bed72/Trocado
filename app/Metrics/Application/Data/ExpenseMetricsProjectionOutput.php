@@ -8,7 +8,7 @@ final readonly class ExpenseMetricsProjectionOutput
 {
     /** @param list<ExpenseCategoryTotalOutput> $categories */
     public function __construct(
-        public string $totalCents,
+        public string $totalAmount,
         public array $categories = [],
     ) {}
 }

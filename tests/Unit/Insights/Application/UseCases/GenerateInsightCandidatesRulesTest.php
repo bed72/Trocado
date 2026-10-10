@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Core\Domain\ValueObjects\CentsValueObject;
+use App\Core\Domain\ValueObjects\AmountValueObject;
 use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Insights\Application\Data\ExpenseAnalysisOutput;
 use App\Insights\Application\Data\ExpenseCategoryAnalysisOutput;
@@ -25,10 +25,10 @@ function insightSummary(
     array $categories = ['food' => '6000', 'other' => '4000'],
 ): ExpensePeriodSummaryValueObject {
     $amounts = [];
-    $total = CentsValueObject::fromCents('0');
+    $total = AmountValueObject::fromAmount('0');
 
-    foreach ($categories as $category => $cents) {
-        $amounts[$category] = CentsValueObject::fromCents($cents);
+    foreach ($categories as $category => $amount) {
+        $amounts[$category] = AmountValueObject::fromAmount($amount);
         $total = $total->plus($amounts[$category]);
     }
 
@@ -39,7 +39,7 @@ function insightSummary(
         distinctDateCount: $dates,
         largestExpenseCategory: $largestCategory,
         period: DatePeriodValueObject::fromDates($from, $to),
-        largestExpenseAmount: CentsValueObject::fromCents($largest),
+        largestExpenseAmount: AmountValueObject::fromAmount($largest),
     );
 }
 
@@ -48,17 +48,17 @@ function insightRulesProjection(ExpensePeriodSummaryValueObject $summary): Expen
     $categories = [];
 
     foreach ($summary->categories as $category => $amount) {
-        $categories[] = new ExpenseCategoryAnalysisOutput(category: $category, totalAmount: $amount->cents());
+        $categories[] = new ExpenseCategoryAnalysisOutput(category: $category, totalAmount: $amount->amount());
     }
 
     return new ExpensePeriodAnalysisOutput(
         categories: $categories,
         period: $summary->period,
         expenseCount: $summary->expenseCount,
-        totalAmount: $summary->totalAmount->cents(),
+        totalAmount: $summary->totalAmount->amount(),
         distinctDateCount: $summary->distinctDateCount,
         largestExpenseCategory: $summary->largestExpenseCategory,
-        largestExpenseAmount: $summary->largestExpenseAmount->cents(),
+        largestExpenseAmount: $summary->largestExpenseAmount->amount(),
     );
 }
 
@@ -150,8 +150,8 @@ it('generates at most one concentration for the largest launch with its original
 
     expect($expenseCandidates)->toHaveCount(1)
         ->and($expenseCandidates[0]->category)->toBe('food')
-        ->and($expenseCandidates[0]->ratio->numerator->cents())->toBe('5000')
-        ->and($expenseCandidates[0]->ratio->denominator->cents())->toBe('10000');
+        ->and($expenseCandidates[0]->ratio->numerator->amount())->toBe('5000')
+        ->and($expenseCandidates[0]->ratio->denominator->amount())->toBe('10000');
 });
 
 it('compares totals only with sufficient absolute and relative differences', function (string $currentTotal, string $previousTotal, ?InsightTypeEnum $type): void {
@@ -162,7 +162,7 @@ it('compares totals only with sufficient absolute and relative differences', fun
     expect($candidate?->type)->toBe($type);
 
     if ($candidate !== null) {
-        expect($candidate->ratio->denominator->cents())->toBe($previousTotal)
+        expect($candidate->ratio->denominator->amount())->toBe($previousTotal)
             ->and($candidate->comparisonPeriod->equals($previous->period))->toBeTrue();
     }
 })->with([
@@ -202,7 +202,7 @@ it('compares large totals exactly and accepts the shared days of shorter months'
     $candidate = insightRulesComparison($current, $previous, '2027-03-31');
 
     expect($candidate->type)->toBe(InsightTypeEnum::RegisteredAmountIncrease)
-        ->and($candidate->ratio->numerator->cents())->toBe('5000000000000000000')
+        ->and($candidate->ratio->numerator->amount())->toBe('5000000000000000000')
         ->and($candidate->ratio->roundedPercent())->toBe('20');
 });
 

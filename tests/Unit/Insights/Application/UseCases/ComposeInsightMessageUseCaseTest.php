@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Core\Domain\ValueObjects\CentsValueObject;
+use App\Core\Domain\ValueObjects\AmountValueObject;
 use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Insights\Application\Data\InsightMessageTemplateOutput;
 use App\Insights\Application\Exceptions\InsightMessageCompositionException;
@@ -35,7 +35,7 @@ function messageCandidateFixture(
         category: $category,
         historyState: $historyState,
         comparisonPeriod: $comparison ? DatePeriodValueObject::fromDates('2026-09-01', str_replace('2026-10', '2026-09', $to)) : null,
-        ratio: $ratio ? CentsValueObject::fromCents($numerator)->shareOf(CentsValueObject::fromCents($denominator)) : null,
+        ratio: $ratio ? AmountValueObject::fromAmount($numerator)->shareOf(AmountValueObject::fromAmount($denominator)) : null,
         analysisPeriod: DatePeriodValueObject::fromDates($type === InsightTypeEnum::CategoryLeadStreak ? '2026-08-01' : '2026-10-01', $to),
     );
 }

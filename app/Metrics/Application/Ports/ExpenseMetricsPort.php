@@ -11,7 +11,7 @@ use App\Metrics\Domain\Enums\ExpenseMetricsGroupingEnum;
 interface ExpenseMetricsPort
 {
     /**
-     * Returns exact canonical cent strings for this owner and inclusive period.
+     * Returns exact canonical amount strings in minor units for this owner and inclusive period.
      * Grouped totals must reconcile within one snapshot; total-only has no categories.
      */
     public function summarize(

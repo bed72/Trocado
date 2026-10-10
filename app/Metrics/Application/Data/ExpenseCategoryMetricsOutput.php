@@ -9,6 +9,6 @@ final readonly class ExpenseCategoryMetricsOutput
     public function __construct(
         public string $category,
         public string $percentage,
-        public string $totalCents,
+        public string $totalAmount,
     ) {}
 }

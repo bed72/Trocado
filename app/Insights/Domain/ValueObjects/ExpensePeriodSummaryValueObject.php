@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Insights\Domain\ValueObjects;
 
-use App\Core\Domain\ValueObjects\CentsValueObject;
+use App\Core\Domain\ValueObjects\AmountValueObject;
 use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Insights\Domain\Exceptions\InvalidInsightAnalysisException;
 
@@ -12,14 +12,14 @@ use function is_string;
 
 final readonly class ExpensePeriodSummaryValueObject
 {
-    /** @param array<string, CentsValueObject> $categories */
+    /** @param array<string, AmountValueObject> $categories */
     public function __construct(
         public array $categories,
         public int $expenseCount,
         public int $distinctDateCount,
         public DatePeriodValueObject $period,
-        public CentsValueObject $totalAmount,
-        public CentsValueObject $largestExpenseAmount,
+        public AmountValueObject $totalAmount,
+        public AmountValueObject $largestExpenseAmount,
         public ?string $largestExpenseCategory,
     ) {
         if ($expenseCount < 0 || $distinctDateCount < 0 || $distinctDateCount > $expenseCount
@@ -27,10 +27,10 @@ final readonly class ExpensePeriodSummaryValueObject
             throw new InvalidInsightAnalysisException('As contagens do período são inconsistentes.');
         }
 
-        $categoryTotal = CentsValueObject::fromCents('0');
+        $categoryTotal = AmountValueObject::fromAmount('0');
 
         foreach ($categories as $category => $amount) {
-            if (! is_string($category) || $category === '' || ! $amount instanceof CentsValueObject || $amount->isZero()) {
+            if (! is_string($category) || $category === '' || ! $amount instanceof AmountValueObject || $amount->isZero()) {
                 throw new InvalidInsightAnalysisException('A distribuição de categorias é inválida.');
             }
 
@@ -57,16 +57,16 @@ final readonly class ExpensePeriodSummaryValueObject
         }
     }
 
-    public function categoryAmount(string $category): CentsValueObject
+    public function categoryAmount(string $category): AmountValueObject
     {
-        return $this->categories[$category] ?? CentsValueObject::fromCents('0');
+        return $this->categories[$category] ?? AmountValueObject::fromAmount('0');
     }
 
     public function uniqueLeadingCategory(): ?string
     {
         $tied = false;
         $leader = null;
-        $largestAmount = CentsValueObject::fromCents('0');
+        $largestAmount = AmountValueObject::fromAmount('0');
 
         foreach ($this->categories as $category => $amount) {
             $comparison = $amount->compareTo($largestAmount);

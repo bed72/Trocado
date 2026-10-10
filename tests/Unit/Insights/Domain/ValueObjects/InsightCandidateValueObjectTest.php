@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Core\Domain\ValueObjects\CentsValueObject;
+use App\Core\Domain\ValueObjects\AmountValueObject;
 use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Insights\Domain\Enums\InsightHistoryStateEnum;
 use App\Insights\Domain\Enums\InsightTypeEnum;
@@ -23,7 +23,7 @@ function candidateValueObjectFixture(
         historyState: $historyState,
         analysisPeriod: DatePeriodValueObject::fromDates('2026-10-01', '2026-10-11'),
         comparisonPeriod: $withComparison ? DatePeriodValueObject::fromDates('2026-09-01', $previousTo) : null,
-        ratio: $withRatio ? CentsValueObject::fromCents('5000')->shareOf(CentsValueObject::fromCents('10000')) : null,
+        ratio: $withRatio ? AmountValueObject::fromAmount('5000')->shareOf(AmountValueObject::fromAmount('10000')) : null,
     );
 }
 
@@ -43,8 +43,8 @@ it('preserves valid facts and distinguishes financial observations from onboardi
         ->and($candidate->isFinancialObservation())->toBe($financial)
         ->and($candidate->period())->toBe($financial ? $candidate->analysisPeriod : null)
         ->and($candidate->analysisPeriod->from())->toBe('2026-10-01')
-        ->and($candidate->ratio?->numerator->cents())->toBe($withRatio ? '5000' : null)
-        ->and($candidate->ratio?->denominator->cents())->toBe($withRatio ? '10000' : null)
+        ->and($candidate->ratio?->numerator->amount())->toBe($withRatio ? '5000' : null)
+        ->and($candidate->ratio?->denominator->amount())->toBe($withRatio ? '10000' : null)
         ->and($candidate->comparisonPeriod?->to())->toBe($withComparison ? '2026-09-11' : null);
 })->with([
     'category concentration' => [InsightTypeEnum::CategoryConcentration, 'food', true, false, null, true],
@@ -121,7 +121,7 @@ it('identifies the same information independently of the calculated ratio', func
         type: $candidate->type,
         category: $candidate->category,
         analysisPeriod: $candidate->analysisPeriod,
-        ratio: CentsValueObject::fromCents('7000')->shareOf(CentsValueObject::fromCents('10000')),
+        ratio: AmountValueObject::fromAmount('7000')->shareOf(AmountValueObject::fromAmount('10000')),
     );
 
     expect($candidate->hasSameInformationAs($updated))->toBeTrue()

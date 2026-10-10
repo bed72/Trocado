@@ -6,4 +6,4 @@ namespace App\Core\Domain\Exceptions;
 
 use DomainException;
 
-final class InvalidCentsException extends DomainException {}
+final class InvalidAmountException extends DomainException {}

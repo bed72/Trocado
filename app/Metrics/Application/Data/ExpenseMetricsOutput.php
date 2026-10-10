@@ -12,7 +12,7 @@ final readonly class ExpenseMetricsOutput
     public function __construct(
         public string $id,
         public ?array $categories,
-        public string $totalCents,
+        public string $totalAmount,
         public DatePeriodValueObject $period,
     ) {}
 }
