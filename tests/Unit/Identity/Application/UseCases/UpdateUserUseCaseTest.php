@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Core\Application\Ports\ObservabilityPort;
-use App\Core\Application\Ports\UserPort;
 use App\Identity\Application\Exceptions\UserNotFoundException;
 use App\Identity\Application\Repositories\UserRepository;
 use App\Identity\Application\UseCases\UpdateUserUseCase;
@@ -11,6 +9,8 @@ use App\Identity\Domain\Entities\UserEntity;
 use App\Identity\Domain\Exceptions\InvalidNameException;
 use App\Identity\Domain\ValueObjects\EmailValueObject;
 use App\Identity\Domain\ValueObjects\NameValueObject;
+use Tests\Support\Core\Spies\ObservabilityPortSpy;
+use Tests\Support\Core\Stubs\UserPortStub;
 
 $createCurrentUser = fn (): UserEntity => new UserEntity(
     id: 10,
@@ -21,9 +21,8 @@ $createCurrentUser = fn (): UserEntity => new UserEntity(
 );
 
 it('updates only the name while preserving email and persistence data', function () use ($createCurrentUser): void {
-    $port = $this->createMock(ObservabilityPort::class);
-    $userPort = $this->createMock(UserPort::class);
-    $userPort->method('id')->willReturn(10);
+    $port = new ObservabilityPortSpy;
+    $userPort = new UserPortStub(identifier: 10);
     $currentUser = $createCurrentUser();
     $repository = $this->createMock(UserRepository::class);
     $repository->expects($this->once())->method('getById')->with(10)->willReturn($currentUser);
@@ -45,13 +44,13 @@ it('updates only the name while preserving email and persistence data', function
         name: '  Maria Souza  ',
     );
 
-    expect($updated->name->value())->toBe('Maria Souza');
+    expect($updated->name->value())->toBe('Maria Souza')
+        ->and($port->events)->toBe([['event' => 'user.updated', 'attributes' => ['user_id' => 10]]]);
 });
 
 it('does not persist invalid names', function (string $name) use ($createCurrentUser): void {
-    $port = $this->createMock(ObservabilityPort::class);
-    $userPort = $this->createMock(UserPort::class);
-    $userPort->method('id')->willReturn(10);
+    $port = new ObservabilityPortSpy;
+    $userPort = new UserPortStub(identifier: 10);
     $repository = $this->createMock(UserRepository::class);
     $repository->expects($this->once())->method('getById')->willReturn($createCurrentUser());
     $repository->expects($this->never())->method('update');
@@ -63,9 +62,8 @@ it('does not persist invalid names', function (string $name) use ($createCurrent
 })->with(['   ', str_repeat('a', 33)])->throws(InvalidNameException::class);
 
 it('fails when the user is absent before updating', function (): void {
-    $port = $this->createMock(ObservabilityPort::class);
-    $userPort = $this->createMock(UserPort::class);
-    $userPort->method('id')->willReturn(10);
+    $port = new ObservabilityPortSpy;
+    $userPort = new UserPortStub(identifier: 10);
     $repository = $this->createMock(UserRepository::class);
     $repository->expects($this->once())->method('getById')->with(10)->willReturn(null);
     $repository->expects($this->never())->method('update');
@@ -74,9 +72,8 @@ it('fails when the user is absent before updating', function (): void {
 })->throws(UserNotFoundException::class, 'User não encontrado.');
 
 it('fails when the user disappears during updating', function () use ($createCurrentUser): void {
-    $port = $this->createMock(ObservabilityPort::class);
-    $userPort = $this->createMock(UserPort::class);
-    $userPort->method('id')->willReturn(10);
+    $port = new ObservabilityPortSpy;
+    $userPort = new UserPortStub(identifier: 10);
     $repository = $this->createMock(UserRepository::class);
     $repository->expects($this->once())->method('getById')->willReturn($createCurrentUser());
     $repository->expects($this->once())->method('update')->willReturn(null);
@@ -85,9 +82,8 @@ it('fails when the user disappears during updating', function () use ($createCur
 })->throws(UserNotFoundException::class, 'User não encontrado.');
 
 it('does not read or write another user', function (): void {
-    $observabilityPort = $this->createMock(ObservabilityPort::class);
-    $port = $this->createMock(UserPort::class);
-    $port->method('id')->willReturn(20);
+    $observabilityPort = new ObservabilityPortSpy;
+    $port = new UserPortStub(identifier: 20);
     $repository = $this->createMock(UserRepository::class);
     $repository->expects($this->never())->method('getById');
     $repository->expects($this->never())->method('update');

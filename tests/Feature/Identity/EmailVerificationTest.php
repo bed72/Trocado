@@ -25,40 +25,14 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\URL;
+use Tests\Support\Identity\Fixtures\IdentityFixture;
+use Tests\Support\Identity\Helpers\IdentityHttpJourney;
 
 use function Pest\Laravel\withToken;
-
-it('creates an unverified pending account and requests one queued verification', function (): void {
-    Notification::fake();
-
-    $response = $this->postJson(route('authentication.api.sign-up'), [
-        'data' => [
-            'type' => 'sign-ups',
-            'attributes' => [
-                'name' => 'Maria',
-                'email' => 'maria@example.com',
-                'password' => 'Correct1',
-                'password_confirmation' => 'Correct1',
-            ],
-        ],
-    ])->assertCreated();
-
-    $user = UserModel::query()->findOrFail($response->json('data.relationships.user.data.id'));
-
-    $response->assertHeader('Location', route('users.get', ['user' => $user->getKey()]))
-        ->assertJsonPath('data.type', 'sign-ups');
-
-    expect($user->status)->toBe(UserStatusEnum::Pending)
-        ->and($user->email_verified_at)->toBeNull()
-        ->and($user->tokens()->count())->toBe(0)
-        ->and(Hash::check('Correct1', $user->password))->toBeTrue();
-    Notification::assertSentTo($user, VerifyEmailNotification::class, 1);
-});
 
 it('does not request verification when registration is rolled back or conflicts', function (): void {
     Notification::fake();
@@ -217,7 +191,7 @@ it('delivers a signed expiring verification link when the queued job is processe
 });
 
 it('delivers verification through the real Redis worker and retries a temporary mail failure', function (): void {
-    $queue = 'identity-verification-test-'.bin2hex(random_bytes(8));
+    $queue = $this->resources->namespace.'identity-verification';
     config()->set('queue.default', 'redis');
     config()->set('queue.connections.redis.queue', $queue);
     $transport = Mail::mailer('array')->getSymfonyTransport();
@@ -289,7 +263,7 @@ it('delivers verification through the real Redis worker and retries a temporary 
 
     expect($transport->messages())->toHaveCount(1)
         ->and(Queue::connection('redis')->size($queue))->toBe(0);
-});
+})->group('integration', 'redis', 'worker');
 
 it('verifies an email through a public signed link without activating the account', function (): void {
     Event::fake([Verified::class]);
@@ -401,49 +375,6 @@ it('does not emit verification events for a rolled back confirmation', function 
     Event::assertNotDispatched(Verified::class);
 });
 
-it('requires both active status and a verified email before issuing a token', function (): void {
-    $user = UserModel::query()->create([
-        'name' => 'Maria',
-        'email' => 'maria@example.com',
-        'password' => 'Correct1',
-        'status' => UserStatusEnum::Active,
-    ]);
-
-    $this->postJson(route('authentication.api.sign-in'), [
-        'data' => [
-            'type' => 'access-tokens',
-            'attributes' => ['email' => $user->email, 'password' => 'Correct1'],
-        ],
-    ])->assertForbidden()->assertJsonPath('errors.0.title', 'E-mail não confirmado');
-
-    expect($user->tokens()->count())->toBe(0);
-
-    $user->markEmailAsVerified();
-
-    $this->postJson(route('authentication.api.sign-in'), [
-        'data' => [
-            'type' => 'access-tokens',
-            'attributes' => ['email' => $user->email, 'password' => 'Correct1'],
-        ],
-    ])->assertOk();
-});
-
-it('rejects an existing token on protected routes after verification is cleared', function (): void {
-    $userId = signUpIdentityByApi($this);
-    $token = signInIdentityByApi($this);
-    UserModel::query()->whereKey($userId)->update(['email_verified_at' => null]);
-
-    Auth::forgetGuards();
-    withToken($token)->getJson(route('users.get', ['user' => $userId]))
-        ->assertForbidden()
-        ->assertHeader('Content-Type', 'application/vnd.api+json');
-
-    Auth::forgetGuards();
-    withToken($token)->getJson(route('expenses.index'))
-        ->assertForbidden()
-        ->assertHeader('Content-Type', 'application/vnd.api+json');
-});
-
 it('resends uniformly only for an existing unverified account', function (): void {
     Notification::fake();
     $user = UserModel::query()->create([
@@ -520,8 +451,8 @@ it('limits resend independently by IP and email', function (): void {
 
 it('rejects email edits without changing verification or tokens', function (string $email): void {
     Notification::fake();
-    $userId = signUpIdentityByApi($this);
-    $firstToken = signInIdentityByApi($this);
+    $userId = (int) IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
+    $firstToken = (new IdentityHttpJourney($this))->signIn();
     $user = UserModel::query()->findOrFail($userId);
     $user->createToken(name: 'second');
     $verifiedAt = $user->email_verified_at;
@@ -564,8 +495,8 @@ it('never persists an email change through the user repository update', function
 });
 
 it('does not allow editing the name of another user', function (): void {
-    $ownerId = signUpIdentityByApi($this);
-    $token = signInIdentityByApi($this);
+    $ownerId = (int) IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
+    $token = (new IdentityHttpJourney($this))->signIn();
     $other = UserModel::query()->create([
         'name' => 'Ana',
         'email' => 'ana@example.com',
@@ -586,8 +517,8 @@ it('does not allow editing the name of another user', function (): void {
 
 it('preserves verification and tokens when editing only the name', function (): void {
     Notification::fake();
-    $userId = signUpIdentityByApi($this);
-    $token = signInIdentityByApi($this);
+    $userId = (int) IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
+    $token = (new IdentityHttpJourney($this))->signIn();
     $user = UserModel::query()->findOrFail($userId);
     $verifiedAt = $user->email_verified_at;
     Notification::fake();

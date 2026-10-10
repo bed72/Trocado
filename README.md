@@ -28,7 +28,63 @@ lerd artisan migrate
 
 Para executar sem Lerd, copie `.env.example` para `.env`, configure `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME` e `DB_PASSWORD` localmente, crie os bancos PostgreSQL `trocado` e `trocado_testing`, gere a chave com `php artisan key:generate` e rode `php artisan migrate`. Configure `APP_URL` para a URL usada pelo servidor. Não inclua credenciais em arquivos versionados.
 
-Os testes usam exclusivamente `trocado_testing` em PostgreSQL. Migre esse banco antes dos testes (`APP_ENV=testing php artisan migrate --no-interaction` no ambiente PHP) e então rode `lerd test` ou `php artisan test`. A suíte recusa conexões SQLite, `DB_URL` e bancos diferentes; não aponte os testes para `trocado`. Dados existentes no SQLite não são copiados.
+### Organização dos testes
+
+A suíte usa **Pest 5 sobre PHPUnit 13**, organizada por contexto, camada e responsabilidade:
+
+| Localização | Responsabilidade |
+| --- | --- |
+| `tests/Unit/<Contexto>/Domain/` | Invariantes e cálculos puros. |
+| `tests/Unit/<Contexto>/Application/` | Orquestração de UseCases com contratos injetados. |
+| `tests/Unit/<Contexto>/Infrastructure/` | Adapters sem bootstrap, com dependências simuladas. |
+| `tests/Unit/Architecture/` | Fronteiras, pureza e contratos arquiteturais de `app/`. |
+| `tests/Feature/<Contexto>/Infrastructure/` | Persistência PostgreSQL, adapters, providers, notifications e workers. |
+| `tests/Feature/<Contexto>/Presentation/Http/` | Requests, responses, middleware e contratos HTTP/JSON:API. |
+| `tests/Feature/<Contexto>/Journeys/` | Fluxos deliberadamente integrados com objetivo explícito. |
+| `tests/Support/<Contexto>/` | Fixtures, builders, fakes, stubs, spies e helpers reutilizáveis. |
+
+Esse é o padrão para testes novos e arquivos reorganizados; caminhos anteriores ainda existentes podem ser selecionados diretamente. Cada arquivo deve ter uma responsabilidade principal e funcionar sozinho, sem depender da descoberta de outro teste. As convenções completas ficam em [ARCHITECTURE.md](ARCHITECTURE.md#arquitetura-dos-testes).
+
+Use fixtures com estados explícitos e mocks PHPUnit com expectativas locais. Fakes nativos de Laravel/AI SDK continuam apropriados. Prepare identidade diretamente quando cadastro/login não forem o alvo; jornadas HTTP não ativam/verificam contas nem configuram fakes silenciosamente. Builders não reparam entradas negativas nem calculam o esperado pela rotina testada.
+
+### Testes e preflight PostgreSQL
+
+Use `lerd composer test -- <caminho/opções Pest>` (sem Lerd: `composer test -- <caminho/opções Pest>`). O launcher cria um banco exclusivo `trocado_testing_<runId>`, registra ownership, confere configuração e `current_database()` e aplica somente migrations pendentes antes dos testes. Ao terminar, remove somente o banco que criou e confirmou como seu; não altera `.env` nem migra o banco operacional. O role PostgreSQL de teste precisa poder criar/remover bancos; ausência de permissão ou serviço produz erro explícito. Configuração em cache deve ser limpa previamente com `lerd artisan config:clear`.
+
+```sh
+lerd composer test -- tests/Unit --compact
+lerd composer test -- tests/Unit/Architecture --compact
+lerd composer test -- tests/Feature/Metrics --compact
+lerd composer test -- tests/Feature/Metrics/Infrastructure/Adapters/ExpenseMetricsAdapterTest.php --compact
+lerd composer test -- tests/Feature/Identity/Presentation/Http/SignInHttpTest.php --filter="nome do cenário" --compact
+lerd composer test -- --compact
+lerd composer test -- --group=integration --compact
+lerd composer test -- --group=redis --compact
+lerd composer test -- --group=concurrency --compact
+lerd composer test -- tests/Feature/Core/Infrastructure/Isolation/SimultaneousInvocationsTest.php --compact
+lerd composer test -- --parallel --processes=2 --compact --fail-on-skipped --fail-on-incomplete --fail-on-risky
+```
+
+Unit puro e listagem (`--list-tests`) não provisionam banco nem executam migrations. Invocações diretas de Pest/PHPUnit/Artisan que tentem executar Feature sem o manifesto do launcher falham antes da limpeza/fixtures e indicam o comando correto. O guard recusa SQLite, `DB_URL`, nome não registrado e destino efetivo/ownership divergentes; não basta conter `testing` no nome. Não use `migrate:fresh`.
+
+O paralelo usa Pest/ParaTest nativos; informe `--processes=2` ou mais (default do launcher: 2). O preflight registra os tokens, prepara incrementalmente `<base>_test_<token>` e valida ownership antes de liberar cada processo. Opções de recriação/drop e desativação dos tokens são recusadas: o launcher controla esse lifecycle. ParaTest aceita um único caminho por invocação; selecione uma pasta, `--testsuite` ou `--group` para conjuntos maiores. Os caminhos de `tests/Feature/{Core,Identity,Expense,Insights,Metrics}` selecionam os contextos.
+
+Cada cenário Feature recebe namespace Redis e filas com runId/token/identidade de cenário e arquivos temporários exclusivos. Cache/limiter comuns continuam array; a integração real seleciona Redis explicitamente. Teardown remove somente as chaves do namespace registrado, sem FLUSHALL/FLUSHDB, limpa `failed_jobs`, `jobs`, tokens, despesas e contas, preserva migrations/sequências e reverte transações abertas. Novas tabelas mutáveis precisam ser classificadas em `TestDatabaseCleanup`; tabela desconhecida interrompe fixtures. O ciclo da aplicação restaura bindings/listeners/fakes/guards, e o suporte restaura relógios/timezone/canais/query logs.
+
+Integrações exigem PostgreSQL com permissão de criar bancos, Redis acessível pelas configurações locais e extensões `pdo_pgsql`, `redis`, `pcntl` e `posix`. Filas exclusivas permitem manter workers locais ativos; e-mail usa transport array e IA fake. O protocolo de concorrência abre conexão PostgreSQL nova, transmite ready/go/done/erro, observa locks reais e aguarda/encerra filhos com prazo limitado. O gate completo acima inclui todos os grupos, inclusive a prova sincronizada de duas invocações paralelas simultâneas; falta de serviço/capacidade e skips não contam como aprovação. As provas de cleanup cobrem falha controlada e término limitado de filhos; SIGKILL do launcher não tem recuperação automática de recursos.
+
+### Verificação de mudanças na suíte
+
+Execute os arquivos alterados isoladamente e depois as suítes afetadas. Após mudanças PHP, execute Pint e repita os testes afetados pelo formatter. Para alterações de suporte compartilhado e fechamento da reorganização, execute o gate completo, sem excluir integrações:
+
+```sh
+lerd composer test -- --compact --fail-on-skipped --fail-on-incomplete --fail-on-risky
+lerd composer test -- --order-by=random --random-order-seed=20261009 --compact --fail-on-skipped --fail-on-incomplete --fail-on-risky
+lerd composer test -- --order-by=random --random-order-seed=20261010 --compact --fail-on-skipped --fail-on-incomplete --fail-on-risky
+lerd composer test -- --parallel --processes=2 --compact --fail-on-skipped --fail-on-incomplete --fail-on-risky
+```
+
+Registre comandos, seeds, número de processos, resultados, duração e limitações. Ao mover ou consolidar testes, mantenha a correspondência de cada cenário antigo com seu destino ou consolidação justificada. Uma execução verde não prova cenários ausentes: mock não comprova rollback/constraint, chamada manual de job não comprova worker real e repetição sequencial não comprova corrida. Testes editoriais não dependem de IDs incidentais, e observabilidade usa assertions estruturais de JSON. Não ajuste sequência, assertion ou timeout apenas para esconder falha.
 
 ### Dados demonstrativos
 
@@ -46,7 +102,7 @@ Para envio via Resend, configure `MAIL_MAILER=resend`, `RESEND_API_KEY`, `MAIL_F
 
 ## CI e deploy
 
-O workflow `.github/workflows/ci.yml` roda em pull requests e pushes para `main`: instala as dependências, verifica a formatação com Pint, migra um PostgreSQL `trocado_testing` isolado, executa os testes e compila os assets. **Um push nunca inicia o deploy.** Para publicar, execute manualmente **Actions → Deploy to Dokploy → Run workflow** na branch `main`; esse workflow repete as verificações e só solicita o deploy depois que elas passarem.
+O workflow `.github/workflows/ci.yml` roda em pull requests e pushes para `main`: instala as dependências, verifica a formatação com Pint, prepara PostgreSQL exclusivo pelo preflight, executa os testes e compila os assets. **Um push nunca inicia o deploy.** Para publicar, execute manualmente **Actions → Deploy to Dokploy → Run workflow** na branch `main`; esse workflow repete as verificações e só solicita o deploy depois que elas passarem.
 
 Para usar o deploy manual, configure a variável `DOKPLOY_COMPOSE_ID` com o ID do serviço Compose do Trocado (**não** seu App Name) e `DOKPLOY_API_KEY` como secret no ambiente GitHub `production`. Gere a chave de API no perfil do Dokploy, sem colocá-la no repositório. Desative o Autodeploy e quaisquer webhooks diretos do Dokploy para que um push não publique independentemente da Action. A Action solicita o deploy pela API do Dokploy; uma resposta bem-sucedida indica que o pedido foi aceito, não que a aplicação já esteja saudável. Confira o resultado em Deployments e Logs no Dokploy.
 

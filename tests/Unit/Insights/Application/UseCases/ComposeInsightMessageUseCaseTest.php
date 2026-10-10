@@ -128,6 +128,40 @@ it('recalculates the percentage without changing the chosen variant during the d
         ->and(str_replace('39%', '42%', $before->description))->toBe($after->description);
 });
 
+it('preserves all approved recurring leadership messages across explicit positive accounts', function (int $userId): void {
+    $candidate = messageCandidateFixture(InsightTypeEnum::CategoryLeadStreak, 'food', to: '2026-10-12');
+    $useCase = messageCompositionUseCase();
+    $approvedMessages = [
+        'O pódio virou endereço' => 'Alimentação lidera o registrado neste mês e liderou os dois anteriores.',
+        'O ranking entrou no replay' => 'Alimentação liderou os dois meses anteriores e segue líder no registrado do mês.',
+        'O primeiro lugar criou raízes' => 'Alimentação segue líder nos registros: neste mês e nos dois anteriores.',
+        'Mudou o mês, não o pódio' => 'Alimentação lidera os registros deste mês, como nos dois anteriores.',
+    ];
+    $visitedTitles = [];
+
+    foreach (['2026-10-12', '2026-10-13', '2026-10-14', '2026-10-15'] as $date) {
+        $message = $useCase->execute($userId, $candidate, $date);
+        $repeated = $useCase->execute($userId, $candidate, $date);
+        $visitedTitles[] = $message->title;
+
+        expect($message->title)->toBeIn(array_keys($approvedMessages))
+            ->and($message->description)->toBe($approvedMessages[$message->title])
+            ->and($message)->toEqual($repeated)
+            ->and(str_contains($message->description, '{'))->toBeFalse()
+            ->and(mb_strlen($message->title, 'UTF-8'))->toBeLessThanOrEqual(32)
+            ->and(mb_strlen($message->description, 'UTF-8'))->toBeLessThanOrEqual(110);
+    }
+
+    expect($visitedTitles)->toEqualCanonicalizing(array_keys($approvedMessages));
+})->with([
+    'account 1' => 1,
+    'account 2' => 2,
+    'account 3' => 3,
+    'account 4' => 4,
+    'account 15' => 15,
+    'account 1500' => 1500,
+]);
+
 it('keeps the variant when the comparison end day changes within the month', function (): void {
     $useCase = messageCompositionUseCase();
     $first = $useCase->execute(1, messageCandidateFixture(InsightTypeEnum::RegisteredAmountIncrease), '2026-10-20');

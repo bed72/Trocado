@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Core\Domain\Exceptions\InvalidDatePeriodException;
 use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 
 it('preserves canonical endpoints and counts both boundary days', function (string $from, string $to, int $days): void {
@@ -21,31 +20,6 @@ it('preserves canonical endpoints and counts both boundary days', function (stri
     'year boundary' => ['2026-12-31', '2027-01-01', 2],
     'three period span' => ['2026-08-01', '2026-10-12', 73],
 ]);
-
-it('rejects impossible and noncanonical dates at either endpoint', function (string $date, string $endpoint): void {
-    DatePeriodValueObject::fromDates(
-        from: $endpoint === 'from' ? $date : '2026-01-01',
-        to: $endpoint === 'to' ? $date : '2028-12-31',
-    );
-})->with([
-    'empty' => '',
-    'whitespace' => '   ',
-    'non leap february 29' => '2027-02-29',
-    'non leap century' => '1900-02-29',
-    'april 31' => '2026-04-31',
-    'month 13' => '2026-13-01',
-    'day zero' => '2026-10-00',
-    'unpadded month' => '2026-2-01',
-    'unpadded day' => '2026-10-1',
-    'datetime' => '2026-10-12T00:00:00Z',
-    'surrounding spaces' => ' 2026-10-12 ',
-    'relative date' => 'tomorrow',
-])->with(['from', 'to'])
-    ->throws(InvalidDatePeriodException::class, 'O período deve conter datas civis válidas em Y-m-d.');
-
-it('rejects an end date before the start', function (): void {
-    DatePeriodValueObject::fromDates(from: '2026-10-12', to: '2026-10-11');
-})->throws(InvalidDatePeriodException::class, 'O início do período não pode ser posterior ao fim.');
 
 it('compares periods by both endpoints rather than their duration', function (): void {
     $period = DatePeriodValueObject::fromDates(from: '2026-10-01', to: '2026-10-11');

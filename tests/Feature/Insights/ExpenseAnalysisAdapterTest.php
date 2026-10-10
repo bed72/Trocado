@@ -2,10 +2,13 @@
 
 declare(strict_types=1);
 
+use App\Insights\Application\Data\InsightMessageTemplateOutput;
 use App\Insights\Application\Ports\ExpenseAnalysisPort;
 use App\Insights\Application\UseCases\ComposeInsightMessageUseCase;
 use App\Insights\Application\UseCases\GenerateInsightCandidatesUseCase;
+use App\Insights\Application\UseCases\GetInsightMessageTemplatesUseCase;
 use App\Insights\Application\UseCases\SelectInsightCandidatesUseCase;
+use App\Insights\Domain\Enums\InsightGroupEnum;
 use App\Insights\Domain\Enums\InsightTypeEnum;
 use App\Insights\Domain\ValueObjects\InsightCandidateValueObject;
 use App\Insights\Infrastructure\Adapters\ExpenseAnalysisAdapter;
@@ -151,8 +154,24 @@ it('reads confirmed edits recategorizations and deletions without cached facts',
     expect($port->analyze($userId, '2026-10-12')->hasHistoricalExpenses)->toBeFalse();
 });
 
-it('generates candidates from the real analytical projection', function (): void {
-    $userId = createInsightUser();
+it('generates candidates from the real analytical projection', function (?int $explicitUserId, int $previousAccounts): void {
+    $previousUserId = 0;
+
+    for ($index = 0; $index < $previousAccounts; $index++) {
+        $previousUserId = createInsightUser();
+        DB::table('users')->where('id', $previousUserId)->delete();
+    }
+
+    if ($explicitUserId === null) {
+        $userId = createInsightUser();
+        expect($userId)->toBeGreaterThan($previousUserId);
+    } else {
+        DB::table('users')->insert([
+            'id' => $explicitUserId, 'name' => 'Maria', 'email' => 'insights@example.com', 'password' => 'unused',
+        ]);
+        $userId = $explicitUserId;
+    }
+
     $port = insightExpenseAnalysisPort();
     foreach (['2026-08', '2026-09', '2026-10'] as $month) {
         foreach (['01', '02', '03', '04', '05'] as $day) {
@@ -171,12 +190,36 @@ it('generates candidates from the real analytical projection', function (): void
     $selected = app(SelectInsightCandidatesUseCase::class)->execute($candidates);
 
     expect($selected)->toBe([$candidates[1]])
-        ->and($selected[0]->type)->toBe(InsightTypeEnum::CategoryLeadStreak);
+        ->and($selected[0]->type)->toBe(InsightTypeEnum::CategoryLeadStreak)
+        ->and($selected[0]->type->group())->toBe(InsightGroupEnum::Comparison)
+        ->and($selected[0]->category)->toBe('food')
+        ->and($selected[0]->analysisPeriod->from())->toBe('2026-08-01')
+        ->and($selected[0]->analysisPeriod->to())->toBe('2026-10-12')
+        ->and($selected[0]->ratio)->toBeNull()
+        ->and($selected[0]->comparisonPeriod)->toBeNull();
 
     $message = app(ComposeInsightMessageUseCase::class)->execute($userId, $selected[0], '2026-10-12');
+    $templates = app(GetInsightMessageTemplatesUseCase::class)->execute($selected[0]);
+    $matchingTemplates = array_values(array_filter($templates, static fn (InsightMessageTemplateOutput $template): bool => $template->title === $message->title));
 
-    expect(str_contains($message->description, 'Alimentação'))->toBeTrue()
-        ->and(str_contains($message->description, 'dois meses anteriores'))->toBeTrue()
+    expect($matchingTemplates)->toHaveCount(1);
+    $template = $matchingTemplates[0];
+
+    expect($message->description)->toBeIn([
+        strtr($template->description, ['{category}' => 'Alimentação']),
+        strtr($template->shortDescription, ['{category}' => 'Alimentação']),
+    ])
+        ->and(str_contains($message->description, '{'))->toBeFalse()
         ->and(mb_strlen($message->title, 'UTF-8'))->toBeLessThanOrEqual(32)
         ->and(mb_strlen($message->description, 'UTF-8'))->toBeLessThanOrEqual(110);
-});
+})->with([
+    'explicit account 1' => [1, 0],
+    'explicit account 2' => [2, 0],
+    'explicit account 3' => [3, 0],
+    'explicit account 4' => [4, 0],
+    'explicit account 15' => [15, 0],
+    'explicit account 1500' => [1500, 0],
+    'generated account without prior accounts' => [null, 0],
+    'generated account after seven removed accounts' => [null, 7],
+    'generated account after thirty-one removed accounts' => [null, 31],
+]);

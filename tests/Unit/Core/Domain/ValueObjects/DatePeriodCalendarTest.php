@@ -31,14 +31,19 @@ it('rejects invalid civil dates in either endpoint and the explicit month refere
     'empty' => '',
     'spaces' => '   ',
     'external whitespace belongs to transport' => ' 2026-10-09 ',
+    'external whitespace from previous parser dataset' => ' 2026-10-12 ',
     'internal whitespace' => '2026- 10-09',
     'local date' => '09/10/2026',
     'relative date' => 'today',
+    'relative future date' => 'tomorrow',
     'timestamp' => '2026-10-09T00:00:00Z',
+    'timestamp from previous parser dataset' => '2026-10-12T00:00:00Z',
     'time' => '2026-10-09 12:00:00',
     'timezone' => '2026-10-09+00:00',
     'unpadded month' => '2026-1-09',
+    'unpadded month from previous parser dataset' => '2026-2-01',
     'unpadded day' => '2026-10-9',
+    'unpadded day from previous parser dataset' => '2026-10-1',
     'non leap year' => '2027-02-29',
     'non leap century' => '1900-02-29',
     'impossible day' => '2026-02-30',
@@ -95,14 +100,6 @@ it('derives the whole month from the explicit reference including dates after it
     'earliest month' => ['0001-01-01', '0001-01-01', '0001-01-31'],
     'latest month' => ['9999-12-31', '9999-12-01', '9999-12-31'],
 ]);
-
-it('compares periods by both endpoints', function (): void {
-    $period = DatePeriodValueObject::fromDates(from: '2026-10-01', to: '2026-10-31');
-
-    expect($period->equals(DatePeriodValueObject::fromDates('2026-10-01', '2026-10-31')))->toBeTrue()
-        ->and($period->equals(DatePeriodValueObject::fromDates('2026-10-02', '2026-10-31')))->toBeFalse()
-        ->and($period->equals(DatePeriodValueObject::fromDates('2026-10-01', '2026-10-30')))->toBeFalse();
-});
 
 it('keeps civil periods independent of process timezone', function (): void {
     $originalTimezone = date_default_timezone_get();

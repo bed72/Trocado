@@ -2,25 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Core\Domain\Exceptions\InvalidAmountException;
 use App\Core\Domain\Exceptions\InvalidRatioException;
 use App\Core\Domain\ValueObjects\AmountValueObject;
-
-it('keeps sums differences and comparisons exact above native integer limits', function (): void {
-    $amount = AmountValueObject::fromAmount('18446744073709551614');
-    $other = AmountValueObject::fromAmount('9223372036854775807');
-
-    expect($amount->plus($other)->amount())->toBe('27670116110564327421')
-        ->and($amount->absoluteDifference($other)->amount())->toBe('9223372036854775807')
-        ->and($other->absoluteDifference($amount)->amount())->toBe('9223372036854775807')
-        ->and($amount->compareTo($other))->toBe(1)
-        ->and($other->compareTo($amount))->toBe(-1);
-});
-
-it('rejects noncanonical noninteger or negative amounts', function (string $amount): void {
-    AmountValueObject::fromAmount($amount);
-})->with(['-1', '1.5', '1e3', '01', '+1', ' 1 ', '', '1\n'])
-    ->throws(InvalidAmountException::class);
 
 it('evaluates thresholds before rounding and rounds only on request', function (): void {
     $ratio = AmountValueObject::fromAmount('295')->shareOf(AmountValueObject::fromAmount('1000'));

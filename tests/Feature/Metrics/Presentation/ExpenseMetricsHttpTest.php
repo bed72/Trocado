@@ -2,16 +2,19 @@
 
 declare(strict_types=1);
 
+use App\Identity\Domain\Enums\UserStatusEnum;
 use App\Identity\Infrastructure\Repositories\Persistence\Models\UserModel;
 use App\Metrics\Application\Ports\ExpenseMetricsPort;
 use App\Metrics\Infrastructure\Adapters\ExpenseMetricsAdapter;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use RuntimeException as OperationalFailureException;
+use Tests\Support\Identity\Fixtures\IdentityFixture;
 
 beforeEach(function (): void {
-    $this->userId = signUpIdentityByApi($this);
-    $this->token = signInIdentityByApi($this);
+    $this->identity = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
+    $this->userId = (int) $this->identity->getKey();
+    $this->token = IdentityFixture::token($this->identity, expiresAt: now()->addDays(30));
     $this->withToken($this->token);
 });
 
@@ -155,7 +158,7 @@ it('blocks unauthenticated inactive and unverified accounts before reading metri
 
 it('resolves leap and non leap default months including future recorded occurrences', function (string $reference, string $lastDay): void {
     Carbon::setTestNow($reference);
-    $this->withToken(signInIdentityByApi($this));
+    $this->withToken(IdentityFixture::token($this->identity, expiresAt: now()->addDays(30)));
     insertHttpMetricsExpense($this->userId, 100, 'other', $lastDay);
     $this->getJson('/api/metrics/expenses')->assertOk()
         ->assertJsonPath('data.attributes.end_date', $lastDay)

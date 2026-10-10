@@ -75,6 +75,53 @@ Commands Laravel ficam em `Infrastructure/Console/Commands` e funcionam como ada
 
 Arquivos globais do Laravel, como `bootstrap/app.php`, `bootstrap/providers.php`, `routes/console.php` e `database/migrations`, são composition roots permitidos. Eles podem conectar um bounded context ao framework, mas não devem receber regra de negócio.
 
+## Arquitetura dos testes
+
+A suíte usa Pest 5 sobre PHPUnit 13 e acompanha os contextos Core, Identity, Expense, Insights e Metrics. Classifique cada teste pela responsabilidade que ele comprova e pelas dependências efetivamente usadas, não apenas pela camada da classe de produção.
+
+```text
+tests/
+  Pest.php
+  TestCase.php
+  FeatureTestCase.php
+  run.php
+  Unit/
+    Architecture/
+    <Contexto>/<Camada>/<Responsabilidade>/
+  Feature/
+    <Contexto>/Infrastructure/{Adapters,Providers,Repositories,...}/
+    <Contexto>/Presentation/Http/
+    <Contexto>/Journeys/
+  Support/
+    <Contexto>/{Fixtures,Fakes,Stubs,Spies,Helpers,...}/
+```
+
+Crie somente pastas necessárias. Unit de Domain/Application executa sem bootstrap Laravel, PostgreSQL ou Redis; um adapter pode ter teste Unit quando suas dependências são explicitamente simuladas e não há bootstrap. Feature inicia a aplicação: mapping, queries, constraints, providers, notifications e workers pertencem a Infrastructure; requests, responses, validação e middleware pertencem a Presentation. `Journeys` identifica integrações deliberadas com objetivo e contexto proprietário explícitos. Cada arquivo tem uma responsabilidade principal e executa individualmente.
+
+### Suporte e preparação explícita
+
+Fixtures, builders e doubles substanciais ou reutilizados ficam em classes tipadas e autoloadáveis por `Tests\`, sob `tests/Support/<Contexto>/`. Capacidades transversais pertencem a Core. Use nomes que expressem o papel, como `IdentityFixture`, `TransactionPortFake`, `UserPortStub` e `ObservabilityPortSpy`. Não crie bases genéricas, catálogos de mocks ou wrappers de uma única chamada.
+
+Mocks de contratos próprios usam PHPUnit; configure expectativas de chamadas, argumentos e falhas no cenário. Use stub quando só precisar fornecer respostas, fake para comportamento simplificado e spy para registrar efeitos. Preserve fakes e assertions nativos de Laravel/AI SDK; Mockery permanece como integração do framework, sem ser o padrão para contratos próprios.
+
+Fixtures de identidade recebem status, verificação e credenciais explicitamente. Preparação direta de persistência não executa cadastro/login HTTP quando esses fluxos não são o alvo. Helpers de jornada executam ações HTTP nomeadas, sem ativação, verificação ou fakes ocultos. Cenários de Bearer, expiração ou revogação usam tokens reais; simulação de autenticação só serve quando esse mecanismo não é o alvo. `tests/Pest.php` concentra associação de TestCases, hooks e configuração geral, sem mutações de negócio ou conexão durante descoberta de Unit.
+
+Builders permitem entradas propositalmente inválidas sem repará-las; datas e fatos relevantes são explícitos, e valores esperados não são calculados pela rotina de produção sob teste. Integração entre contextos no Arrange de Feature permanece restrita aos testes e não amplia as permissões de imports em `app/`.
+
+### Nível de evidência e determinismo
+
+Invariantes são comprovadas em Domain Unit; orquestração e argumentos em Application Unit; persistência, rollback, constraints, locks e callbacks reais em Feature PostgreSQL; contratos de transporte em HTTP Feature. O fake de transação observa escopo, ordem e liberação/descarte de callbacks, mas não prova rollback de banco. Cenários de commit/afterCommit não usam wrapper transacional global que impeça a confirmação. Falhas provocadas verificam a exceção sentinela e a escrita anterior; chamar `handle`/`failed` manualmente não prova consumo pelo worker, e repetição sequencial não prova concorrência.
+
+Controle relógio/timezone e restaure guards, bindings, listeners, fakes, canais e query logs. Assertions editoriais de integração aceitam todas as variantes válidas; testes focados verificam o catálogo com dimensões explícitas, sem depender de sequência PostgreSQL. Observabilidade é verificada por JSON decodificado e campos permitidos/sensíveis, não por busca indiscriminada de números. Consolidações e movimentações preservam mapa de cenário antigo, destino e evidência; contagem de testes não é critério de equivalência.
+
+### Execução segura e isolamento
+
+O entrypoint canônico é `composer test -- <caminho/opções Pest>` (`lerd composer test -- ...` no Lerd), que chama `tests/run.php`. Feature exige manifesto privado, runId e ownership exato de banco; o guard valida configuração e `current_database()` antes de migrations, fixtures, cleanup e remoção. O launcher prepara migrations incrementalmente em bancos exclusivos por execução/processo. Não use SQLite para prova de persistência, liberação por substring `testing`, `migrate:fresh` ou opções de recriação/drop que contornem o preflight. Unit puro e listagem não provisionam banco.
+
+Recursos Redis, filas, logs e arquivos temporários distinguem execução, processo e cenário. Testes comuns usam cache/limiter array; integração Redis é explícita, mail usa transport array e IA usa fake. Workers de teste consomem somente filas exclusivas. Cleanup em finally/teardown atua sobre recursos registrados, sem FLUSHALL/FLUSHDB, e novas tabelas mutáveis devem ser classificadas em `TestDatabaseCleanup`. Preserve migrations e sequências. Provas concorrentes usam conexão nova, barreiras, erros observáveis e timeouts limitados, sem sleeps como evidência de corrida.
+
+Execute primeiro arquivos afetados e suítes focadas; mudanças de suporte compartilhado e fechamento da reorganização exigem gate completo padrão, duas seeds registradas e paralelo nativo com pelo menos dois processos, incluindo Redis, concorrência e duas invocações simultâneas. Registre comandos, resultados, skips e limitações; ausência de pré-requisito e skips/incomplete/risky inesperados não contam como aprovação. A suíte verde não substitui rastreabilidade de cenários. Os comandos e pré-requisitos operacionais ficam no [README](README.md#testes-e-preflight-postgresql).
+
 ## Nomes e evolução
 
 Use sufixos explícitos: `ExpenseEntity`, `SignInOutput`, `ExpenseRepository`, `TransactionPort`, `DatabaseTransactionAdapter`, `EloquentExpenseRepository`, `ExpenseModel`, `CreateExpenseUseCase`, `CreateExpenseController`, `CreateExpenseRequest`, `ExpenseResponse`, `InvalidExpenseException` e `ExpenseServiceProvider`. Adapters recebem o nome da capacidade implementada; cite a tecnologia quando ela distinguir a implementação. Não usamos classes `Service` ou Domain Services; a orquestração pertence aos UseCases e as invariantes às Entities e Value Objects. Evite nomes genéricos como `Manager`, `Handler` ou `Helper`. Não use `Result` para saídas da Application nem crie bases genéricas (`BaseEntity`, `BaseUseCase`, `BaseController`, `BaseMapper`, `BaseFactory`) por antecipação.

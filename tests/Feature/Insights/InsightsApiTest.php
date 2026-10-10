@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Core\Application\Ports\UserPort;
 use App\Core\Infrastructure\Adapters\UserAdapter;
+use App\Identity\Domain\Enums\UserStatusEnum;
 use App\Insights\Application\Ports\ExpenseAnalysisPort;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\Auth;
@@ -12,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Testing\TestResponse;
 use Laravel\Sanctum\PersonalAccessToken;
+use Tests\Support\Identity\Fixtures\IdentityFixture;
 
 use function Pest\Laravel\withToken;
 
@@ -43,9 +45,10 @@ function recordInsightsApiBase(int $userId, string $month, string $category = 'f
 }
 
 it('returns isolated ordered JSON API insights with exact contract and one analytical query', function (): void {
-    $userId = signUpIdentityByApi($this, email: 'insights@example.com');
-    $token = signInIdentityByApi($this, email: 'insights@example.com');
-    $otherUserId = signUpIdentityByApi($this, name: 'Joana', email: 'other-insights@example.com');
+    $user = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now(), email: 'insights@example.com');
+    $userId = (int) $user->getKey();
+    $token = IdentityFixture::token($user, expiresAt: now()->addDays(30));
+    $otherUserId = (int) IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now(), name: 'Joana', email: 'other-insights@example.com')->getKey();
     recordInsightsApiBase($userId, '2026-08');
     recordInsightsApiBase($userId, '2026-09');
     recordInsightsApiBase($userId, '2026-10', amount: 4000);
@@ -89,8 +92,8 @@ it('returns isolated ordered JSON API insights with exact contract and one analy
 });
 
 it('returns first expense alone for an authenticated account without historical expenses', function (): void {
-    signUpIdentityByApi($this);
-    $token = signInIdentityByApi($this);
+    $user = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
+    $token = IdentityFixture::token($user, expiresAt: now()->addDays(30));
 
     insightsApiRequest($token)->assertOk()->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.type', 'insights')
@@ -109,8 +112,9 @@ it('rejects unauthenticated and invalid token requests before analytical access'
 })->with([false, true]);
 
 it('blocks inactive or unverified accounts before analytical access', function (string $state): void {
-    $userId = signUpIdentityByApi($this);
-    $token = signInIdentityByApi($this);
+    $user = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
+    $userId = (int) $user->getKey();
+    $token = IdentityFixture::token($user, expiresAt: now()->addDays(30));
     DB::table('users')->where('id', $userId)->update($state === 'unverified'
         ? ['email_verified_at' => null]
         : ['status' => $state]);
@@ -123,8 +127,8 @@ it('blocks inactive or unverified accounts before analytical access', function (
 })->with(['pending', 'blocked', 'unverified']);
 
 it('rejects every supplied query parameter including empty values without analyzing expenses', function (string $query, string $parameter): void {
-    signUpIdentityByApi($this);
-    $token = signInIdentityByApi($this);
+    $user = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
+    $token = IdentityFixture::token($user, expiresAt: now()->addDays(30));
     $port = $this->createMock(ExpenseAnalysisPort::class);
     $port->expects($this->never())->method('analyze');
     $this->app->instance(ExpenseAnalysisPort::class, $port);
@@ -141,8 +145,8 @@ it('rejects every supplied query parameter including empty values without analyz
 ]);
 
 it('identifies all rejected query parameters in the error document', function (): void {
-    signUpIdentityByApi($this);
-    $token = signInIdentityByApi($this);
+    $user = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
+    $token = IdentityFixture::token($user, expiresAt: now()->addDays(30));
 
     insightsApiRequest($token, 'user_id=999&limit=6')->assertUnprocessable()->assertJsonCount(2, 'errors')
         ->assertJsonPath('errors.0.source.parameter', 'user_id')
@@ -150,8 +154,9 @@ it('identifies all rejected query parameters in the error document', function ()
 });
 
 it('reflects confirmed recategorization date edits and deletion on the next HTTP read', function (): void {
-    $userId = signUpIdentityByApi($this);
-    $token = signInIdentityByApi($this);
+    $user = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
+    $userId = (int) $user->getKey();
+    $token = IdentityFixture::token($user, expiresAt: now()->addDays(30));
     recordInsightsApiBase($userId, '2026-10', 'other');
 
     insightsApiRequest($token)->assertOk()->assertJsonCount(2, 'data')
@@ -174,8 +179,9 @@ it('reflects confirmed recategorization date edits and deletion on the next HTTP
 });
 
 it('keeps IDs and the chosen title while a confirmed value edit refreshes the percentage', function (): void {
-    $userId = signUpIdentityByApi($this);
-    $token = signInIdentityByApi($this);
+    $user = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
+    $userId = (int) $user->getKey();
+    $token = IdentityFixture::token($user, expiresAt: now()->addDays(30));
     recordInsightsApiBase($userId, '2026-10');
     DB::table('expenses')->where('user_id', $userId)->where('occurred_on', '>=', '2026-10-04')->update(['category' => 'other']);
     $first = insightsApiRequest($token)->assertOk()->json('data.0');
@@ -189,8 +195,9 @@ it('keeps IDs and the chosen title while a confirmed value edit refreshes the pe
 });
 
 it('resolves the reference date in app timezone and excludes only future historical records', function (): void {
-    $userId = signUpIdentityByApi($this);
-    $token = signInIdentityByApi($this);
+    $user = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
+    $userId = (int) $user->getKey();
+    $token = IdentityFixture::token($user, expiresAt: now()->addDays(30));
     Date::setTestNow('2026-10-13 00:30:00 UTC');
     config()->set('app.timezone', 'America/Sao_Paulo');
     DB::table('expenses')->insert([
@@ -202,8 +209,8 @@ it('resolves the reference date in app timezone and excludes only future histori
 });
 
 it('uses the authenticated throttle policy', function (): void {
-    signUpIdentityByApi($this);
-    $token = signInIdentityByApi($this);
+    $user = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
+    $token = IdentityFixture::token($user, expiresAt: now()->addDays(30));
     RateLimiter::for('api.authenticated', static fn (): Limit => Limit::perMinute(1)->by('insights-api-test'));
 
     insightsApiRequest($token)->assertOk();
@@ -212,8 +219,8 @@ it('uses the authenticated throttle policy', function (): void {
 });
 
 it('extends the successful session and does not extend a rejected query', function (): void {
-    signUpIdentityByApi($this);
-    $token = signInIdentityByApi($this);
+    $user = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
+    $token = IdentityFixture::token($user, expiresAt: now()->addDays(30));
     $record = PersonalAccessToken::findToken($token);
     $originalExpiry = $record->expires_at;
     Date::setTestNow('2026-10-28 12:00:00 UTC');
@@ -225,8 +232,8 @@ it('extends the successful session and does not extend a rejected query', functi
 });
 
 it('returns an explicit JSON API failure when analytical reading fails', function (): void {
-    signUpIdentityByApi($this);
-    $token = signInIdentityByApi($this);
+    $user = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
+    $token = IdentityFixture::token($user, expiresAt: now()->addDays(30));
     $port = $this->createMock(ExpenseAnalysisPort::class);
     $port->method('analyze')->willThrowException(new RuntimeException('Analytical database unavailable'));
     $this->app->instance(ExpenseAnalysisPort::class, $port);
@@ -236,8 +243,8 @@ it('returns an explicit JSON API failure when analytical reading fails', functio
 });
 
 it('does not expose an individual endpoint for derived resource IDs', function (): void {
-    signUpIdentityByApi($this);
-    $token = signInIdentityByApi($this);
+    $user = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
+    $token = IdentityFixture::token($user, expiresAt: now()->addDays(30));
     $id = insightsApiRequest($token)->assertOk()->json('data.0.id');
 
     $this->getJson(route('insights.index')."/{$id}")->assertNotFound();

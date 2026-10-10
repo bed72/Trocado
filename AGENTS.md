@@ -16,6 +16,24 @@
 - O ambiente local usa Lerd. Antes de operá-lo, leia [as instruções existentes](.ai/lerd.md).
 - No ambiente Lerd, execute `lerd artisan migrate` após atualizar o código ou criar migrations quando houver migrations pendentes e antes de testar fluxos que dependem do novo schema. Migrations não são executadas antes de cada request; não use `migrate:fresh` sem autorização explícita, pois ele apaga os dados.
 
+## Padrão de testes do projeto
+
+Estas orientações e a seção [Arquitetura dos testes](ARCHITECTURE.md#arquitetura-dos-testes) prevalecem sobre sugestões genéricas de tooling, factories e execução direta abaixo. Consulte [README.md](README.md#testes-e-preflight-postgresql) para comandos e pré-requisitos.
+
+- Use Pest 5 sobre PHPUnit 13. Localize Unit em `tests/Unit/<Contexto>/<Camada>/<Responsabilidade>/` e testes com bootstrap em `tests/Feature/<Contexto>/<Camada>/<Responsabilidade>/`. HTTP pertence a `Presentation/Http`; persistência, adapters, providers, notifications e workers a Infrastructure. Journeys têm objetivo integrado e contexto proprietário explícitos. Não crie pastas vazias.
+- Domain/Application Unit executa sem Laravel, PostgreSQL ou Redis; adapters com dependências simuladas e sem bootstrap podem ter Unit. Cada arquivo tem uma responsabilidade principal e executa sozinho. Preserve `tests/Unit/Architecture/ContextBoundariesTest.php` e as permissões específicas de `app/`.
+- Coloque fixtures/builders e doubles substanciais ou reutilizados em classes tipadas autoloadáveis sob `tests/Support/<Contexto>/`; capacidades transversais pertencem a Core. Use sufixos pelo papel (`Fixture`, `Fake`, `Stub`, `Spy`), sem bases genéricas ou catálogo de mocks.
+- Mocks de contratos próprios usam PHPUnit com expectativas de chamadas/argumentos/falhas no cenário; use stub para respostas, fake para comportamento simplificado e spy para registrar efeitos. Preserve fakes/assertions nativos de Laravel/AI SDK e a dependência Mockery usada pelo framework.
+- Prepare status, verificação, datas e tokens explicitamente. Reutilize `IdentityFixture` e `IdentityHttpJourney` quando apropriados; helpers de jornada não ativam/verificam contas nem escolhem fakes silenciosamente. Use token real para provar Bearer, expiração ou revogação. `tests/Pest.php` contém associação de TestCases/hooks/configuração, sem helpers globais de negócio ou conexão na descoberta de Unit.
+- Builders permitem entradas inválidas sem reparação; valores esperados são independentes da rotina de produção. Integração de contextos no Arrange fica restrita aos testes e não amplia allowlists de produto.
+- Execute testes pelo launcher: `lerd composer test -- <caminho/opções Pest>`; via MCP Lerd, use `exec` com `action: "composer"` e `args: ["test", "--", ...]`. Sem Lerd, use `composer test -- ...`. Feature não deve ser executada diretamente por Pest/PHPUnit/Artisan sem o preflight/manifesto.
+- Preserve guard inicial/efetivo e ownership exato dos bancos por runId/token antes de migrations, fixtures, cleanup ou drop. O launcher aplica migrations incrementais; não use SQLite, `migrate:fresh`, liberação por substring `testing` ou opções de recriação/drop para contornar o lifecycle seguro. Unit puro e listagem não provisionam banco.
+- Recursos Redis/filas/logs/temporários são exclusivos por execução/processo/cenário. Cache/limiter comuns usam array; Redis real é escolhido nas integrações; mail usa transport array e IA fake. Workers consomem somente filas de teste. Cleanup usa finally/teardown e recursos registrados, sem FLUSHALL/FLUSHDB. Classifique novas tabelas mutáveis em `TestDatabaseCleanup` e restaure relógios/timezone, guards, bindings, listeners/fakes, canais e query logs.
+- Prove orquestração em Unit e persistência/constraints/rollback/locks em Feature PostgreSQL. O fake de transação observa escopo e callbacks, sem provar rollback real. Não envolva provas de commit/afterCommit em transação externa que nunca confirma. Verifique exceções sentinela e escritas anteriores; diferencie chamada manual de job de worker real e repetição sequencial de corrida sincronizada. Filhos concorrentes usam conexão nova, sinais, diagnóstico, cleanup e timeout limitado.
+- Use assertions editoriais que aceitem variantes válidas e testes focados de catálogo com dimensões explícitas, sem resetar sequências. Observabilidade usa JSON decodificado e campos permitidos/sensíveis, não busca indiscriminada de números.
+- Ao mover/consolidar testes, registre cenário antigo, destino e evidência, justificando duplicações removidas sem usar contagem como equivalência. Execute arquivos afetados isoladamente, suítes focadas e Pint `--dirty --format agent` após mudanças PHP. Suporte compartilhado e fechamento da reorganização exigem gate completo padrão, duas seeds registradas e paralelo com pelo menos dois processos, incluindo Redis/concorrência e duas invocações simultâneas. Registre resultados/skips/limitações; bloqueios ou skips/incomplete/risky inesperados não contam como aprovação.
+- Pedido de revisar/criar spec não autoriza implementar nem executar testes da aplicação. Preserve tarefas pendentes e evidências históricas; testes verdes não substituem rastreabilidade. Correção de produção descoberta fora do escopo autorizado exige decisão do usuário antes de alterar produto ou enfraquecer o contrato.
+
 ===
 
 <laravel-boost-guidelines>
@@ -224,9 +242,9 @@ Before relying on a package's API, confirm its installed version:
 
 ## Testing
 
-- When creating models for tests, use the factories for the models. Check if the factory has custom states that can be used before manually setting up the model.
-- Faker: Use methods such as `$this->faker->word()` or `fake()->randomDigit()`. Follow existing conventions whether to use `$this->faker` or `fake()`.
-- When creating tests, make use of `php artisan make:test [options] {name}` to create a feature test, and pass `--unit` to create a unit test. Most tests should be feature tests.
+- Follow the project's test architecture above: reuse explicit context fixtures and keep pure Domain/Application tests independent of Laravel. Do not generate factories or seeders by habit.
+- Prefer explicit deterministic values and named datasets; never rely on incidental IDs, current time, or unrecorded randomness for behavioral expectations.
+- Artisan test generators may be used when helpful, but place tests in the owning context/layer and follow the existing Pest style. Choose Unit or Feature by the evidence required, not a generic preference for Feature.
 
 ## Vite Error
 
@@ -241,17 +259,16 @@ Before relying on a package's API, confirm its installed version:
 
 === phpunit/core rules ===
 
-# PHPUnit
+# Pest and PHPUnit
 
-- This project uses PHPUnit. Create tests with `php artisan make:test --phpunit {name}`.
-- Do not include the test suite directory in `{name}`. Use `SomeFeatureTest`, not `Feature/SomeFeatureTest`.
-- Read the `testing-best-practices` skill for guidance on coverage, naming, structure, dependency isolation, and review.
+- This project uses Pest 5 over PHPUnit 13; PHPUnit is the standard mechanism for mocks of project contracts. Follow sibling Pest tests rather than generating PHPUnit classes by default.
+- Use the project's test architecture and `trocado-quality-gate` for evidence, boundaries, and review. Do not add tests without the authorization required by the project rules.
 
 ## Running Tests
 
-- Run the narrowest set of tests that covers the change. Pass a file path or `--filter=testName` to `php artisan test --compact`.
+- Run the narrowest set that covers the change through `lerd composer test -- <path> --compact` (or `composer test -- ...` without Lerd); add `--filter` for a focused scenario.
 - Rerun a test after each change to it.
-- Run `vendor/bin/phpunit` to call the test runner directly. It accepts the same file path and `--filter=testName` arguments.
+- Use the documented guarded launcher for Feature and full-suite runs, including `--parallel --processes=2` or more. Direct Pest/PHPUnit/Artisan calls without the launcher manifest are not the project's canonical execution path.
 
 </laravel-boost-guidelines>
 

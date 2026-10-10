@@ -13,6 +13,9 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Testing\TestResponse;
 use Laravel\Sanctum\PersonalAccessToken;
+use Tests\Support\Core\Fixtures\ConcurrentDatabaseProcess;
+use Tests\Support\Identity\Fixtures\IdentityFixture;
+use Tests\Support\Identity\Helpers\IdentityHttpJourney;
 
 use function Pest\Laravel\withToken;
 
@@ -25,8 +28,8 @@ function sessionRequest(string $token, string $route, array $parameters = []): T
 
 it('issues a single expiring Sanctum token and keeps its bearer and hash on fortnightly activity', function (): void {
     $this->travelTo(CarbonImmutable::parse('2026-01-01 12:00:00'));
-    $userId = signUpIdentityByApi($this);
-    $token = signInIdentityByApi($this);
+    $userId = (int) IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
+    $token = (new IdentityHttpJourney($this))->signIn();
     $user = UserModel::query()->findOrFail($userId);
     $record = $user->tokens()->sole();
     $id = $record->getKey();
@@ -60,7 +63,7 @@ it('issues a single expiring Sanctum token and keeps its bearer and hash on fort
 
 it('treats sign-in expiry as an initial snapshot and declines renewal after inactivity', function (): void {
     $this->travelTo(CarbonImmutable::parse('2026-01-01 12:00:00'));
-    $userId = signUpIdentityByApi($this);
+    $userId = (int) IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
     $response = $this->postJson(route('authentication.api.sign-in'), [
         'data' => ['type' => 'access-tokens', 'attributes' => ['email' => 'maria@example.com', 'password' => 'Correct1']],
     ])->assertOk()->assertHeader('Pragma', 'no-cache');
@@ -80,8 +83,8 @@ it('treats sign-in expiry as an initial snapshot and declines renewal after inac
 
 it('renews at the inclusive 15-day boundary, never early, and caps extension at 90 days', function (): void {
     $this->travelTo(CarbonImmutable::parse('2026-01-01 12:00:00'));
-    $userId = signUpIdentityByApi($this);
-    $token = signInIdentityByApi($this);
+    $userId = (int) IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
+    $token = (new IdentityHttpJourney($this))->signIn();
     $record = UserModel::query()->findOrFail($userId)->tokens()->sole();
     $issuedAt = $record->created_at->toImmutable();
 
@@ -106,8 +109,8 @@ it('renews at the inclusive 15-day boundary, never early, and caps extension at 
 
 it('keeps a weekly visitor authenticated until the absolute limit', function (): void {
     $this->travelTo(CarbonImmutable::parse('2026-01-01 12:00:00'));
-    $userId = signUpIdentityByApi($this);
-    $token = signInIdentityByApi($this);
+    $userId = (int) IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
+    $token = (new IdentityHttpJourney($this))->signIn();
     $record = PersonalAccessToken::findToken($token);
 
     for ($week = 1; $week <= 12; $week++) {
@@ -122,9 +125,10 @@ it('keeps a weekly visitor authenticated until the absolute limit', function ():
 
 it('does not renew rejected requests, blocked accounts, or sign-out and leaves other logins alone', function (): void {
     $this->travelTo(CarbonImmutable::parse('2026-01-01 12:00:00'));
-    $userId = signUpIdentityByApi($this);
-    $first = signInIdentityByApi($this);
-    $second = signInIdentityByApi($this);
+    $userId = (int) IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
+    $journey = new IdentityHttpJourney($this);
+    $first = $journey->signIn();
+    $second = $journey->signIn();
     $user = UserModel::query()->findOrFail($userId);
     $record = PersonalAccessToken::findToken($first);
     $original = $record->expires_at;
@@ -152,8 +156,8 @@ it('does not renew rejected requests, blocked accounts, or sign-out and leaves o
 
 it('rechecks persistence before extending and prunes legacy tokens by individual expiry', function (): void {
     $this->travelTo(CarbonImmutable::parse('2026-01-01 12:00:00'));
-    $userId = signUpIdentityByApi($this);
-    $token = signInIdentityByApi($this);
+    $userId = (int) IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
+    $token = (new IdentityHttpJourney($this))->signIn();
     $record = PersonalAccessToken::findToken($token);
     $record->forceFill(['expires_at' => now()->addHours(2)])->save();
 
@@ -175,8 +179,8 @@ it('rechecks persistence before extending and prunes legacy tokens by individual
 
 it('does not extend for validation, rate limit, server error, or unverified email', function (): void {
     $this->travelTo(CarbonImmutable::parse('2026-01-01 12:00:00'));
-    $userId = signUpIdentityByApi($this);
-    $token = signInIdentityByApi($this);
+    $userId = (int) IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
+    $token = (new IdentityHttpJourney($this))->signIn();
     $record = PersonalAccessToken::findToken($token);
     $expiresAt = $record->expires_at;
     $this->travel(16)->days();
@@ -208,8 +212,8 @@ it('does not extend for validation, rate limit, server error, or unverified emai
 
 it('does not recreate a revoked token or revive a token expired after authentication', function (): void {
     $this->travelTo(CarbonImmutable::parse('2026-01-01 12:00:00'));
-    $userId = signUpIdentityByApi($this);
-    $token = signInIdentityByApi($this);
+    $userId = (int) IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
+    $token = (new IdentityHttpJourney($this))->signIn();
     $record = PersonalAccessToken::findToken($token);
     $this->travel(16)->days();
     sessionRequest($token, 'users.get', ['user' => $userId])->assertOk();
@@ -225,8 +229,8 @@ it('does not recreate a revoked token or revive a token expired after authentica
 
 it('rejects a token at 90 days even when its stored expiry is later or absent', function (): void {
     $this->travelTo(CarbonImmutable::parse('2026-01-01 12:00:00'));
-    $userId = signUpIdentityByApi($this);
-    $token = signInIdentityByApi($this);
+    $userId = (int) IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
+    $token = (new IdentityHttpJourney($this))->signIn();
     $record = PersonalAccessToken::findToken($token);
     $issuedAt = $record->created_at->toImmutable();
 
@@ -247,8 +251,8 @@ it('rejects a token at 90 days even when its stored expiry is later or absent', 
 
 it('never writes an expiry beyond 90 days even if the adapter receives a larger age', function (): void {
     $this->travelTo(CarbonImmutable::parse('2026-01-01 12:00:00'));
-    $userId = signUpIdentityByApi($this);
-    $token = signInIdentityByApi($this);
+    $userId = (int) IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
+    $token = (new IdentityHttpJourney($this))->signIn();
     $record = PersonalAccessToken::findToken($token);
     $issuedAt = $record->created_at->toImmutable();
 
@@ -264,13 +268,9 @@ it('never writes an expiry beyond 90 days even if the adapter receives a larger 
 });
 
 it('revalidates the locked token against a concurrent extension, revocation or expiry', function (string $change): void {
-    if (! function_exists('pcntl_fork')) {
-        $this->markTestSkipped('A execução concorrente requer pcntl.');
-    }
-
     $this->travelTo(CarbonImmutable::parse('2026-01-01 12:00:00'));
-    $userId = signUpIdentityByApi($this);
-    $token = signInIdentityByApi($this);
+    $userId = (int) IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
+    $token = (new IdentityHttpJourney($this))->signIn();
     $record = PersonalAccessToken::findToken($token);
     $id = $record->getKey();
     $digest = $record->token;
@@ -279,58 +279,15 @@ it('revalidates the locked token against a concurrent extension, revocation or e
 
     sessionRequest($token, 'users.get', ['user' => $userId + 1])->assertNotFound();
 
-    $sockets = stream_socket_pair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);
-    expect($sockets)->toBeArray();
-    $pid = pcntl_fork();
-    expect($pid)->not->toBe(-1);
-
-    if ($pid === 0) {
-        fclose($sockets[0]);
-
-        try {
-            DB::disconnect();
-            $backend = DB::selectOne('SELECT pg_backend_pid() AS pid');
-            fwrite($sockets[1], "ready:{$backend->pid}\n");
-
-            if (trim((string) fgets($sockets[1])) !== 'go') {
-                throw new RuntimeException('O processo concorrente não recebeu o sinal de início.');
-            }
-
-            app(SessionExtensionAdapter::class)->extendCurrentToken(15, 30, 90);
-            fwrite($sockets[1], "done\n");
-        } catch (Throwable $exception) {
-            fwrite($sockets[1], 'error: '.$exception->getMessage()."\n");
-        }
-
-        fclose($sockets[1]);
-        exit;
-    }
-
-    fclose($sockets[1]);
-    stream_set_timeout($sockets[0], 5);
+    $child = new ConcurrentDatabaseProcess(static function (): void {
+        app(SessionExtensionAdapter::class)->extendCurrentToken(15, 30, 90);
+    });
 
     try {
-        $ready = trim((string) fgets($sockets[0]));
-        expect($ready)->toStartWith('ready:');
-        $backendPid = (int) substr($ready, 6);
-
-        DB::transaction(function () use ($sockets, $id, $change, $issuedAt, $backendPid): void {
+        DB::transaction(function () use ($child, $id, $change, $issuedAt): void {
             $locked = PersonalAccessToken::query()->whereKey($id)->lockForUpdate()->firstOrFail();
-            fwrite($sockets[0], "go\n");
-
-            $blocked = false;
-
-            for ($attempt = 0; $attempt < 100; $attempt++) {
-                if (DB::selectOne('SELECT wait_event_type FROM pg_stat_activity WHERE pid = ?', [$backendPid])?->wait_event_type === 'Lock') {
-                    $blocked = true;
-
-                    break;
-                }
-
-                usleep(10000);
-            }
-
-            expect($blocked)->toBeTrue();
+            $child->go();
+            $child->awaitLock();
 
             match ($change) {
                 'extend' => $locked->forceFill(['expires_at' => $issuedAt->addDays(60)])->save(),
@@ -339,10 +296,9 @@ it('revalidates the locked token against a concurrent extension, revocation or e
             };
         });
 
-        expect(trim((string) fgets($sockets[0])))->toBe('done');
+        $child->done();
     } finally {
-        fclose($sockets[0]);
-        pcntl_waitpid($pid, $status);
+        $child->close();
     }
 
     $persisted = $record->fresh();
@@ -359,4 +315,4 @@ it('revalidates the locked token against a concurrent extension, revocation or e
         ->and($persisted->getKey())->toBe($id)
         ->and($persisted->expires_at->equalTo($change === 'extend' ? $issuedAt->addDays(60) : now()->subSecond()))->toBeTrue()
         ->and(UserModel::query()->findOrFail($userId)->tokens()->count())->toBe(1);
-})->with(['extend', 'revoke', 'expire']);
+})->with(['extend', 'revoke', 'expire'])->group('concurrency', 'integration');

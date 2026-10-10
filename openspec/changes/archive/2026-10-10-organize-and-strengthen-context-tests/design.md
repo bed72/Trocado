@@ -1,6 +1,6 @@
 ## Context
 
-A revisão anterior é a baseline desta proposta; nenhum teste da aplicação é executado durante a fase atual de especificação. Ela analisou 49 arquivos de testes/suporte, encontrou PHPUnit mocks em 16 arquivos e funções globais de preparação em 15. O runtime consultado naquela revisão era PHP 8.5, Laravel 13.34, Pest 5.2.1, PHPUnit 13.3.4 e Mockery 1.6.15; as versões devem ser reconfirmadas no apply.
+A revisão anterior é a baseline histórica de diagnóstico desta proposta; nenhum teste da aplicação é executado nesta primeira etapa de atualização da spec. Ela analisou 49 arquivos de testes/suporte, encontrou PHPUnit mocks em 16 arquivos e funções globais de preparação em 15. Esse inventário antecede a entrega de Infrastructure/Presentation de Metrics e deve ser atualizado antes da migração dos testes. PHP 8.5, Laravel 13.34.0, Pest 5.2.1, PHPUnit 13.3.4 e Mockery 1.6.15 foram reconfirmados pelo Boost em 2026-10-10; APIs e mecanismos de execução devem ser consultados na etapa de implementação correspondente.
 
 Evidências históricas da revisão:
 
@@ -9,10 +9,13 @@ Evidências históricas da revisão:
 | Pest completo, padrão | 627 testes, 3.450 assertions, todos passando | Uma execução verde, não prova de independência de estado. |
 | Pest completo, ordem aleatória, seed 20261009 | 626 passando, 1 falha | Falha em ExpenseAnalysisAdapterTest, descrição editorial. |
 | Cenário editorial isolado | 1 falha na assertion de texto | Reproduz o problema sem depender da suíte completa. |
+| Encerramento de add-expense-metrics, 2026-10-10 | 725 testes, 4.588 assertions, todos passando | Última execução completa documentada no arquivo histórico; não executada por esta mudança nem prova de ordem aleatória/paralelismo. |
+
+A fonte da baseline posterior é `openspec/changes/archive/2026-10-10-add-expense-metrics/tasks.md`, seção **Decisão de encerramento**, lida junto das evidências de Infrastructure e Presentation. As tabelas intermediárias daquele arquivo descrevem etapas anteriores e não tornam Adapter/HTTP novamente pendentes. O encerramento registra aceite explícito das limitações: travessia de mês durante a execução, escrita concorrente durante a leitura, cota/extensão de sessão especificamente em Metrics e observabilidade analítica autenticada representativa no Lerd. A execução verde posterior não demonstra independência de IDs; a falha editorial precisa ser reconferida isoladamente antes de qualquer correção.
 
 A sequência de users não é reiniciada pelos deletes atuais, e a escolha de variante editorial usa userId. Reiniciar a sequência esconderia uma assertion errada: somente uma das quatro mensagens contém a frase exigida. O catálogo de produção deve ser preservado.
 
-Identity/Expense possuem suites Feature que misturam HTTP, Repository, configuração, transações e worker. Core tem invariantes fortes, mas parte de suas capacidades transversais é comprovada em Expense. Insights tem muitos builders semelhantes e Metrics já possui Domain/Application implementados, com Infrastructure/Presentation pendentes em outra mudança.
+Identity/Expense possuem suites Feature que misturam HTTP, Repository, configuração, transações e worker. Core tem invariantes fortes, mas parte de suas capacidades transversais é comprovada em Expense. Insights tem muitos builders semelhantes. Metrics já possui Domain/Application, Adapter PostgreSQL, Request/Controller/Response, provider e rota implementados, com testes unitários, integração e HTTP registrados na entrega arquivada.
 
 O usuário confirmou que execução paralela real é obrigatória nesta mudança. As regras do projeto exigem PostgreSQL real nas provas de persistência, segurança antes de limpeza e nenhum migrate:fresh sem autorização. O banco de teste literal atual é trocado_testing; a proteção deve evoluir sem virar permissão ampla por sufixo.
 
@@ -31,7 +34,7 @@ O usuário confirmou que execução paralela real é obrigatória nesta mudança
 **Non-Goals:**
 
 - Reescrever código de produto, mudar API, catálogo editorial, autorização ou migrations de produto.
-- Implementar Adapter/endpoint de Metrics ou novas funcionalidades.
+- Reimplementar Adapter/endpoint já entregues de Metrics ou introduzir novas funcionalidades.
 - Introduzir biblioteca, runner alternativo, camada genérica de factories/mocks ou infraestrutura de CI externa.
 - Fazer testes de carga, estabelecer SLO, exigir coverage percentual ou mutation score.
 - Atualizar em massa specs funcionais históricas com drift ou apagar evidências anteriores.
@@ -56,8 +59,9 @@ tests/
     Expense/Domain/Entities/
     Expense/Application/UseCases/
     Insights/Domain/{Enums,ValueObjects}/
-    Insights/Application/UseCases/
-    Metrics/Application/UseCases/
+     Insights/Application/UseCases/
+     Metrics/Domain/Enums/
+     Metrics/Application/UseCases/
   Feature/
     Core/Infrastructure/{Adapters,Providers}/
     Core/Presentation/Http/Middleware/
@@ -68,7 +72,9 @@ tests/
     Expense/Presentation/Http/
     Expense/Journeys/
     Insights/Infrastructure/Adapters/
-    Insights/Presentation/Http/
+     Insights/Presentation/Http/
+     Metrics/Infrastructure/{Adapters,Providers}/
+     Metrics/Presentation/Http/
   Support/
     Core/{Fakes,Stubs,Spies,Helpers}/
     Identity/{Fixtures,Helpers}/
@@ -111,6 +117,8 @@ Não usar `Sanctum::actingAs` nos cenários que provam Bearer real, expiração,
 
 `tests/Pest.php` deixa de declarar signUpIdentityByApi/signInIdentityByApi. Helpers de jornada ficam autoloadáveis em Identity Support e não chamam fake nem alteram status silenciosamente. O teste/setup escolhe fakes visíveis. Guards são esquecidos/reavaliados ao alternar credenciais em requests no mesmo processo.
 
+Etapa 4 implementada: `IdentityFixture::create` exige status e `verifiedAt` explícitos (null representa não verificado), retorna UserModel de preparação e não cria token. `IdentityFixture::token` recebe a expiração explicitamente e persiste um token real. `IdentityHttpJourney` executa somente ações HTTP nomeadas de cadastro, confirmação assinada e login; estado/fakes continuam escolhidos pelo chamador. Os sete arquivos antes dependentes de Pest.php mantêm seus cenários com essa preparação explícita, e a jornada integrada de observabilidade conserva cadastro/confirmação reais.
+
 ### D5. Migração dos arquivos amplos por responsabilidade
 
 | Origem atual | Destinos/responsabilidades planejados |
@@ -124,6 +132,8 @@ Não usar `Sanctum::actingAs` nos cenários que provam Bearer real, expiração,
 | Insights/ExpenseAnalysisAdapterTest | Infrastructure/Adapters e jornada analítica separada se necessário; corrigir assertion editorial. |
 | Insights/InsightsApiTest | Presentation/Http com fixtures explícitas e query/read observation sem dependência de nome de CTE. |
 | Metrics/GetExpenseMetricsUseCaseTest | mesma responsabilidade de Application, com fixtures externas e construção direta do UseCase. |
+| Metrics/Infrastructure/Adapters/ExpenseMetricsAdapterTest | preservar integração PostgreSQL focada, observação de statements, precisão e atualização após escritas confirmadas; extrair somente suporte reutilizável. |
+| Metrics/Presentation/ExpenseMetricsHttpTest | Presentation/Http, conservando query textual original, contratos/erros JSON:API e proteções; separar prova de provider quando a responsabilidade justificar. |
 | Identity/Application/Ports e Repositories reflexivos | avaliar permanência ou destino Architecture para fronteiras reais; não exigir ordem incidental de Reflection. |
 
 Cada cenário antigo recebe destino registrado antes da remoção de sua origem. Ordem: mover com comportamento preservado, extrair suporte e então fortalecer os cenários, verificando cada unidade alterada. A escolha exata de nomes dos novos arquivos cabe ao apply, dentro dos destinos e contratos especificados.
@@ -162,6 +172,16 @@ O entrypoint pode ser um script de teste estreito/command de Composer com helper
 
 Alternativas rejeitadas: liberar qualquer banco `_test*`; compartilhar trocado_testing e confiar em deletes; bloquear globalmente toda a suíte; usar SQLite; desativar testes Redis/concorrentes no gate paralelo.
 
+Implementação incremental da etapa 2: `composer test` chama `tests/run.php`, gera runId/segredo e manifesto temporário privado, propagados ao runner Pest. O nome exato é derivado de `trocado_testing` e runId; um comentário PostgreSQL registra ownership e deve coincidir com o manifesto antes de migrations, fixtures/limpeza ou drop. Provisionamento usa conexão administrativa separada em `postgres`, cria somente o destino registrado e recusa reuso sem ownership coincidente. A preparação executa `migrate` incrementalmente uma vez antes do runner; chamadas diretas Feature sem manifesto falham antes de inicializar a aplicação.
+
+Cleanup normal em `finally` remove somente banco criado pelo preparador, após confirmação efetiva e nova checagem de ownership; um preparador que apenas reusa não o remove. Unit puro e listagem não provisionam/migram. Configuração em cache é recusada em vez de limpar cache operacional como efeito colateral. `tests/CreatesApplication.php` bloqueia a resolução do app pelo runner paralelo antes dos hooks de banco; é uma fronteira temporária até 10.5, não prova de paralelismo. Isolamento externo, cleanup em interrupção abrupta e bancos por token continuam nas etapas 10.x.
+
+Estado posterior, etapa de isolamento implementada: o launcher registra antecipadamente os tokens nativos, provisiona/migra cada destino exato e permite `CreatesApplication` somente com manifesto/guard. `TestCase` seleciona o destino autorizado por `TEST_TOKEN` e valida o banco efetivo antes das fixtures. Como Feature não usa os traits destrutivos de banco do Laravel, a preparação segura permanece no launcher e os hooks nativos não recriam schema. Opções de recriação/drop/desativação de tokens são recusadas. ParaTest continua sendo o runner instalado, sem substituto. Diretórios de views compiladas, cache PHPUnit e arquivos de protocolo do ParaTest também distinguem runId; hooks de views por token sozinhos não isolam invocações.
+
+`TestDatabaseCleanup` classifica explicitamente failed_jobs/jobs/tokens/expenses/users, preserva migrations e sequências e recusa tabelas desconhecidas. `TestResources` atribui prefixos Redis, cache, filas e logs por runId/token/cenário; teardown limpa somente esse namespace nas conexões default/cache, inclusive após purges exigidos por fork. Clientes independentes que comprovam compartilhamento recebem o mesmo namespace intencional. Aplicações de teste restauram bindings/listeners/fakes/guards; teardown também reverte transações e restaura clocks/timezone/query logs/canais. O protocolo `ConcurrentDatabaseProcess` substitui o fork aberto da sessão, desconecta conexões antes do fork, valida o filho, transmite ready/go/done/erro, observa lock PostgreSQL e reverte/fecha/aguarda ou encerra com prazo limitado.
+
+Provas sincronizadas mantêm duas invocações de dois processos na barreira com e-mail e ID 1500 coincidentes, cache/limiter, fila e log; liberam uma invocação e verificam remoção dos seus recursos e preservação da outra antes de liberá-la. Falha controlada e filho que não termina têm provas próprias. SIGKILL do launcher continua fora da recuperação automática: a seção de evidências distingue cleanup normal/falha controlada dos resíduos de tentativas encerradas externamente.
+
 ### D9. Limpeza preserva commits e remove todos os recursos usados
 
 Uma transação externa global de rollback não pode envolver cenários que provam commit/afterCommit/workers. Adotar cleanup explícito com catálogo mantido das tabelas mutáveis do schema e recursos por cenário, validado antes da escrita. O catálogo deve incluir jobs/failed_jobs quando usados e ser atualizado ao adicionar recursos; não truncar indiscriminadamente tabelas de metadata/migrations ou bancos de outro processo.
@@ -182,7 +202,11 @@ Esses filhos pertencem a um cenário e usam seu banco intencionalmente para a co
 
 ### D12. Metrics e documentação histórica
 
-Reorganizar os testes já implementados de Domain/Application e usar fixtures próprias de Metrics. Adapter/endpoint ainda ausentes não entram nesta mudança. Atualizar referências correntes em orientações/documentos relevantes se caminhos mudarem, incluindo referências ativas de add-expense-metrics quando realmente necessário; não alterar checkboxes/evidências históricas para apresentar execução inexistente.
+Reorganizar os testes já implementados de Domain/Application, Infrastructure PostgreSQL e Presentation/composição e usar fixtures próprias de Metrics. Preservar `GetExpenseMetricsUseCaseTest`, `ExpenseMetricsAdapterTest` e `ExpenseMetricsHttpTest`, com mapa de cenários/destinos; invariantes monetárias/civis compartilhadas continuam em Core. O contrato vigente está em `openspec/specs/expense-metrics/spec.md`; o histórico está em `archive/2026-10-10-add-expense-metrics` e não deve ser reescrito por movimentação de arquivos.
+
+A integração comprova proprietário/período, soma exata, grupos/ordenação, reconciliação por statement único, leitura sem escrita/cache e atualização entre consultas após commits. HTTP comprova parsing da query original, validação antes da análise, período/default/timezone, identidade, omissão versus lista vazia, JSON:API, bloqueios e falha operacional sanitizada. Preservar esse nível de evidência, sem substituir SQL/HTTP por mocks. Statement único mais semântica PostgreSQL é prova de mecanismo de snapshot, não experimento com escrita durante a leitura.
+
+As pendências aceitas no arquivo histórico não são automaticamente tarefas novas desta mudança. Cota compartilhada pode incluir Metrics na prova transversal já prevista em BEH-07; travessia de mês, escrita durante leitura, extensão de sessão específica e medição autenticada continuam limitações explícitas até receberem escopo e evidência próprios. Atualizar referências correntes em orientações/documentos relevantes se caminhos mudarem, mantendo rastreabilidade até os caminhos históricos sem alterar checkboxes/evidências arquivados.
 
 Specs antigas divergentes (relações Eloquent User/Expense; 405 versus 404 na criação pública de users; Port antigo de ownership) não são oráculo literal. Os testes devem seguir arquitetura/contratos atuais. Se uma divergência não tiver decisão posterior inequívoca, apresentar ao usuário uma pergunta por vez antes de fixar a expectativa; não alterar produto para satisfazer texto obsoleto.
 
@@ -197,7 +221,8 @@ Specs antigas divergentes (relações Eloquent User/Expense; 405 versus 404 na c
 | Expense Application | ID/proprietário explícitos, leitura/atualização/exclusão/classificação e efeitos. | Não prova cursor nem update condicional SQL. |
 | Expense Infrastructure/HTTP | Cursor real, own/alheio/ausente, validação, defaults, FK, cache/TTL/invalidação e jobs. | Cache array não prova Redis entre processos; usar cenário dedicado. |
 | Insights | Projeção real, threshold exato, seleção, catálogo completo, HTTP/proteções e independência editorial. | Statement único é prova de mecanismo de snapshot; não afirmar corrida ativa sem exercitá-la. |
-| Metrics Application | Encaminhamento, projeções inválidas, reconciliação, percentuais/IDs/null versus vazio. | SQL, snapshot e HTTP continuam pendentes da mudança de Metrics. |
+| Metrics Domain/Application | Enum, encaminhamento, projeções inválidas, reconciliação, percentuais/IDs/null versus vazio. | Mock não comprova SQL, snapshot ou contrato HTTP. |
+| Metrics Infrastructure/HTTP | Proprietário/occurred_on, precisão/grupos, statement único, leituras atuais sem cache, query original/default/timezone, JSON:API/proteções/erros e binding. | Preservar provas entregues; escrita durante leitura, travessia de mês, sessão específica e medição autenticada permanecem limitações históricas, não claims de cobertura. |
 | Arquitetura | Restrições atuais de app e contratos Data/reflexivos pertinentes. | Não medir coverage de comportamento por Reflection. |
 
 ## Risks / Trade-offs
@@ -212,7 +237,7 @@ Specs antigas divergentes (relações Eloquent User/Expense; 405 versus 404 na c
 - [Specs históricas contraditórias] → seguir decisões atuais inequívocas; perguntar antes de alterar um contrato ambíguo.
 - [Novos testes revelam bug de produção] → manter evidência reprovada e solicitar autorização para a menor correção, sem enfraquecer expectativa.
 - [Duração maior com integração Redis/concorrência] → grupos selecionáveis para desenvolvimento; gate completo continua obrigatório, sem SLO artificial.
-- [Contagem muda após consolidação] → exigir equivalência por cenário, não manter 627 como meta fixa.
+- [Contagem muda após consolidação] → exigir equivalência por cenário, não manter 627 ou 725 como meta fixa; ambas são contagens históricas de estados diferentes.
 
 ## Migration Plan
 
@@ -231,4 +256,4 @@ Rollback: reverter somente alterações desta mudança em testes/config/scripts 
 - **Resolvida pelo usuário:** execução paralela com bancos/recursos exclusivos é requisito obrigatório.
 - **Sem dúvida funcional bloqueante na fase de spec:** organização e mecanismos seguem as decisões acima.
 - **Verificação técnica do apply:** formato/ordem dos hooks Laravel/Pest, criação segura de base/processos, capacidade de provisionamento PostgreSQL e mecanismo concorrente disponíveis devem ser confirmados com docs/código instalado naquele momento. Falta de capacidade é bloqueio operacional com diagnóstico, não autorização para reduzir os requisitos.
-- **Condicional ao apply:** divergência funcional nova ou correção em produção exige pergunta ao usuário, uma por vez. O pedido atual não autoriza implementação.
+- **Condicional às próximas etapas:** divergência funcional nova ou correção em produção exige pergunta ao usuário, uma por vez. Migração/fortalecimento por contexto foi autorizado em rodadas Core, Identity, Expense, Insights e Metrics. A correção do hash não autenticável (BEH-04) foi autorizada e comprovada. Após o pedido de corrigir os testes quebrados, BEH-16 foi mantido: Core remove campos HTTP herdados no callback oficial Context::hydrated, conservando outros metadados e os IDs emitidos explicitamente pelo worker. A regressão com request autenticada e worker real passa. O isolamento/paralelismo foi entregue posteriormente em 10.x. No passo 7 solicitado, 37 arquivos avulsos, cinco contextos, arquitetura e quatro gates (padrão, seeds 20261009/20261010 e dois processos) foram reconfirmados; cada gate passou com 811 testes/5.096 assertions. Tasks distingue essa aprovação executável das lacunas de organização/inventário/comportamento ainda abertas. A mudança inteira não está concluída/arquivável.

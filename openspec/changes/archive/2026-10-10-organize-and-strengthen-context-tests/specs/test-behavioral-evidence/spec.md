@@ -341,7 +341,7 @@ Provas diretas de observabilidade/correlação MUST pertencer a Core, enquanto i
 
 ### Requirement: BEH-17 Metrics preserva o estágio implementado
 
-A suíte MUST organizar e preservar os testes atuais de GetExpenseMetricsUseCase e seu enum, usando Core para invariantes monetárias/civis. MUST comprovar uma chamada com proprietário/período/modo explícitos, null versus lista vazia, reconciliação, catálogo completo, ordenação exata, percentuais independentes, ID por dimensões e falhas/projeções inválidas. Esta mudança MUST NOT implementar Infrastructure/Presentation de Metrics, exigir cenários HTTP de capacidade ainda inexistente nem declarar SQL/snapshot/isolamento real comprovados por mocks.
+A suíte MUST organizar e preservar os testes entregues de Metrics em Domain/Application, Infrastructure PostgreSQL e Presentation/composição, usando Core para invariantes monetárias/civis. MUST comprovar uma chamada com proprietário/período/modo explícitos, null versus lista vazia, reconciliação, catálogo completo, ordenação exata, percentuais independentes, ID por dimensões e falhas/projeções inválidas. MUST preservar no Adapter as provas reais de isolamento, limites civis, precisão, statement único, leitura sem escrita/cache e atualização após commits, e no HTTP a query original, validação antes da análise, período/default/timezone, JSON:API, identidade, proteções e erros já entregues. Esta mudança MUST NOT reimplementar a feature, substituir SQL/HTTP por mocks ou declarar escrita concorrente durante leitura comprovada por statement único. Pendências aceitas no arquivamento de add-expense-metrics MUST permanecer identificáveis; seu encerramento MUST NOT ser tratado como execução dessas provas nem importação automática de todas as tarefas pendentes.
 
 #### Scenario: Totais e percentuais exatos
 - **WHEN** projeções incluem totais acima de inteiro nativo, empate e participações de terços/16,665%/mínima positiva
@@ -353,10 +353,22 @@ A suíte MUST organizar e preservar os testes atuais de GetExpenseMetricsUseCase
 - **THEN** o UseCase falha explicitamente sem fabricar total zero ou reparar os dados
 - **AND** o builder não impede construir essas entradas negativas
 
-#### Scenario: Coordenação com mudança de Metrics
+#### Scenario: Leitura PostgreSQL entregue
+- **WHEN** os testes do Adapter são reorganizados com despesas de contas distintas, datas nos limites, todas as categorias e totais acima de inteiro nativo
+- **THEN** preservam isolamento por proprietário, occurred_on inclusivo, ordenação numérica, soma canônica e reconciliação em um statement sem escrita
+- **AND** consultas após criação, edição ou exclusão confirmadas refletem os fatos atuais sem cache
+- **AND** essa prova não é rotulada como corrida de escrita durante a consulta
+
+#### Scenario: Contrato HTTP entregue
+- **WHEN** os testes HTTP são movidos ou seu suporte é extraído
+- **THEN** preservam ambos os modos, período explícito/default/timezone, identidade equivalente, omissão de categories versus lista vazia, moeda omitida e recurso JSON:API singular
+- **AND** queries textuais inválidas, incluindo duplicatas e encoding equivalente, continuam produzindo 422 com source.parameter sem leitura analítica
+- **AND** bloqueios de acesso e falha operacional mantêm seus erros seguros sem resumo fabricado
+
+#### Scenario: Coordenação com histórico de Metrics
 - **WHEN** os testes existentes são movidos ou suas fixtures são extraídas
-- **THEN** as referências correntes relevantes são atualizadas sem apagar evidências históricas de add-expense-metrics
-- **AND** as tarefas futuras de Adapter/HTTP continuam pertencendo àquela mudança
+- **THEN** as referências correntes relevantes e o mapa origem/destino são atualizados sem apagar evidências históricas de archive/2026-10-10-add-expense-metrics
+- **AND** travessia de mês durante execução, escrita durante leitura, cota/extensão de sessão específica e medição autenticada são distinguidas das provas já entregues e só recebem conclusão com evidência correspondente
 
 ### Requirement: BEH-18 Arquitetura preservada e prova sem claims excessivos
 

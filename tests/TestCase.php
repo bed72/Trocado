@@ -6,25 +6,19 @@ namespace Tests;
 
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
-use RuntimeException;
+use Tests\Support\Core\Database\TestDatabaseGuard;
+use Tests\Support\Core\Database\TestDatabaseRun;
 
 abstract class TestCase extends BaseTestCase
 {
     public function createApplication(): Application
     {
+        $run = TestDatabaseRun::fromEnvironment();
         $app = parent::createApplication();
-        $database = $app->make('db');
-
-        if ($database->getDefaultConnection() !== 'pgsql'
-            || $app['config']->get('database.connections.pgsql.driver') !== 'pgsql'
-            || filled($app['config']->get('database.connections.pgsql.url'))
-            || $app['config']->get('database.connections.pgsql.database') !== 'trocado_testing') {
-            throw new RuntimeException('Tests require the dedicated PostgreSQL trocado_testing database without DB_URL.');
-        }
-
-        if ($database->connection()->selectOne('select current_database() as name')->name !== 'trocado_testing') {
-            throw new RuntimeException('The effective test connection must point to trocado_testing.');
-        }
+        (new TestDatabaseGuard(TestDatabaseRun::fromEnvironment(false)))->configuration($app['config']->get('database.default'), $app['config']->get('database.connections.pgsql'));
+        $app['db']->purge('pgsql');
+        $app['config']->set('database.connections.pgsql.database', $run->database);
+        (new TestDatabaseGuard($run))->application($app);
 
         return $app;
     }

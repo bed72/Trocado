@@ -21,6 +21,8 @@ use RuntimeException;
 use SensitiveParameter;
 use Throwable;
 
+use function password_get_info;
+
 final readonly class SignInAdapter implements SignInPort
 {
     public function __construct(
@@ -48,7 +50,9 @@ final readonly class SignInAdapter implements SignInPort
             $credentials = ['email' => $canonicalEmail, 'password' => $password];
             $user = $provider->retrieveByCredentials(credentials: $credentials);
 
-            if (! $user instanceof UserModel || ! $provider->validateCredentials(user: $user, credentials: $credentials)) {
+            if (! $user instanceof UserModel
+                || password_get_info($user->getAuthPassword())['algo'] === null
+                || ! $provider->validateCredentials(user: $user, credentials: $credentials)) {
                 throw new InvalidCredentialsException;
             }
 
