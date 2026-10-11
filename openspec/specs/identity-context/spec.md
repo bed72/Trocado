@@ -93,7 +93,8 @@ O sistema MUST manter `Registered`, `VerifyEmail`, `Verified`, `Notifiable`, Aut
 #### Scenario: Escopo transacional da confirmação
 - **WHEN** o UseCase confirma um link válido
 - **THEN** define a unidade pelo `TransactionPort`, mantendo checagem do endereço e gravação na mesma execução
-- **AND** o Adapter obtém o lock, integra os eventos do Laravel após commit e não inicia outra transação
+- **AND** o Repository obtém o lock e persiste a confirmação sem enviar notificações nem publicar eventos
+- **AND** o UseCase agenda a publicação de `Verified` pelo mesmo Port de efeitos externos que solicita os envios, após commit somente para nova confirmação; confirmação anterior permanece idempotente
 
 #### Scenario: Fronteira de atualização de perfil
 - **WHEN** o UseCase atualiza o nome da conta

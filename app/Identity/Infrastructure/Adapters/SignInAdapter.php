@@ -12,6 +12,7 @@ use App\Identity\Application\Ports\SignInPort;
 use App\Identity\Domain\Enums\UserStatusEnum;
 use App\Identity\Domain\Exceptions\InvalidEmailException;
 use App\Identity\Domain\ValueObjects\EmailValueObject;
+use App\Identity\Domain\ValueObjects\SessionPolicyValueObject;
 use App\Identity\Infrastructure\Repositories\Persistence\Models\UserModel;
 use DateTimeImmutable;
 use Illuminate\Auth\AuthManager;
@@ -26,8 +27,9 @@ use function password_get_info;
 final readonly class SignInAdapter implements SignInPort
 {
     public function __construct(
-        private AuthManager $auth,
+        private AuthManager $maneger,
         private Repository $repository,
+        private SessionPolicyValueObject $policy,
     ) {}
 
     public function issue(string $email, #[SensitiveParameter] string $password): SignInOutput
@@ -38,7 +40,7 @@ final readonly class SignInAdapter implements SignInPort
             throw new InvalidCredentialsException;
         }
 
-        $provider = $this->auth->createUserProvider(
+        $provider = $this->maneger->createUserProvider(
             provider: $this->repository->get(key: 'auth.guards.web.provider'),
         );
 
@@ -66,7 +68,7 @@ final readonly class SignInAdapter implements SignInPort
 
             $provider->rehashPasswordIfRequired(user: $user, credentials: $credentials);
 
-            $expiresAt = DateTimeImmutable::createFromInterface(object: Date::now()->addDays(30));
+            $expiresAt = $this->policy->initialExpiry(DateTimeImmutable::createFromInterface(object: Date::now()));
             $accessToken = $user->createToken(name: 'api', abilities: [], expiresAt: $expiresAt);
         } catch (InvalidCredentialsException) {
             throw new InvalidCredentialsException;

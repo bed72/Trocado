@@ -9,7 +9,7 @@ use App\Metrics\Application\Data\ExpenseCategoryTotalOutput;
 use App\Metrics\Application\Data\ExpenseMetricsProjectionOutput;
 use App\Metrics\Application\Data\GetExpenseMetricsInput;
 use App\Metrics\Application\Exceptions\InvalidExpenseMetricsProjectionException;
-use App\Metrics\Application\Ports\ExpenseMetricsPort;
+use App\Metrics\Application\Repositories\ExpenseMetricsRepository;
 use App\Metrics\Application\UseCases\GetExpenseMetricsUseCase;
 use App\Metrics\Domain\Enums\ExpenseMetricsGroupingEnum;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -34,14 +34,14 @@ function expenseMetricsProjectionFixture(string $total, array $totals = []): Exp
     return new ExpenseMetricsProjectionOutput(totalAmount: $total, categories: $categories);
 }
 
-/** @return array{UserPort&MockObject, ExpenseMetricsPort&MockObject, GetExpenseMetricsUseCase} */
-function expenseMetricsUseCaseFixture(UserPort&MockObject $userPort, ExpenseMetricsPort&MockObject $metricsPort): array
+/** @return array{UserPort&MockObject, ExpenseMetricsRepository&MockObject, GetExpenseMetricsUseCase} */
+function expenseMetricsUseCaseFixture(UserPort&MockObject $userPort, ExpenseMetricsRepository&MockObject $metricsPort): array
 {
-    return [$userPort, $metricsPort, new GetExpenseMetricsUseCase(userPort: $userPort, metricsPort: $metricsPort)];
+    return [$userPort, $metricsPort, new GetExpenseMetricsUseCase(port: $userPort, repository: $metricsPort)];
 }
 
 it('reads the authenticated owner once and forwards the exact effective period and grouping', function (ExpenseMetricsGroupingEnum $grouping): void {
-    [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsPort::class));
+    [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsRepository::class));
     $input = expenseMetricsInputFixture($grouping);
     $userPort->expects($this->once())->method('id')->willReturn(42);
     $userPort->expects($this->never())->method('status');
@@ -65,7 +65,7 @@ it('reads the authenticated owner once and forwards the exact effective period a
 })->with(ExpenseMetricsGroupingEnum::cases());
 
 it('distinguishes absent grouping from an explicitly grouped empty result without dividing by zero', function (): void {
-    [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsPort::class));
+    [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsRepository::class));
     $userPort->method('id')->willReturn(42);
     $metricsPort->expects($this->exactly(2))->method('summarize')->willReturn(expenseMetricsProjectionFixture('0'));
 
@@ -82,7 +82,7 @@ it('distinguishes absent grouping from an explicitly grouped empty result withou
 });
 
 it('reconciles large totals and orders numerically with alphabetical tie breaking', function (): void {
-    [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsPort::class));
+    [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsRepository::class));
     $userPort->method('id')->willReturn(42);
     $metricsPort->method('summarize')->willReturn(expenseMetricsProjectionFixture('12000000000000010900', [
         'transport' => '4000000000000000000',
@@ -103,7 +103,7 @@ it('reconciles large totals and orders numerically with alphabetical tie breakin
 });
 
 it('calculates percentages from the same exact total with independent final rounding', function (string $total, array $totals, array $percentages): void {
-    [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsPort::class));
+    [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsRepository::class));
     $userPort->method('id')->willReturn(42);
     $metricsPort->expects($this->once())->method('summarize')->willReturn(expenseMetricsProjectionFixture($total, $totals));
 
@@ -119,7 +119,7 @@ it('calculates percentages from the same exact total with independent final roun
 ]);
 
 it('returns every supported category without pagination or artificial empty groups', function (): void {
-    [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsPort::class));
+    [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsRepository::class));
     $totals = array_fill_keys(['food', 'health', 'housing', 'leisure', 'shopping', 'services', 'transport', 'education', 'subscriptions', 'other'], '1');
     $userPort->method('id')->willReturn(42);
     $metricsPort->expects($this->once())->method('summarize')->willReturn(expenseMetricsProjectionFixture('10', $totals));
@@ -132,7 +132,7 @@ it('returns every supported category without pagination or artificial empty grou
 });
 
 it('keeps identity stable when values and category order change while performing a fresh read each time', function (): void {
-    [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsPort::class));
+    [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsRepository::class));
     $userPort->expects($this->exactly(2))->method('id')->willReturn(42);
     $metricsPort->expects($this->exactly(2))->method('summarize')->willReturnOnConsecutiveCalls(
         expenseMetricsProjectionFixture('10000', ['other' => '4000', 'food' => '6000']),
@@ -151,7 +151,7 @@ it('keeps identity stable when values and category order change while performing
 });
 
 it('gives equivalent default and explicit months the same identity and read parameters', function (): void {
-    [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsPort::class));
+    [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsRepository::class));
     $period = DatePeriodValueObject::monthContaining('2026-10-09');
     $userPort->method('id')->willReturn(42);
     $metricsPort->expects($this->exactly(2))->method('summarize')
@@ -165,7 +165,7 @@ it('gives equivalent default and explicit months the same identity and read para
 });
 
 it('distinguishes the account both period endpoints and grouping in opaque identity', function (string $dimension): void {
-    [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsPort::class));
+    [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsRepository::class));
     $userPort->method('id')->willReturnOnConsecutiveCalls(42, $dimension === 'account' ? 43 : 42);
     $metricsPort->method('summarize')->willReturn(expenseMetricsProjectionFixture('0'));
     $changed = match ($dimension) {
@@ -179,7 +179,7 @@ it('distinguishes the account both period endpoints and grouping in opaque ident
 })->with(['account', 'start', 'end', 'grouping']);
 
 it('does not read metrics when authenticated identity fails', function (): void {
-    [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsPort::class));
+    [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsRepository::class));
     $userPort->method('id')->willThrowException(new RuntimeException('Identity unavailable'));
     $metricsPort->expects($this->never())->method('summarize');
 
@@ -187,7 +187,7 @@ it('does not read metrics when authenticated identity fails', function (): void 
 })->throws(RuntimeException::class, 'Identity unavailable');
 
 it('propagates analytical failures instead of returning total zero', function (): void {
-    [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsPort::class));
+    [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsRepository::class));
     $userPort->method('id')->willReturn(42);
     $metricsPort->method('summarize')->willThrowException(new RuntimeException('Metrics unavailable'));
 
@@ -195,7 +195,7 @@ it('propagates analytical failures instead of returning total zero', function ()
 })->throws(RuntimeException::class, 'Metrics unavailable');
 
 it('rejects malformed category projections instead of silently repairing or omitting facts', function (ExpenseMetricsProjectionOutput $projection): void {
-    [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsPort::class));
+    [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsRepository::class));
     $userPort->method('id')->willReturn(42);
     $metricsPort->method('summarize')->willReturn($projection);
 
@@ -214,7 +214,7 @@ it('rejects malformed category projections instead of silently repairing or omit
 ])->throws(InvalidExpenseMetricsProjectionException::class);
 
 it('rejects noncanonical exact amounts in the projection', function (string $amount, bool $categoryAmount): void {
-    [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsPort::class));
+    [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsRepository::class));
     $userPort->method('id')->willReturn(42);
     $projection = $categoryAmount ? expenseMetricsProjectionFixture('1', ['food' => $amount]) : expenseMetricsProjectionFixture($amount);
     $metricsPort->method('summarize')->willReturn($projection);
@@ -223,7 +223,7 @@ it('rejects noncanonical exact amounts in the projection', function (string $amo
 })->with(['-1', '01', '1.00', '1e3', ''])->with([false, true])->throws(InvalidAmountException::class);
 
 it('rejects categories unexpectedly provided in total only mode', function (): void {
-    [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsPort::class));
+    [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsRepository::class));
     $userPort->method('id')->willReturn(42);
     $metricsPort->method('summarize')->willReturn(expenseMetricsProjectionFixture('1', ['food' => '1']));
 

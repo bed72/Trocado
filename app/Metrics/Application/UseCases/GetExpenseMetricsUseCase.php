@@ -14,20 +14,20 @@ use App\Metrics\Application\Data\ExpenseMetricsOutput;
 use App\Metrics\Application\Data\ExpenseMetricsProjectionOutput;
 use App\Metrics\Application\Data\GetExpenseMetricsInput;
 use App\Metrics\Application\Exceptions\InvalidExpenseMetricsProjectionException;
-use App\Metrics\Application\Ports\ExpenseMetricsPort;
+use App\Metrics\Application\Repositories\ExpenseMetricsRepository;
 use App\Metrics\Domain\Enums\ExpenseMetricsGroupingEnum;
 
 final readonly class GetExpenseMetricsUseCase
 {
     public function __construct(
-        private UserPort $userPort,
-        private ExpenseMetricsPort $metricsPort,
+        private UserPort $port,
+        private ExpenseMetricsRepository $repository,
     ) {}
 
     public function execute(GetExpenseMetricsInput $input): ExpenseMetricsOutput
     {
-        $userId = $this->userPort->id();
-        $projection = $this->metricsPort->summarize(
+        $userId = $this->port->id();
+        $projection = $this->repository->summarize(
             userId: $userId,
             period: $input->period,
             grouping: $input->grouping,

@@ -19,8 +19,8 @@ final readonly class SignUpUseCase
 {
     public function __construct(
         private TransactionPort $transactionPort,
-        private EmailVerificationPort $emailPort,
         private ObservabilityPort $observabilityPort,
+        private EmailVerificationPort $emailPort,
         private UserRepository $repository,
     ) {}
 

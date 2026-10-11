@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace App\Metrics\Infrastructure\Adapters;
+namespace App\Metrics\Infrastructure\Repositories\Persistence;
 
 use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Metrics\Application\Data\ExpenseCategoryTotalOutput;
 use App\Metrics\Application\Data\ExpenseMetricsProjectionOutput;
-use App\Metrics\Application\Ports\ExpenseMetricsPort;
+use App\Metrics\Application\Repositories\ExpenseMetricsRepository;
 use App\Metrics\Domain\Enums\ExpenseMetricsGroupingEnum;
 use Illuminate\Support\Facades\DB;
 
-final class ExpenseMetricsAdapter implements ExpenseMetricsPort
+final class EloquentExpenseMetricsRepository implements ExpenseMetricsRepository
 {
     public function summarize(
         int $userId,

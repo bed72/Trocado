@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Identity\Domain\Enums\UserStatusEnum;
-use App\Identity\Infrastructure\Adapters\SessionExtensionAdapter;
+use App\Identity\Infrastructure\Adapters\SessionAdapter;
 use App\Identity\Infrastructure\Repositories\Persistence\Models\UserModel;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Artisan;
@@ -168,7 +168,7 @@ it('rechecks persistence before extending and prunes legacy tokens by individual
     $record->forceFill(['expires_at' => now()->addMinute()])->save();
     sessionRequest($token, 'users.get', ['user' => $userId])->assertOk();
     $record->forceFill(['expires_at' => now()->subSecond()])->save();
-    app(SessionExtensionAdapter::class)->extendCurrentToken(15, 30, 90);
+    app(SessionAdapter::class)->extendCurrentToken();
     expect($record->fresh()->expires_at->isPast())->toBeTrue();
     sessionRequest($token, 'expenses.index')->assertUnauthorized();
 
@@ -219,11 +219,11 @@ it('does not recreate a revoked token or revive a token expired after authentica
     sessionRequest($token, 'users.get', ['user' => $userId])->assertOk();
 
     $record->forceFill(['expires_at' => now()->subSecond()])->save();
-    app(SessionExtensionAdapter::class)->extendCurrentToken(15, 30, 90);
+    app(SessionAdapter::class)->extendCurrentToken();
     expect($record->fresh()->expires_at->isPast())->toBeTrue();
 
     $record->delete();
-    app(SessionExtensionAdapter::class)->extendCurrentToken(15, 30, 90);
+    app(SessionAdapter::class)->extendCurrentToken();
     expect(PersonalAccessToken::findToken($token))->toBeNull();
 });
 
@@ -249,7 +249,7 @@ it('rejects a token at 90 days even when its stored expiry is later or absent', 
     expect($record->fresh()->expires_at->equalTo($issuedAt->addDays(365)))->toBeTrue();
 });
 
-it('never writes an expiry beyond 90 days even if the adapter receives a larger age', function (): void {
+it('uses the fixed session policy when the adapter is called directly', function (): void {
     $this->travelTo(CarbonImmutable::parse('2026-01-01 12:00:00'));
     $userId = (int) IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
     $token = (new IdentityHttpJourney($this))->signIn();
@@ -258,9 +258,9 @@ it('never writes an expiry beyond 90 days even if the adapter receives a larger 
 
     $this->travel(16)->days();
     sessionRequest($token, 'users.get', ['user' => $userId + 1])->assertNotFound();
-    app(SessionExtensionAdapter::class)->extendCurrentToken(365, 365, 365);
+    app(SessionAdapter::class)->extendCurrentToken();
 
-    expect($record->fresh()->expires_at->equalTo($issuedAt->addDays(90)))->toBeTrue()
+    expect($record->fresh()->expires_at->equalTo($issuedAt->addDays(46)))->toBeTrue()
         ->and($record->fresh()->created_at->equalTo($issuedAt))->toBeTrue();
 
     $this->travel(74)->days();
@@ -280,7 +280,7 @@ it('revalidates the locked token against a concurrent extension, revocation or e
     sessionRequest($token, 'users.get', ['user' => $userId + 1])->assertNotFound();
 
     $child = new ConcurrentDatabaseProcess(static function (): void {
-        app(SessionExtensionAdapter::class)->extendCurrentToken(15, 30, 90);
+        app(SessionAdapter::class)->extendCurrentToken();
     });
 
     try {

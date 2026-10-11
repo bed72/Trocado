@@ -490,3 +490,16 @@ O sistema MUST revalidar na escrita que o token atual ainda existe, não venceu,
 - **WHEN** um token emitido antes da mudança ainda possui `expires_at` futuro explícito e faz uma requisição elegível
 - **THEN** pode receber a extensão segundo os mesmos limites de idade e validade
 - **AND** um token legado já vencido não ganha nova validade quando o limite global é desligado
+
+### Requirement: Política temporal de sessão única e independente do framework
+O sistema MUST centralizar em Identity Domain a política fixa de validade de 30 dias, janela inclusiva de extensão de 15 dias e idade máxima de 90 dias. Emissão, extensão e validação do token MUST reutilizar essa política com datas explícitas. O Port de extensão MUST NOT receber limites escolhidos pelo caller. A Infrastructure MUST continuar responsável pelo relógio e pela releitura com lock antes de aplicar o cálculo puro sobre o token atual.
+
+#### Scenario: Emissão e validação usam a mesma política
+- **WHEN** o sistema emite ou valida um Personal Access Token
+- **THEN** a validade inicial e o limite absoluto são definidos pela mesma política pura de Identity
+- **AND** os Adapters e o provider não duplicam os limites temporais
+
+#### Scenario: Extensão sobre o estado bloqueado
+- **WHEN** a capacidade de extensão é invocada diretamente ou após requisição elegível
+- **THEN** o Adapter relê o token com lock e fornece suas datas atuais à política
+- **AND** não recebe parâmetros para ampliar a janela, a validade ou a idade máxima

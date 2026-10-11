@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Identity\Application\Ports\SignInPort;
 use App\Identity\Domain\Enums\UserStatusEnum;
+use App\Identity\Domain\ValueObjects\SessionPolicyValueObject;
 use App\Identity\Infrastructure\Adapters\SignInAdapter;
 use App\Identity\Infrastructure\Repositories\Persistence\Models\UserModel;
 use Carbon\CarbonImmutable;
@@ -141,7 +142,7 @@ it('preserves operational authentication failures as safe server errors without 
     $provider->expects($this->never())->method('validateCredentials');
     $auth = $this->createMock(AuthManager::class);
     $auth->expects($this->once())->method('createUserProvider')->with(config('auth.guards.web.provider'))->willReturn($provider);
-    $this->app->instance(SignInPort::class, new SignInAdapter($auth, config()));
+    $this->app->instance(SignInPort::class, new SignInAdapter($auth, config(), new SessionPolicyValueObject));
 
     $this->postJson(route('authentication.api.sign-in'), [
         'data' => ['type' => 'access-tokens', 'attributes' => ['email' => $user->email, 'password' => 'Correct1']],

@@ -8,7 +8,7 @@ use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Insights\Application\Data\ExpenseAnalysisOutput;
 use App\Insights\Application\Data\ExpenseCategoryAnalysisOutput;
 use App\Insights\Application\Data\ExpensePeriodAnalysisOutput;
-use App\Insights\Application\Ports\ExpenseAnalysisPort;
+use App\Insights\Application\Repositories\ExpenseAnalysisRepository;
 use App\Insights\Application\UseCases\ComposeInsightMessageUseCase;
 use App\Insights\Application\UseCases\GenerateInsightCandidatesUseCase;
 use App\Insights\Application\UseCases\GetInsightMessageTemplatesUseCase;
@@ -47,11 +47,11 @@ function getInsightsAnalysisFixture(string $categoryAmount = '30000', string $ca
     );
 }
 
-function getInsightsFixtureUseCase(UserPort $userPort, ExpenseAnalysisPort $analysisPort): GetInsightsUseCase
+function getInsightsFixtureUseCase(UserPort $userPort, ExpenseAnalysisRepository $analysisPort): GetInsightsUseCase
 {
     return new GetInsightsUseCase(
-        userPort: $userPort,
-        expenseAnalysisPort: $analysisPort,
+        port: $userPort,
+        repository: $analysisPort,
         candidateGenerationUseCase: new GenerateInsightCandidatesUseCase,
         candidateSelectionUseCase: new SelectInsightCandidatesUseCase,
         messageCompositionUseCase: new ComposeInsightMessageUseCase(new GetInsightMessageTemplatesUseCase, new SelectInsightMessageVariantUseCase),
@@ -61,7 +61,7 @@ function getInsightsFixtureUseCase(UserPort $userPort, ExpenseAnalysisPort $anal
 it('obtains the owner from its port and returns composed typed insights', function (): void {
     $userPort = $this->createMock(UserPort::class);
     $userPort->expects($this->once())->method('id')->willReturn(42);
-    $analysisPort = $this->createMock(ExpenseAnalysisPort::class);
+    $analysisPort = $this->createMock(ExpenseAnalysisRepository::class);
     $analysisPort->expects($this->once())->method('analyze')->with(42, '2026-10-12')->willReturn(getInsightsAnalysisFixture());
 
     $insights = getInsightsFixtureUseCase($userPort, $analysisPort)->execute('2026-10-12');
@@ -78,7 +78,7 @@ it('obtains the owner from its port and returns composed typed insights', functi
 it('keeps derived IDs and variants stable when only numbers change', function (): void {
     $userPort = $this->createMock(UserPort::class);
     $userPort->method('id')->willReturn(42);
-    $analysisPort = $this->createMock(ExpenseAnalysisPort::class);
+    $analysisPort = $this->createMock(ExpenseAnalysisRepository::class);
     $analysisPort->expects($this->exactly(2))->method('analyze')->with(42, '2026-10-12')
         ->willReturnOnConsecutiveCalls(getInsightsAnalysisFixture(), getInsightsAnalysisFixture('33000'));
     $useCase = getInsightsFixtureUseCase($userPort, $analysisPort);
@@ -94,7 +94,7 @@ it('keeps derived IDs and variants stable when only numbers change', function ()
 it('keeps the resource ID independent of the rotating message for the same analyzed periods', function (): void {
     $userPort = $this->createMock(UserPort::class);
     $userPort->method('id')->willReturn(42);
-    $analysisPort = $this->createMock(ExpenseAnalysisPort::class);
+    $analysisPort = $this->createMock(ExpenseAnalysisRepository::class);
     $analysisPort->expects($this->exactly(2))->method('analyze')->willReturn(getInsightsAnalysisFixture());
     $useCase = getInsightsFixtureUseCase($userPort, $analysisPort);
     $first = $useCase->execute('2026-10-12')[0];
@@ -109,7 +109,7 @@ it('keeps the resource ID independent of the rotating message for the same analy
 it('distinguishes accounts subjects and analyzed periods in derived IDs', function (string $dimension): void {
     $userPort = $this->createMock(UserPort::class);
     $userPort->method('id')->willReturnOnConsecutiveCalls(42, $dimension === 'account' ? 43 : 42);
-    $analysisPort = $this->createMock(ExpenseAnalysisPort::class);
+    $analysisPort = $this->createMock(ExpenseAnalysisRepository::class);
     $changed = match ($dimension) {
         'account' => getInsightsAnalysisFixture(),
         'subject' => getInsightsAnalysisFixture(category: 'health'),
@@ -124,7 +124,7 @@ it('distinguishes accounts subjects and analyzed periods in derived IDs', functi
 it('does not read analytical data when the identity port fails', function (): void {
     $userPort = $this->createMock(UserPort::class);
     $userPort->method('id')->willThrowException(new RuntimeException('Identity unavailable'));
-    $analysisPort = $this->createMock(ExpenseAnalysisPort::class);
+    $analysisPort = $this->createMock(ExpenseAnalysisRepository::class);
     $analysisPort->expects($this->never())->method('analyze');
 
     getInsightsFixtureUseCase($userPort, $analysisPort)->execute('2026-10-12');
@@ -133,7 +133,7 @@ it('does not read analytical data when the identity port fails', function (): vo
 it('propagates analytical failures instead of producing fabricated onboarding', function (): void {
     $userPort = $this->createMock(UserPort::class);
     $userPort->method('id')->willReturn(42);
-    $analysisPort = $this->createMock(ExpenseAnalysisPort::class);
+    $analysisPort = $this->createMock(ExpenseAnalysisRepository::class);
     $analysisPort->method('analyze')->willThrowException(new RuntimeException('Analysis unavailable'));
 
     getInsightsFixtureUseCase($userPort, $analysisPort)->execute('2026-10-12');

@@ -5,7 +5,7 @@ declare(strict_types=1);
 use App\Core\Application\Ports\UserPort;
 use App\Core\Infrastructure\Adapters\UserAdapter;
 use App\Identity\Domain\Enums\UserStatusEnum;
-use App\Insights\Application\Ports\ExpenseAnalysisPort;
+use App\Insights\Application\Repositories\ExpenseAnalysisRepository;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Date;
@@ -103,9 +103,9 @@ it('returns first expense alone for an authenticated account without historical 
 });
 
 it('rejects unauthenticated and invalid token requests before analytical access', function (bool $invalidToken): void {
-    $port = $this->createMock(ExpenseAnalysisPort::class);
+    $port = $this->createMock(ExpenseAnalysisRepository::class);
     $port->expects($this->never())->method('analyze');
-    $this->app->instance(ExpenseAnalysisPort::class, $port);
+    $this->app->instance(ExpenseAnalysisRepository::class, $port);
     $response = $invalidToken ? insightsApiRequest('invalid') : $this->getJson(route('insights.index'));
 
     $response->assertUnauthorized()->assertHeader('Content-Type', 'application/vnd.api+json')->assertJsonMissingPath('data');
@@ -118,9 +118,9 @@ it('blocks inactive or unverified accounts before analytical access', function (
     DB::table('users')->where('id', $userId)->update($state === 'unverified'
         ? ['email_verified_at' => null]
         : ['status' => $state]);
-    $port = $this->createMock(ExpenseAnalysisPort::class);
+    $port = $this->createMock(ExpenseAnalysisRepository::class);
     $port->expects($this->never())->method('analyze');
-    $this->app->instance(ExpenseAnalysisPort::class, $port);
+    $this->app->instance(ExpenseAnalysisRepository::class, $port);
 
     insightsApiRequest($token)->assertForbidden()->assertHeader('Content-Type', 'application/vnd.api+json')
         ->assertJsonMissingPath('data');
@@ -129,9 +129,9 @@ it('blocks inactive or unverified accounts before analytical access', function (
 it('rejects every supplied query parameter including empty values without analyzing expenses', function (string $query, string $parameter): void {
     $user = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
     $token = IdentityFixture::token($user, expiresAt: now()->addDays(30));
-    $port = $this->createMock(ExpenseAnalysisPort::class);
+    $port = $this->createMock(ExpenseAnalysisRepository::class);
     $port->expects($this->never())->method('analyze');
-    $this->app->instance(ExpenseAnalysisPort::class, $port);
+    $this->app->instance(ExpenseAnalysisRepository::class, $port);
 
     insightsApiRequest($token, $query)->assertUnprocessable()
         ->assertHeader('Content-Type', 'application/vnd.api+json')
@@ -234,9 +234,9 @@ it('extends the successful session and does not extend a rejected query', functi
 it('returns an explicit JSON API failure when analytical reading fails', function (): void {
     $user = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
     $token = IdentityFixture::token($user, expiresAt: now()->addDays(30));
-    $port = $this->createMock(ExpenseAnalysisPort::class);
+    $port = $this->createMock(ExpenseAnalysisRepository::class);
     $port->method('analyze')->willThrowException(new RuntimeException('Analytical database unavailable'));
-    $this->app->instance(ExpenseAnalysisPort::class, $port);
+    $this->app->instance(ExpenseAnalysisRepository::class, $port);
 
     insightsApiRequest($token)->assertStatus(500)->assertHeader('Content-Type', 'application/vnd.api+json')
         ->assertJsonPath('errors.0.status', '500')->assertJsonMissingPath('data');

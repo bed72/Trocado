@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use App\Identity\Domain\Enums\UserStatusEnum;
 use App\Identity\Infrastructure\Repositories\Persistence\Models\UserModel;
-use App\Metrics\Application\Ports\ExpenseMetricsPort;
-use App\Metrics\Infrastructure\Adapters\ExpenseMetricsAdapter;
+use App\Metrics\Application\Repositories\ExpenseMetricsRepository;
+use App\Metrics\Infrastructure\Repositories\Persistence\EloquentExpenseMetricsRepository;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use RuntimeException as OperationalFailureException;
@@ -34,7 +34,7 @@ it('exposes the bound adapter through a singular exact JSON API summary in both 
     insertHttpMetricsExpense($this->userId, 60000, 'food');
     insertHttpMetricsExpense($this->userId, 30000, 'transport');
     insertHttpMetricsExpense($this->userId, 10000);
-    expect(app(ExpenseMetricsPort::class))->toBeInstanceOf(ExpenseMetricsAdapter::class);
+    expect(app(ExpenseMetricsRepository::class))->toBeInstanceOf(EloquentExpenseMetricsRepository::class);
 
     $simple = $this->getJson('/api/metrics/expenses?start_date=2026-10-01&end_date=2026-10-31')
         ->assertOk()->assertHeader('Content-Type', 'application/vnd.api+json')
@@ -56,9 +56,9 @@ it('rejects the original invalid query before reading expenses with and without 
         insertHttpMetricsExpense($this->userId, 100);
     }
 
-    $port = Mockery::mock(ExpenseMetricsPort::class);
-    $port->shouldNotReceive('summarize');
-    $this->app->instance(ExpenseMetricsPort::class, $port);
+    $repository = $this->createMock(ExpenseMetricsRepository::class);
+    $repository->expects($this->never())->method('summarize');
+    $this->app->instance(ExpenseMetricsRepository::class, $repository);
     $response = $this->getJson('/api/metrics/expenses?'.$query)
         ->assertUnprocessable()->assertHeader('Content-Type', 'application/vnd.api+json');
     $errors = $response->json('errors');
@@ -140,9 +140,9 @@ it('preserves huge totals and zero-rounded shares in JSON', function (): void {
 });
 
 it('blocks unauthenticated inactive and unverified accounts before reading metrics', function (string $condition, int $status): void {
-    $port = Mockery::mock(ExpenseMetricsPort::class);
-    $port->shouldNotReceive('summarize');
-    $this->app->instance(ExpenseMetricsPort::class, $port);
+    $repository = $this->createMock(ExpenseMetricsRepository::class);
+    $repository->expects($this->never())->method('summarize');
+    $this->app->instance(ExpenseMetricsRepository::class, $repository);
 
     if ($condition === 'unauthenticated') {
         $this->withHeader('Authorization', 'Bearer invalid');
@@ -176,9 +176,10 @@ it('keeps identity stable after writes and excludes another account', function (
 });
 
 it('returns an explicit sanitized operational error instead of zero', function (): void {
-    $port = Mockery::mock(ExpenseMetricsPort::class);
-    $port->shouldReceive('summarize')->once()->andThrow(new OperationalFailureException('private SQL and credentials'));
-    $this->app->instance(ExpenseMetricsPort::class, $port);
+    $repository = $this->createMock(ExpenseMetricsRepository::class);
+    $repository->expects($this->once())->method('summarize')
+        ->willThrowException(new OperationalFailureException('private SQL and credentials'));
+    $this->app->instance(ExpenseMetricsRepository::class, $repository);
     $response = $this->getJson('/api/metrics/expenses')->assertStatus(500)
         ->assertHeader('Content-Type', 'application/vnd.api+json');
     expect($response->json())->not->toHaveKey('data')

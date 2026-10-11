@@ -6,24 +6,24 @@ namespace App\Insights\Application\UseCases;
 
 use App\Core\Application\Ports\UserPort;
 use App\Insights\Application\Data\InsightOutput;
-use App\Insights\Application\Ports\ExpenseAnalysisPort;
+use App\Insights\Application\Repositories\ExpenseAnalysisRepository;
 use App\Insights\Domain\ValueObjects\InsightCandidateValueObject;
 
 final readonly class GetInsightsUseCase
 {
     public function __construct(
-        private UserPort $userPort,
-        private ExpenseAnalysisPort $expenseAnalysisPort,
+        private UserPort $port,
         private ComposeInsightMessageUseCase $messageCompositionUseCase,
         private SelectInsightCandidatesUseCase $candidateSelectionUseCase,
         private GenerateInsightCandidatesUseCase $candidateGenerationUseCase,
+        private ExpenseAnalysisRepository $repository,
     ) {}
 
     /** @return list<InsightOutput> */
     public function execute(string $referenceDate): array
     {
-        $userId = $this->userPort->id();
-        $analysis = $this->expenseAnalysisPort->analyze(userId: $userId, referenceDate: $referenceDate);
+        $userId = $this->port->id();
+        $analysis = $this->repository->analyze(userId: $userId, referenceDate: $referenceDate);
         $candidates = $this->candidateGenerationUseCase->execute($analysis);
         $selected = $this->candidateSelectionUseCase->execute($candidates);
         $insights = [];

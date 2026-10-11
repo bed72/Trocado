@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Core\Application\Ports\TransactionPort;
 use App\Identity\Application\Data\SignInOutput;
 use App\Identity\Application\Ports\EmailVerificationPort;
+use App\Identity\Application\Ports\SessionPort;
 use App\Identity\Application\Ports\SignInPort;
 use App\Identity\Application\Ports\SignOutPort;
 
@@ -13,6 +14,7 @@ it('keeps identity capabilities separated behind exact port contracts', function
     $signInMethods = (new ReflectionClass(SignInPort::class))->getMethods();
     $signOutMethods = (new ReflectionClass(SignOutPort::class))->getMethods();
     $emailVerificationMethods = (new ReflectionClass(EmailVerificationPort::class))->getMethods();
+    $sessionMethods = (new ReflectionClass(SessionPort::class))->getMethods();
 
     expect(array_column($writeMethods, 'name'))->toBe(['commit', 'afterCommit'])
         ->and($writeMethods[0]->getParameters())->toHaveCount(1)
@@ -23,7 +25,9 @@ it('keeps identity capabilities separated behind exact port contracts', function
         ->and(array_column($signOutMethods, 'name'))->toBe(['revokeToken'])
         ->and(array_column($emailVerificationMethods, 'name'))->toBe([
             'requestForEmail',
-            'verify',
             'requestForRegistration',
-        ]);
+            'publishVerified',
+        ])
+        ->and(array_column($sessionMethods, 'name'))->toBe(['extendCurrentToken'])
+        ->and($sessionMethods[0]->getParameters())->toBe([]);
 });

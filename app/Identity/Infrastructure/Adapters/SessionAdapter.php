@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Identity\Infrastructure\Adapters;
 
-use App\Identity\Application\Ports\SessionExtensionPort;
+use App\Identity\Application\Ports\SessionPort;
+use App\Identity\Domain\ValueObjects\SessionPolicyValueObject;
 use App\Identity\Infrastructure\Repositories\Persistence\Models\UserModel;
 use DateTimeImmutable;
 use DateTimeInterface;
@@ -12,11 +13,11 @@ use Illuminate\Auth\AuthManager;
 use Illuminate\Support\Facades\Date;
 use Laravel\Sanctum\PersonalAccessToken;
 
-final readonly class SessionExtensionAdapter implements SessionExtensionPort
+final readonly class SessionAdapter implements SessionPort
 {
-    public function __construct(private AuthManager $manager) {}
+    public function __construct(private AuthManager $manager, private SessionPolicyValueObject $policy) {}
 
-    public function extendCurrentToken(int $windowDays, int $validityDays, int $maximumAgeDays): void
+    public function extendCurrentToken(): void
     {
         $user = $this->manager->guard(name: 'sanctum')->user();
         $token = $user instanceof UserModel ? $user->currentAccessToken() : null;
@@ -25,7 +26,7 @@ final readonly class SessionExtensionAdapter implements SessionExtensionPort
             return;
         }
 
-        $token->getConnection()->transaction(function () use ($token, $windowDays, $validityDays, $maximumAgeDays): void {
+        $token->getConnection()->transaction(function () use ($token): void {
             $current = $token->newQuery()->whereKey($token->getKey())->lockForUpdate()->first();
 
             if (! $current instanceof PersonalAccessToken) {
@@ -39,17 +40,13 @@ final readonly class SessionExtensionAdapter implements SessionExtensionPort
                 return;
             }
 
-            $now = DateTimeImmutable::createFromInterface(Date::now());
-            $absoluteExpiry = DateTimeImmutable::createFromInterface($createdAt)->modify('+'.min($maximumAgeDays, 90).' days');
+            $newExpiry = $this->policy->extendedExpiry(
+                issuedAt: DateTimeImmutable::createFromInterface($createdAt),
+                expiresAt: DateTimeImmutable::createFromInterface($expiresAt),
+                reference: DateTimeImmutable::createFromInterface(Date::now()),
+            );
 
-            if ($expiresAt <= $now || $absoluteExpiry <= $now
-                || $expiresAt > $now->modify("+$windowDays days")) {
-                return;
-            }
-
-            $newExpiry = min($now->modify("+$validityDays days"), $absoluteExpiry);
-
-            if ($newExpiry > $expiresAt) {
+            if ($newExpiry !== null) {
                 $current->forceFill(['expires_at' => $newExpiry]);
                 $current->save();
             }

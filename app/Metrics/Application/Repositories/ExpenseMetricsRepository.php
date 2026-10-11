@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Metrics\Application\Ports;
+namespace App\Metrics\Application\Repositories;
 
 use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Metrics\Application\Data\ExpenseMetricsProjectionOutput;
 use App\Metrics\Domain\Enums\ExpenseMetricsGroupingEnum;
 
-interface ExpenseMetricsPort
+interface ExpenseMetricsRepository
 {
     /**
      * Returns exact canonical amount strings in minor units for this owner and inclusive period.

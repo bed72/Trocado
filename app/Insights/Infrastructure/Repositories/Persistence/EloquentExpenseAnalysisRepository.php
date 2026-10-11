@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Insights\Infrastructure\Adapters;
+namespace App\Insights\Infrastructure\Repositories\Persistence;
 
 use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Insights\Application\Data\ExpenseAnalysisOutput;
 use App\Insights\Application\Data\ExpenseCategoryAnalysisOutput;
 use App\Insights\Application\Data\ExpensePeriodAnalysisOutput;
-use App\Insights\Application\Ports\ExpenseAnalysisPort;
+use App\Insights\Application\Repositories\ExpenseAnalysisRepository;
 use DateTimeImmutable;
 use DateTimeZone;
 use Illuminate\Support\Facades\DB;
@@ -33,7 +33,7 @@ use Illuminate\Support\Facades\DB;
  *     largest_expense_category: ?string,
  * }
  */
-final class ExpenseAnalysisAdapter implements ExpenseAnalysisPort
+final class EloquentExpenseAnalysisRepository implements ExpenseAnalysisRepository
 {
     public function analyze(int $userId, string $referenceDate): ExpenseAnalysisOutput
     {

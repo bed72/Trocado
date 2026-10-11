@@ -55,7 +55,7 @@ Use `lerd composer test -- <caminho/opções Pest>` (sem Lerd: `composer test --
 lerd composer test -- tests/Unit --compact
 lerd composer test -- tests/Unit/Architecture --compact
 lerd composer test -- tests/Feature/Metrics --compact
-lerd composer test -- tests/Feature/Metrics/Infrastructure/Adapters/ExpenseMetricsAdapterTest.php --compact
+lerd composer test -- tests/Feature/Metrics/Infrastructure/Repositories/Persistence/EloquentExpenseMetricsRepositoryTest.php --compact
 lerd composer test -- tests/Feature/Identity/Presentation/Http/SignInHttpTest.php --filter="nome do cenário" --compact
 lerd composer test -- --compact
 lerd composer test -- --group=integration --compact
@@ -85,6 +85,13 @@ lerd composer test -- --parallel --processes=2 --compact --fail-on-skipped --fai
 ```
 
 Registre comandos, seeds, número de processos, resultados, duração e limitações. Ao mover ou consolidar testes, mantenha a correspondência de cada cenário antigo com seu destino ou consolidação justificada. Uma execução verde não prova cenários ausentes: mock não comprova rollback/constraint, chamada manual de job não comprova worker real e repetição sequencial não comprova corrida. Testes editoriais não dependem de IDs incidentais, e observabilidade usa assertions estruturais de JSON. Não ajuste sequência, assertion ou timeout apenas para esconder falha.
+
+Na reclassificação das leituras analíticas como Repositories, os cenários dos dois arquivos abaixo foram preservados integralmente, sem consolidação ou remoção. Cada cenário permanece no arquivo de destino com o mesmo objetivo e assertions comportamentais; mudaram os contratos, as implementações e os bindings referenciados. Ambos os arquivos de destino são executáveis isoladamente pelo launcher.
+
+| Arquivo anterior (todos os cenários) | Destino |
+| --- | --- |
+| `tests/Feature/Insights/ExpenseAnalysisAdapterTest.php` | `tests/Feature/Insights/Infrastructure/Repositories/Persistence/EloquentExpenseAnalysisRepositoryTest.php` |
+| `tests/Feature/Metrics/Infrastructure/Adapters/ExpenseMetricsAdapterTest.php` | `tests/Feature/Metrics/Infrastructure/Repositories/Persistence/EloquentExpenseMetricsRepositoryTest.php` |
 
 ### Dados demonstrativos
 

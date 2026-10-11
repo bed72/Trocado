@@ -12,6 +12,11 @@ O sistema MUST manter Insights como contexto dedicado, responsável por análise
 - **THEN** sua Infrastructure consulta o banco e entrega dados tipados ao contexto
 - **AND** nenhum componente de Expense é chamado ou importado e nenhum registro é alterado
 
+#### Scenario: Contrato de leitura próprio
+- **WHEN** a Application solicita os fatos analíticos
+- **THEN** depende de um Repository de leitura próprio de Insights, implementado na Infrastructure e com projeções independentes do ORM
+- **AND** a leitura permanece em um statement e não é exposta como Port de capacidade
+
 ### Requirement: Consulta pessoal autenticada e isolada por proprietário
 
 O sistema MUST oferecer `GET /api/insights` somente sob autenticação, conta ativa, e-mail verificado e as políticas existentes de throttle autenticado e extensão de sessão. MUST obter o proprietário da identidade autenticada e restringir todas as fontes de cálculo a suas despesas antes de agregações, rankings e comparações. MUST NOT aceitar parâmetros de query no MVP, incluindo proprietário, família, período, limite ou paginação; parâmetros recebidos MUST produzir `422` em JSON:API sem alterar o escopo de acesso.

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Insights\Application\Ports;
+namespace App\Insights\Application\Repositories;
 
 use App\Insights\Application\Data\ExpenseAnalysisOutput;
 
-interface ExpenseAnalysisPort
+interface ExpenseAnalysisRepository
 {
     public function analyze(int $userId, string $referenceDate): ExpenseAnalysisOutput;
 }

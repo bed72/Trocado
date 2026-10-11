@@ -18,6 +18,11 @@ O sistema MUST manter `Metrics` como bounded context responsável pela consulta 
 - **THEN** a integração ocorre somente na Infrastructure pela leitura do schema
 - **AND** nenhum registro de despesa, identidade ou configuração é criado, alterado ou excluído pela operação analítica
 
+#### Scenario: Repository de leitura do contexto consumidor
+- **WHEN** a Application solicita totais por proprietário, período e agrupamento
+- **THEN** usa um Repository próprio de Metrics que devolve projeções independentes do ORM
+- **AND** não amplia o Repository CRUD de Expense nem classifica agregação SQL como Port
+
 #### Scenario: Conceitos puros compartilhados sem duplicação
 - **WHEN** Metrics e Insights precisam de centavos, períodos civis ou razões exatas
 - **THEN** reutilizam os Value Objects normalizados de Core Domain

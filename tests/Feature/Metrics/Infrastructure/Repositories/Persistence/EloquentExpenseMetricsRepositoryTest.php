@@ -6,7 +6,7 @@ use App\Core\Domain\Enums\ExpenseCategoryEnum;
 use App\Core\Domain\ValueObjects\AmountValueObject;
 use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Metrics\Domain\Enums\ExpenseMetricsGroupingEnum;
-use App\Metrics\Infrastructure\Adapters\ExpenseMetricsAdapter;
+use App\Metrics\Infrastructure\Repositories\Persistence\EloquentExpenseMetricsRepository;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 
@@ -38,7 +38,7 @@ it('reads only the owner inclusive occurrence period in one statement without wr
     DB::flushQueryLog();
 
     try {
-        $output = (new ExpenseMetricsAdapter)->summarize(
+        $output = (new EloquentExpenseMetricsRepository)->summarize(
             $userId, DatePeriodValueObject::fromDates('2026-10-01', '2026-10-31'), $grouping,
         );
         $queries = DB::getQueryLog();
@@ -66,7 +66,7 @@ it('returns canonical zero only for an empty owner period even when another owne
     insertMetricsExpense(createMetricsUser('other-metrics@example.com'), '2026-10-01', 90000);
     insertMetricsExpense($userId, '2026-09-30', 100);
 
-    $output = (new ExpenseMetricsAdapter)->summarize(
+    $output = (new EloquentExpenseMetricsRepository)->summarize(
         $userId, DatePeriodValueObject::fromDates('2026-10-01', '2026-10-31'), $grouping,
     );
 
@@ -80,7 +80,7 @@ it('preserves sums above native integers in both modes and reconciles exact grou
     insertMetricsExpense($userId, '2026-10-01', 4000000000000000000, 'food');
     insertMetricsExpense($userId, '2026-10-01', 1, 'other');
 
-    $output = (new ExpenseMetricsAdapter)->summarize(
+    $output = (new EloquentExpenseMetricsRepository)->summarize(
         $userId, DatePeriodValueObject::fromDates('2026-10-01', '2026-10-31'), $grouping,
     );
 
@@ -112,7 +112,7 @@ it('aggregates all categories in one statement with exact numeric ordering and a
     DB::flushQueryLog();
 
     try {
-        $output = (new ExpenseMetricsAdapter)->summarize(
+        $output = (new EloquentExpenseMetricsRepository)->summarize(
             $userId, DatePeriodValueObject::fromDates('2026-10-01', '2026-10-31'), ExpenseMetricsGroupingEnum::Category,
         );
         $queries = DB::getQueryLog();
@@ -135,7 +135,7 @@ it('accepts single days future years leap days and extreme civil bounds through 
     insertMetricsExpense($userId, $from, 1);
     insertMetricsExpense($userId, $to, 2);
 
-    $output = (new ExpenseMetricsAdapter)->summarize(
+    $output = (new EloquentExpenseMetricsRepository)->summarize(
         $userId, DatePeriodValueObject::fromDates($from, $to), ExpenseMetricsGroupingEnum::Category,
     );
 
@@ -152,9 +152,9 @@ it('accepts single days future years leap days and extreme civil bounds through 
 
 it('reads confirmed creations edits recategorizations date changes and deletions without cache', function (): void {
     $userId = createMetricsUser();
-    $adapter = new ExpenseMetricsAdapter;
+    $repository = new EloquentExpenseMetricsRepository;
     $period = DatePeriodValueObject::fromDates('2026-10-01', '2026-10-31');
-    $read = fn () => $adapter->summarize($userId, $period, ExpenseMetricsGroupingEnum::Category);
+    $read = fn () => $repository->summarize($userId, $period, ExpenseMetricsGroupingEnum::Category);
     $id = insertMetricsExpense($userId, '2026-10-01', 10000);
     expect($read()->totalAmount)->toBe('10000');
     $secondId = insertMetricsExpense($userId, '2026-10-02', 2500, 'food');
@@ -177,7 +177,7 @@ it('propagates real SQL failures instead of returning empty metrics', function (
     try {
         DB::statement('ALTER TABLE expenses RENAME COLUMN amount TO unavailable_amount');
 
-        expect(fn () => (new ExpenseMetricsAdapter)->summarize(
+        expect(fn () => (new EloquentExpenseMetricsRepository)->summarize(
             $userId, DatePeriodValueObject::fromDates('2026-10-01', '2026-10-31'), $grouping,
         ))->toThrow(QueryException::class);
     } finally {

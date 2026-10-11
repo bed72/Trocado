@@ -9,7 +9,6 @@ use App\Identity\Application\Ports\EmailVerificationPort;
 use App\Identity\Infrastructure\Repositories\Persistence\Models\UserModel;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Events\Verified;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Throwable;
 
@@ -39,25 +38,13 @@ final class EmailVerificationAdapter implements EmailVerificationPort
         }
     }
 
-    public function verify(int $userId, string $hash): bool
+    public function publishVerified(int $userId): void
     {
-        $user = UserModel::query()->lockForUpdate()->find(id: $userId);
+        $user = UserModel::query()->find(id: $userId);
 
-        if ($user === null || ! hash_equals(sha1($user->getEmailForVerification()), $hash)) {
-            return false;
+        if ($user !== null && $user->hasVerifiedEmail()) {
+            Event::dispatch(new Verified(user: $user));
         }
-
-        if ($user->hasVerifiedEmail()) {
-            return true;
-        }
-
-        if (! $user->markEmailAsVerified()) {
-            return false;
-        }
-
-        DB::afterCommit(fn () => Event::dispatch(new Verified(user: $user)));
-
-        return true;
     }
 
     private function notify(UserModel $user): void
