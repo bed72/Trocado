@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Expense\Infrastructure\Repositories\Cache;
 
 use App\Expense\Application\Data\ExpensePageOutput;
+use App\Expense\Application\Data\GetAllExpenseInput;
 use App\Expense\Application\Data\UpdateExpenseInput;
+use App\Expense\Application\Ports\ExpenseQueryCursorPort;
 use App\Expense\Application\Repositories\ExpenseRepository;
 use App\Expense\Domain\Entities\ExpenseEntity;
 use DateTimeImmutable;
@@ -16,6 +18,7 @@ final readonly class CachedExpenseRepository implements ExpenseRepository
 {
     public function __construct(
         private CacheManager $cache,
+        private ExpenseQueryCursorPort $port,
         private ExpenseRepository $repository,
     ) {}
 
@@ -55,15 +58,16 @@ final readonly class CachedExpenseRepository implements ExpenseRepository
         return $updated;
     }
 
-    public function getAll(int $userId, int $size, ?string $cursor): ExpensePageOutput
+    public function getAll(int $userId, GetAllExpenseInput $input): ExpensePageOutput
     {
+        $this->port->decode($input);
         $tagged = $this->cache->tags($this->tag($userId));
-        $cursorKey = $cursor === null ? 'none' : "cursor:{$cursor}";
-        $key = "expense:pages:v1:{$userId}:{$size}:".hash('sha256', $cursorKey);
+        $cursorKey = $input->cursor === null ? 'none' : "cursor:{$input->cursor}";
+        $key = "expense:pages:v2:{$userId}:{$input->size}:".$this->port->fingerprint($input).':'.hash('sha256', $cursorKey);
 
         /** @var array{items: list<array{id: ?int, userId: int, amount: int, occurredOn: string, category: string, description: ?string, createdAt: ?string}>, nextCursor: ?string, previousCursor: ?string} $page */
-        $page = $tagged->remember($key, 60, function () use ($userId, $size, $cursor): array {
-            $output = $this->repository->getAll(userId: $userId, size: $size, cursor: $cursor);
+        $page = $tagged->remember($key, 60, function () use ($userId, $input): array {
+            $output = $this->repository->getAll(userId: $userId, input: $input);
 
             return [
                 'items' => array_map(static fn (ExpenseEntity $item): array => [

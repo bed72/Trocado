@@ -4,6 +4,7 @@ use App\Core\Presentation\Http\Middleware\AuthenticatedRequestMiddleware;
 use App\Core\Presentation\Http\Middleware\TraceRequestMiddleware;
 use App\Expense\Application\Exceptions\ExpenseNotFoundException;
 use App\Expense\Application\Exceptions\ExpenseOwnerNotFoundException;
+use App\Expense\Application\Exceptions\InvalidExpenseCursorException;
 use App\Expense\Domain\Exceptions\InvalidExpenseException;
 use App\Identity\Application\Exceptions\EmailAlreadyUsedException;
 use App\Identity\Application\Exceptions\InactiveUserException;
@@ -60,6 +61,13 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) use ($pageExpiredStatusCode): void {
+        $exceptions->dontReport(InvalidExpenseCursorException::class);
+        $exceptions->render(fn (InvalidExpenseCursorException $exception) => response()->json(['errors' => [[
+            'title' => 'Cursor inválido',
+            'detail' => $exception->getMessage(),
+            'source' => ['pointer' => '/page/cursor'],
+            'status' => (string) Response::HTTP_UNPROCESSABLE_ENTITY,
+        ]]], Response::HTTP_UNPROCESSABLE_ENTITY)->header('Content-Type', 'application/vnd.api+json'));
         $exceptions->dontReport([
             InactiveUserException::class,
             InvalidPasswordException::class,

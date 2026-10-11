@@ -159,6 +159,29 @@ curl -i -X POST http://127.0.0.1:8000/api/expenses \
 
 Criação retorna `201` com o recurso criado; erros de validação retornam `422` em JSON:API. `DELETE /api/expenses/{expense}` remove a despesa definitivamente. A migration `remove_soft_deletes_from_expenses_table` apaga as despesas que já estavam excluídas logicamente e remove `expenses.deleted_at`; revertê-la não recupera esses registros.
 
+## Consultar despesas com filtros e ordenação
+
+`GET /api/expenses` combina critérios antes da paginação e retorna somente despesas da conta autenticada. Descrição continua opcional/nullable na criação, edição e banco.
+
+| Parâmetro | Contrato |
+| --- | --- |
+| `filter[year]`, `filter[month]`, `filter[day]` | Ano completo, mês completo ou dia civil; mês exige ano, dia exige ambos. Sem filtro não há período corrente implícito |
+| `filter[from]`, `filter[to]` | Datas canônicas `Y-m-d`, limites inclusivos e independentes; não combinar com ano/mês/dia |
+| `filter[category]` | Categorias separadas por vírgulas, por OU; duplicatas válidas são normalizadas |
+| `filter[amount_min]`, `filter[amount_max]` | Centavos inteiros de 0 a 9223372036854775807, limites inclusivos e independentes. Máximo zero retorna coleção vazia |
+| `sort` | Até três campos distintos entre `occurred_on`, `amount`, `description`, por prioridade; prefixo `-` significa decrescente |
+| `page[size]`, `page[cursor]` | Tamanho padrão 20, intervalo 1–100; cursor opaco dos links `next`/`prev` |
+
+Filtros distintos combinam por E. Faixas invertidas, valores vazios, campos desconhecidos dentro de filter, categorias inválidas e campos de sort repetidos/fora da allowlist produzem `422` JSON:API. Sem sort, a ordem é `occurred_on DESC, id DESC`; ID decrescente desempata todas as ordenações.
+
+Exemplo: `GET /api/expenses?filter[from]=2026-09-01&filter[to]=2026-09-30&filter[category]=food,transport&filter[amount_min]=1000&filter[amount_max]=30000&sort=-occurred_on,amount&page[size]=6`.
+
+A ordenação alfabética ignora maiúsculas e acentos pela collation ICU `expense_description_ci_ai`. `Água`, `agua` e `ÁGUA` empatam; os próximos campos e ID resolvem o empate. Null equivale à string vazia somente na chave interna de ordenação: vem antes dos textos em ordem crescente e depois em decrescente; o valor público/persistido permanece null. A migration de collation não altera description ou dados existentes.
+
+Use os links devolvidos pela API, que conservam filtros, sort e tamanho. Mudar os critérios, direção ou prioridade exige reiniciar sem cursor. Novos cursores aceitam critérios normalizados equivalentes e mudança de tamanho, mas não consultas incompatíveis. Cursores antigos de occurred_on/id continuam aceitos somente no contrato anterior, sem novos filtros ou sort explícito, inclusive com ano/mês/dia. Cursor e cache não substituem o filtro de proprietário.
+
+O cache de páginas usa namespace versionado, critérios normalizados e TTL de 60 segundos; CRUD e classificação confirmados invalidam todas as variantes da conta. A coleção Bruno inclui exemplos desabilitados de cada critério; escolha componentes civis ou intervalo, sem ativar ambos. Copie um cursor devolvido para `expenseCursor` antes de ativar esse parâmetro.
+
 ## Eventos de observabilidade
 
 Com `LOG_OBSERVABILITY_STREAM=php://stderr`, os eventos JSON aparecem nos logs do container que executou a operação. Alterações confirmadas de conta e autenticação emitem `user.registered`, `user.updated`, `user.deleted`, `identity.signed_in` e `identity.signed_out`; despesas emitem `expense.created`, `expense.updated`, `expense.deleted` e `expense.classified`. Leituras não emitem eventos de negócio. Eventos HTTP incluem o `request_id` devolvido em `X-Request-Id`.

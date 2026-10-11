@@ -36,25 +36,25 @@ O registro de tentativa de categorização MUST ocorrer na mesma unidade transac
 - **THEN** a atualização condicional não aplica a sugestão e não informa uma categorização bem-sucedida
 
 ### Requirement: Cache coerente com escritas de ambos os contratos
-Os caminhos de cache de CRUD e de categorização MUST compartilhar a política de páginas por proprietário. Criação, edição, exclusão e categorização que alterem uma despesa MUST invalidar as páginas da conta afetada somente após a confirmação da respectiva escrita. O início, a leitura, o cancelamento ou a aplicação recusada de uma tentativa MUST NOT invalidar páginas; uma transação revertida MUST NOT invalidá-las. Uma categorização bem-sucedida MUST usar o proprietário da despesa efetivamente atualizada, sem invalidar páginas de outros proprietários.
+Cache de CRUD e categorização MUST compartilhar política de páginas por proprietário. Criação, edição, exclusão e categorização que alterem despesa MUST invalidar todas as páginas da conta somente após confirmação, incluindo períodos, categorias, valores, sorts, tamanhos e cursores distintos. Início, leitura, cancelamento ou aplicação recusada de tentativa MUST NOT invalidar páginas; transação revertida MUST NOT invalidá-las. Categorização bem-sucedida MUST usar o proprietário da despesa efetivamente atualizada, sem invalidar outras contas.
 
 #### Scenario: Classificação confirmada com página previamente cacheada
-- **WHEN** a IA aplica uma categoria válida a uma despesa com páginas cacheadas de seu proprietário
-- **THEN** após o commit as páginas desse proprietário, inclusive tamanhos e cursores diferentes, são recarregadas na próxima consulta
-- **AND** as páginas de outras contas não são invalidadas
+- **WHEN** IA aplica categoria válida com páginas do proprietário previamente cacheadas
+- **THEN** após commit todas as variantes, inclusive páginas filtradas pela categoria anterior e nova, são recarregadas
+- **AND** páginas de outras contas não são invalidadas
 
 #### Scenario: Operação sem alteração efetiva
-- **WHEN** uma tentativa é iniciada, consultada ou cancelada, ou sua aplicação condicional é recusada
-- **THEN** as páginas já cacheadas não são invalidadas por essa operação
+- **WHEN** tentativa é iniciada, consultada, cancelada ou sua aplicação é recusada
+- **THEN** páginas existentes não são invalidadas por essa operação
 
 #### Scenario: Rollback de categorização
-- **WHEN** a aplicação da categoria ocorre em uma transação que depois é revertida
-- **THEN** a categoria anterior permanece e nenhuma invalidação dessa tentativa é aplicada antes do commit
+- **WHEN** aplicação de categoria reverte
+- **THEN** categoria anterior permanece e nenhuma página é invalidada pela tentativa
 
 #### Scenario: Escrita de CRUD confirmada
-- **WHEN** uma despesa é criada, editada ou excluída com sucesso para um proprietário
-- **THEN** as páginas desse proprietário são invalidadas após a confirmação
-- **AND** a separação dos contratos não elimina a invalidação já existente
+- **WHEN** despesa é criada, editada ou excluída com sucesso
+- **THEN** todas as variantes de páginas do proprietário são invalidadas após confirmação
+- **AND** separação dos contratos não elimina a invalidação existente
 
 ### Requirement: Despacho e consumo da fila com os contratos separados
 A separação MUST enfileirar novos jobs de categorização com os dados necessários à tentativa e à execução, resolvendo o caso de uso e seus bindings no momento do processamento, sem serializar repositories ou serviços. O despacho MUST ocorrer após commit da criação; falha de despacho, uso de fila síncrona desabilitada para esse fluxo, sugestão inválida ou falha definitiva MUST cancelar apenas a tentativa correspondente, sem sobrescrever eventual edição do usuário, e manter `other` quando a despesa não tiver sido editada. O agente de IA MUST continuar isolado da persistência e MUST NOT ser chamado durante a criação HTTP.

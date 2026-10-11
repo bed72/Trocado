@@ -15,13 +15,15 @@ final readonly class GetAllExpenseController
 
     public function __invoke(GetAllExpenseRequest $request): JsonResponse
     {
-        $page = $this->useCase->execute(
-            cursor: $request->validated('page.cursor'),
-            size: (int) $request->validated('page.size', 20),
-        );
+        $input = $request->queryInput();
+        $page = $this->useCase->execute(input: $input);
 
-        $link = static fn (?string $cursor): ?string => $cursor === null ? null : route('expenses.index', [
-            'page' => ['size' => (int) $request->validated('page.size', 20), 'cursor' => $cursor],
+        $parameters = $request->validated('filter') === null ? [] : ['filter' => $request->validated('filter')];
+        if ($request->validated('sort') !== null) {
+            $parameters['sort'] = $request->validated('sort');
+        }
+        $link = static fn (?string $cursor): ?string => $cursor === null ? null : route('expenses.index', [...$parameters,
+            'page' => ['size' => $input->size, 'cursor' => $cursor],
         ]);
 
         return ExpenseResponse::collection($page->items)

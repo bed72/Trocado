@@ -5,14 +5,23 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/api/expenses?page[size]=20
+  url: {{baseUrl}}/api/expenses?filter[from]=2026-09-01&filter[to]=2026-09-30&filter[category]=food,transport&filter[amount_min]=1000&filter[amount_max]=30000&sort=-occurred_on,amount&page[size]=6
   body: none
   auth: bearer
 }
 
 params:query {
-  page[size]: 20
-  ~page[cursor]: 2
+  page[size]: 6
+  ~page[cursor]: {{expenseCursor}}
+  ~filter[year]: 2026
+  ~filter[month]: 9
+  ~filter[day]: 15
+  filter[from]: 2026-09-01
+  filter[to]: 2026-09-30
+  filter[category]: food,transport
+  filter[amount_min]: 1000
+  filter[amount_max]: 30000
+  sort: -occurred_on,amount
 }
 
 headers {

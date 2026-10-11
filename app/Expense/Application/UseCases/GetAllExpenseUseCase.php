@@ -6,14 +6,18 @@ namespace App\Expense\Application\UseCases;
 
 use App\Core\Application\Ports\UserPort;
 use App\Expense\Application\Data\ExpensePageOutput;
+use App\Expense\Application\Data\GetAllExpenseInput;
+use App\Expense\Application\Ports\ExpenseQueryCursorPort;
 use App\Expense\Application\Repositories\ExpenseRepository;
 
 final readonly class GetAllExpenseUseCase
 {
-    public function __construct(private UserPort $port, private ExpenseRepository $repository) {}
+    public function __construct(private UserPort $userPort, private ExpenseQueryCursorPort $cursorPort, private ExpenseRepository $repository) {}
 
-    public function execute(int $size, ?string $cursor): ExpensePageOutput
+    public function execute(GetAllExpenseInput $input): ExpensePageOutput
     {
-        return $this->repository->getAll(userId: $this->port->id(), size: $size, cursor: $cursor);
+        $this->cursorPort->decode($input);
+
+        return $this->repository->getAll(userId: $this->userPort->id(), input: $input);
     }
 }

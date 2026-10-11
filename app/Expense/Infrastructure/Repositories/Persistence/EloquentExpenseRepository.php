@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\Expense\Infrastructure\Repositories\Persistence;
 
+use App\Expense\Application\Data\ExpenseCursorOutput;
 use App\Expense\Application\Data\ExpensePageOutput;
+use App\Expense\Application\Data\GetAllExpenseInput;
 use App\Expense\Application\Data\UpdateExpenseInput;
 use App\Expense\Application\Exceptions\ExpenseOwnerNotFoundException;
+use App\Expense\Application\Ports\ExpenseQueryCursorPort;
 use App\Expense\Application\Repositories\ExpenseRepository;
 use App\Expense\Domain\Entities\ExpenseEntity;
 use App\Expense\Infrastructure\Repositories\Persistence\Models\ExpenseModel;
@@ -18,6 +21,8 @@ use function in_array;
 
 final class EloquentExpenseRepository implements ExpenseRepository
 {
+    public function __construct(private readonly ExpenseQueryCursorPort $port) {}
+
     public function getById(int $id, int $userId): ?ExpenseEntity
     {
         $model = ExpenseModel::query()
@@ -40,13 +45,44 @@ final class EloquentExpenseRepository implements ExpenseRepository
         );
     }
 
-    public function getAll(int $userId, int $size, ?string $cursor): ExpensePageOutput
+    public function getAll(int $userId, GetAllExpenseInput $input): ExpensePageOutput
     {
-        $page = ExpenseModel::query()
-            ->where('user_id', $userId)
-            ->orderByDesc('occurred_on')
-            ->orderByDesc('id')
-            ->cursorPaginate(perPage: $size, cursor: $cursor === null ? null : Cursor::fromEncoded($cursor));
+        $cursor = $this->port->decode($input);
+        $query = ExpenseModel::query()->where('user_id', $userId);
+
+        foreach (['occurred_on' => [$input->from, $input->to], 'amount' => [$input->amountMin, $input->amountMax]] as $column => [$minimum, $maximum]) {
+            if ($minimum !== null) {
+                $query->where($column, '>=', $minimum);
+            }
+            if ($maximum !== null) {
+                $query->where($column, '<=', $maximum);
+            }
+        }
+
+        if ($input->categories !== []) {
+            $query->whereIn('category', $input->categories);
+        }
+
+        $query->select('expenses.*');
+        foreach ($input->sorts as $sort) {
+            $field = ltrim($sort, '-');
+            $column = match ($field) {
+                'amount' => 'amount',
+                'occurred_on' => 'occurred_on',
+                'description' => 'description_sort',
+            };
+            if ($field === 'description') {
+                $query->selectRaw('(COALESCE(description, \'\') COLLATE "expense_description_ci_ai") as description_sort');
+            }
+            $query->orderBy($column, str_starts_with($sort, '-') ? 'desc' : 'asc');
+        }
+        $query->orderByDesc('id');
+
+        $parameters = [];
+        foreach ($cursor?->position ?? [] as $field => $value) {
+            $parameters[$field === 'description' ? 'description_sort' : $field] = $value;
+        }
+        $page = $query->cursorPaginate(perPage: $input->size, cursor: $cursor === null ? null : new Cursor($parameters, $cursor->forward));
 
         $items = [];
 
@@ -64,8 +100,8 @@ final class EloquentExpenseRepository implements ExpenseRepository
 
         return new ExpensePageOutput(
             items: $items,
-            nextCursor: $page->nextCursor()?->encode(),
-            previousCursor: $page->previousCursor()?->encode(),
+            nextCursor: $this->encodeCursor($input, $page->nextCursor()),
+            previousCursor: $this->encodeCursor($input, $page->previousCursor()),
         );
     }
 
@@ -145,5 +181,20 @@ final class EloquentExpenseRepository implements ExpenseRepository
         $model->fill($attributes)->save();
 
         return $expense;
+    }
+
+    private function encodeCursor(GetAllExpenseInput $input, ?Cursor $cursor): ?string
+    {
+        if ($cursor === null) {
+            return null;
+        }
+        $values = $cursor->toArray();
+        unset($values['_pointsToNextItems']);
+        $position = [];
+        foreach ($values as $field => $value) {
+            $position[$field === 'description_sort' ? 'description' : $field] = $value;
+        }
+
+        return $this->port->encode($input, new ExpenseCursorOutput($position, $cursor->pointsToNextItems()));
     }
 }
