@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Core\Domain\Enums\ExpenseCategoryEnum;
 use App\Core\Domain\ValueObjects\AmountValueObject;
 use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Metrics\Domain\Enums\ExpenseMetricsGroupingEnum;
@@ -101,8 +100,11 @@ it('preserves sums above native integers in both modes and reconciles exact grou
 it('aggregates all categories in one statement with exact numeric ordering and alphabetical ties', function (): void {
     $userId = createMetricsUser();
 
-    foreach (ExpenseCategoryEnum::cases() as $category) {
-        insertMetricsExpense($userId, '2026-10-01', 900, $category->value);
+    foreach ([
+        'food', 'health', 'housing', 'leisure', 'shopping', 'services', 'transport', 'education', 'subscriptions',
+        'financing', 'investments', 'taxes', 'insurance', 'personal_care', 'pets', 'gifts_and_donations', 'travel', 'other',
+    ] as $category) {
+        insertMetricsExpense($userId, '2026-10-01', 900, $category);
     }
 
     insertMetricsExpense($userId, '2026-10-01', 9100, 'food');
@@ -121,12 +123,14 @@ it('aggregates all categories in one statement with exact numeric ordering and a
     }
 
     expect($queries)->toHaveCount(1)
-        ->and($output->totalAmount)->toBe('26300')
+        ->and($output->totalAmount)->toBe('33500')
         ->and(array_column($output->categories, 'category'))->toBe([
-            'food', 'health', 'transport', 'education', 'housing', 'leisure', 'other', 'services', 'shopping', 'subscriptions',
+            'food', 'health', 'transport', 'education', 'financing', 'gifts_and_donations', 'housing', 'insurance', 'investments',
+            'leisure', 'other', 'personal_care', 'pets', 'services', 'shopping', 'subscriptions', 'taxes', 'travel',
         ])
         ->and(array_column($output->categories, 'totalAmount'))->toBe([
-            '10000', '5000', '5000', '900', '900', '900', '900', '900', '900', '900',
+            '10000', '5000', '5000', '900', '900', '900', '900', '900', '900',
+            '900', '900', '900', '900', '900', '900', '900', '900', '900',
         ]);
 });
 

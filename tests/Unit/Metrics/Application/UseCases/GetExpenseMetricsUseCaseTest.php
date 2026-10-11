@@ -112,6 +112,8 @@ it('calculates percentages from the same exact total with independent final roun
     expect(array_column($output->categories, 'percentage', 'category'))->toBe($percentages);
 })->with([
     'simple distribution' => ['100000', ['other' => '10000', 'food' => '60000', 'transport' => '30000'], ['food' => '60.00', 'transport' => '30.00', 'other' => '10.00']],
+    'investments and financing' => ['100000', ['food' => '10000', 'financing' => '30000', 'investments' => '60000'], ['investments' => '60.00', 'financing' => '30.00', 'food' => '10.00']],
+    'new category ties' => ['30000', ['travel' => '10000', 'investments' => '10000', 'financing' => '10000'], ['financing' => '33.33', 'investments' => '33.33', 'travel' => '33.33']],
     '99.99 percent' => ['3', ['food' => '1', 'health' => '1', 'other' => '1'], ['food' => '33.33', 'health' => '33.33', 'other' => '33.33']],
     '100.01 percent' => ['100000', ['food' => '16665', 'health' => '16665', 'housing' => '16670', 'other' => '50000'], ['other' => '50.00', 'housing' => '16.67', 'food' => '16.67', 'health' => '16.67']],
     'minimum positive share' => ['1000000', ['food' => '1', 'other' => '999999'], ['other' => '100.00', 'food' => '0.00']],
@@ -120,15 +122,22 @@ it('calculates percentages from the same exact total with independent final roun
 
 it('returns every supported category without pagination or artificial empty groups', function (): void {
     [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsRepository::class));
-    $totals = array_fill_keys(['food', 'health', 'housing', 'leisure', 'shopping', 'services', 'transport', 'education', 'subscriptions', 'other'], '1');
+    $totals = array_fill_keys([
+        'food', 'health', 'housing', 'leisure', 'shopping', 'services', 'transport', 'education', 'subscriptions',
+        'financing', 'investments', 'taxes', 'insurance', 'personal_care', 'pets', 'gifts_and_donations', 'travel', 'other',
+    ], '1');
     $userPort->method('id')->willReturn(42);
-    $metricsPort->expects($this->once())->method('summarize')->willReturn(expenseMetricsProjectionFixture('10', $totals));
+    $metricsPort->expects($this->once())->method('summarize')->willReturn(expenseMetricsProjectionFixture('18', $totals));
 
     $output = $useCase->execute(expenseMetricsInputFixture(ExpenseMetricsGroupingEnum::Category));
 
-    expect($output->categories)->toHaveCount(10)
-        ->and(array_column($output->categories, 'category'))->toBe(['education', 'food', 'health', 'housing', 'leisure', 'other', 'services', 'shopping', 'subscriptions', 'transport'])
-        ->and(array_unique(array_column($output->categories, 'percentage')))->toBe(['10.00']);
+    expect($output->totalAmount)->toBe('18')
+        ->and($output->categories)->toHaveCount(18)
+        ->and(array_column($output->categories, 'category'))->toBe([
+            'education', 'financing', 'food', 'gifts_and_donations', 'health', 'housing', 'insurance', 'investments',
+            'leisure', 'other', 'personal_care', 'pets', 'services', 'shopping', 'subscriptions', 'taxes', 'transport', 'travel',
+        ])
+        ->and(array_unique(array_column($output->categories, 'percentage')))->toBe(['5.56']);
 });
 
 it('keeps identity stable when values and category order change while performing a fresh read each time', function (): void {

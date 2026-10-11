@@ -150,6 +150,12 @@ Mantenha `EMAIL`, `PASSWORD` e o valor retornado em `data.attributes.token` como
 
 `amount` é **inteiro em centavos**. Envie um documento JSON:API com `data.type = expenses`, `Accept: application/vnd.api+json` e `Content-Type: application/vnd.api+json`.
 
+O catálogo fechado de `category` contém `food`, `health`, `housing`, `leisure`, `shopping`, `services`, `transport`, `education`, `subscriptions`, `financing`, `investments`, `taxes`, `insurance`, `personal_care`, `pets`, `gifts_and_donations`, `travel` e `other`. Os identificadores são iguais na criação, edição, filtros, persistência e agrupamento de Metrics; somente Insights usa rótulos editoriais traduzidos.
+
+As novas categorias distinguem finalidade: `financing` cobre prestações de empréstimo/financiamento, não qualquer compra parcelada; `investments` cobre aportes; `taxes` cobre tributos e taxas administrativas/documentais; `insurance` cobre prêmios de seguro; `personal_care` cobre cuidados pessoais/cosméticos; `pets` cobre produtos e atendimento de animais; `gifts_and_donations` cobre presentes e ajuda sem restituição; `travel` cobre passagens, hospedagem e pacotes com finalidade explícita de viagem. Deslocamentos cotidianos permanecem `transport`. Categoria explícita, inclusive `other`, prevalece sobre sugestões da IA.
+
+Investimentos e financiamentos participam dos totais, percentuais e Insights como valores registrados, sem inferência de consumo, prejuízo, rendimento ou patrimônio. A expansão não recategoriza registros históricos e não exige migration/backfill.
+
 ```sh
 curl -i -X POST http://127.0.0.1:8000/api/expenses \
   -H "Authorization: Bearer $TOKEN" \
@@ -176,6 +182,8 @@ Filtros distintos combinam por E. Faixas invertidas, valores vazios, campos desc
 
 Exemplo: `GET /api/expenses?filter[from]=2026-09-01&filter[to]=2026-09-30&filter[category]=food,transport&filter[amount_min]=1000&filter[amount_max]=30000&sort=-occurred_on,amount&page[size]=6`.
 
+Categorias novas e antigas podem ser combinadas: `filter[category]=travel,investments,food,travel` equivale a `food,investments,travel`. Valores semelhantes como `investment` ou tokens desconhecidos como `travel,unknown` retornam `422`; nenhum token inválido é ignorado.
+
 A ordenação alfabética ignora maiúsculas e acentos pela collation ICU `expense_description_ci_ai`. `Água`, `agua` e `ÁGUA` empatam; os próximos campos e ID resolvem o empate. Null equivale à string vazia somente na chave interna de ordenação: vem antes dos textos em ordem crescente e depois em decrescente; o valor público/persistido permanece null. A migration de collation não altera description ou dados existentes.
 
 Use os links devolvidos pela API, que conservam filtros, sort e tamanho. Mudar os critérios, direção ou prioridade exige reiniciar sem cursor. Novos cursores aceitam critérios normalizados equivalentes e mudança de tamanho, mas não consultas incompatíveis. Cursores antigos de occurred_on/id continuam aceitos somente no contrato anterior, sem novos filtros ou sort explícito, inclusive com ano/mês/dia. Cursor e cache não substituem o filtro de proprietário.
@@ -201,6 +209,12 @@ GET /api/insights?filter[year]=2026&filter[month]=09
 Accept: application/vnd.api+json
 Authorization: Bearer <token>
 ```
+
+Insights reconhece Financiamentos, Investimentos, Impostos e taxas, Seguros, Cuidados pessoais, Pets, Presentes e doações e Viagens, preservando as regras de elegibilidade e deduplicação. O runtime editorial vigente é `v3-monthly-periods`, com limites Unicode de 32 no título e 110 na descrição. O catálogo mensal aprovado de `add-monthly-insights-filters` prevê 24/80; sua implementação editorial completa continua pendente, com compatibilidade dos oito rótulos revisada separadamente.
+
+### Entrega coordenada do catálogo
+
+Consumidores com listas/enums fechados devem aceitar os dezoito identificadores antes da entrega. Atualize conjuntamente enum, instruções/schema do classificador e rótulos de Insights; reinicie os workers residentes de classificação conforme o processo de deploy para que carreguem o código novo. Depois de persistir novas categorias, um rollback deve manter os dezoito valores aceitos: reverter ao enum antigo pode invalidar leituras e métricas. Não converta os valores silenciosamente para `other`; correções de agente/templates podem preservar o catálogo e os dados.
 
 ## Eventos de observabilidade
 

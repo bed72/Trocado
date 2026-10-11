@@ -23,6 +23,10 @@ final readonly class ComposeInsightMessageUseCase
         'transport' => 'Transporte', 'education' => 'Educação',
         'food' => 'Alimentação', 'health' => 'Saúde', 'housing' => 'Moradia',
         'leisure' => 'Lazer', 'shopping' => 'Compras', 'services' => 'Serviços',
+        'financing' => 'Financiamentos', 'investments' => 'Investimentos',
+        'taxes' => 'Impostos e taxas', 'insurance' => 'Seguros',
+        'personal_care' => 'Cuidados pessoais', 'pets' => 'Pets',
+        'gifts_and_donations' => 'Presentes e doações', 'travel' => 'Viagens',
     ];
 
     public function __construct(

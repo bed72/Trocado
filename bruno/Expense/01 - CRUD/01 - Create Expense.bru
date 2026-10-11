@@ -26,7 +26,8 @@ body:json {
       "attributes": {
         "amount": 80,
         "occurred_on": "2026-10-01",
-        "description": "Passeio"
+        "category": "travel",
+        "description": "Passagem aérea para as férias"
       }
     }
   }
@@ -38,4 +39,10 @@ script:post-response {
   if (res.status === 201 && typeof expenseId === 'string' && expenseId.length > 0) {
     bru.setVar('expenseId', expenseId);
   }
+}
+
+docs {
+  Exemplo de categoria explícita `travel`: a criação retorna e persiste esse identificador sem enviar a descrição à IA.
+  As novas categorias também incluem financing, investments, taxes, insurance, personal_care, pets e gifts_and_donations.
+  Remova category para exercitar o fluxo existente: criação em other e classificação futura somente com descrição elegível.
 }

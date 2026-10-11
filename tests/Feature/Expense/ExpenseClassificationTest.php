@@ -178,7 +178,7 @@ it('updates the category after the queued job receives a valid suggestion', func
     ExpenseClassificationAgent::assertPromptedTimes();
 });
 
-it('does not overwrite a category explicitly edited while the job was pending', function (): void {
+it('does not overwrite a category explicitly edited while the job was pending', function (string $category): void {
     $identity = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
     $userId = (int) $identity->getKey();
     $token = IdentityFixture::token($identity, expiresAt: now()->addDays(30));
@@ -188,7 +188,7 @@ it('does not overwrite a category explicitly edited while the job was pending', 
     withToken($token)->patchJson(route('expenses.update', $expense), [
         'data' => [
             'type' => 'expenses',
-            'attributes' => ['category' => 'other'],
+            'attributes' => ['category' => $category],
         ],
     ])->assertOk();
 
@@ -197,10 +197,10 @@ it('does not overwrite a category explicitly edited while the job was pending', 
 
     $expense->refresh();
 
-    expect($expense->category)->toBe(ExpenseCategoryEnum::Other->value)
+    expect($expense->category)->toBe($category)
         ->and($expense->classification_token)->toBeNull();
     ExpenseClassificationAgent::assertNeverPrompted();
-});
+})->with(['other', 'financing', 'investments', 'taxes', 'insurance', 'personal_care', 'pets', 'gifts_and_donations', 'travel']);
 
 it('does not overwrite an expense whose description was changed while the job was pending', function (): void {
     $identity = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
@@ -385,17 +385,17 @@ it('does not overwrite an explicit category committed while the provider was res
     expect($expense->fresh()->category)->toBe($category)
         ->and($expense->fresh()->classification_token)->toBeNull();
     ExpenseClassificationAgent::assertPromptedTimes(times: 1);
-})->with(['health', 'other']);
+})->with(['health', 'other', 'financing', 'investments', 'taxes', 'insurance', 'personal_care', 'pets', 'gifts_and_donations', 'travel']);
 
-it('processes a database-queued classification using the real queue worker', function (): void {
+it('processes a database-queued classification using the real queue worker', function (string $category, string $description): void {
     config()->set('queue.default', 'database');
     Queue::swap(instance: Queue::getFacadeRoot()->queue);
-    ExpenseClassificationAgent::fake(responses: [['category' => 'food']]);
+    ExpenseClassificationAgent::fake(responses: [['category' => $category]])->preventStrayPrompts();
     $identity = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
     $userId = (int) $identity->getKey();
     $token = IdentityFixture::token($identity, expiresAt: now()->addDays(30));
 
-    $expense = createClassifiableExpense(userId: $userId, token: $token);
+    $expense = createClassifiableExpense(userId: $userId, token: $token, description: $description);
 
     expect(DB::table('jobs')->where('queue', config('expense.classification.queue'))->count())->toBe(1)
         ->and($expense->category)->toBe(ExpenseCategoryEnum::Other->value);
@@ -407,11 +407,21 @@ it('processes a database-queued classification using the real queue worker', fun
         '--once' => true,
     ]);
 
-    expect($expense->fresh()->category)->toBe(ExpenseCategoryEnum::Food->value)
+    expect($expense->fresh()->category)->toBe($category)
         ->and($expense->fresh()->classification_token)->toBeNull()
         ->and(DB::table('jobs')->where('queue', config('expense.classification.queue'))->count())->toBe(0);
     ExpenseClassificationAgent::assertPromptedTimes(times: 1);
-})->group('integration', 'worker');
+})->with([
+    'food' => ['food', 'Mercado - 2 itens'],
+    'financing' => ['financing', 'Prestação do financiamento do carro'],
+    'investments' => ['investments', 'Aporte em renda fixa'],
+    'taxes' => ['taxes', 'Pagamento de IPVA'],
+    'insurance' => ['insurance', 'Seguro de vida'],
+    'personal care' => ['personal_care', 'Manicure'],
+    'pets' => ['pets', 'Consulta veterinária'],
+    'gifts and donations' => ['gifts_and_donations', 'Doação beneficente'],
+    'travel' => ['travel', 'Passagem aérea para as férias'],
+])->group('integration', 'worker');
 
 it('keeps the cached list on rollback and invalidates it after a committed creation', function (): void {
     $identity = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());

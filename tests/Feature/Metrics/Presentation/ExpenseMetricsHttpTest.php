@@ -51,6 +51,50 @@ it('exposes the bound adapter through a singular exact JSON API summary in both 
     expect($simple->json('data.id'))->toBeString()->not->toBe($grouped->json('data.id'));
 });
 
+it('aggregates each new persisted identifier without translations or absent categories', function (string $category): void {
+    insertHttpMetricsExpense($this->userId, 10000, $category);
+    $this->getJson('/api/metrics/expenses?start_date=2026-10-01&end_date=2026-10-31&group_by=category')
+        ->assertOk()->assertJsonPath('data.attributes.total_amount', '10000')
+        ->assertJsonPath('data.attributes.categories', [
+            ['category' => $category, 'percentage' => '100.00', 'total_amount' => '10000'],
+        ]);
+})->with(['financing', 'investments', 'taxes', 'insurance', 'personal_care', 'pets', 'gifts_and_donations', 'travel']);
+
+it('includes investments and financing in the same exact denominator while excluding other owners and periods', function (): void {
+    insertHttpMetricsExpense($this->userId, 60000, 'investments', '2026-10-01');
+    insertHttpMetricsExpense($this->userId, 30000, 'financing', '2026-10-31');
+    insertHttpMetricsExpense($this->userId, 10000, 'food');
+    $other = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now(), email: 'other-expanded-metrics@example.com');
+    foreach (['investments', 'financing', 'food'] as $category) {
+        insertHttpMetricsExpense((int) $other->id, 90000, $category);
+        insertHttpMetricsExpense($this->userId, 90000, $category, '2026-09-30');
+        insertHttpMetricsExpense($this->userId, 90000, $category, '2026-11-01');
+    }
+    $url = '/api/metrics/expenses?start_date=2026-10-01&end_date=2026-10-31';
+    $this->getJson($url)->assertOk()->assertJsonPath('data.attributes', [
+        'end_date' => '2026-10-31', 'total_amount' => '100000', 'start_date' => '2026-10-01',
+    ]);
+    $this->getJson($url.'&group_by=category')->assertOk()->assertJsonPath('data.attributes.total_amount', '100000')
+        ->assertJsonPath('data.attributes.categories', [
+            ['category' => 'investments', 'percentage' => '60.00', 'total_amount' => '60000'],
+            ['category' => 'financing', 'percentage' => '30.00', 'total_amount' => '30000'],
+            ['category' => 'food', 'percentage' => '10.00', 'total_amount' => '10000'],
+        ]);
+});
+
+it('orders tied new categories alphabetically with independently rounded percentages', function (): void {
+    foreach (['travel', 'investments', 'financing'] as $category) {
+        insertHttpMetricsExpense($this->userId, 10000, $category);
+    }
+    $this->getJson('/api/metrics/expenses?start_date=2026-10-01&end_date=2026-10-31&group_by=category')
+        ->assertOk()->assertJsonPath('data.attributes.total_amount', '30000')
+        ->assertJsonPath('data.attributes.categories', [
+            ['category' => 'financing', 'percentage' => '33.33', 'total_amount' => '10000'],
+            ['category' => 'investments', 'percentage' => '33.33', 'total_amount' => '10000'],
+            ['category' => 'travel', 'percentage' => '33.33', 'total_amount' => '10000'],
+        ]);
+});
+
 it('rejects the original invalid query before reading expenses with and without records', function (string $query, string $parameter, bool $hasExpenses): void {
     if ($hasExpenses) {
         insertHttpMetricsExpense($this->userId, 100);

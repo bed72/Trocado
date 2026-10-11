@@ -205,3 +205,11 @@ Contagem isolada em Python 3, com os textos transcritos em memória, sem executa
 - Comparação regular com percentual de três dígitos: máximo 65; compacta com percentual de 20 dígitos: máximo 70.
 - Alternativa monetária com a diferença acima: máximo 77, nos dois modos.
 - Todas essas interpolações ficaram dentro de 24/80. Descrição arbitrária e valores maiores continuam sujeitos à ordem de alternativas e falha explícita; esta contagem não substitui testes futuros de composição.
+
+### Adendo de coordenação — categorias expandidas, 11/10/2026
+
+A aprovação e contagem históricas da revisão 1 acima permanecem preservadas. Na etapa “Insights e fechamento” de `expand-expense-categories`, o usuário confirmou os rótulos Financiamentos, Investimentos, Impostos e taxas, Seguros, Cuidados pessoais, Pets, Presentes e doações e Viagens, além do escopo de revisar este catálogo futuro sem antecipar sua implementação runtime.
+
+Revisão complementar isolada em Python 3, sem execução da aplicação: concentração por categoria, liderança e maior lançamento, quatro variantes, dois modos, oito rótulos e anos `0001`, `2026`, `9999`. Maior lançamento avaliado com descrição curta, whitespace, descrição Unicode de 64 caracteres e ausência de descrição; valores de `R$ 1.200,00`, centavos acima de `PHP_INT_MAX` e valor de 100 dígitos. Aplicada a ordem aprovada: descrição integral com/sem valor, depois categoria/data com/sem valor. Nenhum corte ou apelido introduzido.
+
+Resultado: 2.688 pares selecionados, título máximo 24 e descrição máxima 80 caracteres Unicode. As famílias não afetadas por rótulo (comparações e onboarding) permanecem cobertas pela revisão 1, sem mudança de texto. Isso comprova compatibilidade editorial das oito categorias com as alternativas aprovadas, não a implementação runtime, projeção de descrição/data, BRL exato ou rotação da change mensal. Tasks 3.2–3.3, 4.* e demais pendências desta change continuam abertas; evidências executáveis de `expand-expense-categories` estão em seu `tasks.md`.

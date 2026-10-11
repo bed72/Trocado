@@ -95,3 +95,7 @@ Todos os comandos de teste abaixo foram executados por MCP Lerd `exec`, action `
 | `git diff --check` | Passou |
 
 Limitações: não houve revisão visual Flutter, execução Bruno, gate integral/paralelo ou prova nova de corrida. `migrate:status` confirmou todas as migrations locais aplicadas, sem migration nova nesta etapa. Dumps Lerd já habilitados; `optimize_route` retornou `samples: 0` e nenhuma rota. As requisições HTTP dos testes não produziram amostras de tráfego externo no watcher; 7.4 continua pendente e não há alegação de performance em escala ou ausência de N+1 medida em tráfego real.
+
+## Coordenação com expand-expense-categories — 11/10/2026
+
+O catálogo vigente de composição recebeu os oito rótulos aprovados na etapa de expansão. O adendo de `editorial-catalog.md` revisa quatro variantes dos conjuntos afetados e a ordem de identificação/valor sob 24/80 para esses rótulos. O usuário confirmou que esta coordenação não implementa o catálogo mensal: runtime `v3-monthly-periods` e limites 32/110 permanecem até o apply editorial desta change. Tasks 3.2–3.3, 4.*, Bruno/Flutter e fechamento permanecem pendentes, assim como suas evidências históricas. A implementação futura deve incluir todos os dezoito rótulos na matriz de composição/identificação, preservando as alternativas e a falha explícita; não reutilizar a contagem isolada como prova de runtime.
