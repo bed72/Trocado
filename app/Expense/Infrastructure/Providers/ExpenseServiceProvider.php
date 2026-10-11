@@ -8,12 +8,14 @@ use App\Expense\Application\Ports\ExpenseClassificationDispatchPort;
 use App\Expense\Application\Ports\ExpenseClassificationPort;
 use App\Expense\Application\Repositories\ExpenseCategorizationRepository;
 use App\Expense\Application\Repositories\ExpenseRepository;
+use App\Expense\Application\Repositories\ExpenseSuggestionsRepository;
 use App\Expense\Infrastructure\Adapters\ExpenseClassificationAdapter;
 use App\Expense\Infrastructure\Adapters\ExpenseClassificationDispatchAdapter;
 use App\Expense\Infrastructure\Repositories\Cache\CachedExpenseCategorizationRepository;
 use App\Expense\Infrastructure\Repositories\Cache\CachedExpenseRepository;
 use App\Expense\Infrastructure\Repositories\Persistence\EloquentExpenseCategorizationRepository;
 use App\Expense\Infrastructure\Repositories\Persistence\EloquentExpenseRepository;
+use App\Expense\Infrastructure\Repositories\Persistence\EloquentExpenseSuggestionsRepository;
 use Illuminate\Cache\CacheManager;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Config;
@@ -26,6 +28,7 @@ final class ExpenseServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(abstract: ExpenseClassificationPort::class, concrete: ExpenseClassificationAdapter::class);
+        $this->app->bind(abstract: ExpenseSuggestionsRepository::class, concrete: EloquentExpenseSuggestionsRepository::class);
         $this->app->bind(abstract: ExpenseClassificationDispatchPort::class, concrete: ExpenseClassificationDispatchAdapter::class);
         $this->app->bind(abstract: ExpenseRepository::class, concrete: fn (): CachedExpenseRepository => new CachedExpenseRepository(
             cache: $this->app->make(CacheManager::class),
