@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Expense\Presentation\Http\Controllers;
 
+use App\Core\Application\Ports\DatePort;
 use App\Expense\Application\Data\CreateExpenseInput;
 use App\Expense\Application\UseCases\CreateExpenseUseCase;
 use App\Expense\Presentation\Http\Requests\CreateExpenseRequest;
 use App\Expense\Presentation\Http\Responses\ExpenseResponse;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Carbon;
 use Symfony\Component\HttpFoundation\Response;
 
 final class CreateExpenseController
 {
-    public function __construct(private readonly CreateExpenseUseCase $useCase) {}
+    public function __construct(private readonly DatePort $port, private readonly CreateExpenseUseCase $useCase) {}
 
     public function __invoke(CreateExpenseRequest $request): JsonResponse
     {
@@ -23,7 +23,7 @@ final class CreateExpenseController
             amount: $attributes['amount'],
             category: $attributes['category'] ?? null,
             description: $attributes['description'] ?? null,
-            occurredOn: $attributes['occurred_on'] ?? Carbon::today()->toDateString(),
+            occurredOn: $attributes['occurred_on'] ?? $this->port->today(),
         ));
 
         return (new ExpenseResponse(resource: $expense))->response()

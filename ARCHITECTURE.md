@@ -59,6 +59,10 @@ Facades são proibidas em Domain e Application, permitidas em Infrastructure e P
 
 Para JSON:API, consulte primeiro Boost/Search Docs e o código da versão instalada. As classes do projeto ficam em `Presentation/Http/Responses`, usam o sufixo `Response` e, quando aplicável, estendem `Illuminate\Http\Resources\JsonApi\JsonApiResource`, deixando o suporte oficial montar o envelope `data`. Não use `JsonResource` tradicional por hábito. Trate erros no limite HTTP conforme a API oficial.
 
+## Referência civil compartilhada
+
+`Core\Application\Ports\DatePort::today()` fornece a data civil atual em `Y-m-d` no timezone configurado da aplicação. `Core\Infrastructure\Adapters\DateAdapter` resolve relógio e configuração Laravel, com binding no `CoreServiceProvider`. A Presentation de Expense, Insights e Metrics pode consumir especificamente esse contrato para preparar entradas temporais; os UseCases continuam recebendo datas explícitas, sem consultar relógio ou configuração. A criação de Expense usa a data atual apenas quando `occurred_on` não foi informado. Esse contrato não representa instantes ou expiração de sessões/tokens.
+
 ## Cache e consistência
 
 Para os usos de cache da aplicação, a decisão é adotar Redis como store padrão compartilhado entre processos; o rate limiter conserva sua configuração independente e os testes podem usar um store isolado. Sessões e filas não mudam por causa do store de cache. **Esta é uma decisão de arquitetura para a mudança proposta em [`cache-owned-expense-pages`](openspec/changes/cache-owned-expense-pages/); até sua implementação, a configuração efetiva do ambiente continua prevalecendo.**

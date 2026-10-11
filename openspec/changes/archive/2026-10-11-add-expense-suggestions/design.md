@@ -31,9 +31,9 @@ Não criar interface para o UseCase, Mapper, base genérica ou segundo Model de 
 
 ### 2. Entrada temporal explícita e dados próprios
 
-`GetExpenseSuggestionsController` recebe `GetExpenseSuggestionsRequest`, resolve a data civil atual no timezone da aplicação e entrega termo e referência a `GetExpenseSuggestionsUseCase`. O UseCase injeta `UserPort $port` antes de `ExpenseSuggestionsRepository $repository` e obtém o ID uma única vez.
+`GetExpenseSuggestionsController` recebe `GetExpenseSuggestionsRequest`, obtém a data civil atual por `Core\Application\Ports\DatePort` e entrega termo e referência a `GetExpenseSuggestionsUseCase`. O `DateAdapter` de Core resolve relógio e timezone configurado, compartilhado pelos controllers de criação de Expense, sugestões, Metrics e Insights. O UseCase injeta `UserPort $port` antes de `ExpenseSuggestionsRepository $repository` e obtém o ID uma única vez.
 
-Derivar a janela a partir do primeiro dia do mês de referência, evitando overflow de datas como 31 de janeiro, e reutilizar `DatePeriodValueObject` para representar o intervalo inclusivo. Não adicionar Port de relógio nem receber data controlada pelo cliente nesta V1.
+Derivar a janela a partir do primeiro dia do mês de referência, evitando overflow de datas como 31 de janeiro, e reutilizar `DatePeriodValueObject` para representar o intervalo inclusivo. A centralização posterior solicitada pelo usuário introduz `DatePort::today()` somente na borda HTTP; a Application de Expense continua sem dependência de relógio, e a referência não é controlada pelo cliente nesta V1.
 
 O Repository recebe proprietário, termo e período explícitos e retorna uma lista de `ExpenseSuggestionHistoryOutput`, `final readonly` e constructor-only, com chave normalizada, descrição representativa, número de meses distintos representados e mínimo/máximo monetário da janela, anuláveis quando ela está vazia. Não retornar linhas individuais, Models, Builders ou metadados de ordenação desnecessários.
 

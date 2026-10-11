@@ -267,6 +267,10 @@ foreach ($contexts as $context) {
             $presentationDependencies[] = 'App\\Core\\Application\\Ports\\UserPort';
         }
 
+        if (in_array($context, ['Expense', 'Insights', 'Metrics'], true)) {
+            $presentationDependencies[] = 'App\\Core\\Application\\Ports\\DatePort';
+        }
+
         arch("{$context} presentation does not reach infrastructure")
             ->expect("{$contextNamespace}\\Presentation")
             ->toOnlyUse($presentationDependencies);

@@ -6,6 +6,7 @@ use App\Expense\Presentation\Http\Controllers\CreateExpenseController;
 use App\Expense\Presentation\Http\Controllers\DeleteExpenseController;
 use App\Expense\Presentation\Http\Controllers\GetAllExpenseController;
 use App\Expense\Presentation\Http\Controllers\GetExpenseController;
+use App\Expense\Presentation\Http\Controllers\GetExpenseSuggestionsController;
 use App\Expense\Presentation\Http\Controllers\UpdateExpenseController;
 use Illuminate\Support\Facades\Route;
 
@@ -15,6 +16,9 @@ Route::prefix('expenses')->middleware(['auth:sanctum', 'request.authenticated', 
 
     Route::get(uri: '/', action: GetAllExpenseController::class)
         ->name(name: 'expenses.index');
+
+    Route::get(uri: 'suggestions', action: GetExpenseSuggestionsController::class)
+        ->name(name: 'expenses.suggestions');
 
     Route::get(uri: '{expense}', action: GetExpenseController::class)
         ->whereNumber(parameters: 'expense')

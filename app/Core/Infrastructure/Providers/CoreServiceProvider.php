@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Core\Infrastructure\Providers;
 
 use App\Core\Application\Ports\ContextPort;
+use App\Core\Application\Ports\DatePort;
 use App\Core\Application\Ports\ObservabilityPort;
 use App\Core\Application\Ports\TransactionPort;
 use App\Core\Application\Ports\UserPort;
 use App\Core\Infrastructure\Adapters\ContextAdapter;
+use App\Core\Infrastructure\Adapters\DateAdapter;
 use App\Core\Infrastructure\Adapters\Observability\ObservabilityAdapter;
 use App\Core\Infrastructure\Adapters\TransactionAdapter;
 use App\Core\Infrastructure\Adapters\UserAdapter;
@@ -30,6 +32,7 @@ final class CoreServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        $this->app->bind(abstract: DatePort::class, concrete: DateAdapter::class);
         $this->app->bind(abstract: UserPort::class, concrete: UserAdapter::class);
         $this->app->bind(abstract: ContextPort::class, concrete: ContextAdapter::class);
         $this->app->bind(abstract: TransactionPort::class, concrete: TransactionAdapter::class);

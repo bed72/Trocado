@@ -1,0 +1,23 @@
+meta {
+  name: Get Expense Suggestions
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/expenses/suggestions?query=Int
+  body: none
+  auth: bearer
+}
+
+params:query {
+  query: Int
+}
+
+headers {
+  Accept: application/vnd.api+json
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Core\Application\Ports\DatePort;
 use App\Expense\Infrastructure\Repositories\Persistence\Models\ExpenseModel;
 use App\Identity\Domain\Enums\UserStatusEnum;
 use App\Identity\Infrastructure\Repositories\Persistence\Models\UserModel;
@@ -178,3 +179,29 @@ it('keeps the expenses foreign key and cascade without Eloquent cross-context re
 
     expect(DB::table('expenses')->where('id', $expense->getKey())->exists())->toBeFalse();
 });
+
+it('uses the shared civil date only when expense occurrence is omitted', function (?string $occurredOn, string $expected): void {
+    $user = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
+    $token = IdentityFixture::token($user, expiresAt: now()->addDays(30));
+    $port = $this->createMock(DatePort::class);
+
+    if ($occurredOn === null) {
+        $port->expects($this->once())->method('today')->willReturn('2026-10-31');
+    } else {
+        $port->expects($this->never())->method('today');
+    }
+
+    $this->app->instance(DatePort::class, $port);
+    $attributes = ['amount' => 14000];
+
+    if ($occurredOn !== null) {
+        $attributes['occurred_on'] = $occurredOn;
+    }
+
+    withToken($token)->postJson(route('expenses.create'), [
+        'data' => ['type' => 'expenses', 'attributes' => $attributes],
+    ])->assertCreated()->assertJsonPath('data.attributes.occurred_on', $expected);
+})->with([
+    'default civil date' => [null, '2026-10-31'],
+    'explicit occurrence' => ['2026-07-04', '2026-07-04'],
+]);
