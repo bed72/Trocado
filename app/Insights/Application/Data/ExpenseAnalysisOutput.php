@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Insights\Application\Data;
 
+use App\Insights\Domain\Enums\InsightPeriodModeEnum;
+
 final readonly class ExpenseAnalysisOutput
 {
     public function __construct(
@@ -13,5 +15,6 @@ final readonly class ExpenseAnalysisOutput
         public ExpensePeriodAnalysisOutput $previousMonth,
         public ?ExpensePeriodAnalysisOutput $currentComparison,
         public ?ExpensePeriodAnalysisOutput $previousComparison,
+        public InsightPeriodModeEnum $mode = InsightPeriodModeEnum::Current,
     ) {}
 }

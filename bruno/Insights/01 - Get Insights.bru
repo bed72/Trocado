@@ -10,10 +10,37 @@ get {
   auth: bearer
 }
 
+params:query {
+  ~filter[year]: 2026
+  ~filter[month]: 9
+}
+
 headers {
   Accept: application/vnd.api+json
 }
 
 auth:bearer {
   token: {{accessToken}}
+}
+
+docs {
+  Sem filtros, a consulta seleciona o mês vigente no timezone da aplicação,
+  do dia 1 até hoje, inclusive.
+
+  Para selecionar outro mês, habilite filter[year] e filter[month] juntos
+  na aba Params. O exemplo 2026/9 seleciona setembro de 2026 completo
+  quando a data civil da consulta já é posterior a esse mês.
+
+  O mês vigente explícito continua limitado a hoje. Meses históricos incluem
+  o primeiro e o último dia; comparações históricas usam meses completos.
+
+  Ano: 1–9999, com 1–4 dígitos. Mês: 1–12, com 1–2 dígitos.
+  Zeros à esquerda são aceitos. A primeira seleção permitida é março/0001.
+
+  Mês futuro, par incompleto, valores inválidos, parâmetros desconhecidos
+  ou duplicados retornam 422 JSON:API com source.parameter.
+  Filtros no corpo GET não selecionam o mês.
+
+  Configure os filtros somente na aba Params; não repita os mesmos campos
+  manualmente na URL. Ambos estão desabilitados para preservar a consulta padrão.
 }

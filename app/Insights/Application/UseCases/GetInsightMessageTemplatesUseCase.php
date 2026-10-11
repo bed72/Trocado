@@ -6,12 +6,59 @@ namespace App\Insights\Application\UseCases;
 
 use App\Insights\Application\Data\InsightMessageTemplateOutput;
 use App\Insights\Domain\Enums\InsightHistoryStateEnum;
+use App\Insights\Domain\Enums\InsightPeriodModeEnum;
 use App\Insights\Domain\Enums\InsightTypeEnum;
 use App\Insights\Domain\ValueObjects\InsightCandidateValueObject;
 
 final readonly class GetInsightMessageTemplatesUseCase
 {
-    public const string Version = 'v2';
+    public const string Version = 'v3-monthly-periods';
+
+    /** @var array<string, list<array{string, string}>> */
+    private const array ClosedTemplates = [
+        'category_concentration' => [
+            ['{category}', '{percent}% do total registrado em {month}, mês completo.'],
+            ['{category}', 'Em {month}, representa {percent}% do total registrado no mês.'],
+            ['{category}', 'Soma {percent}% do total registrado em {month}, mês completo.'],
+            ['{category}', 'Participação de {percent}% no total registrado em {month}, mês completo.'],
+        ],
+        'expense_concentration' => [
+            ['Maior despesa · {month}', '{percent}% do total registrado no mês em um lançamento de {category}.'],
+            ['Maior despesa · {month}', 'Maior lançamento em {category}: {percent}% do total registrado no mês.'],
+            ['Maior despesa · {month}', 'Em {category}, o maior lançamento soma {percent}% do total registrado no mês.'],
+            ['Maior despesa · {month}', 'O maior lançamento está em {category}: {percent}% do total registrado no mês.'],
+        ],
+        'total_comparison' => [
+            ['Total · {month}', 'Total registrado {sign}{percent}%; mês completo vs. {previous_month}.'],
+            ['Total · {month}', 'Total registrado: {sign}{percent}%; mês completo vs. {previous_month}.'],
+            ['Total · {month}', '{sign}{percent}% no total registrado; mês completo vs. {previous_month}.'],
+            ['Total · {month}', 'Mês completo: {sign}{percent}% no total registrado vs. {previous_month}.'],
+        ],
+        'category_lead_streak' => [
+            ['{category}', 'Líder registrada de {first_month} a {month}, três meses completos.'],
+            ['{category}', 'Liderou os registros de {first_month} a {month}, três meses completos.'],
+            ['{category}', 'Maior total registrado de {first_month} a {month}, três meses completos.'],
+            ['{category}', 'Primeiro lugar nos registros de {first_month} a {month}, três meses completos.'],
+        ],
+        'category_review' => [
+            ['Outros · {month}', '{percent}% do total registrado no mês. Revise as categorias.'],
+            ['Outros · {month}', 'Mês completo: {percent}% do total registrado. Reveja as categorias.'],
+            ['Outros · {month}', 'No mês completo, {percent}% do total registrado. Confira as categorias.'],
+            ['Outros · {month}', 'Soma {percent}% do total registrado no mês. Vale revisar as categorias.'],
+        ],
+        'current_history' => [
+            ['Análise · {month}', 'Os registros do mês não sustentam uma observação financeira.'],
+            ['Análise · {month}', 'Sem base para uma observação financeira nos registros do mês completo.'],
+            ['Análise · {month}', 'Registros do mês insuficientes para uma observação financeira.'],
+            ['Análise · {month}', 'Sem observação financeira com os registros desse mês completo.'],
+        ],
+        'old_history' => [
+            ['Registros · {month}', 'Nenhuma despesa registrada nesse mês completo.'],
+            ['Registros · {month}', 'O mês selecionado não tem despesas registradas.'],
+            ['Registros · {month}', 'Não há despesas registradas no mês selecionado.'],
+            ['Registros · {month}', 'Sem registros de despesas nesse mês completo.'],
+        ],
+    ];
 
     /** @var array<string, list<array{string, string, string}>> */
     private const array Templates = [
@@ -80,6 +127,18 @@ final readonly class GetInsightMessageTemplatesUseCase
     /** @return list<InsightMessageTemplateOutput> */
     public function execute(InsightCandidateValueObject $candidate): array
     {
+        if ($candidate->mode === InsightPeriodModeEnum::Closed) {
+            $key = match ($candidate->type) {
+                InsightTypeEnum::RegisteredAmountIncrease, InsightTypeEnum::RegisteredAmountDecrease => 'total_comparison',
+                InsightTypeEnum::InsufficientHistory => $candidate->historyState === InsightHistoryStateEnum::CurrentExpenses ? 'current_history' : 'old_history',
+                default => $candidate->type->value,
+            };
+
+            return array_map(static fn (array $template): InsightMessageTemplateOutput => new InsightMessageTemplateOutput(
+                title: $template[0], description: $template[1], shortDescription: $template[1],
+            ), self::ClosedTemplates[$key]);
+        }
+
         $key = match ($candidate->type) {
             InsightTypeEnum::CategoryConcentration => $candidate->category === 'food' ? 'food_concentration' : 'category_concentration',
             InsightTypeEnum::InsufficientHistory => $candidate->historyState === InsightHistoryStateEnum::CurrentExpenses ? 'current_history' : 'old_history',

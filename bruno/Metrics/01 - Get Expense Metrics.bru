@@ -5,15 +5,15 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/api/metrics/expenses
+  url: {{baseUrl}}/api/metrics/expenses?group_by=category&end_date=2026-10-31&start_date=2026-10-01
   body: none
   auth: bearer
 }
 
 params:query {
-  ~start_date: 2026-10-01
-  ~end_date: 2026-10-31
-  ~group_by: category
+  group_by: category
+  end_date: 2026-10-31
+  start_date: 2026-10-01
 }
 
 headers {

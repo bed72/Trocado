@@ -7,6 +7,7 @@ namespace App\Insights\Application\UseCases;
 use App\Insights\Application\Data\InsightMessageOutput;
 use App\Insights\Application\Data\SelectInsightMessageVariantInput;
 use App\Insights\Application\Exceptions\InsightMessageCompositionException;
+use App\Insights\Domain\Enums\InsightTypeEnum;
 use App\Insights\Domain\ValueObjects\InsightCandidateValueObject;
 
 use function count;
@@ -17,11 +18,11 @@ final readonly class ComposeInsightMessageUseCase
 
     private const int MaximumDescriptionLength = 110;
 
-    private const array CategoryLabels = [
+    private const array Categories = [
+        'subscriptions' => 'Assinaturas', 'other' => 'Outros',
+        'transport' => 'Transporte', 'education' => 'Educação',
         'food' => 'Alimentação', 'health' => 'Saúde', 'housing' => 'Moradia',
         'leisure' => 'Lazer', 'shopping' => 'Compras', 'services' => 'Serviços',
-        'transport' => 'Transporte', 'education' => 'Educação',
-        'subscriptions' => 'Assinaturas', 'other' => 'Outros',
     ];
 
     public function __construct(
@@ -37,7 +38,8 @@ final readonly class ComposeInsightMessageUseCase
             $candidate->type->value,
             $candidate->category ?? '',
             $candidate->historyState?->value ?? '',
-            substr($referenceDate, 0, 7),
+            $candidate->mode->value,
+            substr($candidate->analysisPeriod->to(), 0, 7),
         ]);
         $variant = $this->variantUseCase->execute(new SelectInsightMessageVariantInput(
             userId: $userId,
@@ -66,10 +68,19 @@ final readonly class ComposeInsightMessageUseCase
     /** @return array<string, string> */
     private function parameters(InsightCandidateValueObject $candidate): array
     {
-        $parameters = ['{day}' => (string) (int) substr($candidate->analysisPeriod->to(), 8)];
+        $parameters = [
+            '{day}' => (string) (int) substr($candidate->analysisPeriod->to(), 8),
+            '{month}' => $this->month($candidate->analysisPeriod->to()),
+            '{first_month}' => $this->month($candidate->analysisPeriod->from()),
+            '{sign}' => $candidate->type === InsightTypeEnum::RegisteredAmountDecrease ? '−' : '+',
+        ];
+
+        if ($candidate->comparisonPeriod !== null) {
+            $parameters['{previous_month}'] = $this->month($candidate->comparisonPeriod->from());
+        }
 
         if ($candidate->category !== null) {
-            $parameters['{category}'] = self::CategoryLabels[$candidate->category]
+            $parameters['{category}'] = self::Categories[$candidate->category]
                 ?? throw new InsightMessageCompositionException('A categoria não possui um rótulo editorial aprovado.');
         }
 
@@ -78,5 +89,12 @@ final readonly class ComposeInsightMessageUseCase
         }
 
         return $parameters;
+    }
+
+    private function month(string $date): string
+    {
+        $months = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+
+        return $months[(int) substr($date, 5, 2) - 1].'/'.substr($date, 0, 4);
     }
 }

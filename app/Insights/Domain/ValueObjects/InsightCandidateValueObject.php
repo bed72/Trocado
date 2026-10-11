@@ -8,6 +8,7 @@ use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Core\Domain\ValueObjects\RatioValueObject;
 use App\Insights\Domain\Enums\InsightGroupEnum;
 use App\Insights\Domain\Enums\InsightHistoryStateEnum;
+use App\Insights\Domain\Enums\InsightPeriodModeEnum;
 use App\Insights\Domain\Enums\InsightTypeEnum;
 use App\Insights\Domain\Exceptions\InvalidInsightAnalysisException;
 
@@ -22,6 +23,7 @@ final readonly class InsightCandidateValueObject
         public ?RatioValueObject $ratio = null,
         public ?InsightHistoryStateEnum $historyState = null,
         public ?DatePeriodValueObject $comparisonPeriod = null,
+        public InsightPeriodModeEnum $mode = InsightPeriodModeEnum::Current,
     ) {
         $isTotalComparison = in_array($type, [InsightTypeEnum::RegisteredAmountIncrease, InsightTypeEnum::RegisteredAmountDecrease], true);
         $needsRatio = in_array($type, [InsightTypeEnum::CategoryConcentration, InsightTypeEnum::ExpenseConcentration,
@@ -40,8 +42,18 @@ final readonly class InsightCandidateValueObject
             throw new InvalidInsightAnalysisException('A categoria não é válida para o candidato.');
         }
 
-        if ($isTotalComparison && ! $analysisPeriod->hasSameDurationAs($comparisonPeriod)) {
+        if ($isTotalComparison && $mode === InsightPeriodModeEnum::Current && ! $analysisPeriod->hasSameDurationAs($comparisonPeriod)) {
             throw new InvalidInsightAnalysisException('Uma comparação exige períodos de mesma duração.');
+        }
+
+        if ($isTotalComparison && $mode === InsightPeriodModeEnum::Closed
+            && (! $analysisPeriod->isCompleteMonth() || ! $comparisonPeriod->isCompleteMonth()
+                || ! $comparisonPeriod->isPreviousMonthOf($analysisPeriod))) {
+            throw new InvalidInsightAnalysisException('Uma comparação encerrada exige meses completos consecutivos.');
+        }
+
+        if ($type === InsightTypeEnum::FirstExpense && $mode === InsightPeriodModeEnum::Closed) {
+            throw new InvalidInsightAnalysisException('Primeira despesa não pertence a uma seleção histórica.');
         }
     }
 

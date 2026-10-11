@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Insights\Application\UseCases;
 
 use App\Core\Application\Ports\UserPort;
+use App\Insights\Application\Data\GetInsightsInput;
 use App\Insights\Application\Data\InsightOutput;
 use App\Insights\Application\Repositories\ExpenseAnalysisRepository;
+use App\Insights\Domain\ValueObjects\InsightAnalysisPeriodValueObject;
 use App\Insights\Domain\ValueObjects\InsightCandidateValueObject;
 
 final readonly class GetInsightsUseCase
@@ -20,10 +22,11 @@ final readonly class GetInsightsUseCase
     ) {}
 
     /** @return list<InsightOutput> */
-    public function execute(string $referenceDate): array
+    public function execute(GetInsightsInput $input): array
     {
+        $period = new InsightAnalysisPeriodValueObject($input->queryDate, $input->selectedMonth);
         $userId = $this->port->id();
-        $analysis = $this->repository->analyze(userId: $userId, referenceDate: $referenceDate);
+        $analysis = $this->repository->analyze(userId: $userId, period: $period);
         $candidates = $this->candidateGenerationUseCase->execute($analysis);
         $selected = $this->candidateSelectionUseCase->execute($candidates);
         $insights = [];
@@ -32,7 +35,7 @@ final readonly class GetInsightsUseCase
             $message = $this->messageCompositionUseCase->execute(
                 userId: $userId,
                 candidate: $candidate,
-                referenceDate: $referenceDate,
+                referenceDate: $input->queryDate,
             );
             $insights[] = new InsightOutput(
                 type: $candidate->type,

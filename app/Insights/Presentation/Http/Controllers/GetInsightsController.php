@@ -16,6 +16,8 @@ final readonly class GetInsightsController
 
     public function __invoke(GetInsightsRequest $request): JsonResponse
     {
-        return InsightResponse::collection($this->useCase->execute(referenceDate: $this->port->today()))->response($request);
+        $input = $request->toInput(queryDate: $this->port->today());
+
+        return InsightResponse::collection($this->useCase->execute($input))->response($request);
     }
 }

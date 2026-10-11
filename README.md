@@ -182,6 +182,26 @@ Use os links devolvidos pela API, que conservam filtros, sort e tamanho. Mudar o
 
 O cache de páginas usa namespace versionado, critérios normalizados e TTL de 60 segundos; CRUD e classificação confirmados invalidam todas as variantes da conta. A coleção Bruno inclui exemplos desabilitados de cada critério; escolha componentes civis ou intervalo, sem ativar ambos. Copie um cursor devolvido para `expenseCursor` antes de ativar esse parâmetro.
 
+## Consultar Insights por mês
+
+`GET /api/insights` aceita somente `filter[year]` e `filter[month]`, ambos presentes ou ambos ausentes. A rota exige Bearer válido, conta ativa e e-mail verificado, e conserva throttle e extensão de sessão.
+
+- Sem filtros, seleciona o mês vigente no timezone da aplicação.
+- Vigente: do dia 1 até a data da consulta, inclusive; mesmo no último dia, o dia ainda está em andamento.
+- Histórico: do dia 1 ao último dia do mês selecionado, inclusive. Fevereiro segue o calendário civil, incluindo o dia 29 nos anos bissextos.
+- Comparações vigentes usam dias completos equivalentes; históricas comparam os totais de dois meses completos, mesmo com durações diferentes. Os limiares de elegibilidade continuam valendo.
+- Ano aceita 1–4 dígitos, de 1 a 9999; mês aceita 1–2 dígitos, de 1 a 12. Zeros à esquerda são normalizados. O primeiro mês selecionável é março/0001, pois a análise precisa de dois antecedentes.
+- Campos incompletos, mês futuro, valores vazios, sinais, whitespace, frações, expoentes, arrays, parâmetros desconhecidos e duplicados produzem `422` JSON:API com `source.parameter`, sem executar a leitura analítica. Nomes codificados equivalentes também contam como duplicados.
+- Filtros no corpo GET não selecionam o mês; somente a query é usada. Meses vazios históricos retornam orientação contextual, sem serem apresentados como a primeira despesa da conta.
+
+Exemplo de mês encerrado quando a data civil da consulta já é posterior a setembro/2026:
+
+```text
+GET /api/insights?filter[year]=2026&filter[month]=09
+Accept: application/vnd.api+json
+Authorization: Bearer <token>
+```
+
 ## Eventos de observabilidade
 
 Com `LOG_OBSERVABILITY_STREAM=php://stderr`, os eventos JSON aparecem nos logs do container que executou a operação. Alterações confirmadas de conta e autenticação emitem `user.registered`, `user.updated`, `user.deleted`, `identity.signed_in` e `identity.signed_out`; despesas emitem `expense.created`, `expense.updated`, `expense.deleted` e `expense.classified`. Leituras não emitem eventos de negócio. Eventos HTTP incluem o `request_id` devolvido em `X-Request-Id`.

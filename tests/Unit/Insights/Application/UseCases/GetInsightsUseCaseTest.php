@@ -8,6 +8,7 @@ use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Insights\Application\Data\ExpenseAnalysisOutput;
 use App\Insights\Application\Data\ExpenseCategoryAnalysisOutput;
 use App\Insights\Application\Data\ExpensePeriodAnalysisOutput;
+use App\Insights\Application\Data\GetInsightsInput;
 use App\Insights\Application\Repositories\ExpenseAnalysisRepository;
 use App\Insights\Application\UseCases\ComposeInsightMessageUseCase;
 use App\Insights\Application\UseCases\GenerateInsightCandidatesUseCase;
@@ -17,6 +18,8 @@ use App\Insights\Application\UseCases\SelectInsightCandidatesUseCase;
 use App\Insights\Application\UseCases\SelectInsightMessageVariantUseCase;
 use App\Insights\Domain\Enums\InsightGroupEnum;
 use App\Insights\Domain\Enums\InsightTypeEnum;
+use App\Insights\Domain\Exceptions\InvalidInsightAnalysisException;
+use App\Insights\Domain\ValueObjects\InsightAnalysisPeriodValueObject;
 
 function getInsightsAnalysisFixture(string $categoryAmount = '30000', string $category = 'food', string $to = '2026-10-12'): ExpenseAnalysisOutput
 {
@@ -62,9 +65,9 @@ it('obtains the owner from its port and returns composed typed insights', functi
     $userPort = $this->createMock(UserPort::class);
     $userPort->expects($this->once())->method('id')->willReturn(42);
     $analysisPort = $this->createMock(ExpenseAnalysisRepository::class);
-    $analysisPort->expects($this->once())->method('analyze')->with(42, '2026-10-12')->willReturn(getInsightsAnalysisFixture());
+    $analysisPort->expects($this->once())->method('analyze')->with(42, new InsightAnalysisPeriodValueObject('2026-10-12', DatePeriodValueObject::monthContaining('2026-10-12')))->willReturn(getInsightsAnalysisFixture());
 
-    $insights = getInsightsFixtureUseCase($userPort, $analysisPort)->execute('2026-10-12');
+    $insights = getInsightsFixtureUseCase($userPort, $analysisPort)->execute(new GetInsightsInput('2026-10-12', DatePeriodValueObject::monthContaining('2026-10-12')));
 
     expect($insights)->toHaveCount(1)
         ->and($insights[0]->id)->toMatch('/\A[0-9a-f]{64}\z/')
@@ -79,11 +82,12 @@ it('keeps derived IDs and variants stable when only numbers change', function ()
     $userPort = $this->createMock(UserPort::class);
     $userPort->method('id')->willReturn(42);
     $analysisPort = $this->createMock(ExpenseAnalysisRepository::class);
-    $analysisPort->expects($this->exactly(2))->method('analyze')->with(42, '2026-10-12')
+    $analysisPort->expects($this->exactly(2))->method('analyze')->with(42, new InsightAnalysisPeriodValueObject('2026-10-12', DatePeriodValueObject::monthContaining('2026-10-12')))
         ->willReturnOnConsecutiveCalls(getInsightsAnalysisFixture(), getInsightsAnalysisFixture('33000'));
     $useCase = getInsightsFixtureUseCase($userPort, $analysisPort);
-    $first = $useCase->execute('2026-10-12')[0];
-    $second = $useCase->execute('2026-10-12')[0];
+    $input = new GetInsightsInput('2026-10-12', DatePeriodValueObject::monthContaining('2026-10-12'));
+    $first = $useCase->execute($input)[0];
+    $second = $useCase->execute($input)[0];
 
     expect($first->id)->toBe($second->id)
         ->and($first->title)->toBe($second->title)
@@ -97,8 +101,8 @@ it('keeps the resource ID independent of the rotating message for the same analy
     $analysisPort = $this->createMock(ExpenseAnalysisRepository::class);
     $analysisPort->expects($this->exactly(2))->method('analyze')->willReturn(getInsightsAnalysisFixture());
     $useCase = getInsightsFixtureUseCase($userPort, $analysisPort);
-    $first = $useCase->execute('2026-10-12')[0];
-    $second = $useCase->execute('2026-10-13')[0];
+    $first = $useCase->execute(new GetInsightsInput('2026-10-12', DatePeriodValueObject::monthContaining('2026-10-12')))[0];
+    $second = $useCase->execute(new GetInsightsInput('2026-10-13', DatePeriodValueObject::monthContaining('2026-10-13')))[0];
 
     expect($first->id)->toBe($second->id)
         ->and($first->title === $second->title)->toBeFalse()
@@ -118,7 +122,8 @@ it('distinguishes accounts subjects and analyzed periods in derived IDs', functi
     $analysisPort->method('analyze')->willReturnOnConsecutiveCalls(getInsightsAnalysisFixture(), $changed);
     $useCase = getInsightsFixtureUseCase($userPort, $analysisPort);
 
-    expect($useCase->execute('2026-10-12')[0]->id === $useCase->execute('2026-10-12')[0]->id)->toBeFalse();
+    $input = new GetInsightsInput('2026-10-12', DatePeriodValueObject::monthContaining('2026-10-12'));
+    expect($useCase->execute($input)[0]->id === $useCase->execute($input)[0]->id)->toBeFalse();
 })->with(['account', 'subject', 'period']);
 
 it('does not read analytical data when the identity port fails', function (): void {
@@ -127,7 +132,7 @@ it('does not read analytical data when the identity port fails', function (): vo
     $analysisPort = $this->createMock(ExpenseAnalysisRepository::class);
     $analysisPort->expects($this->never())->method('analyze');
 
-    getInsightsFixtureUseCase($userPort, $analysisPort)->execute('2026-10-12');
+    getInsightsFixtureUseCase($userPort, $analysisPort)->execute(new GetInsightsInput('2026-10-12', DatePeriodValueObject::monthContaining('2026-10-12')));
 })->throws(RuntimeException::class, 'Identity unavailable');
 
 it('propagates analytical failures instead of producing fabricated onboarding', function (): void {
@@ -136,5 +141,16 @@ it('propagates analytical failures instead of producing fabricated onboarding', 
     $analysisPort = $this->createMock(ExpenseAnalysisRepository::class);
     $analysisPort->method('analyze')->willThrowException(new RuntimeException('Analysis unavailable'));
 
-    getInsightsFixtureUseCase($userPort, $analysisPort)->execute('2026-10-12');
+    getInsightsFixtureUseCase($userPort, $analysisPort)->execute(new GetInsightsInput('2026-10-12', DatePeriodValueObject::monthContaining('2026-10-12')));
 })->throws(RuntimeException::class, 'Analysis unavailable');
+
+it('rejects invalid non HTTP selections before resolving the owner or reading expenses', function (string $from, string $to): void {
+    $port = $this->createMock(UserPort::class);
+    $port->expects($this->never())->method('id');
+    $repository = $this->createMock(ExpenseAnalysisRepository::class);
+    $repository->expects($this->never())->method('analyze');
+
+    getInsightsFixtureUseCase($port, $repository)->execute(new GetInsightsInput('2026-10-12', DatePeriodValueObject::fromDates($from, $to)));
+})->with([
+    ['2026-11-01', '2026-11-30'], ['2026-09-01', '2026-09-29'], ['0001-02-01', '0001-02-28'],
+])->throws(InvalidInsightAnalysisException::class);

@@ -9,6 +9,7 @@ use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Insights\Application\Data\ExpenseAnalysisOutput;
 use App\Insights\Application\Data\ExpensePeriodAnalysisOutput;
 use App\Insights\Domain\Enums\InsightHistoryStateEnum;
+use App\Insights\Domain\Enums\InsightPeriodModeEnum;
 use App\Insights\Domain\Enums\InsightTypeEnum;
 use App\Insights\Domain\Exceptions\InvalidInsightAnalysisException;
 use App\Insights\Domain\ValueObjects\ExpensePeriodSummaryValueObject;
@@ -46,10 +47,12 @@ final class GenerateInsightCandidatesUseCase
                 throw new InvalidInsightAnalysisException('Uma análise com registros não pode indicar ausência de histórico.');
             }
 
-            return [new InsightCandidateValueObject(
-                analysisPeriod: $current->period,
-                type: InsightTypeEnum::FirstExpense,
-            )];
+            if ($analysis->mode === InsightPeriodModeEnum::Current) {
+                return [new InsightCandidateValueObject(
+                    analysisPeriod: $current->period,
+                    type: InsightTypeEnum::FirstExpense,
+                )];
+            }
         }
 
         if (($analysis->currentComparison === null) !== ($analysis->previousComparison === null)) {
@@ -58,12 +61,14 @@ final class GenerateInsightCandidatesUseCase
 
         $candidates = $this->generateObservations(
             current: $current,
+            mode: $analysis->mode,
             previous: $this->mapPeriod($analysis->previousMonth),
             twoMonthsAgo: $this->mapPeriod($analysis->twoMonthsAgo),
         );
 
         if ($analysis->currentComparison !== null && $analysis->previousComparison !== null) {
             $comparison = $this->generateComparison(
+                mode: $analysis->mode,
                 referenceDate: $current->period->to(),
                 current: $this->mapPeriod($analysis->currentComparison),
                 previous: $this->mapPeriod($analysis->previousComparison),
@@ -75,6 +80,7 @@ final class GenerateInsightCandidatesUseCase
         }
 
         return [...$candidates, ...$this->generateHistoryGuidance(
+            mode: $analysis->mode,
             current: $current,
             candidates: $candidates,
         )];
@@ -82,6 +88,7 @@ final class GenerateInsightCandidatesUseCase
 
     /** @return list<InsightCandidateValueObject> */
     private function generateObservations(
+        InsightPeriodModeEnum $mode,
         ExpensePeriodSummaryValueObject $current,
         ExpensePeriodSummaryValueObject $previous,
         ExpensePeriodSummaryValueObject $twoMonthsAgo,
@@ -100,6 +107,7 @@ final class GenerateInsightCandidatesUseCase
 
         if ($leader !== null) {
             $candidates[] = new InsightCandidateValueObject(
+                mode: $mode,
                 category: $leader,
                 analysisPeriod: $current->period,
                 type: InsightTypeEnum::CategoryConcentration,
@@ -108,6 +116,7 @@ final class GenerateInsightCandidatesUseCase
 
             if ($this->hasRecurringLeadership($leader, $current, $previous, $twoMonthsAgo)) {
                 $candidates[] = new InsightCandidateValueObject(
+                    mode: $mode,
                     category: $leader,
                     type: InsightTypeEnum::CategoryLeadStreak,
                     analysisPeriod: DatePeriodValueObject::fromDates($twoMonthsAgo->period->from(), $current->period->to()),
@@ -119,6 +128,7 @@ final class GenerateInsightCandidatesUseCase
 
         if ($expenseShare->isAtLeastPercent(self::MinimumExpensePercent)) {
             $candidates[] = new InsightCandidateValueObject(
+                mode: $mode,
                 ratio: $expenseShare,
                 analysisPeriod: $current->period,
                 category: $current->largestExpenseCategory,
@@ -130,6 +140,7 @@ final class GenerateInsightCandidatesUseCase
 
         if ($otherShare->isAtLeastPercent(self::MinimumOtherPercent)) {
             $candidates[] = new InsightCandidateValueObject(
+                mode: $mode,
                 category: 'other',
                 ratio: $otherShare,
                 analysisPeriod: $current->period,
@@ -144,19 +155,24 @@ final class GenerateInsightCandidatesUseCase
         ExpensePeriodSummaryValueObject $current,
         ExpensePeriodSummaryValueObject $previous,
         string $referenceDate,
+        InsightPeriodModeEnum $mode,
     ): ?InsightCandidateValueObject {
         DatePeriodValueObject::fromDates($referenceDate, $referenceDate);
         $reference = new DateTimeImmutable($referenceDate, new DateTimeZone('UTC'));
         $previousStart = new DateTimeImmutable($previous->period->from(), new DateTimeZone('UTC'));
         $commonDays = min((int) $reference->format('j') - 1, (int) $previousStart->format('t'));
 
+        $validPeriods = $mode === InsightPeriodModeEnum::Closed
+            ? $current->period->isCompleteMonth() && $previous->period->isCompleteMonth()
+            : $current->period->to() < $referenceDate
+                && $current->period->hasSameDurationAs($previous->period)
+                && $current->period->days() === $commonDays
+                && $current->period->days() >= self::MinimumComparisonDays;
+
         if (! $current->period->startsAtMonthStart() || ! $previous->period->startsAtMonthStart()
             || substr($current->period->from(), 0, 7) !== substr($referenceDate, 0, 7)
-            || $current->period->to() >= $referenceDate
             || ! $previous->period->isPreviousMonthOf($current->period)
-            || ! $current->period->hasSameDurationAs($previous->period)
-            || $current->period->days() !== $commonDays
-            || $current->period->days() < self::MinimumComparisonDays
+            || ! $validPeriods
             || ! $this->hasDescriptiveBase($current)
             || ! $this->hasDescriptiveBase($previous)) {
             return null;
@@ -171,6 +187,7 @@ final class GenerateInsightCandidatesUseCase
         }
 
         return new InsightCandidateValueObject(
+            mode: $mode,
             type: $current->totalAmount->compareTo($previous->totalAmount) > 0
                 ? InsightTypeEnum::RegisteredAmountIncrease
                 : InsightTypeEnum::RegisteredAmountDecrease,
@@ -184,7 +201,7 @@ final class GenerateInsightCandidatesUseCase
      * @param  list<InsightCandidateValueObject>  $candidates
      * @return list<InsightCandidateValueObject>
      */
-    private function generateHistoryGuidance(ExpensePeriodSummaryValueObject $current, array $candidates): array
+    private function generateHistoryGuidance(ExpensePeriodSummaryValueObject $current, array $candidates, InsightPeriodModeEnum $mode): array
     {
         foreach ($candidates as $candidate) {
             if ($candidate->isFinancialObservation()) {
@@ -193,6 +210,7 @@ final class GenerateInsightCandidatesUseCase
         }
 
         return [new InsightCandidateValueObject(
+            mode: $mode,
             analysisPeriod: $current->period,
             type: InsightTypeEnum::InsufficientHistory,
             historyState: $current->expenseCount > 0 ? InsightHistoryStateEnum::CurrentExpenses : InsightHistoryStateEnum::NoCurrentExpenses,

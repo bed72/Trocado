@@ -9,8 +9,8 @@ use App\Insights\Application\Data\ExpenseAnalysisOutput;
 use App\Insights\Application\Data\ExpenseCategoryAnalysisOutput;
 use App\Insights\Application\Data\ExpensePeriodAnalysisOutput;
 use App\Insights\Application\Repositories\ExpenseAnalysisRepository;
-use DateTimeImmutable;
-use DateTimeZone;
+use App\Insights\Domain\Enums\InsightPeriodModeEnum;
+use App\Insights\Domain\ValueObjects\InsightAnalysisPeriodValueObject;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -35,49 +35,19 @@ use Illuminate\Support\Facades\DB;
  */
 final class EloquentExpenseAnalysisRepository implements ExpenseAnalysisRepository
 {
-    public function analyze(int $userId, string $referenceDate): ExpenseAnalysisOutput
+    public function analyze(int $userId, InsightAnalysisPeriodValueObject $period): ExpenseAnalysisOutput
     {
-        $periods = $this->buildPeriods(referenceDate: $referenceDate);
+        $periods = $period->periods();
         $rows = $this->fetchAggregatedExpenses(userId: $userId, periods: $periods);
 
-        return $this->mapAnalysis(periods: $periods, rows: $rows);
-    }
-
-    /** @return AnalysisPeriods */
-    private function buildPeriods(string $referenceDate): array
-    {
-        DatePeriodValueObject::fromDates(from: $referenceDate, to: $referenceDate);
-
-        $reference = new DateTimeImmutable($referenceDate, new DateTimeZone('UTC'));
-        $currentMonth = $reference->modify('first day of this month');
-        $previousMonth = $currentMonth->modify('-1 month');
-        $twoMonthsAgo = $currentMonth->modify('-2 months');
-        $periods = [
-            'current_month' => DatePeriodValueObject::fromDates($currentMonth->format('Y-m-d'), $referenceDate),
-            'previous_month' => DatePeriodValueObject::fromDates($previousMonth->format('Y-m-d'), $currentMonth->modify('-1 day')->format('Y-m-d')),
-            'two_months_ago' => DatePeriodValueObject::fromDates($twoMonthsAgo->format('Y-m-d'), $previousMonth->modify('-1 day')->format('Y-m-d')),
-        ];
-        $comparisonDays = min((int) $reference->format('j') - 1, (int) $previousMonth->format('t'));
-
-        if ($comparisonDays > 0) {
-            $periods['current_comparison'] = DatePeriodValueObject::fromDates(
-                $currentMonth->format('Y-m-d'),
-                $currentMonth->modify('+'.($comparisonDays - 1).' days')->format('Y-m-d'),
-            );
-            $periods['previous_comparison'] = DatePeriodValueObject::fromDates(
-                $previousMonth->format('Y-m-d'),
-                $previousMonth->modify('+'.($comparisonDays - 1).' days')->format('Y-m-d'),
-            );
-        }
-
-        return $periods;
+        return $this->mapAnalysis(periods: $periods, rows: $rows, mode: $period->mode);
     }
 
     /**
      * @param  AnalysisPeriods  $periods
      * @param  non-empty-list<AnalysisRow>  $rows
      */
-    private function mapAnalysis(array $periods, array $rows): ExpenseAnalysisOutput
+    private function mapAnalysis(array $periods, array $rows, InsightPeriodModeEnum $mode): ExpenseAnalysisOutput
     {
         $rowsByPeriod = [];
 
@@ -95,6 +65,7 @@ final class EloquentExpenseAnalysisRepository implements ExpenseAnalysisReposito
         }
 
         return new ExpenseAnalysisOutput(
+            mode: $mode,
             currentMonth: $projections['current_month'],
             twoMonthsAgo: $projections['two_months_ago'],
             previousMonth: $projections['previous_month'],

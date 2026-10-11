@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Core\Domain\ValueObjects\AmountValueObject;
 use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Insights\Domain\Enums\InsightHistoryStateEnum;
+use App\Insights\Domain\Enums\InsightPeriodModeEnum;
 use App\Insights\Domain\Enums\InsightTypeEnum;
 use App\Insights\Domain\Exceptions\InvalidInsightAnalysisException;
 use App\Insights\Domain\ValueObjects\InsightCandidateValueObject;
@@ -114,6 +115,40 @@ it('preserves the full three period span for recurring leadership', function ():
         ->and($candidate->comparisonPeriod)->toBeNull()
         ->and($candidate->ratio)->toBeNull();
 });
+
+it('allows different durations only for closed complete consecutive monthly comparisons', function (): void {
+    $candidate = new InsightCandidateValueObject(
+        mode: InsightPeriodModeEnum::Closed,
+        type: InsightTypeEnum::RegisteredAmountIncrease,
+        analysisPeriod: DatePeriodValueObject::fromDates('2026-09-01', '2026-09-30'),
+        comparisonPeriod: DatePeriodValueObject::fromDates('2026-08-01', '2026-08-31'),
+        ratio: AmountValueObject::fromAmount('10000')->shareOf(AmountValueObject::fromAmount('40000')),
+    );
+
+    expect($candidate->mode)->toBe(InsightPeriodModeEnum::Closed)
+        ->and($candidate->analysisPeriod->days())->toBe(30)
+        ->and($candidate->comparisonPeriod->days())->toBe(31);
+});
+
+it('rejects partial or nonconsecutive months in a closed comparison', function (string $previousFrom, string $previousTo): void {
+    new InsightCandidateValueObject(
+        mode: InsightPeriodModeEnum::Closed,
+        type: InsightTypeEnum::RegisteredAmountIncrease,
+        analysisPeriod: DatePeriodValueObject::fromDates('2026-09-01', '2026-09-30'),
+        comparisonPeriod: DatePeriodValueObject::fromDates($previousFrom, $previousTo),
+        ratio: AmountValueObject::fromAmount('10000')->shareOf(AmountValueObject::fromAmount('40000')),
+    );
+})->with([
+    ['2026-08-01', '2026-08-30'], ['2026-08-02', '2026-08-31'], ['2026-07-01', '2026-07-31'],
+])->throws(InvalidInsightAnalysisException::class);
+
+it('rejects first expense for a historical candidate', function (): void {
+    new InsightCandidateValueObject(
+        mode: InsightPeriodModeEnum::Closed,
+        type: InsightTypeEnum::FirstExpense,
+        analysisPeriod: DatePeriodValueObject::fromDates('2026-09-01', '2026-09-30'),
+    );
+})->throws(InvalidInsightAnalysisException::class);
 
 it('identifies the same information independently of the calculated ratio', function (): void {
     $candidate = candidateValueObjectFixture(InsightTypeEnum::CategoryConcentration, 'food', true, false);

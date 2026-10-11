@@ -126,7 +126,7 @@ it('blocks inactive or unverified accounts before analytical access', function (
         ->assertJsonMissingPath('data');
 })->with(['pending', 'blocked', 'unverified']);
 
-it('rejects every supplied query parameter including empty values without analyzing expenses', function (string $query, string $parameter): void {
+it('rejects unsupported query parameters including empty values without analyzing expenses', function (string $query, string $parameter): void {
     $user = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
     $token = IdentityFixture::token($user, expiresAt: now()->addDays(30));
     $port = $this->createMock(ExpenseAnalysisRepository::class);
@@ -140,8 +140,8 @@ it('rejects every supplied query parameter including empty values without analyz
         ->assertJsonMissingPath('data');
 })->with([
     ['user_id=999', 'user_id'], ['period=2026-09', 'period'], ['family=1', 'family'],
-    ['limit=6', 'limit'], ['page[size]=20', 'page'], ['include=user', 'include'],
-    ['filter[category]=food', 'filter'], ['unknown=', 'unknown'], ['user_id=', 'user_id'],
+    ['limit=6', 'limit'], ['page[size]=20', 'page[size]'], ['include=user', 'include'],
+    ['filter[category]=food', 'filter[category]'], ['unknown=', 'unknown'], ['user_id=', 'user_id'],
 ]);
 
 it('identifies all rejected query parameters in the error document', function (): void {
