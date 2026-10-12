@@ -12,6 +12,7 @@ use App\Identity\Application\Exceptions\InvalidCredentialsException;
 use App\Identity\Application\Exceptions\UnverifiedEmailException;
 use App\Identity\Application\Exceptions\UserNotFoundException;
 use App\Identity\Domain\Enums\UserStatusEnum;
+use App\Identity\Domain\Exceptions\InvalidAvatarException;
 use App\Identity\Domain\Exceptions\InvalidEmailException;
 use App\Identity\Domain\Exceptions\InvalidNameException;
 use App\Identity\Domain\Exceptions\InvalidPasswordException;
@@ -162,6 +163,14 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(fn (InvalidEmailException $exception) => response()->json(['errors' => [[
             'title' => 'Dados inválidos',
             'detail' => $exception->getMessage(),
+            'status' => (string) Response::HTTP_UNPROCESSABLE_ENTITY,
+        ]]], Response::HTTP_UNPROCESSABLE_ENTITY)->header('Content-Type', 'application/vnd.api+json')
+        );
+
+        $exceptions->render(fn (InvalidAvatarException $exception) => response()->json(['errors' => [[
+            'title' => 'Dados inválidos',
+            'detail' => $exception->getMessage(),
+            'source' => ['pointer' => '/data/attributes/avatar'],
             'status' => (string) Response::HTTP_UNPROCESSABLE_ENTITY,
         ]]], Response::HTTP_UNPROCESSABLE_ENTITY)->header('Content-Type', 'application/vnd.api+json')
         );

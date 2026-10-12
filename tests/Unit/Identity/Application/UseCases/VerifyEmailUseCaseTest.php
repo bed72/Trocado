@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Identity\Application\Data\EmailVerificationOutput;
+use App\Identity\Application\Data\Output\EmailVerificationOutput;
 use App\Identity\Application\Ports\EmailVerificationPort;
 use App\Identity\Application\Repositories\EmailVerificationRepository;
 use App\Identity\Application\UseCases\VerifyEmailUseCase;

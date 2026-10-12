@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Identity\Application\Data\Input\UpdateInput;
 use App\Identity\Application\Exceptions\UserNotFoundException;
 use App\Identity\Application\Repositories\UserRepository;
 use App\Identity\Application\UseCases\UpdateUserUseCase;
@@ -41,7 +42,7 @@ it('updates only the name while preserving email and persistence data', function
 
     $updated = (new UpdateUserUseCase(userPort: $userPort, observabilityPort: $port, repository: $repository))->execute(
         id: 10,
-        name: '  Maria Souza  ',
+        input: new UpdateInput(name: '  Maria Souza  '),
     );
 
     expect($updated->name->value())->toBe('Maria Souza')
@@ -57,7 +58,7 @@ it('does not persist invalid names', function (string $name) use ($createCurrent
 
     (new UpdateUserUseCase(userPort: $userPort, observabilityPort: $port, repository: $repository))->execute(
         id: 10,
-        name: $name,
+        input: new UpdateInput(name: $name),
     );
 })->with(['   ', str_repeat('a', 33)])->throws(InvalidNameException::class);
 
@@ -68,7 +69,7 @@ it('fails when the user is absent before updating', function (): void {
     $repository->expects($this->once())->method('getById')->with(10)->willReturn(null);
     $repository->expects($this->never())->method('update');
 
-    (new UpdateUserUseCase(userPort: $userPort, observabilityPort: $port, repository: $repository))->execute(id: 10, name: 'Maria');
+    (new UpdateUserUseCase(userPort: $userPort, observabilityPort: $port, repository: $repository))->execute(id: 10, input: new UpdateInput(name: 'Maria'));
 })->throws(UserNotFoundException::class, 'User não encontrado.');
 
 it('fails when the user disappears during updating', function () use ($createCurrentUser): void {
@@ -78,7 +79,7 @@ it('fails when the user disappears during updating', function () use ($createCur
     $repository->expects($this->once())->method('getById')->willReturn($createCurrentUser());
     $repository->expects($this->once())->method('update')->willReturn(null);
 
-    (new UpdateUserUseCase(userPort: $userPort, observabilityPort: $port, repository: $repository))->execute(id: 10, name: 'Maria');
+    (new UpdateUserUseCase(userPort: $userPort, observabilityPort: $port, repository: $repository))->execute(id: 10, input: new UpdateInput(name: 'Maria'));
 })->throws(UserNotFoundException::class, 'User não encontrado.');
 
 it('does not read or write another user', function (): void {
@@ -88,5 +89,5 @@ it('does not read or write another user', function (): void {
     $repository->expects($this->never())->method('getById');
     $repository->expects($this->never())->method('update');
 
-    (new UpdateUserUseCase(userPort: $port, observabilityPort: $observabilityPort, repository: $repository))->execute(id: 10, name: 'Maria');
+    (new UpdateUserUseCase(userPort: $port, observabilityPort: $observabilityPort, repository: $repository))->execute(id: 10, input: new UpdateInput(name: 'Maria'));
 })->throws(UserNotFoundException::class);

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Core\Application\Ports\TransactionPort;
-use App\Identity\Application\Data\SignInOutput;
+use App\Identity\Application\Data\Output\SignInOutput;
 use App\Identity\Application\Ports\EmailVerificationPort;
 use App\Identity\Application\Ports\SessionPort;
 use App\Identity\Application\Ports\SignInPort;

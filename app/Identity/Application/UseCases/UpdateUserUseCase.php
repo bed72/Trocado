@@ -6,6 +6,7 @@ namespace App\Identity\Application\UseCases;
 
 use App\Core\Application\Ports\ObservabilityPort;
 use App\Core\Application\Ports\UserPort;
+use App\Identity\Application\Data\Input\UpdateInput;
 use App\Identity\Application\Exceptions\UserNotFoundException;
 use App\Identity\Application\Repositories\UserRepository;
 use App\Identity\Domain\Entities\UserEntity;
@@ -19,7 +20,7 @@ final readonly class UpdateUserUseCase
         private UserRepository $repository,
     ) {}
 
-    public function execute(int $id, string $name): UserEntity
+    public function execute(int $id, UpdateInput $input): UserEntity
     {
         if ($this->userPort->id() !== $id) {
             throw new UserNotFoundException;
@@ -34,7 +35,8 @@ final readonly class UpdateUserUseCase
             status: $current->status,
             createdAt: $current->createdAt,
             updatedAt: $current->updatedAt,
-            name: NameValueObject::fromString(value: $name),
+            avatar: $input->hasAvatar || $input->avatar !== null ? $input->avatar : $current->avatar,
+            name: $input->name === null ? $current->name : NameValueObject::fromString(value: $input->name),
         );
 
         $saved = $this->repository->update(user: $updated)

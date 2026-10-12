@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Identity\Presentation\Http\Controllers;
 
+use App\Identity\Application\Data\Input\SignUpInput;
 use App\Identity\Application\UseCases\SignUpUseCase;
 use App\Identity\Presentation\Http\Requests\SignUpRequest;
 use App\Identity\Presentation\Http\Responses\SignUpResponse;
@@ -17,11 +18,12 @@ final class SignUpController
     public function __invoke(SignUpRequest $request): JsonResponse
     {
         $attributes = $request->validated(key: 'data.attributes');
-        $userId = $this->useCase->execute(
+        $userId = $this->useCase->execute(input: new SignUpInput(
             name: $attributes['name'],
             email: $attributes['email'],
             password: $attributes['password'],
-        );
+            avatar: $attributes['avatar'] ?? null,
+        ));
 
         return (new SignUpResponse(resource: $userId))->response()
             ->setStatusCode(code: Response::HTTP_CREATED)

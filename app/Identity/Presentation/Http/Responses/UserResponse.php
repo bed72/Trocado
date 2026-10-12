@@ -22,6 +22,7 @@ final class UserResponse extends JsonApiResource
     public function toAttributes(Request $request): array
     {
         return [
+            'avatar' => $this->resource->avatar,
             'name' => $this->resource->name->value(),
             'email' => $this->resource->email->value(),
             'status' => $this->resource->status->value,

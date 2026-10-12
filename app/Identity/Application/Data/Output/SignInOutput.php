@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Identity\Application\Data;
+namespace App\Identity\Application\Data\Output;
 
 use DateTimeImmutable;
 use SensitiveParameter;

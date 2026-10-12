@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Core\Application\Ports\TransactionPort;
+use App\Identity\Application\Data\Input\SignUpInput;
 use App\Identity\Application\UseCases\SignUpUseCase;
 use App\Identity\Application\UseCases\VerifyEmailUseCase;
 use App\Identity\Domain\Entities\UserEntity;
@@ -39,7 +40,7 @@ it('does not request verification when registration is rolled back or conflicts'
 
     try {
         DB::transaction(function (): void {
-            app(SignUpUseCase::class)->execute('Maria', 'maria@example.com', 'Correct1');
+            app(SignUpUseCase::class)->execute(input: new SignUpInput(name: 'Maria', email: 'maria@example.com', password: 'Correct1'));
 
             throw new RuntimeException('Rollback proposital.');
         });
@@ -52,8 +53,8 @@ it('does not request verification when registration is rolled back or conflicts'
 
     $payload = ['data' => ['type' => 'sign-ups', 'attributes' => [
         'name' => 'Maria',
-        'email' => 'maria@example.com',
         'password' => 'Correct1',
+        'email' => 'maria@example.com',
         'password_confirmation' => 'Correct1',
     ]]];
 
@@ -76,11 +77,11 @@ it('retries a transient concurrency error during registration without duplicatin
         }
     });
 
-    $userId = app(SignUpUseCase::class)->execute(
+    $userId = app(SignUpUseCase::class)->execute(input: new SignUpInput(
         name: 'Maria',
         email: 'maria@example.com',
         password: 'Correct1',
-    );
+    ));
 
     expect($attempts)->toBe(2)
         ->and(UserModel::query()->where('email', 'maria@example.com')->count())->toBe(1);
@@ -115,7 +116,7 @@ it('discards the verification callback from a transaction attempt rolled back af
         }
     });
 
-    $userId = app(SignUpUseCase::class)->execute('Maria', 'maria@example.com', 'Correct1');
+    $userId = app(SignUpUseCase::class)->execute(input: new SignUpInput(name: 'Maria', email: 'maria@example.com', password: 'Correct1'));
 
     expect($attempts)->toBe(2)
         ->and(UserModel::query()->where('email', 'maria@example.com')->count())->toBe(1);
@@ -132,11 +133,11 @@ it('does not retry or expose unrelated persistence errors', function (): void {
         throw new RuntimeException('internal persistence failure');
     });
 
-    expect(fn (): int => app(SignUpUseCase::class)->execute(
+    expect(fn (): int => app(SignUpUseCase::class)->execute(input: new SignUpInput(
         name: 'Maria',
         email: 'maria@example.com',
         password: 'Correct1',
-    ))->toThrow(RuntimeException::class, 'Não foi possível persistir a nova conta.');
+    )))->toThrow(RuntimeException::class, 'Não foi possível persistir a nova conta.');
 
     expect($attempts)->toBe(1)
         ->and(UserModel::query()->count())->toBe(0);

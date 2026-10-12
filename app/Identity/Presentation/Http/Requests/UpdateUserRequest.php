@@ -22,9 +22,11 @@ final class UpdateUserRequest extends FormRequest
         return [
             'data.type' => ['required', 'in:users'],
             'data' => ['required', 'array:type,id,attributes'],
-            'data.attributes' => ['required', 'array:name', 'min:1'],
+            'data.attributes' => ['required', 'array:name,avatar', 'min:1'],
+            'data.attributes.avatar' => ['sometimes', 'nullable', 'string', 'max:2048'],
             'data.attributes.name' => [
                 'bail',
+                'sometimes',
                 'required',
                 'string',
                 static function (string $attribute, mixed $value, Closure $fail): void {

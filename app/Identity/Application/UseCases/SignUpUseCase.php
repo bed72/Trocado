@@ -6,6 +6,7 @@ namespace App\Identity\Application\UseCases;
 
 use App\Core\Application\Ports\ObservabilityPort;
 use App\Core\Application\Ports\TransactionPort;
+use App\Identity\Application\Data\Input\SignUpInput;
 use App\Identity\Application\Ports\EmailVerificationPort;
 use App\Identity\Application\Repositories\UserRepository;
 use App\Identity\Domain\Entities\UserEntity;
@@ -19,19 +20,20 @@ final readonly class SignUpUseCase
 {
     public function __construct(
         private TransactionPort $transactionPort,
-        private ObservabilityPort $observabilityPort,
         private EmailVerificationPort $emailPort,
+        private ObservabilityPort $observabilityPort,
         private UserRepository $repository,
     ) {}
 
-    public function execute(string $name, string $email, #[SensitiveParameter] string $password): int
+    public function execute(#[SensitiveParameter] SignUpInput $input): int
     {
         $user = new UserEntity(
             id: null,
-            name: NameValueObject::fromString(value: $name),
-            email: EmailValueObject::fromString(value: $email),
+            avatar: $input->avatar,
+            name: NameValueObject::fromString(value: $input->name),
+            email: EmailValueObject::fromString(value: $input->email),
         );
-        $validPassword = PasswordValueObject::fromString(value: $password);
+        $validPassword = PasswordValueObject::fromString(value: $input->password);
 
         $registered = $this->transactionPort->commit(function () use ($user, $validPassword): UserEntity {
             $registered = $this->repository->create(user: $user, password: $validPassword->value());

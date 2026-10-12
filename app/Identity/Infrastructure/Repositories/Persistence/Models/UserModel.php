@@ -20,14 +20,15 @@ use Laravel\Sanctum\HasApiTokens;
  * @property string $name
  * @property string $email
  * @property string $password
+ * @property string|null $avatar
  * @property UserStatusEnum $status
- * @property DateTimeImmutable|null $email_verified_at
  * @property DateTimeImmutable $created_at
  * @property DateTimeImmutable $updated_at
+ * @property DateTimeImmutable|null $email_verified_at
  */
 #[Table('users')]
 #[Hidden('password')]
-#[Fillable('name', 'email', 'password', 'status')]
+#[Fillable('name', 'email', 'password', 'status', 'avatar')]
 final class UserModel extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens, Notifiable;

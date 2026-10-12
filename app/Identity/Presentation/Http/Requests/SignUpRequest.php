@@ -36,7 +36,8 @@ final class SignUpRequest extends FormRequest
                 },
             ],
             'data.attributes.email' => ['required', 'string', 'email', 'max:255'],
-            'data.attributes' => ['required', 'array:name,email,password,password_confirmation'],
+            'data.attributes.avatar' => ['sometimes', 'nullable', 'string', 'max:2048'],
+            'data.attributes' => ['required', 'array:name,email,password,password_confirmation,avatar'],
             'data.attributes.password' => [
                 'bail',
                 'required',

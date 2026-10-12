@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Identity\Infrastructure\Repositories\Persistence;
 
-use App\Identity\Application\Data\EmailVerificationOutput;
+use App\Identity\Application\Data\Output\EmailVerificationOutput;
 use App\Identity\Application\Repositories\EmailVerificationRepository;
 use App\Identity\Infrastructure\Repositories\Persistence\Models\UserModel;
 

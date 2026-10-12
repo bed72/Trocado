@@ -40,6 +40,7 @@ final class EloquentUserRepository implements UserRepository
         try {
             $model = UserModel::query()->create([
                 'password' => $password,
+                'avatar' => $user->avatar,
                 'name' => $user->name->value(),
                 'email' => $user->email->value(),
                 'status' => UserStatusEnum::Pending,
@@ -69,7 +70,7 @@ final class EloquentUserRepository implements UserRepository
             return null;
         }
 
-        $model->fill(['name' => $user->name->value()])->save();
+        $model->fill(['name' => $user->name->value(), 'avatar' => $user->avatar])->save();
 
         return $this->toEntity(model: $model);
     }
@@ -105,10 +106,11 @@ final class EloquentUserRepository implements UserRepository
     {
         $name = $model->getAttribute(key: 'name');
         $email = $model->getAttribute(key: 'email');
+        $avatar = $model->getAttribute(key: 'avatar');
         $createdAt = $model->getAttribute(key: 'created_at');
         $updatedAt = $model->getAttribute(key: 'updated_at');
 
-        if (! is_string($name) || ! is_string($email)) {
+        if (! is_string($name) || ! is_string($email) || ($avatar !== null && ! is_string($avatar))) {
             throw new UnexpectedValueException(message: 'A identidade persistida possui atributos inválidos.');
         }
 
@@ -119,6 +121,7 @@ final class EloquentUserRepository implements UserRepository
 
         return new UserEntity(
             id: (int) $model->getKey(),
+            avatar: $avatar,
             status: $model->status,
             name: NameValueObject::fromString(value: $name),
             email: EmailValueObject::fromString(value: $email),

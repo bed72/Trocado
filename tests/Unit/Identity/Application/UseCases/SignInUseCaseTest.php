@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Core\Application\Ports\ObservabilityPort;
-use App\Identity\Application\Data\SignInOutput;
+use App\Identity\Application\Data\Output\SignInOutput;
 use App\Identity\Application\Ports\SignInPort;
 use App\Identity\Application\UseCases\SignInUseCase;
 

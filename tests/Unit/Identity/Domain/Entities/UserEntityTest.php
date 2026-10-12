@@ -33,5 +33,5 @@ it('does not expose authentication or credential state', function (): void {
         callback: fn (ReflectionProperty $property): string => $property->getName(),
     );
 
-    expect($propertyNames)->toBe(['id', 'name', 'email', 'createdAt', 'updatedAt', 'status']);
+    expect($propertyNames)->toBe(['id', 'name', 'email', 'avatar', 'createdAt', 'updatedAt', 'status']);
 });

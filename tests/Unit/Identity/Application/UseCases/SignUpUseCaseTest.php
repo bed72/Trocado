@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Core\Application\Ports\TransactionPort;
+use App\Identity\Application\Data\Input\SignUpInput;
 use App\Identity\Application\Ports\EmailVerificationPort;
 use App\Identity\Application\Repositories\UserRepository;
 use App\Identity\Application\UseCases\SignUpUseCase;
@@ -49,11 +50,11 @@ it('registers the canonical identity inside the transaction and returns its iden
         observabilityPort: $observabilityPort,
         emailPort: $emailVerificationPort,
         repository: $repository,
-    ))->execute(
+    ))->execute(input: new SignUpInput(
         name: ' Maria ',
         email: ' MARIA@EXAMPLE.COM ',
         password: ' Abc123 ',
-    );
+    ));
 
     expect($result)->toBe(10)
         ->and($writePort->commitCount)->toBe(1)
@@ -80,11 +81,11 @@ it('rejects an invalid password before opening a transaction', function (): void
         observabilityPort: $observabilityPort,
         emailPort: $emailVerificationPort,
         repository: $repository,
-    ))->execute(
+    ))->execute(input: new SignUpInput(
         name: 'Maria',
         email: 'maria@example.com',
         password: 'abc12',
-    );
+    ));
 })->throws(InvalidPasswordException::class);
 
 it('propagates a repository failure inside the unit without registration effects', function (): void {
@@ -109,7 +110,7 @@ it('propagates a repository failure inside the unit without registration effects
     );
 
     try {
-        $useCase->execute(name: 'Maria', email: 'maria@example.com', password: 'Correct1');
+        $useCase->execute(input: new SignUpInput(name: 'Maria', email: 'maria@example.com', password: 'Correct1'));
         $this->fail('The repository sentinel must propagate.');
     } catch (RuntimeException $exception) {
         expect($exception)->toBe($sentinel);
