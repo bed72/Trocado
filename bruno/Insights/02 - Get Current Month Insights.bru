@@ -1,0 +1,132 @@
+meta {
+  name: Get Current Month Insights
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/insights?filter[year]=2026&filter[month]=10
+  body: none
+  auth: bearer
+}
+
+params:query {
+  filter[year]: 2026
+  filter[month]: 10
+}
+
+headers {
+  Accept: application/vnd.api+json
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+vars:pre-request {
+  insightsQueryDate: 2026-10-14
+}
+
+tests {
+  test("Retorna coleção JSON:API de Insights dentro do contrato", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("content-type")).to.match(/^application\/vnd\.api\+json(?:\s*;|$)/i);
+    const body = res.getBody();
+    expect(body).to.be.an("object").and.not.to.have.property("errors");
+    expect(body.data).to.be.an("array").with.length.at.most(6);
+    expect(new Set(body.data.map(item => item.id)).size).to.equal(body.data.length);
+    const types = {
+      observation: ["category_concentration", "expense_concentration"],
+      comparison: ["registered_amount_increase", "registered_amount_decrease", "category_lead_streak"],
+      onboarding: ["first_expense", "insufficient_history", "category_review"]
+    };
+    body.data.forEach(function (item) {
+      expect(item).to.have.all.keys("type", "id", "attributes");
+      expect(item.type).to.equal("insights");
+      expect(item.id).to.be.a("string").and.not.empty;
+      expect(item.attributes).to.have.all.keys("group", "type", "title", "description", "period");
+      const attributes = item.attributes;
+      expect(types).to.have.property(attributes.group);
+      expect(types[attributes.group]).to.include(attributes.type);
+      expect(attributes.title).to.be.a("string").and.not.empty;
+      expect(attributes.description).to.be.a("string").and.not.empty;
+      expect(Array.from(attributes.title).length).to.be.at.most(24);
+      expect(Array.from(attributes.description).length).to.be.at.most(80);
+    });
+  });
+
+  test("Preserva os períodos civis do vigente explícito e onboarding null", function () {
+    const reference = bru.getRequestVar("insightsQueryDate");
+    expect(reference).to.be.a("string").and.match(/^\d{4}-\d{2}-\d{2}$/);
+    const [year, month, day] = reference.split("-").map(Number);
+    const days = (y, m) => [31, y % 4 === 0 && (y % 100 !== 0 || y % 400 === 0) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][m - 1];
+    expect(year).to.be.within(1, 9999);
+    expect(month).to.be.within(1, 12);
+    expect(day).to.be.within(1, days(year, month));
+    const filters = Object.fromEntries(req.getQueryString().split("&").filter(Boolean).map(pair => pair.split("=").map(decodeURIComponent)));
+    expect(filters).to.have.all.keys("filter[year]", "filter[month]");
+    const selectedYear = Number(filters["filter[year]"]);
+    const selectedMonth = Number(filters["filter[month]"]);
+    expect(selectedYear).to.equal(year);
+    expect(selectedMonth).to.equal(month);
+    const selectedIndex = selectedYear * 12 + selectedMonth - 1;
+    expect(selectedIndex).to.be.at.least(14);
+    const offset = n => [Math.floor((selectedIndex + n) / 12), (selectedIndex + n) % 12 + 1];
+    const civil = (y, m, d) => `${String(y).padStart(4, "0")}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    const start = civil(selectedYear, selectedMonth, 1);
+    const end = reference;
+    res.getBody().data.forEach(function ({ attributes }) {
+      if (attributes.group === "onboarding") {
+        expect(attributes.period).to.equal(null);
+        return;
+      }
+      expect(attributes.period).to.have.all.keys("from", "to", "comparison");
+      if (["registered_amount_increase", "registered_amount_decrease"].includes(attributes.type)) {
+        const [previousYear, previousMonth] = offset(-1);
+        const commonDays = Math.min(day - 1, days(previousYear, previousMonth));
+        expect(commonDays).to.be.at.least(7);
+        expect(attributes.period.from).to.equal(start);
+        expect(attributes.period.to).to.equal(civil(selectedYear, selectedMonth, commonDays));
+        expect(attributes.period.comparison).to.have.all.keys("from", "to");
+        expect(attributes.period.comparison.from).to.equal(civil(previousYear, previousMonth, 1));
+        expect(attributes.period.comparison.to).to.equal(civil(previousYear, previousMonth, commonDays));
+        return;
+      }
+      const [firstYear, firstMonth] = offset(-2);
+      expect(attributes.period.from).to.equal(attributes.type === "category_lead_streak" ? civil(firstYear, firstMonth, 1) : start);
+      expect(attributes.period.to).to.equal(end);
+      expect(attributes.period.comparison).to.equal(null);
+    });
+  });
+}
+
+docs {
+  Antes das assertions, preencha insightsQueryDate na aba Vars com a mesma data
+  civil Y-m-d usada para escolher o par. O valor 2026-10-14 é um exemplo explícito,
+  local ao request e não enviado à API; atualize-o a cada dia de consulta.
+
+  Consulta do mês vigente com o par de filtros habilitado explicitamente.
+  O exemplo está preenchido com outubro/2026.
+
+  Antes de executar, confira a data civil no timezone configurado da aplicação
+  (app.timezone) e preencha filter[year] e filter[month] na aba Params com
+  o ano e o mês dessa mesma referência. Na virada de mês/ano, atualize ambos.
+  Este exemplo não calcula o mês pelo relógio ou timezone do dispositivo.
+
+  Com o par correspondente ao vigente, os fatos vão do dia 1 até a data civil
+  da consulta, inclusive. No mesmo dia e com os mesmos registros, os recursos
+  são equivalentes aos de 01 - Get Insights executado sem filtros.
+  As comparações usam dias completos comuns e não incluem o dia em andamento.
+
+  Se os valores preenchidos ficarem no passado, a API analisará um mês completo;
+  se ficarem no futuro, retornará 422. Confira o par antes de usar este exemplo
+  para verificar o comportamento vigente.
+
+  Selecione um ambiente com baseUrl e accessToken de uma conta ativa/verificada.
+  A presença de observações financeiras depende dos registros elegíveis da conta;
+  onboarding conserva period: null.
+
+  No Bruno, edite os filtros na aba Params e deixe a URL sincronizar; não acrescente
+  uma segunda ocorrência dos campos na URL. Ao editar o arquivo diretamente,
+  mantenha o mesmo par na URL e em params:query, uma ocorrência por campo em cada.
+}

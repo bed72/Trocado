@@ -13,7 +13,7 @@ O sistema MUST oferecer `GET /api/insights` somente sob autenticação, conta at
 - **WHEN** `GET /api/insights` é solicitado sem token válido
 - **THEN** a API responde `401` em JSON:API sem revelar insights
 
-#### Scenario: Tentativa de escolher proprietário ou período arbitrário
+#### Scenario: Tentativa de escolher o proprietário ou período
 - **WHEN** a conta envia `user_id`, `period`, `filter[from]`, `filter[category]` ou outro parâmetro não permitido
 - **THEN** a API responde `422` em JSON:API identificando o parâmetro inválido
 - **AND** nenhuma leitura analítica é executada
@@ -34,7 +34,7 @@ Comparações correntes MUST usar somente dias completos do mês vigente e o int
 - **THEN** as comparações usam dias 1 a 11 de outubro e setembro
 - **AND** as observações descritivas podem incluir registros do dia 12
 
-#### Scenario: Meses de duração diferente no modo corrente
+#### Scenario: Meses de duração diferente
 - **WHEN** a data da consulta é 31 de março de 2027 e o mês selecionado é março de 2027
 - **THEN** a comparação usa dias 1 a 28 de março e fevereiro
 - **AND** os dias 29 e 30 de março não entram na comparação equivalente
@@ -95,7 +95,7 @@ O sistema MUST gerar `registered_amount_increase` ou `registered_amount_decrease
 
 O sistema MUST gerar `category_lead_streak` somente se a mesma categoria diferente de `other` é líder única no mês selecionado e nos dois imediatamente anteriores completos. Cada período MUST possuir base descritiva mínima e participação da líder de pelo menos 30%. No vigente, MUST distinguir a liderança parcial dos meses fechados; no histórico, MUST descrever três meses encerrados. MUST NOT inferir continuidade a partir de períodos vazios ou empatados nem incluir meses posteriores ao selecionado.
 
-#### Scenario: Liderança em três períodos correntes
+#### Scenario: Liderança em três períodos
 - **WHEN** alimentação lidera de forma única com participação suficiente no mês vigente até a consulta e nos dois anteriores, todos elegíveis
 - **THEN** um candidato informa a liderança até a data atual e nos dois meses anteriores
 - **AND** não trata o mês vigente como encerrado
@@ -116,12 +116,12 @@ O sistema MUST retornar `first_expense` como única mensagem no mês vigente qua
 
 MUST gerar `category_review` somente com base descritiva elegível e pelo menos 50% do valor selecionado em `other`. MUST NOT inferir o conteúdo de `other`, chamar todos esses registros de incorretos ou pendentes, nem consultar Identity para personalização ou exclusão de conta. Onboarding MUST conservar `period: null` e os tipos/grupos existentes, indicando mês/ano no texto quando necessário ao contexto.
 
-#### Scenario: Conta sem registros no vigente
+#### Scenario: Conta sem registros
 - **WHEN** a conta consulta o vigente e não possui despesas históricas até hoje
 - **THEN** a resposta contém somente `first_expense`
 - **AND** não inventa fatos financeiros para completar a lista
 
-#### Scenario: Histórico antigo sem registros no vigente
+#### Scenario: Histórico antigo sem registros recentes
 - **WHEN** existem despesas anteriores à janela de análise, mas nenhuma no vigente
 - **THEN** a orientação reconhece a ausência de registros nesse mês
 - **AND** não sugere cadastrar a primeira despesa nem celebra economia

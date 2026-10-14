@@ -1,0 +1,56 @@
+meta {
+  name: Reject Invalid Month Insights
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/api/insights?filter[year]=2026&filter[month]=13
+  body: none
+  auth: bearer
+}
+
+params:query {
+  filter[year]: 2026
+  filter[month]: 13
+}
+
+headers {
+  Accept: application/vnd.api+json
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+tests {
+  test("Retorna 422 JSON:API sem dados de sucesso", function () {
+    expect(res.getStatus()).to.equal(422);
+    expect(res.getHeader("content-type")).to.match(/^application\/vnd\.api\+json(?:\s*;|$)/i);
+    const body = res.getBody();
+    expect(body).to.be.an("object");
+    expect(body).not.to.have.property("data");
+    expect(body.errors).to.be.an("array").that.is.not.empty;
+    body.errors.forEach(function (error) {
+      expect(error).to.be.an("object");
+      expect(error.status).to.equal("422");
+    });
+  });
+
+  test("Identifica filter[month] inválido em source.parameter", function () {
+    const errors = res.getBody().errors;
+    expect(errors).to.be.an("array").that.is.not.empty;
+    expect(errors.map(error => error.source?.parameter)).to.include("filter[month]");
+  });
+}
+
+docs {
+  Caso negativo: par completo com mês 13, fora do intervalo 1–12.
+  O mês inválido não é corrigido para janeiro do próximo ano.
+  Esperado: 422 JSON:API, errors com source.parameter igual a filter[month], sem data.
+
+  Selecione um ambiente com baseUrl e accessToken de uma conta ativa/verificada.
+  Mantenha os dois filtros ativos e month=13 na aba Params.
+  URL e params:query devem representar o mesmo par, uma ocorrência por campo.
+  A rejeição ocorre antes da leitura analítica, sem depender de despesas da conta.
+}

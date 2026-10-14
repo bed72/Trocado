@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Core\Domain\ValueObjects\AmountValueObject;
 use App\Core\Domain\ValueObjects\DatePeriodValueObject;
+use App\Insights\Application\Data\SelectInsightMessageVariantInput;
 use App\Insights\Application\Exceptions\InsightMessageCompositionException;
 use App\Insights\Application\UseCases\ComposeInsightMessageUseCase;
 use App\Insights\Application\UseCases\GetInsightMessageTemplatesUseCase;
@@ -167,6 +168,34 @@ it('recalculates percentages without changing the chosen daily variant', functio
         ->and(str_replace('39%', '42%', $before->description))->toBe($after->description);
 });
 
+it('selects the catalog variant using the selected month mode and history state separately from the visit date', function (
+    string $key, string $from, string $to, string $month, InsightPeriodModeEnum $mode, InsightHistoryStateEnum $state,
+): void {
+    $candidate = new InsightCandidateValueObject(
+        type: InsightTypeEnum::InsufficientHistory, mode: $mode, historyState: $state,
+        analysisPeriod: DatePeriodValueObject::fromDates($from, $to),
+    );
+    $templates = (new GetInsightMessageTemplatesUseCase)->execute($candidate);
+
+    foreach ([1, 2, 3, 4, 15, 42, 1500, 1600] as $userId) {
+        $expectedVariant = (new SelectInsightMessageVariantUseCase)->execute(new SelectInsightMessageVariantInput(
+            userId: $userId, editorialKey: $key, referenceDate: '2026-10-12', variantCount: 4,
+        ));
+        $template = $templates[$expectedVariant];
+        $parameters = ['{month}' => $month, '{day}' => '12'];
+        $message = messageCompositionUseCase()->execute($userId, $candidate, '2026-10-12');
+
+        expect($message->title)->toBe(strtr($template->title, $parameters))
+            ->and($message->description)->toBe(strtr($template->description, $parameters));
+    }
+})->with([
+    'current with records' => ['v4-monthly-editorial|insufficient_history||current_expenses|current|2026-10', '2026-10-01', '2026-10-12', 'out/2026', InsightPeriodModeEnum::Current, InsightHistoryStateEnum::CurrentExpenses],
+    'current without records' => ['v4-monthly-editorial|insufficient_history||no_current_expenses|current|2026-10', '2026-10-01', '2026-10-12', 'out/2026', InsightPeriodModeEnum::Current, InsightHistoryStateEnum::NoCurrentExpenses],
+    'closed with records' => ['v4-monthly-editorial|insufficient_history||current_expenses|closed|2026-09', '2026-09-01', '2026-09-30', 'set/2026', InsightPeriodModeEnum::Closed, InsightHistoryStateEnum::CurrentExpenses],
+    'closed without records' => ['v4-monthly-editorial|insufficient_history||no_current_expenses|closed|2026-09', '2026-09-01', '2026-09-30', 'set/2026', InsightPeriodModeEnum::Closed, InsightHistoryStateEnum::NoCurrentExpenses],
+    'another selected closed month' => ['v4-monthly-editorial|insufficient_history||current_expenses|closed|2026-08', '2026-08-01', '2026-08-31', 'ago/2026', InsightPeriodModeEnum::Closed, InsightHistoryStateEnum::CurrentExpenses],
+]);
+
 it('preserves all approved leadership variants across explicit accounts', function (int $userId): void {
     $candidate = messageCandidateFixture(InsightTypeEnum::CategoryLeadStreak, 'food', to: '2026-10-12');
     $approved = [
@@ -209,6 +238,36 @@ it('uses distinct contextual history sets without claiming the first expense', f
         ->and($old->description)->not->toContain('primeira')
         ->and($current->description)->not->toContain('primeira');
 });
+
+it('keeps every historical onboarding variant localized and neutral about the selected records', function (
+    InsightTypeEnum $type, ?InsightHistoryStateEnum $state, string $title, string $meaning,
+): void {
+    $candidate = new InsightCandidateValueObject(
+        mode: InsightPeriodModeEnum::Closed, type: $type,
+        analysisPeriod: DatePeriodValueObject::fromDates('2026-09-01', '2026-09-30'),
+        historyState: $state, category: $type === InsightTypeEnum::CategoryReview ? 'other' : null,
+        ratio: $type === InsightTypeEnum::CategoryReview
+            ? AmountValueObject::fromAmount('6000')->shareOf(AmountValueObject::fromAmount('10000')) : null,
+    );
+    $descriptions = [];
+
+    foreach (['2026-10-12', '2026-10-13', '2026-10-14', '2026-10-15'] as $date) {
+        $message = messageCompositionUseCase()->execute(1, $candidate, $date);
+        $descriptions[] = $message->description;
+
+        expect($message->title)->toBe($title.' · set/2026')
+            ->and($message->description)->toMatch($meaning)
+            ->not->toMatch('/primeira|out\/2026|até dia|neste mês|incorret|pendente|econom|basta|garant/iu')
+            ->and(mb_strlen($message->title, 'UTF-8'))->toBeLessThanOrEqual(24)
+            ->and(mb_strlen($message->description, 'UTF-8'))->toBeLessThanOrEqual(80);
+    }
+
+    expect(array_unique($descriptions))->toHaveCount(4);
+})->with([
+    'empty selected month' => [InsightTypeEnum::InsufficientHistory, InsightHistoryStateEnum::NoCurrentExpenses, 'Registros', '/sem registros|nenhuma despesa|não tem despesas|não há despesas/iu'],
+    'insufficient selected records' => [InsightTypeEnum::InsufficientHistory, InsightHistoryStateEnum::CurrentExpenses, 'Análise', '/não sustentam|insuficientes|sem observação|sem base/iu'],
+    'review other without assuming wrong or pending classification' => [InsightTypeEnum::CategoryReview, null, 'Outros', '/60% do total registrado.*categorias/iu'],
+]);
 
 it('rejects unknown category labels instead of inventing text', function (): void {
     messageCompositionUseCase()->execute(1, messageCandidateFixture(InsightTypeEnum::CategoryConcentration, 'unknown'), '2026-10-12');

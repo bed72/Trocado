@@ -27,6 +27,8 @@ it('preserves the same variant within the day and visits every variant before re
     [4, '2026-10-12'],
     [6, '2026-10-12'],
     [4, '2019-12-29'],
+    [4, '2024-02-27'],
+    [4, '2026-12-30'],
 ]);
 
 it('distributes stable offsets across accounts and editorial keys', function (): void {

@@ -9,6 +9,7 @@ use App\Insights\Application\Data\ExpenseCategoryAnalysisOutput;
 use App\Insights\Application\Data\ExpensePeriodAnalysisOutput;
 use App\Insights\Application\UseCases\GenerateInsightCandidatesUseCase;
 use App\Insights\Domain\Enums\InsightHistoryStateEnum;
+use App\Insights\Domain\Enums\InsightPeriodModeEnum;
 use App\Insights\Domain\Enums\InsightTypeEnum;
 use App\Insights\Domain\Exceptions\InvalidInsightAnalysisException;
 use App\Insights\Domain\ValueObjects\ExpensePeriodSummaryValueObject;
@@ -73,6 +74,7 @@ function insightRulesCandidates(
     ?ExpensePeriodSummaryValueObject $currentComparison = null,
     ?ExpensePeriodSummaryValueObject $previousComparison = null,
     bool $history = true,
+    InsightPeriodModeEnum $mode = InsightPeriodModeEnum::Current,
 ): array {
     $start = new DateTimeImmutable($current->period->from(), new DateTimeZone('UTC'));
     $previousStart = $start->modify('first day of previous month');
@@ -83,6 +85,7 @@ function insightRulesCandidates(
         from: $olderStart->format('Y-m-d'), to: $olderStart->format('Y-m-t'));
 
     return (new GenerateInsightCandidatesUseCase)->execute(new ExpenseAnalysisOutput(
+        mode: $mode,
         hasHistoricalExpenses: $history,
         currentMonth: insightRulesProjection($current),
         previousMonth: insightRulesProjection($previous),
@@ -244,6 +247,51 @@ it('requires the exact other threshold for category review', function (string $o
     expect(in_array(InsightTypeEnum::CategoryReview, $types, true))->toBe($eligible);
 })->with([['4999', '5001', false], ['5000', '5000', true], ['6000', '4000', true]]);
 
+it('requires every material base threshold before reviewing other in the selected month', function (
+    int $count, int $dates, string $other, string $food, bool $eligible, InsightPeriodModeEnum $mode,
+): void {
+    $summary = insightSummary(count: $count, dates: $dates, categories: ['food' => $food, 'other' => $other],
+        from: '2026-09-01', to: $mode === InsightPeriodModeEnum::Closed ? '2026-09-30' : '2026-09-12');
+    $candidates = insightRulesCandidates($summary, mode: $mode);
+    $reviews = array_values(array_filter($candidates, static fn (InsightCandidateValueObject $candidate): bool => $candidate->type === InsightTypeEnum::CategoryReview));
+
+    expect($reviews)->toHaveCount($eligible ? 1 : 0);
+
+    if ($eligible) {
+        expect($reviews[0]->mode)->toBe($mode)
+            ->and($reviews[0]->analysisPeriod)->toBe($summary->period)
+            ->and($reviews[0]->period())->toBeNull()
+            ->and($reviews[0]->ratio->numerator->amount())->toBe($other)
+            ->and($reviews[0]->ratio->denominator->amount())->toBe('10000');
+    }
+})->with([
+    'exact fifty percent and minimum base' => [5, 3, '5000', '5000', true],
+    'sixty percent' => [5, 3, '6000', '4000', true],
+    'rounded fifty is below the threshold' => [5, 3, '4999', '5001', false],
+    'too few expenses' => [4, 3, '6000', '4000', false],
+    'too few dates' => [5, 2, '6000', '4000', false],
+    'total below one hundred reais' => [5, 3, '6000', '3999', false],
+])->with(['current' => InsightPeriodModeEnum::Current, 'closed' => InsightPeriodModeEnum::Closed]);
+
+it('keeps historical guidance singular with the selected record state even without earlier history', function (
+    bool $history, int $count, int $dates, array $categories, InsightHistoryStateEnum $state,
+): void {
+    $summary = insightSummary(count: $count, dates: $dates, categories: $categories,
+        largest: $count === 0 ? '0' : '2000', largestCategory: $count === 0 ? null : 'food',
+        from: '2026-09-01', to: '2026-09-30');
+    $candidates = insightRulesCandidates($summary, history: $history, mode: InsightPeriodModeEnum::Closed);
+
+    expect(insightCandidateTypes($candidates))->toBe([InsightTypeEnum::InsufficientHistory])
+        ->and($candidates[0]->historyState)->toBe($state)
+        ->and($candidates[0]->analysisPeriod)->toBe($summary->period)
+        ->and($candidates[0]->mode)->toBe(InsightPeriodModeEnum::Closed)
+        ->and($candidates[0]->period())->toBeNull();
+})->with([
+    'before any history' => [false, 0, 0, [], InsightHistoryStateEnum::NoCurrentExpenses],
+    'old history and empty selection' => [true, 0, 0, [], InsightHistoryStateEnum::NoCurrentExpenses],
+    'two selected records' => [true, 2, 2, ['food' => '4000'], InsightHistoryStateEnum::CurrentExpenses],
+]);
+
 it('distinguishes first expenses recent history and no current records', function (): void {
     $empty = insightSummary(categories: [], count: 0, dates: 0, largest: '0', largestCategory: null);
     $first = insightRulesCandidates($empty, history: false);
@@ -256,18 +304,19 @@ it('distinguishes first expenses recent history and no current records', functio
         ->and($recent[0]->historyState)->toBe(InsightHistoryStateEnum::CurrentExpenses);
 });
 
-it('allows category review beside history guidance but suppresses guidance when financial facts exist', function (): void {
-    $summary = insightSummary(categories: ['food' => '4000', 'other' => '6000']);
-    $review = insightRulesCandidates($summary);
+it('allows category review beside history guidance but suppresses guidance when financial facts exist', function (InsightPeriodModeEnum $mode): void {
+    $to = $mode === InsightPeriodModeEnum::Closed ? '2026-10-31' : '2026-10-12';
+    $summary = insightSummary(categories: ['food' => '4000', 'other' => '6000'], to: $to);
+    $review = insightRulesCandidates($summary, mode: $mode);
 
     expect(insightCandidateTypes($review))->toBe([InsightTypeEnum::CategoryReview, InsightTypeEnum::InsufficientHistory])
         ->and($review[0]->period())->toBeNull()
         ->and($review[1]->historyState)->toBe(InsightHistoryStateEnum::CurrentExpenses);
 
-    $summary = insightSummary(largest: '4000');
-    $financial = insightRulesCandidates($summary);
-    expect(in_array(InsightTypeEnum::InsufficientHistory, insightCandidateTypes($financial), true))->toBeFalse();
-});
+    $summary = insightSummary(categories: ['food' => '4000', 'other' => '6000'], largest: '5000', largestCategory: 'other', to: $to);
+    $financial = insightRulesCandidates($summary, mode: $mode);
+    expect(insightCandidateTypes($financial))->toBe([InsightTypeEnum::ExpenseConcentration, InsightTypeEnum::CategoryReview]);
+})->with(['current' => InsightPeriodModeEnum::Current, 'closed' => InsightPeriodModeEnum::Closed]);
 
 it('rejects impossible summaries rather than inventing facts', function (): void {
     insightSummary(count: 2, dates: 3);

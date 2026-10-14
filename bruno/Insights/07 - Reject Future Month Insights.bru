@@ -1,0 +1,65 @@
+meta {
+  name: Reject Future Month Insights
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/api/insights?filter[year]=2026&filter[month]=11
+  body: none
+  auth: bearer
+}
+
+params:query {
+  filter[year]: 2026
+  filter[month]: 11
+}
+
+headers {
+  Accept: application/vnd.api+json
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+tests {
+  test("Retorna 422 JSON:API sem dados de sucesso", function () {
+    expect(res.getStatus()).to.equal(422);
+    expect(res.getHeader("content-type")).to.match(/^application\/vnd\.api\+json(?:\s*;|$)/i);
+    const body = res.getBody();
+    expect(body).to.be.an("object");
+    expect(body).not.to.have.property("data");
+    expect(body.errors).to.be.an("array").that.is.not.empty;
+    body.errors.forEach(function (error) {
+      expect(error).to.be.an("object");
+      expect(error.status).to.equal("422");
+    });
+  });
+
+  test("Identifica filter[month] futuro em source.parameter", function () {
+    const errors = res.getBody().errors;
+    expect(errors).to.be.an("array").that.is.not.empty;
+    expect(errors.map(error => error.source?.parameter)).to.include("filter[month]");
+  });
+}
+
+docs {
+  Caso negativo: mês posterior ao vigente, com par completo e valores válidos.
+  Esperado: 422 JSON:API, errors com source.parameter igual a filter[month], sem data.
+
+  Pré-condição obrigatória antes de cada execução: confira a data civil no timezone
+  configurado da aplicação (app.timezone) e preencha ambos os filtros na aba Params
+  com o mês imediatamente posterior a essa mesma referência.
+  Em dezembro, use janeiro do ano seguinte; não informe month=13 neste exemplo.
+  Não calcule a referência pelo relógio ou timezone do dispositivo.
+
+  O par pré-preenchido 2026/11 representa o próximo mês quando o vigente é outubro/2026.
+  Se a referência já for novembro/2026 ou posterior, atualize o par antes de executar.
+  As assertions exigem 422 e falham se o exemplo ficar vigente ou histórico;
+  elas não aceitam 200 como resultado alternativo.
+
+  Selecione um ambiente com baseUrl e accessToken de uma conta ativa/verificada.
+  URL e params:query devem representar o mesmo par, uma ocorrência por campo.
+  A rejeição ocorre antes da leitura analítica, sem depender de despesas da conta.
+}

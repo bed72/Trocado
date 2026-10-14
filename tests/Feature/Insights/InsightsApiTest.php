@@ -3,13 +3,16 @@
 declare(strict_types=1);
 
 use App\Core\Application\Ports\UserPort;
+use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Core\Infrastructure\Adapters\UserAdapter;
 use App\Identity\Domain\Enums\UserStatusEnum;
 use App\Insights\Application\Repositories\ExpenseAnalysisRepository;
+use App\Insights\Domain\ValueObjects\InsightAnalysisPeriodValueObject;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Testing\TestResponse;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -134,31 +137,46 @@ it('serializes the selected expense identification as literal text with no expen
 })->with(['current' => false, 'closed' => true])->with([
     'literal description' => [" \n<b>Aluguel</b>\t{month} ", '<b>Aluguel</b> {month}'],
     'fallback without description' => [null, 'Outros · {date}'],
+    'fallback with blank description' => [" \t\n ", 'Outros · {date}'],
+    'fallback with a complete description beyond the editorial budget' => [str_repeat('x', 64), 'Outros · {date}'],
 ]);
 
-it('rejects unauthenticated and invalid token requests before analytical access', function (bool $invalidToken): void {
+it('rejects missing invalid expired and revoked tokens before analytical access', function (string $state, string $query): void {
+    $token = 'invalid';
+    if (in_array($state, ['expired', 'revoked'], true)) {
+        $user = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
+        $token = IdentityFixture::token($user, expiresAt: $state === 'expired' ? now()->subSecond() : now()->addDays(30));
+        if ($state === 'revoked') {
+            PersonalAccessToken::findToken($token)->delete();
+        }
+    }
     $port = $this->createMock(ExpenseAnalysisRepository::class);
     $port->expects($this->never())->method('analyze');
     $this->app->instance(ExpenseAnalysisRepository::class, $port);
-    $response = $invalidToken ? insightsApiRequest('invalid') : $this->getJson(route('insights.index'));
+    $response = $state === 'missing'
+        ? $this->getJson(route('insights.index').($query === '' ? '' : '?'.$query))
+        : insightsApiRequest($token, $query);
 
     $response->assertUnauthorized()->assertHeader('Content-Type', 'application/vnd.api+json')->assertJsonMissingPath('data');
-})->with([false, true]);
+})->with(['missing', 'invalid', 'expired', 'revoked'])->with([
+    'default' => '', 'explicit current' => 'filter[year]=2026&filter[month]=10', 'closed' => 'filter[year]=2026&filter[month]=9',
+]);
 
-it('blocks inactive or unverified accounts before analytical access', function (string $state): void {
-    $user = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
-    $userId = (int) $user->getKey();
+it('blocks inactive or unverified accounts before analytical access', function (string $state, string $query): void {
+    $user = IdentityFixture::create(
+        status: $state === 'unverified' ? UserStatusEnum::Active : UserStatusEnum::from($state),
+        verifiedAt: $state === 'unverified' ? null : now(),
+    );
     $token = IdentityFixture::token($user, expiresAt: now()->addDays(30));
-    DB::table('users')->where('id', $userId)->update($state === 'unverified'
-        ? ['email_verified_at' => null]
-        : ['status' => $state]);
     $port = $this->createMock(ExpenseAnalysisRepository::class);
     $port->expects($this->never())->method('analyze');
     $this->app->instance(ExpenseAnalysisRepository::class, $port);
 
-    insightsApiRequest($token)->assertForbidden()->assertHeader('Content-Type', 'application/vnd.api+json')
+    insightsApiRequest($token, $query)->assertForbidden()->assertHeader('Content-Type', 'application/vnd.api+json')
         ->assertJsonMissingPath('data');
-})->with(['pending', 'blocked', 'unverified']);
+})->with(['pending', 'blocked', 'unverified'])->with([
+    'default' => '', 'explicit current' => 'filter[year]=2026&filter[month]=10', 'closed' => 'filter[year]=2026&filter[month]=9',
+]);
 
 it('rejects unsupported query parameters including empty values without analyzing expenses', function (string $query, string $parameter): void {
     $user = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
@@ -242,39 +260,67 @@ it('resolves the reference date in app timezone and excludes only future histori
     insightsApiRequest($token)->assertOk()->assertJsonPath('data.0.attributes.type', 'first_expense');
 });
 
-it('uses the authenticated throttle policy', function (): void {
+it('uses the authenticated throttle policy before analytical access', function (string $query): void {
     $user = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
     $token = IdentityFixture::token($user, expiresAt: now()->addDays(30));
-    RateLimiter::for('api.authenticated', static fn (): Limit => Limit::perMinute(1)->by('insights-api-test'));
-
-    insightsApiRequest($token)->assertOk();
-    insightsApiRequest($token)->assertTooManyRequests()->assertHeader('Retry-After')
+    $key = $this->resources->namespace.'insights-api-throttle';
+    RateLimiter::for('api.authenticated', static fn (): Limit => Limit::perMinute(1)->by($key));
+    $period = new InsightAnalysisPeriodValueObject('2026-10-12', DatePeriodValueObject::monthContaining(
+        $query === 'filter[year]=2026&filter[month]=9' ? '2026-09-01' : '2026-10-01',
+    ));
+    $analysis = $this->app->make(ExpenseAnalysisRepository::class)->analyze((int) $user->getKey(), $period);
+    $repository = $this->createMock(ExpenseAnalysisRepository::class);
+    $repository->expects($this->once())->method('analyze')->with((int) $user->getKey(), $period)->willReturn($analysis);
+    $this->app->instance(ExpenseAnalysisRepository::class, $repository);
+    insightsApiRequest($token, $query)->assertOk();
+    insightsApiRequest($token, $query)->assertTooManyRequests()->assertHeader('Retry-After')
         ->assertHeader('Content-Type', 'application/vnd.api+json')->assertJsonMissingPath('data');
-});
+})->with([
+    'default' => '', 'explicit current' => 'filter[year]=2026&filter[month]=10', 'closed' => 'filter[year]=2026&filter[month]=9',
+]);
 
-it('extends the successful session and does not extend a rejected query', function (): void {
+it('extends the successful session and does not extend a rejected query', function (string $query): void {
     $user = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
     $token = IdentityFixture::token($user, expiresAt: now()->addDays(30));
     $record = PersonalAccessToken::findToken($token);
     $originalExpiry = $record->expires_at;
     Date::setTestNow('2026-10-28 12:00:00 UTC');
 
-    insightsApiRequest($token, 'limit=6')->assertUnprocessable();
+    insightsApiRequest($token, ($query === '' ? '' : $query.'&').'limit=6')->assertUnprocessable();
     expect($record->fresh()->expires_at->equalTo($originalExpiry))->toBeTrue();
-    insightsApiRequest($token)->assertOk();
+    insightsApiRequest($token, $query)->assertOk();
     expect($record->fresh()->expires_at->greaterThan($originalExpiry))->toBeTrue();
-});
+})->with([
+    'default' => '', 'explicit current' => 'filter[year]=2026&filter[month]=10', 'closed' => 'filter[year]=2026&filter[month]=9',
+]);
 
-it('returns an explicit JSON API failure when analytical reading fails', function (): void {
+it('returns an explicit JSON API failure without extending the session when analytical reading fails', function (string $query): void {
     $user = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
     $token = IdentityFixture::token($user, expiresAt: now()->addDays(30));
+    $record = PersonalAccessToken::findToken($token);
+    $originalExpiry = $record->expires_at;
+    Date::setTestNow('2026-10-28 12:00:00 UTC');
+    $failure = new RuntimeException('Analytical database unavailable');
     $port = $this->createMock(ExpenseAnalysisRepository::class);
-    $port->method('analyze')->willThrowException(new RuntimeException('Analytical database unavailable'));
+    $port->expects($this->once())->method('analyze')->willThrowException($failure);
     $this->app->instance(ExpenseAnalysisRepository::class, $port);
 
-    insightsApiRequest($token)->assertStatus(500)->assertHeader('Content-Type', 'application/vnd.api+json')
-        ->assertJsonPath('errors.0.status', '500')->assertJsonMissingPath('data');
-});
+    $handler = Exceptions::getFacadeRoot();
+    Exceptions::fake();
+    try {
+        insightsApiRequest($token, $query)->assertStatus(500)->assertHeader('Content-Type', 'application/vnd.api+json')
+            ->assertExactJson(['errors' => [[
+                'status' => '500', 'title' => 'Erro interno do servidor', 'detail' => 'Não foi possível processar a solicitação.',
+            ]]])->assertJsonMissingPath('data');
+        Exceptions::assertReported(static fn (RuntimeException $exception): bool => $exception === $failure);
+        Exceptions::assertReportedCount(1);
+        expect($record->fresh()->expires_at->equalTo($originalExpiry))->toBeTrue();
+    } finally {
+        Exceptions::swap($handler);
+    }
+})->with([
+    'default' => '', 'explicit current' => 'filter[year]=2026&filter[month]=10', 'closed' => 'filter[year]=2026&filter[month]=9',
+]);
 
 it('does not expose an individual endpoint for derived resource IDs', function (): void {
     $user = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());

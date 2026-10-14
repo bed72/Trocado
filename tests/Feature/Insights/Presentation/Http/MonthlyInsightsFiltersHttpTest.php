@@ -152,11 +152,17 @@ it('uses the application civil month instead of UTC to reject future filters', f
 it('compares full historical totals and confines recurring leadership to the three selected months', function (): void {
     $user = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
     $token = IdentityFixture::token($user, expiresAt: now()->addDays(30));
+    $other = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now(), email: 'other-monthly-leader@example.com');
 
     foreach (['2026-07' => ['31', 8000], '2026-08' => ['31', 8000], '2026-09' => ['30', 10000], '2026-10' => ['05', 999999]] as $month => [$lastDay, $amount]) {
         foreach (['01', '02', '03', '04', $lastDay] as $day) {
             DB::table('expenses')->insert([
                 'user_id' => $user->getKey(), 'amount' => $amount, 'category' => 'food',
+                'occurred_on' => "{$month}-{$day}",
+                'created_at' => '2026-10-12 12:00:00', 'updated_at' => '2026-10-12 12:00:00',
+            ]);
+            DB::table('expenses')->insert([
+                'user_id' => $other->getKey(), 'amount' => 9000000, 'category' => 'health',
                 'occurred_on' => "{$month}-{$day}",
                 'created_at' => '2026-10-12 12:00:00', 'updated_at' => '2026-10-12 12:00:00',
             ]);
@@ -172,7 +178,8 @@ it('compares full historical totals and confines recurring leadership to the thr
         ->assertJsonPath('data.0.attributes.period.comparison.to', '2026-08-31')
         ->assertJsonPath('data.1.attributes.type', 'category_lead_streak')
         ->assertJsonPath('data.1.attributes.period.from', '2026-07-01')
-        ->assertJsonPath('data.1.attributes.period.to', '2026-09-30');
+        ->assertJsonPath('data.1.attributes.period.to', '2026-09-30')
+        ->assertJsonPath('data.1.attributes.period.comparison', null);
 
     expect($response->json('data.0.attributes.description'))->toContain('+25%', 'ago/2026')
         ->and($response->json('data.0.attributes.title'))->toContain('set/2026')
