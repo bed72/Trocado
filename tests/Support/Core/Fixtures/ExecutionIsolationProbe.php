@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Support\Core\Fixtures;
 
-use App\Identity\Domain\Enums\UserStatusEnum;
 use Illuminate\Cache\RateLimiter;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -13,15 +12,21 @@ use Illuminate\Support\Facades\Redis;
 use RuntimeException;
 use Tests\FeatureTestCase;
 use Tests\Support\Core\Database\TestDatabaseRun;
-use Tests\Support\Identity\Fixtures\IdentityFixture;
 
 final class ExecutionIsolationProbe
 {
     public static function exercise(FeatureTestCase $test): void
     {
         $run = TestDatabaseRun::fromEnvironment();
-        $user = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now(), email: 'same-isolation@example.com');
-        $user->forceFill(['id' => 1500])->save();
+        $userId = UuidFixture::at(1500);
+        $user = UuidSchemaFixture::row('users');
+        $user['id'] = $userId;
+        $user['email'] = 'same-isolation@example.com';
+        DB::table('users')->insert($user);
+        $identity = UuidSchemaFixture::row('resource_identities');
+        $identity['id'] = UuidFixture::at(1501);
+        $identity['user_id'] = $userId;
+        DB::table('resource_identities')->insert($identity);
         $queue = config('queue.connections.redis.queue');
         Redis::set('sentinel:1500', $run->database);
         $cache = Cache::store('redis');
@@ -46,8 +51,10 @@ final class ExecutionIsolationProbe
             }
         }
         expect($report['database'])->toBe($run->database)
-            ->and(DB::table('users')->where('id', 1500)->value('email'))->toBe('same-isolation@example.com')
+            ->and(DB::table('users')->where('id', $userId)->value('email'))->toBe('same-isolation@example.com')
             ->and(DB::table('users')->count())->toBe(1)
+            ->and(DB::table('resource_identities')->where('user_id', $userId)->value('id'))->toBe(UuidFixture::at(1501))
+            ->and(DB::table('resource_identities')->count())->toBe(1)
             ->and(Redis::get('sentinel:1500'))->toBe($run->database)
             ->and($cache->get('page:1500'))->toBe($run->database)
             ->and((int) $limiter->attempts('quota:1500'))->toBe(1)

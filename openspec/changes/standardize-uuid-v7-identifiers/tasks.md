@@ -30,14 +30,17 @@
 
 ## 3. Bootstrap schema UUIDv7 e cleanup seguro
 
-- [ ] 3.1 Atualizar bootstrap de users para PK uuid/geração legítima v7 e preservar campos, email unique, password/status/verificação/avatar e timestamps. [UID-04; user]
-- [ ] 3.2 Atualizar bootstrap de personal_access_tokens para PK UUID e tokenable_id UUID/morph type atual, preservando hash/abilities/expiry/indexes. [UID-04; authentication]
-- [ ] 3.3 Atualizar expenses.id/user_id para UUID com FK/cascade/indexes e preservar catálogo/centavos/datas/nullable description/fencing. [UID-04; expense]
-- [ ] 3.4 Atualizar criação/rename de notifications para registro/owner/sessão/instalação v7, preservando constraints de token/fingerprint/geração e cascades. [UID-04/07]
-- [ ] 3.5 Criar migration resource_identities com PK/owner UUID, namespace, identity_version, fingerprint e created_at; unique composto, FK cascade e nenhuma coluna de fatos/segredos/last_access. [RID-01–03/05]
-- [ ] 3.6 Implementar/verificar checks de versão/variante/campos obrigatórios e inexistência de sequences/ID inteiro alternativo em tabelas próprias. [UID-04]
-- [ ] 3.7 Classificar resource_identities em TestDatabaseCleanup e preservar guards inicial/efetivo e ownership exato antes de migration/fixture/cleanup/drop; não mudar PKs técnicas Laravel. [RID-07; UID-08]
-- [ ] 3.8 Provar schema/FKs/uniques/checks em PostgreSQL exclusivo do launcher com fixtures explícitas e migrations incrementais; não resetar o banco operacional nesta fase de prova. [UID-04; RID-01]
+- [x] 3.1 Atualizar bootstrap de users para PK uuid/geração legítima v7 e preservar campos, email unique, password/status/verificação/avatar e timestamps. [UID-04; user]
+  - Bootstrap UUID nativo sem sequence/default, CHECK v7 e campos preservados comprovados no STEP 03. Geração PHP do Model pertence a 4.2, não foi antecipada.
+- [x] 3.2 Atualizar bootstrap de personal_access_tokens para PK UUID e tokenable_id UUID/morph type atual, preservando hash/abilities/expiry/indexes. [UID-04; authentication]
+- [x] 3.3 Atualizar expenses.id/user_id para UUID com FK/cascade/indexes e preservar catálogo/centavos/datas/nullable description/fencing. [UID-04; expense]
+- [x] 3.4 Atualizar criação/rename de notifications para registro/owner/sessão/instalação v7, preservando constraints de token/fingerprint/geração e cascades. [UID-04/07]
+- [x] 3.5 Criar migration resource_identities com PK/owner UUID, namespace, identity_version, fingerprint e created_at; unique composto, FK cascade e nenhuma coluna de fatos/segredos/last_access. [RID-01–03/05]
+- [x] 3.6 Implementar/verificar checks de versão/variante/campos obrigatórios e inexistência de sequences/ID inteiro alternativo em tabelas próprias. [UID-04]
+- [x] 3.7 Classificar resource_identities em TestDatabaseCleanup e preservar guards inicial/efetivo e ownership exato antes de migration/fixture/cleanup/drop; não mudar PKs técnicas Laravel. [RID-07; UID-08]
+  - Guard Unit, recusa real de cleanup e isolamento com duas invocações comprovados. Gate global bloqueado pela conversão de Models ainda pendente; não há aprovação global deste suporte compartilhado.
+- [x] 3.8 Provar schema/FKs/uniques/checks em PostgreSQL exclusivo do launcher com fixtures explícitas e migrations incrementais; não resetar o banco operacional nesta fase de prova. [UID-04; RID-01]
+  - `UuidSchemaTest.php` isolado: 171 testes/443 assertions, passando sem warnings/skips/incomplete/risky. Evidência e limites abaixo.
 
 ## 4. Identity, Core owner e Sanctum
 
@@ -175,18 +178,18 @@
 | UID-01 política/exclusões e todos os recursos próprios | 1.3, 3.*, 11.2/11.6 | Inventário por papel + schema/HTTP + arquitetura | Não implementado/comprovado |
 | UID-02 canônico/v7/variante/negativos/null | 2.1–2.3, 4.1, 6.3 | Unit pura + HTTP antes de lookup + PG checks | Parcial: VO puro comprovado no STEP 02; integração de entidades/HTTP/PG pendente |
 | UID-03 geração padrão/imutabilidade | 3.*, 4.2–4.3, 5.2, 6.1, 7.3 | Model/PG create-update + formato + callback/clock fora de Domain | Não implementado/comprovado |
-| UID-04 PK/FK/morph/cascades | 3.1–3.8, 4.9, 6.7 | PostgreSQL tipos/constraints/owner/session/encerramento | Não implementado/comprovado |
+| UID-04 PK/FK/morph/cascades | 3.1–3.8, 4.9, 6.7 | PostgreSQL tipos/constraints/owner/session/encerramento | Parcial: bootstrap/checks/FKs/uniques/cascades reais comprovados no STEP 03; geração Models e lifecycle de encerramento via UseCase pendentes |
 | UID-05 contratos/guard/sem cast | 2.4–2.5, 4.5/4.7, 5.1, 8.1/9.1/10.1, 11.6 | Unit argumentos + arquitetura + autenticação real | Parcial: tipos definidos e fronteiras aprovadas no STEP 02; conversão/guard pendentes |
 | UID-06 rotas inválidas/owner/auth | 4.8–4.9, 5.3/5.8, 6.4/6.7 | HTTP 200/201/204 e 401/403/404/422/429 | Não implementado/comprovado |
 | UID-07 instalação/registro/cliente | 1.5, 6.*, 13.2/13.6/13.7 | Unit/HTTP/PG + homologação externa registrada | Não implementado/comprovado |
-| UID-08 reset autorizado/negativo/lifecycle | 3.7, 12.* | Alvo/estado/cleanup/checks registrados + guard/testes de recusa | Não executado/comprovado |
-| RID-01 mínimo/sem fatos/fronteiras | 3.5, 7.1/7.3/7.7, 13.1 | Schema allowlist + Unit + arquitetura | Não implementado/comprovado |
+| UID-08 reset autorizado/negativo/lifecycle | 3.7, 12.* | Alvo/estado/cleanup/checks registrados + guard/testes de recusa | Parcial: guard e cleanup do launcher comprovados no STEP 03; reset operacional não executado |
+| RID-01 mínimo/sem fatos/fronteiras | 3.5, 7.1/7.3/7.7, 13.1 | Schema allowlist + Unit + arquitetura | Parcial: allowlist do schema mínimo comprovada no STEP 03; capacidade Application/Repository pendente |
 | RID-02 chave/namespace/owner/ambiguidade | 1.4, 7.2/7.8, 8.2/9.2/10.2 | Unit independente por consumidor + PG isolado | Não implementado/comprovado |
 | RID-03 race/ID perdedor/rollback | 7.5–7.6/7.9–7.10 | Duas conexões sincronizadas + escrita sentinela/rollback PG | Não implementado/comprovado |
 | RID-04 vazio/hit/misto/ordem/queries | 7.2/7.4/7.9, 8.3/9.3/10.3, 12.5 | Unit batch + query logs PG de 0/1/5/6 recursos | Não implementado/comprovado |
 | RID-05 reinício/PAT/reaparecimento/cascade | 7.9–7.10, 8.5/9.5/10.5 | HTTP/PG processos novos + owner delete + recursos ausentes | Não implementado/comprovado |
 | RID-06 erro/composição/fonte/sem fallback | 7.6, 8.6/9.6/10.5 | Exceção sentinela Unit/HTTP + zero writes + erro sem data/log sensível | Não implementado/comprovado |
-| RID-07 sem endpoint/autoridade/cleanup | 3.7, 7.9, 11.5 | HTTP/owner + lifecycle exact runId/token | Não implementado/comprovado |
+| RID-07 sem endpoint/autoridade/cleanup | 3.7, 7.9, 11.5 | HTTP/owner + lifecycle exact runId/token | Parcial: cleanup/ownership exclusivo comprovados no STEP 03; integração da capacidade/HTTP pendente |
 | User/Core UUID ownership e Entity pura | 2.*, 4.1/4.5/4.8/4.9 | Unit + HTTP + fronteiras | Parcial: conceito Core/pureza comprovados; ownership/Entity UUID pendentes |
 | Sanctum/segredo/expiração/extensão/link | 4.2–4.4/4.6–4.9 | PAT real + PG locks + assinatura/tempo/owner | Não implementado/comprovado |
 | Expense sort/cursor v2/cache/worker | 5.* | Unit + PG/HTTP next-prev + Redis/worker exclusivo | Não implementado/comprovado |
@@ -195,7 +198,7 @@
 | Sugestões norm/valor/owner/UUID | 10.* | Unit + HTTP/PG normalização SQL/associação | Não implementado/comprovado |
 | Observabilidade próprio UUID/native SDK | 11.3–11.4 | JSON/header/context + ausência de segredos/fingerprint | Não implementado/comprovado |
 | Cliente/Bruno/documentação | 13.* | Parser/CLI controlados + homologação externa distinta | Não implementado/comprovado |
-| Gates transversais | 14.* | Padrão + duas seeds + paralelo + Redis/concorrência | Passaram para o STEP 02; gate final da conversão completa permanece pendente |
+| Gates transversais | 14.* | Padrão + duas seeds + paralelo + Redis/concorrência | Passaram para o STEP 02; tentativa global no STEP 03 bloqueada pelo UserModel inteiro. Provas focadas passaram com duas seeds/paralelo; gate final permanece pendente |
 
 ## Estado histórico da elaboração da proposta
 
@@ -429,3 +432,66 @@ O gate completo incluiu os grupos existentes Redis/concorrência e a prova de du
 `lerd exec`/`vendor_run` Pint `--dirty --format agent` executou e corrigiu somente a caixa dos literais hexadecimais nos dois arquivos de fixture/prova; os arquivos afetados foram reexecutados isoladamente depois. A segunda execução de Pint passou sem alterações. `openspec validate standardize-uuid-v7-identifiers --type change --strict --json --no-interactive` passou sem issues após o registro de evidências; `git diff --check` também passou.
 
 **Resultado:** tarefas 2.1–2.6 concluídas e sincronizadas com `STEPS.md`. Próxima etapa: STEP 03, schema e cleanup seguro. Reset operacional, homologação, archive e gate final da conversão permanecem nas etapas próprias.
+
+## STEP 03 — Schema UUIDv7 e cleanup seguro — 2026-10-14
+
+### Escopo e implementação
+
+Pedido: “Seguindo a implementacao da spec, vamos para o step: 3”. Autoriza 3.1–3.8 e suas provas PostgreSQL pelo launcher. O checkout começou limpo. Boost reconfirmou PHP 8.5/Laravel 13.34.0/PG, APIs de migrations e schema/constraints operacionais; Lerd descobriu o site `trocado`. Skills arquitetura/quality gate consultadas. A skill SDD local não estava disponível na árvore; o fluxo foi conferido por `openspec status`/`instructions apply` e artefatos existentes.
+
+- Migrations de bootstrap de User/PAT/Expense agora criam PKs UUID sem sequence/default e referências UUID. `uuidMorphs` preserva type/índice composto do PAT; não cria FK/cascade polimórfico inexistente. Campos/uniques/status/datas/avatar/centavos/nullable/fencing continuam nas migrations existentes.
+- Criação de `push_registrations` usa owner/PAT UUID e quatro CHECKs v7; rename para `notifications` renomeia também esses CHECKs nos dois sentidos. A prova de `down/up` preserva a row e os checks. Migration de fingerprint permanece intacta; sua prova com ordering UUIDv7 será convertida em 6.6.
+- `2026_10_14_203520_create_resource_identities_table.php`, gerada via Artisan, cria somente `id`, `user_id`, `namespace`, `identity_version`, `logical_fingerprint`, `created_at` (`timestampTz(6)` obrigatório). Unique `(user_id, namespace, identity_version, logical_fingerprint)` e FK owner cascade. Namespace técnico lowercase alfanumérico iniciado por letra, com segmentos separados por hífen, até 64 caracteres; versão smallint positiva e digest hex lowercase de 64 caracteres. Não há TTL, last_access, updated_at, payload ou fatos financeiros.
+- CHECKs em todas as 11 colunas UUID próprias validam versão 7 e variante RFC (`8/9/a/b`) na representação canônica do PostgreSQL. NOT NULL protege obrigatoriedade. Banco canonicaliza caixa; validação textual/whitespace antes do SQL continua no VO/consumidores, não é atribuída ao tipo UUID PostgreSQL.
+- `TestDatabaseCleanup::TABLES` classifica `resource_identities` antes de `users`; guard/preflight/manifesto/ownership/cleanup de bancos e sequências técnicas não foram alterados.
+- `UuidSchemaFixture` prepara rows tipadas explícitas por papel para provas de schema, sem usar Model/gerador de produto. `ExecutionIsolationProbe` usa UUIDs coincidentes entre execuções (`at(1500)` User, `at(1501)` associação), mantém sentinelas técnicas Redis/cache/limiter/queue e passa a verificar também a associação. Não converte UserModel/contratos de negócio antecipadamente.
+
+### Cenário → evidência
+
+| Requisito / cenário de schema e lifecycle | Evidência atual | Estado |
+| --- | --- | --- |
+| UID-04 schema novo completo, 11 colunas nativas UUID/NOT NULL, PKs sem sequence/default/ID inteiro paralelo | `UuidSchemaTest`: catálogo PostgreSQL, PK e inventário de colunas de identidade | Proven |
+| UID-04 versão/variante em cada PK/owner/PAT/instalação | Dataset por coluna × v1/v4/v6/v8/nil/variantes 0/7/c/f; SQLSTATE 23514 e nenhuma row inválida | Proven |
+| UUID obrigatório/null, quatro prefixos RFC e caixa uppercase | Datasets NOT NULL/aceitação canônica | Proven no schema; HTTP/Domain dos consumidores continuam pendentes |
+| UID-04 FK órfã Expense owner, Notifications owner/session, Core owner | SQLSTATE 23503 por FK real | Proven |
+| PKs/email/hash PAT/fencing/instalação/fingerprint/logical key únicos | Datasets SQLSTATE 23505 e uma row | Proven |
+| RID-01 schema mínimo/sem fatos e obrigatoriedade/forma de namespace/versão/digest/instante | Allowlist literal de seis colunas + datasets negativos | Proven |
+| RID-02 escopos owner/namespace/versão/fingerprint distintos | Duas rows com somente a dimensão indicada distinta | Proven para unique; construção da chave tipada ainda no STEP 07 |
+| UID-04 campos/índices existentes preservados | Valores literais User/PAT/Expense/Notifications e índices catalogados | Proven para persistência de schema; fluxos Application/HTTP ainda pendentes |
+| UID-04/RID-05 remoção de conta e outra associação preservada | Delete SQL User: cascades Expense/Notifications/Core, outra User/Core preservados | Proven para FKs; remoção de PAT na unidade Identity é 4.9 |
+| UID-04 sessão removida, outro dispositivo preservado, associação Core retida | Delete SQL PAT: cascade seletivo Notifications; Core/User intactos | Proven para schema; SignOut/pruning HTTP pendentes |
+| Rename incremental em ambos os sentidos | Down/up isolado da migration com row/CHECKs preservados e restauração em finally | Proven |
+| UID-01/04 IDs técnicos nativos | Tipos int8/int4 jobs/failed_jobs/migrations e sequências não resetadas | Proven |
+| RID-07/UID-08 cleanup sob ownership exato, recusa antes de DML e migrations preservadas | Cleanup real + recusa com config divergente + `TestDatabaseGuardTest` (inclui divergência efetiva/owner) | Proven |
+| RID-07 isolamento de duas invocações/processos e cleanup independente | Probes com mesmas User/associação/keys; barreira e inspeção de recursos/DBs no teste existente | Proven; não é corrida do resolver Core |
+| Geração PHP legítima/lookup de Bearer/HTTP/registry resolver/races de associação | STEPs 04–11 ainda pendentes | Unproven nesta fatia |
+| Gate global da aplicação no schema novo | Tentativa parada na primeira falha de UserModel sem UUID | Blocked até conversão dos Models/fixtures/consumidores; não é aprovação global |
+
+### Comandos, resultados e limites
+
+Todos os comandos abaixo usam `lerd composer test --`. Flags comuns da evidência final: `--compact --fail-on-warning --fail-on-skipped --fail-on-incomplete --fail-on-risky`. As execuções aprovadas não registraram warnings/skips/incomplete/risky. Feature provisionado/migrado incrementalmente em bancos exclusivos com manifesto/runId/ownership; Unit não provisionou banco.
+
+| Argumentos antes dos flags comuns | Resultado testes/assertions |
+| --- | --- |
+| `tests/Feature/Core/Infrastructure/Database/UuidSchemaTest.php` isolado | Passou: 171 / 443 |
+| `tests/Unit/Core/Support/Database/TestDatabaseGuardTest.php` isolado (sem `--fail-on-warning`, sem warnings reportados) | Passou: 15 / 50 |
+| `tests/Feature/Core/Infrastructure/Isolation` (inclui Redis/concorrência/duas invocações) | Passou: 9 / 88 |
+| `tests/Feature/Core/Infrastructure/Isolation/Probes/FirstProcessTest.php` isolado | Passou: 1 / 10 |
+| `tests/Feature/Core/Infrastructure/Isolation/Probes/SecondProcessTest.php` isolado | Passou: 1 / 10 |
+| `tests/Feature/Core/Infrastructure/Isolation/SimultaneousInvocationsTest.php` isolado | Passou: 1 / 35 |
+| `tests/Unit` (inclui arquitetura) | Passou: 1.089 / 32.126 |
+| `tests/Feature/Core/Infrastructure/Database/UuidSchemaTest.php tests/Feature/Core/Infrastructure/Isolation --order-by=random --random-order-seed=20261016` | Passou: 180 / 531 |
+| mesmos dois paths, `--order-by=random --random-order-seed=20261017` | Passou: 180 / 531 |
+| `tests/Feature/Core/Infrastructure/Database/UuidSchemaTest.php --parallel --processes=2` | Passou: 171 / 443 |
+| `tests/Feature/Core/Infrastructure/Isolation --parallel --processes=2` | Passou: 9 / 88 |
+| sem path, `--stop-on-defect` (tentativa global limitada à primeira falha) | Falhou: 1.095 executados, 1.094 passando, 1 erro; gate global **não aprovado** |
+
+Falha global: `tests/Feature/Core/Infrastructure/Adapters/ObservabilityAdapterTest.php`, criação via `IdentityFixture`/`UserModel` ainda inteiro tenta persistir User sem ID; PostgreSQL recusa com 23502. A correção de UserModel/PAT/fixtures está no STEP 04 e dos demais consumidores nos steps respectivos. Não se enfraqueceu NOT NULL/CHECK nem se introduziu fallback SQL, union temporária ou geração falsa para passar. Gates completos padrão/seeds/paralelo exigidos pelo suporte transversal permanecem bloqueados e deverão ser repetidos após a conversão coerente; os resultados focados acima não os substituem.
+
+Intercorrências preservadas: primeira prova do schema encontrou quatro erros de preparação duplicada de PAT e um esperado com nome incorreto do índice de cursor; fixture foi ajustada e esperado alinhado ao índice histórico `expenses_owner_cursor_index`. Uma execução seguinte passou as assertions mas registrou warning de import global sem alias; alias explícito corrigiu e execução final com `--fail-on-warning` passou. Primeira suíte de isolamento encontrou o probe inteiro antigo; foi convertido para inserts UUID explícitos, mantendo a prova e ampliando-a à associação. Uma tentativa de paralelo com dois paths foi recusada pelo ParaTest (aceita só um path), sem testes; paths executados individualmente em paralelo passaram. Nenhuma tentativa falha é contabilizada como aprovação.
+
+Mapa de preservação: os cenários antigos de `FirstProcessTest`/`SecondProcessTest` e `SimultaneousInvocationsTest` conservam paths/barreiras/sentinelas/cleanup; `User id=1500` virou fixture v7 explícita e ganhou associação Core coincidente entre runs. Nenhum teste antigo foi removido/consolidado. O arquivo novo comprova schema e não substitui as provas de cifragem/rollback/concorrência de registro, que serão atualizadas no STEP 06.
+
+Pint `--dirty --format agent` passou após a última edição PHP. Migrations rodaram somente pelo preflight incremental do launcher. **Não houve `migrate`/`migrate:fresh` no banco operacional**, pois suas migrations de bootstrap já aplicadas ainda produzem bigint e a nova FK UUID requer a recriação coordenada do STEP 12. Boost reconfirmou ao final `current_database() = trocado`, `users.id = bigint`, `resource_identities` ausente. Não houve request sobre schema operacional convertido nem alegação de desempenho/geração de Models. Workers/configuração/filas operacionais não foram alterados. `openspec validate standardize-uuid-v7-identifiers --type change --strict --json --no-interactive` passou (`valid = true`, sem issues) e `git diff --check` passou no fechamento desta fatia.
+
+**Resultado de escopo:** 3.1–3.8 implementados e comprovados para schema/cleanup exclusivo, sincronizados com `STEPS.md`. Próxima etapa: STEP 04. Build completo, gate global do suporte compartilhado, reset operacional e archive continuam bloqueados/pendentes nas etapas próprias.

@@ -80,7 +80,7 @@ Tabela proposta `resource_identities`, owner Core:
 | --- | --- |
 | `id uuid PK` | UUIDv7 público associado ao recurso |
 | `user_id uuid NOT NULL` | FK `users.id`, cascade no encerramento de conta |
-| `namespace varchar(64) NOT NULL` | Nome técnico do consumidor; validação de comprimento/forma |
+| `namespace varchar(64) NOT NULL` | Nome técnico lowercase iniciado por letra, segmentos alfanuméricos separados por hífen (`^[a-z][a-z0-9]*(-[a-z0-9]+)*$`); máximo 64 caracteres |
 | `identity_version smallint NOT NULL` | Versão positiva da semântica da chave, não versão editorial |
 | `logical_fingerprint char(64) NOT NULL` | Digest interno para lookup; não ID público, payload, credencial ou descrição |
 | `created_at` | Momento técnico da primeira associação |

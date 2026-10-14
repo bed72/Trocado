@@ -99,16 +99,18 @@ As frentes 05, 06 e 07 podem ser organizadas separadamente depois da base 04; 08
 
 **Entrega:** bootstrap completo do schema novo, validado em PostgreSQL exclusivo de teste.
 
-- [ ] **3.1** Converter a PK de `users`, preservando seus demais campos/constraints.
-- [ ] **3.2** Converter PK e `tokenable_id` de `personal_access_tokens` para UUID.
-- [ ] **3.3** Converter `expenses.id/user_id`, preservando FK, índices e campos financeiros.
-- [ ] **3.4** Ajustar criação/rename de `notifications`: registro, owner, sessão e instalação UUIDv7.
-- [ ] **3.5** Criar `resource_identities` com associação mínima, unique composto e cascade de owner.
-- [ ] **3.6** Implementar checks de v7/variante/obrigatoriedade e eliminar chave inteira paralela nas tabelas próprias.
-- [ ] **3.7** Classificar a tabela nova no cleanup e preservar os guards do launcher.
-- [ ] **3.8** Provar schema, FKs, uniques e checks em banco exclusivo com migrations incrementais.
+- [x] **3.1** Converter a PK de `users`, preservando seus demais campos/constraints.
+- [x] **3.2** Converter PK e `tokenable_id` de `personal_access_tokens` para UUID.
+- [x] **3.3** Converter `expenses.id/user_id`, preservando FK, índices e campos financeiros.
+- [x] **3.4** Ajustar criação/rename de `notifications`: registro, owner, sessão e instalação UUIDv7.
+- [x] **3.5** Criar `resource_identities` com associação mínima, unique composto e cascade de owner.
+- [x] **3.6** Implementar checks de v7/variante/obrigatoriedade e eliminar chave inteira paralela nas tabelas próprias.
+- [x] **3.7** Classificar a tabela nova no cleanup e preservar os guards do launcher.
+- [x] **3.8** Provar schema, FKs, uniques e checks em banco exclusivo com migrations incrementais.
 
 **Concluir quando:** schema novo aceita apenas identidades próprias válidas e rejeita referências órfãs. O reset do banco local fica no STEP 12.
+
+**Escopo de schema concluído em 2026-10-14:** prova PostgreSQL isolada 171 testes/443 assertions; guard 15/50; isolamento 9/88, incluindo duas invocações; Unit completo 1.089/32.126. Schema + isolamento passaram em duas seeds (20261016/20261017) e cada path em paralelo com dois processos. Pint passou. Evidências e intercorrências no [checklist oficial](openspec/changes/standardize-uuid-v7-identifiers/tasks.md#step-03--schema-uuidv7-e-cleanup-seguro--2026-10-14). **Gate global bloqueado:** UserModel ainda inteiro falha ao criar no schema UUID; conversão pertence ao STEP 04. Provas focadas não substituem os gates globais do suporte compartilhado. Banco operacional não foi migrado/resetado; a aplicação completa ainda não está pronta no schema novo.
 
 ## STEP 04 — Identity, owner Core e Sanctum
 

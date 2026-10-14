@@ -28,7 +28,7 @@ return new class extends Migration
 
     private function renameConstraints(string $from, string $to): void
     {
-        foreach (['pkey', 'installation_id_unique', 'identifier_fingerprint_unique', 'user_id_foreign', 'session_id_foreign', 'values_check'] as $suffix) {
+        foreach (['pkey', 'installation_id_unique', 'identifier_fingerprint_unique', 'user_id_foreign', 'session_id_foreign', 'values_check', 'id_uuid_v7_check', 'user_id_uuid_v7_check', 'session_id_uuid_v7_check', 'installation_id_uuid_v7_check'] as $suffix) {
             DB::statement("ALTER TABLE notifications RENAME CONSTRAINT {$from}_{$suffix} TO {$to}_{$suffix}");
         }
 

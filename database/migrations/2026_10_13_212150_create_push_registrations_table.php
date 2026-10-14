@@ -16,8 +16,8 @@ return new class extends Migration
     {
         Schema::create('push_registrations', function (Blueprint $table): void {
             $table->uuid('id')->primary();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('session_id')->constrained('personal_access_tokens')->cascadeOnDelete();
+            $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignUuid('session_id')->constrained('personal_access_tokens')->cascadeOnDelete();
             $table->uuid('installation_id')->unique();
             $table->string('provider', 16);
             $table->string('platform', 16);
@@ -32,6 +32,10 @@ return new class extends Migration
         });
 
         DB::statement("ALTER TABLE push_registrations ADD CONSTRAINT push_registrations_values_check CHECK (provider = 'fcm' AND platform IN ('android', 'ios') AND registration_kind = 'token' AND generation > 0)");
+
+        foreach (['id', 'user_id', 'session_id', 'installation_id'] as $column) {
+            DB::statement("ALTER TABLE push_registrations ADD CONSTRAINT push_registrations_{$column}_uuid_v7_check CHECK ({$column}::text ~ '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$')");
+        }
     }
 
     /**
