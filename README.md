@@ -146,6 +146,42 @@ curl -i -X POST http://127.0.0.1:8000/api/authentication/sign-in \
 
 Mantenha `EMAIL`, `PASSWORD` e o valor retornado em `data.attributes.token` como variáveis somente durante a sessão de desenvolvimento. O token puro não pode ser recuperado do banco.
 
+## Cadastrar instalações push
+
+O cadastro aceita Android/iOS com Flutter Firebase oficial e **token de registro FCM**, `registration_kind = token`. O UUID `installation_id` é criado e persistido pelo cliente por instalação; não é token FCM, FID, token APNs ou ID físico do aparelho. A versão Flutter e o payload real ainda precisam ser confirmados na homologação. Nesta fatia, o cadastro não realiza envios Firebase.
+
+O token é cifrado com `APP_KEY`; a unicidade usa um fingerprint SHA-256 separado, calculado sobre provedor, tipo e token exatos, com separadores NUL. Nenhuma chave adicional de notificações é necessária. A migration `recalculate_notification_fingerprints` recalcula os fingerprints antigos a partir do destino cifrado, preservando IDs, ciphertext, geração, sessões e timestamps. Ela falha atomicamente se algum destino não puder ser decifrado ou se houver conflito de unicidade.
+
+As classes de produto usam `Notification`, e a tabela de destinos é `notifications`, renomeada de `push_registrations` por migration incremental com preservação dos registros. Ela não representa mensagens/read_at e não tem o schema do canal database Laravel. O contrato HTTP/JSON:API abaixo mantém o nome `push-registrations`.
+
+A pasta Bruno `Notifications` contém Create/Delete Notification. Configure `notificationInstallationId`, `notificationPlatform` (`android`/`ios`) e `notificationToken` como segredo. O POST salva `notificationId` tanto em `201` quanto em `200`; repita para sincronizar ou troque o token mantendo o UUID para rotacionar. O DELETE usa esse ID. Os exemplos não contêm token real nem disparam Firebase.
+
+`POST /api/push-registrations` exige Bearer Sanctum válido, conta ativa/verificada e usa a cota autenticada compartilhada de 60/min. O documento aceita somente:
+
+```json
+{
+  "data": {
+    "type": "push-registrations",
+    "attributes": {
+      "installation_id": "bfb21c99-e2cb-4e18-8b73-b8fb0efc8d69",
+      "platform": "android",
+      "registration_kind": "token",
+      "registration_identifier": "<token FCM obtido pelo cliente>"
+    }
+  }
+}
+```
+
+Exemplo contratual, não captura real do cliente. Use `platform = ios` no iOS e envie token FCM, não token APNs direto. O destino aceita 1–4096 bytes ASCII sem whitespace/controle, preservando caixa e bytes exatos. Identificadores são opacos: validação lexical não comprova que Firebase reconhece o token.
+
+Primeiro cadastro retorna `201`; repetição ou rotação na mesma instalação e conta retorna `200` com o mesmo ID. Duas instalações coexistem. Rotação substitui o destino e incrementa sua geração interna; o cliente deve serializar uploads e ressincronizar após login/início/retomada. Instalação de outra conta ou destino já vinculado a outra instalação responde `409`, sem transferência automática. Respostas JSON:API contêm somente ID, instalação, plataforma, provedor e última sincronização, com `Cache-Control: no-store` e sem token/fingerprint/sessão/geração.
+
+`DELETE /api/push-registrations/{registration}` remove registro próprio com `204`, preservando autenticação e outras instalações. ID ausente/alheio/malformado retorna `404` uniforme. Não existe listagem ou endpoint HTTP de envio.
+
+O vínculo pertence à sessão: SignOut confirmado e pruning removem seus registros por cascade; um novo login na mesma conta pode sincronizar a instalação com a nova sessão. Push não estende o login; a fatia futura de envio deverá descartar sessões vencidas mesmo antes de pruning. Na troca de conta, confirme SignOut anterior antes do novo cadastro; logout offline não comunica a revogação ao servidor imediatamente.
+
+Na rotação de `APP_KEY`, preserve a leitura dos destinos existentes pelo mecanismo Laravel de chaves anteriores. O fingerprint SHA-256 não depende dessa chave. A conversão dos fingerprints antigos não possui rollback automático para HMAC, pois a chave anterior foi removida; a reversão requer restaurar os valores e configuração anteriores explicitamente. Não execute rollback destrutivo da migration para apenas desabilitar as rotas.
+
 ## Registrar uma despesa
 
 `amount` é **inteiro em centavos**. Envie um documento JSON:API com `data.type = expenses`, `Accept: application/vnd.api+json` e `Content-Type: application/vnd.api+json`.

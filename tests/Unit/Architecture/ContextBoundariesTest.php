@@ -9,7 +9,7 @@ $contexts = array_map(basename(...), $contextDirectories);
 sort($contexts);
 
 $layers = ['Application', 'Domain', 'Infrastructure', 'Presentation'];
-$expectedContexts = ['Core', 'Expense', 'Identity', 'Insights', 'Metrics'];
+$expectedContexts = ['Core', 'Expense', 'Identity', 'Insights', 'Metrics', 'Notifications'];
 $sharedDomainDependencies = [
     'App\\Core\\Domain\\Enums\\ExpenseCategoryEnum',
     'App\\Core\\Domain\\ValueObjects\\AmountValueObject',
@@ -196,11 +196,11 @@ foreach ($contexts as $context) {
             $applicationDependencies[] = 'App\\Core\\Application\\Ports\\TransactionPort';
         }
 
-        if (in_array($context, ['Expense', 'Identity'], true)) {
+        if (in_array($context, ['Expense', 'Identity', 'Notifications'], true)) {
             $applicationDependencies[] = 'App\\Core\\Application\\Ports\\ObservabilityPort';
         }
 
-        if (in_array($context, ['Expense', 'Identity', 'Insights', 'Metrics'], true)) {
+        if (in_array($context, ['Expense', 'Identity', 'Insights', 'Metrics', 'Notifications'], true)) {
             $applicationDependencies[] = 'App\\Core\\Application\\Ports\\UserPort';
         }
 
@@ -224,6 +224,7 @@ foreach ($contexts as $context) {
         if ($context === 'Identity') {
             $infrastructureDependencies[] = 'Laravel\\Sanctum';
             $infrastructureDependencies[] = 'App\\Core\\Application\\Ports\\ObservabilityPort';
+            $infrastructureDependencies[] = 'App\\Notifications\\Application\\Ports\\NotificationPort';
         }
 
         if ($context === 'Core') {

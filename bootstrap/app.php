@@ -18,6 +18,9 @@ use App\Identity\Domain\Exceptions\InvalidNameException;
 use App\Identity\Domain\Exceptions\InvalidPasswordException;
 use App\Identity\Presentation\Http\Middleware\EnsureActiveUserMiddleware;
 use App\Identity\Presentation\Http\Middleware\ExtendSessionMiddleware;
+use App\Notifications\Application\Exceptions\NotificationRegistrationConflictException;
+use App\Notifications\Application\Exceptions\NotificationRegistrationNotFoundException;
+use App\Notifications\Domain\Exceptions\InvalidNotificationRegistrationException;
 use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -41,6 +44,7 @@ return Application::configure(basePath: dirname(__DIR__))
             __DIR__.'/../app/Expense/Presentation/Routes/api.php',
             __DIR__.'/../app/Insights/Presentation/Routes/api.php',
             __DIR__.'/../app/Metrics/Presentation/Routes/api.php',
+            __DIR__.'/../app/Notifications/Presentation/Routes/api.php',
         ],
     )
     ->withMiddleware(function (Middleware $middleware): void {
@@ -59,9 +63,31 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trimStrings(except: [
             'data.attributes.password',
             'data.attributes.password_confirmation',
+            'data.attributes.registration_identifier',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) use ($pageExpiredStatusCode): void {
+        $exceptions->dontReport([
+            NotificationRegistrationConflictException::class,
+            NotificationRegistrationNotFoundException::class,
+            InvalidNotificationRegistrationException::class,
+        ]);
+        $exceptions->render(fn (NotificationRegistrationConflictException $exception) => response()->json(['errors' => [[
+            'title' => 'Conflito de registro push',
+            'detail' => $exception->getMessage(),
+            'status' => '409',
+        ]]], 409)->header('Content-Type', 'application/vnd.api+json'));
+        $exceptions->render(fn (NotificationRegistrationNotFoundException $exception) => response()->json(['errors' => [[
+            'title' => 'Registro push não encontrado',
+            'detail' => $exception->getMessage(),
+            'status' => '404',
+        ]]], 404)->header('Content-Type', 'application/vnd.api+json'));
+        $exceptions->render(fn (InvalidNotificationRegistrationException $exception) => response()->json(['errors' => [[
+            'title' => 'Registro push inválido',
+            'detail' => $exception->getMessage(),
+            'status' => '422',
+            'source' => ['pointer' => '/data/attributes/'.$exception->field],
+        ]]], 422)->header('Content-Type', 'application/vnd.api+json'));
         $exceptions->dontReport(InvalidExpenseCursorException::class);
         $exceptions->render(fn (InvalidExpenseCursorException $exception) => response()->json(['errors' => [[
             'title' => 'Cursor inválido',

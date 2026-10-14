@@ -1,0 +1,50 @@
+meta {
+  name: Create Notification
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/push-registrations
+  body: json
+  auth: bearer
+}
+
+headers {
+  Accept: application/vnd.api+json
+  Content-Type: application/vnd.api+json
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "data": {
+      "type": "push-registrations",
+      "attributes": {
+        "installation_id": "{{notificationInstallationId}}",
+        "platform": "{{notificationPlatform}}",
+        "registration_kind": "token",
+        "registration_identifier": "{{notificationToken}}"
+      }
+    }
+  }
+}
+
+script:post-response {
+  const notificationId = res.body?.data?.id;
+  if ((res.status === 201 || res.status === 200) && typeof notificationId === 'string' && notificationId.length > 0) {
+    bru.setVar('notificationId', notificationId);
+  }
+}
+
+docs {
+  Cadastra ou sincroniza uma instalação Android/iOS autenticada, não envia mensagem.
+  Configure notificationToken como segredo com o token FCM do cliente. Não use token APNs ou FID.
+  Primeiro cadastro: 201. Repetição: 200 e mesmo ID. Use um UUID persistente por instalação.
+  Para rotação, substitua somente notificationToken e repita com o mesmo UUID.
+  Outra instalação precisa de UUID e token diferentes. Conflitos de ownership/destino retornam 409.
+  A resposta salva notificationId para a requisição de remoção e não devolve o token.
+}

@@ -12,8 +12,7 @@ final readonly class SignInOutput
     public function __construct(
         public int $id,
         public int $userId,
-        #[SensitiveParameter]
-        public string $token,
         public DateTimeImmutable $expiresAt,
+        #[SensitiveParameter] public string $token,
     ) {}
 }

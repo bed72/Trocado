@@ -1,0 +1,25 @@
+meta {
+  name: Delete Notification
+  type: http
+  seq: 2
+}
+
+delete {
+  url: {{baseUrl}}/api/push-registrations/{{notificationId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Accept: application/vnd.api+json
+}
+
+docs {
+  Remove somente o registro próprio indicado por notificationId; retorna 204.
+  ID ausente, alheio, malformado ou já removido retorna 404 uniforme.
+  A remoção preserva o login e outras instalações; SignOut remove vínculos da sessão revogada.
+}
