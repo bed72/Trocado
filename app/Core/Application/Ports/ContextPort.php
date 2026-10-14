@@ -14,8 +14,6 @@ interface ContextPort
 
     public function capture(ContextInput $input): void;
 
-    public function identifyRoute(string $route): void;
-
     /**
      * @template TReturn
      *

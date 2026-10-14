@@ -44,7 +44,9 @@ it('scopes correlation and principal to each request and leaves subsequent CLI e
         ->and($first->headers->get('X-Request-Id'))->not->toBe($second->headers->get('X-Request-Id'));
 
     foreach ([$first, $second, $public] as $index => $response) {
-        expect($records[$index]['request_id'])->toBe($response->headers->get('X-Request-Id'))
+        expect($records[$index]['trace_id'])->toBe($response->headers->get('X-Request-Id'))
+            ->and($records[$index])->not->toHaveKeys(['request_id', 'route'])
+            ->and($records[$index]['path'])->toBe($index === 2 ? '/api/public-correlation-probe' : '/api/correlation-probe')
             ->and($records[$index]['level'])->toBe('INFO')
             ->and($records[$index]['timestamp'])->toBeString();
     }

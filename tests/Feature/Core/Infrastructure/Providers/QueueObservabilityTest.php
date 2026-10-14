@@ -86,11 +86,11 @@ it('does not hydrate HTTP request fields into events emitted by a real serialize
         $records = $this->observabilityLog->records();
         expect(array_column($records, 'event'))->toBe(['probe.http', 'probe.worker', 'queue.job_processed'])
             ->and($records[0])->toMatchArray([
-                'request_id' => $response->headers->get('X-Request-Id'),
                 'trace_id' => $response->headers->get('X-Request-Id'),
                 'http_method' => 'POST', 'path' => '/api/queue-observability-probe',
-                'route' => 'api/queue-observability-probe', 'ip' => '127.0.0.1', 'user_id' => $user->getKey(),
+                'ip' => '127.0.0.1', 'user_id' => $user->getKey(),
             ])
+            ->not->toHaveKeys(['request_id', 'route'])
             ->and($records[1]['expense_id'])->toBe(1500)
             ->and($records[2]['queue'])->toBe($queue);
 

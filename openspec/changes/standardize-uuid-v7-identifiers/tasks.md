@@ -15,12 +15,18 @@
 
 ## 2. Conceito UUIDv7 puro e prova Unit inicial
 
-- [ ] 2.1 Implementar UuidValueObject/exceção em Core Domain para forma v7/variante/canonicalização de caixa/equivalência, sem framework/clock/generator. [UID-02; D2]
-- [ ] 2.2 Provar UUID válido, uppercase equivalente, v1/v4/v6/v8, nil, variante inválida, hash, inteiro/string numérica, espaços e ausência explícita; builders negativos não devem reparar entrada. [UID-02]
-- [ ] 2.3 Introduzir fixture UUIDv7 determinística tipada em Tests\Support\Core para IDs distintos e ordering, sem BaseBuilder/catálogo de mocks ou esperado calculado pelo gerador de produção. [UID-03; D10]
-- [ ] 2.4 Definir nomes e tipos dos contratos/Inputs/Outputs de identidade Core; string canônica para IDs presentes e null somente nos pontos legítimos antes de persistir. [UID-05; RID-01]
-- [ ] 2.5 Atualizar permissões arquiteturais específicas para conceito/capacidade Core e provar ausência de imports Core→contextos, Domain→framework e Application→ORM. [D2; identidade-context]
-- [ ] 2.6 Executar o arquivo Unit Core isolado pelo launcher e registrar resultado antes de avançar para a conversão ampla. [UID-02]
+- [x] 2.1 Implementar UuidValueObject/exceção em Core Domain para forma v7/variante/canonicalização de caixa/equivalência, sem framework/clock/generator. [UID-02; D2]
+  - `UuidValueObjectTest.php` isolado pelo launcher: 39 testes/46 assertions aprovados; `fromString/value/equals`, exceção sem eco da entrada. Evidência final do STEP 02 abaixo.
+- [x] 2.2 Provar UUID válido, uppercase equivalente, v1/v4/v6/v8, nil, variante inválida, hash, inteiro/string numérica, espaços e ausência explícita; builders negativos não devem reparar entrada. [UID-02]
+  - O mesmo arquivo prova as quatro variantes RFC, limites de bits, equivalência simétrica, diferenças, malformações e rejeição de `null`/não strings. Aceitação de `null` nas entidades pré-create será integrada nos STEPs 04/05/06; o VO não representa ausência.
+- [x] 2.3 Introduzir fixture UUIDv7 determinística tipada em Tests\Support\Core para IDs distintos e ordering, sem BaseBuilder/catálogo de mocks ou esperado calculado pelo gerador de produção. [UID-03; D10]
+  - `UuidFixtureTest.php` isolado pelo launcher: 4 testes/13 assertions aprovados; índices explícitos, extremos e rejeição fora de 48 bits. Nenhum consumidor existente foi convertido pela fixture nova.
+- [x] 2.4 Definir nomes e tipos dos contratos/Inputs/Outputs de identidade Core; string canônica para IDs presentes e null somente nos pontos legítimos antes de persistir. [UID-05; RID-01]
+  - Design D2, subseção STEP 02: quatro Data, Repository e UseCase definidos, lista ordenada, IDs obrigatórios e pontos nullable existentes conferidos no código. Implementação desses contratos é 7.1/7.2; UserPort/ContextPort são 4.5.
+- [x] 2.5 Atualizar permissões arquiteturais específicas para conceito/capacidade Core e provar ausência de imports Core→contextos, Domain→framework e Application→ORM. [D2; identidade-context]
+  - ARCHITECTURE e allowlist permitem somente VO/exceção novos, sem liberar diretórios. Capacidade futura tem permissões específicas definidas para STEP 07. Arquivo arquitetural isolado aprovado: 30 testes/462 assertions após Pint.
+- [x] 2.6 Executar o arquivo Unit Core isolado pelo launcher e registrar resultado antes de avançar para a conversão ampla. [UID-02]
+  - Após Pint, VO isolado 39/46, fixture isolada 4/13 e Unit Core 251/717 (testes/assertions), todos aprovados com fail-on-skipped/incomplete/risky. Comandos e limites na seção STEP 02 abaixo.
 
 ## 3. Bootstrap schema UUIDv7 e cleanup seguro
 
@@ -162,15 +168,15 @@
 - Fase 11 fecha suporte transversal/consumidores; fase 12 aplica somente o reset local consentido no alvo reconfirmado. Fases 13–14 fecham artefatos/consumo/evidência.
 - Aplicar uma task pendente por vez, verificar antes de marcar e registrar comandos/resultados. Proposta de spec e decisões resolvidas não são evidência de implementação.
 
-## Matriz requisito/cenário → trabalho → evidência futura
+## Matriz requisito/cenário → trabalho → evidência corrente
 
-| Requisito / cenários | Tasks principais | Prova mínima | Estado inicial |
+| Requisito / cenários | Tasks principais | Prova mínima | Estado corrente |
 | --- | --- | --- | --- |
 | UID-01 política/exclusões e todos os recursos próprios | 1.3, 3.*, 11.2/11.6 | Inventário por papel + schema/HTTP + arquitetura | Não implementado/comprovado |
-| UID-02 canônico/v7/variante/negativos/null | 2.1–2.3, 4.1, 6.3 | Unit pura + HTTP antes de lookup + PG checks | Não implementado/comprovado |
+| UID-02 canônico/v7/variante/negativos/null | 2.1–2.3, 4.1, 6.3 | Unit pura + HTTP antes de lookup + PG checks | Parcial: VO puro comprovado no STEP 02; integração de entidades/HTTP/PG pendente |
 | UID-03 geração padrão/imutabilidade | 3.*, 4.2–4.3, 5.2, 6.1, 7.3 | Model/PG create-update + formato + callback/clock fora de Domain | Não implementado/comprovado |
 | UID-04 PK/FK/morph/cascades | 3.1–3.8, 4.9, 6.7 | PostgreSQL tipos/constraints/owner/session/encerramento | Não implementado/comprovado |
-| UID-05 contratos/guard/sem cast | 2.4–2.5, 4.5/4.7, 5.1, 8.1/9.1/10.1, 11.6 | Unit argumentos + arquitetura + autenticação real | Não implementado/comprovado |
+| UID-05 contratos/guard/sem cast | 2.4–2.5, 4.5/4.7, 5.1, 8.1/9.1/10.1, 11.6 | Unit argumentos + arquitetura + autenticação real | Parcial: tipos definidos e fronteiras aprovadas no STEP 02; conversão/guard pendentes |
 | UID-06 rotas inválidas/owner/auth | 4.8–4.9, 5.3/5.8, 6.4/6.7 | HTTP 200/201/204 e 401/403/404/422/429 | Não implementado/comprovado |
 | UID-07 instalação/registro/cliente | 1.5, 6.*, 13.2/13.6/13.7 | Unit/HTTP/PG + homologação externa registrada | Não implementado/comprovado |
 | UID-08 reset autorizado/negativo/lifecycle | 3.7, 12.* | Alvo/estado/cleanup/checks registrados + guard/testes de recusa | Não executado/comprovado |
@@ -181,7 +187,7 @@
 | RID-05 reinício/PAT/reaparecimento/cascade | 7.9–7.10, 8.5/9.5/10.5 | HTTP/PG processos novos + owner delete + recursos ausentes | Não implementado/comprovado |
 | RID-06 erro/composição/fonte/sem fallback | 7.6, 8.6/9.6/10.5 | Exceção sentinela Unit/HTTP + zero writes + erro sem data/log sensível | Não implementado/comprovado |
 | RID-07 sem endpoint/autoridade/cleanup | 3.7, 7.9, 11.5 | HTTP/owner + lifecycle exact runId/token | Não implementado/comprovado |
-| User/Core UUID ownership e Entity pura | 2.*, 4.1/4.5/4.8/4.9 | Unit + HTTP + fronteiras | Não implementado/comprovado |
+| User/Core UUID ownership e Entity pura | 2.*, 4.1/4.5/4.8/4.9 | Unit + HTTP + fronteiras | Parcial: conceito Core/pureza comprovados; ownership/Entity UUID pendentes |
 | Sanctum/segredo/expiração/extensão/link | 4.2–4.4/4.6–4.9 | PAT real + PG locks + assinatura/tempo/owner | Não implementado/comprovado |
 | Expense sort/cursor v2/cache/worker | 5.* | Unit + PG/HTTP next-prev + Redis/worker exclusivo | Não implementado/comprovado |
 | Insights períodos/estados/rotação/UUID | 8.* | Unit + HTTP/PG + Core batch | Não implementado/comprovado |
@@ -189,7 +195,7 @@
 | Sugestões norm/valor/owner/UUID | 10.* | Unit + HTTP/PG normalização SQL/associação | Não implementado/comprovado |
 | Observabilidade próprio UUID/native SDK | 11.3–11.4 | JSON/header/context + ausência de segredos/fingerprint | Não implementado/comprovado |
 | Cliente/Bruno/documentação | 13.* | Parser/CLI controlados + homologação externa distinta | Não implementado/comprovado |
-| Gates transversais | 14.* | Padrão + duas seeds + paralelo + Redis/concorrência | Não executado/comprovado |
+| Gates transversais | 14.* | Padrão + duas seeds + paralelo + Redis/concorrência | Passaram para o STEP 02; gate final da conversão completa permanece pendente |
 
 ## Estado histórico da elaboração da proposta
 
@@ -376,3 +382,50 @@ Comandos/checks executados nesta etapa:
 - `git diff --check`: passou. Diff restrito a STEPS e artefatos das duas changes. Nenhum PHP alterado; Pint/testes da aplicação não foram necessários à entrega documental deste STEP. Não houve migration/reset, seed, emissão de token ou operação de workers.
 
 **Resultado:** STEP 01 concluído; a matriz geral acima preserva os requisitos de produto como não implementados/comprovados. Próxima entrega é STEP 02 (VO UUIDv7 puro + fixture + Unit focada). Nenhum gate de produto, homologação do cliente ou archive foi aprovado por essa preparação.
+
+## STEP 02 — Conceito UUIDv7 puro em Core — 2026-10-14
+
+### Autorização, implementação e contratos
+
+Pedido: “Seguindo a implementacao da spec, vamos para o step: ## STEP 02 — Conceito UUIDv7 puro em Core”. Autoriza a fatia 2.1–2.6 e suas provas, incluindo os gates exigidos para suporte transversal novo. `git status --short` estava limpo antes das alterações. Boost confirmou PHP 8.5, Laravel 13.34.0, Pest 5.2.1, PHPUnit 13.3.4 e Pint 1.32.1; site Lerd descoberto como `trocado`. As skills locais SDD, arquitetura e quality gate foram lidas nesta execução; Boost Search Docs consultado para datasets/arquitetura Pest 5.
+
+- `app/Core/Domain/ValueObjects/UuidValueObject.php`: `final readonly`, constructor privado, `fromString/value/equals`, validação integral com âncoras `\A`/`\z`, versão 7 e variante 8/9/a/b; canonicaliza somente caixa, sem trim/clock/geração/framework.
+- `app/Core/Domain/Exceptions/InvalidUuidException.php`: exceção de Domain sem detalhes da entrada. String inválida lança essa exceção; não string/ausência é `TypeError` na chamada estrita. Ausência não vira VO vazio e não foi adicionada factory nullable.
+- `tests/Support/Core/Fixtures/UuidFixture.php`: índice explícito 0–0xFFFFFFFFFFFF em prefixo v7 fixo, sem gerador de produção. Esperados literais independentes, ordem lexical controlada e entradas negativas não reparadas. Não representa geração de produto nem prova de ordem global de cadastro.
+- `design.md` D2 fecha nomes/tipos dos quatro Data, Repository e UseCase futuros, owner/saída obrigatórios e os únicos IDs de Entity nullable existentes (User/Expense). NotificationRegistrationEntity mantém ID obrigatório. Definição documental não marca 7.1/7.2 nem 4.5 como implementados.
+- `ARCHITECTURE.md` e `ContextBoundariesTest.php` permitem especificamente o VO/exceção; não liberam diretórios, ORM ou dependência Core→consumidores. A capacidade futura permanece restrita às permissões nominadas do design para implementação no STEP 07.
+
+### Cenário → evidência
+
+| Cenário / requisito desta fatia | Evidência | Estado |
+| --- | --- | --- |
+| UUIDv7 textual, quatro prefixos de variante RFC, extremos válidos | Dataset literal de `UuidValueObjectTest.php` | Proven |
+| Caixa equivalente, igualdade reflexiva/simétrica e IDs distintos | `compares identity by canonical value...` | Proven |
+| v1/v4/v6/v8/nil/max UUID/variantes inválidas/hash/número/whitespace/NUL/forma inválida | Datasets negativos sem builder/normalização intermediários | Proven |
+| Ausência e tipos inválidos não viram identidade presente | Dataset integer/float/bool/null/array → TypeError | Proven no VO; integração nullable das Entities permanece nos STEPs 04/05/06 |
+| Mensagem de formato não ecoa entrada rejeitada | Assertion de exceção literal | Proven |
+| Fixture distinta, repetível, ordenada, limites e índice inválido | `UuidFixtureTest.php`, esperado literal | Proven |
+| Pureza de Domain/Application e isolamento de Core | Arquivo arquitetural isolado e gate completo | Proven para o código corrente |
+| Contratos/Data/nullable de Core definidos | Design D2 e inspeção dos contratos/Entities existentes | Definição concluída; implementação do registro e conversão de consumidores pendentes |
+| Geração/persistência/HTTP/associação UUIDv7 | Nenhuma implementação dessas etapas nesta fatia | Unproven, STEPs 03–14 |
+
+### Comandos e resultados
+
+Todos os comandos Pest abaixo passaram pelo launcher `lerd composer test --`, com os flags `--compact --fail-on-skipped --fail-on-incomplete --fail-on-risky` no final. Nenhuma execução registrou falha, skip, incomplete ou risky. Durações são as reportadas pelo runner, sem o tempo externo de provisionamento.
+
+| Argumentos antes dos flags comuns | Testes / assertions | Duração |
+| --- | --- | --- |
+| `tests/Unit/Core/Domain/ValueObjects/UuidValueObjectTest.php` (isolado, após Pint) | 39 / 46 | 27 ms |
+| `tests/Unit/Core/Support/UuidFixtureTest.php` (isolado, após Pint) | 4 / 13 | 24 ms |
+| `tests/Unit/Architecture/ContextBoundariesTest.php` (isolado, após Pint) | 30 / 462 | 4.746 ms |
+| `tests/Unit/Core` (após Pint) | 251 / 717 | 2.074 ms |
+| nenhum (gate completo padrão) | 1.865 / 38.749 | 41.147 ms |
+| `--order-by=random --random-order-seed=20261014` | 1.865 / 38.749 | 40.836 ms |
+| `--order-by=random --random-order-seed=20261015` | 1.865 / 38.749 | 41.620 ms |
+| `--parallel --processes=2` | 1.865 / 38.749 | 26.410 ms |
+
+O gate completo incluiu os grupos existentes Redis/concorrência e a prova de duas invocações simultâneas, sem exclusões. Feature foi provisionado pelo launcher com migrations incrementais em bancos exclusivos; Unit puro não provisionou banco. Os testes completos comprovam regressão do código corrente, não a futura conversão UUIDv7 do schema/consumidores.
+
+`lerd exec`/`vendor_run` Pint `--dirty --format agent` executou e corrigiu somente a caixa dos literais hexadecimais nos dois arquivos de fixture/prova; os arquivos afetados foram reexecutados isoladamente depois. A segunda execução de Pint passou sem alterações. `openspec validate standardize-uuid-v7-identifiers --type change --strict --json --no-interactive` passou sem issues após o registro de evidências; `git diff --check` também passou.
+
+**Resultado:** tarefas 2.1–2.6 concluídas e sincronizadas com `STEPS.md`. Próxima etapa: STEP 03, schema e cleanup seguro. Reset operacional, homologação, archive e gate final da conversão permanecem nas etapas próprias.

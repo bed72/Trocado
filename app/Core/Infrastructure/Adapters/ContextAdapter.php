@@ -19,11 +19,6 @@ final readonly class ContextAdapter implements ContextPort
         return $this->context->scope($operation);
     }
 
-    public function identifyRoute(string $route): void
-    {
-        $this->context->add('route', $route);
-    }
-
     public function identifyUser(int $userId): void
     {
         $this->context->add('user_id', $userId);
@@ -42,7 +37,6 @@ final readonly class ContextAdapter implements ContextPort
             'ip' => $input->ip,
             'path' => $input->path,
             'trace_id' => $input->traceId,
-            'request_id' => $input->traceId,
             'http_method' => $input->method,
         ]);
     }

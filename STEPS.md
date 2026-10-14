@@ -84,14 +84,16 @@ As frentes 05, 06 e 07 podem ser organizadas separadamente depois da base 04; 08
 
 **Entrega:** validação pura e fixtures determinísticas, sem necessidade de banco.
 
-- [ ] **2.1** Implementar `UuidValueObject` e exceção de formato/versão/variante/equivalência.
-- [ ] **2.2** Provar casos válidos e inválidos, caixa equivalente e ausência somente nos pontos permitidos.
-- [ ] **2.3** Criar fixture tipada de UUIDv7 para IDs distintos e ordenação controlada.
-- [ ] **2.4** Definir nomes/tipos dos contratos e Data de identidade Core.
-- [ ] **2.5** Ajustar permissões arquiteturais específicas e provar pureza/dependências.
-- [ ] **2.6** Executar Unit Core isolado pelo launcher e registrar resultados.
+- [x] **2.1** Implementar `UuidValueObject` e exceção de formato/versão/variante/equivalência.
+- [x] **2.2** Provar casos válidos e inválidos, caixa equivalente e ausência somente nos pontos permitidos.
+- [x] **2.3** Criar fixture tipada de UUIDv7 para IDs distintos e ordenação controlada.
+- [x] **2.4** Definir nomes/tipos dos contratos e Data de identidade Core.
+- [x] **2.5** Ajustar permissões arquiteturais específicas e provar pureza/dependências.
+- [x] **2.6** Executar Unit Core isolado pelo launcher e registrar resultados.
 
 **Concluir quando:** inteiro, hash, whitespace, nil, variante inválida e outras versões não passam como UUIDv7; Domain não gera IDs nem consulta relógio/framework.
+
+**Concluído em 2026-10-14:** VO/exceção puros, fixture determinística, nomes/tipos dos contratos futuros e permissões específicas documentados. VO isolado (39), fixture (4), Unit Core (251) e arquitetura (30) passaram; gate completo passou com 1.865 testes no padrão, seeds 20261014/20261015 e paralelo de dois processos. Pint aplicado. Comandos, cenários e limites estão no [checklist oficial](openspec/changes/standardize-uuid-v7-identifiers/tasks.md#step-02--conceito-uuidv7-puro-em-core--2026-10-14). Integração nullable das Entities e implementação do registro seguem nos steps próprios.
 
 ## STEP 03 — Schema UUIDv7 e cleanup seguro
 

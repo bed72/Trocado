@@ -19,9 +19,7 @@ use Illuminate\Http\Request;
 use Illuminate\Log\Context\Repository as ContextRepository;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
-use Illuminate\Routing\Events\RouteMatched;
 use Illuminate\Support\Facades\Context;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
@@ -42,11 +40,7 @@ final class CoreServiceProvider extends ServiceProvider
     public function boot(ObservabilityPort $port): void
     {
         Context::hydrated(static function (ContextRepository $context): void {
-            $context->forget(['request_id', 'trace_id', 'http_method', 'path', 'ip', 'route', 'user_id']);
-        });
-
-        Event::listen(RouteMatched::class, function (RouteMatched $event): void {
-            $this->app->make(ContextPort::class)->identifyRoute($event->route->uri());
+            $context->forget(['trace_id', 'http_method', 'path', 'ip', 'user_id']);
         });
 
         Nightwatch::redactRequests(static function (NightwatchRequest $request): void {

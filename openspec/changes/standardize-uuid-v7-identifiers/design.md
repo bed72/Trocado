@@ -51,6 +51,27 @@ Alternativas rejeitadas: manter mistura por contexto; trocar somente Notificatio
 
 Há mudança arquitetural explícita: a proibição de persistir IDs auxiliares de projeções passa a permitir apenas esse registro mínimo, sem transformar o contexto analítico em dono de Expense ou de User.
 
+#### Definição de contratos — STEP 02 — 2026-10-14
+
+O pedido posterior autoriza a implementação e as provas do STEP 02. O conceito puro usa `UuidValueObject::fromString(string): self`, `value(): string` e `equals(self): bool`; strings inválidas lançam `InvalidUuidException`, tipos não string (incluindo `null`) são rejeitados pela assinatura estrita. Não há factory nullable nem geração no Domain. A fixture `Tests\Support\Core\Fixtures\UuidFixture::at(int): string` é determinística, com índice explícito de 48 bits e prefixo fixo v7; serve somente aos testes, sem relógio, estado global ou esperado obtido do gerador de produção.
+
+Nomes/tipos fechados para implementação no STEP 07 (não são classes implementadas pelo STEP 02):
+
+| Contrato / Data de Core Application | Assinatura / campos |
+| --- | --- |
+| `Data\ResourceIdentityInput` | `namespace: string`, `identityVersion: int`, `components: array<string, string\|int\|bool\|null>`; mapa ordenado de componentes tipados, namespace técnico e versão positiva |
+| `Data\ResolveResourceIdentitiesInput` | `userId: string`, `identities: list<ResourceIdentityInput>`; um owner canônico obrigatório por lote |
+| `Data\ResourceIdentityOutput` | `identity: ResourceIdentityInput`, `id: string`; projeção de associação do Repository, UUID confirmado obrigatório |
+| `Data\ResolveResourceIdentitiesOutput` | `identities: list<ResourceIdentityOutput>`; correspondência na ordem original, inclusive repetições da mesma chave |
+| `Repositories\ResourceIdentityRepository` | `resolve(string $userId, array $identities): array` com `list<ResourceIdentityInput>` → `list<ResourceIdentityOutput>`; lote deduplicado, sem tipos ORM, UUID candidato ou Output de UseCase reaproveitado |
+| `UseCases\ResolveResourceIdentitiesUseCase` | `execute(ResolveResourceIdentitiesInput $input): ResolveResourceIdentitiesOutput`; valida owner/chaves antes do Repository, deduplica e recompõe a ordem |
+
+Os Data serão `final readonly`, constructor-only, sem comportamento, validação, geração, digest ou framework. O UseCase valida/canonicaliza `userId` e valida componentes/namespace/versão antes da capacidade de persistência. O UseCase define a unidade curta da resolução concorrente por `TransactionPort`; o Repository executa o mecanismo de lookup/insert/releitura, sem colocar leituras/composição financeiras na transação. A representação do digest deve preservar nomes, tipos, ordem fixa e `null`, sem conversão para string vazia; arrays aninhados, floats e objetos não fazem parte do contrato. Componentes são transitórios e não entram em logs nem nas rows do registro.
+
+IDs presentes de owner/FK/sessão/saída usam `string` canônica, nunca `?string` ou `int|string`. Somente os pontos existentes de entidade sem persistência (`UserEntity::$id` e `ExpenseEntity::$id`) terão `?string`; nesses pontos `null` continua ausência e valor presente passa pelo VO. `NotificationRegistrationEntity::$id` já é obrigatório e permanece `string`, passando a exigir v7. Essa integração é dos STEPs 04/05/06. `UserPort::id(): string` e `ContextPort::identifyUser(string $userId): void` serão convertidos junto aos adapters/consumidores no STEP 04, sem antecipar assinaturas incompatíveis agora.
+
+A permissão implementada neste step cobre somente `UuidValueObject`/`InvalidUuidException` específicos. No STEP 07 a Application de Expense, Insights e Metrics poderá consumir somente o UseCase e os quatro Data acima, sem liberar `Core\Application` inteiro nem o Repository interno aos consumidores. Core continua sem imports de contextos consumidores; namespace/componentes não introduzem enum financeiro em Core.
+
 ### D3 — Registro transversal mínimo
 
 Tabela proposta `resource_identities`, owner Core:

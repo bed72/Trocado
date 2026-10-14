@@ -15,9 +15,11 @@ $sharedDomainDependencies = [
     'App\\Core\\Domain\\ValueObjects\\AmountValueObject',
     'App\\Core\\Domain\\ValueObjects\\DatePeriodValueObject',
     'App\\Core\\Domain\\ValueObjects\\RatioValueObject',
+    'App\\Core\\Domain\\ValueObjects\\UuidValueObject',
     'App\\Core\\Domain\\Exceptions\\InvalidAmountException',
     'App\\Core\\Domain\\Exceptions\\InvalidDatePeriodException',
     'App\\Core\\Domain\\Exceptions\\InvalidRatioException',
+    'App\\Core\\Domain\\Exceptions\\InvalidUuidException',
 ];
 
 it('organizes application code inside known bounded context layers', function () use ($contextDirectories, $layers): void {

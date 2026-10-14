@@ -51,15 +51,15 @@ it('wires confirmed identity and expense mutations to correlated business events
         ->and(array_column($records, 'event'))->toContain('user.registered', 'identity.signed_in')
         ->and($expenseRecords[0]['expense_id'])->toBe((int) $first->json('data.id'))
         ->and($expenseRecords[0]['user_id'])->toBe($userId)
-        ->and($expenseRecords[0]['request_id'])->toBe($first->headers->get('X-Request-Id'))
+        ->and($expenseRecords[0]['trace_id'])->toBe($first->headers->get('X-Request-Id'))
         ->and($expenseRecords[0]['timestamp'])->toBeString()
         ->and($expenseRecords[0]['level'])->toBe('INFO')
-        ->and($expenseRecords[1]['request_id'])->toBe($second->headers->get('X-Request-Id'))
+        ->and($expenseRecords[1]['trace_id'])->toBe($second->headers->get('X-Request-Id'))
         ->and($second->headers->get('X-Request-Id'))->not->toBe($first->headers->get('X-Request-Id'))
         ->and(json_encode($records))->not->toContain('private description', $token);
 
     foreach ($records as $record) {
-        expect($record)->not->toHaveKeys(['amount', 'description', 'password', 'token', 'payload']);
+        expect($record)->not->toHaveKeys(['request_id', 'route', 'amount', 'description', 'password', 'token', 'payload']);
     }
 
     $updated = withToken($token)->patchJson(route('expenses.update', ['expense' => $first->json('data.id')]), [
@@ -85,7 +85,7 @@ it('wires confirmed identity and expense mutations to correlated business events
         $matching = array_values(array_filter($mutationRecords, fn (array $record): bool => $record['event'] === $event));
 
         expect($matching)->toHaveCount(1)
-            ->and($matching[0]['request_id'])->toBe($response->headers->get('X-Request-Id'));
+            ->and($matching[0]['trace_id'])->toBe($response->headers->get('X-Request-Id'));
     }
 });
 
