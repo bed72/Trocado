@@ -1,11 +1,17 @@
 ## 1. Autorizar apply e consolidar inventário
 
-- [ ] 1.1 Obter autorização explícita da etapa de implementação e testes; escrever/validar esta spec não autoriza apply, reset, PHPUnit/Pest, emissão de tokens ou operação de workers.
-- [ ] 1.2 Revalidar estritamente a change e reconferir PHP/Laravel/Sanctum/PG, documentação e código instalado de HasUuids, PAT/custom findToken, uuidMorphs, cursor e bulk inserts. [UID-03–06; D2/D6]
-- [ ] 1.3 Inventariar PKs/FKs/IDs de Domain, Application, HTTP, SQL, cache, queue e fixtures por papel, inclusive todos os casts int/getKey; registrar arquivo/campo/destino sem converter amount/datas/contadores. [UID-01/05]
-- [ ] 1.4 Registrar matriz de namespaces/componentes canônicos de Insights/Metrics/sugestões e confirmar limites de batch/queries antes do registro Core. [RID-01–04; D4/D5]
-- [ ] 1.5 Coordenar a change ativa de Firebase: revisar design/specs/tasks para registro/instalação/owner/sessão v7 sem marcar envio, cliente ou trabalhos históricos como concluídos novamente. [UID-07; D8]
-- [ ] 1.6 Definir fatias coerentes/dependências e impedir publicação de build com esquema/contratos misturados; não criar union int|string temporária como compatibilidade pública. [UID-04–06; D9]
+- [x] 1.1 Obter autorização explícita da etapa de implementação e testes; escrever/validar esta spec não autoriza apply, reset, PHPUnit/Pest, emissão de tokens ou operação de workers.
+  - Pedido de 2026-10-14: começar a implementação pelo STEP 01 do `STEPS.md`. Autoriza a preparação/inventário e suas verificações; as etapas seguintes continuam pendentes. Evidência detalhada abaixo.
+- [x] 1.2 Revalidar estritamente a change e reconferir PHP/Laravel/Sanctum/PG, documentação e código instalado de HasUuids, PAT/custom findToken, uuidMorphs, cursor e bulk inserts. [UID-03–06; D2/D6]
+  - OpenSpec strict passou; Boost e código instalado reconferidos em 2026-10-14. Matriz de APIs e limites abaixo; inspeção não é prova de implementação UUIDv7.
+- [x] 1.3 Inventariar PKs/FKs/IDs de Domain, Application, HTTP, SQL, cache, queue e fixtures por papel, inclusive todos os casts int/getKey; registrar arquivo/campo/destino sem converter amount/datas/contadores. [UID-01/05]
+  - Inventário por schema/contexto/papel e auditoria de casts/getKey registrados na seção 1.3 abaixo; inclui bulk, cursor, trim HTTP e exclusões técnicas/financeiras.
+- [x] 1.4 Registrar matriz de namespaces/componentes canônicos de Insights/Metrics/sugestões e confirmar limites de batch/queries antes do registro Core. [RID-01–04; D4/D5]
+  - Matriz fechada na seção 1.4: componentes tipados/null explícito e lotes 6/1/5; orçamento 0/1/até 3 statements por tentativa, até 3 tentativas. Medição futura permanece pendente.
+- [x] 1.5 Coordenar a change ativa de Firebase: revisar design/specs/tasks para registro/instalação/owner/sessão v7 sem marcar envio, cliente ou trabalhos históricos como concluídos novamente. [UID-07; D8]
+  - Design/specs/tasks Firebase alinhados ao contrato alvo; OpenSpec strict passou nas duas changes. Checkboxes e evidência histórica Firebase preservados, cenários v7 ainda Unproven.
+- [x] 1.6 Definir fatias coerentes/dependências e impedir publicação de build com esquema/contratos misturados; não criar union int|string temporária como compatibilidade pública. [UID-04–06; D9]
+  - Seção 1.6 fecha ordem/dependências, atualizações simultâneas de contratos/implementações/doubles e condição de integração anterior ao reset/publicação.
 
 ## 2. Conceito UUIDv7 puro e prova Unit inicial
 
@@ -185,14 +191,188 @@
 | Cliente/Bruno/documentação | 13.* | Parser/CLI controlados + homologação externa distinta | Não implementado/comprovado |
 | Gates transversais | 14.* | Padrão + duas seeds + paralelo + Redis/concorrência | Não executado/comprovado |
 
-## Estado desta proposta
+## Estado histórico da elaboração da proposta
 
 Somente a criação/revisão/validação dos artefatos foi autorizada. Nenhuma task de implementação acima está concluída; não foram executados testes da aplicação, migrations/reset, queue, seed ou smoke test. As cinco decisões do usuário constam em proposal/design e são pré-condições do futuro apply, não seu início implícito.
 
-## Validação desta elaboração
+## Validação histórica desta elaboração
 
 - `openspec validate standardize-uuid-v7-identifiers --type change --strict --json --no-interactive`: passou sem issues.
 - `openspec status`: proposal, design, specs e tasks completos como **artefatos de planejamento**, não implementação.
 - Revisão documental adicional: 11 capacidades declaradas correspondem aos 11 arquivos de specs; 42 requisitos e 162 cenários; 26 blocos MODIFIED conservam todas as âncoras de cenários da spec principal, evitando perda na futura sincronização.
 - Checklist: 108 tasks únicas em 14 fases, todas pendentes; matriz de evidências inicial sem resultados de implementação presumidos.
 - Formatação documental/EOF e `git diff --check` passaram. `git status` mostra somente a nova pasta desta change; código, schema, specs principais e outra change ativa permanecem sem alterações nesta elaboração.
+
+## STEP 01 — Preparação e inventário — 2026-10-14
+
+### 1.1 Autorização e escopo corrente
+
+O pedido de implementação pelo STEP 01 autoriza tarefas 1.1–1.6 e verificações pertinentes a essa entrega. A entrega é o inventário e a coordenação do apply. Nenhuma prova de comportamento UUIDv7 é atribuída à inspeção. Os testes PHP/Pest das etapas 02–14 permanecem nos respectivos passos; esta etapa não exige executar a aplicação em schema convertido. Reset local continua condicionado à reconferência do alvo no STEP 12; descoberta de site/schema não satisfaz essa reconferência futura.
+
+`git status --short` estava limpo no início. A skill local `trocado-sdd` citada em AGENTS.md não está disponível nesta árvore; o fluxo foi conferido por `openspec status`, `openspec instructions apply`, pelas skills disponíveis de arquitetura/quality gate e pelos artefatos da change.
+
+### 1.2 Ambiente e APIs reconferidos
+
+- Boost `application-info`: PHP **8.5**, Laravel **13.34.0**, Sanctum **4.3.3**, Ramsey UUID **4.9.4**, Pest **5.2.1**, PHPUnit **13.3.4**, Pint **1.32.1**.
+- Lerd `site list`: site `trocado`, path deste checkout, PHP 8.5. Consulta read-only `SELECT current_database(), current_setting('server_version')`: database **trocado**, PostgreSQL **16.10**. Esta leitura identifica o ambiente observado, sem afirmar ausência de dados reais/compartilhamento para autorizar reset.
+- Boost Search Docs consultado para UUID/HasUuids, Sanctum/custom PAT, uuidMorphs/foreignUuid e cursor pagination. Conferência no vendor instalado resolve os detalhes abaixo.
+
+| API / arquivo instalado (paths relativos a `vendor/`) | Resultado e consequência para o apply |
+| --- | --- |
+| `laravel/framework/src/Illuminate/Database/Eloquent/Concerns/HasUuids.php:16–29` | `newUniqueId()` chama `Str::uuid7()`. `isValidUniqueId()` chama `Str::isUuid()` sem versão: **não** protege v7 sozinho. |
+| `laravel/framework/src/Illuminate/Database/Eloquent/Concerns/HasUniqueStringIds.php:29–92` | Habilita IDs únicos; chave em `uniqueIds()` tem tipo string e não incremental. Validação de route binding não protege todo lookup direto. |
+| `laravel/framework/src/Illuminate/Support/Str.php:675–707` | Sem versão, `isUuid()` verifica forma hex/hífens; existe argumento de versão. Domain terá validação pura própria de forma/v7/variante, sem chamar Laravel nem permitir trim. |
+| `laravel/sanctum/src/Sanctum.php::usePersonalAccessTokenModel` e `HasApiTokens.php::createToken` | Extensão suportada para PAT próprio em Identity; manter emissão `id\|segredo`, SHA-256 e morph type de User. |
+| `laravel/sanctum/src/Guard.php:100–112` e `PersonalAccessToken.php:58–69` | Guard restringe prefixo numérico somente para key type int. Com string, `findToken()` pode consultar ID inválido: validar prefixo v7 antes de delegar ao lookup/hash oficial. Preservar o caminho suportado de token sem `\|`, que busca pelo hash; não inventar outra credencial. |
+| `laravel/framework/src/Illuminate/Database/Schema/Blueprint.php::uuidMorphs/foreignUuid` | `uuidMorphs('tokenable')` cria type string, ID UUID e índice composto; **não cria FK polimórfica nem CHECK v7**. `foreignUuid` deve receber a constraint/cascade necessária. |
+| `laravel/framework/src/Illuminate/Database/Concerns/BuildsQueries.php:464–551` | Cursor usa parâmetros da ordenação em igualdade/seek `>`/`<`, invertendo direção para anterior. Aceita posição textual; exigir ID único UUID e expressão de descrição não nula/alias no SELECT. |
+| `laravel/framework/src/Illuminate/Database/Eloquent/Builder.php:521–573,1326–1344,1478–1492` | `insert/insertOrIgnore` simples não enriquecem IDs como create. **Há APIs específicas**: `fillAndInsert*` chama `setUniqueIds`, e Eloquent `upsert` adiciona unique IDs/timestamps. Não generalizar que todo bulk gera ou que nenhum gera; fornecer UUIDs explícitos nas fixtures/raw inserts e no lote do registro. |
+| `laravel/framework/src/Illuminate/Database/Query/Grammars/PostgresGrammar.php:392–413` | `insertOrIgnore` compila `ON CONFLICT DO NOTHING`; variante returning permite alvo composto. Não usar upsert que atualiza hits/ID/timestamp; reconciliar o lote com releitura, sem publicar UUID perdedor. |
+
+PostgreSQL 16.10 não deve ser tratado como gerador SQL nativo de UUIDv7; geração ficará na borda PHP. Provas de CHECKs, visibilidade concorrente e limits de statements pertencem aos STEPS 03/07, não à descoberta da API.
+
+### 1.3 Inventário por papel e destino
+
+Todos os paths abaixo são relativos ao repositório. Em tabelas agrupadas, os arquivos indicados compartilham o campo/papel e destino explícitos; números/digests técnicos não são convertidos por coincidência lexical.
+
+#### Schema, PKs, FKs e índices
+
+| Fonte / campo atual | Destino e tarefa |
+| --- | --- |
+| `database/migrations/2026_09_21_000000_create_users_table.php`: `users.id` bigint/sequence | PK UUIDv7 com CHECK versão/variante; preservar email unique/status check/campos. 3.1/3.6. |
+| `database/migrations/2026_09_21_175106_create_personal_access_tokens_table.php`: `id`, `tokenable_id` bigint | PK v7 + morph UUID de User, type atual e índice `tokenable_type/tokenable_id`; hash token unique e datas permanecem. Sem presumir FK inexistente: exclusão de PAT continua pela unidade Identity. 3.2/4.3/4.9. |
+| `database/migrations/2026_09_24_000000_create_expenses_table.php`: `id/user_id` bigint | PK/FK v7, FK `users(id)` cascade; amount bigint continua centavos. 3.3. |
+| `database/migrations/2026_09_24_000001_add_cursor_index_to_expenses_table.php`: `(user_id,occurred_on,id)` | Preservar índice e referência UUID para owner/desempate; não usar sequence como recência. 3.3/5.5. |
+| `database/migrations/2026_10_13_212150_create_push_registrations_table.php`: `id/installation_id` UUID, `user_id/session_id` bigint | Todos v7, PK registro independente da instalação; instalação unique, fingerprints unique, FKs owner/PAT cascade e índices conservados. 3.4/6.*. |
+| `database/migrations/2026_10_13_222940_rename_push_registrations_to_notifications.php` | Conservar rename e nomes de constraints/índices; coordenar novos CHECKs v7 na cadeia de bootstrap. 3.4/3.6. |
+| `database/migrations/2026_10_13_224125_recalculate_notification_fingerprints.php`: `chunkById`, `where(id)` | ID string v7 e ordenação explícita nas provas; fingerprint SHA-256/ciphertext/metadados e rollback sentinela preservados. 6.6. |
+| Nova `resource_identities` (ainda ausente no schema) | `id/user_id` v7, FK owner cascade; namespace, versão, fingerprint, created_at somente. Unique composto de D3, sem chave inteira paralela/sequence. 3.5/7.*. |
+| `2026_09_25_160000_create_jobs_table.php`, `2026_09_25_160001_create_failed_jobs_table.php`, tabela `migrations` | PKs/UUIDs internos nativos. attempts/batch/instantes técnicos não são identidades próprias. Excluídos da conversão. |
+
+Boost schema summary confirmou esses tipos atuais. Consulta `pg_constraint` confirmou as duas FKs cascade de Notifications, FK cascade Expense→User, uniques de email/token/instalação/fingerprint/fencing e CHECKs de status/valores de Notifications. PAT **não possui FK para User** no schema atual; não prometer cascade polimórfico implícito. Nenhuma tabela própria atual tem CHECK v7. Os demais campos/migrations de password/status/email_verified_at/avatar/updated_at/classification/collation mantêm seus papéis atuais.
+
+#### Contratos, geração, HTTP e mappings de aplicação
+
+| Arquivo(s), relativo(s) a `app/` | Campo / destino |
+| --- | --- |
+| `Core/Application/Ports/UserPort.php`, `Core/Infrastructure/Adapters/UserAdapter.php` | `id(): int`, `is_int($id)` → owner string v7 canônico validado do guard Sanctum, falha auth sem fallback. 4.5. |
+| `Core/Application/Ports/ContextPort.php`, `Core/Infrastructure/Adapters/ContextAdapter.php`, `Core/Presentation/Http/Middleware/AuthenticatedRequestMiddleware.php` | `identifyUser(int)`/`user_id` → mesmo owner string; Context não vira fonte auth. 4.5. |
+| `Core/Presentation/Http/Middleware/TraceRequestMiddleware.php`, `Core/Infrastructure/Adapters/ContextAdapter.php`, `Core/Infrastructure/Adapters/Observability/{ObservabilityAdapter,ObservabilityJsonFormatter}.php`, `Core/Infrastructure/Providers/CoreServiceProvider.php` | `Str::uuid()` → uuid7 próprio por request, igualdade request_id/trace_id/header; conservar limpeza de Context para workers e allowlists. Cota `api:authenticated:user:` concatena owner sem cast e deve receber a mesma string canônica. 4.5/11.3–11.4. |
+| `Identity/Domain/Entities/UserEntity.php` | `?int $id` → `?string` v7 validada; null só entidade não persistida. 4.1. |
+| `Identity/Application/Repositories/{UserRepository,EmailVerificationRepository}.php`, `Identity/Application/Ports/EmailVerificationPort.php` | `$id/$userId` → string v7, update recebe Entity coerente; preservam booleanos/outputs. 4.1. |
+| `Identity/Application/UseCases/{SignUp,GetUser,UpdateUser,DeleteUser,VerifyEmail}UseCase.php` | Entradas ID e retorno inteiro de SignUp → User UUIDv7; SignUpResponse usa a mesma User, sem ID extra de cadastro. 4.1/4.6. |
+| `Identity/Application/Data/Output/SignInOutput.php` | `id/userId` inteiros → PAT UUID/User UUID; `token` permanece segredo sensível. 4.6. |
+| `Identity/Infrastructure/Repositories/Persistence/{EloquentUserRepository,EloquentEmailVerificationRepository}.php`, `Models/UserModel.php` | ID/owner string; UserModel geração v7, key string não incremental, mapping remove cast e docblock inteiro. 4.1–4.2. |
+| `Identity/Infrastructure/Adapters/{SignIn,SignOut,Session,EmailVerification,Notification}Adapter.php` | User/PAT/owner string em emissão, locks, verificação, revogação e logs. `NotificationAdapter::lock` e Port consumidor retornam PAT string na mesma fatia; Session preserva ID no update. 4.3–4.7. |
+| `Identity/Infrastructure/Providers/IdentityServiceProvider.php`, novo Model PAT em `Identity/Infrastructure/Repositories/Persistence/Models/` | Registrar custom PAT pela API Sanctum e preservar callback temporal/binding de NotificationPort em Identity. 4.3/4.7. |
+| `Identity/Presentation/Routes/api.php`, `Http/Controllers/{GetUser,UpdateUser,DeleteUser,VerifyEmail}Controller.php` | `whereNumber`, parâmetros int → UUIDv7 validado; assinatura de URL original verificada antes de canonicalizar, hash de e-mail permanece SHA-1. 4.8. |
+| `Identity/Presentation/Http/Responses/{User,SignUp,AccessToken}Response.php` | data.id/relationship/self → strings v7, segredo somente na emissão e no-store. 4.6. |
+| `Expense/Domain/Entities/ExpenseEntity.php` | `?int id/int userId` → `?string id/string userId` v7; amount/category/date não mudam. 5.1. |
+| `Expense/Application/Repositories/{ExpenseRepository,ExpenseCategorizationRepository,ExpenseSuggestionsRepository}.php`, `Ports/ExpenseClassificationDispatchPort.php` | ID/owner/expenseId → string v7; token de fencing permanece string de segurança. Owner de sugestões deve acompanhar a base mesmo antes da associação do STEP 10. 5.1/5.7/10.1. |
+| `Expense/Application/UseCases/{CreateExpense,GetExpense,GetAllExpense,UpdateExpense,DeleteExpense,ClassifyExpense}UseCase.php`, `Data/ApplyExpenseClassificationInput.php` | ID/owner/expenseId e callbacks pós-commit → v7; saída de create não pode virar `(int)` no dispatch/cancel. 5.1/5.7. |
+| `Expense/Infrastructure/Repositories/Persistence/{EloquentExpenseRepository,EloquentExpenseCategorizationRepository}.php`, `Models/ExpenseModel.php` | PK/owner mappings e casts v7; amount integer preservado; índice, tie-break e seek UUID com collation atual. 5.1–5.5. |
+| `Expense/Infrastructure/Adapters/ExpenseQueryCursorAdapter.php`, `Application/Data/{ExpenseCursorOutput,GetAllExpenseInput}.php` | Envelope v1 e legado → v2; posição `id` string v7 separada de `amount` int; rejeitar shapes antigos. Union de valores heterogêneos do mapa não é compatibilidade int/string para ID. 5.4. |
+| `Expense/Infrastructure/Repositories/Cache/{CachedExpenseRepository,CachedExpenseCategorizationRepository}.php` | Assinaturas/mapping/tags UUID; namespace atual `expense:pages:v2` → nova versão de cache, não confundir versão do cache com versão do cursor. Manter TTL 60/invalidação após commit. 5.6. |
+| `Expense/Infrastructure/Adapters/ExpenseClassificationDispatchAdapter.php`, `Infrastructure/Queues/ClassifyExpenseQueue.php` | Payload `$expenseId` int → string v7; job UUID nativo/fencing/signal/attempts permanecem. 5.7. |
+| `Expense/Presentation/Routes/api.php`, `Http/Controllers/{GetExpense,UpdateExpense,DeleteExpense}Controller.php`, `Http/Responses/ExpenseResponse.php` | `whereNumber`/`int $expense` → v7/404 uniforme; Response ID v7. Requests continuam rejeitando ID server-owned e validando amount inteiro. 5.3. |
+| `Notifications/Domain/Entities/NotificationRegistrationEntity.php`, `Domain/ValueObjects/NotificationValueObject.php` | Registro v7; owner/session string v7; instalação v7 com canonicalização só de caixa. generation int e destino exato não mudam. 6.1–6.3. |
+| `Notifications/Application/Repositories/NotificationRegistrationRepository.php`, `Application/Ports/NotificationPort.php`, `Application/UseCases/{CreateNotification,DeleteNotification}UseCase.php` | Owner/session/retorno lock v7 com Adapter de Identity compatível; IDs validados também fora de HTTP. 4.7/6.2. |
+| `Notifications/Infrastructure/Repositories/Persistence/EloquentNotificationRepository.php`, `Models/NotificationModel.php` | `Str::uuid()` → v7; retirar casts integer owner/session, conservar generation int; mapping ID string canônico. 6.1–6.2. |
+| `Notifications/Presentation/Routes/api.php`, `Http/Requests/CreateNotificationRequest.php`, `Http/Controllers/DeleteNotificationController.php`, `Http/Responses/NotificationResponse.php` | UUID genérico → v7: installation pointer 422, DELETE registro 404; resposta mínima e POST/DELETE sem extensão. 6.3–6.4. |
+| `Insights/Application/Repositories/ExpenseAnalysisRepository.php`, `Data/SelectInsightMessageVariantInput.php`, `UseCases/{GetInsights,ComposeInsightMessage,SelectInsightMessageVariant}UseCase.php`, `Infrastructure/Repositories/Persistence/EloquentExpenseAnalysisRepository.php` | Owner int → v7; hash **público** `derivedId` → associação Core; hash editorial interno permanece. SQL desempata Expense UUID, sem alterar fatos/contagens/períodos. 8.1–8.3. |
+| `Insights/Application/Data/InsightOutput.php`, `Presentation/Http/Responses/InsightResponse.php` | `id` já string → UUIDv7 confirmado, sem alterar tipos/editorial. 8.3. |
+| `Metrics/Application/Repositories/ExpenseMetricsRepository.php`, `UseCases/GetExpenseMetricsUseCase.php`, `Infrastructure/Repositories/Persistence/EloquentExpenseMetricsRepository.php` | Owner int → v7; hash público → UUID Core singular depois da reconciliação, inclusive zero. 9.1–9.3. |
+| `Metrics/Application/Data/ExpenseMetricsOutput.php`, `Presentation/Http/Responses/ExpenseMetricsResponse.php` | ID string → v7; categorias permanecem parcelas sem ID. 9.3. |
+| `Expense/Application/UseCases/GetExpenseSuggestionsUseCase.php`, `Data/{ExpenseSuggestionHistoryOutput,ExpenseSuggestionOutput}.php`, `Infrastructure/Repositories/Persistence/EloquentExpenseSuggestionsRepository.php`, `Presentation/Http/Responses/ExpenseSuggestionResponse.php` | Owner UUID; key SQL normalizada → associação Core; id string hash público → v7. Nenhum vínculo de identidade com row Expense individual. 10.1–10.3. |
+| `bootstrap/app.php` | `TrimStrings` deve preservar bytes de installation_id/IDs editáveis antes da validação para não aceitar UUID com whitespace por trim global; erros/auth/pointers continuam na borda. 4.8/6.3/11.2. |
+| `database/seeders/{UserSeeder,ExpenseSeeder,DatabaseSeeder}.php` | Create/firstOrCreate usam geração do Model; owner UUID, valores/datas próprios conservados. Não executar seed nesta preparação/reset automático. 5.2/11.6. |
+
+**Casts/getKey auditados em `app/`:** remover os quatro `(int) $model->getKey()` de `EloquentExpenseRepository` (linhas 38/91/130/160), os dois de `SignInAdapter` (85/87), o de `EloquentUserRepository` (123), o de `EmailVerificationAdapter` (55), o de owner e retorno PAT de `NotificationAdapter` (37/63) e os três casts `$expense->id` de `CreateExpenseUseCase` (56/63/65). Os lookups `getKey()` de `SessionAdapter`/`NotificationAdapter` passam a consumir a chave string do custom PAT; o cast string em `EloquentNotificationRepository:94` é mapping de registro e deve manter validação canônica. Linhas referem-se ao checkout inspecionado, não ao resultado futuro.
+
+**Exclusões explícitas:** casts de datas, page size, amount/filter.amount_min/max, contagens financeiras, percentuais, sort comparators e generation permanecem. SHA-256 de cache/cursor/query, hash editorial, SHA-1 do link, password hash, Sanctum token hash/segredo, FCM exato, fingerprint de destino, digest lógico Core e fencing de classificação não se tornam UUIDs. IDs de jobs/failed_jobs, backend PID e runId/token privados do launcher preservam seu contrato técnico.
+
+#### Fixtures, provas e consumidores
+
+| Fonte | Pressuposto / destino e responsável |
+| --- | --- |
+| `tests/Support/Core/Stubs/UserPortStub.php` | Constructor/retorno int → owner UUID explícito; mocks consumidores na mesma fatia. 4.5/11.1. |
+| `tests/Support/Identity/Fixtures/IdentityFixture.php`, `Helpers/IdentityHttpJourney.php` | Model/PAT real v7; `signUp(): int` e cast relationship → string. Link assinado mantém hash e datas/status explícitos. 4.9. |
+| `tests/Support/Expense/Fixtures/{ExpenseQueryHistoryFixture,ExpenseSuggestionHistoryFixture}.php` | Argumento owner e retorno/getKey int → UUID; amount permanece int. 5.8/10.6. |
+| `tests/Support/Expense/Fixtures/{ExpenseQueryFixture,ExpenseCursorFixture}.php` | Legacy cursor `id=5` vira cenário negativo; positivos v2 com ID v7 ordenado deterministicamente; não reparar inputs inválidos. 5.4/5.8. |
+| `tests/Support/Notifications/Fixtures/NotificationRegistrationFixture.php` | Duas instalações atuais v4 → fixtures v7 distintas de IDs de registro; preservar casos v4 negativos. 6.5. |
+| Nova fixture tipada de UUID em `tests/Support/Core/` | Exemplos distintos/determinísticos com ordenação declarada; esperado não depende de gerador de produção. 2.3. |
+| `tests/Support/Core/Database/TestDatabaseCleanup.php` | Classificar `resource_identities` antes de users, sem alterar guard/preflight/ownership ou sequences técnicas. 3.7. |
+| `tests/Unit/Architecture/ContextBoundariesTest.php` | Permissões exatas para VO/exceção UUID e Data/UseCase Core nos consumidores; preservar exceção restrita de NotificationPort e pureza. 2.5/7.7/11.8. |
+| `tests/Unit/{Identity,Expense,Notifications,Insights,Metrics,Core}/` | IDs literais/mocks/argumentos inteiros, hashes esperados e instalação v4 → fixtures/contratos v7 por papel no step proprietário; contagens/centavos/datas preservados. 2/4/5/6/7/8/9/10. |
+| `tests/Feature/Identity/{SlidingSanctumSessionTest,EmailVerificationTest}.php`, `Presentation/Http/SignInHttpTest.php`, `Infrastructure/Repositories/Persistence/EloquentEmailVerificationRepositoryTest.php` | Casts owner/getKey, links, PAT/pruning/locks → UUID real; sem simular o Bearer nos cenários que o provam. 4.9. |
+| `tests/Feature/Expense/{ExpenseOwnershipTest,ExpenseClassificationTest}.php`, `Journeys/ExpenseMutationObservabilityTest.php`, `Infrastructure/Repositories/Persistence/ExpenseQueryPersistenceTest.php` | Casts owner/expense, raw bulk sem ID, ordenação e logs → v7; raw inserts fornecem ID. Provas de worker/Redis e empates seguem 5.8–5.10/11.3. |
+| `tests/Feature/Notifications/Presentation/Http/NotificationRegistrationHttpTest.php`, `Infrastructure/Repositories/Persistence/{EloquentNotificationRepositoryTest,NotificationRegistrationConcurrencyTest}.php` | Casts owner/PAT; `tokenable_id + 1` para owner alheio → outro UUID explícito; IDs de instalação/registro separados, corridas mantidas. 6.7. |
+| `tests/Feature/Notifications/Infrastructure/Database/NotificationFingerprintMigrationTest.php` | Prova de primeira escrita/rollback mantida com UUIDs cuja ordenação é explícita. 6.6. |
+| `tests/Feature/Insights/InsightsApiTest.php`, `Presentation/Http/Monthly*Test.php`, `Infrastructure/Repositories/Persistence/EloquentExpenseAnalysisRepositoryTest.php` | Casts owners/mocks, raw inserts users/expenses e hashes públicos → UUIDs explícitos nos inserts/batches e estabilidade Core; variante não depende da sequence. 8.4–8.7. |
+| `tests/Feature/Metrics/Presentation/ExpenseMetricsHttpTest.php` e demais provas de persistência Metrics | Owner int/raw inserts sem PK → v7 explícito e registry; total/amount esperados independentes. 9.4–9.7. |
+| `tests/Feature/Core/Infrastructure/Isolation/{RedisSharingTest,FailureCleanupTest}.php`, `tests/Support/Core/Fixtures/{TestResources,ConcurrentDatabaseProcess,ExecutionIsolationProbe,ObservabilityWorkerProbe}.php` | Quotas/contagens, failed_jobs UUID técnico, backend PID e manifesto continuam técnicos. Probes que registrarem User/Expense usam o novo tipo nas respectivas fatias. 11.1/11.6. |
+| `bruno/{Authentication,User,Expense,Notifications,Insights,Metrics}/`, environments, `README.md`, `ARCHITECTURE.md` | Contratos/examples/assertions de ID numérico/hash/instalação v4 → strings v7; parser, execuções privadas e homologação somente no STEP 13. |
+
+A auditoria inicial de 51 arquivos não é usada como critério de fechamento. Este inventário inclui também pontos já string (hash/v4), geração, bulk, trim global e chamadas sem cast. Cada fatia reverifica chamadores/argumentos nomeados e registra cenários antigos→novos; a auditoria transversal final é 11.6, não uma permissão para deixar um contrato alterado sem implementação/double correspondente.
+
+### 1.4 Matriz canônica fechada e orçamento de queries
+
+Owner canônico é escopo separado da chave. Envelope técnico: namespace constante + `identity_version=1` + lista ordenada de componentes com nome/tipo/valor. Usar codificação não ambígua (por exemplo, lista JSON de tuplas nome/tipo/valor, com strings UTF-8 e null explícito), sem concatenação simples. Ausência não se confunde com string vazia; componentes opcionais sem assunto/período usam null explícito. Fingerprint SHA-256 deriva desse envelope na borda de persistência; não armazenar chave/raw description nem publicá-lo. Tipagem concreta dos Data fica em 2.4/7.1.
+
+| Namespace v1 | Componentes em ordem fixa (owner fora da chave) | Equivalências / mudanças legítimas | Lote final |
+| --- | --- | --- | --- |
+| `insights` | `type:string`, `subject:string|null` (category do candidato), `history_state:string|null`, `analysis_from:date`, `analysis_to:date`, `comparison_from:date|null`, `comparison_to:date|null` | Usar períodos internos inclusive onboarding; tipo/assunto/estado/período diferente distingue ID. Valor/maior Expense/descrição/variante/catálogo não entram. Histórico mantém ID em outro dia; vigente pode mudar pelo fim efetivo, não pelo dia de rotação isolado. | Até 6, somente após todos os textos compostos e seleção/deduplicação. |
+| `expense-metrics` | `start_date:date`, `end_date:date`, `mode:string` (`total`/`category`) | Default e intervalo equivalente compartilham ID; modo diferente distingue. Total zero ainda é recurso; valores/categorias calculados não entram e categorias não recebem IDs. | 1, depois de validar/reconciliar inclusive categorias. |
+| `expense-suggestions` | `description_key:string` | Reutilizar **exatamente** `$projection->key` da query: trim externo via `regexp_replace`, depois `lower(description) COLLATE "C"`; sem algoritmo PHP adicional nem colapsar espaços internos/acentos. Query/termo/janela monetária/amount opcional não entram. Key diferente distingue; representação exibida pode mudar com mesma key. | Até 5, depois de preparar/validar todas as sugestões; vazio não aloca. |
+
+- Cada fonte financeira conserva **um statement/snapshot** por execução; o registro não consulta despesas, não fornece elegibilidade e não congela resultado.
+- Lote vazio: **0 statements** do registro. Hit completo: **1 SELECT**, zero INSERT/UPDATE e sem last_access/updated_at.
+- Miss/misto/disputa: **até 3 statements por tentativa** (SELECT batch, INSERT batch de ausentes, SELECT batch de reconciliação), **até 3 tentativas**; rollback completo antes de retry. Releitura de vencedor usa snapshot novo, sem CTE invisível e sem upsert de hits.
+- Lote mantém ordem/correspondência e deduplica chaves; nenhuma query por cartão/sugestão/categoria. Autenticação, controle transacional e guard do launcher são classificados separadamente.
+- Retenção até exclusão do owner; PAT/SignOut/pruning não apagam associações. Falha de fonte/composição/reconciliação precede resolução; falha Core aborta output inteiro sem fallback.
+- Orçamento **definido**, ainda **não medido/provado**. Unit, logs SQL PostgreSQL para lotes 0/1/5/6, corridas sincronizadas e rollback real ficam em 7.8–7.11 e integrações 8–10/12.5.
+
+### 1.5 Coordenação com Firebase
+
+`add-firebase-push-notifications/design.md` e as duas delta specs passam a explicitar o contrato alvo coordenado: registro/owner/PAT/instalação UUIDv7, `NotificationPort::lock(string owner): string PAT`, futura mensagem `notification_id` v7 e `resource_id` próprio v7. O exemplo de instalação foi ajustado para v7 textual legítimo, não conversão de bits de um ID v4 existente.
+
+O contrato de cadastro token FCM Android/iOS, destino exato, cifra/fingerprint/generation, conflito e cascades continua sendo a fonte do lifecycle. As evidências/checks históricos de 2026-10-13 registram o schema anterior e não provam v7; a revalidação está nas tarefas 4.7/6.* desta change. Tasks Firebase não são reabertas nem consideradas implementadas novamente. Homologação do gerador Flutter e envio/cliente/queue/produtores permanecem futuros.
+
+### 1.6 Fatias e condição de integração
+
+Ordem de execução confirmada com `STEPS.md`: **01 → 02 → 03 → 04 → 05/06/07 → 08/09/10 → 11 → 12 → 13 → 14**; 08/09/10 dependem de 05+07. Contratos e implementações são alterados juntos, incluindo mocks/fixtures necessários à prova do passo. Não criar union `int|string` para preservar ID legado.
+
+| Fatia | Unidade coerente / evidência antes de liberar dependentes |
+| --- | --- |
+| 02 | VO/exceção/fixture determinística, contratos Data previstos e permissão arquitetural específica; Unit pura isolada. |
+| 03 | Bootstrap users/PAT/expenses/notifications + registro e cleanup; PostgreSQL exclusivo com migrations incrementais, fixtures UUID explícitas, sem depender dos Models operacionais ainda inteiros. |
+| 04 | User/PAT/guard/Core owner/Context/links/Responses; **alterar `NotificationPort` e Adapter juntos** e atualizar consumidores obrigatórios de owner (contratos, implementações e doubles dos contextos) para não deixar quebra de tipos; semantics/geração próprias continuam no step proprietário. |
+| 05/06/07 | Expense completo com cursor/cache/queue; Notifications completo com instalação; registro Core com batches/races e binding. Steps organizáveis após owner/schema, integrados antes de qualquer publicação. |
+| 08/09/10 | Integração das projeções com associação após fatos/composição e prova de chaves/batch/estabilidade/falhas. |
+| 11/12 | Fechar suporte/consumidores/JSON:API/correlação; somente build integrado segue para reset local, pausa/cleanup exclusivo/restauração e medição. |
+| 13/14 | Consumidores e documentação final, evidência externa distinta, gates e autorização própria de publicação/archive. |
+
+Os STEPS 03–10 são trabalho intermediário de uma única transição incompatível: não executar/publicar HTTP operacional com schema UUID e contratos antigos, nem o inverso. Aplicação no banco operacional aguarda STEP 12; testes usam schema novo em bancos exclusivos e suítes focadas coerentes. Pendências de consumidores ficam visíveis; completar um passo não equivale a release pronta. Nenhuma compatibilidade pública int/string, alias de ID, migração de produção ou gerador global alterado faz parte da fatia.
+
+### Verificação da entrega e rastreabilidade do STEP 01
+
+| Task | Evidência da preparação | Estado |
+| --- | --- | --- |
+| 1.1 | Pedido explícito do usuário + escopo corrente registrado | Proven para STEP 01 |
+| 1.2 | Boost versões/docs, vendor, PG read-only, `openspec status/instructions apply` e validação strict | Proven para reconferência, não geração/HTTP |
+| 1.3 | Schema summary/pg_constraint, `route:list`, buscas por contexto de int/casts/getKey/hash/UUID/cursor/cache/queues e fixtures, matrizes arquivo/campo/destino | Proven como inventário do checkout |
+| 1.4 | Matrizes D4/D5 reconferidas contra UseCases/fontes SQL e limites; composição tipada sem ambiguidade documentada | Proven como decisão; batch/races/performance Unproven |
+| 1.5 | Diff de design/two delta specs/tasks Firebase; checkboxes históricos intactos; strict valid | Proven como coordenação documental |
+| 1.6 | Dependências e unidades coerentes alinhadas a STEPS.md; consumidor obrigatório não adiado para auditoria final | Proven como plano de integração |
+
+Comandos/checks executados nesta etapa:
+
+- `openspec status --change standardize-uuid-v7-identifiers --json`: artefatos completos; isso não representa produto pronto.
+- `openspec instructions apply --change standardize-uuid-v7-identifiers --json`: inicialmente ready, **0/108**; após a preparação, **6/108**, com STEPS 02–14 pendentes.
+- `openspec validate standardize-uuid-v7-identifiers --type change --strict --json --no-interactive`: **valid=true**, sem issues.
+- `openspec validate add-firebase-push-notifications --type change --strict --json --no-interactive`: **valid=true**, sem issues.
+- Lerd exec Artisan `route:list --path=api --except-vendor --json`: **18 rotas** inspecionadas, incluindo link assinado e proteções; POST/DELETE push sem session.extend, sem GET/disparo novo.
+- Boost schema/query e vendor: inspeção read-only; não são prova de geração v7/constraints novas/rollback/races.
+- `git diff --check`: passou. Diff restrito a STEPS e artefatos das duas changes. Nenhum PHP alterado; Pint/testes da aplicação não foram necessários à entrega documental deste STEP. Não houve migration/reset, seed, emissão de token ou operação de workers.
+
+**Resultado:** STEP 01 concluído; a matriz geral acima preserva os requisitos de produto como não implementados/comprovados. Próxima entrega é STEP 02 (VO UUIDv7 puro + fixture + Unit focada). Nenhum gate de produto, homologação do cliente ou archive foi aprovado por essa preparação.

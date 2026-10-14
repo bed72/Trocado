@@ -180,3 +180,9 @@ Verificações transversais executadas:
 - Registro de intercorrências: durante renomeações simultâneas do usuário, um gate encontrou cinco falhas de expectativas/permissões antigas; foram alinhadas a `NotificationPort::lock()` e o gate final acima passou. Uma tentativa de seed anterior foi abortada e não conta como evidência. Resultados históricos anteriores foram preservados, não substituídos por aprovação fictícia.
 - Envio Firebase, queue push, homologação do SDK/payload real e demais tarefas futuras continuam pendentes; essas revisões não tornam a mudança completa arquivável.
 - Checagem HTTP final no Lerd: POST sem credencial respondeu 401 JSON:API. `optimize_route` retornou sem amostras disponíveis; não comprova desempenho autenticado em produção. As provas de cadastro/persistência/concorrência acima continuam provenientes dos bancos exclusivos do launcher.
+
+### Coordenação de contrato UUIDv7 — 2026-10-14
+
+- O pedido de começar o STEP 01 de `STEPS.md` na change [`standardize-uuid-v7-identifiers`](../standardize-uuid-v7-identifiers/tasks.md) autoriza a coordenação documental prevista na tarefa 1.5. Design e delta specs agora explicitam o alvo UUIDv7 para registro/owner/PAT/instalação e os IDs próprios de envio futuro, com exemplo de instalação v7.
+- `NotificationPort::lock` e `NotificationAdapter` de Identity serão convertidos juntos para owner/retorno string v7 no STEP 04; geração/instalação/HTTP e corridas de cadastro serão reverificados no STEP 06. Evidências históricas acima permanecem válidas para a implementação anterior, **não são provas UUIDv7**. Os cenários novos de v7/caixa/versão rejeitada permanecem **Unproven** até essa execução.
+- Nenhum checkbox histórico desta change foi reaberto ou concluído novamente. Envio/queue/produtores/cliente e homologação das versões Firebase/gerador UUIDv7 Flutter continuam pendentes. O contrato coordenado não ativa transporte nem permite declarar esta change arquivável.

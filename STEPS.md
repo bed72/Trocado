@@ -69,14 +69,16 @@ As frentes 05, 06 e 07 podem ser organizadas separadamente depois da base 04; 08
 
 **Entrega:** escopo autorizado, inventário por papel e fatias/dependências documentadas.
 
-- [ ] **1.1** Obter autorização do apply e dos testes da etapa corrente.
-- [ ] **1.2** Revalidar OpenSpec e reconferir versões/APIs instaladas: UUIDv7, PAT, morph UUID, cursor e bulk insert.
-- [ ] **1.3** Inventariar PKs, FKs, contratos, rotas, casts, cache, queues e fixtures que pressupõem ID inteiro.
-- [ ] **1.4** Fechar componentes canônicos de identidade de Insights, Metrics e sugestões, incluindo batch e limite de queries.
-- [ ] **1.5** Coordenar a spec ativa de Firebase sem antecipar implementação de envio/cliente.
-- [ ] **1.6** Definir fatias coerentes e impedir publicação de tipos/schema misturados.
+- [x] **1.1** Obter autorização do apply e dos testes da etapa corrente.
+- [x] **1.2** Revalidar OpenSpec e reconferir versões/APIs instaladas: UUIDv7, PAT, morph UUID, cursor e bulk insert.
+- [x] **1.3** Inventariar PKs, FKs, contratos, rotas, casts, cache, queues e fixtures que pressupõem ID inteiro.
+- [x] **1.4** Fechar componentes canônicos de identidade de Insights, Metrics e sugestões, incluindo batch e limite de queries.
+- [x] **1.5** Coordenar a spec ativa de Firebase sem antecipar implementação de envio/cliente.
+- [x] **1.6** Definir fatias coerentes e impedir publicação de tipos/schema misturados.
 
 **Concluir quando:** cada identificador inventariado tem um destino explícito; valores/segredos/IDs técnicos estão distinguidos dos IDs próprios.
+
+**Concluído em 2026-10-14:** inventário arquivo/campo/destino, APIs instaladas, matriz canônica, dependências e evidências no [checklist oficial](openspec/changes/standardize-uuid-v7-identifiers/tasks.md#step-01--preparação-e-inventário--2026-10-14). OpenSpec strict das duas changes e `git diff --check` passaram. Esta etapa comprova a preparação; implementação UUIDv7 e provas PHP começam no STEP 02.
 
 ## STEP 02 — Conceito UUIDv7 puro em Core
 

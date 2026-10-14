@@ -38,6 +38,12 @@ Todos os valores operacionais abaixo são defaults propostos, sujeitos à revis�
 
 ## Decisions
 
+### Coordenação UUIDv7 — contrato alvo — 2026-10-14
+
+O STEP 01 de [`standardize-uuid-v7-identifiers`](../standardize-uuid-v7-identifiers/tasks.md) coordena a política de IDs desta change. A tabela e exemplos abaixo descrevem o **contrato alvo**, ainda não a conversão implementada: PK de registro, owner, sessão/PAT e instalação usam UUIDv7 canônico. Instalação vem do cliente e não é PK de registro; outras versões são rejeitadas, sem alterar bits de um UUID existente. `NotificationPort::lock` recebe owner string v7 e devolve PAT string v7; Port e Adapter de Identity serão convertidos juntos, com revalidação do cadastro nos STEPS 04/06 da change UUID.
+
+Futuro `notification_id` próprio usa UUIDv7 estável em retries/redelivery; `resource_id`, quando identifica recurso próprio, também usa UUIDv7. IDs técnicos FCM/SDK, destino, fingerprint, segredo Bearer e generation conservam seus formatos. Evidências históricas de cadastro com owner/PAT bigint e UUID genérico não comprovam esse contrato novo. Transporte/queue/produtores e homologação do gerador Flutter continuam pendentes.
+
 ### 1. Ownership e fronteiras
 
 Criar `Notifications` como contexto real, proprietário do registro push e do transporte. Não colocar o cadastro em User nem transformar Core em catálogo de regras de notificações.
@@ -69,10 +75,10 @@ Nome aprovado após revisão de nomenclatura: `notifications`. Migration increme
 
 | Coluna | Tipo/constraint propostos | Significado |
 | --- | --- | --- |
-| `id` | UUID, primary key | ID público opaco, gerado pelo backend |
-| `user_id` | bigint, FK `users.id`, cascade | Conta proprietária |
-| `session_id` | bigint, FK `personal_access_tokens.id`, cascade | Sessão que confirmou o vínculo |
-| `installation_id` | UUID, unique | Identidade local da instalação, gerada pelo cliente |
+| `id` | UUIDv7, primary key | ID público opaco, gerado pelo backend |
+| `user_id` | UUIDv7, FK `users.id`, cascade | Conta proprietária |
+| `session_id` | UUIDv7, FK `personal_access_tokens.id`, cascade | Sessão que confirmou o vínculo |
+| `installation_id` | UUIDv7, unique | Identidade local da instalação, gerada pelo cliente |
 | `provider` | varchar, valor `fcm` | Provedor desta etapa |
 | `platform` | varchar, enum fechado | Somente `android` ou `ios`, conforme aprovação do cliente |
 | `registration_kind` | varchar, enum fechado | Somente `token` nesta fatia |
@@ -105,7 +111,7 @@ Alternativas rejeitadas:
   "data": {
     "type": "push-registrations",
     "attributes": {
-      "installation_id": "bfb21c99-e2cb-4e18-8b73-b8fb0efc8d69",
+      "installation_id": "0199e800-0000-7000-8000-000000000001",
       "platform": "android",
       "registration_kind": "token",
       "registration_identifier": "<identificador obtido pelo SDK FCM aprovado>"
@@ -148,7 +154,7 @@ Defaults: elegível somente se `last_registered_at > now - 60 dias`; no limite e
 
 ### 6. Solicitação e processamento assíncrono
 
-O contrato interno recebe `user_id` explícito, `notification_id` UUID estável para correlação, título/corpo genéricos, destino de navegação estruturado e instantes explícitos `requested_at`/`expires_at`. Não aceita destinatário determinado por payload livre, URL arbitrária, token bruto, IDs de outra conta, valores financeiros ou descrição de despesa na mensagem de tela bloqueada.
+O contrato interno recebe `user_id` UUIDv7 explícito, `notification_id` UUIDv7 estável para correlação, título/corpo genéricos, destino de navegação estruturado e instantes explícitos `requested_at`/`expires_at`. `resource_id` opcional usa UUIDv7 quando referencia recurso próprio. Não aceita destinatário determinado por payload livre, URL arbitrária, token bruto, IDs de outra conta, valores financeiros ou descrição de despesa na mensagem de tela bloqueada.
 
 Limites propostos: título até 80 caracteres, corpo até 240 e `data` composto apenas de strings permitidas (`notification_id`, `action`, `resource_id` opcional). A serialização final, incluindo overhead e escapes, deve permanecer dentro do limite FCM documentado para envio individual (4 KiB). Action é catálogo fechado a aprovar com o primeiro evento; `resource_id` não é autorização e a tela de destino reconsulta a API autenticada. `expires_at` deve ser futuro e no máximo 1 hora após `requested_at`; reavaliar a expiração no worker e traduzir TTL restante por plataforma.
 

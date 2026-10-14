@@ -6,6 +6,10 @@ O schema atual usa bigint em User/Expense/PAT e FKs; Notifications usa UUIDv4 em
 
 Esta change é exclusivamente de especificação enquanto não houver novo apply autorizado. Não muda schema, configuração, arquivos de produto, dependências ou testes nesta etapa.
 
+### Início autorizado da preparação — 2026-10-14
+
+O pedido posterior autoriza executar o STEP 01 de `STEPS.md`. O [inventário e as evidências em tasks.md](tasks.md#step-01--preparação-e-inventário--2026-10-14) reconferem APIs, schema, casts, consumidores e fatias. O estado de elaboração descrito acima é histórico; geração, persistência e comportamento UUIDv7 ainda dependem das etapas seguintes.
+
 ## Goals / Non-Goals
 
 **Goals:** uma política UUIDv7 para todas as entidades/identificadores públicos próprios; IDs estáveis para projeções; owner/session UUID sem perda de autorização; validação pura; geração suportada em Infrastructure; consumo Core explícito; concorrência e resolução em lote; transição limpa local sem legado.
@@ -73,6 +77,8 @@ Retenção sem TTL enquanto a conta existir: um recurso que desaparece da respos
 | `expense-suggestions` v1 | chave de descrição normalizada já produzida pela leitura SQL |
 
 Representação canônica inclui nomes/tipos/limites inequívocos, sem concatenação ambígua. Para sugestão, conservar exatamente a semântica atual de normalização SQL; não normalizar descrição outra vez com um algoritmo PHP diferente. Namespace e versão da identidade são constantes de semântica, não do catálogo de mensagens.
+
+Fechamento no STEP 01: componentes opcionais sem assunto/estado/comparação são `null` explícitos, distintos de string vazia; usar ordem fixa e codificação tipada não ambígua. Owner é escopo separado. A matriz detalhada de nomes/tipos, equivalências e limites de lote está em `tasks.md`, seção 1.4. Esses componentes permanecem transitórios; somente seu fingerprint técnico entra no registro.
 
 Não entram na identidade: valor, percentual, contagens, descrição exibida de despesa, título, variante/dia de visita, versão editorial, ordem textual/zeros à esquerda dos filtros ou tamanho de página. Para sugestão, o termo de busca/janela monetária não altera a chave normalizada. Mudança do texto normalizado que define o assunto da sugestão é mudança legítima de identidade.
 

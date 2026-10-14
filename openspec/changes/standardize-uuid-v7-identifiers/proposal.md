@@ -45,6 +45,10 @@ Notifications é coberto pela política transversal e pela coordenação com a c
 - Nenhuma nova dependência prevista: PHP 8.5, Laravel 13.34.0, Sanctum 4.3.3 e PostgreSQL; `HasUuids` já gera UUIDv7 e Sanctum permite Model de PAT próprio. APIs instaladas serão reconferidas no apply.
 - Aplicação futura exige autorização específica. Este pedido autoriza **somente escrever/validar a spec**, sem implementar, executar testes da aplicação, recriar banco, emitir tokens, alterar workers ou publicar código.
 
+### Autorização posterior — STEP 01 — 2026-10-14
+
+O usuário solicitou começar a implementação pelo STEP 01 de `STEPS.md`. A restrição acima registra o pedido original de elaboração. Preparação/inventário e verificações do STEP 01 agora estão autorizados; o progresso e as evidências correntes estão em `tasks.md`. Conversão de produto, reset local, homologação e publicação continuam nos passos próprios.
+
 ## Decisões confirmadas
 
 1. A resposta final à pergunta repetida foi **“Manter IDs estáveis”**; substitui a escolha anterior de UUID novo por resposta.

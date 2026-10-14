@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Registros push pertencem a uma conta e uma instalação
-O sistema MUST persistir destinos push separadamente da identidade da conta, permitindo múltiplas instalações por conta e no máximo um vínculo vigente por instalação. Cada registro MUST identificar proprietário, sessão de cadastro, plataforma, provedor, tipo de destino, destino recuperável, geração e última sincronização. UUID local da instalação MUST NOT ser interpretado como prova de ownership, FID ou token de autenticação.
+O sistema MUST persistir destinos push separadamente da identidade da conta, permitindo múltiplas instalações por conta e no máximo um vínculo vigente por instalação. ID do registro, proprietário, sessão/PAT e instalação MUST usar UUIDv7 canônico conforme a change coordenada `standardize-uuid-v7-identifiers`. Cada registro MUST identificar proprietário, sessão de cadastro, plataforma, provedor, tipo de destino, destino recuperável, geração e última sincronização. UUID local da instalação MUST NOT ser interpretado como prova de ownership, FID ou token de autenticação nem confundido com a PK do registro.
 
 #### Scenario: Dois dispositivos da mesma conta
 - **WHEN** uma conta apta cadastra duas instalações distintas com destinos distintos
@@ -30,7 +30,7 @@ O sistema MUST persistir destinos push separadamente da identidade da conta, per
 - **AND** alternar token ou IP não concede outra cota à mesma conta
 
 ### Requirement: Documento de cadastro é fechado e preserva destino exato
-A API MUST aceitar documento JSON:API `push-registrations` com somente `installation_id`, `platform`, `registration_kind` e `registration_identifier` em `data.attributes`. MUST validar UUID, plataforma exclusivamente `android` ou `ios` e `registration_kind` exclusivamente `token`, para token de registro FCM do cliente Flutter oficial. FID e token APNs direto MUST NOT ser usados como perfil alternativo; compatibilidade do transporte será comprovada na fatia de envio. O destino MUST ter de 1 a 4096 bytes ASCII sem whitespace/controle e MUST ser preservado exatamente, sem trim ou mudança de caixa. Entradas inválidas ou membros editáveis desconhecidos MUST produzir `422` com `source.pointer` sem eco do destino.
+A API MUST aceitar documento JSON:API `push-registrations` com somente `installation_id`, `platform`, `registration_kind` e `registration_identifier` em `data.attributes`. MUST validar installation_id textual UUIDv7/variante RFC 9562, normalizando somente caixa válida, inclusive fora de HTTP; outras versões, números ou whitespace MUST produzir `422` em `/data/attributes/installation_id`, sem converter o ID ou ecoar destino. MUST validar plataforma exclusivamente `android` ou `ios` e `registration_kind` exclusivamente `token`, para token de registro FCM do cliente Flutter oficial. FID e token APNs direto MUST NOT ser usados como perfil alternativo; compatibilidade do transporte será comprovada na fatia de envio. O destino MUST ter de 1 a 4096 bytes ASCII sem whitespace/controle e MUST ser preservado exatamente, sem trim ou mudança de caixa. Entradas inválidas ou membros editáveis desconhecidos MUST produzir `422` com `source.pointer` sem eco do destino.
 
 #### Scenario: Tentativa de definir proprietário
 - **WHEN** o documento inclui `user_id`, `session_id`, `provider`, geração, timestamps, `data.id` ou `relationships`
@@ -50,12 +50,21 @@ A API MUST aceitar documento JSON:API `push-registrations` com somente `installa
 - **WHEN** o cliente envia `platform` igual a `web`
 - **THEN** responde `422` com pointer `/data/attributes/platform`, sem cadastrar destino
 
+#### Scenario: Instalação não UUIDv7
+- **WHEN** installation_id é UUIDv4, outra versão, número ou texto com whitespace
+- **THEN** responde `422` com pointer `/data/attributes/installation_id`, sem cadastrar ou converter a instalação
+- **AND** não ecoa o destino FCM
+
+#### Scenario: Caixa equivalente da instalação UUIDv7
+- **WHEN** o proprietário sincroniza a mesma instalação UUIDv7 com caixa textual diferente
+- **THEN** a forma minúscula canônica identifica a mesma instalação e o ID do registro é preservado
+
 ### Requirement: Sincronização de instalação é idempotente
 O primeiro cadastro MUST responder `201`; sincronização da mesma instalação pelo mesmo proprietário MUST responder `200` e preservar o ID do registro. Repetição com mesmo destino, plataforma e sessão MUST atualizar somente a frescura/auditoria necessária sem aumentar a geração ou a quantidade de registros. A data de sincronização MUST vir do relógio server-side explicitamente resolvido na borda.
 
 #### Scenario: Primeiro cadastro
 - **WHEN** instalação e destino disponíveis são cadastrados por conta apta
-- **THEN** responde `201` com ID opaco gerado pelo servidor e geração inicial positiva
+- **THEN** responde `201` com ID UUIDv7 canônico gerado pelo servidor, distinto da identidade de instalação, e geração inicial positiva
 
 #### Scenario: Cadastro repetido
 - **WHEN** o mesmo proprietário repete a sincronização com os mesmos dados e sessão
@@ -118,7 +127,7 @@ O UseCase MUST delimitar checagem bloqueante da sessão, ownership e escrita na 
 - **AND** nenhuma chamada FCM ou publicação push ocorre por esse cadastro
 
 ### Requirement: Remoção respeita ownership e não revoga autenticação
-`DELETE /api/push-registrations/{registration}` MUST remover somente registro do proprietário autenticado e responder `204`. Registro inexistente, ID malformado ou pertencente a outra conta MUST responder `404` uniforme em JSON:API. A remoção MUST NOT revogar sessão, apagar conta ou atingir outras instalações. MUST herdar autenticação, aptidão e cota do cadastro.
+`DELETE /api/push-registrations/{registration}` MUST remover somente registro UUIDv7 do proprietário autenticado e responder `204`. Registro inexistente, ID malformado/de outra versão ou pertencente a outra conta MUST responder `404` uniforme em JSON:API, sem lookup UUID inválido. A remoção MUST NOT revogar sessão, apagar conta ou atingir outras instalações. MUST herdar autenticação, aptidão e cota do cadastro.
 
 #### Scenario: Remoção de instalação própria
 - **WHEN** a conta apta remove um de seus registros

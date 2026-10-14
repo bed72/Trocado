@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Solicitação de push é capacidade interna explícita
-O sistema MUST oferecer capacidade interna de solicitar push para `user_id` explícito, com `notification_id` estável, mensagem limitada e instantes explícitos. MUST NOT expor disparo público, aceitar destinatário decidido por payload livre ou introduzir gatilho de produto não aprovado. Outros contextos MUST depender de contrato transversal, sem importar Models/UseCases de Notifications.
+O sistema MUST oferecer capacidade interna de solicitar push para `user_id` UUIDv7 explícito, com `notification_id` UUIDv7 canônico estável, mensagem limitada e instantes explícitos. Esses IDs próprios MUST seguir a política coordenada de `standardize-uuid-v7-identifiers`; IDs técnicos do provedor/SDK MUST conservar seus contratos nativos. MUST NOT expor disparo público, aceitar destinatário decidido por payload livre ou introduzir gatilho de produto não aprovado. Outros contextos MUST depender de contrato transversal, sem importar Models/UseCases de Notifications.
 
 #### Scenario: Solicitação interna válida
 - **WHEN** um caller autorizado solicita mensagem válida para uma conta explícita
@@ -13,7 +13,7 @@ O sistema MUST oferecer capacidade interna de solicitar push para `user_id` expl
 - **THEN** não existe endpoint de disparo que execute essa intenção
 
 ### Requirement: Mensagem é limitada e não concede acesso ao recurso
-A mensagem MUST ter ID UUID, título genérico de até 80 caracteres, corpo genérico de até 240 e data com somente strings de catálogo fechado (`notification_id`, `action`, `resource_id` opcional). MUST NOT conter credenciais, tokens, valores/descrições financeiras ou URL arbitrária. O payload FCM final MUST respeitar 4 KiB em bytes incluindo serialização/overhead. Navigation MUST apontar a action aprovada; acesso ao recurso MUST depender da API autenticada, não do push.
+A mensagem MUST ter ID UUIDv7 canônico, título genérico de até 80 caracteres, corpo genérico de até 240 e data com somente strings de catálogo fechado (`notification_id`, `action`, `resource_id` opcional). `resource_id` MUST usar UUIDv7 canônico quando identifica recurso próprio do projeto. MUST NOT conter credenciais, tokens, valores/descrições financeiras ou URL arbitrária. O payload FCM final MUST respeitar 4 KiB em bytes incluindo serialização/overhead. Navigation MUST apontar a action aprovada; acesso ao recurso MUST depender da API autenticada, não do push.
 
 #### Scenario: Payload fora do contrato
 - **WHEN** a solicitação inclui campo não permitido, tamanho excedido, action desconhecida ou informação sensível
