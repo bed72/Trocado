@@ -39,6 +39,7 @@ function insightSummary(
         distinctDateCount: $dates,
         largestExpenseCategory: $largestCategory,
         period: DatePeriodValueObject::fromDates($from, $to),
+        largestExpenseOccurredOn: $count === 0 ? null : $from,
         largestExpenseAmount: AmountValueObject::fromAmount($largest),
     );
 }
@@ -58,7 +59,9 @@ function insightRulesProjection(ExpensePeriodSummaryValueObject $summary): Expen
         totalAmount: $summary->totalAmount->amount(),
         distinctDateCount: $summary->distinctDateCount,
         largestExpenseCategory: $summary->largestExpenseCategory,
+        largestExpenseOccurredOn: $summary->largestExpenseOccurredOn,
         largestExpenseAmount: $summary->largestExpenseAmount->amount(),
+        largestExpenseDescription: $summary->largestExpenseDescription,
     );
 }
 

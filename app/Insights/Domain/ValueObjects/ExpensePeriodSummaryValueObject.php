@@ -21,6 +21,8 @@ final readonly class ExpensePeriodSummaryValueObject
         public AmountValueObject $totalAmount,
         public AmountValueObject $largestExpenseAmount,
         public ?string $largestExpenseCategory,
+        public ?string $largestExpenseOccurredOn = null,
+        public ?string $largestExpenseDescription = null,
     ) {
         if ($expenseCount < 0 || $distinctDateCount < 0 || $distinctDateCount > $expenseCount
             || $distinctDateCount > $period->days()) {
@@ -43,7 +45,8 @@ final readonly class ExpensePeriodSummaryValueObject
 
         if ($expenseCount === 0) {
             if ($distinctDateCount !== 0 || ! $totalAmount->isZero() || ! $largestExpenseAmount->isZero()
-                || $largestExpenseCategory !== null || $categories !== []) {
+                || $largestExpenseCategory !== null || $categories !== []
+                || $largestExpenseDescription !== null || $largestExpenseOccurredOn !== null) {
                 throw new InvalidInsightAnalysisException('Um período vazio não pode conter valores ou categorias.');
             }
 
@@ -54,6 +57,10 @@ final readonly class ExpensePeriodSummaryValueObject
             || $largestExpenseCategory === null || ! isset($categories[$largestExpenseCategory])
             || $largestExpenseAmount->compareTo($categories[$largestExpenseCategory]) > 0) {
             throw new InvalidInsightAnalysisException('O maior lançamento deve pertencer à distribuição do período.');
+        }
+
+        if ($largestExpenseOccurredOn === null || ! $period->contains($largestExpenseOccurredOn)) {
+            throw new InvalidInsightAnalysisException('A ocorrência do maior lançamento deve pertencer ao período.');
         }
     }
 

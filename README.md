@@ -246,7 +246,9 @@ Accept: application/vnd.api+json
 Authorization: Bearer <token>
 ```
 
-Insights reconhece Financiamentos, Investimentos, Impostos e taxas, Seguros, Cuidados pessoais, Pets, Presentes e doações e Viagens, preservando as regras de elegibilidade e deduplicação. O runtime editorial vigente é `v3-monthly-periods`, com limites Unicode de 32 no título e 110 na descrição. O catálogo mensal aprovado de `add-monthly-insights-filters` prevê 24/80; sua implementação editorial completa continua pendente, com compatibilidade dos oito rótulos revisada separadamente.
+Insights reconhece Financiamentos, Investimentos, Impostos e taxas, Seguros, Cuidados pessoais, Pets, Presentes e doações e Viagens, preservando as regras de elegibilidade e deduplicação. O runtime editorial vigente é `v4-monthly-editorial`, com limites de **24 caracteres Unicode no título e 80 na descrição**, após interpolação. Os textos identificam o mês/ano selecionado e distinguem vigente parcial de mês encerrado; as variantes podem manter o título e variar somente a descrição.
+
+O maior lançamento usa sua descrição integral com whitespace normalizado para uma linha, como texto literal. Quando ausente, vazia ou longa demais, usa categoria e data; percentual e contexto são preservados, e o valor exato em BRL é complementar quando cabe. A ordem é descrição com/sem valor, depois categoria/data com/sem valor, sem truncamento ou exposição de ID da despesa. Comparações tentam percentual regular, percentual compacto e alternativa de diferença monetária exata da mesma variante; se nenhum par completo couber, a composição falha explicitamente. BRL é formatado diretamente de centavos exatos, sem float.
 
 ### Entrega coordenada do catálogo
 

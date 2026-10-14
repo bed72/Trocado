@@ -22,8 +22,9 @@ function periodSummaryValueObjectFixture(
         expenseCount: $count,
         distinctDateCount: $dates,
         largestExpenseCategory: $largestCategory,
-        period: DatePeriodValueObject::fromDates($from, $to),
         totalAmount: AmountValueObject::fromAmount($total),
+        period: DatePeriodValueObject::fromDates($from, $to),
+        largestExpenseOccurredOn: $count === 0 ? null : $from,
         largestExpenseAmount: AmountValueObject::fromAmount($largest),
         categories: array_map(AmountValueObject::fromAmount(...), $categories),
     );
@@ -136,3 +137,25 @@ it('preserves exact category totals and rankings beyond native integer precision
         ->and($summary->uniqueLeadingCategory())->toBe('other')
         ->and($summary->categoryAmount('food')->amount())->toBe('9223372036854775808');
 });
+
+it('requires a nonempty projection to identify an occurrence inside its period', function (?string $date): void {
+    new ExpensePeriodSummaryValueObject(
+        largestExpenseOccurredOn: $date,
+        totalAmount: AmountValueObject::fromAmount('10000'),
+        largestExpenseAmount: AmountValueObject::fromAmount('4000'),
+        categories: ['food' => AmountValueObject::fromAmount('10000')],
+        period: DatePeriodValueObject::fromDates('2026-10-01', '2026-10-12'),
+        expenseCount: 5, distinctDateCount: 3, largestExpenseCategory: 'food',
+    );
+})->with(['missing' => null, 'before' => '2026-09-30', 'after' => '2026-10-13'])
+    ->throws(InvalidInsightAnalysisException::class);
+
+it('rejects description or occurrence facts in an empty projection', function (?string $description, ?string $date): void {
+    new ExpensePeriodSummaryValueObject(
+        expenseCount: 0, distinctDateCount: 0, largestExpenseCategory: null,
+        period: DatePeriodValueObject::fromDates('2026-10-01', '2026-10-12'),
+        largestExpenseDescription: $description, largestExpenseOccurredOn: $date,
+        largestExpenseAmount: AmountValueObject::fromAmount('0'), totalAmount: AmountValueObject::fromAmount('0'), categories: [],
+    );
+})->with(['description' => ['Texto', null], 'occurrence' => [null, '2026-10-01']])
+    ->throws(InvalidInsightAnalysisException::class);

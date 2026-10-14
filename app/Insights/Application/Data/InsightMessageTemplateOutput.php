@@ -10,5 +10,6 @@ final readonly class InsightMessageTemplateOutput
         public string $title,
         public string $description,
         public string $shortDescription,
+        public ?string $monetaryDescription = null,
     ) {}
 }

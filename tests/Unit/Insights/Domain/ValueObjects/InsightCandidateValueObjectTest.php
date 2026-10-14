@@ -23,6 +23,7 @@ function candidateValueObjectFixture(
         category: $category,
         historyState: $historyState,
         analysisPeriod: DatePeriodValueObject::fromDates('2026-10-01', '2026-10-11'),
+        expenseOccurredOn: $type === InsightTypeEnum::ExpenseConcentration ? '2026-10-01' : null,
         comparisonPeriod: $withComparison ? DatePeriodValueObject::fromDates('2026-09-01', $previousTo) : null,
         ratio: $withRatio ? AmountValueObject::fromAmount('5000')->shareOf(AmountValueObject::fromAmount('10000')) : null,
     );
@@ -177,3 +178,22 @@ it('distinguishes subjects types and contextual history states', function (): vo
         ->and($category->supersedes($expense))->toBeTrue()
         ->and($expense->supersedes($category))->toBeFalse();
 });
+
+it('requires the expense occurrence inside the candidate period', function (?string $date): void {
+    new InsightCandidateValueObject(
+        expenseOccurredOn: $date,
+        type: InsightTypeEnum::ExpenseConcentration, category: 'other',
+        analysisPeriod: DatePeriodValueObject::fromDates('2026-10-01', '2026-10-12'),
+        ratio: AmountValueObject::fromAmount('5000')->shareOf(AmountValueObject::fromAmount('10000')),
+    );
+})->with(['missing' => null, 'before' => '2026-09-30', 'after' => '2026-10-13'])
+    ->throws(InvalidInsightAnalysisException::class);
+
+it('rejects expense identification attached to other candidate types', function (): void {
+    new InsightCandidateValueObject(
+        expenseDescription: 'Aluguel',
+        type: InsightTypeEnum::CategoryConcentration, category: 'food',
+        analysisPeriod: DatePeriodValueObject::fromDates('2026-10-01', '2026-10-12'),
+        ratio: AmountValueObject::fromAmount('5000')->shareOf(AmountValueObject::fromAmount('10000')),
+    );
+})->throws(InvalidInsightAnalysisException::class);

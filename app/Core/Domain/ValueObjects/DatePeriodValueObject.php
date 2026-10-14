@@ -62,10 +62,25 @@ final readonly class DatePeriodValueObject
 
     public function isPreviousMonthOf(self $other): bool
     {
-        $otherFrom = new DateTimeImmutable($other->from, new DateTimeZone('UTC'));
+        if (substr($other->from, 0, 7) === '0001-01') {
+            return false;
+        }
 
-        return substr($this->from, 0, 7) === $otherFrom->modify('first day of previous month')->format('Y-m')
+        return substr($this->from, 0, 7) === substr($other->previousMonth()->from(), 0, 7)
             && substr($this->to, 0, 7) === substr($this->from, 0, 7);
+    }
+
+    public function previousMonth(): self
+    {
+        $month = substr($this->from, 0, 7);
+
+        if ($month === '0001-01') {
+            throw new InvalidDatePeriodException('O mês anterior deve estar no intervalo civil suportado.');
+        }
+
+        $start = new DateTimeImmutable("{$month}-01", new DateTimeZone('UTC'));
+
+        return self::monthContaining($start->modify('first day of previous month')->format('Y-m-d'));
     }
 
     public function days(): int

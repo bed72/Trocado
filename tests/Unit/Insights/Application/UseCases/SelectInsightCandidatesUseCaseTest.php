@@ -24,6 +24,7 @@ function selectionCandidate(
         category: $category,
         comparisonPeriod: $comparison,
         analysisPeriod: DatePeriodValueObject::fromDates($from, $to),
+        expenseOccurredOn: $type === InsightTypeEnum::ExpenseConcentration ? $from : null,
         historyState: $type === InsightTypeEnum::InsufficientHistory ? InsightHistoryStateEnum::CurrentExpenses : null,
         ratio: $withRatio ? AmountValueObject::fromAmount('6000')->shareOf(AmountValueObject::fromAmount('10000')) : null,
     );

@@ -133,6 +133,8 @@ final class GenerateInsightCandidatesUseCase
                 analysisPeriod: $current->period,
                 category: $current->largestExpenseCategory,
                 type: InsightTypeEnum::ExpenseConcentration,
+                expenseOccurredOn: $current->largestExpenseOccurredOn,
+                expenseDescription: $current->largestExpenseDescription,
             );
         }
 
@@ -272,6 +274,8 @@ final class GenerateInsightCandidatesUseCase
             expenseCount: $projection->expenseCount,
             distinctDateCount: $projection->distinctDateCount,
             largestExpenseCategory: $projection->largestExpenseCategory,
+            largestExpenseOccurredOn: $projection->largestExpenseOccurredOn,
+            largestExpenseDescription: $projection->largestExpenseDescription,
             totalAmount: AmountValueObject::fromAmount($projection->totalAmount),
             largestExpenseAmount: AmountValueObject::fromAmount($projection->largestExpenseAmount),
         );

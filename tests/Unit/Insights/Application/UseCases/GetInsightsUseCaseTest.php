@@ -30,12 +30,17 @@ function getInsightsAnalysisFixture(string $categoryAmount = '30000', string $ca
     );
 
     return new ExpenseAnalysisOutput(
+        currentComparison: null,
+        previousComparison: null,
         hasHistoricalExpenses: true,
+        twoMonthsAgo: $empty('2026-08-01', '2026-08-31'),
+        previousMonth: $empty('2026-09-01', '2026-09-30'),
         currentMonth: new ExpensePeriodAnalysisOutput(
             expenseCount: 5,
             distinctDateCount: 3,
             largestExpenseAmount: '10000',
             largestExpenseCategory: $category,
+            largestExpenseOccurredOn: '2026-10-01',
             period: DatePeriodValueObject::fromDates('2026-10-01', $to),
             totalAmount: AmountValueObject::fromAmount($categoryAmount)->plus(AmountValueObject::fromAmount('20000'))->amount(),
             categories: [
@@ -43,10 +48,6 @@ function getInsightsAnalysisFixture(string $categoryAmount = '30000', string $ca
                 new ExpenseCategoryAnalysisOutput('other', '20000'),
             ],
         ),
-        twoMonthsAgo: $empty('2026-08-01', '2026-08-31'),
-        previousMonth: $empty('2026-09-01', '2026-09-30'),
-        currentComparison: null,
-        previousComparison: null,
     );
 }
 
@@ -55,8 +56,8 @@ function getInsightsFixtureUseCase(UserPort $userPort, ExpenseAnalysisRepository
     return new GetInsightsUseCase(
         port: $userPort,
         repository: $analysisPort,
-        candidateGenerationUseCase: new GenerateInsightCandidatesUseCase,
         candidateSelectionUseCase: new SelectInsightCandidatesUseCase,
+        candidateGenerationUseCase: new GenerateInsightCandidatesUseCase,
         messageCompositionUseCase: new ComposeInsightMessageUseCase(new GetInsightMessageTemplatesUseCase, new SelectInsightMessageVariantUseCase),
     );
 }
@@ -105,7 +106,7 @@ it('keeps the resource ID independent of the rotating message for the same analy
     $second = $useCase->execute(new GetInsightsInput('2026-10-13', DatePeriodValueObject::monthContaining('2026-10-13')))[0];
 
     expect($first->id)->toBe($second->id)
-        ->and($first->title === $second->title)->toBeFalse()
+        ->and([$first->title, $first->description])->not->toBe([$second->title, $second->description])
         ->and($first->type)->toBe($second->type)
         ->and($first->group)->toBe($second->group);
 });

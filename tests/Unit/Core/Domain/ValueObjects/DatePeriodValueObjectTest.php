@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Core\Domain\Exceptions\InvalidDatePeriodException;
 use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 
 it('preserves canonical endpoints and counts both boundary days', function (string $from, string $to, int $days): void {
@@ -98,4 +99,44 @@ it('recognizes the immediately preceding month across years and month lengths', 
     'skipped month' => ['2026-08-01', '2026-08-31', '2026-10-01', '2026-10-12', false],
     'reversed month order' => ['2026-11-01', '2026-11-30', '2026-10-01', '2026-10-12', false],
     'candidate spans more than one month' => ['2026-09-01', '2026-10-01', '2026-10-01', '2026-10-12', false],
+    'first supported month has no preceding supported month' => ['0001-01-01', '0001-01-31', '0001-01-01', '0001-01-12', false],
 ]);
+
+it('derives the complete previous civil month from the period start without day overflow', function (string $from, string $to, string $previousFrom, string $previousTo): void {
+    $period = DatePeriodValueObject::fromDates($from, $to);
+    $previous = $period->previousMonth();
+
+    expect($previous->from())->toBe($previousFrom)
+        ->and($previous->to())->toBe($previousTo)
+        ->and($previous->isCompleteMonth())->toBeTrue()
+        ->and($previous->isPreviousMonthOf($period))->toBeTrue()
+        ->and($period->from())->toBe($from)
+        ->and($period->to())->toBe($to);
+})->with([
+    'January across years' => ['2026-01-31', '2026-01-31', '2025-12-01', '2025-12-31'],
+    'March 31 after common February' => ['2027-03-31', '2027-03-31', '2027-02-01', '2027-02-28'],
+    'March 31 after leap February' => ['2028-03-31', '2028-03-31', '2028-02-01', '2028-02-29'],
+    'partial month' => ['2026-10-01', '2026-10-12', '2026-09-01', '2026-09-30'],
+    'span anchors to its beginning' => ['2026-10-12', '2026-12-31', '2026-09-01', '2026-09-30'],
+    'first representable predecessor' => ['0001-02-01', '0001-02-28', '0001-01-01', '0001-01-31'],
+    'upper civil limit' => ['9999-12-31', '9999-12-31', '9999-11-01', '9999-11-30'],
+]);
+
+it('rejects a previous month outside the supported civil range', function (): void {
+    DatePeriodValueObject::monthContaining('0001-01-31')->previousMonth();
+})->throws(InvalidDatePeriodException::class);
+
+it('derives previous civil months independently of process timezone', function (): void {
+    $originalTimezone = date_default_timezone_get();
+
+    try {
+        foreach (['America/New_York', 'Pacific/Auckland'] as $timezone) {
+            date_default_timezone_set($timezone);
+            $previous = DatePeriodValueObject::monthContaining('2026-03-31')->previousMonth();
+            expect($previous->from())->toBe('2026-02-01')
+                ->and($previous->to())->toBe('2026-02-28');
+        }
+    } finally {
+        date_default_timezone_set($originalTimezone);
+    }
+});

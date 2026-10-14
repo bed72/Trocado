@@ -76,7 +76,7 @@ it('returns isolated ordered JSON API insights with exact contract and one analy
 
     expect($analyticalQueries)->toHaveCount(1)
         ->and(str_contains($response->json('data.0.attributes.description'), '100%'))->toBeTrue()
-        ->and(str_contains($response->json('data.1.attributes.description'), 'Alimentação'))->toBeTrue()
+        ->and($response->json('data.1.attributes.title'))->toBe('Alimentação')
         ->and(array_keys($response->json()))->toBe(['data'])
         ->and(DB::table('expenses')->orderBy('id')->get()->all())->toEqual($expensesBefore)
         ->and(app(UserPort::class))->toBeInstanceOf(UserAdapter::class);
@@ -86,8 +86,8 @@ it('returns isolated ordered JSON API insights with exact contract and one analy
             ->and($resource['id'])->toMatch('/\A[0-9a-f]{64}\z/')
             ->and(array_keys($resource))->toEqualCanonicalizing(['type', 'id', 'attributes'])
             ->and(array_keys($resource['attributes']))->toEqualCanonicalizing(['group', 'type', 'title', 'description', 'period'])
-            ->and(mb_strlen($resource['attributes']['title'], 'UTF-8'))->toBeLessThanOrEqual(32)
-            ->and(mb_strlen($resource['attributes']['description'], 'UTF-8'))->toBeLessThanOrEqual(110);
+            ->and(mb_strlen($resource['attributes']['title'], 'UTF-8'))->toBeLessThanOrEqual(24)
+            ->and(mb_strlen($resource['attributes']['description'], 'UTF-8'))->toBeLessThanOrEqual(80);
     }
 });
 
@@ -101,6 +101,40 @@ it('returns first expense alone for an authenticated account without historical 
         ->assertJsonPath('data.0.attributes.type', 'first_expense')
         ->assertJsonPath('data.0.attributes.period', null);
 });
+
+it('serializes the selected expense identification as literal text with no expense ID in either monthly mode', function (bool $closed, ?string $description, string $identity): void {
+    $user = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
+    $token = IdentityFixture::token($user, expiresAt: now()->addDays(30));
+    $month = $closed ? '2026-09' : '2026-10';
+    DB::table('expenses')->insert([
+        'user_id' => $user->getKey(), 'amount' => 120000, 'category' => 'other', 'occurred_on' => $month.'-05',
+        'description' => $description, 'created_at' => '2026-10-12 12:00:00', 'updated_at' => '2026-10-12 12:00:00',
+    ]);
+    foreach (['food', 'health', 'transport', 'leisure'] as $index => $category) {
+        DB::table('expenses')->insert([
+            'user_id' => $user->getKey(), 'amount' => 25000, 'category' => $category, 'occurred_on' => $month.'-0'.($index + 1),
+            'description' => 'Registro menor', 'created_at' => '2026-10-12 12:00:00', 'updated_at' => '2026-10-12 12:00:00',
+        ]);
+    }
+    $response = insightsApiRequest($token, $closed ? 'filter[year]=2026&filter[month]=9' : '')
+        ->assertOk()->assertJsonPath('data.0.attributes.type', 'expense_concentration');
+    $attributes = $response->json('data.0.attributes');
+    $identity = str_replace('{date}', $closed ? '05/09' : '05/10', $identity);
+
+    expect($attributes['title'])->toBe($closed ? 'Maior despesa · set/2026' : 'Maior · out/2026 até 12')
+        ->and($attributes['description'])->toBeIn([
+            $identity.': 55% do total registrado · R$ 1.200,00.',
+            $identity.' representa 55% do total registrado · R$ 1.200,00.',
+            $identity.' responde por 55% do total registrado · R$ 1.200,00.',
+            $identity.' soma 55% do total registrado · R$ 1.200,00.',
+        ])
+        ->and(array_keys($attributes))->toEqualCanonicalizing(['group', 'type', 'title', 'description', 'period'])
+        ->and($attributes['period']['from'])->toBe($month.'-01')
+        ->and($attributes['period']['to'])->toBe($closed ? '2026-09-30' : '2026-10-12');
+})->with(['current' => false, 'closed' => true])->with([
+    'literal description' => [" \n<b>Aluguel</b>\t{month} ", '<b>Aluguel</b> {month}'],
+    'fallback without description' => [null, 'Outros · {date}'],
+]);
 
 it('rejects unauthenticated and invalid token requests before analytical access', function (bool $invalidToken): void {
     $port = $this->createMock(ExpenseAnalysisRepository::class);

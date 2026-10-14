@@ -19,7 +19,9 @@ final readonly class ExpensePeriodAnalysisOutput
         public string $totalAmount,
         public int $distinctDateCount,
         public string $largestExpenseAmount,
-        public ?string $largestExpenseCategory,
         public DatePeriodValueObject $period,
+        public ?string $largestExpenseCategory,
+        public ?string $largestExpenseOccurredOn = null,
+        public ?string $largestExpenseDescription = null,
     ) {}
 }

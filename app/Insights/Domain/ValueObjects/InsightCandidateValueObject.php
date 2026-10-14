@@ -21,6 +21,8 @@ final readonly class InsightCandidateValueObject
         public DatePeriodValueObject $analysisPeriod,
         public ?string $category = null,
         public ?RatioValueObject $ratio = null,
+        public ?string $expenseOccurredOn = null,
+        public ?string $expenseDescription = null,
         public ?InsightHistoryStateEnum $historyState = null,
         public ?DatePeriodValueObject $comparisonPeriod = null,
         public InsightPeriodModeEnum $mode = InsightPeriodModeEnum::Current,
@@ -54,6 +56,14 @@ final readonly class InsightCandidateValueObject
 
         if ($type === InsightTypeEnum::FirstExpense && $mode === InsightPeriodModeEnum::Closed) {
             throw new InvalidInsightAnalysisException('Primeira despesa não pertence a uma seleção histórica.');
+        }
+
+        if ($type === InsightTypeEnum::ExpenseConcentration) {
+            if ($expenseOccurredOn === null || ! $analysisPeriod->contains($expenseOccurredOn)) {
+                throw new InvalidInsightAnalysisException('A ocorrência do lançamento deve pertencer ao período do candidato.');
+            }
+        } elseif ($expenseDescription !== null || $expenseOccurredOn !== null) {
+            throw new InvalidInsightAnalysisException('A identificação de lançamento pertence somente à concentração de despesa.');
         }
     }
 

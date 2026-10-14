@@ -45,8 +45,8 @@ final readonly class InsightAnalysisPeriodValueObject
         $this->currentMonth = $this->mode === InsightPeriodModeEnum::Current
             ? DatePeriodValueObject::fromDates($selectedMonth->from(), $queryDate)
             : $selectedMonth;
-        $this->previousMonth = DatePeriodValueObject::monthContaining($start->modify('-1 month')->format('Y-m-d'));
-        $this->twoMonthsAgo = DatePeriodValueObject::monthContaining($start->modify('-2 months')->format('Y-m-d'));
+        $this->previousMonth = $selectedMonth->previousMonth();
+        $this->twoMonthsAgo = $this->previousMonth->previousMonth();
 
         if ($this->mode === InsightPeriodModeEnum::Closed) {
             $this->currentComparison = $this->currentMonth;

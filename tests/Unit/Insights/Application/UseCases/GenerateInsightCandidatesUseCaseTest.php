@@ -23,6 +23,7 @@ function candidateProjection(string $from, string $to, string $total = '10000'):
         distinctDateCount: $empty ? 0 : 3,
         largestExpenseAmount: $empty ? '0' : '2000',
         largestExpenseCategory: $empty ? null : 'food',
+        largestExpenseOccurredOn: $empty ? null : $from,
         period: DatePeriodValueObject::fromDates($from, $to),
         categories: $empty ? [] : [new ExpenseCategoryAnalysisOutput(category: 'food', totalAmount: $total)],
     );
@@ -108,6 +109,7 @@ it('compares complete historical totals with unchanged material thresholds', fun
     expect($comparisons)->toHaveCount(1)
         ->and($comparisons[0]->type)->toBe($type)
         ->and($comparisons[0]->ratio->roundedPercent())->toBe($percent)
+        ->and($comparisons[0]->ratio->numerator->amount())->toBe($type === InsightTypeEnum::RegisteredAmountIncrease ? '10000' : '15000')
         ->and($comparisons[0]->mode)->toBe(InsightPeriodModeEnum::Closed)
         ->and($comparisons[0]->analysisPeriod->to())->toBe('2026-09-30')
         ->and($comparisons[0]->comparisonPeriod->to())->toBe('2026-08-31');
@@ -142,6 +144,7 @@ it('rejects inconsistent category totals at the domain boundary', function (): v
         totalAmount: '10000',
         largestExpenseAmount: '2000',
         largestExpenseCategory: 'food',
+        largestExpenseOccurredOn: '2026-10-01',
         period: DatePeriodValueObject::fromDates('2026-10-01', '2026-10-12'),
         categories: [new ExpenseCategoryAnalysisOutput(category: 'food', totalAmount: '9000')],
     );
@@ -155,3 +158,25 @@ it('rejects inconsistent category totals at the domain boundary', function (): v
         previousMonth: candidateProjection('2026-09-01', '2026-09-30'),
     ));
 })->throws(InvalidInsightAnalysisException::class);
+
+it('carries the selected expense description occurrence and exact amount into its candidate without interpretation', function (): void {
+    $projection = new ExpensePeriodAnalysisOutput(
+        expenseCount: 5, distinctDateCount: 3, totalAmount: '222222', largestExpenseAmount: '120000',
+        largestExpenseCategory: 'housing', largestExpenseDescription: " <b>Aluguel</b>\n mensal ",
+        largestExpenseOccurredOn: '2026-10-05', period: DatePeriodValueObject::fromDates('2026-10-01', '2026-10-12'),
+        categories: [new ExpenseCategoryAnalysisOutput('housing', '120000'), new ExpenseCategoryAnalysisOutput('other', '102222')],
+    );
+    $candidates = candidateUseCase()->execute(new ExpenseAnalysisOutput(
+        currentComparison: null, previousComparison: null,
+        hasHistoricalExpenses: true, currentMonth: $projection,
+        twoMonthsAgo: candidateProjection('2026-08-01', '2026-08-31', '0'),
+        previousMonth: candidateProjection('2026-09-01', '2026-09-30', '0'),
+    ));
+    $expense = array_values(array_filter($candidates, static fn (InsightCandidateValueObject $candidate): bool => $candidate->type === InsightTypeEnum::ExpenseConcentration))[0];
+
+    expect($expense->expenseDescription)->toBe(" <b>Aluguel</b>\n mensal ")
+        ->and($expense->expenseOccurredOn)->toBe('2026-10-05')
+        ->and($expense->category)->toBe('housing')
+        ->and($expense->ratio->numerator->amount())->toBe('120000')
+        ->and($expense->ratio->denominator->amount())->toBe('222222');
+});

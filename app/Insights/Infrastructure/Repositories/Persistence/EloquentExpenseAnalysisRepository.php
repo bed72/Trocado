@@ -31,6 +31,8 @@ use Illuminate\Support\Facades\DB;
  *     category: ?string,
  *     category_amount: ?string,
  *     largest_expense_category: ?string,
+ *     largest_expense_description: ?string,
+ *     largest_expense_occurred_on: ?string,
  * }
  */
 final class EloquentExpenseAnalysisRepository implements ExpenseAnalysisRepository
@@ -99,6 +101,8 @@ final class EloquentExpenseAnalysisRepository implements ExpenseAnalysisReposito
             distinctDateCount: (int) $statistics->distinct_date_count,
             largestExpenseAmount: $statistics->largest_expense_amount,
             largestExpenseCategory: $statistics->largest_expense_category,
+            largestExpenseOccurredOn: $statistics->largest_expense_occurred_on,
+            largestExpenseDescription: $statistics->largest_expense_description,
         );
     }
 
@@ -130,7 +134,7 @@ final class EloquentExpenseAnalysisRepository implements ExpenseAnalysisReposito
             WITH periods (period_key, from_date, to_date) AS (
                 VALUES {$periodValues}
             ), scoped_expenses AS MATERIALIZED (
-                SELECT id, amount, occurred_on, category
+                SELECT id, amount, occurred_on, category, description
                 FROM expenses
                 WHERE user_id = ? AND occurred_on BETWEEN CAST(? AS date) AND CAST(? AS date)
             ), period_expenses AS MATERIALIZED (
@@ -147,7 +151,7 @@ final class EloquentExpenseAnalysisRepository implements ExpenseAnalysisReposito
                 FROM period_expenses
                 GROUP BY period_key, category
             ), largest AS (
-                SELECT DISTINCT ON (period_key) period_key, amount, category
+                SELECT DISTINCT ON (period_key) period_key, amount, category, description, occurred_on
                 FROM period_expenses
                 ORDER BY period_key, amount DESC, category ASC, id ASC
             )
@@ -157,6 +161,8 @@ final class EloquentExpenseAnalysisRepository implements ExpenseAnalysisReposito
                    CAST(COALESCE(totals.total_amount, 0) AS text) AS total_amount,
                    CAST(COALESCE(largest.amount, 0) AS text) AS largest_expense_amount,
                    largest.category AS largest_expense_category,
+                   largest.description AS largest_expense_description,
+                   TO_CHAR(largest.occurred_on, 'YYYY-MM-DD') AS largest_expense_occurred_on,
                    categories.category,
                    CAST(categories.category_amount AS text) AS category_amount,
                    EXISTS (SELECT 1 FROM expenses WHERE user_id = ? AND occurred_on <= CAST(? AS date)) AS has_history

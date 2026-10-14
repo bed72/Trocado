@@ -4,29 +4,31 @@ declare(strict_types=1);
 
 namespace App\Insights\Application\UseCases;
 
+use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Insights\Application\Data\InsightMessageOutput;
 use App\Insights\Application\Data\SelectInsightMessageVariantInput;
 use App\Insights\Application\Exceptions\InsightMessageCompositionException;
 use App\Insights\Domain\Enums\InsightTypeEnum;
 use App\Insights\Domain\ValueObjects\InsightCandidateValueObject;
 
+use function array_key_exists;
 use function count;
 
 final readonly class ComposeInsightMessageUseCase
 {
-    private const int MaximumTitleLength = 32;
+    private const int MaximumTitleLength = 24;
 
-    private const int MaximumDescriptionLength = 110;
+    private const int MaximumDescriptionLength = 80;
 
     private const array Categories = [
         'subscriptions' => 'Assinaturas', 'other' => 'Outros',
         'transport' => 'Transporte', 'education' => 'Educação',
-        'food' => 'Alimentação', 'health' => 'Saúde', 'housing' => 'Moradia',
-        'leisure' => 'Lazer', 'shopping' => 'Compras', 'services' => 'Serviços',
-        'financing' => 'Financiamentos', 'investments' => 'Investimentos',
         'taxes' => 'Impostos e taxas', 'insurance' => 'Seguros',
         'personal_care' => 'Cuidados pessoais', 'pets' => 'Pets',
+        'financing' => 'Financiamentos', 'investments' => 'Investimentos',
+        'food' => 'Alimentação', 'health' => 'Saúde', 'housing' => 'Moradia',
         'gifts_and_donations' => 'Presentes e doações', 'travel' => 'Viagens',
+        'leisure' => 'Lazer', 'shopping' => 'Compras', 'services' => 'Serviços',
     ];
 
     public function __construct(
@@ -53,20 +55,26 @@ final readonly class ComposeInsightMessageUseCase
         ));
         $template = $templates[$variant];
         $parameters = $this->parameters($candidate);
-        $title = strtr($template->title, $parameters);
-        $description = strtr($template->description, $parameters);
+        $title = $this->interpolate($template->title, $parameters);
+        $descriptions = [$template->description, $template->shortDescription];
 
-        if (mb_strlen($description, 'UTF-8') > self::MaximumDescriptionLength) {
-            $description = strtr($template->shortDescription, $parameters);
+        if ($template->monetaryDescription !== null) {
+            $descriptions[] = $template->monetaryDescription;
         }
 
-        if (mb_strlen($title, 'UTF-8') > self::MaximumTitleLength
-            || mb_strlen($description, 'UTF-8') > self::MaximumDescriptionLength
-            || preg_match('/\{[^}]+\}/u', "{$title} {$description}") === 1) {
-            throw new InsightMessageCompositionException('O catálogo não oferece uma mensagem completa dentro dos limites editoriais.');
+        if (mb_strlen($title, 'UTF-8') <= self::MaximumTitleLength) {
+            foreach ($this->identities($candidate, $parameters) as $identity) {
+                foreach ($descriptions as $descriptionTemplate) {
+                    $description = $this->interpolate($descriptionTemplate, [...$parameters, '{identity}' => $identity]);
+
+                    if (mb_strlen($description, 'UTF-8') <= self::MaximumDescriptionLength) {
+                        return new InsightMessageOutput(title: $title, description: $description);
+                    }
+                }
+            }
         }
 
-        return new InsightMessageOutput(title: $title, description: $description);
+        throw new InsightMessageCompositionException('O catálogo não oferece uma mensagem completa dentro dos limites editoriais.');
     }
 
     /** @return array<string, string> */
@@ -83,6 +91,11 @@ final readonly class ComposeInsightMessageUseCase
             $parameters['{previous_month}'] = $this->month($candidate->comparisonPeriod->from());
         }
 
+        if ($candidate->type === InsightTypeEnum::CategoryLeadStreak) {
+            $selectedMonth = DatePeriodValueObject::monthContaining($candidate->analysisPeriod->to());
+            $parameters['{previous_month}'] = $this->month($selectedMonth->previousMonth()->from());
+        }
+
         if ($candidate->category !== null) {
             $parameters['{category}'] = self::Categories[$candidate->category]
                 ?? throw new InsightMessageCompositionException('A categoria não possui um rótulo editorial aprovado.');
@@ -90,15 +103,85 @@ final readonly class ComposeInsightMessageUseCase
 
         if ($candidate->ratio !== null) {
             $parameters['{percent}'] = $candidate->ratio->roundedPercent();
+
+            if ($candidate->type === InsightTypeEnum::ExpenseConcentration) {
+                $parameters['{amount}'] = $this->brl($candidate->ratio->numerator->amount());
+            }
+
+            if ($candidate->comparisonPeriod !== null) {
+                $parameters['{difference}'] = $this->brl($candidate->ratio->numerator->amount());
+            }
         }
 
         return $parameters;
+    }
+
+    /**
+     * @param  array<string, string>  $parameters
+     * @return non-empty-list<string>
+     */
+    private function identities(InsightCandidateValueObject $candidate, array $parameters): array
+    {
+        if ($candidate->type !== InsightTypeEnum::ExpenseConcentration) {
+            return [''];
+        }
+
+        $identities = [];
+
+        if ($candidate->expenseDescription !== null) {
+            $normalized = preg_replace('/[\s\p{Z}]+/u', ' ', $candidate->expenseDescription);
+
+            if ($normalized === null) {
+                throw new InsightMessageCompositionException('A descrição do lançamento não é texto Unicode válido.');
+            }
+
+            $normalized = trim($normalized);
+
+            if ($normalized !== '') {
+                $identities[] = $normalized;
+            }
+        }
+
+        $date = $candidate->expenseOccurredOn;
+        $day = substr($date, 8, 2);
+        $month = substr($date, 5, 2);
+        $identities[] = "{$parameters['{category}']} · {$day}/{$month}";
+
+        return $identities;
+    }
+
+    /** @param array<string, string> $parameters */
+    private function interpolate(string $template, array $parameters): string
+    {
+        preg_match_all('/\{[^}]+\}/u', $template, $matches);
+
+        foreach ($matches[0] as $placeholder) {
+            if (! array_key_exists($placeholder, $parameters)) {
+                throw new InsightMessageCompositionException('O catálogo exige um fato indisponível.');
+            }
+        }
+
+        return strtr($template, $parameters);
+    }
+
+    private function brl(string $amount): string
+    {
+        $padded = str_pad($amount, 3, '0', STR_PAD_LEFT);
+        $integer = substr($padded, 0, -2);
+        $integer = preg_replace('/\B(?=(?:[0-9]{3})+(?![0-9]))/', '.', $integer);
+
+        $cents = substr($padded, -2);
+
+        return "R$ {$integer},{$cents}";
     }
 
     private function month(string $date): string
     {
         $months = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
 
-        return $months[(int) substr($date, 5, 2) - 1].'/'.substr($date, 0, 4);
+        $month = $months[(int) substr($date, 5, 2) - 1];
+        $year = substr($date, 0, 4);
+
+        return "{$month}/{$year}";
     }
 }
