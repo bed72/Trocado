@@ -210,14 +210,16 @@ As frentes 05, 06 e 07 podem ser organizadas separadamente depois da base 04; 08
 **Entrega:** resumo singular UUIDv7 por owner/período/modo, inclusive total zero.
 
 - [x] **9.1** Converter owner sem mudar cálculo, snapshot, período ou filtros.
-- [ ] **9.2** Preparar chave canônica e resolver ID depois de reconciliar a projeção.
-- [ ] **9.3** Substituir hash público por associação Core, sem ID de categoria ou resumo persistido.
-- [ ] **9.4** Provar chave/modo/default/zero/valores em Unit.
-- [ ] **9.5** Provar HTTP/PG, processos/PATs novos, isolamento, modos e quantidade de queries.
-- [ ] **9.6** Provar falhas sem total zero fabricado, resultado parcial ou UUID transitório.
-- [ ] **9.7** Executar arquivos/suíte e revisar ausência de cache/materialização/queue.
+- [x] **9.2** Preparar chave canônica e resolver ID depois de reconciliar a projeção.
+- [x] **9.3** Substituir hash público por associação Core, sem ID de categoria ou resumo persistido.
+- [x] **9.4** Provar chave/modo/default/zero/valores em Unit.
+- [x] **9.5** Provar HTTP/PG, processos/PATs novos, isolamento, modos e quantidade de queries.
+- [x] **9.6** Provar falhas sem total zero fabricado, resultado parcial ou UUID transitório.
+- [x] **9.7** Executar arquivos/suíte e revisar ausência de cache/materialização/queue.
 
 **Concluir quando:** valores atualizam sem trocar UUID; total/category têm identidades distintas; default e intervalo equivalente mantêm ID; categories continuam parcelas do resumo.
+
+**Escopo Metrics concluído em 2026-10-15:** resumo singular usa Core `expense-metrics` v1 por owner e componentes ordenados `start_date → end_date → mode`, após validação/reconciliação, inclusive total zero. Unit preserva cálculo/ordenação e prova chave e falhas; HTTP/PostgreSQL prova equivalências, mutações, isolamento e PAT substituído em processo filho com conexão nova. Para 0/1/18 categorias: uma leitura financeira, três statements do registro no miss e um SELECT no hit sem escrita. Metrics + arquitetura passaram **193/1.794**; gate completo padrão **2.283/40.731**; Feature Metrics paralelo com dois processos **115/1.110**. Pint e OpenSpec estrito passaram. [Evidências e limites](openspec/changes/standardize-uuid-v7-identifiers/tasks.md#step-09--metrics-com-uuidv7-estável--2026-10-15). Próximo: STEP 10, sugestões.
 
 ## STEP 10 — Sugestões com UUIDv7 estável
 

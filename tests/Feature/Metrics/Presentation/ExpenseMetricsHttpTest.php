@@ -10,18 +10,8 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use RuntimeException as OperationalFailureException;
+use Tests\FeatureTestCase;
 use Tests\Support\Identity\Fixtures\IdentityFixture;
-
-beforeEach(function (): void {
-    $this->identity = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
-    $this->userId = $this->identity->getKey();
-    $this->token = IdentityFixture::token($this->identity, expiresAt: now()->addDays(30));
-    $this->withToken($this->token);
-});
-
-afterEach(function (): void {
-    Carbon::setTestNow();
-});
 
 function insertHttpMetricsExpense(string $userId, int $amount, string $category = 'other', string $date = '2026-10-09'): void
 {
@@ -33,9 +23,12 @@ function insertHttpMetricsExpense(string $userId, int $amount, string $category 
 }
 
 it('exposes the bound adapter through a singular exact JSON API summary in both modes', function (): void {
-    insertHttpMetricsExpense($this->userId, 60000, 'food');
-    insertHttpMetricsExpense($this->userId, 30000, 'transport');
-    insertHttpMetricsExpense($this->userId, 10000);
+    /** @var FeatureTestCase $this */
+    $identity = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
+    $this->withToken(IdentityFixture::token($identity, expiresAt: now()->addDays(30)));
+    insertHttpMetricsExpense($identity->getKey(), 60000, 'food');
+    insertHttpMetricsExpense($identity->getKey(), 30000, 'transport');
+    insertHttpMetricsExpense($identity->getKey(), 10000);
     expect(app(ExpenseMetricsRepository::class))->toBeInstanceOf(EloquentExpenseMetricsRepository::class);
 
     $simple = $this->getJson('/api/metrics/expenses?start_date=2026-10-01&end_date=2026-10-31')
@@ -50,11 +43,17 @@ it('exposes the bound adapter through a singular exact JSON API summary in both 
             ['category' => 'transport', 'percentage' => '30.00', 'total_amount' => '30000'],
             ['category' => 'other', 'percentage' => '10.00', 'total_amount' => '10000'],
         ]);
-    expect($simple->json('data.id'))->toBeString()->not->toBe($grouped->json('data.id'));
+    foreach ([$simple, $grouped] as $response) {
+        expect($response->json('data.id'))->toMatch('/\A[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z/');
+    }
+    expect($simple->json('data.id'))->not->toBe($grouped->json('data.id'));
 });
 
 it('aggregates each new persisted identifier without translations or absent categories', function (string $category): void {
-    insertHttpMetricsExpense($this->userId, 10000, $category);
+    /** @var FeatureTestCase $this */
+    $identity = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
+    $this->withToken(IdentityFixture::token($identity, expiresAt: now()->addDays(30)));
+    insertHttpMetricsExpense($identity->getKey(), 10000, $category);
     $this->getJson('/api/metrics/expenses?start_date=2026-10-01&end_date=2026-10-31&group_by=category')
         ->assertOk()->assertJsonPath('data.attributes.total_amount', '10000')
         ->assertJsonPath('data.attributes.categories', [
@@ -63,14 +62,17 @@ it('aggregates each new persisted identifier without translations or absent cate
 })->with(['financing', 'investments', 'taxes', 'insurance', 'personal_care', 'pets', 'gifts_and_donations', 'travel']);
 
 it('includes investments and financing in the same exact denominator while excluding other owners and periods', function (): void {
-    insertHttpMetricsExpense($this->userId, 60000, 'investments', '2026-10-01');
-    insertHttpMetricsExpense($this->userId, 30000, 'financing', '2026-10-31');
-    insertHttpMetricsExpense($this->userId, 10000, 'food');
+    /** @var FeatureTestCase $this */
+    $identity = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
+    $this->withToken(IdentityFixture::token($identity, expiresAt: now()->addDays(30)));
+    insertHttpMetricsExpense($identity->getKey(), 60000, 'investments', '2026-10-01');
+    insertHttpMetricsExpense($identity->getKey(), 30000, 'financing', '2026-10-31');
+    insertHttpMetricsExpense($identity->getKey(), 10000, 'food');
     $other = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now(), email: 'other-expanded-metrics@example.com');
     foreach (['investments', 'financing', 'food'] as $category) {
         insertHttpMetricsExpense($other->id, 90000, $category);
-        insertHttpMetricsExpense($this->userId, 90000, $category, '2026-09-30');
-        insertHttpMetricsExpense($this->userId, 90000, $category, '2026-11-01');
+        insertHttpMetricsExpense($identity->getKey(), 90000, $category, '2026-09-30');
+        insertHttpMetricsExpense($identity->getKey(), 90000, $category, '2026-11-01');
     }
     $url = '/api/metrics/expenses?start_date=2026-10-01&end_date=2026-10-31';
     $this->getJson($url)->assertOk()->assertJsonPath('data.attributes', [
@@ -85,8 +87,11 @@ it('includes investments and financing in the same exact denominator while exclu
 });
 
 it('orders tied new categories alphabetically with independently rounded percentages', function (): void {
+    /** @var FeatureTestCase $this */
+    $identity = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
+    $this->withToken(IdentityFixture::token($identity, expiresAt: now()->addDays(30)));
     foreach (['travel', 'investments', 'financing'] as $category) {
-        insertHttpMetricsExpense($this->userId, 10000, $category);
+        insertHttpMetricsExpense($identity->getKey(), 10000, $category);
     }
     $this->getJson('/api/metrics/expenses?start_date=2026-10-01&end_date=2026-10-31&group_by=category')
         ->assertOk()->assertJsonPath('data.attributes.total_amount', '30000')
@@ -98,8 +103,11 @@ it('orders tied new categories alphabetically with independently rounded percent
 });
 
 it('rejects the original invalid query before reading expenses with and without records', function (string $query, string $parameter, bool $hasExpenses): void {
+    /** @var FeatureTestCase $this */
+    $identity = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
+    $this->withToken(IdentityFixture::token($identity, expiresAt: now()->addDays(30)));
     if ($hasExpenses) {
-        insertHttpMetricsExpense($this->userId, 100);
+        insertHttpMetricsExpense($identity->getKey(), 100);
     }
 
     $repository = $this->createMock(ExpenseMetricsRepository::class);
@@ -109,7 +117,8 @@ it('rejects the original invalid query before reading expenses with and without 
         ->assertUnprocessable()->assertHeader('Content-Type', 'application/vnd.api+json');
     $errors = $response->json('errors');
     expect(array_column(array_column($errors, 'source'), 'parameter'))->toContain($parameter)
-        ->and($response->json())->not->toHaveKey('data');
+        ->and($response->json())->not->toHaveKey('data')
+        ->and(DB::table('resource_identities')->count())->toBe(0);
 
     foreach ($errors as $error) {
         expect($error['title'])->toBe('Parâmetro inválido')
@@ -155,9 +164,12 @@ it('rejects the original invalid query before reading expenses with and without 
 ])->with([false, true]);
 
 it('uses the whole civil month in the application timezone and keeps equivalent IDs', function (): void {
+    /** @var FeatureTestCase $this */
+    $identity = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
+    $this->withToken(IdentityFixture::token($identity, expiresAt: now()->addDays(30)));
     config(['app.timezone' => 'America/Sao_Paulo']);
     Carbon::setTestNow(Carbon::parse('2026-11-01 01:00:00', 'UTC'));
-    insertHttpMetricsExpense($this->userId, 123, 'other', '2026-10-31');
+    insertHttpMetricsExpense($identity->getKey(), 123, 'other', '2026-10-31');
     $default = $this->getJson('/api/metrics/expenses?group_by=category')->assertOk();
     $explicit = $this->getJson('/api/metrics/expenses?group_by=%20category%20&end_date=2026-10-31&start_date=%202026-10-01%20')->assertOk();
     expect($default->json('data'))->toBe($explicit->json('data'))
@@ -166,6 +178,9 @@ it('uses the whole civil month in the application timezone and keeps equivalent 
 });
 
 it('returns zero with omission or an empty category list and ignores a GET body', function (): void {
+    /** @var FeatureTestCase $this */
+    $identity = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
+    $this->withToken(IdentityFixture::token($identity, expiresAt: now()->addDays(30)));
     Carbon::setTestNow('2026-10-09');
     $this->json('GET', '/api/metrics/expenses', ['group_by' => 'invalid', 'start_date' => 'bad'])
         ->assertOk()->assertJsonPath('data.attributes', [
@@ -176,16 +191,22 @@ it('returns zero with omission or an empty category list and ignores a GET body'
 });
 
 it('preserves huge totals and zero-rounded shares in JSON', function (): void {
-    insertHttpMetricsExpense($this->userId, 4000000000000000000, 'food');
-    insertHttpMetricsExpense($this->userId, 4000000000000000000, 'food');
-    insertHttpMetricsExpense($this->userId, 4000000000000000000, 'food');
-    insertHttpMetricsExpense($this->userId, 1);
+    /** @var FeatureTestCase $this */
+    $identity = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
+    $this->withToken(IdentityFixture::token($identity, expiresAt: now()->addDays(30)));
+    insertHttpMetricsExpense($identity->getKey(), 4000000000000000000, 'food');
+    insertHttpMetricsExpense($identity->getKey(), 4000000000000000000, 'food');
+    insertHttpMetricsExpense($identity->getKey(), 4000000000000000000, 'food');
+    insertHttpMetricsExpense($identity->getKey(), 1);
     $this->getJson('/api/metrics/expenses?start_date=2026-10-09&end_date=2026-10-09&group_by=category')
         ->assertOk()->assertJsonPath('data.attributes.total_amount', '12000000000000000001')
         ->assertJsonPath('data.attributes.categories.1', ['category' => 'other', 'percentage' => '0.00', 'total_amount' => '1']);
 });
 
 it('blocks unauthenticated inactive and unverified accounts before reading metrics', function (string $condition, int $status): void {
+    /** @var FeatureTestCase $this */
+    $identity = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
+    $this->withToken(IdentityFixture::token($identity, expiresAt: now()->addDays(30)));
     $repository = $this->createMock(ExpenseMetricsRepository::class);
     $repository->expects($this->never())->method('summarize');
     $this->app->instance(ExpenseMetricsRepository::class, $repository);
@@ -193,35 +214,44 @@ it('blocks unauthenticated inactive and unverified accounts before reading metri
     if ($condition === 'unauthenticated') {
         $this->withHeader('Authorization', 'Bearer invalid');
     } elseif ($condition === 'unverified') {
-        UserModel::query()->whereKey($this->userId)->update(['email_verified_at' => null]);
+        UserModel::query()->whereKey($identity->getKey())->update(['email_verified_at' => null]);
     } else {
-        UserModel::query()->whereKey($this->userId)->update(['status' => $condition]);
+        UserModel::query()->whereKey($identity->getKey())->update(['status' => $condition]);
     }
 
     $this->getJson('/api/metrics/expenses')->assertStatus($status)
         ->assertHeader('Content-Type', 'application/vnd.api+json');
+    expect(DB::table('resource_identities')->count())->toBe(0);
 })->with([['unauthenticated', 401], ['blocked', 403], ['pending', 403], ['unverified', 403]]);
 
 it('resolves leap and non leap default months including future recorded occurrences', function (string $reference, string $lastDay): void {
+    /** @var FeatureTestCase $this */
+    $identity = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
     Carbon::setTestNow($reference);
-    $this->withToken(IdentityFixture::token($this->identity, expiresAt: now()->addDays(30)));
-    insertHttpMetricsExpense($this->userId, 100, 'other', $lastDay);
+    $this->withToken(IdentityFixture::token($identity, expiresAt: now()->addDays(30)));
+    insertHttpMetricsExpense($identity->getKey(), 100, 'other', $lastDay);
     $this->getJson('/api/metrics/expenses')->assertOk()
         ->assertJsonPath('data.attributes.end_date', $lastDay)
         ->assertJsonPath('data.attributes.total_amount', '100');
 })->with([['2027-02-09', '2027-02-28'], ['2028-02-09', '2028-02-29']]);
 
 it('keeps identity stable after writes and excludes another account', function (): void {
+    /** @var FeatureTestCase $this */
+    $identity = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
+    $this->withToken(IdentityFixture::token($identity, expiresAt: now()->addDays(30)));
     $other = DB::table('users')->insertGetId(['id' => (string) Str::uuid7(), 'name' => 'Pedro', 'email' => 'other-http@example.com', 'password' => 'unused']);
     insertHttpMetricsExpense($other, 90000, 'food');
     $url = '/api/metrics/expenses?start_date=2026-10-01&end_date=2026-10-31&group_by=category';
     $empty = $this->getJson($url)->assertOk()->assertJsonPath('data.attributes.total_amount', '0');
-    insertHttpMetricsExpense($this->userId, 100, 'food');
+    insertHttpMetricsExpense($identity->getKey(), 100, 'food');
     $updated = $this->getJson($url)->assertOk()->assertJsonPath('data.attributes.total_amount', '100');
     expect($updated->json('data.id'))->toBe($empty->json('data.id'));
 });
 
 it('returns an explicit sanitized operational error instead of zero', function (): void {
+    /** @var FeatureTestCase $this */
+    $identity = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
+    $this->withToken(IdentityFixture::token($identity, expiresAt: now()->addDays(30)));
     $repository = $this->createMock(ExpenseMetricsRepository::class);
     $repository->expects($this->once())->method('summarize')
         ->willThrowException(new OperationalFailureException('private SQL and credentials'));
@@ -233,6 +263,7 @@ it('returns an explicit sanitized operational error instead of zero', function (
 });
 
 it('returns API authentication errors without requiring an Accept header', function (): void {
+    /** @var FeatureTestCase $this */
     $this->withHeader('Authorization', 'Bearer invalid');
     $this->get('/api/metrics/expenses')->assertUnauthorized()
         ->assertHeader('Content-Type', 'application/vnd.api+json');

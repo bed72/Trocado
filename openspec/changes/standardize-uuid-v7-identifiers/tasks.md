@@ -110,12 +110,12 @@
 ## 9. UUIDv7 estável de Metrics
 
 - [x] 9.1 Converter owner no Repository/UseCase/mapping Metrics para v7, mantendo parâmetros/default/total/percentuais exatos e snapshot. [UID-05; expense-metrics]
-- [ ] 9.2 Preparar chave por owner/start/end/mode normalizados, independente de URL/trim/valores, e resolver UUID depois de reconciliar projeção. [RID-02/06]
-- [ ] 9.3 Substituir hash público por associação Core para objeto singular, inclusive zero total; não criar IDs de categoria ou persistir resumo. [expense-metrics]
-- [ ] 9.4 Provar Unit de chave/modo/default equivalente/zero/valores, ordenação e fake de registro sem ORM. [expense-metrics: identidade]
-- [ ] 9.5 Provar HTTP/PG estabilidade entre processos/PATs/mudanças financeiras, owners/modos distintos, registry zero e batches/queries constantes. [RID-02–05]
-- [ ] 9.6 Provar falha de fonte/projeção antes de associação e falha Core com erro explícito sem total zero/resultado parcial/IDs transitórios. [RID-06]
-- [ ] 9.7 Executar arquivos/suite Metrics isolados e revisar que associação não adicionou cache, resumos, filas ou query por categoria. [expense-metrics; D10]
+- [x] 9.2 Preparar chave por owner/start/end/mode normalizados, independente de URL/trim/valores, e resolver UUID depois de reconciliar projeção. [RID-02/06]
+- [x] 9.3 Substituir hash público por associação Core para objeto singular, inclusive zero total; não criar IDs de categoria ou persistir resumo. [expense-metrics]
+- [x] 9.4 Provar Unit de chave/modo/default equivalente/zero/valores, ordenação e fake de registro sem ORM. [expense-metrics: identidade]
+- [x] 9.5 Provar HTTP/PG estabilidade entre processos/PATs/mudanças financeiras, owners/modos distintos, registry zero e batches/queries constantes. [RID-02–05]
+- [x] 9.6 Provar falha de fonte/projeção antes de associação e falha Core com erro explícito sem total zero/resultado parcial/IDs transitórios. [RID-06]
+- [x] 9.7 Executar arquivos/suite Metrics isolados e revisar que associação não adicionou cache, resumos, filas ou query por categoria. [expense-metrics; D10]
 
 ## 10. UUIDv7 estável de sugestões
 
@@ -976,3 +976,49 @@ Captura Lerd já estava habilitada, sem alteração de configuração. Requisiç
 A nova execução completa reproduziu **3 falhas e 4 erros** em `GetInsightsUseCaseTest` (2.260 passando de 2.267). No estado encontrado, `GetInsightsUseCase` consultava o owner antes de validar o período e emitia os componentes da chave em ordem diferente da matriz. Foi restaurada a validação antes de `UserPort::id()` e a ordem contratual `type → subject → history_state → analysis_from → analysis_to → comparison_from → comparison_to`. A ordem é parte do fingerprint Core, portanto a correção preserva a identidade em vez de alterar os esperados dos testes. As demais reorganizações encontradas no arquivo foram preservadas.
 
 Após Pint `--dirty --format agent`, o arquivo Unit isolado passou **25/185**, 56 ms. O comando `lerd composer test -- --compact --fail-on-skipped --fail-on-incomplete --fail-on-risky` passou **2.267/40.376**, 53.122 ms, sem skips/exclusões. As evidências anteriores permanecem históricas; esta execução confirma novamente o estado corrigido.
+
+## STEP 09 — Metrics com UUIDv7 estável — 2026-10-15
+
+O usuário autorizou continuar a implementação pelo STEP 09. PHP 8.5, Laravel 13.34.0 e PostgreSQL reconfirmados por MCP; documentação de JSON:API consultada via Boost. `route:list --path=api/metrics --except-vendor --no-interaction` confirmou o GET singular existente. Nenhuma nova migration; o schema operacional ainda usa bigint e a transição permanece no STEP 12. As provas abaixo aplicam migrations incrementalmente somente nos bancos exclusivos do launcher.
+
+### Implementação e rastreabilidade
+
+`GetExpenseMetricsUseCase` canonicaliza owner antes da fonte, injeta `UserPort → ResourceUseCase → ExpenseMetricsRepository` e mantém uma chamada a `summarize()`. Valida total, categorias, soma, ordenação e percentuais antes de resolver um lote de uma chave Core. Namespace `expense-metrics`, versão 1, componentes em ordem **start_date → end_date → mode**; owner é escopo separado. Valores, categorias e URL não entram na chave. O ID do Output é somente o UUID confirmado por Core, inclusive no zero. SQL financeiro, período, filtros, Response, provider e cálculos permanecem os existentes.
+
+| Contrato / cenário anterior → evidência atual | Destino e resultado |
+| --- | --- |
+| Hash público opaco → UUID confirmado, chave exata, owner canônico, zero e soma acima de inteiro nativo | `tests/Unit/Metrics/Application/UseCases/GetExpenseMetricsUseCaseTest.php`: registro simulado sem bootstrap/ORM; resposta usa UUID explícito da fixture; namespace/versão/nomes/tipos/ordem dos componentes são verificados. |
+| Default/intervalo equivalente, owner/start/end/modo diferentes, estabilidade frente a valores/ordem | Mesmo arquivo Unit: preserva os cenários anteriores, agora com Core real e persistência simulada, sem replicar o digest de produção para calcular esperado. |
+| Precisão, catálogo, duplicatas, grupos inconsistentes, categorias inesperadas e falha de fonte/owner | Cenários Unit anteriores agora exigem **zero chamadas** ao registro. Falhas do registro, lote incompleto e hash em lugar de UUID falham explicitamente, sem Output alternativo. |
+| Resumo singular e filtros/proteções anteriores | `tests/Feature/Metrics/Presentation/ExpenseMetricsHttpTest.php`: IDs dos dois modos são v7 canônicos e distintos; filtros inválidos e contas bloqueadas não criam associações. Preservadas as provas de catálogo, totais enormes, percentuais, timezone, leap years e isolamento. |
+| Zero → criação → edição/recategorização → mudança de ocorrência → retorno → exclusão | `tests/Feature/Metrics/Presentation/StableMetricsIdentityHttpTest.php`: HTTP real/PG nos dois modos, mesmo UUID e fatos atuais; default equivale ao explícito com ordem/trim aceitos. Categorias continuam somente parcelas sem ID/relationship. |
+| Nova sessão/processo e isolamento de identidades | Mesmo arquivo: revoga PAT anterior, emite substituto, executa Kernel HTTP em processo filho com conexão PostgreSQL nova e relê UUID/fatos; token antigo recebe 401. Outra conta, outro modo e outro período têm UUIDs distintos. Row original do registro permanece idêntica. É processo por fork, não reinício frio do servidor. |
+| Query constante para 0/1/18 categorias | Mesmo arquivo: uma leitura financeira; miss usa SELECT/INSERT/SELECT do registro, hit usa um SELECT. Rows de despesas e registro hit permanecem idênticas; Queue fake exige nenhum dispatch. Queries de autenticação/middleware/controle são classificadas separadamente, sem prometer um statement total do endpoint. |
+| Falha financeira, precisão, reconciliação e falha SQL após INSERT do registro | Mesmo arquivo: JSON:API 500 exato sem `data`; fonte inválida não toca o registro. Listener comprova primeira escrita, provoca SQLSTATE 23514 e verifica rollback real para zero rows/transaction level zero e exceção Core sanitizada sem previous. Não é prova de corrida nova; concorrência Core existente foi exercitada no gate completo. |
+
+Não foram introduzidos cache, tabela de resumo, materialização, queue/job, IDs por categoria, escrita de despesas ou imports de Infrastructure na Application. As permissões específicas de Core já existentes bastam; arquitetura não foi ampliada.
+
+### Execuções finais
+
+Todos os comandos Pest usam `lerd composer test --` e terminam com `--compact --fail-on-skipped --fail-on-incomplete --fail-on-risky`. Arquivos modificados foram executados isoladamente após a última edição/Pint. Nenhum skip/incomplete/risky ou exclusão nas execuções aprovadas.
+
+| Seleção após `test --` (antes dos flags comuns) | Testes / assertions | Duração Pest |
+| --- | --- | --- |
+| `tests/Unit/Metrics/Application/UseCases/GetExpenseMetricsUseCaseTest.php` | 48 / 180 | 59 ms |
+| `tests/Feature/Metrics/Presentation/ExpenseMetricsHttpTest.php` | 91 / 859 | 3.240 ms |
+| `tests/Feature/Metrics/Presentation/StableMetricsIdentityHttpTest.php` | 9 / 199 | 763 ms |
+| `tests/Unit/Metrics tests/Feature/Metrics tests/Unit/Architecture/ContextBoundariesTest.php` | 193 / 1.794 | 8.974 ms |
+| sem seleção — gate completo padrão, incluindo Core/Redis/concorrência/duas invocações simultâneas | 2.283 / 40.731 | 52.713 ms |
+| `tests/Feature/Metrics --parallel --processes=2` | 115 / 1.110 | 4.127 ms |
+
+Pint `--dirty --format agent` passou (ordem de imports Unit corrigida), `git diff --check` passou e OpenSpec estrito passou. Durante desenvolvimento, o Unit detectou assinatura posicional incorreta no esperado de `ResourceKeyInput` e ordem incorreta de componentes no código intermediário; ambos corrigidos, preservando a matriz canônica em vez de flexibilizar o teste. A primeira chamada paralela via MCP retornou timeout enquanto o gate completo executava; não conta como aprovação. A invocação paralela repetida sozinha é a evidência da tabela. Seeds globais e gate paralelo global finais continuam nas tarefas 14.x.
+
+### Limites operacionais e resultado
+
+Captura Lerd já estava habilitada; não houve mudança de configuração. GET local sem credencial em `/api/metrics/expenses` retornou 401 JSON:API. `optimize_route` retornou zero amostras: as contagens autenticadas acima são evidência HTTP/PostgreSQL do launcher, não medição operacional nem comprovação global de ausência de N+1. Reset e medição autenticada local permanecem no STEP 12. Não houve homologação Bruno/Flutter, archive ou publicação.
+
+**Resultado de escopo:** 9.1–9.7 completos e comprovados; próximo STEP 10 — sugestões com UUIDv7 estável. A change inteira continua pendente nas fatias seguintes.
+
+### Revalidação após relato de teste quebrando — 2026-10-15
+
+A execução completa reproduziu **4 falhas**, com 2.279 de 2.283 testes passando: no estado encontrado, os componentes Metrics estavam em ordem `mode → end_date → start_date`. Foi restaurada a ordem contratual **start_date → end_date → mode**, com comentário sobre sua participação no fingerprint persistido v1, sem alterar os esperados nem o contrato Core. Após Pint `--dirty --format agent`, o Unit isolado passou **48/180**, 59 ms; o gate completo padrão pelo launcher, com `--compact --fail-on-skipped --fail-on-incomplete --fail-on-risky`, passou **2.283/40.731**, 53.602 ms. Essa execução também inclui o ajuste posterior de tipagem/preparação explícita de `ExpenseMetricsHttpTest.php`; a restauração do relógio permanece no `FeatureTestCase::tearDown()`.

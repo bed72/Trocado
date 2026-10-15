@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace App\Metrics\Application\UseCases;
 
+use App\Core\Application\Data\ResourceInput;
+use App\Core\Application\Data\ResourceKeyInput;
 use App\Core\Application\Ports\UserPort;
+use App\Core\Application\UseCases\ResourceUseCase;
 use App\Core\Domain\Enums\ExpenseCategoryEnum;
 use App\Core\Domain\ValueObjects\AmountValueObject;
 use App\Core\Domain\ValueObjects\RatioValueObject;
+use App\Core\Domain\ValueObjects\UuidValueObject;
 use App\Metrics\Application\Data\ExpenseCategoryMetricsOutput;
 use App\Metrics\Application\Data\ExpenseCategoryTotalOutput;
 use App\Metrics\Application\Data\ExpenseMetricsOutput;
@@ -21,12 +25,13 @@ final readonly class GetExpenseMetricsUseCase
 {
     public function __construct(
         private UserPort $port,
+        private ResourceUseCase $useCase,
         private ExpenseMetricsRepository $repository,
     ) {}
 
     public function execute(GetExpenseMetricsInput $input): ExpenseMetricsOutput
     {
-        $userId = $this->port->id();
+        $userId = UuidValueObject::fromString($this->port->id())->value();
         $projection = $this->repository->summarize(
             userId: $userId,
             period: $input->period,
@@ -38,18 +43,28 @@ final readonly class GetExpenseMetricsUseCase
             throw new InvalidExpenseMetricsProjectionException('Uma consulta sem agrupamento não deve fornecer categorias.');
         }
 
+        $categories = $input->grouping === ExpenseMetricsGroupingEnum::Category
+            ? $this->categoryMetrics($projection, $total)
+            : null;
+        $resource = $this->useCase->execute(new ResourceInput(
+            userId: $userId,
+            identities: [new ResourceKeyInput(
+                identityVersion: 1,
+                namespace: 'expense-metrics',
+                components: [
+                    // Component order is part of the persisted v1 identity fingerprint.
+                    'start_date' => $input->period->from(),
+                    'end_date' => $input->period->to(),
+                    'mode' => $input->grouping->value,
+                ],
+            )],
+        ));
+
         return new ExpenseMetricsOutput(
-            id: hash('sha256', implode('|', [
-                (string) $userId,
-                $input->period->to(),
-                $input->period->from(),
-                $input->grouping->value,
-            ])),
+            id: $resource->identities[0]->id,
             period: $input->period,
+            categories: $categories,
             totalAmount: $total->amount(),
-            categories: $input->grouping === ExpenseMetricsGroupingEnum::Category
-                ? $this->categoryMetrics($projection, $total)
-                : null,
         );
     }
 

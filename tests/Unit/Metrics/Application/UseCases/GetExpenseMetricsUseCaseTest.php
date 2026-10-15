@@ -2,7 +2,12 @@
 
 declare(strict_types=1);
 
+use App\Core\Application\Data\ResourceKeyInput;
+use App\Core\Application\Data\ResourceKeyOutput;
+use App\Core\Application\Exceptions\ResourcePersistenceException;
 use App\Core\Application\Ports\UserPort;
+use App\Core\Application\Repositories\ResourceRepository;
+use App\Core\Application\UseCases\ResourceUseCase;
 use App\Core\Domain\Exceptions\InvalidAmountException;
 use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Metrics\Application\Data\ExpenseCategoryTotalOutput;
@@ -13,6 +18,7 @@ use App\Metrics\Application\Repositories\ExpenseMetricsRepository;
 use App\Metrics\Application\UseCases\GetExpenseMetricsUseCase;
 use App\Metrics\Domain\Enums\ExpenseMetricsGroupingEnum;
 use PHPUnit\Framework\MockObject\MockObject;
+use Tests\Support\Core\Fakes\TransactionPortFake;
 use Tests\Support\Core\Fixtures\UuidFixture;
 
 function expenseMetricsInputFixture(
@@ -36,9 +42,25 @@ function expenseMetricsProjectionFixture(string $total, array $totals = []): Exp
 }
 
 /** @return array{UserPort&MockObject, ExpenseMetricsRepository&MockObject, GetExpenseMetricsUseCase} */
-function expenseMetricsUseCaseFixture(UserPort&MockObject $userPort, ExpenseMetricsRepository&MockObject $metricsPort): array
+function expenseMetricsUseCaseFixture(UserPort&MockObject $userPort, ExpenseMetricsRepository&MockObject $metricsPort, ?ResourceRepository $resources = null): array
 {
-    return [$userPort, $metricsPort, new GetExpenseMetricsUseCase(port: $userPort, repository: $metricsPort)];
+    if ($resources === null) {
+        $ids = [];
+        $resources = test()->createStub(ResourceRepository::class);
+        $resources->method('resolve')->willReturnCallback(static function (string $owner, array $keys) use (&$ids): array {
+            $key = $keys[0];
+            $index = serialize([$owner, $key]);
+            $ids[$index] ??= UuidFixture::at(count($ids) + 100);
+
+            return [new ResourceKeyOutput($key, $ids[$index])];
+        });
+    }
+
+    return [$userPort, $metricsPort, new GetExpenseMetricsUseCase(
+        port: $userPort,
+        useCase: new ResourceUseCase(new TransactionPortFake, $resources),
+        repository: $metricsPort,
+    )];
 }
 
 it('reads the authenticated owner once and forwards the exact effective period and grouping', function (ExpenseMetricsGroupingEnum $grouping): void {
@@ -52,7 +74,7 @@ it('reads the authenticated owner once and forwards the exact effective period a
 
     $output = $useCase->execute($input);
 
-    expect($output->id)->toMatch('/\A[0-9a-f]{64}\z/')
+    expect($output->id)->toBe(UuidFixture::at(100))
         ->and($output->period)->toBe($input->period)
         ->and($output->totalAmount)->toBe('123456');
 
@@ -189,7 +211,9 @@ it('distinguishes the account both period endpoints and grouping in opaque ident
 })->with(['account', 'start', 'end', 'grouping']);
 
 it('does not read metrics when authenticated identity fails', function (): void {
-    [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsRepository::class));
+    $resources = $this->createMock(ResourceRepository::class);
+    $resources->expects($this->never())->method('resolve');
+    [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsRepository::class), $resources);
     $userPort->method('id')->willThrowException(new RuntimeException('Identity unavailable'));
     $metricsPort->expects($this->never())->method('summarize');
 
@@ -197,7 +221,9 @@ it('does not read metrics when authenticated identity fails', function (): void 
 })->throws(RuntimeException::class, 'Identity unavailable');
 
 it('propagates analytical failures instead of returning total zero', function (): void {
-    [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsRepository::class));
+    $resources = $this->createMock(ResourceRepository::class);
+    $resources->expects($this->never())->method('resolve');
+    [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsRepository::class), $resources);
     $userPort->method('id')->willReturn(UuidFixture::at(42));
     $metricsPort->method('summarize')->willThrowException(new RuntimeException('Metrics unavailable'));
 
@@ -205,7 +231,9 @@ it('propagates analytical failures instead of returning total zero', function ()
 })->throws(RuntimeException::class, 'Metrics unavailable');
 
 it('rejects malformed category projections instead of silently repairing or omitting facts', function (ExpenseMetricsProjectionOutput $projection): void {
-    [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsRepository::class));
+    $resources = $this->createMock(ResourceRepository::class);
+    $resources->expects($this->never())->method('resolve');
+    [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsRepository::class), $resources);
     $userPort->method('id')->willReturn(UuidFixture::at(42));
     $metricsPort->method('summarize')->willReturn($projection);
 
@@ -224,7 +252,9 @@ it('rejects malformed category projections instead of silently repairing or omit
 ])->throws(InvalidExpenseMetricsProjectionException::class);
 
 it('rejects noncanonical exact amounts in the projection', function (string $amount, bool $categoryAmount): void {
-    [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsRepository::class));
+    $resources = $this->createMock(ResourceRepository::class);
+    $resources->expects($this->never())->method('resolve');
+    [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsRepository::class), $resources);
     $userPort->method('id')->willReturn(UuidFixture::at(42));
     $projection = $categoryAmount ? expenseMetricsProjectionFixture('1', ['food' => $amount]) : expenseMetricsProjectionFixture($amount);
     $metricsPort->method('summarize')->willReturn($projection);
@@ -233,9 +263,56 @@ it('rejects noncanonical exact amounts in the projection', function (string $amo
 })->with(['-1', '01', '1.00', '1e3', ''])->with([false, true])->throws(InvalidAmountException::class);
 
 it('rejects categories unexpectedly provided in total only mode', function (): void {
-    [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsRepository::class));
+    $resources = $this->createMock(ResourceRepository::class);
+    $resources->expects($this->never())->method('resolve');
+    [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsRepository::class), $resources);
     $userPort->method('id')->willReturn(UuidFixture::at(42));
     $metricsPort->method('summarize')->willReturn(expenseMetricsProjectionFixture('1', ['food' => '1']));
 
     $useCase->execute(expenseMetricsInputFixture());
 })->throws(InvalidExpenseMetricsProjectionException::class);
+
+it('resolves one canonical key after the financial read including zero without calculated facts', function (ExpenseMetricsGroupingEnum $mode, string $amount): void {
+    $read = false;
+    $resolved = [];
+    $resources = $this->createMock(ResourceRepository::class);
+    $resources->expects($this->once())->method('resolve')->with(UuidFixture::at(42), $this->anything())
+        ->willReturnCallback(static function (string $owner, array $keys) use (&$resolved, &$read): array {
+            $resolved = [$read, $keys];
+
+            return [new ResourceKeyOutput($keys[0], UuidFixture::at(999))];
+        });
+    [$user, $metrics, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsRepository::class), $resources);
+    $user->method('id')->willReturn(strtoupper(UuidFixture::at(42)));
+    $metrics->expects($this->once())->method('summarize')->with(UuidFixture::at(42), $this->anything(), $mode)
+        ->willReturnCallback(static function () use (&$read, $mode, $amount): ExpenseMetricsProjectionOutput {
+            $read = true;
+
+            return expenseMetricsProjectionFixture($amount, $mode === ExpenseMetricsGroupingEnum::Category && $amount !== '0' ? ['food' => $amount] : []);
+        });
+
+    $output = $useCase->execute(expenseMetricsInputFixture($mode));
+    expect($output->id)->toBe(UuidFixture::at(999))->and($output->totalAmount)->toBe($amount)
+        ->and($resolved[0])->toBeTrue()
+        ->and($resolved[1])->toEqual([new ResourceKeyInput(namespace: 'expense-metrics', identityVersion: 1, components: [
+            'start_date' => '2026-10-01', 'end_date' => '2026-10-31', 'mode' => $mode->value,
+        ])])
+        ->and(array_keys($resolved[1][0]->components))->toBe(['start_date', 'end_date', 'mode']);
+})->with(ExpenseMetricsGroupingEnum::cases())->with(['0', '12000000000000000000']);
+
+it('fails explicitly when the registry fails or returns incomplete or invalid identities', function (string $failure): void {
+    $resources = $this->createMock(ResourceRepository::class);
+    $resolve = $resources->expects($this->once())->method('resolve');
+    if ($failure === 'unavailable') {
+        $resolve->willThrowException(new RuntimeException('private registry failure'));
+    } else {
+        $resolve->willReturnCallback(static fn (string $owner, array $keys): array => $failure === 'missing'
+            ? [] : [new ResourceKeyOutput($keys[0], str_repeat('a', 64))]);
+    }
+    [$user, $metrics, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsRepository::class), $resources);
+    $user->method('id')->willReturn(UuidFixture::at(42));
+    $metrics->expects($this->once())->method('summarize')->willReturn(expenseMetricsProjectionFixture('100', ['food' => '100']));
+
+    expect(fn () => $useCase->execute(expenseMetricsInputFixture(ExpenseMetricsGroupingEnum::Category)))
+        ->toThrow(ResourcePersistenceException::class, 'Resource identities could not be resolved.');
+})->with(['unavailable', 'missing', 'hash']);
