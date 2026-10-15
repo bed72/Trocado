@@ -30,10 +30,10 @@ final readonly class EloquentNotificationRepository implements NotificationRegis
             ->all());
     }
 
-    public function create(int $userId, int $sessionId, #[SensitiveParameter] NotificationValueObject $destination, DateTimeImmutable $reference): NotificationRegistrationEntity
+    public function create(string $userId, string $sessionId, #[SensitiveParameter] NotificationValueObject $destination, DateTimeImmutable $reference): NotificationRegistrationEntity
     {
         $registration = new NotificationRegistrationEntity(
-            id: (string) Str::uuid(),
+            id: (string) Str::uuid7(),
             userId: $userId,
             sessionId: $sessionId,
             generation: 1,
@@ -53,7 +53,7 @@ final readonly class EloquentNotificationRepository implements NotificationRegis
         });
     }
 
-    public function delete(int $userId, string $id): bool
+    public function delete(string $userId, string $id): bool
     {
         return $this->execute(fn (): bool => NotificationModel::query()
             ->where('user_id', $userId)->whereKey($id)->delete() === 1);

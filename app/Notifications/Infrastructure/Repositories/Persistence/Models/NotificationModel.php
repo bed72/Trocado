@@ -21,8 +21,6 @@ final class NotificationModel extends Model
     protected function casts(): array
     {
         return [
-            'user_id' => 'integer',
-            'session_id' => 'integer',
             'generation' => 'integer',
             'registration_identifier' => 'encrypted',
             'last_registered_at' => 'immutable_datetime',

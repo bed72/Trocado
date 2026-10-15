@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Schema;
 use Tests\Support\Core\Database\TestDatabaseGuard;
 use Tests\Support\Core\Database\TestDatabasePreflight;
 use Tests\Support\Core\Database\TestDatabaseRun;
+use Tests\Support\Core\Fixtures\UuidFixture;
 
 it('prepares an empty database and applies pending migrations without losing existing rows', function (): void {
     $original = config('database.connections.pgsql');
@@ -22,7 +23,8 @@ it('prepares an empty database and applies pending migrations without losing exi
         expect(Schema::hasTable('users'))->toBeFalse();
 
         $preflight->migrate($this->app, ['database/migrations/2026_09_21_000000_create_users_table.php']);
-        $userId = DB::table('users')->insertGetId(['name' => 'Maria', 'email' => 'preflight@example.com']);
+        $userId = UuidFixture::at(1);
+        DB::table('users')->insert(['id' => $userId, 'name' => 'Maria', 'email' => 'preflight@example.com']);
         expect(DB::table('migrations')->count())->toBe(1)
             ->and(Schema::hasTable('expenses'))->toBeFalse();
 

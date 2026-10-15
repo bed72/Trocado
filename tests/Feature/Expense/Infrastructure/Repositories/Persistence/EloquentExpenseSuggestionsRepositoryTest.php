@@ -9,6 +9,7 @@ use App\Expense\Application\UseCases\GetExpenseSuggestionsUseCase;
 use App\Expense\Infrastructure\Repositories\Persistence\EloquentExpenseSuggestionsRepository;
 use App\Identity\Domain\Enums\UserStatusEnum;
 use Illuminate\Support\Facades\DB;
+use Tests\Support\Core\Fixtures\UuidFixture;
 use Tests\Support\Core\Stubs\UserPortStub;
 use Tests\Support\Expense\Fixtures\ExpenseSuggestionHistoryFixture;
 use Tests\Support\Identity\Fixtures\IdentityFixture;
@@ -62,8 +63,8 @@ it('normalizes case and external whitespace consistently while selecting latest 
 });
 
 it('preserves accents and internal spaces and excludes unusable descriptions', function (): void {
-    foreach ([null, '', " \t\r\n", 'Café', 'CAFÉ', 'Cafe', 'Plano  Internet', 'Plano Internet'] as $description) {
-        ExpenseSuggestionHistoryFixture::create($this->owner->id, $description, 100, '2026-07-01', '2026-07-01 12:00:00');
+    foreach ([null, '', " \t\r\n", 'Café', 'CAFÉ', 'Cafe', 'Plano  Internet', 'Plano Internet'] as $index => $description) {
+        ExpenseSuggestionHistoryFixture::create($this->owner->id, $description, 100, '2026-07-01', '2026-07-01 12:00:00', UuidFixture::at($index + 1));
     }
 
     expect(array_column($this->repository->search($this->owner->id, 'Cafe', $this->period), 'description'))->toBe(['Cafe'])

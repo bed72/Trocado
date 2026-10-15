@@ -16,10 +16,13 @@ use App\Insights\Domain\ValueObjects\InsightAnalysisPeriodValueObject;
 use App\Insights\Domain\ValueObjects\InsightCandidateValueObject;
 use App\Insights\Infrastructure\Repositories\Persistence\EloquentExpenseAnalysisRepository;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Tests\Support\Core\Fixtures\UuidFixture;
 
-function createInsightUser(): int
+function createInsightUser(): string
 {
     return DB::table('users')->insertGetId([
+        'id' => (string) Str::uuid7(),
         'name' => 'Maria', 'email' => 'insights@example.com', 'password' => 'unused',
     ]);
 }
@@ -29,9 +32,10 @@ function insightExpenseAnalysisRepository(): ExpenseAnalysisRepository
     return app(ExpenseAnalysisRepository::class);
 }
 
-function insertInsightExpense(int $userId, string $date, int $amount, string $category = 'other', ?string $description = null): int
+function insertInsightExpense(string $userId, string $date, int $amount, string $category = 'other', ?string $description = null, ?string $id = null): string
 {
     return DB::table('expenses')->insertGetId([
+        'id' => $id ?? (string) Str::uuid7(),
         'updated_at' => '2026-10-12 12:00:00',
         'category' => $category, 'created_at' => '2026-10-12 12:00:00',
         'user_id' => $userId, 'occurred_on' => $date, 'amount' => $amount,
@@ -43,6 +47,7 @@ it('aggregates only the owner occurrence periods in one read without writes', fu
     $userId = createInsightUser();
     $port = insightExpenseAnalysisRepository();
     $otherUserId = DB::table('users')->insertGetId([
+        'id' => (string) Str::uuid7(),
         'name' => 'Pedro', 'email' => 'other-insights@example.com', 'password' => 'unused',
     ]);
     insertInsightExpense($userId, '2026-10-01', 20000, 'food');
@@ -137,9 +142,9 @@ it('distinguishes empty history from old history and excludes future history', f
 it('preserves totals above machine integer limits and breaks largest expense ties deterministically', function (): void {
     $userId = createInsightUser();
     $port = insightExpenseAnalysisRepository();
-    insertInsightExpense($userId, '2026-10-01', PHP_INT_MAX, 'other', 'Categoria posterior');
-    insertInsightExpense($userId, '2026-10-03', PHP_INT_MAX, 'food', 'Escolhido por ID');
-    insertInsightExpense($userId, '2026-10-02', PHP_INT_MAX, 'food', 'ID posterior');
+    insertInsightExpense($userId, '2026-10-01', PHP_INT_MAX, 'other', 'Categoria posterior', UuidFixture::at(1));
+    insertInsightExpense($userId, '2026-10-02', PHP_INT_MAX, 'food', 'ID posterior', UuidFixture::at(3));
+    insertInsightExpense($userId, '2026-10-03', PHP_INT_MAX, 'food', 'Escolhido por ID', UuidFixture::at(2));
     $output = $port->analyze($userId, new InsightAnalysisPeriodValueObject('2026-10-12', DatePeriodValueObject::monthContaining('2026-10-12')));
 
     expect($output->currentMonth->totalAmount)->toBe('27670116110564327421')
@@ -173,7 +178,7 @@ it('reads confirmed edits recategorizations and deletions without cached facts',
 });
 
 it('generates candidates from the real analytical projection', function (?int $explicitUserId, int $previousAccounts): void {
-    $previousUserId = 0;
+    $previousUserId = null;
 
     for ($index = 0; $index < $previousAccounts; $index++) {
         $previousUserId = createInsightUser();
@@ -182,12 +187,12 @@ it('generates candidates from the real analytical projection', function (?int $e
 
     if ($explicitUserId === null) {
         $userId = createInsightUser();
-        expect($userId)->toBeGreaterThan($previousUserId);
+        expect($userId)->not->toBe($previousUserId);
     } else {
         DB::table('users')->insert([
-            'id' => $explicitUserId, 'name' => 'Maria', 'email' => 'insights@example.com', 'password' => 'unused',
+            'id' => UuidFixture::at($explicitUserId), 'name' => 'Maria', 'email' => 'insights@example.com', 'password' => 'unused',
         ]);
-        $userId = $explicitUserId;
+        $userId = UuidFixture::at($explicitUserId);
     }
 
     $port = insightExpenseAnalysisRepository();
@@ -241,7 +246,7 @@ it('generates candidates from the real analytical projection', function (?int $e
 it('reads inclusive complete historical months and excludes later occurrence and other owners in one statement', function (string $selected, string $lastDay, string $priorLastDay, string $nextMonth): void {
     $userId = createInsightUser();
     $period = new InsightAnalysisPeriodValueObject('2026-10-12', DatePeriodValueObject::monthContaining($selected));
-    $otherUserId = DB::table('users')->insertGetId(['name' => 'Pedro', 'email' => 'other-history@example.com', 'password' => 'unused']);
+    $otherUserId = DB::table('users')->insertGetId(['id' => (string) Str::uuid7(), 'name' => 'Pedro', 'email' => 'other-history@example.com', 'password' => 'unused']);
     insertInsightExpense($userId, $period->currentMonth->from(), 10000, 'food', 'Primeiro dia');
     insertInsightExpense($userId, $lastDay, 20000, 'food', 'Último dia selecionado');
     insertInsightExpense($userId, $priorLastDay, 30000, 'other', 'Último dia anterior');

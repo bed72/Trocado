@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Expense\Application\Repositories\ExpenseRepository;
 use App\Identity\Domain\Enums\UserStatusEnum;
 use Illuminate\Support\Carbon;
+use Tests\Support\Core\Fixtures\UuidFixture;
 use Tests\Support\Expense\Fixtures\ExpenseQueryHistoryFixture;
 use Tests\Support\Identity\Fixtures\IdentityFixture;
 
@@ -27,7 +28,7 @@ it('composes inclusive independent filters before pagination and isolates the ow
     ];
     $ids = [];
     foreach ($rows as $key => [$date, $amount, $category]) {
-        $ids[$key] = (string) ExpenseQueryHistoryFixture::create($this->owner->id, $date, $amount, $category);
+        $ids[$key] = ExpenseQueryHistoryFixture::create($this->owner->id, $date, $amount, $category, id: UuidFixture::at(count($ids) + 1));
     }
     $other = IdentityFixture::create(UserStatusEnum::Active, null, email: 'other@example.com');
     ExpenseQueryHistoryFixture::create($other->id, '2026-09-30', 30000, 'transport');

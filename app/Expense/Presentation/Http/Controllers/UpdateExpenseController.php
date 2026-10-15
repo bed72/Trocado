@@ -16,12 +16,12 @@ final readonly class UpdateExpenseController
 {
     public function __construct(private UpdateExpenseUseCase $useCase) {}
 
-    public function __invoke(UpdateExpenseRequest $request, int $expense): JsonResponse
+    public function __invoke(UpdateExpenseRequest $request, string $id): JsonResponse
     {
         $attributes = $request->validated(key: 'data.attributes');
 
         return (new ExpenseResponse(resource: $this->useCase->execute(
-            id: $expense,
+            id: $id,
             input: new UpdateExpenseInput(
                 amount: $attributes['amount'] ?? null,
                 category: $attributes['category'] ?? null,

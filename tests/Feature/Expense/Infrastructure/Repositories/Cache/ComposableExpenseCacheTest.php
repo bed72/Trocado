@@ -6,6 +6,7 @@ use App\Core\Domain\Enums\ExpenseCategoryEnum;
 use App\Expense\Application\Data\ApplyExpenseClassificationInput;
 use App\Expense\Application\Data\GetAllExpenseInput;
 use App\Expense\Application\Data\UpdateExpenseInput;
+use App\Expense\Application\Ports\ExpenseQueryCursorPort;
 use App\Expense\Application\Repositories\ExpenseCategorizationRepository;
 use App\Expense\Application\Repositories\ExpenseRepository;
 use App\Expense\Domain\Entities\ExpenseEntity;
@@ -65,7 +66,7 @@ it('invalidates all query variants only after committed CRUD or classification a
         foreach ($queries as $input) {
             $repository->getAll($userId, $input);
         }
-        Cache::tags("expense:pages:owner:{$userId}")->put('sentinel', 'old', 60);
+        Cache::tags("expense:pages:v3:owner:{$userId}")->put('sentinel', 'old', 60);
     }
     $write = function () use ($repository, $owner, $id, $operation): void {
         if ($operation === 'create') {
@@ -79,7 +80,7 @@ it('invalidates all query variants only after committed CRUD or classification a
             $attempts->beginClassificationAttempt($id, str_repeat('a', 32), new DateTimeImmutable('2099-01-01'));
             expect($attempts->applyClassificationAttempt(new ApplyExpenseClassificationInput($id, str_repeat('a', 32), 'Água', ExpenseCategoryEnum::Transport)))->toBe($owner->id);
         }
-        expect(Cache::tags("expense:pages:owner:{$owner->id}")->get('sentinel'))->toBe('old');
+        expect(Cache::tags("expense:pages:v3:owner:{$owner->id}")->get('sentinel'))->toBe('old');
     };
     if ($commit) {
         DB::transaction($write);
@@ -96,8 +97,8 @@ it('invalidates all query variants only after committed CRUD or classification a
         }
         expect(DB::table('expenses')->orderBy('id')->get()->all())->toEqual($before);
     }
-    expect(Cache::tags("expense:pages:owner:{$owner->id}")->get('sentinel'))->toBe($commit ? null : 'old')
-        ->and(Cache::tags("expense:pages:owner:{$other->id}")->get('sentinel'))->toBe('old');
+    expect(Cache::tags("expense:pages:v3:owner:{$owner->id}")->get('sentinel'))->toBe($commit ? null : 'old')
+        ->and(Cache::tags("expense:pages:v3:owner:{$other->id}")->get('sentinel'))->toBe('old');
 
     DB::enableQueryLog();
     DB::flushQueryLog();
@@ -117,7 +118,7 @@ it('expires pages after sixty seconds and does not reuse the old namespace', fun
     Carbon::setTestNow('2026-10-11 12:00:00 UTC');
     $owner = IdentityFixture::create(UserStatusEnum::Active, new DateTimeImmutable('2026-01-01'));
     $id = ExpenseQueryHistoryFixture::create($owner->id, '2026-09-01', 1000, 'food');
-    $oldKey = "expense:pages:v1:{$owner->id}:20:".hash('sha256', 'none');
+    $oldKey = "expense:pages:v2:{$owner->id}:20:".app(ExpenseQueryCursorPort::class)->fingerprint(new GetAllExpenseInput).':'.hash('sha256', 'none');
     Cache::tags("expense:pages:owner:{$owner->id}")->put($oldKey, ['items' => [], 'nextCursor' => 'old', 'previousCursor' => null], 60);
     $repository = app(ExpenseRepository::class);
     $input = new GetAllExpenseInput;

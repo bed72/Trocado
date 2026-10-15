@@ -6,5 +6,5 @@ namespace App\Expense\Application\Ports;
 
 interface ExpenseClassificationDispatchPort
 {
-    public function dispatch(string $token, int $expenseId): void;
+    public function dispatch(string $token, string $expenseId): void;
 }

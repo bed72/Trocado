@@ -3,20 +3,21 @@
 declare(strict_types=1);
 
 use App\Core\Domain\Enums\ExpenseCategoryEnum;
+use App\Core\Domain\Exceptions\InvalidUuidException;
 use App\Expense\Domain\Entities\ExpenseEntity;
 use App\Expense\Domain\Exceptions\InvalidExpenseException;
+use Tests\Support\Core\Fixtures\UuidFixture;
 
 it('defaults the category and keeps valid civil dates and descriptions', function (): void {
-    $expense = new ExpenseEntity(id: null, userId: 1, amount: 1250, occurredOn: '2026-09-20');
+    $expense = new ExpenseEntity(id: null, userId: UuidFixture::at(1), amount: 1250, occurredOn: '2026-09-20');
 
     expect($expense->category)->toBe(ExpenseCategoryEnum::Other)
         ->and($expense->description)->toBeNull();
 });
 
 it('rejects invalid expenses outside HTTP', function (int $userId, int $amount, string $date, ?string $category, ?string $description): void {
-    new ExpenseEntity(id: null, userId: $userId, amount: $amount, occurredOn: $date, category: $category, description: $description);
+    new ExpenseEntity(id: null, userId: UuidFixture::at($userId), amount: $amount, occurredOn: $date, category: $category, description: $description);
 })->with([
-    'missing owner' => [0, 1250, '2026-09-20', null, null],
     'zero amount' => [1, 0, '2026-09-20', null, null],
     'negative amount' => [1, -1, '2026-09-20', null, null],
     'invalid calendar date' => [1, 1250, '2026-02-30', null, null],
@@ -25,6 +26,16 @@ it('rejects invalid expenses outside HTTP', function (int $userId, int $amount, 
     'long category' => [1, 1250, '2026-09-20', str_repeat('a', 33), null],
     'long description' => [1, 1250, '2026-09-20', null, str_repeat('a', 65)],
 ])->throws(InvalidExpenseException::class);
+
+it('canonicalizes present expense and owner UUIDs', function (): void {
+    $expense = new ExpenseEntity(id: strtoupper(UuidFixture::at(100)), userId: strtoupper(UuidFixture::at(200)), amount: 1, occurredOn: '2026-09-20');
+    expect($expense->id)->toBe(UuidFixture::at(100))->and($expense->userId)->toBe(UuidFixture::at(200));
+});
+
+it('rejects invalid expense and owner identifiers outside HTTP', function (string $invalid): void {
+    expect(fn () => new ExpenseEntity(id: $invalid, userId: UuidFixture::at(1), amount: 1, occurredOn: '2026-09-20'))->toThrow(InvalidUuidException::class);
+    expect(fn () => new ExpenseEntity(id: null, userId: $invalid, amount: 1, occurredOn: '2026-09-20'))->toThrow(InvalidUuidException::class);
+})->with(['', '1', '00000000-0000-4000-8000-000000000001', '00000000-0000-7000-0000-000000000001', ' '.UuidFixture::at(1)]);
 
 it('only considers useful expense descriptions eligible for classification', function (?string $description, bool $eligible): void {
     expect(ExpenseEntity::isDescriptionEligibleForClassification($description))->toBe($eligible);

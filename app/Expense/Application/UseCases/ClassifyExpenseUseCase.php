@@ -6,6 +6,7 @@ namespace App\Expense\Application\UseCases;
 
 use App\Core\Application\Ports\ObservabilityPort;
 use App\Core\Application\Ports\TransactionPort;
+use App\Core\Domain\ValueObjects\UuidValueObject;
 use App\Expense\Application\Data\ApplyExpenseClassificationInput;
 use App\Expense\Application\Ports\ExpenseClassificationPort;
 use App\Expense\Application\Repositories\ExpenseCategorizationRepository;
@@ -19,8 +20,9 @@ final readonly class ClassifyExpenseUseCase
         private ExpenseCategorizationRepository $repository,
     ) {}
 
-    public function execute(int $expenseId, string $token): void
+    public function execute(string $expenseId, string $token): void
     {
+        $expenseId = UuidValueObject::fromString($expenseId)->value();
         $attempt = $this->repository->findClassificationAttempt(expenseId: $expenseId, token: $token);
 
         if ($attempt === null) {
@@ -51,8 +53,9 @@ final readonly class ClassifyExpenseUseCase
         }
     }
 
-    public function fail(int $expenseId, string $token): void
+    public function fail(string $expenseId, string $token): void
     {
+        $expenseId = UuidValueObject::fromString($expenseId)->value();
         $this->repository->cancelClassification(expenseId: $expenseId, token: $token);
     }
 }

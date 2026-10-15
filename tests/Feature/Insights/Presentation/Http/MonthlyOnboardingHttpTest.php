@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Identity\Domain\Enums\UserStatusEnum;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Tests\Support\Identity\Fixtures\IdentityFixture;
 
 beforeEach(function (): void {
@@ -23,6 +24,7 @@ it('returns only localized onboarding for absent or insufficient selected record
 
     foreach ($dates as $date) {
         DB::table('expenses')->insert([
+            'id' => (string) Str::uuid7(),
             'user_id' => $user->getKey(), 'amount' => 2000, 'category' => 'food', 'occurred_on' => $date,
             'created_at' => '2026-10-12 12:00:00', 'updated_at' => '2026-10-12 12:00:00',
         ]);
@@ -68,6 +70,7 @@ it('reviews other only with the selected material base and exact fifty percent t
 
     foreach ($expenses as [$day, $amount, $category]) {
         DB::table('expenses')->insert([
+            'id' => (string) Str::uuid7(),
             'user_id' => $user->getKey(), 'amount' => $amount, 'category' => $category,
             'occurred_on' => "{$prefix}-{$day}",
             'created_at' => '2026-10-12 12:00:00', 'updated_at' => '2026-10-12 12:00:00',
@@ -75,6 +78,7 @@ it('reviews other only with the selected material base and exact fifty percent t
     }
 
     DB::table('expenses')->insert([
+        'id' => (string) Str::uuid7(),
         'user_id' => $user->getKey(), 'amount' => 999999, 'category' => 'other', 'occurred_on' => '2026-10-13',
         'created_at' => '2026-10-12 12:00:00', 'updated_at' => '2026-10-12 12:00:00',
     ]);
@@ -120,6 +124,7 @@ it('keeps an eligible expense observation beside other review without insufficie
 
     foreach ([['01', 5000, 'other'], ['02', 500, 'other'], ['03', 500, 'other'], ['04', 2000, 'food'], ['05', 2000, 'food']] as [$day, $amount, $category]) {
         DB::table('expenses')->insert([
+            'id' => (string) Str::uuid7(),
             'user_id' => $user->getKey(), 'amount' => $amount, 'category' => $category,
             'occurred_on' => "{$month}-{$day}",
             'created_at' => '2026-10-12 12:00:00', 'updated_at' => '2026-10-12 12:00:00',

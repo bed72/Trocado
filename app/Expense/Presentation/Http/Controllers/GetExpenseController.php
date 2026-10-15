@@ -11,8 +11,8 @@ final readonly class GetExpenseController
 {
     public function __construct(private GetExpenseUseCase $useCase) {}
 
-    public function __invoke(int $expense): ExpenseResponse
+    public function __invoke(string $id): ExpenseResponse
     {
-        return new ExpenseResponse(resource: $this->useCase->execute(id: $expense));
+        return new ExpenseResponse(resource: $this->useCase->execute(id: $id));
     }
 }

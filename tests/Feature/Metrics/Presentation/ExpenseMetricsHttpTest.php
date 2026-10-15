@@ -8,12 +8,13 @@ use App\Metrics\Application\Repositories\ExpenseMetricsRepository;
 use App\Metrics\Infrastructure\Repositories\Persistence\EloquentExpenseMetricsRepository;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use RuntimeException as OperationalFailureException;
 use Tests\Support\Identity\Fixtures\IdentityFixture;
 
 beforeEach(function (): void {
     $this->identity = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
-    $this->userId = (int) $this->identity->getKey();
+    $this->userId = $this->identity->getKey();
     $this->token = IdentityFixture::token($this->identity, expiresAt: now()->addDays(30));
     $this->withToken($this->token);
 });
@@ -22,9 +23,10 @@ afterEach(function (): void {
     Carbon::setTestNow();
 });
 
-function insertHttpMetricsExpense(int $userId, int $amount, string $category = 'other', string $date = '2026-10-09'): void
+function insertHttpMetricsExpense(string $userId, int $amount, string $category = 'other', string $date = '2026-10-09'): void
 {
     DB::table('expenses')->insert([
+        'id' => (string) Str::uuid7(),
         'user_id' => $userId, 'amount' => $amount, 'category' => $category, 'occurred_on' => $date,
         'created_at' => '2026-11-01 12:00:00', 'updated_at' => '2026-11-01 12:00:00',
     ]);
@@ -66,7 +68,7 @@ it('includes investments and financing in the same exact denominator while exclu
     insertHttpMetricsExpense($this->userId, 10000, 'food');
     $other = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now(), email: 'other-expanded-metrics@example.com');
     foreach (['investments', 'financing', 'food'] as $category) {
-        insertHttpMetricsExpense((int) $other->id, 90000, $category);
+        insertHttpMetricsExpense($other->id, 90000, $category);
         insertHttpMetricsExpense($this->userId, 90000, $category, '2026-09-30');
         insertHttpMetricsExpense($this->userId, 90000, $category, '2026-11-01');
     }
@@ -210,7 +212,7 @@ it('resolves leap and non leap default months including future recorded occurren
 })->with([['2027-02-09', '2027-02-28'], ['2028-02-09', '2028-02-29']]);
 
 it('keeps identity stable after writes and excludes another account', function (): void {
-    $other = DB::table('users')->insertGetId(['name' => 'Pedro', 'email' => 'other-http@example.com', 'password' => 'unused']);
+    $other = DB::table('users')->insertGetId(['id' => (string) Str::uuid7(), 'name' => 'Pedro', 'email' => 'other-http@example.com', 'password' => 'unused']);
     insertHttpMetricsExpense($other, 90000, 'food');
     $url = '/api/metrics/expenses?start_date=2026-10-01&end_date=2026-10-31&group_by=category';
     $empty = $this->getJson($url)->assertOk()->assertJsonPath('data.attributes.total_amount', '0');

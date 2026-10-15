@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Expense\Infrastructure\Adapters;
 
 use App\Core\Domain\Exceptions\InvalidDatePeriodException;
+use App\Core\Domain\Exceptions\InvalidUuidException;
 use App\Core\Domain\ValueObjects\DatePeriodValueObject;
+use App\Core\Domain\ValueObjects\UuidValueObject;
 use App\Expense\Application\Data\ExpenseCursorOutput;
 use App\Expense\Application\Data\GetAllExpenseInput;
 use App\Expense\Application\Exceptions\InvalidExpenseCursorException;
@@ -29,7 +31,7 @@ final class ExpenseQueryCursorAdapter implements ExpenseQueryCursorPort
 
     public function encode(GetAllExpenseInput $input, ExpenseCursorOutput $cursor): string
     {
-        return $this->encodePayload(['v' => 1, 'query' => $this->fingerprint($input), 'position' => $cursor->position, 'forward' => $cursor->forward]);
+        return $this->encodePayload(['v' => 2, 'query' => $this->fingerprint($input), 'position' => $cursor->position, 'forward' => $cursor->forward]);
     }
 
     private function encodePayload(array $payload): string
@@ -69,24 +71,13 @@ final class ExpenseQueryCursorAdapter implements ExpenseQueryCursorPort
             throw new InvalidExpenseCursorException;
         }
 
-        if (array_keys($payload) === ['occurred_on', 'id', '_pointsToNextItems']) {
-            if (! $input->legacyCursorAllowed || $input->sorts !== ['-occurred_on'] || $input->categories !== []
-                || $input->amountMin !== null || $input->amountMax !== null) {
-                throw new InvalidExpenseCursorException;
-            }
-
-            $forward = $payload['_pointsToNextItems'];
-            unset($payload['_pointsToNextItems']);
-            $position = $payload;
-        } else {
-            if (array_keys($payload) !== ['v', 'query', 'position', 'forward'] || $payload['v'] !== 1
-                || $payload['query'] !== $this->fingerprint($input)) {
-                throw new InvalidExpenseCursorException;
-            }
-
-            $forward = $payload['forward'];
-            $position = $payload['position'];
+        if (array_keys($payload) !== ['v', 'query', 'position', 'forward'] || $payload['v'] !== 2
+            || $payload['query'] !== $this->fingerprint($input)) {
+            throw new InvalidExpenseCursorException;
         }
+
+        $forward = $payload['forward'];
+        $position = $payload['position'];
 
         $fields = [...array_map(static fn (string $sort): string => ltrim($sort, '-'), $input->sorts), 'id'];
 
@@ -96,8 +87,9 @@ final class ExpenseQueryCursorAdapter implements ExpenseQueryCursorPort
 
         foreach ($position as $field => $value) {
             $valid = match ($field) {
+                'id' => is_string($value),
+                'amount' => is_int($value) && $value > 0,
                 'occurred_on' => $this->isCivilDate($value),
-                'id', 'amount' => is_int($value) && $value > 0,
                 'description' => is_string($value) && mb_check_encoding($value, 'UTF-8') && mb_strlen($value, 'UTF-8') <= 64,
                 default => false,
             };
@@ -105,6 +97,12 @@ final class ExpenseQueryCursorAdapter implements ExpenseQueryCursorPort
             if (! $valid) {
                 throw new InvalidExpenseCursorException;
             }
+        }
+
+        try {
+            $position['id'] = UuidValueObject::fromString($position['id'])->value();
+        } catch (InvalidUuidException) {
+            throw new InvalidExpenseCursorException;
         }
 
         return new ExpenseCursorOutput(position: $position, forward: $forward);

@@ -13,7 +13,7 @@ use stdClass;
 
 final class EloquentExpenseSuggestionsRepository implements ExpenseSuggestionsRepository
 {
-    public function search(int $userId, string $query, DatePeriodValueObject $period): array
+    public function search(string $userId, string $query, DatePeriodValueObject $period): array
     {
         $owned = $this->ownedDescriptionsQuery($userId);
         $rows = $owned->getModel()->getConnection()->select(
@@ -25,7 +25,7 @@ final class EloquentExpenseSuggestionsRepository implements ExpenseSuggestionsRe
     }
 
     /** @return Builder<ExpenseModel> */
-    private function ownedDescriptionsQuery(int $userId): Builder
+    private function ownedDescriptionsQuery(string $userId): Builder
     {
         return ExpenseModel::query()
             ->where('user_id', $userId)

@@ -8,9 +8,12 @@ use App\Expense\Infrastructure\Repositories\Persistence\Models\ExpenseModel;
 
 final class ExpenseSuggestionHistoryFixture
 {
-    public static function create(int $userId, ?string $description, int $amount, string $occurredOn, string $createdAt): int
+    public static function create(string $userId, ?string $description, int $amount, string $occurredOn, string $createdAt, ?string $id = null): string
     {
         $model = new ExpenseModel;
+        if ($id !== null) {
+            $model->id = $id;
+        }
         $model->forceFill([
             'amount' => $amount,
             'user_id' => $userId,
@@ -21,6 +24,6 @@ final class ExpenseSuggestionHistoryFixture
             'description' => $description,
         ])->save();
 
-        return (int) $model->getKey();
+        return $model->getKey();
     }
 }

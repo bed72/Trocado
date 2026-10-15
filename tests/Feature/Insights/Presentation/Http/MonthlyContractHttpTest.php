@@ -21,8 +21,8 @@ it('serializes the owner only historical comparison maximum and review through o
     $owner = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now(), email: 'monthly-contract-owner@example.com');
     $other = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now(), email: 'monthly-contract-other@example.com');
     $token = IdentityFixture::token($owner, expiresAt: now()->addDays(30));
-    $ownerId = (int) $owner->getKey();
-    $otherId = (int) $other->getKey();
+    $ownerId = $owner->getKey();
+    $otherId = $other->getKey();
 
     foreach (['2026-07', '2026-08', '2026-09', '2026-10'] as $month) {
         foreach (['01', '02', '03', '04', '05'] as $day) {
@@ -100,10 +100,10 @@ it('does not use another account history to fabricate financial insights or supp
 
     foreach (['2026-01', '2026-07', '2026-08', '2026-09', '2026-10'] as $month) {
         foreach (['01', '02', '03', '04', '05'] as $day) {
-            ExpenseQueryHistoryFixture::create((int) $other->getKey(), "{$month}-{$day}", 9000000, 'other', 'Histórico de outra conta');
+            ExpenseQueryHistoryFixture::create($other->getKey(), "{$month}-{$day}", 9000000, 'other', 'Histórico de outra conta');
         }
     }
-    ExpenseQueryHistoryFixture::create((int) $owner->getKey(), '2026-10-13', 9000000, 'food');
+    ExpenseQueryHistoryFixture::create($owner->getKey(), '2026-10-13', 9000000, 'food');
     $this->withToken($token)->getJson(route('insights.index').'?filter[year]=2026&filter[month]=10')
         ->assertOk()->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.attributes.type', 'first_expense')

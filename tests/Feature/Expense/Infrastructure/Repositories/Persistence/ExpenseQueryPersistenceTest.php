@@ -6,6 +6,7 @@ use App\Expense\Application\Data\GetAllExpenseInput;
 use App\Expense\Infrastructure\Repositories\Persistence\EloquentExpenseRepository;
 use App\Identity\Domain\Enums\UserStatusEnum;
 use Illuminate\Support\Facades\DB;
+use Tests\Support\Core\Fixtures\UuidFixture;
 use Tests\Support\Identity\Fixtures\IdentityFixture;
 
 it('executes one bounded PostgreSQL statement per query and measures representative plans', function (): void {
@@ -14,7 +15,7 @@ it('executes one bounded PostgreSQL statement per query and measures representat
     $rows = [];
     foreach ([$owner->id, $other->id] as $userId) {
         for ($index = 1; $index <= 1200; $index++) {
-            $rows[] = ['user_id' => $userId, 'amount' => $index, 'category' => $index % 2 === 0 ? 'food' : 'transport',
+            $rows[] = ['id' => UuidFixture::at(count($rows) + 1), 'user_id' => $userId, 'amount' => $index, 'category' => $index % 2 === 0 ? 'food' : 'transport',
                 'occurred_on' => sprintf('2026-%02d-%02d', 7 + $index % 3, 1 + $index % 28),
                 'description' => $index % 2 === 0 ? 'Água' : 'Mercado',
                 'created_at' => '2026-10-11 12:00:00', 'updated_at' => '2026-10-11 12:00:00'];

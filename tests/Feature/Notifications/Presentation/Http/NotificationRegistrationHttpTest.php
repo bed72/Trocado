@@ -3,11 +3,11 @@
 declare(strict_types=1);
 
 use App\Identity\Domain\Enums\UserStatusEnum;
+use App\Identity\Infrastructure\Repositories\Persistence\Models\PersonalAccessTokenModel as PersonalAccessToken;
 use App\Notifications\Infrastructure\Repositories\Persistence\Models\NotificationModel;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Laravel\Sanctum\PersonalAccessToken;
 use Tests\Support\Identity\Fixtures\IdentityFixture;
 use Tests\Support\Notifications\Fixtures\NotificationRegistrationFixture;
 
@@ -68,7 +68,7 @@ it('rejects installation or destination takeover and duplicate destinations with
     }
 
     expect(NotificationModel::query()->count())->toBe(1)
-        ->and(NotificationModel::query()->find($id)->user_id)->toBe((int) $owner->getKey())
+        ->and(NotificationModel::query()->find($id)->user_id)->toBe($owner->getKey())
         ->and(NotificationModel::query()->find($id)->generation)->toBe(1);
 });
 

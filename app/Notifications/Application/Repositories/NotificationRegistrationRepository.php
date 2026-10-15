@@ -11,12 +11,12 @@ use SensitiveParameter;
 
 interface NotificationRegistrationRepository
 {
-    public function delete(int $userId, string $id): bool;
+    public function delete(string $userId, string $id): bool;
 
     public function update(#[SensitiveParameter] NotificationRegistrationEntity $registration): void;
 
     /** @return list<NotificationRegistrationEntity> */
     public function lock(#[SensitiveParameter] NotificationValueObject $destination): array;
 
-    public function create(int $userId, int $sessionId, #[SensitiveParameter] NotificationValueObject $destination, DateTimeImmutable $reference): NotificationRegistrationEntity;
+    public function create(string $userId, string $sessionId, #[SensitiveParameter] NotificationValueObject $destination, DateTimeImmutable $reference): NotificationRegistrationEntity;
 }

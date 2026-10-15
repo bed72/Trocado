@@ -26,7 +26,7 @@ beforeEach(function (): void {
     ExpenseClassificationAgent::fake();
 });
 
-function createClassifiableExpense(int $userId, string $token, ?string $category = null, ?string $description = 'Mercado - 2 itens'): ExpenseModel
+function createClassifiableExpense(string $userId, string $token, ?string $category = null, ?string $description = 'Mercado - 2 itens'): ExpenseModel
 {
     $attributes = [
         'amount' => 1500,
@@ -53,7 +53,7 @@ function createClassifiableExpense(int $userId, string $token, ?string $category
 
 it('creates an eligible expense as other and queues classification without prompting AI in HTTP', function (): void {
     $identity = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
-    $userId = (int) $identity->getKey();
+    $userId = $identity->getKey();
     $token = IdentityFixture::token($identity, expiresAt: now()->addDays(30));
 
     $expense = createClassifiableExpense(userId: $userId, token: $token);
@@ -90,7 +90,7 @@ it('keeps an existing provider credential when the generic expense credential is
 
 it('does not queue explicit categories, whitespace, or isolated injection payloads', function (?string $category, ?string $description): void {
     $identity = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
-    $userId = (int) $identity->getKey();
+    $userId = $identity->getKey();
     $token = IdentityFixture::token($identity, expiresAt: now()->addDays(30));
 
     $expense = createClassifiableExpense(userId: $userId, token: $token, category: $category, description: $description);
@@ -128,7 +128,7 @@ it('rejects invalid HTTP input without creating or queuing an expense', function
 
 it('does not dispatch a classification when an enclosing transaction rolls back', function (): void {
     $identity = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
-    $userId = (int) $identity->getKey();
+    $userId = $identity->getKey();
     $token = IdentityFixture::token($identity, expiresAt: now()->addDays(30));
 
     try {
@@ -154,7 +154,7 @@ it('does not dispatch a classification when an enclosing transaction rolls back'
 
 it('updates the category after the queued job receives a valid suggestion', function (): void {
     $identity = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
-    $userId = (int) $identity->getKey();
+    $userId = $identity->getKey();
     $token = IdentityFixture::token($identity, expiresAt: now()->addDays(30));
     $expense = createClassifiableExpense(userId: $userId, token: $token);
     ExpenseClassificationAgent::fake([['category' => 'food']]);
@@ -180,7 +180,7 @@ it('updates the category after the queued job receives a valid suggestion', func
 
 it('does not overwrite a category explicitly edited while the job was pending', function (string $category): void {
     $identity = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
-    $userId = (int) $identity->getKey();
+    $userId = $identity->getKey();
     $token = IdentityFixture::token($identity, expiresAt: now()->addDays(30));
     $expense = createClassifiableExpense(userId: $userId, token: $token);
     ExpenseClassificationAgent::fake([['category' => 'food']]);
@@ -204,7 +204,7 @@ it('does not overwrite a category explicitly edited while the job was pending', 
 
 it('does not overwrite an expense whose description was changed while the job was pending', function (): void {
     $identity = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
-    $userId = (int) $identity->getKey();
+    $userId = $identity->getKey();
     $token = IdentityFixture::token($identity, expiresAt: now()->addDays(30));
     $expense = createClassifiableExpense(userId: $userId, token: $token);
     $classificationToken = $expense->classification_token;
@@ -230,7 +230,7 @@ it('does not overwrite an expense whose description was changed while the job wa
 
 it('does not classify an expense deleted while the job was pending', function (): void {
     $identity = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
-    $userId = (int) $identity->getKey();
+    $userId = $identity->getKey();
     $token = IdentityFixture::token($identity, expiresAt: now()->addDays(30));
     $expense = createClassifiableExpense(userId: $userId, token: $token);
     $classificationToken = $expense->classification_token;
@@ -247,7 +247,7 @@ it('does not classify an expense deleted while the job was pending', function ()
 
 it('expires an unprocessed attempt without calling the provider', function (): void {
     $identity = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
-    $userId = (int) $identity->getKey();
+    $userId = $identity->getKey();
     $token = IdentityFixture::token($identity, expiresAt: now()->addDays(30));
     $expense = createClassifiableExpense(userId: $userId, token: $token);
     $expense->classification_expires_at = now()->subSecond();
@@ -264,7 +264,7 @@ it('expires an unprocessed attempt without calling the provider', function (): v
 
 it('clears a pending attempt after all job retries fail', function (): void {
     $identity = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
-    $userId = (int) $identity->getKey();
+    $userId = $identity->getKey();
     $token = IdentityFixture::token($identity, expiresAt: now()->addDays(30));
     $expense = createClassifiableExpense(userId: $userId, token: $token);
 
@@ -280,13 +280,13 @@ it('clears a pending attempt after all job retries fail', function (): void {
 it('keeps the expense when queue dispatch fails', function (): void {
     $this->app->instance(ExpenseClassificationDispatchPort::class, new class implements ExpenseClassificationDispatchPort
     {
-        public function dispatch(string $token, int $expenseId): void
+        public function dispatch(string $token, string $expenseId): void
         {
             throw new RuntimeException('Queue unavailable.');
         }
     });
     $identity = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
-    $userId = (int) $identity->getKey();
+    $userId = $identity->getKey();
     $token = IdentityFixture::token($identity, expiresAt: now()->addDays(30));
 
     $expense = createClassifiableExpense(userId: $userId, token: $token);
@@ -300,7 +300,7 @@ it('keeps other and clears the attempt when the queue push fails after commit', 
         throw new RuntimeException('Queue unavailable.');
     });
     $identity = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
-    $userId = (int) $identity->getKey();
+    $userId = $identity->getKey();
     $token = IdentityFixture::token($identity, expiresAt: now()->addDays(30));
 
     $expense = createClassifiableExpense(userId: $userId, token: $token);
@@ -314,7 +314,7 @@ it('keeps other and clears the attempt when the queue push fails after commit', 
 it('does not run the provider during creation if the queue driver is sync', function (): void {
     config()->set('queue.default', 'sync');
     $identity = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
-    $userId = (int) $identity->getKey();
+    $userId = $identity->getKey();
     $token = IdentityFixture::token($identity, expiresAt: now()->addDays(30));
 
     $expense = createClassifiableExpense(userId: $userId, token: $token);
@@ -327,7 +327,7 @@ it('does not run the provider during creation if the queue driver is sync', func
 
 it('keeps other and clears the attempt when the provider returns a category outside the enum', function (): void {
     $identity = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
-    $userId = (int) $identity->getKey();
+    $userId = $identity->getKey();
     $token = IdentityFixture::token($identity, expiresAt: now()->addDays(30));
     $expense = createClassifiableExpense(userId: $userId, token: $token);
     ExpenseClassificationAgent::fake(responses: [['category' => 'unknown']]);
@@ -342,7 +342,7 @@ it('keeps other and clears the attempt when the provider returns a category outs
 
 it('keeps the expense until retries are exhausted when the provider throws', function (): void {
     $identity = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
-    $userId = (int) $identity->getKey();
+    $userId = $identity->getKey();
     $token = IdentityFixture::token($identity, expiresAt: now()->addDays(30));
     $expense = createClassifiableExpense(userId: $userId, token: $token);
     ExpenseClassificationAgent::fake(responses: static function (string $prompt): never {
@@ -364,7 +364,7 @@ it('keeps the expense until retries are exhausted when the provider throws', fun
 
 it('does not overwrite an explicit category committed while the provider was responding', function (string $category): void {
     $identity = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
-    $userId = (int) $identity->getKey();
+    $userId = $identity->getKey();
     $token = IdentityFixture::token($identity, expiresAt: now()->addDays(30));
     $expense = createClassifiableExpense(userId: $userId, token: $token);
     $classificationToken = $expense->classification_token;
@@ -392,7 +392,7 @@ it('processes a database-queued classification using the real queue worker', fun
     Queue::swap(instance: Queue::getFacadeRoot()->queue);
     ExpenseClassificationAgent::fake(responses: [['category' => $category]])->preventStrayPrompts();
     $identity = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
-    $userId = (int) $identity->getKey();
+    $userId = $identity->getKey();
     $token = IdentityFixture::token($identity, expiresAt: now()->addDays(30));
 
     $expense = createClassifiableExpense(userId: $userId, token: $token, description: $description);
@@ -425,7 +425,7 @@ it('processes a database-queued classification using the real queue worker', fun
 
 it('keeps the cached list on rollback and invalidates it after a committed creation', function (): void {
     $identity = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
-    $userId = (int) $identity->getKey();
+    $userId = $identity->getKey();
     $token = IdentityFixture::token($identity, expiresAt: now()->addDays(30));
 
     withToken($token)->getJson(route('expenses.index'))->assertOk()->assertJsonCount(0, 'data');
@@ -454,7 +454,7 @@ it('keeps the cached list on rollback and invalidates it after a committed creat
 
 it('refreshes the owner cached page only after a real classification commits', function (): void {
     $identity = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
-    $userId = (int) $identity->getKey();
+    $userId = $identity->getKey();
     $token = IdentityFixture::token($identity, expiresAt: now()->addDays(30));
     $expense = createClassifiableExpense(userId: $userId, token: $token);
 

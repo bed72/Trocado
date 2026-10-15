@@ -15,15 +15,16 @@ use App\Expense\Infrastructure\Repositories\Cache\CachedExpenseCategorizationRep
 use App\Expense\Infrastructure\Repositories\Cache\CachedExpenseRepository;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Tests\Support\Core\Fixtures\UuidFixture;
 use Tests\Support\Expense\Fixtures\ExpenseQueryFixture;
 
 function categorizationCacheFixture(int $expectedGetAllCalls): array
 {
-    Cache::tags('expense:pages:owner:1')->flush();
-    Cache::tags('expense:pages:owner:2')->flush();
+    Cache::tags('expense:pages:v3:owner:'.UuidFixture::at(1))->flush();
+    Cache::tags('expense:pages:v3:owner:'.UuidFixture::at(2))->flush();
 
     $expenses = Mockery::mock(ExpenseRepository::class);
-    $expenses->shouldReceive('getAll')->times($expectedGetAllCalls)->andReturnUsing(fn (int $userId, GetAllExpenseInput $input): ExpensePageOutput => new ExpensePageOutput(
+    $expenses->shouldReceive('getAll')->times($expectedGetAllCalls)->andReturnUsing(fn (string $userId, GetAllExpenseInput $input): ExpensePageOutput => new ExpensePageOutput(
         items: [new ExpenseEntity(id: $userId, userId: $userId, amount: 100, category: 'other', occurredOn: '2026-09-24')],
         nextCursor: null,
         previousCursor: null,
@@ -33,7 +34,7 @@ function categorizationCacheFixture(int $expectedGetAllCalls): array
     $attempts->shouldReceive('beginClassificationAttempt')->andReturn(true);
     $attempts->shouldReceive('findClassificationAttempt')->andReturn(new ExpenseClassificationOutput('Mercado - 2 itens'));
     $attempts->shouldReceive('cancelClassification');
-    $attempts->shouldReceive('applyClassificationAttempt')->andReturnUsing(fn (ApplyExpenseClassificationInput $input): ?int => $input->expenseId === 10 ? 1 : null);
+    $attempts->shouldReceive('applyClassificationAttempt')->andReturnUsing(fn (ApplyExpenseClassificationInput $input): ?string => $input->expenseId === UuidFixture::at(10) ? UuidFixture::at(1) : null);
 
     return [
         $expenses,
@@ -50,51 +51,51 @@ it('resolves distinct decorated repository contracts', function (): void {
 it('invalidates only the updated owner pages across sizes and cursors after classification', function (): void {
     [, $pages, $attempts] = categorizationCacheFixture(7);
 
-    $pages->getAll(userId: 1, input: ExpenseQueryFixture::input());
-    $pages->getAll(userId: 1, input: ExpenseQueryFixture::input(size: 10));
-    $pages->getAll(userId: 1, input: ExpenseQueryFixture::input(cursor: ExpenseQueryFixture::legacyCursor()));
-    $pages->getAll(userId: 2, input: ExpenseQueryFixture::input());
+    $pages->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input());
+    $pages->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input(size: 10));
+    $pages->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input(cursor: ExpenseQueryFixture::cursor()));
+    $pages->getAll(userId: UuidFixture::at(2), input: ExpenseQueryFixture::input());
 
-    $attempts->applyClassificationAttempt(new ApplyExpenseClassificationInput(10, 'token', 'Mercado - 2 itens', ExpenseCategoryEnum::Food));
+    $attempts->applyClassificationAttempt(new ApplyExpenseClassificationInput(UuidFixture::at(10), 'token', 'Mercado - 2 itens', ExpenseCategoryEnum::Food));
 
-    $pages->getAll(userId: 1, input: ExpenseQueryFixture::input());
-    $pages->getAll(userId: 1, input: ExpenseQueryFixture::input(size: 10));
-    $pages->getAll(userId: 1, input: ExpenseQueryFixture::input(cursor: ExpenseQueryFixture::legacyCursor()));
-    $pages->getAll(userId: 2, input: ExpenseQueryFixture::input());
+    $pages->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input());
+    $pages->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input(size: 10));
+    $pages->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input(cursor: ExpenseQueryFixture::cursor()));
+    $pages->getAll(userId: UuidFixture::at(2), input: ExpenseQueryFixture::input());
 });
 
 it('keeps pages for begin, find, cancel, and rejected application', function (): void {
     [, $pages, $attempts] = categorizationCacheFixture(1);
 
-    $pages->getAll(userId: 1, input: ExpenseQueryFixture::input());
-    $attempts->beginClassificationAttempt(10, 'token', new DateTimeImmutable('+5 minutes'));
-    $attempts->findClassificationAttempt(10, 'token');
-    $attempts->cancelClassification(10, 'token');
-    $attempts->applyClassificationAttempt(new ApplyExpenseClassificationInput(99, 'token', 'Mercado - 2 itens', ExpenseCategoryEnum::Food));
-    $pages->getAll(userId: 1, input: ExpenseQueryFixture::input());
+    $pages->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input());
+    $attempts->beginClassificationAttempt(UuidFixture::at(10), 'token', new DateTimeImmutable('+5 minutes'));
+    $attempts->findClassificationAttempt(UuidFixture::at(10), 'token');
+    $attempts->cancelClassification(UuidFixture::at(10), 'token');
+    $attempts->applyClassificationAttempt(new ApplyExpenseClassificationInput(UuidFixture::at(99), 'token', 'Mercado - 2 itens', ExpenseCategoryEnum::Food));
+    $pages->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input());
 });
 
 it('defers classification invalidation until outer commit and discards it on rollback', function (): void {
     [, $pages, $attempts] = categorizationCacheFixture(2);
-    $pages->getAll(userId: 1, input: ExpenseQueryFixture::input());
+    $pages->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input());
 
     try {
         DB::transaction(function () use ($attempts, $pages): void {
-            $attempts->applyClassificationAttempt(new ApplyExpenseClassificationInput(10, 'token', 'Mercado - 2 itens', ExpenseCategoryEnum::Food));
-            $pages->getAll(userId: 1, input: ExpenseQueryFixture::input());
+            $attempts->applyClassificationAttempt(new ApplyExpenseClassificationInput(UuidFixture::at(10), 'token', 'Mercado - 2 itens', ExpenseCategoryEnum::Food));
+            $pages->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input());
 
             throw new RuntimeException('Rollback.');
         });
     } catch (RuntimeException) {
     }
 
-    $pages->getAll(userId: 1, input: ExpenseQueryFixture::input());
+    $pages->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input());
 
     DB::transaction(function () use ($attempts, $pages): void {
-        DB::transaction(fn (): ?int => $attempts->applyClassificationAttempt(new ApplyExpenseClassificationInput(10, 'token', 'Mercado - 2 itens', ExpenseCategoryEnum::Food)));
+        DB::transaction(fn (): ?string => $attempts->applyClassificationAttempt(new ApplyExpenseClassificationInput(UuidFixture::at(10), 'token', 'Mercado - 2 itens', ExpenseCategoryEnum::Food)));
 
-        $pages->getAll(userId: 1, input: ExpenseQueryFixture::input());
+        $pages->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input());
     });
 
-    $pages->getAll(userId: 1, input: ExpenseQueryFixture::input());
+    $pages->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input());
 });

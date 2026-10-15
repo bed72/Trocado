@@ -6,6 +6,7 @@ use App\Identity\Domain\Enums\UserStatusEnum;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Tests\Support\Identity\Fixtures\IdentityFixture;
 
 beforeEach(function (): void {
@@ -22,6 +23,7 @@ it('keeps historical candidates ordered and stable within a day and rotates thro
 
     foreach ([['01', 5000, 'other'], ['02', 500, 'other'], ['03', 500, 'other'], ['04', 2000, 'food'], ['30', 2000, 'food']] as [$day, $amount, $category]) {
         DB::table('expenses')->insert([
+            'id' => (string) Str::uuid7(),
             'user_id' => $user->getKey(), 'amount' => $amount, 'category' => $category,
             'occurred_on' => "2026-09-{$day}",
             'created_at' => '2026-10-12 12:00:00', 'updated_at' => '2026-10-12 12:00:00',
@@ -73,6 +75,7 @@ it('updates values and eligibility immediately after confirmed same day expense 
 
     foreach ([['01', 2000, 'food'], ['02', 1800, 'food'], ['03', 2200, 'housing'], ['04', 2100, 'transport'], ['05', 1900, 'other']] as [$day, $amount, $category]) {
         $ids[] = DB::table('expenses')->insertGetId([
+            'id' => (string) Str::uuid7(),
             'user_id' => $user->getKey(), 'amount' => $amount, 'category' => $category,
             'occurred_on' => "{$month}-{$day}",
             'created_at' => '2026-10-12 12:00:00', 'updated_at' => '2026-10-12 12:00:00',
@@ -86,6 +89,7 @@ it('updates values and eligibility immediately after confirmed same day expense 
 
     if ($insert) {
         $ids[] = DB::table('expenses')->insertGetId([
+            'id' => (string) Str::uuid7(),
             'user_id' => $user->getKey(), 'amount' => 690, 'category' => 'food', 'occurred_on' => '2026-10-12',
             'created_at' => '2026-10-12 12:00:00', 'updated_at' => '2026-10-12 12:00:00',
         ]);

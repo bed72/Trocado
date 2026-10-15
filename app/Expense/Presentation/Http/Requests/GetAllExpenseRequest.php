@@ -12,6 +12,7 @@ use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
+use function count;
 use function is_string;
 use function sprintf;
 
@@ -37,6 +38,7 @@ final class GetAllExpenseRequest extends FormRequest
             'filter.amount_max' => ['sometimes', 'required', 'integer', 'between:0,9223372036854775807'],
             'filter.year' => ['required_with:filter.month,filter.day', 'filled', 'integer', 'between:1,9999'],
             'filter' => ['sometimes', 'required', 'array:year,month,day,from,to,category,amount_min,amount_max'],
+            // TODO reaproveitar validator
             'filter.category' => ['sometimes', 'required', 'string', function (string $attribute, mixed $value, Closure $fail): void {
                 if (! is_string($value)) {
                     return;
@@ -101,8 +103,6 @@ final class GetAllExpenseRequest extends FormRequest
             sorts: explode(',', $this->validated('sort', '-occurred_on')),
             amountMin: $this->validated('filter.amount_min') === null ? null : (int) $this->validated('filter.amount_min'),
             amountMax: $this->validated('filter.amount_max') === null ? null : (int) $this->validated('filter.amount_max'),
-            legacyCursorAllowed: ! $this->exists('sort') && ! $this->exists('filter.from') && ! $this->exists('filter.to')
-                && ! $this->exists('filter.category') && ! $this->exists('filter.amount_min') && ! $this->exists('filter.amount_max'),
         );
     }
 

@@ -9,15 +9,16 @@ use App\Expense\Application\Data\ExpenseSuggestionHistoryOutput;
 use App\Expense\Application\Data\ExpenseSuggestionOutput;
 use App\Expense\Application\Repositories\ExpenseSuggestionsRepository;
 use App\Expense\Application\UseCases\GetExpenseSuggestionsUseCase;
+use Tests\Support\Core\Fixtures\UuidFixture;
 use Tests\Support\Core\Stubs\UserPortStub;
 
 it('reads the authenticated owner once and forwards the query and complete previous months in one read', function (string $referenceDate, string $from, string $to): void {
     $port = $this->createMock(UserPort::class);
     $repository = $this->createMock(ExpenseSuggestionsRepository::class);
-    $port->expects($this->once())->method('id')->willReturn(42);
+    $port->expects($this->once())->method('id')->willReturn(UuidFixture::at(42));
     $port->expects($this->never())->method('status');
     $repository->expects($this->once())->method('search')->with(
-        42,
+        UuidFixture::at(42),
         'iNt%_\\',
         $this->callback(static fn (DatePeriodValueObject $period): bool => $period->from() === $from && $period->to() === $to),
     )->willReturn([]);
@@ -39,7 +40,7 @@ it('suggests only an exact positive amount with three represented months and equ
             minimumAmount: $minimum, maximumAmount: $maximum,
         ),
     ]);
-    $useCase = new GetExpenseSuggestionsUseCase(port: new UserPortStub(42), repository: $repository);
+    $useCase = new GetExpenseSuggestionsUseCase(port: new UserPortStub(UuidFixture::at(42)), repository: $repository);
 
     $output = $useCase->execute(query: 'Int', referenceDate: '2026-10-11');
 
@@ -72,7 +73,7 @@ it('preserves repository ranking and representative descriptions without regroup
         new ExpenseSuggestionHistoryOutput('plano  internet', 'Plano  Internet', 0, null, null),
         new ExpenseSuggestionHistoryOutput('internet', 'INTERNET', 3, 14000, 14000),
     ]);
-    $useCase = new GetExpenseSuggestionsUseCase(port: new UserPortStub(42), repository: $repository);
+    $useCase = new GetExpenseSuggestionsUseCase(port: new UserPortStub(UuidFixture::at(42)), repository: $repository);
 
     $output = $useCase->execute(query: 'Int', referenceDate: '2026-10-11');
 
@@ -84,7 +85,7 @@ it('preserves repository ranking and representative descriptions without regroup
 it('keeps identity stable across searches, dates, spelling and values but distinguishes owners and keys', function (): void {
     $port = $this->createMock(UserPort::class);
     $repository = $this->createMock(ExpenseSuggestionsRepository::class);
-    $port->expects($this->exactly(4))->method('id')->willReturnOnConsecutiveCalls(42, 42, 43, 42);
+    $port->expects($this->exactly(4))->method('id')->willReturnOnConsecutiveCalls(UuidFixture::at(42), UuidFixture::at(42), UuidFixture::at(43), UuidFixture::at(42));
     $repository->expects($this->exactly(4))->method('search')->willReturnOnConsecutiveCalls(
         [new ExpenseSuggestionHistoryOutput('internet', 'Internet', 3, 14000, 14000)],
         [new ExpenseSuggestionHistoryOutput('internet', 'INTERNET', 2, 15000, 15000)],
@@ -108,7 +109,7 @@ it('keeps identity stable across searches, dates, spelling and values but distin
 it('rejects invalid civil references before reading history', function (string $referenceDate): void {
     $repository = $this->createMock(ExpenseSuggestionsRepository::class);
     $repository->expects($this->never())->method('search');
-    $useCase = new GetExpenseSuggestionsUseCase(port: new UserPortStub(42), repository: $repository);
+    $useCase = new GetExpenseSuggestionsUseCase(port: new UserPortStub(UuidFixture::at(42)), repository: $repository);
 
     expect(fn () => $useCase->execute(query: 'Int', referenceDate: $referenceDate))->toThrow(InvalidDatePeriodException::class);
 })->with(['2026-02-30', '2026-10-11T00:00:00Z', '2026-1-01']);

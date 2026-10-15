@@ -7,6 +7,7 @@ namespace App\Expense\Application\UseCases;
 use App\Core\Application\Ports\ObservabilityPort;
 use App\Core\Application\Ports\TransactionPort;
 use App\Core\Application\Ports\UserPort;
+use App\Core\Domain\ValueObjects\UuidValueObject;
 use App\Expense\Application\Data\UpdateExpenseInput;
 use App\Expense\Application\Exceptions\ExpenseNotFoundException;
 use App\Expense\Application\Repositories\ExpenseRepository;
@@ -21,8 +22,9 @@ final readonly class UpdateExpenseUseCase
         private ExpenseRepository $repository,
     ) {}
 
-    public function execute(int $id, UpdateExpenseInput $input): ExpenseEntity
+    public function execute(string $id, UpdateExpenseInput $input): ExpenseEntity
     {
+        $id = UuidValueObject::fromString($id)->value();
         $updated = $this->repository->update(id: $id, userId: $this->userPort->id(), input: $input)
             ?? throw new ExpenseNotFoundException;
 

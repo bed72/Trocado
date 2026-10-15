@@ -9,6 +9,7 @@ use App\Expense\Application\Exceptions\InvalidExpenseCursorException;
 use App\Expense\Application\Ports\ExpenseQueryCursorPort;
 use App\Expense\Application\Repositories\ExpenseRepository;
 use App\Expense\Application\UseCases\GetAllExpenseUseCase;
+use Tests\Support\Core\Fixtures\UuidFixture;
 
 it('lists expenses with the authenticated owner and explicit optional period', function (bool $filtered): void {
     $input = $filtered
@@ -16,9 +17,9 @@ it('lists expenses with the authenticated owner and explicit optional period', f
         : new GetAllExpenseInput(size: 6, cursor: 'opaque-cursor');
     $output = new ExpensePageOutput(items: [], nextCursor: null, previousCursor: null);
     $port = $this->createMock(UserPort::class);
-    $port->expects($this->once())->method('id')->willReturn(20);
+    $port->expects($this->once())->method('id')->willReturn(UuidFixture::at(20));
     $repository = $this->createMock(ExpenseRepository::class);
-    $repository->expects($this->once())->method('getAll')->with(20, $input)->willReturn($output);
+    $repository->expects($this->once())->method('getAll')->with(UuidFixture::at(20), $input)->willReturn($output);
     $cursorPort = $this->createMock(ExpenseQueryCursorPort::class);
     $cursorPort->expects($this->once())->method('decode')->with($input)->willReturn(null);
     $useCase = new GetAllExpenseUseCase(userPort: $port, cursorPort: $cursorPort, repository: $repository);

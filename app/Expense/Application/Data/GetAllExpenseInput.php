@@ -18,6 +18,5 @@ final readonly class GetAllExpenseInput
         public ?int $amountMax = null,
         public array $categories = [],
         public array $sorts = ['-occurred_on'],
-        public bool $legacyCursorAllowed = false,
     ) {}
 }

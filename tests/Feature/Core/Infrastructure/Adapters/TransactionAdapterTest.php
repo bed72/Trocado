@@ -5,14 +5,16 @@ declare(strict_types=1);
 use App\Core\Infrastructure\Adapters\TransactionAdapter;
 use Illuminate\Database\DeadlockException;
 use Illuminate\Support\Facades\DB;
+use Tests\Support\Core\Fixtures\UuidFixture;
 
 it('commits a real write returns its result and releases callbacks in registration order', function (): void {
     $adapter = new TransactionAdapter;
     $events = [];
 
-    $id = $adapter->commit(function () use ($adapter, &$events): int {
+    $id = $adapter->commit(function () use ($adapter, &$events): string {
         expect(DB::transactionLevel())->toBe(1);
-        $id = DB::table('users')->insertGetId(['name' => 'Maria', 'email' => 'commit@example.com', 'password' => 'unused']);
+        $id = UuidFixture::at(1);
+        DB::table('users')->insert(['id' => $id, 'name' => 'Maria', 'email' => 'commit@example.com', 'password' => 'unused']);
         $adapter->afterCommit(function () use ($id, &$events): void {
             expect(DB::transactionLevel())->toBe(0)
                 ->and(DB::table('users')->where('id', $id)->exists())->toBeTrue();
@@ -26,7 +28,7 @@ it('commits a real write returns its result and releases callbacks in registrati
         return $id;
     });
 
-    expect($id)->toBeInt()
+    expect($id)->toBe(UuidFixture::at(1))
         ->and(DB::table('users')->where('id', $id)->exists())->toBeTrue()
         ->and($events)->toBe(['first', 'second'])
         ->and(DB::transactionLevel())->toBe(0);
@@ -40,7 +42,7 @@ it('rolls back a demonstrated write preserves the sentinel and discards callback
 
     try {
         $adapter->commit(function () use ($adapter, $sentinel, &$called, &$written): void {
-            DB::table('users')->insert(['name' => 'Maria', 'email' => 'rollback@example.com', 'password' => 'unused']);
+            DB::table('users')->insert(['id' => UuidFixture::at(1), 'name' => 'Maria', 'email' => 'rollback@example.com', 'password' => 'unused']);
             $written = DB::table('users')->where('email', 'rollback@example.com')->exists();
             expect($written)->toBeTrue();
             $adapter->afterCommit(function () use (&$called): void {
@@ -89,9 +91,10 @@ it('retries an injected concurrency failure after writing and releases only the 
     $callbacks = [];
     $abortedId = null;
 
-    $id = $adapter->commit(function () use ($adapter, &$attempts, &$callbacks, &$abortedId): int {
+    $id = $adapter->commit(function () use ($adapter, &$attempts, &$callbacks, &$abortedId): string {
         $attempt = ++$attempts;
-        $id = DB::table('users')->insertGetId(['name' => 'Maria', 'email' => 'retry@example.com', 'password' => 'unused']);
+        $id = UuidFixture::at($attempt);
+        DB::table('users')->insert(['id' => $id, 'name' => 'Maria', 'email' => 'retry@example.com', 'password' => 'unused']);
         expect(DB::table('users')->where('id', $id)->exists())->toBeTrue();
         $adapter->afterCommit(function () use ($attempt, &$callbacks): void {
             $callbacks[] = $attempt;

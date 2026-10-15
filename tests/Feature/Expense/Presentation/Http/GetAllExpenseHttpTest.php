@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Expense\Infrastructure\Repositories\Persistence\Models\ExpenseModel;
 use App\Identity\Domain\Enums\UserStatusEnum;
+use Tests\Support\Core\Fixtures\UuidFixture;
 use Tests\Support\Identity\Fixtures\IdentityFixture;
 
 use function Pest\Laravel\withToken;
@@ -74,10 +75,12 @@ it('preserves period and page size in forward and backward pagination', function
     $token = IdentityFixture::token($user, expiresAt: now()->addDays(30));
     $ids = [];
 
-    foreach (['2026-10-11', '2026-10-11', '2026-10-11', '2025-10-11', '2027-10-11'] as $date) {
-        $model = ExpenseModel::query()->create([
+    foreach (['2026-10-11', '2026-10-11', '2026-10-11', '2025-10-11', '2027-10-11'] as $index => $date) {
+        $model = new ExpenseModel;
+        $model->forceFill([
+            'id' => UuidFixture::at($index + 1),
             'user_id' => $user->getKey(), 'amount' => 1000, 'category' => 'food', 'occurred_on' => $date,
-        ]);
+        ])->save();
 
         if ($date === '2026-10-11') {
             $ids[] = (string) $model->getKey();

@@ -49,7 +49,7 @@ it('wires confirmed identity and expense mutations to correlated business events
 
     expect($expenseRecords)->toHaveCount(2)
         ->and(array_column($records, 'event'))->toContain('user.registered', 'identity.signed_in')
-        ->and($expenseRecords[0]['expense_id'])->toBe((int) $first->json('data.id'))
+        ->and($expenseRecords[0]['expense_id'])->toBe($first->json('data.id'))
         ->and($expenseRecords[0]['user_id'])->toBe($userId)
         ->and($expenseRecords[0]['trace_id'])->toBe($first->headers->get('X-Request-Id'))
         ->and($expenseRecords[0]['timestamp'])->toBeString()

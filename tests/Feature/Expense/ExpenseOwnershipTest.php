@@ -13,9 +13,9 @@ use function Pest\Laravel\withToken;
 
 it('lists only expenses owned by the authenticated user', function (): void {
     $firstUser = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now(), email: 'maria@example.com');
-    $firstUserId = (int) $firstUser->getKey();
+    $firstUserId = $firstUser->getKey();
     $firstToken = IdentityFixture::token($firstUser, expiresAt: now()->addDays(30));
-    $secondUserId = (int) IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now(), name: 'Joana', email: 'joana@example.com')->getKey();
+    $secondUserId = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now(), name: 'Joana', email: 'joana@example.com')->getKey();
 
     ExpenseModel::query()->create([
         'amount' => 1000,
@@ -40,9 +40,9 @@ it('lists only expenses owned by the authenticated user', function (): void {
 
 it('creates expenses for the authenticated user only', function (): void {
     $firstUser = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now(), email: 'maria@example.com');
-    $firstUserId = (int) $firstUser->getKey();
+    $firstUserId = $firstUser->getKey();
     $firstToken = IdentityFixture::token($firstUser, expiresAt: now()->addDays(30));
-    $secondUserId = (int) IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now(), name: 'Joana', email: 'joana@example.com')->getKey();
+    $secondUserId = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now(), name: 'Joana', email: 'joana@example.com')->getKey();
 
     withToken($firstToken)->postJson(route('expenses.create'), [
         'data' => [
@@ -77,9 +77,9 @@ it('creates expenses for the authenticated user only', function (): void {
 
 it('deletes expenses for the authenticated user only', function (): void {
     $firstUser = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now(), email: 'maria@example.com');
-    $firstUserId = (int) $firstUser->getKey();
+    $firstUserId = $firstUser->getKey();
     $firstToken = IdentityFixture::token($firstUser, expiresAt: now()->addDays(30));
-    $secondUserId = (int) IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now(), name: 'Joana', email: 'joana@example.com')->getKey();
+    $secondUserId = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now(), name: 'Joana', email: 'joana@example.com')->getKey();
 
     $firstExpense = ExpenseModel::query()->create([
         'amount' => 1000,
@@ -110,9 +110,9 @@ it('deletes expenses for the authenticated user only', function (): void {
 
 it('updates expenses for the authenticated user only', function (): void {
     $firstUser = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now(), email: 'maria@example.com');
-    $firstUserId = (int) $firstUser->getKey();
+    $firstUserId = $firstUser->getKey();
     $firstToken = IdentityFixture::token($firstUser, expiresAt: now()->addDays(30));
-    $secondUserId = (int) IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now(), name: 'Joana', email: 'joana@example.com')->getKey();
+    $secondUserId = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now(), name: 'Joana', email: 'joana@example.com')->getKey();
 
     $firstExpense = ExpenseModel::query()->create([
         'amount' => 1000,

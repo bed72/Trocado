@@ -14,22 +14,23 @@ use App\Notifications\Domain\Entities\NotificationRegistrationEntity;
 use App\Notifications\Domain\Enums\NotificationPlatformEnum;
 use App\Notifications\Domain\ValueObjects\NotificationValueObject;
 use Tests\Support\Core\Fakes\TransactionPortFake;
+use Tests\Support\Core\Fixtures\UuidFixture;
 use Tests\Support\Notifications\Fixtures\NotificationRegistrationFixture;
 
 it('revalidates session before repository access and only emits metadata after commit', function (): void {
     $transaction = new TransactionPortFake;
     $reference = new DateTimeImmutable('2026-10-13T12:00:00Z');
     $destination = new NotificationValueObject(installationId: NotificationRegistrationFixture::Installation, registrationKind: 'token', platform: NotificationPlatformEnum::Android, identifier: 'fake-token');
-    $registration = new NotificationRegistrationEntity(id: NotificationRegistrationFixture::OtherInstallation, userId: 1, sessionId: 2, generation: 1, lastRegisteredAt: $reference, destination: $destination);
+    $registration = new NotificationRegistrationEntity(id: NotificationRegistrationFixture::OtherInstallation, userId: UuidFixture::at(1), sessionId: UuidFixture::at(2), generation: 1, lastRegisteredAt: $reference, destination: $destination);
     $user = $this->createStub(UserPort::class);
-    $user->method('id')->willReturn(1);
+    $user->method('id')->willReturn(UuidFixture::at(1));
     $sessionLocked = false;
     $recipient = $this->createMock(NotificationPort::class);
-    $recipient->expects($this->once())->method('lock')->with(1, $reference)->willReturnCallback(function () use ($transaction, &$sessionLocked): int {
+    $recipient->expects($this->once())->method('lock')->with(UuidFixture::at(1), $reference)->willReturnCallback(function () use ($transaction, &$sessionLocked): string {
         expect($transaction->isActive)->toBeTrue();
         $sessionLocked = true;
 
-        return 2;
+        return UuidFixture::at(2);
     });
     $repository = $this->createMock(NotificationRegistrationRepository::class);
     $repository->expects($this->once())->method('lock')->with($destination)->willReturnCallback(function () use ($transaction, &$sessionLocked): array {
@@ -37,10 +38,10 @@ it('revalidates session before repository access and only emits metadata after c
 
         return [];
     });
-    $repository->expects($this->once())->method('create')->with(1, 2, $destination, $reference)->willReturn($registration);
+    $repository->expects($this->once())->method('create')->with(UuidFixture::at(1), UuidFixture::at(2), $destination, $reference)->willReturn($registration);
     $observability = $this->createMock(ObservabilityPort::class);
     $observability->expects($this->once())->method('emit')->with('push.registration.created', [
-        'user_id' => 1, 'registration_id' => $registration->id, 'platform' => 'android', 'generation' => 1,
+        'user_id' => UuidFixture::at(1), 'registration_id' => $registration->id, 'platform' => 'android', 'generation' => 1,
     ])->willReturnCallback(function () use ($transaction): void {
         expect($transaction->isActive)->toBeFalse();
     });
@@ -54,11 +55,11 @@ it('rereads in a new transaction after a uniqueness race and preserves idempoten
     $transaction = new TransactionPortFake;
     $reference = new DateTimeImmutable('2026-10-13T12:00:00Z');
     $destination = new NotificationValueObject(installationId: NotificationRegistrationFixture::Installation, registrationKind: 'token', platform: NotificationPlatformEnum::Android, identifier: 'fake-token');
-    $existing = new NotificationRegistrationEntity(id: NotificationRegistrationFixture::OtherInstallation, userId: 1, sessionId: 2, generation: 1, lastRegisteredAt: $reference, destination: $destination);
+    $existing = new NotificationRegistrationEntity(id: NotificationRegistrationFixture::OtherInstallation, userId: UuidFixture::at(1), sessionId: UuidFixture::at(2), generation: 1, lastRegisteredAt: $reference, destination: $destination);
     $user = $this->createStub(UserPort::class);
-    $user->method('id')->willReturn(1);
+    $user->method('id')->willReturn(UuidFixture::at(1));
     $recipient = $this->createMock(NotificationPort::class);
-    $recipient->expects($this->exactly(2))->method('lock')->with(1, $reference)->willReturn(2);
+    $recipient->expects($this->exactly(2))->method('lock')->with(UuidFixture::at(1), $reference)->willReturn(UuidFixture::at(2));
     $repository = $this->createMock(NotificationRegistrationRepository::class);
     $repository->expects($this->exactly(2))->method('lock')->willReturnOnConsecutiveCalls([], [$existing]);
     $repository->expects($this->once())->method('create')->willThrowException(new NotificationRegistrationRaceException);
@@ -75,9 +76,9 @@ it('bounds repeated transaction races without inventing success', function (): v
     $reference = new DateTimeImmutable('2026-10-13T12:00:00Z');
     $destination = new NotificationValueObject(installationId: NotificationRegistrationFixture::Installation, registrationKind: 'token', platform: NotificationPlatformEnum::Android, identifier: 'fake-token');
     $user = $this->createStub(UserPort::class);
-    $user->method('id')->willReturn(1);
+    $user->method('id')->willReturn(UuidFixture::at(1));
     $recipient = $this->createStub(NotificationPort::class);
-    $recipient->method('lock')->willReturn(2);
+    $recipient->method('lock')->willReturn(UuidFixture::at(2));
     $repository = $this->createMock(NotificationRegistrationRepository::class);
     $repository->expects($this->exactly(3))->method('lock')->willThrowException(new NotificationRegistrationRaceException);
     $repository->expects($this->never())->method('create');

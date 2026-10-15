@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Expense\Infrastructure\Adapters;
 
+use App\Core\Domain\ValueObjects\UuidValueObject;
 use App\Expense\Application\Ports\ExpenseClassificationDispatchPort;
 use App\Expense\Application\Repositories\ExpenseCategorizationRepository;
 use App\Expense\Infrastructure\Queues\ClassifyExpenseQueue;
@@ -19,8 +20,9 @@ final readonly class ExpenseClassificationDispatchAdapter implements ExpenseClas
         private ExpenseCategorizationRepository $repository,
     ) {}
 
-    public function dispatch(string $token, int $expenseId): void
+    public function dispatch(string $token, string $expenseId): void
     {
+        $expenseId = UuidValueObject::fromString($expenseId)->value();
         DB::afterCommit(function () use ($expenseId, $token): void {
             if (Config::string('queue.default') === 'sync') {
                 $this->repository->cancelClassification(expenseId: $expenseId, token: $token);

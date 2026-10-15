@@ -18,27 +18,27 @@ final readonly class CachedExpenseCategorizationRepository implements ExpenseCat
         private ExpenseCategorizationRepository $repository,
     ) {}
 
-    public function cancelClassification(int $expenseId, string $token): void
+    public function cancelClassification(string $expenseId, string $token): void
     {
         $this->repository->cancelClassification(expenseId: $expenseId, token: $token);
     }
 
-    public function findClassificationAttempt(int $expenseId, string $token): ?ExpenseClassificationOutput
+    public function findClassificationAttempt(string $expenseId, string $token): ?ExpenseClassificationOutput
     {
         return $this->repository->findClassificationAttempt(expenseId: $expenseId, token: $token);
     }
 
-    public function beginClassificationAttempt(int $expenseId, string $token, DateTimeImmutable $expiresAt): bool
+    public function beginClassificationAttempt(string $expenseId, string $token, DateTimeImmutable $expiresAt): bool
     {
         return $this->repository->beginClassificationAttempt(expenseId: $expenseId, token: $token, expiresAt: $expiresAt);
     }
 
-    public function applyClassificationAttempt(ApplyExpenseClassificationInput $input): ?int
+    public function applyClassificationAttempt(ApplyExpenseClassificationInput $input): ?string
     {
         $userId = $this->repository->applyClassificationAttempt(input: $input);
 
         if ($userId !== null) {
-            DB::afterCommit(callback: $this->cache->tags("expense:pages:owner:{$userId}")->flush(...));
+            DB::afterCommit(callback: $this->cache->tags("expense:pages:v3:owner:{$userId}")->flush(...));
         }
 
         return $userId;

@@ -3,7 +3,11 @@
 declare(strict_types=1);
 
 use App\Core\Domain\Enums\ExpenseCategoryEnum;
+use App\Expense\Application\Data\GetAllExpenseInput;
+use App\Expense\Application\Data\UpdateExpenseInput;
 use App\Expense\Application\Ports\ExpenseClassificationDispatchPort;
+use App\Expense\Application\Repositories\ExpenseRepository;
+use App\Expense\Infrastructure\Agents\ExpenseClassificationAgent;
 use App\Expense\Infrastructure\Queues\ClassifyExpenseQueue;
 use App\Expense\Infrastructure\Repositories\Persistence\Models\ExpenseModel;
 use App\Identity\Domain\Enums\UserStatusEnum;
@@ -11,6 +15,7 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Queue\Events\JobReleasedAfterException;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
@@ -68,6 +73,15 @@ it('processes OpenRouter connection failures through the real Redis worker retry
     ]);
     app(ExpenseClassificationDispatchPort::class)->dispatch(token: $token, expenseId: $expense->id);
 
+    config()->set('cache.default', 'redis');
+    $other = IdentityFixture::create(UserStatusEnum::Active, null, email: 'other-worker@example.com');
+    $repository = app(ExpenseRepository::class);
+    $input = new GetAllExpenseInput;
+    expect($repository->getAll($identity->id, $input)->items[0]->category)->toBe(ExpenseCategoryEnum::Other);
+    $repository->getAll($other->id, $input);
+    Cache::tags("expense:pages:v3:owner:{$identity->id}")->put('worker-sentinel', 'old', 60);
+    Cache::tags("expense:pages:v3:owner:{$other->id}")->put('worker-sentinel', 'other', 60);
+
     $queue = config('expense.classification.queue');
     $connection = Queue::connection('redis');
     $payload = $connection->getConnection()->lindex('queues:'.$queue, 0);
@@ -77,6 +91,8 @@ it('processes OpenRouter connection failures through the real Redis worker retry
         ->and($queued['maxTries'])->toBe(3)
         ->and($queued['timeout'])->toBe(25)
         ->and($connection->pendingSize($queue))->toBe(1);
+    $command = unserialize($queued['data']['command'], ['allowed_classes' => [ClassifyExpenseQueue::class]]);
+    expect($command->expenseId)->toBe($expense->id)->toBeString()->and($command->token)->toBe($token);
     Http::assertNothingSent();
 
     $worker = static function () use ($queue): void {
@@ -143,8 +159,30 @@ it('processes OpenRouter connection failures through the real Redis worker retry
         ->and($expense->amount)->toBe(1500)
         ->and($expense->description)->toBe('Mercado - 2 itens')
         ->and($connection->size($queue))->toBe(0);
+    expect(Cache::tags("expense:pages:v3:owner:{$identity->id}")->get('worker-sentinel'))->toBe($failures < 3 ? null : 'old')
+        ->and(Cache::tags("expense:pages:v3:owner:{$other->id}")->get('worker-sentinel'))->toBe('other')
+        ->and($repository->getAll($identity->id, $input)->items[0]->category)->toBe($failures < 3 ? ExpenseCategoryEnum::Food : ExpenseCategoryEnum::Other);
 })->with([
     'connection recovers on the second attempt' => [1],
     'connection recovers on the final allowed attempt' => [2],
     'connection fails on all three attempts' => [3],
 ])->group('integration', 'worker', 'redis');
+
+it('consumes a UUID job through Redis without overwriting a later manual edit', function (): void {
+    config()->set('queue.default', 'redis');
+    config()->set('queue.connections.redis.block_for', null);
+    ExpenseClassificationAgent::fake()->preventStrayPrompts();
+    $owner = IdentityFixture::create(UserStatusEnum::Active, null);
+    $expense = ExpenseModel::query()->create([
+        'user_id' => $owner->id, 'amount' => 1000, 'occurred_on' => '2026-09-24', 'category' => 'other',
+        'description' => 'Mercado', 'classification_token' => 'fencing-unchanged', 'classification_expires_at' => now()->addMinutes(5),
+    ]);
+    app(ExpenseClassificationDispatchPort::class)->dispatch('fencing-unchanged', $expense->id);
+    app(ExpenseRepository::class)->update($expense->id, $owner->id, new UpdateExpenseInput(category: 'health', hasCategory: true));
+    $queue = config('expense.classification.queue');
+    expect(Queue::connection('redis')->size($queue))->toBe(1);
+    Artisan::call('queue:work', ['connection' => 'redis', '--queue' => $queue, '--once' => true, '--sleep' => 0]);
+    expect($expense->refresh()->category)->toBe('health')->and($expense->classification_token)->toBeNull()
+        ->and(Queue::connection('redis')->size($queue))->toBe(0);
+    ExpenseClassificationAgent::assertNeverPrompted();
+})->group('integration', 'worker', 'redis');

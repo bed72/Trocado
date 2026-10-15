@@ -135,25 +135,29 @@ As frentes 05, 06 e 07 podem ser organizadas separadamente depois da base 04; 08
 
 **Entrega:** despesas/owners UUIDv7 e paginação coerente com PostgreSQL.
 
-- [ ] **5.1** Converter Entity, contratos, UseCases, Data e mappings CRUD/cache.
-- [ ] **5.2** Configurar UUIDv7 no Model e fornecer IDs válidos em bulk/seed/fixtures.
-- [ ] **5.3** Converter rotas/controllers/Requests/Responses e preservar ownership/404 uniforme.
-- [ ] **5.4** Implementar cursor v2: `id` UUIDv7 separado de `amount` inteiro; rejeitar cursor antigo.
-- [ ] **5.5** Revisar sort/seek/ties UUID, mantendo collation e descrição nullable.
-- [ ] **5.6** Versionar cache/tags/serialização para owner UUID e cursor v2.
-- [ ] **5.7** Converter classificação/dispatch/job para Expense UUIDv7, preservando fencing e proteção contra edição.
-- [ ] **5.8** Atualizar provas Unit, PostgreSQL e HTTP de CRUD/ordenação/paginação/cache/classificação.
-- [ ] **5.9** Provar worker real e invalidação scoped em fila/Redis exclusivos.
-- [ ] **5.10** Executar arquivos, suíte e integrações afetadas; registrar planos pertinentes.
+- [x] **5.1** Converter Entity, contratos, UseCases, Data e mappings CRUD/cache.
+- [x] **5.2** Configurar UUIDv7 no Model e fornecer IDs válidos em bulk/seed/fixtures.
+- [x] **5.3** Converter rotas/controllers/Requests/Responses e preservar ownership/404 uniforme.
+- [x] **5.4** Implementar cursor v2: `id` UUIDv7 separado de `amount` inteiro; rejeitar cursor antigo.
+- [x] **5.5** Revisar sort/seek/ties UUID, mantendo collation e descrição nullable.
+- [x] **5.6** Versionar cache/tags/serialização para owner UUID e cursor v2.
+- [x] **5.7** Converter classificação/dispatch/job para Expense UUIDv7, preservando fencing e proteção contra edição.
+- [x] **5.8** Atualizar provas Unit, PostgreSQL e HTTP de CRUD/ordenação/paginação/cache/classificação.
+- [x] **5.9** Provar worker real e invalidação scoped em fila/Redis exclusivos.
+- [x] **5.10** Executar arquivos, suíte e integrações afetadas; registrar planos pertinentes.
 
 **Concluir quando:** next/prev não omitem nem repetem registros estáveis; ID nunca é validado/cast como amount; jobs/cache antigos não são consumidos como novos.
+
+**Escopo Expense concluído em 2026-10-15:** Unit/Feature Expense + arquitetura passaram com 500 testes/3.485 assertions; arquivos alterados passaram isoladamente. Duas seeds com isolamento/Redis/invocações simultâneas passaram (509/3.573 cada); Feature Expense em paralelo de dois processos passou (371/2.721). Worker Redis comprova UUID/fencing, retries, invalidação scoped e edição posterior. Pint e OpenSpec estrito passaram. Planos de 2.400 registros/evidências no [checklist oficial](openspec/changes/standardize-uuid-v7-identifiers/tasks.md#step-05--expense-cursor-cache-e-classificação--2026-10-15). Gate global agora bloqueia em owner inteiro de Insights (STEP 08); integração completa e transição do banco operacional seguem pendentes.
+
+**Correção transversal posterior — 2026-10-15:** após diagnóstico completo de 268 problemas, os consumidores obrigatórios de owner/sessão, mocks e inserts UUID foram alinhados conforme seção 1.6 da spec. Core recuperou as provas de rollback/preflight; contratos de Insights/Metrics e owner/sessão de Notifications estão coerentes. Gate completo, seeds 20261022/20261023 e paralelo de dois processos passaram: **2.168 testes/39.859 assertions em cada execução**, sem exclusões/skips. O bloqueio global registrado acima foi superado. Evidências e mapa de preservação estão no [checklist oficial](openspec/changes/standardize-uuid-v7-identifiers/tasks.md#correção-transversal--compatibilidade-da-suíte--2026-10-15). Isso conclui os pré-requisitos de tipos de 6.2/8.1/9.1/10.1, não os respectivos STEPs completos, as identidades estáveis ou o rollout operacional.
 
 ## STEP 06 — Notifications e instalação
 
 **Entrega:** registro, owner, sessão e instalação UUIDv7, com o lifecycle atual de cadastro preservado.
 
 - [ ] **6.1** Configurar geração/mapping UUIDv7 do registro, sem trocar ID em sincronização/rotação.
-- [ ] **6.2** Converter owner/sessão/retornos dos contratos e preservar transação/locks/cifragem/fingerprint.
+- [x] **6.2** Converter owner/sessão/retornos dos contratos e preservar transação/locks/cifragem/fingerprint.
 - [ ] **6.3** Exigir `installation_id` UUIDv7 no Domain/Request, com pointer correto para outras versões.
 - [ ] **6.4** Ajustar DELETE/Response/rotas, mantendo auth, cota, não extensão e 204/404.
 - [ ] **6.5** Atualizar fixtures/doubles/logs, mantendo ID de instalação distinto do ID do registro.
@@ -185,7 +189,7 @@ As frentes 05, 06 e 07 podem ser organizadas separadamente depois da base 04; 08
 
 **Entrega:** Insights usam IDs associados no Core, preservando fatos, seleção, período e rotação.
 
-- [ ] **8.1** Converter owner nos contratos, SQL, fatos e escolha de variante.
+- [x] **8.1** Converter owner nos contratos, SQL, fatos e escolha de variante.
 - [ ] **8.2** Preparar chave por tipo/assunto/estado/períodos internos e comparação.
 - [ ] **8.3** Compor/deduplicar/selecionar tudo antes de resolver IDs em um lote final.
 - [ ] **8.4** Provar equivalências/chaves e estabilidade frente a valor, descrição, visita e catálogo.
@@ -199,7 +203,7 @@ As frentes 05, 06 e 07 podem ser organizadas separadamente depois da base 04; 08
 
 **Entrega:** resumo singular UUIDv7 por owner/período/modo, inclusive total zero.
 
-- [ ] **9.1** Converter owner sem mudar cálculo, snapshot, período ou filtros.
+- [x] **9.1** Converter owner sem mudar cálculo, snapshot, período ou filtros.
 - [ ] **9.2** Preparar chave canônica e resolver ID depois de reconciliar a projeção.
 - [ ] **9.3** Substituir hash público por associação Core, sem ID de categoria ou resumo persistido.
 - [ ] **9.4** Provar chave/modo/default/zero/valores em Unit.
@@ -213,7 +217,7 @@ As frentes 05, 06 e 07 podem ser organizadas separadamente depois da base 04; 08
 
 **Entrega:** identidade por owner/chave normalizada SQL, sem vínculo com uma Expense específica.
 
-- [ ] **10.1** Converter owner preservando busca, normalização, janela monetária e limite.
+- [x] **10.1** Converter owner preservando busca, normalização, janela monetária e limite.
 - [ ] **10.2** Preparar chave da associação pela chave normalizada SQL, sem raw description persistida.
 - [ ] **10.3** Resolver lote final e não alocar em resposta vazia.
 - [ ] **10.4** Provar termos/case equivalentes, valores opcionais, owners/processos diferentes e mudança de assunto.

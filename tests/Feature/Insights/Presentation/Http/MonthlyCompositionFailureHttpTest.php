@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Identity\Domain\Enums\UserStatusEnum;
+use App\Identity\Infrastructure\Repositories\Persistence\Models\PersonalAccessTokenModel as PersonalAccessToken;
 use App\Insights\Application\Data\ExpenseAnalysisOutput;
 use App\Insights\Application\Data\ExpenseCategoryAnalysisOutput;
 use App\Insights\Application\Data\ExpensePeriodAnalysisOutput;
@@ -16,7 +17,6 @@ use App\Insights\Domain\Enums\InsightTypeEnum;
 use App\Insights\Domain\ValueObjects\InsightAnalysisPeriodValueObject;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Exceptions;
-use Laravel\Sanctum\PersonalAccessToken;
 use Tests\Support\Identity\Fixtures\IdentityFixture;
 
 beforeEach(function (): void {
@@ -66,10 +66,10 @@ it('returns no partial insights or successful onboarding when composition fails 
     expect($candidates)->toHaveCount(2)
         ->and($candidates[0]->type)->toBe(InsightTypeEnum::RegisteredAmountIncrease)
         ->and($candidates[1]->type)->toBe(InsightTypeEnum::CategoryConcentration);
-    expect($this->app->make(ComposeInsightMessageUseCase::class)->execute((int) $user->getKey(), $candidates[0], '2026-10-28')->description)->toContain('+50%');
+    expect($this->app->make(ComposeInsightMessageUseCase::class)->execute($user->getKey(), $candidates[0], '2026-10-28')->description)->toContain('+50%');
 
     $repository = $this->createMock(ExpenseAnalysisRepository::class);
-    $repository->expects($this->once())->method('analyze')->with((int) $user->getKey(), $period)->willReturn($analysis);
+    $repository->expects($this->once())->method('analyze')->with($user->getKey(), $period)->willReturn($analysis);
     $this->app->instance(ExpenseAnalysisRepository::class, $repository);
     $handler = Exceptions::getFacadeRoot();
     Exceptions::fake();

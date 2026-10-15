@@ -6,6 +6,7 @@ use App\Identity\Domain\Enums\UserStatusEnum;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Tests\Support\Identity\Fixtures\IdentityFixture;
 
 beforeEach(function (): void {
@@ -23,6 +24,7 @@ it('keeps financial and onboarding identities identical for default explicit and
     foreach (['2026-10', '2026-09', '0026-09'] as $month) {
         foreach ([['01', 5000, 'other'], ['02', 500, 'other'], ['03', 500, 'other'], ['04', 2000, 'food'], ['05', 2000, 'food']] as [$day, $amount, $category]) {
             DB::table('expenses')->insert([
+                'id' => (string) Str::uuid7(),
                 'user_id' => $user->getKey(), 'amount' => $amount, 'category' => $category,
                 'occurred_on' => "{$month}-{$day}",
                 'created_at' => '2026-10-12 12:00:00', 'updated_at' => '2026-10-12 12:00:00',
@@ -63,6 +65,7 @@ it('distinguishes onboarding months by their internal periods even when both pub
         foreach (['2026-08', '2026-09'] as $month) {
             foreach (['other', 'other', 'other', 'food', 'food'] as $index => $category) {
                 DB::table('expenses')->insert([
+                    'id' => (string) Str::uuid7(),
                     'user_id' => $user->getKey(), 'amount' => 2000, 'category' => $category,
                     'occurred_on' => "{$month}-0".($index + 1),
                     'created_at' => '2026-10-12 12:00:00', 'updated_at' => '2026-10-12 12:00:00',
@@ -103,6 +106,7 @@ it('keeps historical IDs through value description and daily variant changes whi
         foreach (['2026-08', '2026-09'] as $month) {
             foreach ([['01', 5000, 'other'], ['02', 500, 'other'], ['03', 500, 'other'], ['04', 2000, 'food'], ['05', 2000, 'food']] as [$day, $amount, $category]) {
                 $id = DB::table('expenses')->insertGetId([
+                    'id' => (string) Str::uuid7(),
                     'user_id' => $user->getKey(), 'amount' => $amount, 'category' => $category,
                     'occurred_on' => "{$month}-{$day}", 'description' => $day === '01' ? 'Aluguel' : null,
                     'created_at' => '2026-10-12 12:00:00', 'updated_at' => '2026-10-12 12:00:00',
@@ -161,6 +165,7 @@ it('distinguishes contextual onboarding states without changing the selected mon
         ->assertJsonPath('data.0.attributes.period', null)->json('data.0');
 
     DB::table('expenses')->insert([
+        'id' => (string) Str::uuid7(),
         'user_id' => $user->getKey(), 'amount' => 2000, 'category' => 'food', 'occurred_on' => '2026-09-01',
         'created_at' => '2026-10-12 12:00:00', 'updated_at' => '2026-10-12 12:00:00',
     ]);

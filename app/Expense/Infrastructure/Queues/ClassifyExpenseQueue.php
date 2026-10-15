@@ -22,7 +22,7 @@ final class ClassifyExpenseQueue implements Interruptible, ShouldQueue
 
     public function __construct(
         public readonly string $token,
-        public readonly int $expenseId,
+        public readonly string $expenseId,
         public int $tries,
         public int $timeout,
     ) {}

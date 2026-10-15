@@ -9,5 +9,5 @@ use App\Insights\Domain\ValueObjects\InsightAnalysisPeriodValueObject;
 
 interface ExpenseAnalysisRepository
 {
-    public function analyze(int $userId, InsightAnalysisPeriodValueObject $period): ExpenseAnalysisOutput;
+    public function analyze(string $userId, InsightAnalysisPeriodValueObject $period): ExpenseAnalysisOutput;
 }

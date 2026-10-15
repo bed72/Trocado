@@ -5,24 +5,31 @@ declare(strict_types=1);
 namespace App\Expense\Domain\Entities;
 
 use App\Core\Domain\Enums\ExpenseCategoryEnum;
+use App\Core\Domain\ValueObjects\UuidValueObject;
 use App\Expense\Domain\Exceptions\InvalidExpenseException;
 use DateTimeImmutable;
 
 final readonly class ExpenseEntity
 {
+    public ?string $id;
+
+    public string $userId;
+
     public ExpenseCategoryEnum $category;
 
     public function __construct(
-        public ?int $id,
-        public int $userId,
+        ?string $id,
+        string $userId,
         public int $amount,
         public string $occurredOn,
         ?string $category = null,
         public ?string $description = null,
         public ?DateTimeImmutable $createdAt = null,
     ) {
-        if ($userId <= 0 || $amount <= 0) {
-            throw new InvalidExpenseException(message: 'O proprietário e o valor da despesa devem ser positivos.');
+        $this->id = $id === null ? null : UuidValueObject::fromString($id)->value();
+        $this->userId = UuidValueObject::fromString($userId)->value();
+        if ($amount <= 0) {
+            throw new InvalidExpenseException(message: 'O valor da despesa deve ser positivo.');
         }
 
         $date = DateTimeImmutable::createFromFormat(format: '!Y-m-d', datetime: $occurredOn);

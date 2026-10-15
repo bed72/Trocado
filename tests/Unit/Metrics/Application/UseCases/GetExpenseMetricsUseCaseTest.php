@@ -13,6 +13,7 @@ use App\Metrics\Application\Repositories\ExpenseMetricsRepository;
 use App\Metrics\Application\UseCases\GetExpenseMetricsUseCase;
 use App\Metrics\Domain\Enums\ExpenseMetricsGroupingEnum;
 use PHPUnit\Framework\MockObject\MockObject;
+use Tests\Support\Core\Fixtures\UuidFixture;
 
 function expenseMetricsInputFixture(
     ExpenseMetricsGroupingEnum $grouping = ExpenseMetricsGroupingEnum::Total,
@@ -43,11 +44,11 @@ function expenseMetricsUseCaseFixture(UserPort&MockObject $userPort, ExpenseMetr
 it('reads the authenticated owner once and forwards the exact effective period and grouping', function (ExpenseMetricsGroupingEnum $grouping): void {
     [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsRepository::class));
     $input = expenseMetricsInputFixture($grouping);
-    $userPort->expects($this->once())->method('id')->willReturn(42);
+    $userPort->expects($this->once())->method('id')->willReturn(UuidFixture::at(42));
     $userPort->expects($this->never())->method('status');
     $projection = expenseMetricsProjectionFixture('123456', $grouping === ExpenseMetricsGroupingEnum::Category ? ['other' => '123456'] : []);
     $metricsPort->expects($this->once())->method('summarize')
-        ->with(42, $this->identicalTo($input->period), $grouping)->willReturn($projection);
+        ->with(UuidFixture::at(42), $this->identicalTo($input->period), $grouping)->willReturn($projection);
 
     $output = $useCase->execute($input);
 
@@ -66,7 +67,7 @@ it('reads the authenticated owner once and forwards the exact effective period a
 
 it('distinguishes absent grouping from an explicitly grouped empty result without dividing by zero', function (): void {
     [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsRepository::class));
-    $userPort->method('id')->willReturn(42);
+    $userPort->method('id')->willReturn(UuidFixture::at(42));
     $metricsPort->expects($this->exactly(2))->method('summarize')->willReturn(expenseMetricsProjectionFixture('0'));
 
     $total = $useCase->execute(expenseMetricsInputFixture());
@@ -83,7 +84,7 @@ it('distinguishes absent grouping from an explicitly grouped empty result withou
 
 it('reconciles large totals and orders numerically with alphabetical tie breaking', function (): void {
     [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsRepository::class));
-    $userPort->method('id')->willReturn(42);
+    $userPort->method('id')->willReturn(UuidFixture::at(42));
     $metricsPort->method('summarize')->willReturn(expenseMetricsProjectionFixture('12000000000000010900', [
         'transport' => '4000000000000000000',
         'health' => '900',
@@ -104,7 +105,7 @@ it('reconciles large totals and orders numerically with alphabetical tie breakin
 
 it('calculates percentages from the same exact total with independent final rounding', function (string $total, array $totals, array $percentages): void {
     [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsRepository::class));
-    $userPort->method('id')->willReturn(42);
+    $userPort->method('id')->willReturn(UuidFixture::at(42));
     $metricsPort->expects($this->once())->method('summarize')->willReturn(expenseMetricsProjectionFixture($total, $totals));
 
     $output = $useCase->execute(expenseMetricsInputFixture(ExpenseMetricsGroupingEnum::Category));
@@ -126,7 +127,7 @@ it('returns every supported category without pagination or artificial empty grou
         'food', 'health', 'housing', 'leisure', 'shopping', 'services', 'transport', 'education', 'subscriptions',
         'financing', 'investments', 'taxes', 'insurance', 'personal_care', 'pets', 'gifts_and_donations', 'travel', 'other',
     ], '1');
-    $userPort->method('id')->willReturn(42);
+    $userPort->method('id')->willReturn(UuidFixture::at(42));
     $metricsPort->expects($this->once())->method('summarize')->willReturn(expenseMetricsProjectionFixture('18', $totals));
 
     $output = $useCase->execute(expenseMetricsInputFixture(ExpenseMetricsGroupingEnum::Category));
@@ -142,7 +143,7 @@ it('returns every supported category without pagination or artificial empty grou
 
 it('keeps identity stable when values and category order change while performing a fresh read each time', function (): void {
     [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsRepository::class));
-    $userPort->expects($this->exactly(2))->method('id')->willReturn(42);
+    $userPort->expects($this->exactly(2))->method('id')->willReturn(UuidFixture::at(42));
     $metricsPort->expects($this->exactly(2))->method('summarize')->willReturnOnConsecutiveCalls(
         expenseMetricsProjectionFixture('10000', ['other' => '4000', 'food' => '6000']),
         expenseMetricsProjectionFixture('12500', ['food' => '8500', 'other' => '4000']),
@@ -162,9 +163,9 @@ it('keeps identity stable when values and category order change while performing
 it('gives equivalent default and explicit months the same identity and read parameters', function (): void {
     [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsRepository::class));
     $period = DatePeriodValueObject::monthContaining('2026-10-09');
-    $userPort->method('id')->willReturn(42);
+    $userPort->method('id')->willReturn(UuidFixture::at(42));
     $metricsPort->expects($this->exactly(2))->method('summarize')
-        ->with(42, $period, ExpenseMetricsGroupingEnum::Total)->willReturn(expenseMetricsProjectionFixture('0'));
+        ->with(UuidFixture::at(42), $period, ExpenseMetricsGroupingEnum::Total)->willReturn(expenseMetricsProjectionFixture('0'));
 
     $default = $useCase->execute(new GetExpenseMetricsInput(period: $period));
     $explicit = $useCase->execute(expenseMetricsInputFixture());
@@ -175,7 +176,7 @@ it('gives equivalent default and explicit months the same identity and read para
 
 it('distinguishes the account both period endpoints and grouping in opaque identity', function (string $dimension): void {
     [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsRepository::class));
-    $userPort->method('id')->willReturnOnConsecutiveCalls(42, $dimension === 'account' ? 43 : 42);
+    $userPort->method('id')->willReturnOnConsecutiveCalls(UuidFixture::at(42), UuidFixture::at($dimension === 'account' ? 43 : 42));
     $metricsPort->method('summarize')->willReturn(expenseMetricsProjectionFixture('0'));
     $changed = match ($dimension) {
         'account' => expenseMetricsInputFixture(),
@@ -197,7 +198,7 @@ it('does not read metrics when authenticated identity fails', function (): void 
 
 it('propagates analytical failures instead of returning total zero', function (): void {
     [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsRepository::class));
-    $userPort->method('id')->willReturn(42);
+    $userPort->method('id')->willReturn(UuidFixture::at(42));
     $metricsPort->method('summarize')->willThrowException(new RuntimeException('Metrics unavailable'));
 
     $useCase->execute(expenseMetricsInputFixture());
@@ -205,7 +206,7 @@ it('propagates analytical failures instead of returning total zero', function ()
 
 it('rejects malformed category projections instead of silently repairing or omitting facts', function (ExpenseMetricsProjectionOutput $projection): void {
     [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsRepository::class));
-    $userPort->method('id')->willReturn(42);
+    $userPort->method('id')->willReturn(UuidFixture::at(42));
     $metricsPort->method('summarize')->willReturn($projection);
 
     $useCase->execute(expenseMetricsInputFixture(ExpenseMetricsGroupingEnum::Category));
@@ -224,7 +225,7 @@ it('rejects malformed category projections instead of silently repairing or omit
 
 it('rejects noncanonical exact amounts in the projection', function (string $amount, bool $categoryAmount): void {
     [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsRepository::class));
-    $userPort->method('id')->willReturn(42);
+    $userPort->method('id')->willReturn(UuidFixture::at(42));
     $projection = $categoryAmount ? expenseMetricsProjectionFixture('1', ['food' => $amount]) : expenseMetricsProjectionFixture($amount);
     $metricsPort->method('summarize')->willReturn($projection);
 
@@ -233,7 +234,7 @@ it('rejects noncanonical exact amounts in the projection', function (string $amo
 
 it('rejects categories unexpectedly provided in total only mode', function (): void {
     [$userPort, $metricsPort, $useCase] = expenseMetricsUseCaseFixture($this->createMock(UserPort::class), $this->createMock(ExpenseMetricsRepository::class));
-    $userPort->method('id')->willReturn(42);
+    $userPort->method('id')->willReturn(UuidFixture::at(42));
     $metricsPort->method('summarize')->willReturn(expenseMetricsProjectionFixture('1', ['food' => '1']));
 
     $useCase->execute(expenseMetricsInputFixture());

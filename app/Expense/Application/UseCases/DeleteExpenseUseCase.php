@@ -7,6 +7,7 @@ namespace App\Expense\Application\UseCases;
 use App\Core\Application\Ports\ObservabilityPort;
 use App\Core\Application\Ports\TransactionPort;
 use App\Core\Application\Ports\UserPort;
+use App\Core\Domain\ValueObjects\UuidValueObject;
 use App\Expense\Application\Exceptions\ExpenseNotFoundException;
 use App\Expense\Application\Repositories\ExpenseRepository;
 
@@ -19,8 +20,9 @@ final readonly class DeleteExpenseUseCase
         private ExpenseRepository $repository,
     ) {}
 
-    public function execute(int $id): void
+    public function execute(string $id): void
     {
+        $id = UuidValueObject::fromString($id)->value();
         $userId = $this->userPort->id();
 
         if (! $this->repository->delete(id: $id, userId: $userId)) {

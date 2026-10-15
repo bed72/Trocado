@@ -13,7 +13,7 @@ use DateTimeImmutable;
 
 final class EloquentExpenseCategorizationRepository implements ExpenseCategorizationRepository
 {
-    public function beginClassificationAttempt(int $expenseId, string $token, DateTimeImmutable $expiresAt): bool
+    public function beginClassificationAttempt(string $expenseId, string $token, DateTimeImmutable $expiresAt): bool
     {
         return ExpenseModel::query()
             ->whereKey($expenseId)
@@ -24,7 +24,7 @@ final class EloquentExpenseCategorizationRepository implements ExpenseCategoriza
             ]) === 1;
     }
 
-    public function findClassificationAttempt(int $expenseId, string $token): ?ExpenseClassificationOutput
+    public function findClassificationAttempt(string $expenseId, string $token): ?ExpenseClassificationOutput
     {
         $model = ExpenseModel::query()
             ->whereKey($expenseId)
@@ -48,7 +48,7 @@ final class EloquentExpenseCategorizationRepository implements ExpenseCategoriza
         return new ExpenseClassificationOutput(description: $model->description);
     }
 
-    public function applyClassificationAttempt(ApplyExpenseClassificationInput $input): ?int
+    public function applyClassificationAttempt(ApplyExpenseClassificationInput $input): ?string
     {
         $model = ExpenseModel::query()
             ->whereKey($input->expenseId)
@@ -77,7 +77,7 @@ final class EloquentExpenseCategorizationRepository implements ExpenseCategoriza
         return $updated === 1 ? $model->user_id : null;
     }
 
-    public function cancelClassification(int $expenseId, string $token): void
+    public function cancelClassification(string $expenseId, string $token): void
     {
         ExpenseModel::query()
             ->whereKey($expenseId)

@@ -13,6 +13,7 @@ use App\Insights\Domain\Enums\InsightHistoryStateEnum;
 use App\Insights\Domain\Enums\InsightPeriodModeEnum;
 use App\Insights\Domain\Enums\InsightTypeEnum;
 use App\Insights\Domain\ValueObjects\InsightCandidateValueObject;
+use Tests\Support\Core\Fixtures\UuidFixture;
 
 function messageCompositionUseCase(): ComposeInsightMessageUseCase
 {
@@ -111,13 +112,13 @@ it('renders every monthly catalog set with complete paired messages and daily va
     $pairs = [];
 
     foreach (['2026-11-12', '2026-11-13', '2026-11-14', '2026-11-15'] as $date) {
-        $message = $useCase->execute(1, $candidate, $date);
+        $message = $useCase->execute(UuidFixture::at(1), $candidate, $date);
         $pairs[] = $message->title.'|'.$message->description;
         expect(mb_strlen($message->title, 'UTF-8'))->toBeLessThanOrEqual(24)
             ->and(mb_strlen($message->description, 'UTF-8'))->toBeLessThanOrEqual(80)
             ->and($message->title.' '.$message->description)->toContain('out/2026')
             ->not->toMatch('/\{[^}]+\}|palco|figurante|piada|cristal/iu')
-            ->and($useCase->execute(1, $candidate, $date))->toEqual($message);
+            ->and($useCase->execute(UuidFixture::at(1), $candidate, $date))->toEqual($message);
 
         if ($mode === InsightPeriodModeEnum::Closed) {
             expect($message->description)->not->toContain('até dia', 'neste mês');
@@ -149,7 +150,7 @@ it('renders all approved first expense variants with the selected month and curr
     ];
     $visited = [];
     foreach (['2026-10-12', '2026-10-13', '2026-10-14', '2026-10-15'] as $date) {
-        $message = messageCompositionUseCase()->execute(1, $candidate, $date);
+        $message = messageCompositionUseCase()->execute(UuidFixture::at(1), $candidate, $date);
         expect($message->title)->toBe('Primeiro registro')
             ->and($message->description)->toBeIn($approved);
         $visited[] = $message->description;
@@ -159,8 +160,8 @@ it('renders all approved first expense variants with the selected month and curr
 
 it('recalculates percentages without changing the chosen daily variant', function (): void {
     $useCase = messageCompositionUseCase();
-    $before = $useCase->execute(1, messageCandidateFixture(InsightTypeEnum::CategoryConcentration, 'food', '3850'), '2026-10-12');
-    $after = $useCase->execute(1, messageCandidateFixture(InsightTypeEnum::CategoryConcentration, 'food', '4200'), '2026-10-12');
+    $before = $useCase->execute(UuidFixture::at(1), messageCandidateFixture(InsightTypeEnum::CategoryConcentration, 'food', '3850'), '2026-10-12');
+    $after = $useCase->execute(UuidFixture::at(1), messageCandidateFixture(InsightTypeEnum::CategoryConcentration, 'food', '4200'), '2026-10-12');
     expect($before->title)->toBe('Alimentação')
         ->and($after->title)->toBe($before->title)
         ->and($before->description)->toContain('39%')
@@ -179,11 +180,11 @@ it('selects the catalog variant using the selected month mode and history state 
 
     foreach ([1, 2, 3, 4, 15, 42, 1500, 1600] as $userId) {
         $expectedVariant = (new SelectInsightMessageVariantUseCase)->execute(new SelectInsightMessageVariantInput(
-            userId: $userId, editorialKey: $key, referenceDate: '2026-10-12', variantCount: 4,
+            userId: UuidFixture::at($userId), editorialKey: $key, referenceDate: '2026-10-12', variantCount: 4,
         ));
         $template = $templates[$expectedVariant];
         $parameters = ['{month}' => $month, '{day}' => '12'];
-        $message = messageCompositionUseCase()->execute($userId, $candidate, '2026-10-12');
+        $message = messageCompositionUseCase()->execute(UuidFixture::at($userId), $candidate, '2026-10-12');
 
         expect($message->title)->toBe(strtr($template->title, $parameters))
             ->and($message->description)->toBe(strtr($template->description, $parameters));
@@ -206,10 +207,10 @@ it('preserves all approved leadership variants across explicit accounts', functi
     ];
     $visited = [];
     foreach (['2026-10-12', '2026-10-13', '2026-10-14', '2026-10-15'] as $date) {
-        $message = messageCompositionUseCase()->execute($userId, $candidate, $date);
+        $message = messageCompositionUseCase()->execute(UuidFixture::at($userId), $candidate, $date);
         expect($message->title)->toBe('Alimentação')
             ->and($message->description)->toBeIn($approved)
-            ->and(messageCompositionUseCase()->execute($userId, $candidate, $date))->toEqual($message);
+            ->and(messageCompositionUseCase()->execute(UuidFixture::at($userId), $candidate, $date))->toEqual($message);
         $visited[] = $message->description;
     }
     expect($visited)->toEqualCanonicalizing($approved);
@@ -217,21 +218,21 @@ it('preserves all approved leadership variants across explicit accounts', functi
 
 it('keeps the variant when the comparison cutoff changes in the same month', function (): void {
     $useCase = messageCompositionUseCase();
-    $first = $useCase->execute(1, messageCandidateFixture(InsightTypeEnum::RegisteredAmountIncrease), '2026-10-20');
-    $second = $useCase->execute(1, messageCandidateFixture(InsightTypeEnum::RegisteredAmountIncrease, to: '2026-10-19'), '2026-10-20');
+    $first = $useCase->execute(UuidFixture::at(1), messageCandidateFixture(InsightTypeEnum::RegisteredAmountIncrease), '2026-10-20');
+    $second = $useCase->execute(UuidFixture::at(1), messageCandidateFixture(InsightTypeEnum::RegisteredAmountIncrease, to: '2026-10-19'), '2026-10-20');
     expect($first->title)->toBe($second->title)
         ->and(str_replace('11', '19', $first->description))->toBe($second->description);
 });
 
 it('fails explicitly rather than dropping an unbounded comparison magnitude', function (): void {
-    messageCompositionUseCase()->execute(1,
+    messageCompositionUseCase()->execute(UuidFixture::at(1),
         messageCandidateFixture(InsightTypeEnum::RegisteredAmountIncrease, numerator: str_repeat('9', 100)), '2026-10-12');
 })->throws(InsightMessageCompositionException::class);
 
 it('uses distinct contextual history sets without claiming the first expense', function (): void {
-    $old = messageCompositionUseCase()->execute(1, messageCandidateFixture(InsightTypeEnum::InsufficientHistory,
+    $old = messageCompositionUseCase()->execute(UuidFixture::at(1), messageCandidateFixture(InsightTypeEnum::InsufficientHistory,
         historyState: InsightHistoryStateEnum::NoCurrentExpenses), '2026-10-12');
-    $current = messageCompositionUseCase()->execute(1, messageCandidateFixture(InsightTypeEnum::InsufficientHistory,
+    $current = messageCompositionUseCase()->execute(UuidFixture::at(1), messageCandidateFixture(InsightTypeEnum::InsufficientHistory,
         historyState: InsightHistoryStateEnum::CurrentExpenses), '2026-10-12');
     expect($old->title)->toBe('Registros · out/2026')
         ->and($current->title)->toBe('Análise · out/2026')
@@ -252,7 +253,7 @@ it('keeps every historical onboarding variant localized and neutral about the se
     $descriptions = [];
 
     foreach (['2026-10-12', '2026-10-13', '2026-10-14', '2026-10-15'] as $date) {
-        $message = messageCompositionUseCase()->execute(1, $candidate, $date);
+        $message = messageCompositionUseCase()->execute(UuidFixture::at(1), $candidate, $date);
         $descriptions[] = $message->description;
 
         expect($message->title)->toBe($title.' · set/2026')
@@ -270,16 +271,16 @@ it('keeps every historical onboarding variant localized and neutral about the se
 ]);
 
 it('rejects unknown category labels instead of inventing text', function (): void {
-    messageCompositionUseCase()->execute(1, messageCandidateFixture(InsightTypeEnum::CategoryConcentration, 'unknown'), '2026-10-12');
+    messageCompositionUseCase()->execute(UuidFixture::at(1), messageCandidateFixture(InsightTypeEnum::CategoryConcentration, 'unknown'), '2026-10-12');
 })->throws(InsightMessageCompositionException::class);
 
 it('fails when even the final identification alternative cannot preserve the fact', function (): void {
-    messageCompositionUseCase()->execute(1,
+    messageCompositionUseCase()->execute(UuidFixture::at(1),
         messageCandidateFixture(InsightTypeEnum::ExpenseConcentration, 'food', str_repeat('9', 100)), '2026-10-12');
 })->throws(InsightMessageCompositionException::class);
 
 it('uses all neutral labels in the title and preserves the factual percentage', function (string $category, string $label): void {
-    $message = messageCompositionUseCase()->execute(1, messageCandidateFixture(InsightTypeEnum::CategoryConcentration, $category), '2026-10-12');
+    $message = messageCompositionUseCase()->execute(UuidFixture::at(1), messageCandidateFixture(InsightTypeEnum::CategoryConcentration, $category), '2026-10-12');
     expect($message->title)->toBe($label)
         ->and($message->description)->toContain('60%', 'out/2026')
         ->not->toContain('fome');
@@ -290,12 +291,12 @@ it('uses all neutral labels in the title and preserves the factual percentage', 
 
 it('starts another repeatable cycle after a month and eligible set transition', function (): void {
     $useCase = messageCompositionUseCase();
-    $useCase->execute(1, messageCandidateFixture(InsightTypeEnum::FirstExpense), '2026-10-31');
+    $useCase->execute(UuidFixture::at(1), messageCandidateFixture(InsightTypeEnum::FirstExpense), '2026-10-31');
     $november = new InsightCandidateValueObject(type: InsightTypeEnum::InsufficientHistory,
         analysisPeriod: DatePeriodValueObject::fromDates('2026-11-01', '2026-11-01'), historyState: InsightHistoryStateEnum::NoCurrentExpenses);
     $pairs = [];
     foreach (['2026-11-01', '2026-11-02', '2026-11-03', '2026-11-04', '2026-11-05'] as $date) {
-        $message = $useCase->execute(1, $november, $date);
+        $message = $useCase->execute(UuidFixture::at(1), $november, $date);
         expect($message->description)->not->toContain('primeira');
         $pairs[] = $message->title.'|'.$message->description;
     }
@@ -307,7 +308,7 @@ it('normalizes expense whitespace and keeps markup and placeholder shaped user t
     $candidate = messageCandidateFixture(InsightTypeEnum::ExpenseConcentration, 'housing', '120000', '222222',
         description: " \t<b>Aluguel</b>\n\u{00A0}{month}  ");
     foreach (['2026-10-12', '2026-10-13', '2026-10-14', '2026-10-15'] as $date) {
-        $message = messageCompositionUseCase()->execute(1, $candidate, $date);
+        $message = messageCompositionUseCase()->execute(UuidFixture::at(1), $candidate, $date);
         expect($message->description)->toContain('<b>Aluguel</b> {month}', '54%', 'R$ 1.200,00')
             ->not->toContain("\n", "\t", '\u{00A0}')
             ->and($message->title)->toBe('Maior · out/2026 até 11');
@@ -318,7 +319,7 @@ it('prioritizes complete description without amount before category date with am
     $description = str_repeat('Á', 41);
     $candidate = messageCandidateFixture(InsightTypeEnum::ExpenseConcentration, 'housing', '120000', '222222', description: $description);
     foreach (['2026-10-12', '2026-10-13', '2026-10-14', '2026-10-15'] as $date) {
-        $message = messageCompositionUseCase()->execute(1, $candidate, $date);
+        $message = messageCompositionUseCase()->execute(UuidFixture::at(1), $candidate, $date);
         expect($message->description)->toContain($description, '54%')
             ->not->toContain('R$', 'Moradia', '…')
             ->and(mb_strlen($message->description, 'UTF-8'))->toBeLessThanOrEqual(80)
@@ -329,7 +330,7 @@ it('prioritizes complete description without amount before category date with am
 it('uses category and occurrence for absent blank or too long descriptions without truncation', function (?string $description): void {
     $candidate = messageCandidateFixture(InsightTypeEnum::ExpenseConcentration, 'other', '120000', '222222', description: $description);
     foreach (['2026-10-12', '2026-10-13', '2026-10-14', '2026-10-15'] as $date) {
-        $message = messageCompositionUseCase()->execute(1, $candidate, $date);
+        $message = messageCompositionUseCase()->execute(UuidFixture::at(1), $candidate, $date);
         expect($message->description)->toContain('Outros · 05/10', '54%', 'R$ 1.200,00')
             ->not->toContain('…', 'inferido');
     }
@@ -338,7 +339,7 @@ it('uses category and occurrence for absent blank or too long descriptions witho
 it('formats expense cents exactly without float including values beyond native integers', function (string $amount, string $expected): void {
     $candidate = messageCandidateFixture(InsightTypeEnum::ExpenseConcentration, 'housing', $amount, $amount, description: 'X');
     foreach (['2026-10-12', '2026-10-13', '2026-10-14', '2026-10-15'] as $date) {
-        $message = messageCompositionUseCase()->execute(1, $candidate, $date);
+        $message = messageCompositionUseCase()->execute(UuidFixture::at(1), $candidate, $date);
         expect($message->description)->toContain($expected, '100%');
     }
 })->with([
@@ -351,7 +352,7 @@ it('keeps category date and percentage when even the expense amount cannot fit',
     $amount = str_repeat('9', 100);
     $candidate = messageCandidateFixture(InsightTypeEnum::ExpenseConcentration, 'gifts_and_donations', $amount, $amount);
     foreach (['2026-10-12', '2026-10-13', '2026-10-14', '2026-10-15'] as $date) {
-        $message = messageCompositionUseCase()->execute(1, $candidate, $date);
+        $message = messageCompositionUseCase()->execute(UuidFixture::at(1), $candidate, $date);
         expect($message->description)->toContain('Presentes e doações · 05/10', '100%')
             ->not->toContain('R$')
             ->and(mb_strlen($message->description, 'UTF-8'))->toBeLessThanOrEqual(80);
@@ -369,8 +370,8 @@ it('uses compact percentages when necessary within the same daily comparison var
 
     foreach (['2026-11-12', '2026-11-13', '2026-11-14', '2026-11-15'] as $date) {
         $useCase = messageCompositionUseCase();
-        $base = $useCase->execute(1, $regular, $date);
-        $big = $useCase->execute(1, $compact, $date);
+        $base = $useCase->execute(UuidFixture::at(1), $regular, $date);
+        $big = $useCase->execute(UuidFixture::at(1), $compact, $date);
         $parameters = ['{month}' => 'out/2026', '{previous_month}' => 'set/2026', '{day}' => '11', '{sign}' => '+', '{percent}' => '25'];
         $selected = array_values(array_filter($templates, static fn ($template): bool => strtr($template->description, $parameters) === $base->description))[0];
         $expectedCompact = strtr($selected->shortDescription, [...$parameters, '{percent}' => str_repeat('9', 30)]);
@@ -395,7 +396,7 @@ it('preserves direction and both explicit years in every comparison variant', fu
         ratio: AmountValueObject::fromAmount('5000')->shareOf(AmountValueObject::fromAmount('10000')),
     );
     foreach (['2026-02-12', '2026-02-13', '2026-02-14', '2026-02-15'] as $date) {
-        $message = messageCompositionUseCase()->execute(1, $candidate, $date);
+        $message = messageCompositionUseCase()->execute(UuidFixture::at(1), $candidate, $date);
         expect($message->title)->toBe('Total · jan/2026')
             ->and($message->description)->toContain($sign.'50%', 'dez/2025', 'registrado')
             ->and(mb_strlen($message->description, 'UTF-8'))->toBeLessThanOrEqual(80);

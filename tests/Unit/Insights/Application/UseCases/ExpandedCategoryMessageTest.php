@@ -10,6 +10,7 @@ use App\Insights\Application\UseCases\SelectInsightMessageVariantUseCase;
 use App\Insights\Domain\Enums\InsightPeriodModeEnum;
 use App\Insights\Domain\Enums\InsightTypeEnum;
 use App\Insights\Domain\ValueObjects\InsightCandidateValueObject;
+use Tests\Support\Core\Fixtures\UuidFixture;
 
 it('renders every affected regular and short variant with integral labels and factual periods within current Unicode budgets', function (
     string $category,
@@ -62,9 +63,9 @@ it('renders every affected regular and short variant with integral labels and fa
 
     $messages = [];
     foreach (['2026-10-12', '2026-10-13', '2026-10-14', '2026-10-15'] as $date) {
-        $message = $useCase->execute(42, $candidate, $date);
+        $message = $useCase->execute(UuidFixture::at(42), $candidate, $date);
         expect([$message->title, $message->description])->toBeIn($approvedPairs)
-            ->and($useCase->execute(42, $candidate, $date))->toEqual($message);
+            ->and($useCase->execute(UuidFixture::at(42), $candidate, $date))->toEqual($message);
         $messages[] = $message->title.'|'.$message->description;
     }
     expect(array_unique($messages))->toHaveCount(4);

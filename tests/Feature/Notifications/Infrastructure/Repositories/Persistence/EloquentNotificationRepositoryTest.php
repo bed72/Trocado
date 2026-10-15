@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Core\Application\Ports\ObservabilityPort;
 use App\Identity\Domain\Enums\UserStatusEnum;
+use App\Identity\Infrastructure\Repositories\Persistence\Models\PersonalAccessTokenModel as PersonalAccessToken;
 use App\Notifications\Application\Data\Input\RegisterNotificationRegistrationInput;
 use App\Notifications\Application\UseCases\CreateNotificationUseCase;
 use App\Notifications\Domain\Enums\NotificationPlatformEnum;
@@ -14,7 +15,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Laravel\Sanctum\PersonalAccessToken;
+use Tests\Support\Core\Fixtures\UuidFixture;
 use Tests\Support\Identity\Fixtures\IdentityFixture;
 use Tests\Support\Notifications\Fixtures\NotificationRegistrationFixture;
 
@@ -25,7 +26,7 @@ beforeEach(function (): void {
 it('stores encrypted exact destinations with deterministic SHA256 fingerprints and hidden attributes', function (): void {
     $user = IdentityFixture::create(UserStatusEnum::Active, now());
     $bearer = IdentityFixture::token($user, now()->addDays(20));
-    $sessionId = (int) PersonalAccessToken::findToken($bearer)->getKey();
+    $sessionId = PersonalAccessToken::findToken($bearer)->getKey();
     $repository = app(EloquentNotificationRepository::class);
     $destination = new NotificationValueObject(
         installationId: NotificationRegistrationFixture::Installation,
@@ -33,7 +34,7 @@ it('stores encrypted exact destinations with deterministic SHA256 fingerprints a
         platform: NotificationPlatformEnum::Android,
         identifier: 'AbC:def-123',
     );
-    $registration = DB::transaction(fn () => $repository->create((int) $user->getKey(), $sessionId, $destination, new DateTimeImmutable('2026-10-13T09:00:00-03:00')));
+    $registration = DB::transaction(fn () => $repository->create($user->getKey(), $sessionId, $destination, new DateTimeImmutable('2026-10-13T09:00:00-03:00')));
     $raw = DB::table('notifications')->where('id', $registration->id)->first();
     $model = NotificationModel::query()->find($registration->id);
     $mapped = DB::transaction(fn () => $repository->lock($destination));
@@ -142,7 +143,7 @@ it('revalidates session and account state inside the transaction instead of trus
     match ($change) {
         'revoked' => $session->delete(),
         'expired' => $session->forceFill(['expires_at' => now()->subSecond()])->save(),
-        'ownership' => $session->forceFill(['tokenable_id' => (int) $user->getKey() + 1])->save(),
+        'ownership' => $session->forceFill(['tokenable_id' => UuidFixture::at(999)])->save(),
         'blocked' => DB::table('users')->where('id', $user->getKey())->update(['status' => 'blocked']),
         'unverified' => DB::table('users')->where('id', $user->getKey())->update(['email_verified_at' => null]),
     };

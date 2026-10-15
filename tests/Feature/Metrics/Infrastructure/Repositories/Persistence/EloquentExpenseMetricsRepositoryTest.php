@@ -8,17 +8,20 @@ use App\Metrics\Domain\Enums\ExpenseMetricsGroupingEnum;
 use App\Metrics\Infrastructure\Repositories\Persistence\EloquentExpenseMetricsRepository;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
-function createMetricsUser(string $email = 'metrics@example.com'): int
+function createMetricsUser(string $email = 'metrics@example.com'): string
 {
     return DB::table('users')->insertGetId([
+        'id' => (string) Str::uuid7(),
         'name' => 'Maria', 'email' => $email, 'password' => 'unused',
     ]);
 }
 
-function insertMetricsExpense(int $userId, string $date, int $amount, string $category = 'other'): int
+function insertMetricsExpense(string $userId, string $date, int $amount, string $category = 'other'): string
 {
     return DB::table('expenses')->insertGetId([
+        'id' => (string) Str::uuid7(),
         'user_id' => $userId, 'occurred_on' => $date, 'amount' => $amount, 'category' => $category,
         'created_at' => '2026-11-12 12:00:00', 'updated_at' => '2026-11-12 12:00:00',
     ]);

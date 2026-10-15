@@ -21,14 +21,14 @@ Route::prefix('expenses')->middleware(['auth:sanctum', 'request.authenticated', 
         ->name(name: 'expenses.suggestions');
 
     Route::get(uri: '{expense}', action: GetExpenseController::class)
-        ->whereNumber(parameters: 'expense')
+        ->where('expense', '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-7[0-9a-fA-F]{3}-[89aAbB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}')
         ->name(name: 'expenses.show');
 
     Route::patch(uri: '{expense}', action: UpdateExpenseController::class)
-        ->whereNumber(parameters: 'expense')
+        ->where('expense', '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-7[0-9a-fA-F]{3}-[89aAbB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}')
         ->name(name: 'expenses.update');
 
     Route::delete(uri: '{expense}', action: DeleteExpenseController::class)
-        ->whereNumber(parameters: 'expense')
+        ->where('expense', '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-7[0-9a-fA-F]{3}-[89aAbB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}')
         ->name(name: 'expenses.delete');
 });

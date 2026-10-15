@@ -51,7 +51,7 @@ final readonly class GetInsightsUseCase
         return $insights;
     }
 
-    private function derivedId(int $userId, InsightCandidateValueObject $candidate): string
+    private function derivedId(string $userId, InsightCandidateValueObject $candidate): string
     {
         return hash('sha256', implode('|', [
             (string) $userId,

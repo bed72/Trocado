@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Notifications\Domain\Entities;
 
+use App\Core\Domain\ValueObjects\UuidValueObject;
 use App\Notifications\Domain\Exceptions\InvalidNotificationRegistrationException;
 use App\Notifications\Domain\ValueObjects\NotificationValueObject;
 use DateTimeImmutable;
@@ -11,21 +12,28 @@ use SensitiveParameter;
 
 final readonly class NotificationRegistrationEntity
 {
+    public string $userId;
+
+    public string $sessionId;
+
     public function __construct(
         public string $id,
-        public int $userId,
-        public int $sessionId,
+        string $userId,
+        string $sessionId,
         public int $generation,
         public DateTimeImmutable $lastRegisteredAt,
         #[SensitiveParameter] public NotificationValueObject $destination,
     ) {
-        if (! NotificationValueObject::isUuid($id) || $userId < 1 || $sessionId < 1 || $generation < 1) {
+        $this->userId = UuidValueObject::fromString($userId)->value();
+        $this->sessionId = UuidValueObject::fromString($sessionId)->value();
+        if (! NotificationValueObject::isUuid($id) || $generation < 1) {
             throw new InvalidNotificationRegistrationException('registration');
         }
     }
 
-    public function synchronize(int $sessionId, #[SensitiveParameter] NotificationValueObject $destination, DateTimeImmutable $reference): self
+    public function synchronize(string $sessionId, #[SensitiveParameter] NotificationValueObject $destination, DateTimeImmutable $reference): self
     {
+        $sessionId = UuidValueObject::fromString($sessionId)->value();
         if ($destination->installationId !== $this->destination->installationId) {
             throw new InvalidNotificationRegistrationException('installation_id');
         }

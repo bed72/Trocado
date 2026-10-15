@@ -21,6 +21,7 @@ use App\Insights\Domain\Enums\InsightPeriodModeEnum;
 use App\Insights\Domain\Enums\InsightTypeEnum;
 use App\Insights\Domain\Exceptions\InvalidInsightAnalysisException;
 use App\Insights\Domain\ValueObjects\InsightAnalysisPeriodValueObject;
+use Tests\Support\Core\Fixtures\UuidFixture;
 
 function getInsightsAnalysisFixture(
     string $categoryAmount = '30000', string $category = 'food', string $to = '2026-10-12',
@@ -72,9 +73,9 @@ function getInsightsFixtureUseCase(UserPort $userPort, ExpenseAnalysisRepository
 
 it('obtains the owner from its port and returns composed typed insights', function (): void {
     $userPort = $this->createMock(UserPort::class);
-    $userPort->expects($this->once())->method('id')->willReturn(42);
+    $userPort->expects($this->once())->method('id')->willReturn(UuidFixture::at(42));
     $analysisPort = $this->createMock(ExpenseAnalysisRepository::class);
-    $analysisPort->expects($this->once())->method('analyze')->with(42, new InsightAnalysisPeriodValueObject('2026-10-12', DatePeriodValueObject::monthContaining('2026-10-12')))->willReturn(getInsightsAnalysisFixture());
+    $analysisPort->expects($this->once())->method('analyze')->with(UuidFixture::at(42), new InsightAnalysisPeriodValueObject('2026-10-12', DatePeriodValueObject::monthContaining('2026-10-12')))->willReturn(getInsightsAnalysisFixture());
 
     $insights = getInsightsFixtureUseCase($userPort, $analysisPort)->execute(new GetInsightsInput('2026-10-12', DatePeriodValueObject::monthContaining('2026-10-12')));
 
@@ -89,9 +90,9 @@ it('obtains the owner from its port and returns composed typed insights', functi
 
 it('keeps derived IDs and variants stable when only numbers change', function (): void {
     $userPort = $this->createMock(UserPort::class);
-    $userPort->method('id')->willReturn(42);
+    $userPort->method('id')->willReturn(UuidFixture::at(42));
     $analysisPort = $this->createMock(ExpenseAnalysisRepository::class);
-    $analysisPort->expects($this->exactly(2))->method('analyze')->with(42, new InsightAnalysisPeriodValueObject('2026-10-12', DatePeriodValueObject::monthContaining('2026-10-12')))
+    $analysisPort->expects($this->exactly(2))->method('analyze')->with(UuidFixture::at(42), new InsightAnalysisPeriodValueObject('2026-10-12', DatePeriodValueObject::monthContaining('2026-10-12')))
         ->willReturnOnConsecutiveCalls(getInsightsAnalysisFixture(), getInsightsAnalysisFixture('33000'));
     $useCase = getInsightsFixtureUseCase($userPort, $analysisPort);
     $input = new GetInsightsInput('2026-10-12', DatePeriodValueObject::monthContaining('2026-10-12'));
@@ -107,9 +108,9 @@ it('keeps derived IDs and variants stable when only numbers change', function ()
 
 it('rotates historical messages by the visit day while reading the same complete selected periods on every visit', function (): void {
     $port = $this->createMock(UserPort::class);
-    $port->expects($this->exactly(6))->method('id')->willReturn(42);
+    $port->expects($this->exactly(6))->method('id')->willReturn(UuidFixture::at(42));
     $repository = $this->createMock(ExpenseAnalysisRepository::class);
-    $repository->expects($this->exactly(6))->method('analyze')->with(42, $this->callback(
+    $repository->expects($this->exactly(6))->method('analyze')->with(UuidFixture::at(42), $this->callback(
         static fn (InsightAnalysisPeriodValueObject $period): bool => $period->mode === InsightPeriodModeEnum::Closed
             && $period->currentMonth->from() === '2026-09-01' && $period->currentMonth->to() === '2026-09-30'
             && $period->previousMonth->from() === '2026-08-01' && $period->previousMonth->to() === '2026-08-31'
@@ -140,10 +141,10 @@ it('rotates historical messages by the visit day while reading the same complete
 
 it('recalculates historical values in the same visit day without changing the daily variant', function (): void {
     $port = $this->createMock(UserPort::class);
-    $port->expects($this->exactly(2))->method('id')->willReturn(42);
+    $port->expects($this->exactly(2))->method('id')->willReturn(UuidFixture::at(42));
     $input = new GetInsightsInput('2026-10-12', DatePeriodValueObject::fromDates('2026-09-01', '2026-09-30'));
     $repository = $this->createMock(ExpenseAnalysisRepository::class);
-    $repository->expects($this->exactly(2))->method('analyze')->with(42, new InsightAnalysisPeriodValueObject($input->queryDate, $input->selectedMonth))
+    $repository->expects($this->exactly(2))->method('analyze')->with(UuidFixture::at(42), new InsightAnalysisPeriodValueObject($input->queryDate, $input->selectedMonth))
         ->willReturnOnConsecutiveCalls(
             getInsightsAnalysisFixture(to: '2026-09-30', mode: InsightPeriodModeEnum::Closed),
             getInsightsAnalysisFixture(categoryAmount: '33000', to: '2026-09-30', mode: InsightPeriodModeEnum::Closed),
@@ -161,7 +162,7 @@ it('recalculates historical values in the same visit day without changing the da
 
 it('keeps the resource ID independent of the rotating message for the same analyzed periods', function (): void {
     $userPort = $this->createMock(UserPort::class);
-    $userPort->method('id')->willReturn(42);
+    $userPort->method('id')->willReturn(UuidFixture::at(42));
     $analysisPort = $this->createMock(ExpenseAnalysisRepository::class);
     $analysisPort->expects($this->exactly(2))->method('analyze')->willReturn(getInsightsAnalysisFixture(to: '2026-09-30', mode: InsightPeriodModeEnum::Closed));
     $useCase = getInsightsFixtureUseCase($userPort, $analysisPort);
@@ -177,7 +178,7 @@ it('keeps the resource ID independent of the rotating message for the same analy
 
 it('distinguishes accounts subjects and analyzed periods in derived IDs', function (string $dimension): void {
     $userPort = $this->createMock(UserPort::class);
-    $userPort->method('id')->willReturnOnConsecutiveCalls(42, $dimension === 'account' ? 43 : 42);
+    $userPort->method('id')->willReturnOnConsecutiveCalls(UuidFixture::at(42), UuidFixture::at($dimension === 'account' ? 43 : 42));
     $analysisPort = $this->createMock(ExpenseAnalysisRepository::class);
     $changed = match ($dimension) {
         'account' => getInsightsAnalysisFixture(to: '2026-09-30', mode: InsightPeriodModeEnum::Closed),
@@ -198,7 +199,7 @@ it('distinguishes accounts subjects and analyzed periods in derived IDs', functi
 
 it('distinguishes effective current cutoffs independently of the day used for editorial rotation', function (): void {
     $port = $this->createMock(UserPort::class);
-    $port->method('id')->willReturn(42);
+    $port->method('id')->willReturn(UuidFixture::at(42));
     $repository = $this->createMock(ExpenseAnalysisRepository::class);
     $repository->expects($this->exactly(2))->method('analyze')->willReturnOnConsecutiveCalls(
         getInsightsAnalysisFixture(to: '2026-10-12'), getInsightsAnalysisFixture(to: '2026-10-13'),
@@ -231,7 +232,7 @@ it('distinguishes comparison types with the same owner subject and complete anal
         );
     }
     $port = $this->createMock(UserPort::class);
-    $port->method('id')->willReturn(42);
+    $port->method('id')->willReturn(UuidFixture::at(42));
     $repository = $this->createMock(ExpenseAnalysisRepository::class);
     $repository->expects($this->exactly(2))->method('analyze')->willReturnOnConsecutiveCalls(...$analyses);
     $useCase = getInsightsFixtureUseCase($port, $repository);
@@ -264,7 +265,7 @@ it('includes the internal selected month in onboarding IDs despite their null pu
         );
     }
     $port = $this->createMock(UserPort::class);
-    $port->method('id')->willReturn(42);
+    $port->method('id')->willReturn(UuidFixture::at(42));
     $repository = $this->createMock(ExpenseAnalysisRepository::class);
     $repository->expects($this->exactly(2))->method('analyze')->willReturnOnConsecutiveCalls(...$analyses);
     $useCase = getInsightsFixtureUseCase($port, $repository);
@@ -299,7 +300,7 @@ it('keeps expense and review IDs independent of expense description and interpol
         );
     }
     $port = $this->createMock(UserPort::class);
-    $port->method('id')->willReturn(42);
+    $port->method('id')->willReturn(UuidFixture::at(42));
     $repository = $this->createMock(ExpenseAnalysisRepository::class);
     $repository->expects($this->exactly(2))->method('analyze')->willReturnOnConsecutiveCalls(...$analyses);
     $useCase = getInsightsFixtureUseCase($port, $repository);
@@ -330,7 +331,7 @@ it('does not read analytical data when the identity port fails', function (): vo
 
 it('propagates analytical failures instead of producing fabricated onboarding', function (): void {
     $userPort = $this->createMock(UserPort::class);
-    $userPort->method('id')->willReturn(42);
+    $userPort->method('id')->willReturn(UuidFixture::at(42));
     $analysisPort = $this->createMock(ExpenseAnalysisRepository::class);
     $analysisPort->method('analyze')->willThrowException(new RuntimeException('Analysis unavailable'));
 

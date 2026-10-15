@@ -12,12 +12,13 @@ use App\Expense\Domain\Entities\ExpenseEntity;
 use App\Expense\Infrastructure\Repositories\Cache\CachedExpenseRepository;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Tests\Support\Core\Fixtures\UuidFixture;
 use Tests\Support\Expense\Fixtures\ExpenseQueryFixture;
 
 function cachedRepositoryFixture(): array
 {
-    Cache::tags('expense:pages:owner:1')->flush();
-    Cache::tags('expense:pages:owner:2')->flush();
+    Cache::tags('expense:pages:v3:owner:'.UuidFixture::at(1))->flush();
+    Cache::tags('expense:pages:v3:owner:'.UuidFixture::at(2))->flush();
 
     $inner = new class implements ExpenseRepository
     {
@@ -29,7 +30,7 @@ function cachedRepositoryFixture(): array
 
         public int $updateCalls = 0;
 
-        public function getById(int $id, int $userId): ?ExpenseEntity
+        public function getById(string $id, string $userId): ?ExpenseEntity
         {
             return null;
         }
@@ -39,7 +40,7 @@ function cachedRepositoryFixture(): array
             $this->createCalls++;
 
             return new ExpenseEntity(
-                id: 10,
+                id: UuidFixture::at(10),
                 userId: $expense->userId,
                 amount: $expense->amount,
                 occurredOn: $expense->occurredOn,
@@ -48,18 +49,18 @@ function cachedRepositoryFixture(): array
             );
         }
 
-        public function delete(int $id, int $userId): bool
+        public function delete(string $id, string $userId): bool
         {
             $this->deleteCalls++;
 
-            return $id === 10 && $userId === 1;
+            return $id === UuidFixture::at(10) && $userId === UuidFixture::at(1);
         }
 
-        public function update(int $id, int $userId, UpdateExpenseInput $input): ?ExpenseEntity
+        public function update(string $id, string $userId, UpdateExpenseInput $input): ?ExpenseEntity
         {
             $this->updateCalls++;
 
-            if ($id !== 10 || $userId !== 1) {
+            if ($id !== UuidFixture::at(10) || $userId !== UuidFixture::at(1)) {
                 return null;
             }
 
@@ -73,13 +74,13 @@ function cachedRepositoryFixture(): array
             );
         }
 
-        public function getAll(int $userId, GetAllExpenseInput $input): ExpensePageOutput
+        public function getAll(string $userId, GetAllExpenseInput $input): ExpensePageOutput
         {
             $this->getAllCalls++;
 
             return new ExpensePageOutput(
                 items: [new ExpenseEntity(
-                    id: $this->getAllCalls,
+                    id: UuidFixture::at($this->getAllCalls),
                     userId: $userId,
                     amount: 1234,
                     category: 'food',
@@ -102,20 +103,20 @@ function cachedRepositoryFixture(): array
 it('serves cache misses through the decorated expense repository', function (): void {
     [$inner, $repository] = cachedRepositoryFixture();
 
-    $page = $repository->getAll(userId: 1, input: ExpenseQueryFixture::input());
+    $page = $repository->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input());
 
     expect($inner->getAllCalls)->toBe(1)
         ->and($page->items)->toHaveCount(1)
         ->and($page->items[0])->toBeInstanceOf(ExpenseEntity::class)
-        ->and($page->items[0]->id)->toBe(1)
+        ->and($page->items[0]->id)->toBe(UuidFixture::at(1))
         ->and($page->nextCursor)->toBe('next');
 });
 
 it('serves cache hits without querying the decorated expense repository again', function (): void {
     [$inner, $repository] = cachedRepositoryFixture();
 
-    $first = $repository->getAll(userId: 1, input: ExpenseQueryFixture::input());
-    $second = $repository->getAll(userId: 1, input: ExpenseQueryFixture::input());
+    $first = $repository->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input());
+    $second = $repository->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input());
 
     expect($inner->getAllCalls)->toBe(1)
         ->and($second->items[0]->id)->toBe($first->items[0]->id);
@@ -124,10 +125,10 @@ it('serves cache hits without querying the decorated expense repository again', 
 it('keeps owner, size, and cursor pages isolated in cache', function (): void {
     [$inner, $repository] = cachedRepositoryFixture();
 
-    $repository->getAll(userId: 1, input: ExpenseQueryFixture::input());
-    $repository->getAll(userId: 2, input: ExpenseQueryFixture::input());
-    $repository->getAll(userId: 1, input: ExpenseQueryFixture::input(size: 10));
-    $repository->getAll(userId: 1, input: ExpenseQueryFixture::input(cursor: ExpenseQueryFixture::legacyCursor()));
+    $repository->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input());
+    $repository->getAll(userId: UuidFixture::at(2), input: ExpenseQueryFixture::input());
+    $repository->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input(size: 10));
+    $repository->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input(cursor: ExpenseQueryFixture::cursor()));
 
     expect($inner->getAllCalls)->toBe(4);
 });
@@ -139,8 +140,8 @@ it('isolates periods from unfiltered pages and forwards their inclusive bounds',
     $inner = $this->createMock(ExpenseRepository::class);
     $received = [];
     $inner->expects($this->exactly(4))->method('getAll')
-        ->willReturnCallback(function (int $userId, GetAllExpenseInput $input) use (&$received): ExpensePageOutput {
-            expect($userId)->toBe(1)->and($input->size)->toBe(6)->and($input->cursor)->toBeNull();
+        ->willReturnCallback(function (string $userId, GetAllExpenseInput $input) use (&$received): ExpensePageOutput {
+            expect($userId)->toBe(UuidFixture::at(1))->and($input->size)->toBe(6)->and($input->cursor)->toBeNull();
             $received[] = $input->from === null ? null : [$input->from, $input->to];
 
             return new ExpensePageOutput(items: [], nextCursor: null, previousCursor: null);
@@ -148,9 +149,9 @@ it('isolates periods from unfiltered pages and forwards their inclusive bounds',
     $repository = new CachedExpenseRepository(port: app(ExpenseQueryCursorPort::class), cache: app('cache'), repository: $inner);
 
     foreach ([null, $year, $month, $day] as $period) {
-        $repository->getAll(userId: 1, input: ExpenseQueryFixture::input(size: 6, period: $period));
+        $repository->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input(size: 6, period: $period));
         $equivalent = $period === null ? null : DatePeriodValueObject::fromDates($period->from(), $period->to());
-        $repository->getAll(userId: 1, input: ExpenseQueryFixture::input(size: 6, period: $equivalent));
+        $repository->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input(size: 6, period: $equivalent));
     }
 
     expect($received)->toBe([null, ['2026-01-01', '2026-12-31'], ['2026-10-01', '2026-10-31'], ['2026-10-11', '2026-10-11']]);
@@ -161,21 +162,21 @@ it('invalidates filtered and unfiltered owner pages after a confirmed mutation',
     $periods = [null, DatePeriodValueObject::monthContaining('2026-10-11')];
 
     foreach ($periods as $period) {
-        $repository->getAll(userId: 1, input: ExpenseQueryFixture::input(size: 6, period: $period));
-        $repository->getAll(userId: 2, input: ExpenseQueryFixture::input(size: 6, period: $period));
+        $repository->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input(size: 6, period: $period));
+        $repository->getAll(userId: UuidFixture::at(2), input: ExpenseQueryFixture::input(size: 6, period: $period));
     }
 
     if ($operation === 'create') {
-        $repository->create(new ExpenseEntity(id: null, userId: 1, amount: 2000, occurredOn: '2026-10-11'));
+        $repository->create(new ExpenseEntity(id: null, userId: UuidFixture::at(1), amount: 2000, occurredOn: '2026-10-11'));
     } elseif ($operation === 'delete') {
-        $repository->delete(id: 10, userId: 1);
+        $repository->delete(id: UuidFixture::at(10), userId: UuidFixture::at(1));
     } else {
-        $repository->update(id: 10, userId: 1, input: new UpdateExpenseInput(hasAmount: true, amount: 3000));
+        $repository->update(id: UuidFixture::at(10), userId: UuidFixture::at(1), input: new UpdateExpenseInput(hasAmount: true, amount: 3000));
     }
 
     foreach ($periods as $period) {
-        $repository->getAll(userId: 1, input: ExpenseQueryFixture::input(size: 6, period: $period));
-        $repository->getAll(userId: 2, input: ExpenseQueryFixture::input(size: 6, period: $period));
+        $repository->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input(size: 6, period: $period));
+        $repository->getAll(userId: UuidFixture::at(2), input: ExpenseQueryFixture::input(size: 6, period: $period));
     }
 
     expect($inner->getAllCalls)->toBe(6);
@@ -184,14 +185,14 @@ it('invalidates filtered and unfiltered owner pages after a confirmed mutation',
 it('invalidates cached owner pages after creating an expense', function (): void {
     [$inner, $repository] = cachedRepositoryFixture();
 
-    $repository->getAll(userId: 1, input: ExpenseQueryFixture::input());
+    $repository->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input());
     $repository->create(new ExpenseEntity(
         id: null,
-        userId: 1,
+        userId: UuidFixture::at(1),
         amount: 2000,
         occurredOn: '2026-09-24',
     ));
-    $repository->getAll(userId: 1, input: ExpenseQueryFixture::input());
+    $repository->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input());
 
     expect($inner->createCalls)->toBe(1)
         ->and($inner->getAllCalls)->toBe(2);
@@ -200,9 +201,9 @@ it('invalidates cached owner pages after creating an expense', function (): void
 it('invalidates cached owner pages after deleting an expense', function (): void {
     [$inner, $repository] = cachedRepositoryFixture();
 
-    $repository->getAll(userId: 1, input: ExpenseQueryFixture::input());
-    $repository->delete(id: 10, userId: 1);
-    $repository->getAll(userId: 1, input: ExpenseQueryFixture::input());
+    $repository->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input());
+    $repository->delete(id: UuidFixture::at(10), userId: UuidFixture::at(1));
+    $repository->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input());
 
     expect($inner->deleteCalls)->toBe(1)
         ->and($inner->getAllCalls)->toBe(2);
@@ -211,9 +212,9 @@ it('invalidates cached owner pages after deleting an expense', function (): void
 it('keeps cached owner pages when deleting an absent expense', function (): void {
     [$inner, $repository] = cachedRepositoryFixture();
 
-    $repository->getAll(userId: 1, input: ExpenseQueryFixture::input());
-    $repository->delete(id: 99, userId: 1);
-    $repository->getAll(userId: 1, input: ExpenseQueryFixture::input());
+    $repository->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input());
+    $repository->delete(id: UuidFixture::at(99), userId: UuidFixture::at(1));
+    $repository->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input());
 
     expect($inner->deleteCalls)->toBe(1)
         ->and($inner->getAllCalls)->toBe(1);
@@ -222,9 +223,9 @@ it('keeps cached owner pages when deleting an absent expense', function (): void
 it('invalidates cached owner pages after updating an expense', function (): void {
     [$inner, $repository] = cachedRepositoryFixture();
 
-    $repository->getAll(userId: 1, input: ExpenseQueryFixture::input());
-    $repository->update(id: 10, userId: 1, input: new UpdateExpenseInput(amount: 3000, hasAmount: true));
-    $repository->getAll(userId: 1, input: ExpenseQueryFixture::input());
+    $repository->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input());
+    $repository->update(id: UuidFixture::at(10), userId: UuidFixture::at(1), input: new UpdateExpenseInput(amount: 3000, hasAmount: true));
+    $repository->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input());
 
     expect($inner->updateCalls)->toBe(1)
         ->and($inner->getAllCalls)->toBe(2);
@@ -233,9 +234,9 @@ it('invalidates cached owner pages after updating an expense', function (): void
 it('keeps cached owner pages when updating an absent expense', function (): void {
     [$inner, $repository] = cachedRepositoryFixture();
 
-    $repository->getAll(userId: 1, input: ExpenseQueryFixture::input());
-    $repository->update(id: 99, userId: 1, input: new UpdateExpenseInput(amount: 3000, hasAmount: true));
-    $repository->getAll(userId: 1, input: ExpenseQueryFixture::input());
+    $repository->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input());
+    $repository->update(id: UuidFixture::at(99), userId: UuidFixture::at(1), input: new UpdateExpenseInput(amount: 3000, hasAmount: true));
+    $repository->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input());
 
     expect($inner->updateCalls)->toBe(1)
         ->and($inner->getAllCalls)->toBe(1);
@@ -250,38 +251,38 @@ it('implements the expense repository contract', function (): void {
 
 it('keeps cached pages until the outer creation commits, then invalidates only that owner', function (): void {
     [$inner, $repository] = cachedRepositoryFixture();
-    $repository->getAll(userId: 1, input: ExpenseQueryFixture::input());
-    $repository->getAll(userId: 2, input: ExpenseQueryFixture::input());
+    $repository->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input());
+    $repository->getAll(userId: UuidFixture::at(2), input: ExpenseQueryFixture::input());
 
     DB::transaction(callback: function () use ($repository, $inner): void {
         DB::transaction(callback: function () use ($repository): void {
             $repository->create(expense: new ExpenseEntity(
                 id: null,
-                userId: 1,
+                userId: UuidFixture::at(1),
                 amount: 2000,
                 occurredOn: '2026-09-24',
             ));
         });
 
-        $repository->getAll(userId: 1, input: ExpenseQueryFixture::input());
+        $repository->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input());
         expect($inner->getAllCalls)->toBe(2);
     });
 
-    $repository->getAll(userId: 1, input: ExpenseQueryFixture::input());
-    $repository->getAll(userId: 2, input: ExpenseQueryFixture::input());
+    $repository->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input());
+    $repository->getAll(userId: UuidFixture::at(2), input: ExpenseQueryFixture::input());
 
     expect($inner->getAllCalls)->toBe(3);
 });
 
 it('does not invalidate cached pages when a creation rolls back', function (): void {
     [$inner, $repository] = cachedRepositoryFixture();
-    $repository->getAll(userId: 1, input: ExpenseQueryFixture::input());
+    $repository->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input());
 
     try {
         DB::transaction(callback: function () use ($repository): void {
             $repository->create(expense: new ExpenseEntity(
                 id: null,
-                userId: 1,
+                userId: UuidFixture::at(1),
                 amount: 2000,
                 occurredOn: '2026-09-24',
             ));
@@ -291,7 +292,7 @@ it('does not invalidate cached pages when a creation rolls back', function (): v
     } catch (RuntimeException) {
     }
 
-    $repository->getAll(userId: 1, input: ExpenseQueryFixture::input());
+    $repository->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input());
 
     expect($inner->createCalls)->toBe(1)
         ->and($inner->getAllCalls)->toBe(1);
@@ -299,14 +300,14 @@ it('does not invalidate cached pages when a creation rolls back', function (): v
 
 it('does not invalidate on a nested rollback even if the outer transaction commits', function (): void {
     [$inner, $repository] = cachedRepositoryFixture();
-    $repository->getAll(userId: 1, input: ExpenseQueryFixture::input());
+    $repository->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input());
 
     DB::transaction(callback: function () use ($repository): void {
         try {
             DB::transaction(callback: function () use ($repository): void {
                 $repository->create(expense: new ExpenseEntity(
                     id: null,
-                    userId: 1,
+                    userId: UuidFixture::at(1),
                     amount: 2000,
                     occurredOn: '2026-09-24',
                 ));
@@ -317,22 +318,22 @@ it('does not invalidate on a nested rollback even if the outer transaction commi
         }
     });
 
-    $repository->getAll(userId: 1, input: ExpenseQueryFixture::input());
+    $repository->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input());
     expect($inner->getAllCalls)->toBe(1);
 });
 
 it('invalidates edited or deleted pages only after the corresponding transaction commits', function (string $operation): void {
     [$inner, $repository] = cachedRepositoryFixture();
-    $repository->getAll(userId: 1, input: ExpenseQueryFixture::input());
+    $repository->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input());
 
     $write = function () use ($repository, $operation): void {
         if ($operation === 'update') {
-            $repository->update(id: 10, userId: 1, input: new UpdateExpenseInput(amount: 3000, hasAmount: true));
+            $repository->update(id: UuidFixture::at(10), userId: UuidFixture::at(1), input: new UpdateExpenseInput(amount: 3000, hasAmount: true));
 
             return;
         }
 
-        $repository->delete(id: 10, userId: 1);
+        $repository->delete(id: UuidFixture::at(10), userId: UuidFixture::at(1));
     };
 
     try {
@@ -344,15 +345,15 @@ it('invalidates edited or deleted pages only after the corresponding transaction
     } catch (RuntimeException) {
     }
 
-    $repository->getAll(userId: 1, input: ExpenseQueryFixture::input());
+    $repository->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input());
     expect($inner->getAllCalls)->toBe(1);
 
     DB::transaction(callback: function () use ($write, $repository, $inner): void {
         $write();
-        $repository->getAll(userId: 1, input: ExpenseQueryFixture::input());
+        $repository->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input());
         expect($inner->getAllCalls)->toBe(1);
     });
 
-    $repository->getAll(userId: 1, input: ExpenseQueryFixture::input());
+    $repository->getAll(userId: UuidFixture::at(1), input: ExpenseQueryFixture::input());
     expect($inner->getAllCalls)->toBe(2);
 })->with(['update', 'delete']);

@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\DB;
 final class EloquentExpenseMetricsRepository implements ExpenseMetricsRepository
 {
     public function summarize(
-        int $userId,
+        string $userId,
         DatePeriodValueObject $period,
         ExpenseMetricsGroupingEnum $grouping,
     ): ExpenseMetricsProjectionOutput {

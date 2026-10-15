@@ -10,11 +10,11 @@ use DateTimeImmutable;
 
 interface ExpenseCategorizationRepository
 {
-    public function cancelClassification(int $expenseId, string $token): void;
+    public function cancelClassification(string $expenseId, string $token): void;
 
-    public function applyClassificationAttempt(ApplyExpenseClassificationInput $input): ?int;
+    public function applyClassificationAttempt(ApplyExpenseClassificationInput $input): ?string;
 
-    public function findClassificationAttempt(int $expenseId, string $token): ?ExpenseClassificationOutput;
+    public function findClassificationAttempt(string $expenseId, string $token): ?ExpenseClassificationOutput;
 
-    public function beginClassificationAttempt(int $expenseId, string $token, DateTimeImmutable $expiresAt): bool;
+    public function beginClassificationAttempt(string $expenseId, string $token, DateTimeImmutable $expiresAt): bool;
 }

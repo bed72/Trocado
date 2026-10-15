@@ -36,7 +36,7 @@ final readonly class ComposeInsightMessageUseCase
         private SelectInsightMessageVariantUseCase $variantUseCase,
     ) {}
 
-    public function execute(int $userId, InsightCandidateValueObject $candidate, string $referenceDate): InsightMessageOutput
+    public function execute(string $userId, InsightCandidateValueObject $candidate, string $referenceDate): InsightMessageOutput
     {
         $templates = $this->catalogUseCase->execute($candidate);
         $editorialKey = implode('|', [

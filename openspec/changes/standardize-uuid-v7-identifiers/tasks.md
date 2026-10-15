@@ -60,21 +60,21 @@
 
 ## 5. Expense, cache, classificação e cursor
 
-- [ ] 5.1 Converter ExpenseEntity, Repository/UseCases/Data e mapping CRUD/cache para ID/owner strings v7; remover casts integer somente desses campos. [expense; UID-05]
-- [ ] 5.2 Configurar geração v7 de ExpenseModel e revisar bulk/seed/fixtures para fornecer IDs válidos onde hooks não executam. [UID-03/04]
-- [ ] 5.3 Converter rotas/controllers/Requests e relações JSON:API de Expense para IDs v7 e preservar erro uniforme de owner/ID inválido antes de lookup. [UID-06; expense]
-- [ ] 5.4 Implementar cursor v2 com posição ID UUIDv7 e amount int separados; rejeitar v1/legacy numéricos e campos/direção/critério incompatíveis. [expense: paginação; D7]
-- [ ] 5.5 Revisar seek/ordenação SQL UUID em ASC/DESC e ties, mantendo ICU/null/descrição original; não usar ordem de geração como esperado. [expense-querying]
-- [ ] 5.6 Versionar chaves/serialização/tags de CachedExpenseRepository por owner UUID/cursor v2, conservando TTL/invalidação após commit e isolamento. [EXP-UID]
-- [ ] 5.7 Converter dispatch/Queue/UseCase/Repository de classificação para expenseId UUIDv7 e preservar fencing string, prazo, fallback e proteção contra edição posterior. [EXP-UID]
-- [ ] 5.8 Atualizar provas Unit e PostgreSQL/HTTP de CRUD/sort/cursor/cache/classificação, com next/prev e empates explicitamente ordenados por UUIDs de fixture. [expense; D7]
-- [ ] 5.9 Provar worker real em fila exclusiva/Redis e invalidação scoped após commit, sem FLUSHALL/FLUSHDB ou consumo de fila operacional. [EXP-UID; D10]
-- [ ] 5.10 Executar arquivos Expense afetados isoladamente e suite focada/Redis/concorrência pertinente; registrar planos de filtros/indexes sem extrapolar escala. [D10]
+- [x] 5.1 Converter ExpenseEntity, Repository/UseCases/Data e mapping CRUD/cache para ID/owner strings v7; remover casts integer somente desses campos. [expense; UID-05]
+- [x] 5.2 Configurar geração v7 de ExpenseModel e revisar bulk/seed/fixtures para fornecer IDs válidos onde hooks não executam. [UID-03/04]
+- [x] 5.3 Converter rotas/controllers/Requests e relações JSON:API de Expense para IDs v7 e preservar erro uniforme de owner/ID inválido antes de lookup. [UID-06; expense]
+- [x] 5.4 Implementar cursor v2 com posição ID UUIDv7 e amount int separados; rejeitar v1/legacy numéricos e campos/direção/critério incompatíveis. [expense: paginação; D7]
+- [x] 5.5 Revisar seek/ordenação SQL UUID em ASC/DESC e ties, mantendo ICU/null/descrição original; não usar ordem de geração como esperado. [expense-querying]
+- [x] 5.6 Versionar chaves/serialização/tags de CachedExpenseRepository por owner UUID/cursor v2, conservando TTL/invalidação após commit e isolamento. [EXP-UID]
+- [x] 5.7 Converter dispatch/Queue/UseCase/Repository de classificação para expenseId UUIDv7 e preservar fencing string, prazo, fallback e proteção contra edição posterior. [EXP-UID]
+- [x] 5.8 Atualizar provas Unit e PostgreSQL/HTTP de CRUD/sort/cursor/cache/classificação, com next/prev e empates explicitamente ordenados por UUIDs de fixture. [expense; D7]
+- [x] 5.9 Provar worker real em fila exclusiva/Redis e invalidação scoped após commit, sem FLUSHALL/FLUSHDB ou consumo de fila operacional. [EXP-UID; D10]
+- [x] 5.10 Executar arquivos Expense afetados isoladamente e suite focada/Redis/concorrência pertinente; registrar planos de filtros/indexes sem extrapolar escala. [D10]
 
 ## 6. Notifications e contrato de instalação
 
 - [ ] 6.1 Configurar registro UUIDv7 no Model/Repository e canonicalizar mapping, preservando ID em sincronização/rotação. [UID-03/07]
-- [ ] 6.2 Converter tipos de owner/session em Entity/Repository/UseCases/Ports e validação Domain, mantendo unidade transacional/locks/fingerprint/cifragens. [UID-05/07]
+- [x] 6.2 Converter tipos de owner/session em Entity/Repository/UseCases/Ports e validação Domain, mantendo unidade transacional/locks/fingerprint/cifragens. [UID-05/07]
 - [ ] 6.3 Exigir installation_id UUIDv7 no VO/Request, normalizar somente caixa válida e rejeitar outras versões com pointer sem eco de destino. [UID-02/07]
 - [ ] 6.4 Ajustar DELETE/Response/rotas para registro v7 e confirmar 204/404 uniforme/auth/cota/não extensão/nenhum GET ou envio HTTP novo. [UID-06/07]
 - [ ] 6.5 Atualizar fixtures/doubles Unit e registro de observabilidade para IDs reais v7 e instalação distinta; sem usar installation_id como PK por conveniência. [UID-07]
@@ -98,7 +98,7 @@
 
 ## 8. UUIDv7 estável de Insights
 
-- [ ] 8.1 Converter owner nos contratos/fonte SQL/fatos/edição de variante para v7, sem modificar janela, bases ou matemática. [UID-05; insights]
+- [x] 8.1 Converter owner nos contratos/fonte SQL/fatos/edição de variante para v7, sem modificar janela, bases ou matemática. [UID-05; insights]
 - [ ] 8.2 Preparar chave lógica tipada por owner/tipo/categoria/estado/from/to/comparison, com namespace/version constantes e períodos internos de onboarding. [RID-02; insights]
 - [ ] 8.3 Compor/selecionar/deduplicar todos os recursos antes de resolver IDs em um único lote, substituir hash público pelo UUID Core e manter ordem/limite. [RID-04/06]
 - [ ] 8.4 Provar Unit de chaves/default/zeros/periodos/estado e estabilidade frente a valor/descrição/variante/dia/catálogo, com novo ID só por mudança lógica. [insights: identidade]
@@ -108,7 +108,7 @@
 
 ## 9. UUIDv7 estável de Metrics
 
-- [ ] 9.1 Converter owner no Repository/UseCase/mapping Metrics para v7, mantendo parâmetros/default/total/percentuais exatos e snapshot. [UID-05; expense-metrics]
+- [x] 9.1 Converter owner no Repository/UseCase/mapping Metrics para v7, mantendo parâmetros/default/total/percentuais exatos e snapshot. [UID-05; expense-metrics]
 - [ ] 9.2 Preparar chave por owner/start/end/mode normalizados, independente de URL/trim/valores, e resolver UUID depois de reconciliar projeção. [RID-02/06]
 - [ ] 9.3 Substituir hash público por associação Core para objeto singular, inclusive zero total; não criar IDs de categoria ou persistir resumo. [expense-metrics]
 - [ ] 9.4 Provar Unit de chave/modo/default equivalente/zero/valores, ordenação e fake de registro sem ORM. [expense-metrics: identidade]
@@ -118,7 +118,7 @@
 
 ## 10. UUIDv7 estável de sugestões
 
-- [ ] 10.1 Converter owner no contrato/fonte de sugestões para v7 e conservar agrupamento/normalização SQL/padrão de valor/janela/limite. [UID-05; expense-suggestions]
+- [x] 10.1 Converter owner no contrato/fonte de sugestões para v7 e conservar agrupamento/normalização SQL/padrão de valor/janela/limite. [UID-05; expense-suggestions]
 - [ ] 10.2 Preparar chave de Core pela mesma chave normalizada SQL, independente de termo/valor/janela, sem persistir raw description. [RID-02]
 - [ ] 10.3 Resolver lote final após validação/preparação, substituir hash por UUID e omitir associação em data vazio; sem identificar Expense row específica. [RID-04/06]
 - [ ] 10.4 Provar Unit/HTTP de termo diferente/case equivalente/valor opcional/owner diferente/novo processo e descrição normalizada diferente, com UUIDs corretos. [expense-suggestions]
@@ -182,8 +182,8 @@
 | UID-02 canônico/v7/variante/negativos/null | 2.1–2.3, 4.1, 6.3 | Unit pura + HTTP antes de lookup + PG checks | Parcial: VO puro comprovado no STEP 02; integração de entidades/HTTP/PG pendente |
 | UID-03 geração padrão/imutabilidade | 3.*, 4.2–4.3, 5.2, 6.1, 7.3 | Model/PG create-update + formato + callback/clock fora de Domain | Parcial: User/PAT HasUuids e imutabilidade User/sessão comprovados no STEP 04; demais contextos pendentes |
 | UID-04 PK/FK/morph/cascades | 3.1–3.8, 4.9, 6.7 | PostgreSQL tipos/constraints/owner/session/encerramento | Parcial: schema STEP 03 e geração User/PAT/lifecycle de encerramento HTTP + SignOut/pruning STEP 04 comprovados; fluxos de registro/Expense pendentes |
-| UID-05 contratos/guard/sem cast | 2.4–2.5, 4.5/4.7, 5.1, 8.1/9.1/10.1, 11.6 | Unit argumentos + arquitetura + autenticação real | Parcial: Identity/Core owner/guard/contexto e NotificationPort/Adapter comprovados no STEP 04; consumidores de negócio e integração global pendentes |
-| UID-06 rotas inválidas/owner/auth | 4.8–4.9, 5.3/5.8, 6.4/6.7 | HTTP 200/201/204 e 401/403/404/422/429 | Parcial: User/Auth UUIDv7 com assinatura/owner/statuses comprovados no STEP 04; Expense/registro pendentes |
+| UID-05 contratos/guard/sem cast | 2.4–2.5, 4.5/4.7, 5.1, 8.1/9.1/10.1, 11.6 | Unit argumentos + arquitetura + autenticação real | Owner/sessão dos consumidores atuais comprovados no gate transversal de 2026-10-15, sem casts numéricos nas fronteiras corrigidas. Auditoria final de papéis/novas capacidades e rollout ainda pendentes |
+| UID-06 rotas inválidas/owner/auth | 4.8–4.9, 5.3/5.8, 6.4/6.7 | HTTP 200/201/204 e 401/403/404/422/429 | Parcial: User/Auth comprovados no STEP 04; Expense UUID/canonicalização/404 uniforme comprovados no STEP 05; registro pendente |
 | UID-07 instalação/registro/cliente | 1.5, 6.*, 13.2/13.6/13.7 | Unit/HTTP/PG + homologação externa registrada | Não implementado/comprovado |
 | UID-08 reset autorizado/negativo/lifecycle | 3.7, 12.* | Alvo/estado/cleanup/checks registrados + guard/testes de recusa | Parcial: guard e cleanup do launcher comprovados no STEP 03; reset operacional não executado |
 | RID-01 mínimo/sem fatos/fronteiras | 3.5, 7.1/7.3/7.7, 13.1 | Schema allowlist + Unit + arquitetura | Parcial: allowlist do schema mínimo comprovada no STEP 03; capacidade Application/Repository pendente |
@@ -195,13 +195,13 @@
 | RID-07 sem endpoint/autoridade/cleanup | 3.7, 7.9, 11.5 | HTTP/owner + lifecycle exact runId/token | Parcial: cleanup/ownership exclusivo comprovados no STEP 03; integração da capacidade/HTTP pendente |
 | User/Core UUID ownership e Entity pura | 2.*, 4.1/4.5/4.8/4.9 | Unit + HTTP + fronteiras | Proven para Identity/Core no STEP 04; consumidores e ambiente operacional ainda em conversão |
 | Sanctum/segredo/expiração/extensão/link | 4.2–4.4/4.6–4.9 | PAT real + PG locks + assinatura/tempo/owner | Proven no schema exclusivo do STEP 04, incluindo corrida sincronizada de extensão; rollout operacional pendente |
-| Expense sort/cursor v2/cache/worker | 5.* | Unit + PG/HTTP next-prev + Redis/worker exclusivo | Não implementado/comprovado |
+| Expense sort/cursor v2/cache/worker | 5.* | Unit + PG/HTTP next-prev + Redis/worker exclusivo | Proven no STEP 05 em schema/Redis/filas exclusivos; transição operacional de caches/jobs/banco ainda no STEP 12 |
 | Insights períodos/estados/rotação/UUID | 8.* | Unit + HTTP/PG + Core batch | Não implementado/comprovado |
 | Metrics singular/zero/default/grouped/UUID | 9.* | Unit + HTTP/PG + Core batch | Não implementado/comprovado |
 | Sugestões norm/valor/owner/UUID | 10.* | Unit + HTTP/PG normalização SQL/associação | Não implementado/comprovado |
 | Observabilidade próprio UUID/native SDK | 11.3–11.4 | JSON/header/context + ausência de segredos/fingerprint | Não implementado/comprovado |
 | Cliente/Bruno/documentação | 13.* | Parser/CLI controlados + homologação externa distinta | Não implementado/comprovado |
-| Gates transversais | 14.* | Padrão + duas seeds + paralelo + Redis/concorrência | Passaram no STEP 02. Bloqueio UserModel STEP 03 resolvido no STEP 04; tentativa global agora para em mocks Expense inteiros. Fatias focadas passam; gate final pendente |
+| Gates transversais | 14.* | Padrão + duas seeds + paralelo + Redis/concorrência | Bloqueios históricos dos STEPs 03–05 superados na correção transversal de 2026-10-15: padrão/seeds 20261022/20261023/paralelo passaram 2.168/39.859. Repetir gates após implementação restante; aprovação atual não conclui 14.* |
 
 ## Estado histórico da elaboração da proposta
 
@@ -596,3 +596,174 @@ Intercorrências registradas, sem contabilizar tentativas falhas: primeira Featu
 - Pint `--dirty --format agent` passou após a última edição PHP. `openspec validate standardize-uuid-v7-identifiers --type change --strict --json --no-interactive` passou (`valid = true`, sem issues) e `git diff --check` passou no fechamento desta seção. Nenhum commit/push/archive foi solicitado ou executado.
 
 **Resultado de escopo:** 4.1–4.10 implementados/comprovados para Identity/Core no schema novo exclusivo e sincronizados com STEPS.md. Próximo STEP 05. Aprovação global do suporte compartilhado, integração de registro Notifications, demais consumers e ambiente operacional continuam pendentes; esta fatia não torna a change arquivável.
+
+## STEP 05 — Expense, cursor, cache e classificação — 2026-10-15
+
+### Autorização e escopo
+
+Pedidos: “Vamos seguir com a implementacao da spec, no step ## STEP 05 — Expense, cursor, cache e classificação” e “Implementa”. Foram implementadas e verificadas 5.1–5.10. O checkout começou com alterações de STEP 04 em andamento; foram preservadas. Durante a execução essas alterações anteriores deixaram o diff, sem operação de stage/commit desta execução. Alterações desta fatia pertencem a Expense, seu suporte de testes, ARCHITECTURE/STEPS e este checklist.
+
+Boost confirmou PHP 8.5/Laravel 13.34.0/PG/Pest 5.2.1; documentação de HasUuids/cursor e trait instalado conferidos. Skills de arquitetura/quality gate, skill SDD local por leitura direta, guidelines e regras de changes foram consultadas; fluxo por OpenSpec status/instructions apply/validação estrita. Site Lerd `trocado` descoberto antes das operações.
+
+### Implementação
+
+- `ExpenseEntity` usa ID nullable string somente antes de persistir, owner obrigatório string e validação/canonicalização pelo VO puro. Amount continua inteiro positivo, com datas/descrição/categoria preservadas. Get/Update/Delete/Classify validam UUID antes de chamar Repository; criação exige ID retornado persistido antes de dispatch/eventos.
+- Contratos CRUD/classificação, `ApplyExpenseClassificationInput`, Eloquent/decorators/Models/controllers deixam de coerçar IDs para inteiros. `ExpenseModel` usa HasUuids nativo v7; o seeder usa firstOrCreate e já executa os hooks. O único bulk da fatia de planos passa IDs v7 explicitamente. Fixtures de Expense retornam UUID strings.
+- Rotas restringem v7/variante aceitando caixa; UseCases canonicalizam antes do lookup owner-scoped. Response já retornava string e não precisou mudar. O documento PATCH continua aceitando somente os atributos já suportados, sem introduzir ID editável.
+- Cursor v2 separa ID textual v7 de amount int positivo. V1/shape legado são recusados mesmo em default/ano/mês/dia; `legacyCursorAllowed` foi removido dos Data/Request/fixtures. Critérios normalizados, tipos/campos/direção e vínculo da query continuam validados antes de cache/persistência.
+- SQL conserva UUID DESC final e aliases/ICU `und-u-ks-level1`/COALESCE somente para sort. Provas alfabéticas/combinadas inserem UUIDs determinísticos em ordem inversa à esperada de empate; next/prev não usam ordem incidental do gerador como oráculo.
+- Páginas/chaves/tags passam para `expense:pages:v3` com owner UUID, TTL 60 e serialização de UUID string; invalidação após commit, rollback/savepoint e isolamento por conta permanecem. Cursor público é v2, namespace interno de cache é v3 porque a versão anterior já era v2.
+- Dispatch/job/Classify transportam UUID; fencing não foi convertido em identidade. Tentativas/prazo/fallback/erro/retries/edição posterior conservam as regras anteriores. Worker Redis real verifica payload desserializado UUID/fencing, releases/backoff/falha final e cache scoped; outra prova consome um job real após edição manual sem chamar IA nem sobrescrevê-la.
+- Para manter a fatia de Expense coerente com UserPort string, owner de `ExpenseSuggestionsRepository`/Eloquent e respectivos doubles/fixtures também passou para UUID. O algoritmo financeiro, normalização SQL e hash público atual não mudaram: associação estável Core e conclusão de 10.* continuam pendentes.
+
+### Rastreabilidade e preservação de cenários
+
+| Requisito/cenários | Evidência | Estado |
+| --- | --- | --- |
+| UID-02/05: IDs presentes/owner canônicos, ausência legítima, UUID inválido fora de HTTP, centavos intactos | ExpenseEntityTest; Get/Update/Delete/Classify UseCase tests | Proven |
+| Persistência/CRUD UUID, 201/200/204, uppercase e identidade preservada | UuidExpenseHttpTest; ExpenseOwnershipTest; ExpenseCategoriesHttpTest | Proven |
+| ID numérico/hash/nil/v4/v6/v8/variante → 404 antes do negócio; ausente/excluído/alheio iguais | UuidExpenseHttpTest, mocks nunca chamados, GET/PATCH/DELETE | Proven |
+| V2: posição ID UUID separada de amount, v1/legacy recusados, shape/direção/query incompatíveis | ExpenseQueryCursorAdapterTest; ExpenseSortCursorHttpTest; GetAllExpenseUseCaseTest | Proven |
+| Sort simples/composto, ICU/case/acento/Unicode/null, next/prev/ties/owner | ExpenseSortCursorHttpTest; GetAllExpenseHttpTest; ExpenseQueryHttpTest | Proven |
+| Cache por dimensão/owner, TTL, namespace anterior excluído, invalidação após commit/rollback | Três arquivos de Cache + ComposableExpenseCacheTest (array/Redis) | Proven |
+| Classificação/fencing/prazo/fallback, edição antes/durante resposta, exclusão e categorias | ExpenseClassificationTest; ClassifyExpenseUseCaseTest; ExpenseCategoriesHttpTest | Proven |
+| Payload UUID/fencing e lifecycle de worker Redis, retry/falha, cache scoped e edição posterior | ExpenseClassificationRetryTest (4 cenários) | Proven |
+| Uma query limitada, sem OFFSET, índices/ICU/schema UUID | ExpenseQueryPersistenceTest; UuidSchemaTest cruzado | Proven no volume medido |
+| Fronteiras/observabilidade/cascade e integração Identity | ContextBoundariesTest; ExpenseMutationObservabilityTest; suítes Identity/Core | Proven na fatia |
+| Reset/descartar payloads operacionais incompatíveis/optimize_route local | STEP 12 | Blocked até schema/consumidores coerentes |
+
+Os arquivos existentes mantêm seus cenários na mesma localização. Conversões de IDs/mocks preservam argumentos, falhas e campos financeiros. Em ExpenseEntityTest, o antigo owner zero passa a casos inválidos de UUID em ambos os papéis; amount/data/categoria/descrição continuam com seus negativos. Em ExpenseSortCursorHttpTest, a antiga aceitação de cursor legado vira recusa nas mesmas nove consultas por exigência explícita da spec; versões/field types continuam negativos. Nos dois testes de Cache, páginas com cursor antes legado usam fixture v2 válida para conservar as provas de dimensões/invalidação; recusa do legado permanece provada no adapter/HTTP. Cenários de retry/fencing/cache/observabilidade continuam nos arquivos originais, com UUID em vez de casts. Nenhum cenário foi removido por contagem ou por incompatibilidade do schema.
+
+### Arquivos executados isoladamente
+
+Todos passaram após Pint pelo launcher `lerd composer test -- <arquivo> --compact --fail-on-warning --fail-on-skipped --fail-on-incomplete --fail-on-risky`. Paths abaixo relativos a tests/; Unit puro não provisionou banco. Feature usou preflight/migrations incrementais/manifesto/runId e filas/Redis exclusivos, com cleanup existente.
+
+| Arquivo | Testes / assertions |
+| --- | --- |
+| Unit/Expense/Application/UseCases/ClassifyExpenseUseCaseTest.php | 5 / 20 |
+| Unit/Expense/Application/UseCases/DeleteExpenseUseCaseTest.php | 3 / 12 |
+| Unit/Expense/Application/UseCases/GetAllExpenseUseCaseTest.php | 3 / 18 |
+| Unit/Expense/Application/UseCases/GetExpenseSuggestionsUseCaseTest.php | 25 / 134 |
+| Unit/Expense/Application/UseCases/UpdateExpenseUseCaseTest.php | 3 / 15 |
+| Unit/Expense/Domain/Entities/ExpenseEntityTest.php | 21 / 28 |
+| Unit/Expense/Infrastructure/Adapters/ExpenseQueryCursorAdapterTest.php | 27 / 35 |
+| Unit/Expense/Application/UseCases/GetExpenseUseCaseTest.php | 3 / 12 |
+| Feature/Expense/ExpenseClassificationTest.php | 50 / 324 |
+| Feature/Expense/ExpenseOwnershipTest.php | 7 / 31 |
+| Feature/Expense/Infrastructure/Queues/ExpenseClassificationRetryTest.php | 4 / 170 |
+| Feature/Expense/Infrastructure/Repositories/Cache/CachedExpenseCategorizationRepositoryTest.php | 4 / 5 |
+| Feature/Expense/Infrastructure/Repositories/Cache/CachedExpenseRepositoryTest.php | 18 / 48 |
+| Feature/Expense/Infrastructure/Repositories/Cache/ComposableExpenseCacheTest.php | 11 / 51 |
+| Feature/Expense/Infrastructure/Repositories/Persistence/EloquentExpenseSuggestionsRepositoryTest.php | 26 / 91 |
+| Feature/Expense/Infrastructure/Repositories/Persistence/ExpenseQueryPersistenceTest.php | 2 / 81 |
+| Feature/Expense/Journeys/ExpenseMutationObservabilityTest.php | 2 / 80 |
+| Feature/Expense/Presentation/Http/ExpenseQueryHttpTest.php | 53 / 217 |
+| Feature/Expense/Presentation/Http/ExpenseSortCursorHttpTest.php | 49 / 744 |
+| Feature/Expense/Presentation/Http/GetAllExpenseHttpTest.php | 35 / 215 |
+| Feature/Expense/Presentation/Http/UuidExpenseHttpTest.php | 28 / 130 |
+
+### Suítes, isolamento e planos
+
+Mesmo launcher/flags estritos acima, sem exclusão de grupos nas evidências finais:
+
+| Seleção/opções adicionais | Resultado |
+| --- | --- |
+| tests/Unit/Expense tests/Feature/Expense tests/Unit/Architecture/ContextBoundariesTest.php | Passou: 500 / 3.485, 24.098 ms |
+| mesmos paths + tests/Feature/Core/Infrastructure/Isolation --order-by=random --random-order-seed=20261020 | Passou: 509 / 3.573, 24.111 ms |
+| mesma seleção --order-by=random --random-order-seed=20261021 | Passou: 509 / 3.573, 24.172 ms |
+| tests/Feature/Expense --parallel --processes=2 | Passou: 371 / 2.721, 9.437 ms |
+| tests/Feature/Identity tests/Unit/Core tests/Feature/Core/Infrastructure/Database/UuidSchemaTest.php | Passou: 539 / 2.096, 12.038 ms |
+| sem path, --stop-on-defect | Falhou: 927 executados, 926 passando, 1 erro; gate global não aprovado |
+
+As seeds incluem os grupos Redis/worker/isolamento e a prova de duas invocações simultâneas existente. O gate global agora para em `tests/Unit/Insights/Application/UseCases/GetInsightsUseCaseTest.php:75`, cujo mock ainda devolve owner inteiro. Essa conversão pertence ao STEP 08; o contrato não recebeu union/fallback e o contexto Insights não foi alterado. Gates globais/seeds/paralelo finais de 14.* continuam pendentes até o build coerente.
+
+Planos PG exclusivos, 2.400 despesas de dois owners, ANALYZE e EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON), uma leitura limitada a 21 rows para página de 20: default Index Scan ~0,037 ms; filtros combinados Index Scan ~0,048 ms; descrição/amount Sort ~0,294 ms (execução da suíte final). Planejamento ~0,031/0,040/0,055 ms. O sort ICU continua válido com nullable/alias; não se alega escalabilidade para outras cardinalidades nem ausência global de N+1 a partir desses planos.
+
+Pint `--dirty --format agent` passou, corrigindo somente imports/formatação nos arquivos da fatia; todos os arquivos afetados foram repetidos depois. OpenSpec estrito e `git diff --check` passaram.
+
+### Intercorrências e limite operacional
+
+- A primeira tentativa de Unit incluiu sugestões ainda com owner int; a primeira Feature parou na mesma incompatibilidade de Repository de sugestões. Foram alinhados somente o owner/fixtures/doubles de Expense; suíte final completa do contexto passou. Um `--exclude-group=suggestions` inicial não excluiu esses testes, que não têm esse grupo; nenhuma evidência final usa essa exclusão.
+- Uma assertion nova de Location encontrou que o CreateExpenseController atual retorna 201 sem esse header, comportamento anterior à fatia UUID. A assertion exploratória foi retirada; não houve mudança do contrato/implementação de criação por esse achado fora do escopo. Correção desse header exige decisão própria, e a evidência acima não comprova Location.
+- A primeira tentativa agrupada do gate global teve timeout MCP, sem resultado aproveitado. Após confirmar ausência de processos de teste no container, o mesmo comando via CLI Lerd retornou o bloqueio Insights acima. Timeout não conta como aprovação.
+- MCP de schema confirma que o banco operacional continua com IDs bigint anteriores; migrate:status mostra `create_resource_identities_table` pendente. Aplicar essa FK UUID isoladamente sobre users bigint seria incompatível. Nenhuma migration/reset/seed/operação de workers operacionais foi executada; a transição coerente e a medição HTTP/optimize_route pertencem ao STEP 12. Testes HTTP/PG/worker desta entrega usam somente bancos/filas/Redis exclusivos do launcher, já migrados incrementalmente.
+
+**Resultado de escopo:** 5.1–5.10 implementados e comprovados no schema novo exclusivo, sincronizados com STEPS.md. Próximo STEP 06. Registro estável Core/projeções, gates globais, transição operacional e archive continuam pendentes.
+
+## Correção transversal — compatibilidade da suíte — 2026-10-15
+
+### Autorização e diagnóstico completo
+
+Após questionar a quantidade de testes quebrados, o usuário solicitou executar/verificar a suíte inteira e autorizou expressamente a correção: “Corrige por favor”. O escopo é recuperar a compatibilidade dos consumidores obrigatórios e das provas com schema/UserPort/PAT UUID, conforme seção 1.6; não implementar o registro estável Core ou toda a semântica pendente de Notifications/projeções. A justificativa anterior de simplesmente adiar as quebras de tipo para os STEPs proprietários não satisfazia essa exigência. Evidências históricas de bloqueio acima foram preservadas, mas são superadas pelo resultado desta seção.
+
+Diagnóstico pelo launcher sem stop-on-defect: **2.167 testes, 1.899 passando, 66 falhas e 202 erros, 37.443 assertions, 55.169 ms**. Distribuição dos 268 problemas: Insights 122, Metrics 110, Notifications 32 e Core 4; Expense sem falha nessa execução. As causas incluem mocks UserPort devolvendo int, Repositories recebendo int com owner string, inserts sem UUID, casts de UUID para int e chamadas ao Model base de PAT em vez do Model próprio configurado.
+
+### Correções e limites
+
+- Insights: owner string em Repository/SQL/UseCase/composição/SelectInsightMessageVariantInput; rotação valida/canonicaliza UUID antes do hash interno. Fórmula de rotação, dias civis, catálogo, seleção, fatos/períodos, precisão monetária e hash público atual foram preservados.
+- Metrics: contrato/implementação recebem owner string, mantendo a consulta única/snapshot, agrupamento, períodos/default e matemática exata. Sem nova persistência/cache ou alteração do hash público.
+- Notifications: contrato/Repository/Entity usam owner/sessão string; Entity canonicaliza os dois papéis e sincronização não incrementa geração por caixa diferente. Foram removidos casts numéricos do Model. Registro é emitido por Str::uuid7() para satisfazer o schema v7 já adotado. Model próprio de PAT é usado explicitamente nos testes consumidores, preservando segredo real, revogação e disputas. Nenhuma alteração de transporte Firebase.
+- Fixtures de instalação válidas passam de v4 a v7 para construir o schema atual. Isso não conclui a validação HTTP/Domain contra todas as outras versões de instalação/registro: 6.1/6.3/6.4 e a revisão completa da fatia continuam pendentes.
+- Query Builder/insertGetId recebem ID UUIDv7 explícito porque não executam hooks de Model. Helpers retornam string; UUID não é convertido em int. Identificadores sem papel na expectativa usam geração v7; empates e ordenação sensíveis usam UuidFixture explícita, independente da ordem de inserts.
+- Core: testes de transação/preflight voltam a demonstrar uma escrita válida antes da sentinela/retry/migration incremental. Nenhuma alteração de TransactionAdapter, guard, ownership ou cleanup. Tentativas de retry usam UUIDs distintos explícitos e verificam que a escrita abortada não persistiu.
+- Nenhuma migration, dependência, configuração de ambiente ou worker operacional foi alterado. O banco operacional anterior permanece para STEP 12; todas as verificações usaram bancos/filas/Redis exclusivos do launcher.
+
+### Mapa cenário antigo → prova corrigida
+
+| Arquivos/cenários preservados | Conversão e evidência |
+| --- | --- |
+| Core TransactionAdapterTest e TestDatabasePreflightTest | Mesmos cenários de commit/rollback/retry/callbacks e preservação após migrations incrementais. Inserts UUID explícitos, sentinela exata e escrita anterior comprovadas; nenhum guard ou assertion transacional relaxado |
+| Insights GetInsightsUseCaseTest; Metrics GetExpenseMetricsUseCaseTest | Mesmos mocks/expectativas de quantidade/argumentos/erros; owner fixture v7 no lugar de int, identidade pública ainda hash. Orquestração e falhas não viram retorno fabricado |
+| Insights ComposeInsightMessageUseCaseTest; ExpandedCategoryMessageTest; SelectInsightMessageVariantUseCaseTest | Mesmas dimensões/catálogos/variantes, limites 24/80 e precisão. Índices numéricos de datasets identificam UuidFixture, não IDs de produto. Casos antigos de owner 0/-1 passam às strings inválidas equivalentes; há mais um negativo v4, sem reparar entrada. Caixa equivalente ganha prova no mesmo cenário de ciclo |
+| Insights EloquentExpenseAnalysisRepositoryTest | Mesmos agregados/snapshot/owner/limites civis e falhas. Empate do máximo usa UUIDs explícitos e inserção inversa, preservando vencedor esperado. Casos de contas geradas após exclusões verificam identidade distinta, sem pressupor sequência/ordem global de geração UUID |
+| Insights InsightsApiTest e Monthly{CompositionFailure,Contract,Identity,InsightsFilters,Onboarding,Rotation}HttpTest | Mesmas requisições/contratos/filtros/precisão/rotação/privacidade e falhas editoriais; inserts válidos e owner string. PAT próprio conserva a prova de não extensão em erro |
+| Metrics EloquentExpenseMetricsRepositoryTest e ExpenseMetricsHttpTest | Mesmos totais/grupos/rounding/zero/default/ownership, erros e leitura única, sem alterar esperado financeiro |
+| Notifications CreateNotificationUseCaseTest e NotificationRegistrationEntityTest | Mesmas checagens de escopo transacional, lock antes de Repository, retry limitado, metadata após commit e geração. Owner/sessão v7 e caixa equivalente sem geração extra |
+| Notifications EloquentNotificationRepositoryTest, NotificationRegistrationConcurrencyTest e NotificationRegistrationHttpTest | Cifragem/fingerprint, unicidade, rollback pós-escrita, cascades, rotação, sessão real e concorrência sincronizada preservados; testes usam Model PAT próprio e UUID desconhecido explícito para ownership inválido |
+| NotificationRegistrationFixture e NotificationFingerprintMigrationTest | Constantes válidas v7 em ordem explícita; prova existente de recalcular fingerprint e reverter escrita anterior ao ciphertext inválido passou no gate completo. Nenhuma assertion de rollback/ciphertext foi removida |
+
+Os cenários permanecem nos mesmos arquivos. Não foram removidos testes, introduzidos skips ou enfraquecidas assertions para obter verde. A contagem total aumentou em um pelo negativo v4 de rotação; a equivalência decorre do mapa e das provas, não da contagem.
+
+### Arquivos isolados após Pint
+
+Comando para cada arquivo: `lerd composer test -- <arquivo> --compact --fail-on-warning --fail-on-skipped --fail-on-incomplete --fail-on-risky`. Todos passaram. Paths abaixo relativos a tests/.
+
+| Arquivo | Testes / assertions |
+| --- | --- |
+| Feature/Core/Infrastructure/Adapters/TransactionAdapterTest.php | 4 / 29 |
+| Feature/Core/Infrastructure/Database/TestDatabasePreflightTest.php | 3 / 20 |
+| Unit/Insights/Application/UseCases/ComposeInsightMessageUseCaseTest.php | 71 / 2.360 |
+| Unit/Insights/Application/UseCases/ExpandedCategoryMessageTest.php | 306 / 27.132 |
+| Unit/Insights/Application/UseCases/GetInsightsUseCaseTest.php | 18 / 155 |
+| Unit/Insights/Application/UseCases/SelectInsightMessageVariantUseCaseTest.php | 16 / 157 |
+| Unit/Metrics/Application/UseCases/GetExpenseMetricsUseCaseTest.php | 41 / 97 |
+| Unit/Notifications/Application/UseCases/CreateNotificationUseCaseTest.php | 3 / 33 |
+| Unit/Notifications/Domain/Entities/NotificationRegistrationEntityTest.php | 4 / 17 |
+| Feature/Insights/Infrastructure/Repositories/Persistence/EloquentExpenseAnalysisRepositoryTest.php | 22 / 368 |
+| Feature/Insights/InsightsApiTest.php | 54 / 361 |
+| Feature/Insights/Presentation/Http/MonthlyCompositionFailureHttpTest.php | 2 / 30 |
+| Feature/Insights/Presentation/Http/MonthlyContractHttpTest.php | 2 / 77 |
+| Feature/Insights/Presentation/Http/MonthlyIdentityHttpTest.php | 5 / 162 |
+| Feature/Insights/Presentation/Http/MonthlyInsightsFiltersHttpTest.php | 41 / 255 |
+| Feature/Insights/Presentation/Http/MonthlyOnboardingHttpTest.php | 22 / 208 |
+| Feature/Insights/Presentation/Http/MonthlyRotationHttpTest.php | 5 / 205 |
+| Feature/Metrics/Infrastructure/Repositories/Persistence/EloquentExpenseMetricsRepositoryTest.php | 15 / 52 |
+| Feature/Metrics/Presentation/ExpenseMetricsHttpTest.php | 91 / 786 |
+| Feature/Notifications/Infrastructure/Repositories/Persistence/EloquentNotificationRepositoryTest.php | 16 / 64 |
+| Feature/Notifications/Infrastructure/Repositories/Persistence/NotificationRegistrationConcurrencyTest.php | 6 / 27 |
+| Feature/Notifications/Presentation/Http/NotificationRegistrationHttpTest.php | 31 / 215 |
+
+### Gate global restaurado
+
+Todos os comandos abaixo usam `lerd composer test --`, com `--compact --fail-on-warning --fail-on-skipped --fail-on-incomplete --fail-on-risky`. Nenhuma exclusão, stop-on-defect ou skip. PHPUnit/Pest executaram pelo launcher com preflight/manifesto/ownership, migrations incrementais e cleanup exclusivos. Grupos Redis/worker/concorrência e duas invocações simultâneas estão incluídos.
+
+| Opções adicionais | Resultado final |
+| --- | --- |
+| nenhuma: suíte completa padrão | **2.168 / 39.859**, 58.535 ms |
+| --order-by=random --random-order-seed=20261022 | **2.168 / 39.859**, 70.359 ms |
+| --order-by=random --random-order-seed=20261023 | **2.168 / 39.859**, 70.058 ms |
+| --parallel --processes=2 | **2.168 / 39.859**, 42.498 ms |
+
+Pint `--dirty --format agent` executado antes dessas provas, com repetição de todos os arquivos afetados; `git diff --check` passou. As primeiras suítes focadas também passaram: Notifications/Metrics + Core transação/preflight 225/1.361; Insights + arquitetura 817/32.706. A evidência final acima inclui os refinamentos posteriores de canonicalização.
+
+**Resultado:** os 268 problemas do diagnóstico completo foram corrigidos e a suíte do build atual está verde. Foram sincronizados os pré-requisitos de compatibilidade 6.2/8.1/9.1/10.1, sem declarar completos os STEPs 06/08/09/10. Associação estável Core/projeções, regras v7 restantes de Notifications, rollout/medição operacional, cliente e archive continuam pendentes. Gates 14.* deverão ser repetidos depois dessas implementações; verde atual não comprova requisitos ainda ausentes.

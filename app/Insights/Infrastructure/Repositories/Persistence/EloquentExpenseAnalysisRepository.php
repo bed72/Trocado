@@ -37,7 +37,7 @@ use Illuminate\Support\Facades\DB;
  */
 final class EloquentExpenseAnalysisRepository implements ExpenseAnalysisRepository
 {
-    public function analyze(int $userId, InsightAnalysisPeriodValueObject $period): ExpenseAnalysisOutput
+    public function analyze(string $userId, InsightAnalysisPeriodValueObject $period): ExpenseAnalysisOutput
     {
         $periods = $period->periods();
         $rows = $this->fetchAggregatedExpenses(userId: $userId, periods: $periods);
@@ -110,7 +110,7 @@ final class EloquentExpenseAnalysisRepository implements ExpenseAnalysisReposito
      * @param  AnalysisPeriods  $periods
      * @return non-empty-list<AnalysisRow>
      */
-    private function fetchAggregatedExpenses(int $userId, array $periods): array
+    private function fetchAggregatedExpenses(string $userId, array $periods): array
     {
         $values = [];
         $bindings = [];

@@ -6,9 +6,9 @@ namespace Tests\Support\Notifications\Fixtures;
 
 final class NotificationRegistrationFixture
 {
-    public const string Installation = 'bfb21c99-e2cb-4e18-8b73-b8fb0efc8d69';
+    public const string Installation = '017f22e2-79b0-7cc3-98c4-000000000101';
 
-    public const string OtherInstallation = 'daba5951-8748-4916-a942-7f85237983a6';
+    public const string OtherInstallation = '017f22e2-79b0-7cc3-98c4-000000000102';
 
     /** @return array{data: array{type: string, attributes: array<string, string>}} */
     public static function payload(string $installation = self::Installation, string $identifier = 'FakeFcmToken:AbC_123', string $platform = 'android'): array

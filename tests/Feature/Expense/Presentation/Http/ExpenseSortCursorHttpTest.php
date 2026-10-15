@@ -6,6 +6,7 @@ use App\Expense\Application\Repositories\ExpenseRepository;
 use App\Identity\Domain\Enums\UserStatusEnum;
 use Illuminate\Pagination\Cursor;
 use Illuminate\Support\Carbon;
+use Tests\Support\Core\Fixtures\UuidFixture;
 use Tests\Support\Expense\Fixtures\ExpenseCursorFixture;
 use Tests\Support\Expense\Fixtures\ExpenseQueryHistoryFixture;
 use Tests\Support\Identity\Fixtures\IdentityFixture;
@@ -21,8 +22,9 @@ it('orders and navigates stable pages in both directions without changing nullab
         ? [['Água', 2000, '2026-09-15'], ['agua', 1000, '2026-09-15'], ['ÁGUA', 1000, '2026-09-15'], ['Aluguel', 9000, '2026-09-01'], ['Mercado', 5000, '2026-09-30']]
         : array_map(static fn (?string $description): array => [$description, 1000, '2026-09-15'], $descriptions);
     $ids = [];
-    foreach ($rows as [$description, $amount, $date]) {
-        $ids[] = (string) ExpenseQueryHistoryFixture::create($this->owner->id, $date, $amount, 'food', $description);
+    foreach (array_reverse(array_keys($rows)) as $index) {
+        [$description, $amount, $date] = $rows[$index];
+        $ids[$index] = ExpenseQueryHistoryFixture::create($this->owner->id, $date, $amount, 'food', $description, UuidFixture::at($index + 1));
     }
     $parameters = ['sort' => $sort, 'filter' => ['from' => '2026-09-01', 'to' => '2026-09-30', 'category' => 'food', 'amount_min' => 0], 'page' => ['size' => 1]];
     $url = route('expenses.index', $parameters);
@@ -101,23 +103,14 @@ it('accepts equivalent criteria and size changes with the same new cursor', func
         ->assertOk()->assertJsonCount(2, 'data')->assertJsonPath('data.0.id', $ids[2])->assertJsonPath('data.1.id', $ids[1]);
 });
 
-it('accepts legacy cursors only for the previous unfiltered or civil query contract', function (array $parameters, bool $accepted): void {
+it('rejects legacy cursors even for the previous unfiltered or civil query contract', function (array $parameters, bool $previouslyAccepted): void {
     $ids = [];
     foreach (range(1, 3) as $day) {
         $ids[] = ExpenseQueryHistoryFixture::create($this->owner->id, "2026-09-0{$day}", 1000, 'food');
     }
     $cursor = (new Cursor(['occurred_on' => '2026-09-03', 'id' => $ids[2]], true))->encode();
     $response = $this->getJson(route('expenses.index', [...$parameters, 'page' => ['size' => 1, 'cursor' => $cursor]]));
-    if ($accepted) {
-        $response->assertOk();
-        if (isset($parameters['filter']['day'])) {
-            $response->assertJsonCount(0, 'data');
-        } else {
-            $response->assertJsonPath('data.0.id', (string) $ids[1]);
-        }
-    } else {
-        $response->assertUnprocessable()->assertJsonFragment(['pointer' => '/page/cursor']);
-    }
+    $response->assertUnprocessable()->assertJsonFragment(['pointer' => '/page/cursor']);
 })->with([
     'none' => [[], true],
     'year' => [['filter' => ['year' => 2026]], true],
@@ -150,7 +143,7 @@ it('rejects malformed cursor payloads before the repository or cache read', func
     $this->getJson(route('expenses.index', ['sort' => 'description,amount,occurred_on', 'page' => ['cursor' => ExpenseCursorFixture::encode($payload)]]))
         ->assertUnprocessable()->assertJsonFragment(['pointer' => '/page/cursor']);
 })->with([
-    'version' => [['v' => 2]], 'version type' => [['v' => '1']], 'wrong query' => [['query' => str_repeat('0', 64)]],
+    'version' => [['v' => 1]], 'version type' => [['v' => '2']], 'wrong query' => [['query' => str_repeat('0', 64)]],
     'string direction' => [['forward' => 'true']], 'null direction' => [['forward' => null]],
     'zero id' => [['position.id' => 0]], 'string id' => [['position.id' => '1']],
     'null description' => [['position.description' => null]], 'long description' => [['position.description' => str_repeat('é', 65)]],

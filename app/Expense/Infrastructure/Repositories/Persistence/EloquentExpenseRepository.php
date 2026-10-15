@@ -23,7 +23,7 @@ final class EloquentExpenseRepository implements ExpenseRepository
 {
     public function __construct(private readonly ExpenseQueryCursorPort $port) {}
 
-    public function getById(int $id, int $userId): ?ExpenseEntity
+    public function getById(string $id, string $userId): ?ExpenseEntity
     {
         $model = ExpenseModel::query()
             ->whereKey($id)
@@ -35,7 +35,7 @@ final class EloquentExpenseRepository implements ExpenseRepository
         }
 
         return new ExpenseEntity(
-            id: (int) $model->getKey(),
+            id: $model->getKey(),
             userId: $model->user_id,
             amount: $model->amount,
             category: $model->category,
@@ -45,7 +45,7 @@ final class EloquentExpenseRepository implements ExpenseRepository
         );
     }
 
-    public function getAll(int $userId, GetAllExpenseInput $input): ExpensePageOutput
+    public function getAll(string $userId, GetAllExpenseInput $input): ExpensePageOutput
     {
         $cursor = $this->port->decode($input);
         $query = ExpenseModel::query()->where('user_id', $userId);
@@ -88,7 +88,7 @@ final class EloquentExpenseRepository implements ExpenseRepository
 
         foreach ($page->items() as $model) {
             $items[] = new ExpenseEntity(
-                id: (int) $model->getKey(),
+                id: $model->getKey(),
                 userId: $model->user_id,
                 amount: $model->amount,
                 category: $model->category,
@@ -127,7 +127,7 @@ final class EloquentExpenseRepository implements ExpenseRepository
         }
 
         return new ExpenseEntity(
-            id: (int) $model->getKey(),
+            id: $model->getKey(),
             amount: $model->amount,
             userId: $model->user_id,
             category: $model->category,
@@ -137,7 +137,7 @@ final class EloquentExpenseRepository implements ExpenseRepository
         );
     }
 
-    public function delete(int $id, int $userId): bool
+    public function delete(string $id, string $userId): bool
     {
         return ExpenseModel::query()
             ->whereKey($id)
@@ -145,7 +145,7 @@ final class EloquentExpenseRepository implements ExpenseRepository
             ->delete() === 1;
     }
 
-    public function update(int $id, int $userId, UpdateExpenseInput $input): ?ExpenseEntity
+    public function update(string $id, string $userId, UpdateExpenseInput $input): ?ExpenseEntity
     {
         $model = ExpenseModel::query()
             ->whereKey($id)
@@ -157,7 +157,7 @@ final class EloquentExpenseRepository implements ExpenseRepository
         }
 
         $expense = new ExpenseEntity(
-            id: (int) $model->getKey(),
+            id: $model->getKey(),
             userId: $model->user_id,
             amount: $input->hasAmount ? (int) $input->amount : $model->amount,
             category: $input->hasCategory ? $input->category : $model->category,

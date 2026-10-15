@@ -7,6 +7,7 @@ namespace App\Expense\Application\UseCases;
 use App\Core\Application\Ports\ObservabilityPort;
 use App\Core\Application\Ports\TransactionPort;
 use App\Core\Application\Ports\UserPort;
+use App\Core\Domain\ValueObjects\UuidValueObject;
 use App\Expense\Application\Data\CreateExpenseInput;
 use App\Expense\Application\Ports\ExpenseClassificationDispatchPort;
 use App\Expense\Application\Repositories\ExpenseCategorizationRepository;
@@ -38,6 +39,8 @@ final readonly class CreateExpenseUseCase
                 description: $input->description,
             ));
 
+            $expenseId = UuidValueObject::fromString($expense->id)->value();
+
             $this->transactionPort->afterCommit(function () use ($expense): void {
                 $this->observabilityPort->emit('expense.created', [
                     'expense_id' => $expense->id,
@@ -53,16 +56,16 @@ final readonly class CreateExpenseUseCase
 
             if (! $this->categorizationRepository->beginClassificationAttempt(
                 token: $token,
-                expenseId: (int) $expense->id,
+                expenseId: $expenseId,
                 expiresAt: new DateTimeImmutable('+5 minutes'),
             )) {
                 return $expense;
             }
 
             try {
-                $this->dispatchPort->dispatch(expenseId: (int) $expense->id, token: $token);
+                $this->dispatchPort->dispatch(expenseId: $expenseId, token: $token);
             } catch (Throwable) {
-                $this->categorizationRepository->cancelClassification(expenseId: (int) $expense->id, token: $token);
+                $this->categorizationRepository->cancelClassification(expenseId: $expenseId, token: $token);
             }
 
             return $expense;

@@ -22,7 +22,7 @@ final readonly class CachedExpenseRepository implements ExpenseRepository
         private ExpenseRepository $repository,
     ) {}
 
-    public function getById(int $id, int $userId): ?ExpenseEntity
+    public function getById(string $id, string $userId): ?ExpenseEntity
     {
         return $this->repository->getById(id: $id, userId: $userId);
     }
@@ -36,7 +36,7 @@ final readonly class CachedExpenseRepository implements ExpenseRepository
         return $created;
     }
 
-    public function delete(int $id, int $userId): bool
+    public function delete(string $id, string $userId): bool
     {
         $deleted = $this->repository->delete(id: $id, userId: $userId);
 
@@ -47,7 +47,7 @@ final readonly class CachedExpenseRepository implements ExpenseRepository
         return $deleted;
     }
 
-    public function update(int $id, int $userId, UpdateExpenseInput $input): ?ExpenseEntity
+    public function update(string $id, string $userId, UpdateExpenseInput $input): ?ExpenseEntity
     {
         $updated = $this->repository->update(id: $id, userId: $userId, input: $input);
 
@@ -58,14 +58,14 @@ final readonly class CachedExpenseRepository implements ExpenseRepository
         return $updated;
     }
 
-    public function getAll(int $userId, GetAllExpenseInput $input): ExpensePageOutput
+    public function getAll(string $userId, GetAllExpenseInput $input): ExpensePageOutput
     {
         $this->port->decode($input);
         $tagged = $this->cache->tags($this->tag($userId));
         $cursorKey = $input->cursor === null ? 'none' : "cursor:{$input->cursor}";
-        $key = "expense:pages:v2:{$userId}:{$input->size}:".$this->port->fingerprint($input).':'.hash('sha256', $cursorKey);
+        $key = "expense:pages:v3:{$userId}:{$input->size}:".$this->port->fingerprint($input).':'.hash('sha256', $cursorKey);
 
-        /** @var array{items: list<array{id: ?int, userId: int, amount: int, occurredOn: string, category: string, description: ?string, createdAt: ?string}>, nextCursor: ?string, previousCursor: ?string} $page */
+        /** @var array{items: list<array{id: ?string, userId: string, amount: int, occurredOn: string, category: string, description: ?string, createdAt: ?string}>, nextCursor: ?string, previousCursor: ?string} $page */
         $page = $tagged->remember($key, 60, function () use ($userId, $input): array {
             $output = $this->repository->getAll(userId: $userId, input: $input);
 
@@ -99,12 +99,12 @@ final readonly class CachedExpenseRepository implements ExpenseRepository
         );
     }
 
-    private function tag(int $userId): string
+    private function tag(string $userId): string
     {
-        return "expense:pages:owner:{$userId}";
+        return "expense:pages:v3:owner:{$userId}";
     }
 
-    private function invalidateAfterCommit(int $userId): void
+    private function invalidateAfterCommit(string $userId): void
     {
         DB::afterCommit(callback: $this->cache->tags($this->tag($userId))->flush(...));
     }

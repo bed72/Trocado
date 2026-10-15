@@ -6,6 +6,7 @@ use App\Core\Application\Ports\UserPort;
 use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Core\Infrastructure\Adapters\UserAdapter;
 use App\Identity\Domain\Enums\UserStatusEnum;
+use App\Identity\Infrastructure\Repositories\Persistence\Models\PersonalAccessTokenModel as PersonalAccessToken;
 use App\Insights\Application\Repositories\ExpenseAnalysisRepository;
 use App\Insights\Domain\ValueObjects\InsightAnalysisPeriodValueObject;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -14,8 +15,8 @@ use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
-use Laravel\Sanctum\PersonalAccessToken;
 use Tests\Support\Identity\Fixtures\IdentityFixture;
 
 use function Pest\Laravel\withToken;
@@ -36,10 +37,11 @@ function insightsApiRequest(string $token, string $query = ''): TestResponse
     return withToken($token)->getJson($query === '' ? $url : "{$url}?{$query}");
 }
 
-function recordInsightsApiBase(int $userId, string $month, string $category = 'food', int $amount = 2000): void
+function recordInsightsApiBase(string $userId, string $month, string $category = 'food', int $amount = 2000): void
 {
     for ($day = 1; $day <= 5; $day++) {
         DB::table('expenses')->insert([
+            'id' => (string) Str::uuid7(),
             'user_id' => $userId, 'amount' => $amount, 'category' => $category,
             'occurred_on' => "{$month}-0{$day}",
             'created_at' => '2026-10-12 12:00:00', 'updated_at' => '2026-10-12 12:00:00',
@@ -49,9 +51,9 @@ function recordInsightsApiBase(int $userId, string $month, string $category = 'f
 
 it('returns isolated ordered JSON API insights with exact contract and one analytical query', function (): void {
     $user = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now(), email: 'insights@example.com');
-    $userId = (int) $user->getKey();
+    $userId = $user->getKey();
     $token = IdentityFixture::token($user, expiresAt: now()->addDays(30));
-    $otherUserId = (int) IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now(), name: 'Joana', email: 'other-insights@example.com')->getKey();
+    $otherUserId = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now(), name: 'Joana', email: 'other-insights@example.com')->getKey();
     recordInsightsApiBase($userId, '2026-08');
     recordInsightsApiBase($userId, '2026-09');
     recordInsightsApiBase($userId, '2026-10', amount: 4000);
@@ -110,11 +112,13 @@ it('serializes the selected expense identification as literal text with no expen
     $token = IdentityFixture::token($user, expiresAt: now()->addDays(30));
     $month = $closed ? '2026-09' : '2026-10';
     DB::table('expenses')->insert([
+        'id' => (string) Str::uuid7(),
         'user_id' => $user->getKey(), 'amount' => 120000, 'category' => 'other', 'occurred_on' => $month.'-05',
         'description' => $description, 'created_at' => '2026-10-12 12:00:00', 'updated_at' => '2026-10-12 12:00:00',
     ]);
     foreach (['food', 'health', 'transport', 'leisure'] as $index => $category) {
         DB::table('expenses')->insert([
+            'id' => (string) Str::uuid7(),
             'user_id' => $user->getKey(), 'amount' => 25000, 'category' => $category, 'occurred_on' => $month.'-0'.($index + 1),
             'description' => 'Registro menor', 'created_at' => '2026-10-12 12:00:00', 'updated_at' => '2026-10-12 12:00:00',
         ]);
@@ -207,7 +211,7 @@ it('identifies all rejected query parameters in the error document', function ()
 
 it('reflects confirmed recategorization date edits and deletion on the next HTTP read', function (): void {
     $user = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
-    $userId = (int) $user->getKey();
+    $userId = $user->getKey();
     $token = IdentityFixture::token($user, expiresAt: now()->addDays(30));
     recordInsightsApiBase($userId, '2026-10', 'other');
 
@@ -232,7 +236,7 @@ it('reflects confirmed recategorization date edits and deletion on the next HTTP
 
 it('keeps IDs and the chosen title while a confirmed value edit refreshes the percentage', function (): void {
     $user = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
-    $userId = (int) $user->getKey();
+    $userId = $user->getKey();
     $token = IdentityFixture::token($user, expiresAt: now()->addDays(30));
     recordInsightsApiBase($userId, '2026-10');
     DB::table('expenses')->where('user_id', $userId)->where('occurred_on', '>=', '2026-10-04')->update(['category' => 'other']);
@@ -248,11 +252,12 @@ it('keeps IDs and the chosen title while a confirmed value edit refreshes the pe
 
 it('resolves the reference date in app timezone and excludes only future historical records', function (): void {
     $user = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
-    $userId = (int) $user->getKey();
+    $userId = $user->getKey();
     $token = IdentityFixture::token($user, expiresAt: now()->addDays(30));
     Date::setTestNow('2026-10-13 00:30:00 UTC');
     config()->set('app.timezone', 'America/Sao_Paulo');
     DB::table('expenses')->insert([
+        'id' => (string) Str::uuid7(),
         'user_id' => $userId, 'amount' => 10000, 'category' => 'food', 'occurred_on' => '2026-10-13',
         'created_at' => '2026-10-12 12:00:00', 'updated_at' => '2026-10-12 12:00:00',
     ]);
@@ -268,9 +273,9 @@ it('uses the authenticated throttle policy before analytical access', function (
     $period = new InsightAnalysisPeriodValueObject('2026-10-12', DatePeriodValueObject::monthContaining(
         $query === 'filter[year]=2026&filter[month]=9' ? '2026-09-01' : '2026-10-01',
     ));
-    $analysis = $this->app->make(ExpenseAnalysisRepository::class)->analyze((int) $user->getKey(), $period);
+    $analysis = $this->app->make(ExpenseAnalysisRepository::class)->analyze($user->getKey(), $period);
     $repository = $this->createMock(ExpenseAnalysisRepository::class);
-    $repository->expects($this->once())->method('analyze')->with((int) $user->getKey(), $period)->willReturn($analysis);
+    $repository->expects($this->once())->method('analyze')->with($user->getKey(), $period)->willReturn($analysis);
     $this->app->instance(ExpenseAnalysisRepository::class, $repository);
     insightsApiRequest($token, $query)->assertOk();
     insightsApiRequest($token, $query)->assertTooManyRequests()->assertHeader('Retry-After')

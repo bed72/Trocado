@@ -15,7 +15,7 @@ interface ExpenseMetricsRepository
      * Grouped totals must reconcile within one snapshot; total-only has no categories.
      */
     public function summarize(
-        int $userId,
+        string $userId,
         DatePeriodValueObject $period,
         ExpenseMetricsGroupingEnum $grouping,
     ): ExpenseMetricsProjectionOutput;

@@ -10,6 +10,7 @@ use App\Insights\Domain\ValueObjects\InsightAnalysisPeriodValueObject;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Tests\Support\Identity\Fixtures\IdentityFixture;
 
 beforeEach(function (): void {
@@ -99,10 +100,10 @@ it('resolves today once and ignores filters from the GET body', function (): voi
     $port->expects($this->once())->method('today')->willReturn('2026-10-12');
     $this->app->instance(DatePort::class, $port);
     $analysis = $this->app->make(ExpenseAnalysisRepository::class)->analyze(
-        (int) $user->getKey(), new InsightAnalysisPeriodValueObject('2026-10-12', DatePeriodValueObject::monthContaining('2026-10-12')),
+        $user->getKey(), new InsightAnalysisPeriodValueObject('2026-10-12', DatePeriodValueObject::monthContaining('2026-10-12')),
     );
     $repository = $this->createMock(ExpenseAnalysisRepository::class);
-    $repository->expects($this->once())->method('analyze')->with((int) $user->getKey(), $this->callback(
+    $repository->expects($this->once())->method('analyze')->with($user->getKey(), $this->callback(
         static fn (InsightAnalysisPeriodValueObject $period): bool => $period->currentMonth->from() === '2026-10-01'
             && $period->currentMonth->to() === '2026-10-12',
     ))->willReturn($analysis);
@@ -118,6 +119,7 @@ it('returns historical periods with inclusive February leap and year boundaries'
 
     foreach (['01', '02', '03', '04', substr($to, 8)] as $day) {
         DB::table('expenses')->insert([
+            'id' => (string) Str::uuid7(),
             'user_id' => $user->getKey(), 'amount' => 2000, 'category' => 'food',
             'occurred_on' => substr($from, 0, 8).$day,
             'created_at' => '2026-10-12 12:00:00', 'updated_at' => '2026-10-12 12:00:00',
@@ -157,11 +159,13 @@ it('compares full historical totals and confines recurring leadership to the thr
     foreach (['2026-07' => ['31', 8000], '2026-08' => ['31', 8000], '2026-09' => ['30', 10000], '2026-10' => ['05', 999999]] as $month => [$lastDay, $amount]) {
         foreach (['01', '02', '03', '04', $lastDay] as $day) {
             DB::table('expenses')->insert([
+                'id' => (string) Str::uuid7(),
                 'user_id' => $user->getKey(), 'amount' => $amount, 'category' => 'food',
                 'occurred_on' => "{$month}-{$day}",
                 'created_at' => '2026-10-12 12:00:00', 'updated_at' => '2026-10-12 12:00:00',
             ]);
             DB::table('expenses')->insert([
+                'id' => (string) Str::uuid7(),
                 'user_id' => $other->getKey(), 'amount' => 9000000, 'category' => 'health',
                 'occurred_on' => "{$month}-{$day}",
                 'created_at' => '2026-10-12 12:00:00', 'updated_at' => '2026-10-12 12:00:00',

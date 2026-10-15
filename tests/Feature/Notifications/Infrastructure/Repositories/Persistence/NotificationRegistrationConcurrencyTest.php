@@ -3,11 +3,11 @@
 declare(strict_types=1);
 
 use App\Identity\Domain\Enums\UserStatusEnum;
+use App\Identity\Infrastructure\Repositories\Persistence\Models\PersonalAccessTokenModel as PersonalAccessToken;
 use App\Notifications\Infrastructure\Repositories\Persistence\Models\NotificationModel;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Laravel\Sanctum\PersonalAccessToken;
 use Tests\Support\Core\Fixtures\ConcurrentDatabaseProcess;
 use Tests\Support\Identity\Fixtures\IdentityFixture;
 use Tests\Support\Notifications\Fixtures\NotificationRegistrationFixture;
@@ -40,7 +40,7 @@ it('serializes concurrent first registrations through session locks or database 
         });
         $child->done();
         expect(DB::table('notifications')->count())->toBe(1)
-            ->and(NotificationModel::query()->find($id)->user_id)->toBe((int) $owner->getKey())
+            ->and(NotificationModel::query()->find($id)->user_id)->toBe($owner->getKey())
             ->and(NotificationModel::query()->find($id)->generation)->toBe($dispute === 'same owner new session' ? 2 : 1);
     } finally {
         $child->close();
@@ -71,7 +71,7 @@ it('serializes competing rotations and commits coherent monotonically versioned 
         $current = NotificationModel::query()->find($id);
         expect($current->generation)->toBe(3)->and($current->registration_identifier)->toBe('child-rotation')
             ->and($current->platform)->toBe('ios')
-            ->and($current->session_id)->toBe((int) PersonalAccessToken::findToken($childToken)->getKey())
+            ->and($current->session_id)->toBe(PersonalAccessToken::findToken($childToken)->getKey())
             ->and(DB::table('notifications')->count())->toBe(1);
     } finally {
         $child->close();

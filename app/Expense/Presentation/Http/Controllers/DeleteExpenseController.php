@@ -11,9 +11,9 @@ final readonly class DeleteExpenseController
 {
     public function __construct(private DeleteExpenseUseCase $useCase) {}
 
-    public function __invoke(int $expense): Response
+    public function __invoke(string $id): Response
     {
-        $this->useCase->execute(id: $expense);
+        $this->useCase->execute(id: $id);
 
         return response()->noContent();
     }
