@@ -120,11 +120,11 @@
 ## 10. UUIDv7 estável de sugestões
 
 - [x] 10.1 Converter owner no contrato/fonte de sugestões para v7 e conservar agrupamento/normalização SQL/padrão de valor/janela/limite. [UID-05; expense-suggestions]
-- [ ] 10.2 Preparar chave de Core pela mesma chave normalizada SQL, independente de termo/valor/janela, sem persistir raw description. [RID-02]
-- [ ] 10.3 Resolver lote final após validação/preparação, substituir hash por UUID e omitir associação em data vazio; sem identificar Expense row específica. [RID-04/06]
-- [ ] 10.4 Provar Unit/HTTP de termo diferente/case equivalente/valor opcional/owner diferente/novo processo e descrição normalizada diferente, com UUIDs corretos. [expense-suggestions]
-- [ ] 10.5 Provar desaparecimento/retorno com mesmo UUID, fonte/registro falhando e uma leitura financeira sem writes de despesa/IA/queue/cache. [RID-05/06; expense-suggestions]
-- [ ] 10.6 Executar arquivos de sugestões isolados e integração com Expense/registro Core; não enfraquecer busca literal/limites ou interpolar descrição em logs. [D10]
+- [x] 10.2 Preparar chave de Core pela mesma chave normalizada SQL, independente de termo/valor/janela, sem persistir raw description. [RID-02]
+- [x] 10.3 Resolver lote final após validação/preparação, substituir hash por UUID e omitir associação em data vazio; sem identificar Expense row específica. [RID-04/06]
+- [x] 10.4 Provar Unit/HTTP de termo diferente/case equivalente/valor opcional/owner diferente/novo processo e descrição normalizada diferente, com UUIDs corretos. [expense-suggestions]
+- [x] 10.5 Provar desaparecimento/retorno com mesmo UUID, fonte/registro falhando e uma leitura financeira sem writes de despesa/IA/queue/cache. [RID-05/06; expense-suggestions]
+- [x] 10.6 Executar arquivos de sugestões isolados e integração com Expense/registro Core; não enfraquecer busca literal/limites ou interpolar descrição em logs. [D10]
 
 ## 11. Integração transversal, suporte e rastreabilidade
 
@@ -200,7 +200,7 @@
 | Notifications registro/instalação/rotação/remoção | 6.* | Unit + HTTP/PG + rollback/races + Identity | Proven no STEP 06 em bancos exclusivos; v4/whitespace rejeitados, ID preservado e DELETE uniforme. Envio/cliente/rollout operacional pendentes |
 | Insights períodos/estados/rotação/UUID | 8.* | Unit + HTTP/PG + Core batch | Proven no STEP 08: UUID associado, chaves tipadas, fatos/editorial preservados, equivalências/estados/períodos/owner, processo/PAT/retorno, falhas e queries separadas. Operação local permanece no STEP 12 |
 | Metrics singular/zero/default/grouped/UUID | 9.* | Unit + HTTP/PG + Core batch | Não implementado/comprovado |
-| Sugestões norm/valor/owner/UUID | 10.* | Unit + HTTP/PG normalização SQL/associação | Não implementado/comprovado |
+| Sugestões norm/valor/owner/UUID | 10.* | Unit + HTTP/PG normalização SQL/associação | Proven no STEP 10: chave SQL exata, UUIDv7 batch, owner/termos/case/valor/janela/processo/PAT/retorno, falhas e limites de queries; medição operacional no STEP 12 |
 | Observabilidade próprio UUID/native SDK | 11.3–11.4 | JSON/header/context + ausência de segredos/fingerprint | Não implementado/comprovado |
 | Cliente/Bruno/documentação | 13.* | Parser/CLI controlados + homologação externa distinta | Não implementado/comprovado |
 | Gates transversais | 14.* | Padrão + duas seeds + paralelo + Redis/concorrência | Evidências históricas dos STEPs 06/07 preservadas abaixo. Após STEP 08: padrão 2.267/40.376 e Feature Insights paralelo 176/1.960. Seeds/gate paralelo completo não repetidos nesta fatia; repetir gates finais após implementação restante, sem concluir 14.* |
@@ -1018,6 +1018,33 @@ Pint `--dirty --format agent` passou (ordem de imports Unit corrigida), `git dif
 Captura Lerd já estava habilitada; não houve mudança de configuração. GET local sem credencial em `/api/metrics/expenses` retornou 401 JSON:API. `optimize_route` retornou zero amostras: as contagens autenticadas acima são evidência HTTP/PostgreSQL do launcher, não medição operacional nem comprovação global de ausência de N+1. Reset e medição autenticada local permanecem no STEP 12. Não houve homologação Bruno/Flutter, archive ou publicação.
 
 **Resultado de escopo:** 9.1–9.7 completos e comprovados; próximo STEP 10 — sugestões com UUIDv7 estável. A change inteira continua pendente nas fatias seguintes.
+
+## STEP 10 — Sugestões com UUIDv7 estável — 2026-10-15
+
+10.2/10.3: `GetExpenseSuggestionsUseCase` reutiliza exatamente a chave SQL em `expense-suggestions` v1, componente `description_key:string`, com owner canônico separado. Prepara todo o lote antes de resolver Core, mantém ordem/valor opcional e retorna vazio sem consultar o registro. Primeira verificação Unit isolada pelo launcher com `--compact --fail-on-skipped --fail-on-incomplete --fail-on-risky`: **35 testes / 180 assertions**, incluindo chave exata, lote, retorno reverso do Repository, vazio e falhas sem alocação.
+
+10.4/10.5: arquivos isolados pelo mesmo launcher/flags: Unit **36/183**, HTTP existente **32/195**, HTTP de identidade estável **9/140**, Repository PostgreSQL **27/94**. Provas incluem processo filho com conexão nova/PAT substituído; termos/case/acentos/espaços; amount presente/alterado/omitido; janela distinta; outra conta; assunto distinto; desaparecimento/retorno; lote misto com quatro inserts e hit intacto; 0/1/5 recursos com uma leitura financeira e 0/3/1 statements Core vazio/miss/hit; fonte e segundo candidato inválido sem registro; falha SQL após insert comprovado com rollback, 500 JSON:API sem data/causa SQL; despesas/IA/queue preservados e nenhuma operação de cache no UseCase direto.
+
+### Mapa de cenários e evidências finais
+
+| Origem / contrato preservado | Destino / incremento UUIDv7 | Evidência |
+| --- | --- | --- |
+| Unit de janela, matemática inteira/amount opcional, ordem e falha de owner | Mesmo arquivo `GetExpenseSuggestionsUseCaseTest.php`; fake tipado exclusivo de sugestões em `Tests\\Support\\Expense\\Fakes`, sem Laravel/PG; expectativa independente da chave em mock Core | 36 testes / 183 assertions |
+| Unit de hash estável por owner/chave | Mesmos cenários usam UUIDs de fixture associados; novos cenários provam namespace/v1/`description_key` exata, lote único, retorno reverso, vazio, owner inválido, projeção inválida no segundo item e falha/incompletude Core | Incluído nos 36/183; não remove cenário monetário anterior |
+| HTTP de proteções, buscas/entrada, owner, amount, criação e ausência de efeitos IA/queue | Mesmo `GetExpenseSuggestionsHttpTest.php`; assertion de hash substituída por forma v7/variante, demais cenários preservados | 32 testes / 195 assertions |
+| Repository SQL de normalização, busca literal `%`/`_`/barra/aspas, acentos, espaços, ranking/limite, ties, meses e precisão | Mesmo `EloquentExpenseSuggestionsRepositoryTest.php`; construtores passam capacidade Core e novo cenário observa ausência de cache no UseCase direto | 27 testes / 94 assertions; fonte SQL não foi alterada |
+| Estabilidade persistida e falhas | Novo `StableSuggestionIdentityHttpTest.php`: fatos recalculados, PAT substituído/processo filho/conexão nova, descrição/assunto, desaparecimento/retorno, row intacta no hit, batch misto, schema mínimo sem descrição, statements 0/1/5, falha SQL após insert/rollback e 500 sem data | 9 testes / 140 assertions |
+
+### 10.6 Verificação e limites
+
+- Os quatro arquivos acima passaram isoladamente **após Pint**, pelo launcher, com `--compact --fail-on-skipped --fail-on-incomplete --fail-on-risky`: total **104 testes / 612 assertions**. Após extrair o fake tipado exclusivo desse Unit, Pint e esse arquivo passaram novamente (**36/183**).
+- Integração: `lerd composer test -- tests/Unit/Expense tests/Feature/Expense tests/Unit/Core tests/Feature/Core tests/Unit/Architecture/ContextBoundariesTest.php --compact --fail-on-skipped --fail-on-incomplete --fail-on-risky`: **1.026 testes / 5.453 assertions**, sem skips/incomplete/risky. Inclui provas existentes de concorrência/rollback Core e cache/classificação/worker Expense; não atribui essas provas ao fake de sugestões.
+- `lerd` vendor `pint --dirty --format agent`: passou. `git diff --check` e validação OpenSpec estrita passaram.
+- Boost schema confirmou que o banco operacional ainda tem IDs bigint e não tem `resource_identities`; a conversão operacional permanece no STEP 12. As provas desta fatia usaram bancos exclusivos do launcher, com migrations incrementais. Não houve reset operacional.
+- Captura Lerd já estava habilitada e permaneceu assim. `optimize_route(site=trocado)` retornou `samples: 0`, sem rotas: não há medição de tráfego operacional nem claim de desempenho de produção. Contagens financeiras/registro vêm dos requests HTTP reais do kernel nos testes PostgreSQL. Processo filho prova troca de processo/conexão/PAT; não equivale a reboot completo do servidor.
+- Gate completo, duas seeds, paralelo global e homologação externa permanecem nas etapas próprias; o suporte transversal existente não foi alterado, e o fake novo é exclusivo do Unit de sugestões.
+
+**Resultado de escopo:** 10.1–10.6 completos e comprovados; próximo STEP 11 — integração transversal e observabilidade. A change inteira continua pendente nas fatias seguintes.
 
 ### Revalidação após relato de teste quebrando — 2026-10-15
 

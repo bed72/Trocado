@@ -226,13 +226,15 @@ As frentes 05, 06 e 07 podem ser organizadas separadamente depois da base 04; 08
 **Entrega:** identidade por owner/chave normalizada SQL, sem vínculo com uma Expense específica.
 
 - [x] **10.1** Converter owner preservando busca, normalização, janela monetária e limite.
-- [ ] **10.2** Preparar chave da associação pela chave normalizada SQL, sem raw description persistida.
-- [ ] **10.3** Resolver lote final e não alocar em resposta vazia.
-- [ ] **10.4** Provar termos/case equivalentes, valores opcionais, owners/processos diferentes e mudança de assunto.
-- [ ] **10.5** Provar desaparecimento/retorno e falhas, mantendo uma leitura financeira sem efeitos em despesa/IA/queue.
-- [ ] **10.6** Executar arquivos/integração e preservar busca literal/limites/privacidade.
+- [x] **10.2** Preparar chave da associação pela chave normalizada SQL, sem raw description persistida.
+- [x] **10.3** Resolver lote final e não alocar em resposta vazia.
+- [x] **10.4** Provar termos/case equivalentes, valores opcionais, owners/processos diferentes e mudança de assunto.
+- [x] **10.5** Provar desaparecimento/retorno e falhas, mantendo uma leitura financeira sem efeitos em despesa/IA/queue.
+- [x] **10.6** Executar arquivos/integração e preservar busca literal/limites/privacidade.
 
 **Concluir quando:** termo ou valor não troca UUID; chave normalizada diferente troca; associação antiga não faz sugestão ausente reaparecer.
+
+**Escopo Sugestões concluído em 2026-10-15:** associação Core `expense-suggestions` v1 por owner e `description_key` exata do SQL, em lote final de até cinco sugestões; vazio não consulta/aloca registro. Provas cobrem termos/case/acentos/espaços, valor opcional/janelas, owners/processo filho/PAT novo, assunto distinto, desaparecimento/retorno, lote misto e falhas com rollback sem resposta parcial. Para 0/1/5 sugestões: uma leitura financeira, 0 statements Core no vazio, 3 no miss e 1 no hit sem escrita. Arquivos isolados: **104 testes / 612 assertions**; Expense + Core + arquitetura: **1.026/5.453**. Pint e OpenSpec estrito passaram. [Evidências e limites](openspec/changes/standardize-uuid-v7-identifiers/tasks.md#step-10--sugestões-com-uuidv7-estável--2026-10-15). Próximo: STEP 11, integração transversal e observabilidade.
 
 ## STEP 11 — Integração transversal e observabilidade
 

@@ -3,12 +3,15 @@
 declare(strict_types=1);
 
 use App\Core\Application\Ports\UserPort;
+use App\Core\Application\UseCases\ResourceUseCase;
 use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Expense\Application\Repositories\ExpenseSuggestionsRepository;
 use App\Expense\Application\UseCases\GetExpenseSuggestionsUseCase;
 use App\Expense\Infrastructure\Repositories\Persistence\EloquentExpenseSuggestionsRepository;
 use App\Identity\Domain\Enums\UserStatusEnum;
+use Illuminate\Cache\Events\CacheEvent;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Tests\Support\Core\Fixtures\UuidFixture;
 use Tests\Support\Core\Stubs\UserPortStub;
 use Tests\Support\Expense\Fixtures\ExpenseSuggestionHistoryFixture;
@@ -150,7 +153,7 @@ it('does not let foreign values spoil a complete owner pattern or change tied gr
     }
     ExpenseSuggestionHistoryFixture::create($other->id, 'INTERNET', 15000, '2026-09-01', '2026-10-11 12:00:00');
 
-    $output = (new GetExpenseSuggestionsUseCase(new UserPortStub($this->owner->id), $this->repository))->execute('Int', '2026-10-11');
+    $output = (new GetExpenseSuggestionsUseCase(new UserPortStub($this->owner->id), app(ResourceUseCase::class), $this->repository))->execute('Int', '2026-10-11');
 
     expect(array_column($output, 'description'))->toBe(['Internet', 'Internal'])
         ->and($output[0]->amount)->toBe(14000);
@@ -161,7 +164,7 @@ it('aggregates every matching value inside inclusive civil limits and transforms
         ExpenseSuggestionHistoryFixture::create($this->owner->id, 'Internet', $value, $date, '2026-10-01 12:00:00');
     }
     $history = $this->repository->search($this->owner->id, 'Int', $this->period)[0];
-    $output = (new GetExpenseSuggestionsUseCase(new UserPortStub($this->owner->id), $this->repository))->execute('Int', '2026-10-11')[0];
+    $output = (new GetExpenseSuggestionsUseCase(new UserPortStub($this->owner->id), app(ResourceUseCase::class), $this->repository))->execute('Int', '2026-10-11')[0];
 
     expect($history->representedMonths)->toBe($months)
         ->and($history->minimumAmount)->toBe($minimum)
@@ -209,3 +212,23 @@ it('reads zero one or five groups in a single statement without mutating expense
         ->and($queries[0]['query'])->toContain('LIMIT 5')
         ->and(DB::table('expenses')->orderBy('id')->get()->all())->toEqual($before);
 })->with(['zero' => [0, 0], 'one' => [1, 1], 'five after limiting' => [6, 5]]);
+
+it('does not access cache while resolving final suggestions directly', function (): void {
+    ExpenseSuggestionHistoryFixture::create($this->owner->id, 'Internet', 100, '2026-09-01', '2026-09-01 00:00:00');
+    $events = [];
+    $active = true;
+    Event::listen('Illuminate\\Cache\\Events\\*', static function (string $name, array $payload) use (&$events, &$active): void {
+        if ($active && ($payload[0] ?? null) instanceof CacheEvent) {
+            $events[] = $name;
+        }
+    });
+    $this->app->instance(UserPort::class, new UserPortStub($this->owner->id));
+    try {
+        $useCase = app(GetExpenseSuggestionsUseCase::class);
+        expect($useCase->execute('Int', '2026-10-11'))->toHaveCount(1)
+            ->and($useCase->execute('Int', '2026-10-11'))->toHaveCount(1)
+            ->and($events)->toBe([]);
+    } finally {
+        $active = false;
+    }
+});

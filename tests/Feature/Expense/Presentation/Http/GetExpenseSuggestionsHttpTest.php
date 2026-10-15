@@ -145,7 +145,7 @@ it('exposes only the owner suggestions with exact allowed attributes and omits i
     $response = $this->withToken($this->token)->getJson(route('expenses.suggestions', ['query' => 'Int']))
         ->assertOk()->assertJsonCount(2, 'data')->assertJsonPath('data.0.type', 'expense-suggestions');
 
-    expect($response->json('data.0.id'))->toBeString()->toMatch('/\A[0-9a-f]{64}\z/')
+    expect($response->json('data.0.id'))->toBeString()->toMatch('/\A[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z/')
         ->and($response->json('data.0.attributes'))->toBe(['description' => 'Internet', 'amount' => 14001])
         ->and($response->json('data.1.attributes'))->toBe(['description' => 'Plano Internet']);
     $response->assertJsonMissingPath('links')->assertJsonMissingPath('meta');
