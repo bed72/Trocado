@@ -45,7 +45,7 @@ Alternativas rejeitadas: manter mistura por contexto; trocar somente Notificatio
 - Domain valida IDs presentes também para chamadores fora de HTTP; Application valida antes de chamar Repository/capacidade. Model/DTO não pode transformar UUID em int, zero ou float.
 - Geração usa `HasUuids`/`Str::uuid7()` em Infrastructure/Presentation onde apropriado. UUIDv7 nasce no momento de emissão, não no mês financeiro analisado. Não sobrescrever globalmente o gerador UUID do Laravel para atingir IDs de dependências.
 - Models autogeráveis são não incrementais/string; bulk inserts/upserts devem fornecer UUIDs v7 porque não se assume execução de hooks Eloquent.
-- Repositories conservam seu papel. Core terá `ResolveResourceIdentitiesUseCase` concreto, `ResourceIdentityRepository`, implementação Eloquent e Data tipado próprio (`Input`/`Output`). Registro de associação é persistência real, não um wrapper de uma chamada chamado Port.
+- Repositories conservam seu papel. Core terá `ResourceUseCase` concreto, `ResourceRepository`, implementação Eloquent e Data tipado próprio (`Input`/`Output`). Registro de associação é persistência real, não um wrapper de uma chamada chamado Port.
 - Consumers conhecem somente o UseCase/Data públicos específicos de Core e o conceito puro UUID. Propor no apply as permissões explícitas em ARCHITECTURE/ContextBoundariesTest; não liberar diretórios inteiros nem importar Models/Infrastructure de Core.
 - Core não importa contextos consumidores nem enum financeiro; namespace é um rótulo técnico genérico. Políticas de composição de chave ficam em cada consumidor.
 
@@ -59,14 +59,16 @@ Nomes/tipos fechados para implementação no STEP 07 (não são classes implemen
 
 | Contrato / Data de Core Application | Assinatura / campos |
 | --- | --- |
-| `Data\ResourceIdentityInput` | `namespace: string`, `identityVersion: int`, `components: array<string, string\|int\|bool\|null>`; mapa ordenado de componentes tipados, namespace técnico e versão positiva |
-| `Data\ResolveResourceIdentitiesInput` | `userId: string`, `identities: list<ResourceIdentityInput>`; um owner canônico obrigatório por lote |
-| `Data\ResourceIdentityOutput` | `identity: ResourceIdentityInput`, `id: string`; projeção de associação do Repository, UUID confirmado obrigatório |
-| `Data\ResolveResourceIdentitiesOutput` | `identities: list<ResourceIdentityOutput>`; correspondência na ordem original, inclusive repetições da mesma chave |
-| `Repositories\ResourceIdentityRepository` | `resolve(string $userId, array $identities): array` com `list<ResourceIdentityInput>` → `list<ResourceIdentityOutput>`; lote deduplicado, sem tipos ORM, UUID candidato ou Output de UseCase reaproveitado |
-| `UseCases\ResolveResourceIdentitiesUseCase` | `execute(ResolveResourceIdentitiesInput $input): ResolveResourceIdentitiesOutput`; valida owner/chaves antes do Repository, deduplica e recompõe a ordem |
+| `Data\ResourceKeyInput` | `namespace: string`, `identityVersion: int`, `components: array<string, string\|int\|bool\|null>`; mapa ordenado de componentes tipados, namespace técnico e versão positiva |
+| `Data\ResourceInput` | `userId: string`, `identities: list<ResourceKeyInput>`; um owner canônico obrigatório por lote |
+| `Data\ResourceKeyOutput` | `identity: ResourceKeyInput`, `id: string`; projeção de associação do Repository, UUID confirmado obrigatório |
+| `Data\ResourceOutput` | `identities: list<ResourceKeyOutput>`; correspondência na ordem original, inclusive repetições da mesma chave |
+| `Repositories\ResourceRepository` | `resolve(string $userId, array $identities): array` com `list<ResourceKeyInput>` → `list<ResourceKeyOutput>`; lote deduplicado, sem tipos ORM, UUID candidato ou Output de UseCase reaproveitado |
+| `UseCases\ResourceUseCase` | `execute(ResourceInput $input): ResourceOutput`; valida owner/chaves antes do Repository, deduplica e recompõe a ordem |
 
 Os Data serão `final readonly`, constructor-only, sem comportamento, validação, geração, digest ou framework. O UseCase valida/canonicaliza `userId` e valida componentes/namespace/versão antes da capacidade de persistência. O UseCase define a unidade curta da resolução concorrente por `TransactionPort`; o Repository executa o mecanismo de lookup/insert/releitura, sem colocar leituras/composição financeiras na transação. A representação do digest deve preservar nomes, tipos, ordem fixa e `null`, sem conversão para string vazia; arrays aninhados, floats e objetos não fazem parte do contrato. Componentes são transitórios e não entram em logs nem nas rows do registro.
+
+Nomenclatura alinhada ao pedido posterior de 2026-10-15: capacidade `Resource` permanece em Core; `ResourceInput`/`ResourceOutput` representam o lote e `ResourceKeyInput`/`ResourceKeyOutput` representam suas chaves e associações individuais. A implementação usa `EloquentResourceRepository`, `ResourceModel`, `InvalidResourceException`, `ResourceRaceException` e `ResourcePersistenceException`. A renomeação não altera contratos de dados, comportamento ou schema `resource_identities`.
 
 IDs presentes de owner/FK/sessão/saída usam `string` canônica, nunca `?string` ou `int|string`. Somente os pontos existentes de entidade sem persistência (`UserEntity::$id` e `ExpenseEntity::$id`) terão `?string`; nesses pontos `null` continua ausência e valor presente passa pelo VO. `NotificationRegistrationEntity::$id` já é obrigatório e permanece `string`, passando a exigir v7. Essa integração é dos STEPs 04/05/06. `UserPort::id(): string` e `ContextPort::identifyUser(string $userId): void` serão convertidos junto aos adapters/consumidores no STEP 04, sem antecipar assinaturas incompatíveis agora.
 

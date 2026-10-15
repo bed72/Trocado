@@ -84,17 +84,18 @@
 
 ## 7. Registro transversal de Core
 
-- [ ] 7.1 Implementar Data mínimo tipado de lote/chaves/saída e contrato ResourceIdentityRepository, sem Models/Builders/Outputs financeiros. [RID-01/02]
-- [ ] 7.2 Implementar ResolveResourceIdentitiesUseCase concreto com validação owner/namespace/versão, deduplicação e manutenção da ordem, sem framework. [RID-02/04]
-- [ ] 7.3 Implementar Model e Repository Eloquent de associação, digest interno não ambíguo e geração v7 somente para chaves ausentes. [RID-01–03]
-- [ ] 7.4 Implementar leitura de hits em lote sem UPDATE/timestamp e saída vazia sem query/alocação. [RID-04]
-- [ ] 7.5 Implementar insert batch sob transação curta/ordem técnica, unique conflict e releitura com snapshot novo; sem publicar UUID candidato perdedor. [RID-03; D5]
-- [ ] 7.6 Implementar retries limitados de race/deadlock/serialization com rollback antes da nova tentativa e falha sanitizada após esgotamento. [RID-03/06]
-- [ ] 7.7 Registrar binding do Repository Core e autowiring do UseCase, sem bindings redundantes, helpers globais, Interfaces de UseCases ou Service Locator. [RID-01; D2]
-- [ ] 7.8 Provar Unit de validação/chaves/lote/ordem/erros com doubles próprios e contagem/argumentos explícitos, sem bootstrap. [RID-01–04/06]
-- [ ] 7.9 Provar PostgreSQL hit/miss/misto/unique/UUID/owner/cascade/rollback e limite de statements, incluindo ausência de writes em hits. [RID-01–05]
-- [ ] 7.10 Provar corrida sincronizada de criação da mesma associação e exclusão de owner, com conexões novas/barreiras/timeouts/diagnóstico/cleanup. [RID-03/05]
-- [ ] 7.11 Executar arquivos Core isolados e registrar pré-condições/query plans/contagens; nenhum teste fake pode provar rollback ou race PostgreSQL. [D10]
+- [x] 7.1 Implementar Data mínimo tipado de lote/chaves/saída e contrato ResourceRepository, sem Models/Builders/Outputs financeiros. [RID-01/02]
+- [x] 7.2 Implementar ResourceUseCase concreto com validação owner/namespace/versão, deduplicação e manutenção da ordem, sem framework. [RID-02/04]
+- [x] 7.3 Implementar Model e Repository Eloquent de associação, digest interno não ambíguo e geração v7 somente para chaves ausentes. [RID-01–03]
+- [x] 7.4 Implementar leitura de hits em lote sem UPDATE/timestamp e saída vazia sem query/alocação. [RID-04]
+- [x] 7.5 Implementar insert batch sob transação curta/ordem técnica, unique conflict e releitura com snapshot novo; sem publicar UUID candidato perdedor. [RID-03; D5]
+- [x] 7.6 Implementar retries limitados de race/deadlock/serialization com rollback antes da nova tentativa e falha sanitizada após esgotamento. [RID-03/06]
+- [x] 7.7 Registrar binding do Repository Core e autowiring do UseCase, sem bindings redundantes, helpers globais, Interfaces de UseCases ou Service Locator. [RID-01; D2]
+- [x] 7.8 Provar Unit de validação/chaves/lote/ordem/erros com doubles próprios e contagem/argumentos explícitos, sem bootstrap. [RID-01–04/06]
+- [x] 7.9 Provar PostgreSQL hit/miss/misto/unique/UUID/owner/cascade/rollback e limite de statements, incluindo ausência de writes em hits. [RID-01–05]
+- [x] 7.10 Provar corrida sincronizada de criação da mesma associação e exclusão de owner, com conexões novas/barreiras/timeouts/diagnóstico/cleanup. [RID-03/05]
+- [x] 7.11 Executar arquivos Core isolados e registrar pré-condições/query plans/contagens; nenhum teste fake pode provar rollback ou race PostgreSQL. [D10]
+  - Evidência final do STEP 07 abaixo: Unit 33/125; Repository PG 15/112; corridas 3/9; arquitetura 30/504; Core + arquitetura 535/2.236. Gate padrão, duas seeds e paralelo aprovados.
 
 ## 8. UUIDv7 estável de Insights
 
@@ -186,13 +187,13 @@
 | UID-06 rotas inválidas/owner/auth | 4.8–4.9, 5.3/5.8, 6.4/6.7 | HTTP 200/201/204 e 401/403/404/422/429 | User/Auth STEP 04, Expense STEP 05 e Notifications STEP 06 comprovados; proteções/IDs/404 uniforme e rejeição antes de lookup inválido preservados; rollout pendente |
 | UID-07 instalação/registro/cliente | 1.5, 6.*, 13.2/13.6/13.7 | Unit/HTTP/PG + homologação externa registrada | Backend Proven no STEP 06: v7/caixa/versões/ID distinto/imutável/HTTP/PG/races/rollback. Homologação externa Flutter/Bruno/envio e rollout operacional pendentes |
 | UID-08 reset autorizado/negativo/lifecycle | 3.7, 12.* | Alvo/estado/cleanup/checks registrados + guard/testes de recusa | Parcial: guard e cleanup do launcher comprovados no STEP 03; reset operacional não executado |
-| RID-01 mínimo/sem fatos/fronteiras | 3.5, 7.1/7.3/7.7, 13.1 | Schema allowlist + Unit + arquitetura | Parcial: allowlist do schema mínimo comprovada no STEP 03; capacidade Application/Repository pendente |
-| RID-02 chave/namespace/owner/ambiguidade | 1.4, 7.2/7.8, 8.2/9.2/10.2 | Unit independente por consumidor + PG isolado | Não implementado/comprovado |
-| RID-03 race/ID perdedor/rollback | 7.5–7.6/7.9–7.10 | Duas conexões sincronizadas + escrita sentinela/rollback PG | Não implementado/comprovado |
-| RID-04 vazio/hit/misto/ordem/queries | 7.2/7.4/7.9, 8.3/9.3/10.3, 12.5 | Unit batch + query logs PG de 0/1/5/6 recursos | Não implementado/comprovado |
-| RID-05 reinício/PAT/reaparecimento/cascade | 7.9–7.10, 8.5/9.5/10.5 | HTTP/PG processos novos + owner delete + recursos ausentes | Não implementado/comprovado |
-| RID-06 erro/composição/fonte/sem fallback | 7.6, 8.6/9.6/10.5 | Exceção sentinela Unit/HTTP + zero writes + erro sem data/log sensível | Não implementado/comprovado |
-| RID-07 sem endpoint/autoridade/cleanup | 3.7, 7.9, 11.5 | HTTP/owner + lifecycle exact runId/token | Parcial: cleanup/ownership exclusivo comprovados no STEP 03; integração da capacidade/HTTP pendente |
+| RID-01 mínimo/sem fatos/fronteiras | 3.5, 7.1/7.3/7.7, 13.1 | Schema allowlist + Unit + arquitetura | Capacidade Core e schema mínimo Proven no STEP 07; integração das projeções/documentação geral pendente |
+| RID-02 chave/namespace/owner/ambiguidade | 1.4, 7.2/7.8, 8.2/9.2/10.2 | Unit independente por consumidor + PG isolado | Core genérico Proven no STEP 07 para tipos/nomes/ordem/bytes/null/owner/namespace/versão; políticas dos consumidores pendentes |
+| RID-03 race/ID perdedor/rollback | 7.5–7.6/7.9–7.10 | Duas conexões sincronizadas + escrita sentinela/rollback PG | Proven no STEP 07: UUID vencedor em processo novo, rollback parcial e retries 3; SQLSTATEs reais induzidos para recuperação/esgotamento |
+| RID-04 vazio/hit/misto/ordem/queries | 7.2/7.4/7.9, 8.3/9.3/10.3, 12.5 | Unit batch + query logs PG de 0/1/5/6 recursos | Core Proven no STEP 07: 0/1/3 statements e ordem/repetições; contagens nas rotas consumidoras e diagnóstico operacional pendentes |
+| RID-05 reinício/PAT/reaparecimento/cascade | 7.9–7.10, 8.5/9.5/10.5 | HTTP/PG processos novos + owner delete + recursos ausentes | Core Proven no STEP 07 para instância/conexão/processo/dia novos, remoção de PAT, lote vazio/retorno, cascade e owner concorrente; jornadas HTTP das projeções pendentes |
+| RID-06 erro/composição/fonte/sem fallback | 7.6, 8.6/9.6/10.5 | Exceção sentinela Unit/HTTP + zero writes + erro sem data/log sensível | Core Proven no STEP 07: falhas sanitizadas sem previous, falha permanente sem retry, sem lote parcial/ID candidato; composição/fonte/erro HTTP dos consumidores pendentes |
+| RID-07 sem endpoint/autoridade/cleanup | 3.7, 7.9, 11.5 | HTTP/owner + lifecycle exact runId/token | Core e cleanup/ownership Proven nos STEPs 03/07; nenhuma rota adicionada. Integração HTTP das projeções pendente |
 | User/Core UUID ownership e Entity pura | 2.*, 4.1/4.5/4.8/4.9 | Unit + HTTP + fronteiras | Proven para Identity/Core no STEP 04; consumidores e ambiente operacional ainda em conversão |
 | Sanctum/segredo/expiração/extensão/link | 4.2–4.4/4.6–4.9 | PAT real + PG locks + assinatura/tempo/owner | Proven no schema exclusivo do STEP 04, incluindo corrida sincronizada de extensão; rollout operacional pendente |
 | Expense sort/cursor v2/cache/worker | 5.* | Unit + PG/HTTP next-prev + Redis/worker exclusivo | Proven no STEP 05 em schema/Redis/filas exclusivos; transição operacional de caches/jobs/banco ainda no STEP 12 |
@@ -838,3 +839,82 @@ Boost confirmou PHP 8.5/Laravel 13.34.0/Sanctum 4.3.3/PostgreSQL; docs e código
 Boost/schema e `migrate:status` confirmaram que o banco operacional ainda tem owner/PAT bigint e a migration Core está pendente, dependente do bootstrap UUID. Não foi aplicada sobre esse schema incompatível nem usado reset antecipado: a transição consentida continua no STEP 12. As provas deste passo construíram schema UUID por migrations incrementais em bancos novos/exclusivos do launcher. Desempenho autenticado, rollout, Bruno/gerador Flutter e recepção real Firebase continuam pendentes; não se afirma homologação ou archive da change de envio.
 
 **Resultado de escopo:** 6.1–6.8 implementados/comprovados, checklist sincronizado com STEPS.md e evidência da change Firebase atualizada. Próximo STEP 07: registro estável Core. Sem implementação antecipada de projeções/envio/cliente.
+
+## STEP 07 — Registro estável Core — 2026-10-15
+
+### Autorização, implementação e decisões locais
+
+O usuário solicitou continuar a implementação do STEP 07 de `STEPS.md`, incluindo suas provas Unit/PostgreSQL e concorrência. O working tree inicial estava limpo. PHP 8.5, Laravel 13.34.0 e PostgreSQL foram reconferidos por MCP; Lerd descobriu `trocado`. Boost Search Docs e código instalado reconfirmaram transações, `Str::uuid7()` e `PostgresGrammar::compileInsertOrIgnore()` (`ON CONFLICT DO NOTHING`). As skills architecture/quality-gate foram carregadas e `trocado-sdd` foi consultada por leitura local; OpenSpec 1.6.0 e doctor saudável reconfirmados.
+
+- Quatro Data imutáveis constructor-only e `ResourceRepository::resolve(string, array): array` conforme D2; nenhum Output financeiro, Model ou Builder na Application.
+- UseCase valida owner mesmo no lote vazio, lista e itens, namespace de até 64 bytes pelo regex técnico, versão 1–32767 (smallint), nomes não vazios/string e valores somente string/int/bool/null. Componentes vazios são um mapa válido; a ordem fornecida é significativa. Falha em qualquer item impede a abertura da transação.
+- Deduplicação exata por `serialize([namespace, version, components])`, que preserva tipos, nomes, ordem, limites de strings e bytes inclusive NUL/não UTF-8. Repository usa SHA-256 de `serialize(components)` e escopa namespace/versão/owner separadamente. Não há concatenação ambígua ou normalização de assunto/descrição de consumidor em Core.
+- O UseCase define toda a unidade por `TransactionPort`, valida/reconcilia o retorno dentro dela e recompõe a ordem/repetições originais. Repository faz leitura em lote pela conexão de escrita, gera somente os ausentes, ordena inserts por tupla técnica e relê em statement separado. Não usa UPDATE, CTE de snapshot único, cache ou fallback de UUID.
+- Ausência após releitura/colisão de PK, `23505`, `40001` e `40P01` provocam falha retryable própria, sem previous SQL. A exceção de Repository chega ao Port sem a mensagem nativa que dispararia seu retry interno; o UseCase repete até três unidades completas depois do rollback. Outros erros e esgotamento produzem `ResourcePersistenceException` fixa, sem SQL/bindings/descrição/previous. Entradas sensíveis do UseCase/Repository estão anotadas com `SensitiveParameter`.
+- Binding apenas de Repository no CoreServiceProvider, autowiring de UseCase, Model string/não incremental com HasUuids e sem updated_at. A permissão de Application de Expense/Insights/Metrics adiciona somente o UseCase e os quatro Data, preservando Repository interno, Domain puro e ausência de Core → consumidores.
+
+### Mapa requisito/cenário → prova
+
+Todos os caminhos abaixo são relativos a `tests/`; os três arquivos de resolução são novos, sem substituir/remover cenários antigos. `ContextBoundariesTest.php` preserva os testes existentes e acrescenta somente as cinco permissões nominadas de D2. A contagem arquitetural cresceu pelas assertions de contratos Data novos, não por equivalência presumida de cenários.
+
+| Requisito/cenário | Evidência | Estado no escopo Core |
+| --- | --- | --- |
+| RID-01 Data puros, Repository, binding, Model e row mínima | Unit/Application, arquivo PG de Repository e ContextBoundariesTest | Proven |
+| RID-02 namespace/versão/owner inválidos; item posterior inválido | `Unit/Core/Application/UseCases/ResourceUseCaseTest.php` | Proven antes de Port/Repository |
+| RID-02 diferenças de nomes/tipos/null/vazio/ordem/bytes/concatenações/namespace/versão/owner | Mesmo Unit + `Feature/Core/Infrastructure/Repositories/Persistence/EloquentResourceRepositoryTest.php` | Proven em contratos e rows distintas PG |
+| RID-03 primeiro insert simultâneo / UUID perdedor | `Feature/Core/Infrastructure/Repositories/Persistence/ResourceConcurrencyTest.php` | Proven: fork antes da transação, conexões novas, barreira go, espera Lock observada em pg_stat_activity, filho gera candidato distinto, faz três statements e recebe UUID persistido pelo pai |
+| RID-03 lote com escrita parcial e colisão de PK | Repository PG, sucesso na segunda tentativa e esgotamento na terceira | Proven: outra row inserida na tentativa é desfeita; hit preexistente preservado, nenhum retorno parcial |
+| RID-03/06 falha após INSERT / recuperação / esgotamento | Repository PG, listener observa row escrita e provoca RAISE PostgreSQL com 40001/40P01/23514 | Proven rollback real e classificação dos SQLSTATEs; não é alegada uma formação real de ciclo de deadlock |
+| RID-04 zero/hit/miss/misto/dedup/ordem | Unit + query logs PG, lotes de 1/5/6 e vazio | Proven: 0 no vazio; 1 SELECT no hit; 3 nos miss/mistos; nenhuma geração no hit/vazio, nenhum UPDATE/timestamp alterado |
+| RID-04 plano do lookup de seis chaves | EXPLAIN FORMAT JSON no arquivo PG, enable_seqscan off local à transação | Proven elegibilidade de `resource_identities_logical_key_unique` com owner; não prova a escolha natural do planner ou latência em escala |
+| RID-05 retenção sem token/dia/conexão/instância | Repository PG, PAT excluído e relógio avançado, lote vazio entre duas resoluções e reconexão | Proven registro durável; jornadas HTTP dos consumidores continuam pendentes |
+| RID-05 processo novo e owner concorrente / outro owner | Concurrency PG, primeiro insert e exclusão nos dois sentidos | Proven vencedor confirmado, cascade e nenhum órfão/recriação; row de outra conta preservada |
+| RID-06 argumentos/escopo/retries/retorno inválido/falha permanente/commit | Unit com PHPUnit e TransactionPortFake | Proven orquestração, sem usar fake como prova de rollback PG |
+| RID-06 exceção sanitizada | Unit e falhas PostgreSQL, mensagem fixa e previous null | Proven contrato de exceção; integração HTTP/observabilidade das projeções segue os STEPs próprios |
+| RID-07 isolamento/cleanup | Gate completo inclui provas existentes do launcher e invocações simultâneas | Proven no lifecycle exclusivo, sem nova rota ou autoridade concedida pelo ID |
+
+As assertions executadas no filho da prova concorrente são verificadas pelo protocolo `done/error` e não são agregadas à contagem de assertions do runner pai.
+
+### Comandos e resultados finais
+
+Todos usam `lerd composer test --` com `--compact --fail-on-skipped --fail-on-incomplete --fail-on-risky`; Feature provisionado pelo launcher com migrations incrementais, manifesto/runId e ownership exatos. Nenhuma exclusão ou skip. Arquivos isolados passaram após suas últimas edições/Pint:
+
+| Seleção | Testes / assertions | Duração reportada |
+| --- | --- | --- |
+| `tests/Unit/Core/Application/UseCases/ResourceUseCaseTest.php` | **33 / 125** | 39 ms |
+| `tests/Feature/Core/Infrastructure/Repositories/Persistence/EloquentResourceRepositoryTest.php` | **15 / 112** | 665 ms |
+| `tests/Feature/Core/Infrastructure/Repositories/Persistence/ResourceConcurrencyTest.php` | **3 / 9** | 413 ms |
+| `tests/Unit/Architecture/ContextBoundariesTest.php` | **30 / 504** | 4.635 ms |
+| `tests/Unit/Core tests/Feature/Core tests/Unit/Architecture/ContextBoundariesTest.php` | **535 / 2.236** | 18.659 ms |
+| Completo padrão | **2.257 / 40.302** | 50.887 ms |
+| Completo `--order-by=random --random-order-seed=20261026` | **2.257 / 40.302** | 50.361 ms |
+| Completo `--order-by=random --random-order-seed=20261027` | **2.257 / 40.302** | 49.891 ms |
+| Completo `--parallel --processes=2` | **2.257 / 40.302** | 31.510 ms |
+
+Gates completos incluem Redis/worker/concorrência e as duas invocações simultâneas existentes. `lerd` vendor_run Pint `--dirty --format agent` passou; `git diff --check` passou; `openspec status`/`instructions apply` consultados e `openspec validate standardize-uuid-v7-identifiers --type change --strict --json --no-interactive` aprovado.
+
+### Intercorrências corrigidas e limites
+
+- A primeira prova concorrente usou dois UUIDs esperados na ordem de entrada, apesar de a geração ocorrer em ordem técnica; a expectativa foi corrigida para uma identidade disputada, suficiente para provar UUID perdedor/vencedor. Lotes de cinco/seis e ordem inversa permanecem provados separadamente.
+- A primeira arquitetura recusou o helper global `now` em Core Infrastructure. A implementação passou a importar `Illuminate\Support\Carbon`, sem ampliar a allowlist para esse helper.
+- Duas chamadas MCP concorrentes de Core/Unit expiraram enquanto o gate completo executava. Timeout não foi tratado como aprovação: ambas as seleções foram executadas novamente, individualmente, com os resultados da tabela. Gates completos seguintes foram executados individualmente.
+- MCP de schema confirmou que o banco operacional ainda tem users/expenses/PAT bigint e não tem resource_identities. Migrations de bootstrap UUID já existentes são aplicadas pelo launcher em bancos novos exclusivos; não houve alteração de migration, reset ou exercício de rota operacional. Aplicação operacional/planos de tráfego/N+1 continuam no STEP 12.
+- Esta prova libera a capacidade Core para implementação de Insights/Metrics/sugestões nos STEPs 08–10. Não declara as jornadas HTTP dessas projeções, a aplicação local ou a change inteira concluídas/arquiváveis.
+
+**Resultado de escopo:** 7.1–7.11 implementados/comprovados; STEPS.md e matriz sincronizados. Próximo: STEP 08 — Insights com UUIDv7 estável.
+
+### Renomeação posterior para Resource em Core — 2026-10-15
+
+Por pedido explícito do usuário, confirmado como manutenção em Core, a capacidade passa a usar `ResourceUseCase`, `ResourceRepository`, `EloquentResourceRepository` e `ResourceModel`. Os Data de lote são `ResourceInput`/`ResourceOutput`; os individuais, `ResourceKeyInput`/`ResourceKeyOutput`. Exceções: `InvalidResourceException`, `ResourceRaceException` e `ResourcePersistenceException`. Arquivos/imports/binding/allowlist, design, arquitetura e checklist foram alinhados. Schema `resource_identities`, campos, fingerprint e comportamento permanecem os mesmos.
+
+Os três arquivos de teste foram renomeados preservando todos os cenários/assertions; os paths da evidência acima foram atualizados para seus destinos atuais, conservando as contagens/durações históricas. Chamadas de `ResourceKeyInput` passaram a argumentos nomeados para preservar a reordenação de construtor encontrada durante a edição. A primeira execução Unit apresentou DatasetMissing causado pelo TypeError durante a construção do dataset, e a primeira Feature expôs a incompatibilidade posicional; ambas foram corrigidas antes da aprovação.
+
+Verificações posteriores à renomeação/Pint, pelo launcher e com os mesmos flags estritos da tabela anterior:
+
+- `tests/Unit/Core/Application/UseCases/ResourceUseCaseTest.php`: **33/125**, 40 ms.
+- `tests/Feature/Core/Infrastructure/Repositories/Persistence/EloquentResourceRepositoryTest.php`: **15/112**, 786 ms.
+- `tests/Feature/Core/Infrastructure/Repositories/Persistence/ResourceConcurrencyTest.php`: **3/9**, 440 ms.
+- `tests/Unit/Architecture/ContextBoundariesTest.php`: **30/504**, 5.692 ms.
+- `tests/Unit/Core tests/Feature/Core tests/Unit/Architecture/ContextBoundariesTest.php`: **535/2.236**, 21.587 ms.
+
+Pint `--dirty --format agent`, OpenSpec estrito e `git diff --check` aprovados; busca pelos identificadores PHP antigos sem ocorrências. Gates completos anteriores permanecem evidência histórica da implementação, sem atribuir nova execução global à renomeação.

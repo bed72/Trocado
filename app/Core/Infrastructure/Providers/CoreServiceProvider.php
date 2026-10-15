@@ -9,11 +9,13 @@ use App\Core\Application\Ports\DatePort;
 use App\Core\Application\Ports\ObservabilityPort;
 use App\Core\Application\Ports\TransactionPort;
 use App\Core\Application\Ports\UserPort;
+use App\Core\Application\Repositories\ResourceRepository;
 use App\Core\Infrastructure\Adapters\ContextAdapter;
 use App\Core\Infrastructure\Adapters\DateAdapter;
 use App\Core\Infrastructure\Adapters\Observability\ObservabilityAdapter;
 use App\Core\Infrastructure\Adapters\TransactionAdapter;
 use App\Core\Infrastructure\Adapters\UserAdapter;
+use App\Core\Infrastructure\Repositories\Persistence\EloquentResourceRepository;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Log\Context\Repository as ContextRepository;
@@ -35,6 +37,7 @@ final class CoreServiceProvider extends ServiceProvider
         $this->app->bind(abstract: ContextPort::class, concrete: ContextAdapter::class);
         $this->app->bind(abstract: TransactionPort::class, concrete: TransactionAdapter::class);
         $this->app->bind(abstract: ObservabilityPort::class, concrete: ObservabilityAdapter::class);
+        $this->app->bind(abstract: ResourceRepository::class, concrete: EloquentResourceRepository::class);
     }
 
     public function boot(ObservabilityPort $port): void

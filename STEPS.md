@@ -173,19 +173,21 @@ As frentes 05, 06 e 07 podem ser organizadas separadamente depois da base 04; 08
 
 **Entrega:** associação durável `(owner, namespace, versão, identidade lógica) → UUIDv7` resolvida em lote.
 
-- [ ] **7.1** Implementar Data de lote/chaves/saída e `ResourceIdentityRepository`.
-- [ ] **7.2** Implementar `ResolveResourceIdentitiesUseCase`, validando e deduplicando chaves sem perder ordem.
-- [ ] **7.3** Implementar Model/Repository, fingerprint interno não ambíguo e geração somente para ausentes.
-- [ ] **7.4** Implementar hits em uma leitura, sem UPDATE; lote vazio sem query/alocação.
-- [ ] **7.5** Implementar insert batch/transação/unique/releitura, devolvendo o UUID vencedor em conflitos.
-- [ ] **7.6** Implementar retries limitados e falhas sanitizadas, com rollback antes da nova tentativa.
-- [ ] **7.7** Registrar bindings de fronteira e autowiring, sem Service Locator ou abstração genérica extra.
-- [ ] **7.8** Provar validação, lote, ordem, argumentos e erros em Unit pura.
-- [ ] **7.9** Provar hit/miss/misto/unique/owner/cascade/rollback e limites de statements em PostgreSQL.
-- [ ] **7.10** Provar corridas sincronizadas da mesma identidade e exclusão de owner.
-- [ ] **7.11** Executar arquivos isolados e registrar contagens/planos/resultados.
+- [x] **7.1** Implementar Data de lote/chaves/saída e `ResourceRepository`.
+- [x] **7.2** Implementar `ResourceUseCase`, validando e deduplicando chaves sem perder ordem.
+- [x] **7.3** Implementar Model/Repository, fingerprint interno não ambíguo e geração somente para ausentes.
+- [x] **7.4** Implementar hits em uma leitura, sem UPDATE; lote vazio sem query/alocação.
+- [x] **7.5** Implementar insert batch/transação/unique/releitura, devolvendo o UUID vencedor em conflitos.
+- [x] **7.6** Implementar retries limitados e falhas sanitizadas, com rollback antes da nova tentativa.
+- [x] **7.7** Registrar bindings de fronteira e autowiring, sem Service Locator ou abstração genérica extra.
+- [x] **7.8** Provar validação, lote, ordem, argumentos e erros em Unit pura.
+- [x] **7.9** Provar hit/miss/misto/unique/owner/cascade/rollback e limites de statements em PostgreSQL.
+- [x] **7.10** Provar corridas sincronizadas da mesma identidade e exclusão de owner.
+- [x] **7.11** Executar arquivos isolados e registrar contagens/planos/resultados.
 
 **Concluir quando:** duas criações concorrentes retornam o mesmo UUID confirmado; hit não escreve; há até três statements do registro por tentativa, sem query por recurso; não são armazenados resultados/textos.
+
+**Escopo Core concluído em 2026-10-15:** contratos/Data, validação/deduplicação/ordem, Repository/Model e binding implementados. Lotes vazios não consultam nem geram UUID; hits usam um SELECT sem escrita; misses/mistos/conflitos usam até três statements por tentativa. Corrida sincronizada devolve o UUID vencedor; rollback parcial, retries limitados, owner/cascade e falhas sanitizadas comprovados em PostgreSQL exclusivo. Unit nova **33/125**, persistência **15/112**, concorrência **3/9**; Core + arquitetura **535/2.236**. Gate completo padrão, seeds **20261026/20261027** e paralelo de dois processos passaram **2.257/40.302** cada, sem skips/exclusões. Pint e OpenSpec estrito passaram. [Evidências e limites](openspec/changes/standardize-uuid-v7-identifiers/tasks.md#step-07--registro-estável-core--2026-10-15). Próximo: STEP 08, integração de Insights.
 
 ## STEP 08 — Insights com UUIDv7 estável
 

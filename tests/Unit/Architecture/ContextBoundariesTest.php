@@ -198,6 +198,14 @@ foreach ($contexts as $context) {
             $applicationDependencies[] = 'App\\Core\\Application\\Ports\\TransactionPort';
         }
 
+        if (in_array($context, ['Expense', 'Insights', 'Metrics'], true)) {
+            $applicationDependencies[] = 'App\\Core\\Application\\UseCases\\ResourceUseCase';
+            $applicationDependencies[] = 'App\\Core\\Application\\Data\\ResourceKeyInput';
+            $applicationDependencies[] = 'App\\Core\\Application\\Data\\ResourceKeyOutput';
+            $applicationDependencies[] = 'App\\Core\\Application\\Data\\ResourceInput';
+            $applicationDependencies[] = 'App\\Core\\Application\\Data\\ResourceOutput';
+        }
+
         if (in_array($context, ['Expense', 'Identity', 'Notifications'], true)) {
             $applicationDependencies[] = 'App\\Core\\Application\\Ports\\ObservabilityPort';
         }
