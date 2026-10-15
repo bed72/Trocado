@@ -128,14 +128,16 @@
 
 ## 11. Integração transversal, suporte e rastreabilidade
 
-- [ ] 11.1 Converter todos os fixtures/builders/fakes/stubs/spies compartilhados de owner/entidade/PAT para v7 tipado, preservando entradas inválidas explícitas e normalização fora do gerador de esperado. [UID-05; D10]
-- [ ] 11.2 Revisar JSON:API/data/relationships e bindings de todas as rotas próprias para v7, mantendo statuses/proteções e sem ID inteiro/hash paralelo. [UID-01/06]
-- [ ] 11.3 Converter correlação própria para Str::uuid7 e provar igualdade header/context/log, novos requests e não herança nos workers; SDK/job IDs permanecem nativos. [structured-observability]
-- [ ] 11.4 Atualizar allowlists específicas de atributos de log, sem emitir logical keys/fingerprint ou descrição/valor/segredo para diagnosticar registro. [RID-06; structured-observability]
-- [ ] 11.5 Provar viagens integradas de cadastro/login/User/Expense/projeções/instalação/SignOut/exclusão com PAT real e FK/lifecycle UUID, mantendo responsabilidade de cada contexto. [UID-04–07; RID-05/07]
-- [ ] 11.6 Auditar por papel os casts/assinaturas/route constraints/PKs e pressupostos de sequence restantes; excluir conscientemente valores/infra conforme UID-01, não usar contagem como equivalência. [UID-01/05]
-- [ ] 11.7 Registrar mapa cenário antigo → cenário UUIDv7 em todos os arquivos alterados/consolidados, preservando campos sensíveis/rollback/races e corrigindo esperado sem fixar variante/UUID gerado incidentalmente. [D10]
-- [ ] 11.8 Executar arquitetura e suites cruzadas de Core/Identity/Expense/Notifications/Insights/Metrics pelo launcher; inconsistências de código fora do escopo pedem decisão, não relaxamento de allowlist/contrato. [D10]
+- [x] 11.1 Converter todos os fixtures/builders/fakes/stubs/spies compartilhados de owner/entidade/PAT para v7 tipado, preservando entradas inválidas explícitas e normalização fora do gerador de esperado. [UID-05; D10]
+- [x] 11.2 Revisar JSON:API/data/relationships e bindings de todas as rotas próprias para v7, mantendo statuses/proteções e sem ID inteiro/hash paralelo. [UID-01/06]
+- [x] 11.3 Converter correlação própria para Str::uuid7 e provar igualdade header/context/log, novos requests e não herança nos workers; SDK/job IDs permanecem nativos. [structured-observability]
+  - Decisão do usuário durante o STEP 11: somente `trace_id` no atributo do request, Context e log, sem `request_id` duplicado; header `X-Request-Id` preservado. Delta spec e design ajustados.
+- [x] 11.4 Atualizar allowlists específicas de atributos de log, sem emitir logical keys/fingerprint ou descrição/valor/segredo para diagnosticar registro. [RID-06; structured-observability]
+- [x] 11.5 Provar viagens integradas de cadastro/login/User/Expense/projeções/instalação/SignOut/exclusão com PAT real e FK/lifecycle UUID, mantendo responsabilidade de cada contexto. [UID-04–07; RID-05/07]
+- [x] 11.6 Auditar por papel os casts/assinaturas/route constraints/PKs e pressupostos de sequence restantes; excluir conscientemente valores/infra conforme UID-01, não usar contagem como equivalência. [UID-01/05]
+- [x] 11.7 Registrar mapa cenário antigo → cenário UUIDv7 em todos os arquivos alterados/consolidados, preservando campos sensíveis/rollback/races e corrigindo esperado sem fixar variante/UUID gerado incidentalmente. [D10]
+- [x] 11.8 Executar arquitetura e suites cruzadas de Core/Identity/Expense/Notifications/Insights/Metrics pelo launcher; inconsistências de código fora do escopo pedem decisão, não relaxamento de allowlist/contrato. [D10]
+  - Arquivos isolados, arquitetura 30/504 e quatro gates completos (padrão, seeds 2026101511/2026101512 e paralelo 2 processos) aprovados; cada gate completo passou 2.305 testes/41.116 assertions. Mapa/evidências/limites na seção STEP 11 abaixo.
 
 ## 12. Aplicação local consentida e diagnóstico
 
@@ -179,31 +181,31 @@
 
 | Requisito / cenários | Tasks principais | Prova mínima | Estado corrente |
 | --- | --- | --- | --- |
-| UID-01 política/exclusões e todos os recursos próprios | 1.3, 3.*, 11.2/11.6 | Inventário por papel + schema/HTTP + arquitetura | Não implementado/comprovado |
-| UID-02 canônico/v7/variante/negativos/null | 2.1–2.3, 4.1, 6.3 | Unit pura + HTTP antes de lookup + PG checks | VO puro STEP 02 e integração User/PAT/Expense/Notifications STEPs 04–06 comprovados; registro Core/projeções/rollout pendentes |
-| UID-03 geração padrão/imutabilidade | 3.*, 4.2–4.3, 5.2, 6.1, 7.3 | Model/PG create-update + formato + callback/clock fora de Domain | User/PAT/Expense/Notifications comprovados nos STEPs 04–06, inclusive repetição/rotação/corridas de cadastro; associações Core pendentes |
-| UID-04 PK/FK/morph/cascades | 3.1–3.8, 4.9, 6.7 | PostgreSQL tipos/constraints/owner/session/encerramento | Schema STEP 03 e lifecycle User/PAT/Expense/Notifications STEPs 04–06 comprovados em bancos exclusivos; integração da capacidade Core e rollout pendentes |
-| UID-05 contratos/guard/sem cast | 2.4–2.5, 4.5/4.7, 5.1, 8.1/9.1/10.1, 11.6 | Unit argumentos + arquitetura + autenticação real | Owner/sessão dos consumidores atuais comprovados no gate transversal de 2026-10-15, sem casts numéricos nas fronteiras corrigidas. Auditoria final de papéis/novas capacidades e rollout ainda pendentes |
+| UID-01 política/exclusões e todos os recursos próprios | 1.3, 3.*, 11.2/11.6 | Inventário por papel + schema/HTTP + arquitetura | Proven nos STEPs 03–11 em bancos exclusivos: recursos/relationships UUIDv7, correlação somente trace_id, exclusões técnicas auditadas por papel; rollout local e cliente pendentes |
+| UID-02 canônico/v7/variante/negativos/null | 2.1–2.3, 4.1, 6.3 | Unit pura + HTTP antes de lookup + PG checks | Proven nos STEPs 02–11 para VO, entidades, registro e projeções; rollout pendente |
+| UID-03 geração padrão/imutabilidade | 3.*, 4.2–4.3, 5.2, 6.1, 7.3 | Model/PG create-update + formato + callback/clock fora de Domain | Proven nos STEPs 04–11: Models/registro/projeções e correlação Str::uuid7, sem gerador global alterado; rollout pendente |
+| UID-04 PK/FK/morph/cascades | 3.1–3.8, 4.9, 6.7 | PostgreSQL tipos/constraints/owner/session/encerramento | Proven nos STEPs 03–11, incluindo cascade de associações Core na jornada HTTP; rollout pendente |
+| UID-05 contratos/guard/sem cast | 2.4–2.5, 4.5/4.7, 5.1, 8.1/9.1/10.1, 11.6 | Unit argumentos + arquitetura + autenticação real | Proven nos STEPs 04–11; auditoria transversal de contratos/suporte/casts por papel e gates completos aprovados, sem coerção de owner. Rollout pendente |
 | UID-06 rotas inválidas/owner/auth | 4.8–4.9, 5.3/5.8, 6.4/6.7 | HTTP 200/201/204 e 401/403/404/422/429 | User/Auth STEP 04, Expense STEP 05 e Notifications STEP 06 comprovados; proteções/IDs/404 uniforme e rejeição antes de lookup inválido preservados; rollout pendente |
 | UID-07 instalação/registro/cliente | 1.5, 6.*, 13.2/13.6/13.7 | Unit/HTTP/PG + homologação externa registrada | Backend Proven no STEP 06: v7/caixa/versões/ID distinto/imutável/HTTP/PG/races/rollback. Homologação externa Flutter/Bruno/envio e rollout operacional pendentes |
 | UID-08 reset autorizado/negativo/lifecycle | 3.7, 12.* | Alvo/estado/cleanup/checks registrados + guard/testes de recusa | Parcial: guard e cleanup do launcher comprovados no STEP 03; reset operacional não executado |
-| RID-01 mínimo/sem fatos/fronteiras | 3.5, 7.1/7.3/7.7, 13.1 | Schema allowlist + Unit + arquitetura | Capacidade Core e schema mínimo Proven no STEP 07; integração das projeções/documentação geral pendente |
-| RID-02 chave/namespace/owner/ambiguidade | 1.4, 7.2/7.8, 8.2/9.2/10.2 | Unit independente por consumidor + PG isolado | Core genérico Proven no STEP 07; Insights Proven no STEP 08 para chave exata, nulls, owner/estado/períodos/equivalências. Metrics/sugestões pendentes |
+| RID-01 mínimo/sem fatos/fronteiras | 3.5, 7.1/7.3/7.7, 13.1 | Schema allowlist + Unit + arquitetura | Core/schema/integração das três projeções Proven nos STEPs 07–11; documentação geral pendente |
+| RID-02 chave/namespace/owner/ambiguidade | 1.4, 7.2/7.8, 8.2/9.2/10.2 | Unit independente por consumidor + PG isolado | Proven em Core/Insights/Metrics/sugestões nos STEPs 07–11; componentes tipados e equivalências específicos por consumidor |
 | RID-03 race/ID perdedor/rollback | 7.5–7.6/7.9–7.10 | Duas conexões sincronizadas + escrita sentinela/rollback PG | Proven no STEP 07: UUID vencedor em processo novo, rollback parcial e retries 3; SQLSTATEs reais induzidos para recuperação/esgotamento |
-| RID-04 vazio/hit/misto/ordem/queries | 7.2/7.4/7.9, 8.3/9.3/10.3, 12.5 | Unit batch + query logs PG de 0/1/5/6 recursos | Core Proven no STEP 07: 0/1/3 statements e ordem/repetições; Insights STEP 08: lote HTTP de três cartões, uma leitura financeira e 3/1 statements de registro miss/hit, sem escrita em hit. Metrics/sugestões/medição operacional pendentes |
-| RID-05 reinício/PAT/reaparecimento/cascade | 7.9–7.10, 8.5/9.5/10.5 | HTTP/PG processos novos + owner delete + recursos ausentes | Core Proven no STEP 07 para processo/dia/PAT/cascade/owner concorrente; Insights STEP 08 comprova HTTP em processo filho/conexão nova/PAT novo após desaparecimento/retorno. Reboot do servidor, Metrics/sugestões e rollout pendentes |
-| RID-06 erro/composição/fonte/sem fallback | 7.6, 8.6/9.6/10.5 | Exceção sentinela Unit/HTTP + zero writes + erro sem data/log sensível | Core Proven no STEP 07; Insights STEP 08 comprova falhas de fonte/precisão/composição antes de associação e rollback após INSERT com erro JSON:API sem data. Metrics/sugestões pendentes |
-| RID-07 sem endpoint/autoridade/cleanup | 3.7, 7.9, 11.5 | HTTP/owner + lifecycle exact runId/token | Core e cleanup/ownership Proven nos STEPs 03/07; nenhuma rota adicionada. Integração HTTP das projeções pendente |
-| User/Core UUID ownership e Entity pura | 2.*, 4.1/4.5/4.8/4.9 | Unit + HTTP + fronteiras | Proven para Identity/Core no STEP 04; consumidores e ambiente operacional ainda em conversão |
+| RID-04 vazio/hit/misto/ordem/queries | 7.2/7.4/7.9, 8.3/9.3/10.3, 12.5 | Unit batch + query logs PG de 0/1/5/6 recursos | Proven nos STEPs 07–11 para Core e três consumidores, com statements financeiros/registro separados e sem escrita em hit; medição operacional pendente |
+| RID-05 reinício/PAT/reaparecimento/cascade | 7.9–7.10, 8.5/9.5/10.5 | HTTP/PG processos novos + owner delete + recursos ausentes | Proven nos STEPs 07–11 para processo/conexão/PAT/retorno nos três consumidores; jornada STEP 11 confirma logout preservando registro e owner delete removendo associações. Reboot completo e rollout não exercitados |
+| RID-06 erro/composição/fonte/sem fallback | 7.6, 8.6/9.6/10.5 | Exceção sentinela Unit/HTTP + zero writes + erro sem data/log sensível | Proven nos STEPs 07–11 em Core e três consumidores: falhas explícitas, rollback e ausência de resposta parcial/fallback; allowlists/segredos/fingerprints auditados no STEP 11 |
+| RID-07 sem endpoint/autoridade/cleanup | 3.7, 7.9, 11.5 | HTTP/owner + lifecycle exact runId/token | Proven nos STEPs 03/07–11; registro interno sem rota e sem autoridade de acesso, integração HTTP e isolamento do launcher preservados |
+| User/Core UUID ownership e Entity pura | 2.*, 4.1/4.5/4.8/4.9 | Unit + HTTP + fronteiras | Proven para todos os consumidores nos STEPs 04–11; conversão operacional pendente |
 | Sanctum/segredo/expiração/extensão/link | 4.2–4.4/4.6–4.9 | PAT real + PG locks + assinatura/tempo/owner | Proven no schema exclusivo do STEP 04, incluindo corrida sincronizada de extensão; rollout operacional pendente |
 | Expense sort/cursor v2/cache/worker | 5.* | Unit + PG/HTTP next-prev + Redis/worker exclusivo | Proven no STEP 05 em schema/Redis/filas exclusivos; transição operacional de caches/jobs/banco ainda no STEP 12 |
 | Notifications registro/instalação/rotação/remoção | 6.* | Unit + HTTP/PG + rollback/races + Identity | Proven no STEP 06 em bancos exclusivos; v4/whitespace rejeitados, ID preservado e DELETE uniforme. Envio/cliente/rollout operacional pendentes |
 | Insights períodos/estados/rotação/UUID | 8.* | Unit + HTTP/PG + Core batch | Proven no STEP 08: UUID associado, chaves tipadas, fatos/editorial preservados, equivalências/estados/períodos/owner, processo/PAT/retorno, falhas e queries separadas. Operação local permanece no STEP 12 |
-| Metrics singular/zero/default/grouped/UUID | 9.* | Unit + HTTP/PG + Core batch | Não implementado/comprovado |
+| Metrics singular/zero/default/grouped/UUID | 9.* | Unit + HTTP/PG + Core batch | Proven no STEP 09 e revalidado no STEP 11: associação estável, contratos/fatos exatos, zero/default/modos, processo/PAT, falhas e statements; rollout pendente |
 | Sugestões norm/valor/owner/UUID | 10.* | Unit + HTTP/PG normalização SQL/associação | Proven no STEP 10: chave SQL exata, UUIDv7 batch, owner/termos/case/valor/janela/processo/PAT/retorno, falhas e limites de queries; medição operacional no STEP 12 |
-| Observabilidade próprio UUID/native SDK | 11.3–11.4 | JSON/header/context + ausência de segredos/fingerprint | Não implementado/comprovado |
+| Observabilidade próprio UUID/native SDK | 11.3–11.4 | JSON/header/context + ausência de segredos/fingerprint | Proven no STEP 11: trace_id v7 único por request, header/context/log iguais, sem request_id duplicado, CLI/worker limpos e job_id nativo; allowlists e ausência de segredos/fingerprint comprovadas |
 | Cliente/Bruno/documentação | 13.* | Parser/CLI controlados + homologação externa distinta | Não implementado/comprovado |
-| Gates transversais | 14.* | Padrão + duas seeds + paralelo + Redis/concorrência | Evidências históricas dos STEPs 06/07 preservadas abaixo. Após STEP 08: padrão 2.267/40.376 e Feature Insights paralelo 176/1.960. Seeds/gate paralelo completo não repetidos nesta fatia; repetir gates finais após implementação restante, sem concluir 14.* |
+| Gates transversais | 14.* | Padrão + duas seeds + paralelo + Redis/concorrência | STEP 11: padrão, seeds 2026101511/2026101512 e paralelo 2 processos aprovados, cada um 2.305/41.116, incluindo Redis/concorrência/invocações simultâneas. Repetir gates finais após mudanças restantes; 14.* continua pendente |
 
 ## Estado histórico da elaboração da proposta
 
@@ -1049,3 +1051,59 @@ Captura Lerd já estava habilitada; não houve mudança de configuração. GET l
 ### Revalidação após relato de teste quebrando — 2026-10-15
 
 A execução completa reproduziu **4 falhas**, com 2.279 de 2.283 testes passando: no estado encontrado, os componentes Metrics estavam em ordem `mode → end_date → start_date`. Foi restaurada a ordem contratual **start_date → end_date → mode**, com comentário sobre sua participação no fingerprint persistido v1, sem alterar os esperados nem o contrato Core. Após Pint `--dirty --format agent`, o Unit isolado passou **48/180**, 59 ms; o gate completo padrão pelo launcher, com `--compact --fail-on-skipped --fail-on-incomplete --fail-on-risky`, passou **2.283/40.731**, 53.602 ms. Essa execução também inclui o ajuste posterior de tipagem/preparação explícita de `ExpenseMetricsHttpTest.php`; a restauração do relógio permanece no `FeatureTestCase::tearDown()`.
+
+## STEP 11 — Integração transversal e observabilidade — 2026-10-15
+
+### Escopo e decisão de correlação
+
+O pedido autoriza implementar e testar 11.1–11.8. Por orientação posterior explícita do usuário, a correlação própria usa **somente `trace_id`**, no atributo do request, Context e JSON; `request_id` foi removido do middleware e não é adicionado ao contexto/log. `X-Request-Id` conserva o mesmo UUIDv7. `TraceRequestMiddleware` chama `Str::uuid7()` sem alterar o gerador global, ignora o header cliente e conserva o scope existente. A hidratação de queue continua removendo metadados HTTP, enquanto job IDs nativos e contexto não HTTP continuam operacionais. Design D1 e delta de structured-observability refletem esta decisão.
+
+### Auditoria por papel — 11.1/11.2/11.6
+
+| Superfície | Resultado auditado e prova |
+| --- | --- |
+| Suporte compartilhado em `tests/Support` | `IdentityFixture` cria Models User/PAT autogeráveis v7; `IdentityHttpJourney` retorna IDs/tokens string sem ativação oculta. Fixtures de histórico Expense recebem owner/ID string e preservam entradas explícitas; `NotificationRegistrationFixture` distingue instalação e registro v7. `UuidSchemaFixture`/`ExecutionIsolationProbe` usam UUIDs determinísticos; `UserPortStub::id(): string` não repara valores negativos. O probe de worker restante foi convertido de `expense_id=1500` para `UuidFixture::at(1500)`. Fakes/spies preservam atributos e comportamento, sem geração de esperado pelo código de produto. |
+| Exceções intencionais no suporte | `ExpenseQueryFixture::legacyCursor()` conserva `id=5` exclusivamente para rejeitar cursor legado. PIDs/backend PIDs, runId/token/ownership do launcher, índices da fixture, versões, quantias/datas/contagens continuam seus tipos técnicos. Nenhuma coerção numérica de owner/entidade/PAT foi encontrada no suporte. |
+| Rotas e bindings | `route:list --except-vendor --json` via Lerd confirmou os 18 registros próprios: Authentication 4, verificação 1, User 3, Expense 6, Insights 1, Metrics 1 e Notifications 2. Constraints textuais de User/Expense/registro/verificação exigem versão 7/variante RFC, com aceitação de caixa. Controllers/UseCases canonicalizam sem lookup numérico; a assinatura de verificação é validada antes do lookup. Não há model binding numérico próprio nem rota pública do registro Core. |
+| JSON:API e proteções | User/SignUp/PAT/Expense/Notification/Insight/Metrics/sugestão usam `toId(): string`; os únicos relationships de identidade explícitos de SignUp/PAT apontam para `users` UUID. Projeções não publicam fingerprint/ID hash paralelo. Suítes HTTP existentes conservam 200/201/204, rejeições 401/403/404/422/429, ownership, signed URL e políticas de sessão. A jornada nova integra as representações sem ampliar o contrato HTTP existente. |
+| Casts/assinaturas de `app/` | Nenhum `int`/cast numérico de IDs próprios, `whereNumber`, `Str::uuid()` ou pressuposto de sequence encontrado. Casts restantes pertencem a centavos/limites financeiros, datas/dias/índices editoriais, contagens, geração, versões, tentativas/timeouts/sinais. IDs do guard e `getKey()` atravessam como strings, com validação Core. Hash da variante/fencing e digests internos não são identidades públicas. |
+| Schema e Models | `UuidSchemaTest` no gate completo comprova UUID nativo, CHECKs v7, ausência de sequence/alias inteiro próprio e FKs/uniques/cascades. Models User/PAT/Expense/Notification/Resource mantêm geração `HasUuids`/`Str::uuid7`, bulk com UUID explícito; `jobs`, `failed_jobs` e `migrations` conservam chaves nativas. As migrations bootstrap já convertidas são aplicadas incrementalmente somente nos bancos exclusivos do launcher. |
+| Logs | Produtores Identity, Expense, Notifications e queue selecionam explicitamente seus atributos. O registro Core não adiciona eventos de chave/fingerprint; exceções sanitizadas continuam comprovadas pelos testes de falha existentes. A jornada impõe allowlist exata por evento para campos estruturais e IDs próprios, sem filtrar artificialmente o logger. Não há nova abstração de sanitização ou alteração de autorização. |
+
+### Mapa cenário antigo → cenário UUIDv7 — 11.7
+
+Nenhum arquivo/cenário foi movido, consolidado ou removido. Casos de rollback, concorrência e falha continuam no destino original; os gates abaixo os executam. A correspondência desta fatia é:
+
+| Arquivo / cenário anterior | Destino e evidência UUIDv7 |
+| --- | --- |
+| `RequestCorrelationTest`: duas chamadas autenticadas, chamada pública e evento CLI limpo | Mesmo cenário/arquivo, owner e expense UUID string; três correlações v7 distintas. Atributo `trace_id` = `ContextPort::traceId()` = Context = JSON = header; `request_id` ausente em todos os pontos. Header cliente v7 válido não é confiado. CLI sem metadados HTTP/owner e sem segredos/chaves/fingerprints. **1 teste/94 assertions**. |
+| `QueueObservabilityTest`: metadados permitidos/erro sem mensagem; released/failed sem sucesso; worker serializado real sem HTTP herdado | Mesmos quatro casos. Worker recebe probe UUIDv7 de Expense, preserva `probe_batch`; HTTP usa v7 e worker/after não têm trace/owner/request. `job_id` corresponde à PK nativa do job enfileirado, sem convertê-la em UUID ou string por obrigação. **4/91**. |
+| `ObservabilityWorkerProbe`: emissão sintética `expense_id=1500` no worker | Mesma classe/`handle`, agora `UuidFixture::at(1500)`. Consumida pela prova real de `queue:work --once` acima; não é alegação de corrida. |
+| `ObservabilityJsonFormatterTest`: JSON estrutural com IDs numéricos confundíveis com valor | Mesmo cenário, IDs de Expense/owner/trace distintos de fixture, timestamp e categoria preservados; igualdade do JSON decodificado e newline, ausência de dados sensíveis/`request_id`. **1/10**. O formatter não valida/genera IDs. |
+| `ExpenseMutationObservabilityTest`: cadastro/login, CRUD Expense/User, logout/exclusão e rollback/entrada inválida | Mesmos dois cenários; acrescenta formato v7 de cada trace e ausência de dados do registro, mantendo correlação dos eventos e prova sentinela/escrita anterior/rollback. **2/92**. |
+| Nova integração, sem substituir provas anteriores: `Identity/Journeys/UuidAccountLifecycleTest.php` | Jornada proprietária Identity: cadastro pending/unverified, verificação assinada sem ativação, ativação explícita no Arrange, login real, owner uppercase, cinco Expenses HTTP, listagem/consulta, três projeções e associação UUID Core. Novo PAT preserva IDs; logout revoga somente o PAT atual e faz cascade do destino vinculado, sem apagar despesas/registro. A mesma instalação pode registrar novo destino/PK na sessão restante. Exclusão de conta remove User/PAT/Expense/Notifications/Resource e invalida o Bearer restante. Logs com allowlist exata, IDs v7, ausência de senha/hash/Bearer/FCM/instalação/descrição/fingerprints reais capturados. **1/147**. Isolamento de outra conta e races permanecem nas provas específicas dos STEPs 03–10, não são inferidos desta jornada sequencial. |
+
+### Execuções verificadas — 11.8
+
+Todos os comandos de testes usam o launcher com `--compact --fail-on-skipped --fail-on-incomplete --fail-on-risky`. Resultados após a remoção final de `request_id` e Pint:
+
+| Execução | Testes/assertions | Duração informada |
+| --- | --- | --- |
+| Cinco arquivos alterados isoladamente, conforme mapa acima | **9/434**, todos aprovados | 22–441 ms por arquivo |
+| `tests/Unit/Architecture/ContextBoundariesTest.php` isolado | **30/504** | 6.051 ms |
+| `lerd composer test -- --compact --fail-on-skipped --fail-on-incomplete --fail-on-risky` | **2.305/41.116** | 55.962 ms |
+| Mesmo gate com `--order-by=random --random-order-seed=2026101511` | **2.305/41.116** | 55.397 ms |
+| Mesmo gate com `--order-by=random --random-order-seed=2026101512` | **2.305/41.116** | 61.748 ms |
+| Mesmo gate com `--parallel --processes=2` | **2.305/41.116** | 34.754 ms |
+
+Os quatro gates completos incluem Core/Identity/Expense/Notifications/Insights/Metrics, arquitetura, PostgreSQL, Redis, workers, corridas sincronizadas e `SimultaneousInvocationsTest` existentes, sem exclusões/skips/incomplete/risky. O probe serializado usa worker real no processo do teste; as demais provas específicas de classificação mantêm sua evidência própria de worker/Redis. Não há inferência de rollback/race a partir de fakes.
+
+Uma tentativa MCP da segunda seed retornou timeout `-32001`, sem resultado utilizável; **não foi contada como aprovação**. A repetição integral pelo CLI Lerd com timeout suficiente passou, conforme tabela. Tentativas iniciais da jornada corrigiram somente preparação/assertions do teste: header Location não exigido pelo contrato Expense vigente, parâmetros Metrics de topo, ordem irrelevante de membros JSON e reindexação de `array_unique`. Não houve relaxamento de invariantes de produto, esperado de identidade lógica, rollback ou isolamento. No teste de worker, a comparação de `job_id` foi ajustada ao tipo nativo retornado pelo driver, em vez de impor string à PK técnica.
+
+Pint `--dirty --format agent`, OpenSpec strict e `git diff --check` passaram. A auditoria não encontrou necessidade de ampliar permissões arquiteturais. As provas desta fatia não usam resets/seeds operacionais nem consomem filas do site.
+
+### Tráfego observado e limites
+
+A captura Lerd já estava habilitada e permaneceu assim. Request HTTP real não autenticado a `/api/expenses`, com header cliente, devolveu **401 JSON:API** e `X-Request-Id` UUIDv7 novo. `optimize_route(site=trocado)` retornou **1 amostra, mediana 106 ms e nenhuma rota sinalizada**. Isto verifica a borda de correlação/401; não comprova desempenho autenticado, planos do registro operacional ou ausência geral de N+1. A medição autenticada e aplicação do schema local permanecem no STEP 12. A prova de trace/context/log e do lifecycle autenticado vem do kernel HTTP/PostgreSQL exclusivo do launcher.
+
+**Resultado de escopo:** 11.1–11.8 completos e comprovados. Próximo: **STEP 12 — aplicação local e medição**. As evidências dos gates desta fatia não concluem antecipadamente 12–14, homologação externa, documentação/Bruno, archive ou publicação; serão reconferidas após eventuais mudanças seguintes.

@@ -1,11 +1,11 @@
 ## MODIFIED Requirements
 
 ### Requirement: Registro estruturado e correlacionável
-O sistema MUST emitir uma linha JSON por evento com timestamp/level/event/atributos. HTTP MUST gerar correlação UUIDv7 canônica server-owned, usar o mesmo UUID em request_id/trace_id próprios e X-Request-Id, sem herdar ID entre requests ou confiar em header cliente. IDs próprios de entidades nos campos permitidos MUST ser UUIDv7 strings, não números/casts. Identificadores de SDK/queue MUST conservar contratos nativos e papéis distinguíveis. Fora de HTTP evento não exige request_id; logs MUST NOT expor tokens, chaves/fingerprints do registro de projeções, textos ou valores financeiros.
+O sistema MUST emitir uma linha JSON por evento com timestamp/level/event/atributos. HTTP MUST gerar correlação UUIDv7 canônica server-owned, usar o mesmo UUID em trace_id e X-Request-Id, sem herdar ID entre requests ou confiar em header cliente. Atributos do request, contexto e logs MUST usar somente trace_id, sem duplicá-lo em request_id. IDs próprios de entidades nos campos permitidos MUST ser UUIDv7 strings, não números/casts. Identificadores de SDK/queue MUST conservar contratos nativos e papéis distinguíveis. Fora de HTTP evento não exige trace_id; logs MUST NOT expor tokens, chaves/fingerprints do registro de projeções, textos ou valores financeiros.
 
 #### Scenario: Evento durante requisição HTTP
 - **WHEN** request gera evento
-- **THEN** request_id/trace_id próprios são o mesmo UUIDv7 do header
+- **THEN** trace_id é o mesmo UUIDv7 do header, sem campo request_id duplicado
 - **AND** atributos mantêm campos estruturados, com IDs próprios canônicos
 
 #### Scenario: Requisições consecutivas

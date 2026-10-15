@@ -18,18 +18,18 @@ final class TraceRequestMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         return $this->port->scope(function () use ($request, $next): Response {
-            $requestId = (string) Str::uuid();
-            $request->attributes->set('request_id', $requestId);
+            $traceId = (string) Str::uuid7();
+            $request->attributes->set('trace_id', $traceId);
 
             $this->port->capture(new ContextInput(
+                traceId: $traceId,
                 ip: $request->ip(),
-                traceId: $requestId,
                 method: $request->method(),
                 path: $request->getPathInfo(),
             ));
 
             $response = $next($request);
-            $response->headers->set('X-Request-Id', $requestId);
+            $response->headers->set('X-Request-Id', $traceId);
 
             return $response;
         });

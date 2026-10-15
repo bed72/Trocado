@@ -14,6 +14,6 @@ final class ObservabilityWorkerProbe implements ShouldQueue
 
     public function handle(ObservabilityPort $port): void
     {
-        $port->emit('probe.worker', ['expense_id' => 1500]);
+        $port->emit('probe.worker', ['expense_id' => UuidFixture::at(1500)]);
     }
 }

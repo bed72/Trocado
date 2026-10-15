@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Route;
 use Tests\Support\Core\Fixtures\ObservabilityLogFixture;
 use Tests\Support\Core\Fixtures\ObservabilityWorkerProbe;
+use Tests\Support\Core\Fixtures\UuidFixture;
 use Tests\Support\Identity\Fixtures\IdentityFixture;
 
 beforeEach(function (): void {
@@ -75,9 +76,10 @@ it('does not hydrate HTTP request fields into events emitted by a real serialize
 
     try {
         $response = $this->withToken($token)->postJson('/api/queue-observability-probe')->assertNoContent();
-        $payload = json_decode(DB::table('jobs')->where('queue', $queue)->sole()->payload, true, flags: JSON_THROW_ON_ERROR);
+        $queued = DB::table('jobs')->where('queue', $queue)->sole();
+        $payload = json_decode($queued->payload, true, flags: JSON_THROW_ON_ERROR);
         expect($payload['displayName'])->toBe(ObservabilityWorkerProbe::class)
-            ->and($response->headers->get('X-Request-Id'))->toBeString();
+            ->and($response->headers->get('X-Request-Id'))->toMatch('/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/D');
 
         Artisan::call('queue:work', ['connection' => 'database', '--queue' => $queue, '--once' => true, '--tries' => 1]);
 
@@ -91,7 +93,8 @@ it('does not hydrate HTTP request fields into events emitted by a real serialize
                 'ip' => '127.0.0.1', 'user_id' => $user->getKey(),
             ])
             ->not->toHaveKeys(['request_id', 'route'])
-            ->and($records[1]['expense_id'])->toBe(1500)
+            ->and($records[1]['expense_id'])->toBe(UuidFixture::at(1500))
+            ->and($records[2]['job_id'])->toBe($queued->id)
             ->and($records[2]['queue'])->toBe($queue);
 
         foreach (array_slice($records, 1) as $record) {

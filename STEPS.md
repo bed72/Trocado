@@ -240,16 +240,18 @@ As frentes 05, 06 e 07 podem ser organizadas separadamente depois da base 04; 08
 
 **Entrega:** consumidores, suporte e contratos cruzados coerentes em UUIDv7.
 
-- [ ] **11.1** Fechar a conversão das fixtures/builders/fakes/stubs/spies compartilhados.
-- [ ] **11.2** Auditar JSON:API, relationships e bindings de todas as rotas próprias.
-- [ ] **11.3** Converter correlação própria para UUIDv7 e provar igualdade header/context/log e isolamento entre requests.
-- [ ] **11.4** Revisar allowlists de log e ausência de segredos/chaves/fingerprints do registro.
-- [ ] **11.5** Provar jornadas de cadastro/login/User/Expense/projeções/instalação/logout/exclusão com PAT real.
-- [ ] **11.6** Auditar casts, assinaturas, constraints e pressupostos de sequence restantes por papel.
-- [ ] **11.7** Registrar cenário antigo → cenário UUIDv7, sem retirar provas para acomodar a conversão.
-- [ ] **11.8** Executar arquitetura e suítes cruzadas pelo launcher.
+- [x] **11.1** Fechar a conversão das fixtures/builders/fakes/stubs/spies compartilhados.
+- [x] **11.2** Auditar JSON:API, relationships e bindings de todas as rotas próprias.
+- [x] **11.3** Converter correlação própria para UUIDv7 e provar igualdade header/context/log e isolamento entre requests, usando somente `trace_id`, sem `request_id` duplicado.
+- [x] **11.4** Revisar allowlists de log e ausência de segredos/chaves/fingerprints do registro.
+- [x] **11.5** Provar jornadas de cadastro/login/User/Expense/projeções/instalação/logout/exclusão com PAT real.
+- [x] **11.6** Auditar casts, assinaturas, constraints e pressupostos de sequence restantes por papel.
+- [x] **11.7** Registrar cenário antigo → cenário UUIDv7, sem retirar provas para acomodar a conversão.
+- [x] **11.8** Executar arquitetura e suítes cruzadas pelo launcher.
 
 **Concluir quando:** owner não vira zero/int; não há ID inteiro/hash alternativo nos recursos próprios; o mapa de cenários e as fronteiras continuam íntegros.
+
+**Escopo transversal concluído em 2026-10-15:** `trace_id` UUIDv7 server-owned no atributo/contexto/log e no header `X-Request-Id`, sem campo `request_id`. Provas preservam isolamento HTTP/CLI/worker e IDs nativos de queue; jornada Identity cobre PAT real, despesas/projeções/instalação, logout e cascades. Auditoria de suporte/rotas/JSON:API/casts/schema e allowlists registrada por papel, sem remoção de cenários. Arquivos isolados: **9 testes/434 assertions**; arquitetura **30/504**; gates completos padrão, seeds **2026101511/2026101512** e paralelo **2 processos**: **2.305/41.116** cada. Pint/OpenSpec strict passaram. [Mapa, evidências e limites](openspec/changes/standardize-uuid-v7-identifiers/tasks.md#step-11--integração-transversal-e-observabilidade--2026-10-15). Próximo: STEP 12.
 
 ## STEP 12 — Aplicação local e medição
 

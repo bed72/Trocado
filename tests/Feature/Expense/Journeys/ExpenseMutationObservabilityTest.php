@@ -59,7 +59,9 @@ it('wires confirmed identity and expense mutations to correlated business events
         ->and(json_encode($records))->not->toContain('private description', $token);
 
     foreach ($records as $record) {
-        expect($record)->not->toHaveKeys(['request_id', 'route', 'amount', 'description', 'password', 'token', 'payload']);
+        expect($record['trace_id'])
+            ->toMatch('/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/D')
+            ->and($record)->not->toHaveKeys(['request_id', 'route', 'amount', 'description', 'password', 'token', 'payload', 'logical_fingerprint', 'components']);
     }
 
     $updated = withToken($token)->patchJson(route('expenses.update', ['expense' => $first->json('data.id')]), [

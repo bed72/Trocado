@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Core\Infrastructure\Adapters\Observability\ObservabilityJsonFormatter;
 use Monolog\Level;
 use Monolog\LogRecord;
+use Tests\Support\Core\Fixtures\UuidFixture;
 
 it('formats structural JSON without confusing legitimate IDs and timestamp digits with sensitive amounts', function (): void {
     $record = new LogRecord(
@@ -12,8 +13,8 @@ it('formats structural JSON without confusing legitimate IDs and timestamp digit
         channel: 'observability',
         level: Level::Info,
         message: 'expense.created',
-        context: ['expense_id' => 1500, 'user_id' => 1500, 'category' => 'food'],
-        extra: ['trace_id' => 'trace-1500'],
+        context: ['expense_id' => UuidFixture::at(1500), 'user_id' => UuidFixture::at(1501), 'category' => 'food'],
+        extra: ['trace_id' => UuidFixture::at(1502)],
     );
 
     $json = (new ObservabilityJsonFormatter)->format($record);
@@ -21,7 +22,8 @@ it('formats structural JSON without confusing legitimate IDs and timestamp digit
 
     expect($decoded)->toBe([
         'event' => 'expense.created', 'level' => 'INFO', 'timestamp' => '2026-10-10T15:00:00.001500+00:00',
-        'trace_id' => 'trace-1500', 'expense_id' => 1500, 'user_id' => 1500, 'category' => 'food',
-    ])->not->toHaveKeys(['amount', 'description', 'password', 'token', 'payload'])
+        'trace_id' => UuidFixture::at(1502),
+        'expense_id' => UuidFixture::at(1500), 'user_id' => UuidFixture::at(1501), 'category' => 'food',
+    ])->not->toHaveKeys(['request_id', 'amount', 'description', 'password', 'token', 'payload', 'logical_fingerprint', 'components'])
         ->and($json)->toEndWith("\n");
 });

@@ -29,7 +29,7 @@ O pedido posterior autoriza executar o STEP 01 de `STEPS.md`. O [inventário e a
 | `installation_id` | UUIDv7 obrigatório, gerado pelo cliente |
 | Insights / Metrics / sugestões | UUIDv7 gerado uma vez e recuperado por associação estável de Core |
 | Registro auxiliar de Core: `resource_identities.id`, `user_id` | UUIDv7 |
-| `request_id` / `trace_id` próprios | O mesmo UUIDv7 novo por request; header/log conservam igualdade |
+| `trace_id` próprio | UUIDv7 novo por request; atributo/contexto/log e header `X-Request-Id` conservam igualdade, sem campo `request_id` duplicado |
 | IDs de mensagem de push futuros controlados pelo projeto | UUIDv7 no contrato; a geração não ativa a fatia de envio |
 | `jobs.id`, `failed_jobs.id/uuid`, `migrations.id`, payload UUID de queue e IDs de SDKs | Contratos internos nativos, fora da conversão |
 | Bearer/FCM, password hash, assinatura, fingerprints, token de fencing de classificação | Não são IDs de entidade/recurso; continuam em seus formatos de segurança |

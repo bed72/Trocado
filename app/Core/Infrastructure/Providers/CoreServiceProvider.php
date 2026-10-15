@@ -70,11 +70,11 @@ final class CoreServiceProvider extends ServiceProvider
         });
 
         Queue::failing(fn (JobFailed $event) => $port->emit('queue.job_failed', [
-            'connection' => $event->connectionName,
             'queue' => $event->job->getQueue(),
             'job_id' => $event->job->getJobId(),
             'job' => $event->job->resolveName(),
             'attempts' => $event->job->attempts(),
+            'connection' => $event->connectionName,
             'error_class' => $event->exception::class,
         ]));
     }
