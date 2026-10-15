@@ -61,7 +61,25 @@ it('serializes the owner only historical comparison maximum and review through o
             ->assertJsonPath('data.2.attributes.group', 'onboarding')
             ->assertJsonPath('data.2.attributes.period', null);
         $analyticalQueries = array_values(array_filter(DB::getQueryLog(), static fn (array $query): bool => str_starts_with($query['query'], 'WITH periods')));
-        expect($analyticalQueries)->toHaveCount(1);
+        $identityQueries = array_values(array_filter(DB::getQueryLog(), static fn (array $query): bool => str_contains($query['query'], 'resource_identities')));
+        $middlewareQueries = array_values(array_filter(DB::getQueryLog(), static fn (array $query): bool => str_contains($query['query'], 'personal_access_tokens') || str_contains($query['query'], '"users"')));
+        expect($analyticalQueries)->toHaveCount(1)
+            ->and($identityQueries)->toHaveCount(3)
+            ->and($middlewareQueries)->not->toBeEmpty();
+        $rows = DB::table('resource_identities')->orderBy('id')->get()->all();
+        expect($rows)->toHaveCount(3)
+            ->and(array_column($rows, 'user_id'))->toBe([$ownerId, $ownerId, $ownerId])
+            ->and(array_column($rows, 'namespace'))->toBe(['insights', 'insights', 'insights']);
+
+        Auth::forgetGuards();
+        DB::flushQueryLog();
+        $this->withToken($token)->getJson(route('insights.index').'?filter[month]=09&filter[year]=2026')
+            ->assertOk()->assertExactJson($response->json());
+        $queries = DB::getQueryLog();
+        $hits = array_values(array_filter($queries, static fn (array $query): bool => str_contains($query['query'], 'resource_identities')));
+        expect($hits)->toHaveCount(1)->and($hits[0]['query'])->toStartWith('select')
+            ->and(array_filter($queries, static fn (array $query): bool => str_starts_with($query['query'], 'WITH periods')))->toHaveCount(1)
+            ->and(DB::table('resource_identities')->orderBy('id')->get()->all())->toEqual($rows);
     } finally {
         DB::disableQueryLog();
         DB::flushQueryLog();
@@ -76,7 +94,7 @@ it('serializes the owner only historical comparison maximum and review through o
     foreach ($response->json('data') as $resource) {
         expect(array_keys($resource))->toEqualCanonicalizing(['type', 'id', 'attributes'])
             ->and($resource['type'])->toBe('insights')
-            ->and($resource['id'])->toBeString()->toMatch('/\A[0-9a-f]{64}\z/')
+            ->and($resource['id'])->toBeString()->toMatch('/\A[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z/')
             ->and(array_keys($resource['attributes']))->toEqualCanonicalizing(['group', 'type', 'title', 'description', 'period'])
             ->and($resource['attributes']['title'])->toBeString()->toContain('set/2026')
             ->and($resource['attributes']['description'])->toBeString()

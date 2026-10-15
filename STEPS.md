@@ -194,14 +194,16 @@ As frentes 05, 06 e 07 podem ser organizadas separadamente depois da base 04; 08
 **Entrega:** Insights usam IDs associados no Core, preservando fatos, seleção, período e rotação.
 
 - [x] **8.1** Converter owner nos contratos, SQL, fatos e escolha de variante.
-- [ ] **8.2** Preparar chave por tipo/assunto/estado/períodos internos e comparação.
-- [ ] **8.3** Compor/deduplicar/selecionar tudo antes de resolver IDs em um lote final.
-- [ ] **8.4** Provar equivalências/chaves e estabilidade frente a valor, descrição, visita e catálogo.
-- [ ] **8.5** Provar HTTP/PG, novo processo/PAT, onboarding null, owner e desaparecimento/retorno.
-- [ ] **8.6** Provar falha financeira/editorial/Core sem associação nova, data parcial ou ID fabricado.
-- [ ] **8.7** Executar arquivos/suíte/arquitetura e distinguir queries financeiras, de identidade e middleware.
+- [x] **8.2** Preparar chave por tipo/assunto/estado/períodos internos e comparação.
+- [x] **8.3** Compor/deduplicar/selecionar tudo antes de resolver IDs em um lote final.
+- [x] **8.4** Provar equivalências/chaves e estabilidade frente a valor, descrição, visita e catálogo.
+- [x] **8.5** Provar HTTP/PG, novo processo/PAT, onboarding null, owner e desaparecimento/retorno.
+- [x] **8.6** Provar falha financeira/editorial/Core sem associação nova, data parcial ou ID fabricado.
+- [x] **8.7** Executar arquivos/suíte/arquitetura e distinguir queries financeiras, de identidade e middleware.
 
 **Concluir quando:** histórico mantém UUID em outro dia/processo; onboarding incorpora período interno; avanço do período parcial pode mudar a identidade legitimamente; leitura financeira continua única.
+
+**Escopo Insights concluído em 2026-10-15:** IDs públicos agora usam um lote Core `insights` v1 após seleção/deduplicação/composição completas. Unit comprova componentes exatos, ordem, estados e falhas; HTTP/PostgreSQL comprova equivalências, owner, período null, fatos recalculados, desaparecimento/retorno e processo filho com conexão nova/PAT substituído. Três cartões usam uma leitura financeira e três statements do registro no miss, um no hit sem escrita. Insights + arquitetura passaram **827/32.851**; gate completo padrão **2.267/40.376**; Feature Insights paralelo de dois processos **176/1.960**. Pint e OpenSpec estrito passaram. [Evidências e limites](openspec/changes/standardize-uuid-v7-identifiers/tasks.md#step-08--insights-com-uuidv7-estável--2026-10-15). Próximo: STEP 09, Metrics.
 
 ## STEP 09 — Metrics com UUIDv7 estável
 

@@ -16,6 +16,7 @@ use App\Insights\Application\UseCases\SelectInsightCandidatesUseCase;
 use App\Insights\Domain\Enums\InsightTypeEnum;
 use App\Insights\Domain\ValueObjects\InsightAnalysisPeriodValueObject;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Exceptions;
 use Tests\Support\Identity\Fixtures\IdentityFixture;
 
@@ -82,6 +83,7 @@ it('returns no partial insights or successful onboarding when composition fails 
         Exceptions::assertReported(static fn (InsightMessageCompositionException $exception): bool => $exception->getMessage() === 'A categoria não possui um rótulo editorial aprovado.');
         Exceptions::assertReportedCount(1);
         expect($record->fresh()->expires_at->equalTo($originalExpiry))->toBeTrue();
+        expect(DB::table('resource_identities')->count())->toBe(0);
     } finally {
         Exceptions::swap($handler);
     }

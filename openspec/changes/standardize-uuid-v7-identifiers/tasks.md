@@ -100,12 +100,12 @@
 ## 8. UUIDv7 estável de Insights
 
 - [x] 8.1 Converter owner nos contratos/fonte SQL/fatos/edição de variante para v7, sem modificar janela, bases ou matemática. [UID-05; insights]
-- [ ] 8.2 Preparar chave lógica tipada por owner/tipo/categoria/estado/from/to/comparison, com namespace/version constantes e períodos internos de onboarding. [RID-02; insights]
-- [ ] 8.3 Compor/selecionar/deduplicar todos os recursos antes de resolver IDs em um único lote, substituir hash público pelo UUID Core e manter ordem/limite. [RID-04/06]
-- [ ] 8.4 Provar Unit de chaves/default/zeros/periodos/estado e estabilidade frente a valor/descrição/variante/dia/catálogo, com novo ID só por mudança lógica. [insights: identidade]
-- [ ] 8.5 Provar HTTP/PG associação estável em visitas/processos/PATs novos, batch, ownership, onboarding null, desaparecimento/retorno e limites editoriais preservados. [RID-03–05; insights]
-- [ ] 8.6 Provar fonte/composição/registro falhando sem associação nova, data parcial, UUID aleatório ou onboarding fabricado; manter uma leitura financeira. [RID-06; insights]
-- [ ] 8.7 Executar arquivos/suite Insights e arquitetura isolados, com resultados por cenário e distinção entre queries de fatos/identidade/middleware. [D10]
+- [x] 8.2 Preparar chave lógica tipada por owner/tipo/categoria/estado/from/to/comparison, com namespace/version constantes e períodos internos de onboarding. [RID-02; insights]
+- [x] 8.3 Compor/selecionar/deduplicar todos os recursos antes de resolver IDs em um único lote, substituir hash público pelo UUID Core e manter ordem/limite. [RID-04/06]
+- [x] 8.4 Provar Unit de chaves/default/zeros/periodos/estado e estabilidade frente a valor/descrição/variante/dia/catálogo, com novo ID só por mudança lógica. [insights: identidade]
+- [x] 8.5 Provar HTTP/PG associação estável em visitas/processos/PATs novos, batch, ownership, onboarding null, desaparecimento/retorno e limites editoriais preservados. [RID-03–05; insights]
+- [x] 8.6 Provar fonte/composição/registro falhando sem associação nova, data parcial, UUID aleatório ou onboarding fabricado; manter uma leitura financeira. [RID-06; insights]
+- [x] 8.7 Executar arquivos/suite Insights e arquitetura isolados, com resultados por cenário e distinção entre queries de fatos/identidade/middleware. [D10]
 
 ## 9. UUIDv7 estável de Metrics
 
@@ -188,22 +188,22 @@
 | UID-07 instalação/registro/cliente | 1.5, 6.*, 13.2/13.6/13.7 | Unit/HTTP/PG + homologação externa registrada | Backend Proven no STEP 06: v7/caixa/versões/ID distinto/imutável/HTTP/PG/races/rollback. Homologação externa Flutter/Bruno/envio e rollout operacional pendentes |
 | UID-08 reset autorizado/negativo/lifecycle | 3.7, 12.* | Alvo/estado/cleanup/checks registrados + guard/testes de recusa | Parcial: guard e cleanup do launcher comprovados no STEP 03; reset operacional não executado |
 | RID-01 mínimo/sem fatos/fronteiras | 3.5, 7.1/7.3/7.7, 13.1 | Schema allowlist + Unit + arquitetura | Capacidade Core e schema mínimo Proven no STEP 07; integração das projeções/documentação geral pendente |
-| RID-02 chave/namespace/owner/ambiguidade | 1.4, 7.2/7.8, 8.2/9.2/10.2 | Unit independente por consumidor + PG isolado | Core genérico Proven no STEP 07 para tipos/nomes/ordem/bytes/null/owner/namespace/versão; políticas dos consumidores pendentes |
+| RID-02 chave/namespace/owner/ambiguidade | 1.4, 7.2/7.8, 8.2/9.2/10.2 | Unit independente por consumidor + PG isolado | Core genérico Proven no STEP 07; Insights Proven no STEP 08 para chave exata, nulls, owner/estado/períodos/equivalências. Metrics/sugestões pendentes |
 | RID-03 race/ID perdedor/rollback | 7.5–7.6/7.9–7.10 | Duas conexões sincronizadas + escrita sentinela/rollback PG | Proven no STEP 07: UUID vencedor em processo novo, rollback parcial e retries 3; SQLSTATEs reais induzidos para recuperação/esgotamento |
-| RID-04 vazio/hit/misto/ordem/queries | 7.2/7.4/7.9, 8.3/9.3/10.3, 12.5 | Unit batch + query logs PG de 0/1/5/6 recursos | Core Proven no STEP 07: 0/1/3 statements e ordem/repetições; contagens nas rotas consumidoras e diagnóstico operacional pendentes |
-| RID-05 reinício/PAT/reaparecimento/cascade | 7.9–7.10, 8.5/9.5/10.5 | HTTP/PG processos novos + owner delete + recursos ausentes | Core Proven no STEP 07 para instância/conexão/processo/dia novos, remoção de PAT, lote vazio/retorno, cascade e owner concorrente; jornadas HTTP das projeções pendentes |
-| RID-06 erro/composição/fonte/sem fallback | 7.6, 8.6/9.6/10.5 | Exceção sentinela Unit/HTTP + zero writes + erro sem data/log sensível | Core Proven no STEP 07: falhas sanitizadas sem previous, falha permanente sem retry, sem lote parcial/ID candidato; composição/fonte/erro HTTP dos consumidores pendentes |
+| RID-04 vazio/hit/misto/ordem/queries | 7.2/7.4/7.9, 8.3/9.3/10.3, 12.5 | Unit batch + query logs PG de 0/1/5/6 recursos | Core Proven no STEP 07: 0/1/3 statements e ordem/repetições; Insights STEP 08: lote HTTP de três cartões, uma leitura financeira e 3/1 statements de registro miss/hit, sem escrita em hit. Metrics/sugestões/medição operacional pendentes |
+| RID-05 reinício/PAT/reaparecimento/cascade | 7.9–7.10, 8.5/9.5/10.5 | HTTP/PG processos novos + owner delete + recursos ausentes | Core Proven no STEP 07 para processo/dia/PAT/cascade/owner concorrente; Insights STEP 08 comprova HTTP em processo filho/conexão nova/PAT novo após desaparecimento/retorno. Reboot do servidor, Metrics/sugestões e rollout pendentes |
+| RID-06 erro/composição/fonte/sem fallback | 7.6, 8.6/9.6/10.5 | Exceção sentinela Unit/HTTP + zero writes + erro sem data/log sensível | Core Proven no STEP 07; Insights STEP 08 comprova falhas de fonte/precisão/composição antes de associação e rollback após INSERT com erro JSON:API sem data. Metrics/sugestões pendentes |
 | RID-07 sem endpoint/autoridade/cleanup | 3.7, 7.9, 11.5 | HTTP/owner + lifecycle exact runId/token | Core e cleanup/ownership Proven nos STEPs 03/07; nenhuma rota adicionada. Integração HTTP das projeções pendente |
 | User/Core UUID ownership e Entity pura | 2.*, 4.1/4.5/4.8/4.9 | Unit + HTTP + fronteiras | Proven para Identity/Core no STEP 04; consumidores e ambiente operacional ainda em conversão |
 | Sanctum/segredo/expiração/extensão/link | 4.2–4.4/4.6–4.9 | PAT real + PG locks + assinatura/tempo/owner | Proven no schema exclusivo do STEP 04, incluindo corrida sincronizada de extensão; rollout operacional pendente |
 | Expense sort/cursor v2/cache/worker | 5.* | Unit + PG/HTTP next-prev + Redis/worker exclusivo | Proven no STEP 05 em schema/Redis/filas exclusivos; transição operacional de caches/jobs/banco ainda no STEP 12 |
 | Notifications registro/instalação/rotação/remoção | 6.* | Unit + HTTP/PG + rollback/races + Identity | Proven no STEP 06 em bancos exclusivos; v4/whitespace rejeitados, ID preservado e DELETE uniforme. Envio/cliente/rollout operacional pendentes |
-| Insights períodos/estados/rotação/UUID | 8.* | Unit + HTTP/PG + Core batch | Não implementado/comprovado |
+| Insights períodos/estados/rotação/UUID | 8.* | Unit + HTTP/PG + Core batch | Proven no STEP 08: UUID associado, chaves tipadas, fatos/editorial preservados, equivalências/estados/períodos/owner, processo/PAT/retorno, falhas e queries separadas. Operação local permanece no STEP 12 |
 | Metrics singular/zero/default/grouped/UUID | 9.* | Unit + HTTP/PG + Core batch | Não implementado/comprovado |
 | Sugestões norm/valor/owner/UUID | 10.* | Unit + HTTP/PG normalização SQL/associação | Não implementado/comprovado |
 | Observabilidade próprio UUID/native SDK | 11.3–11.4 | JSON/header/context + ausência de segredos/fingerprint | Não implementado/comprovado |
 | Cliente/Bruno/documentação | 13.* | Parser/CLI controlados + homologação externa distinta | Não implementado/comprovado |
-| Gates transversais | 14.* | Padrão + duas seeds + paralelo + Redis/concorrência | Bloqueios históricos superados na correção transversal. Após STEP 06: padrão/seeds 20261024/20261025/paralelo passaram 2.206/40.012. Repetir gates após implementação restante; aprovação atual não conclui 14.* |
+| Gates transversais | 14.* | Padrão + duas seeds + paralelo + Redis/concorrência | Evidências históricas dos STEPs 06/07 preservadas abaixo. Após STEP 08: padrão 2.267/40.376 e Feature Insights paralelo 176/1.960. Seeds/gate paralelo completo não repetidos nesta fatia; repetir gates finais após implementação restante, sem concluir 14.* |
 
 ## Estado histórico da elaboração da proposta
 
@@ -918,3 +918,61 @@ Verificações posteriores à renomeação/Pint, pelo launcher e com os mesmos f
 - `tests/Unit/Core tests/Feature/Core tests/Unit/Architecture/ContextBoundariesTest.php`: **535/2.236**, 21.587 ms.
 
 Pint `--dirty --format agent`, OpenSpec estrito e `git diff --check` aprovados; busca pelos identificadores PHP antigos sem ocorrências. Gates completos anteriores permanecem evidência histórica da implementação, sem atribuir nova execução global à renomeação.
+
+## STEP 08 — Insights com UUIDv7 estável — 2026-10-15
+
+### Autorização, implementação e fronteiras
+
+Pedido: “Vamos continuar a implementacao ## STEP 08”. Autoriza a integração Insights e suas provas 8.2–8.7; 8.1 já estava concluído. Checkout iniciou limpo. Boost reconfirmou PHP 8.5/Laravel 13.34.0/PostgreSQL/Pest 5.2.1; documentação de container/testing consultada. Site Lerd `trocado` descoberto antes das operações. Skills architecture/quality-gate e SDD local consultadas; fluxo OpenSpec por instructions apply/status e validação estrita.
+
+`GetInsightsUseCase` passa a depender especificamente de `ResourceUseCase`, mantendo `Port → UseCases → Repository`. A seleção/deduplicação existente continua antes da composição. Todos os textos e chaves são preparados antes da única chamada ao Core; só então os Outputs recebem os UUIDs confirmados, na ordem final. Namespace `insights` e versão de identidade `1` são constantes independentes do catálogo editorial.
+
+Componentes na ordem contratual: `type`, `subject`, `history_state`, `analysis_from`, `analysis_to`, `comparison_from`, `comparison_to`. Opcionais ausentes são null tipados; owner é escopo separado do lote. Onboarding usa o período interno e conserva período público null. Não entram valor, descrição, maior Expense, modo editorial, dia de visita ou versão de catálogo. SQL financeiro, regras, limites, composição, rotação e catálogo não foram alterados; não há novo Model/Repository/binding/migration em Insights.
+
+### Rastreabilidade de cenários e evidência
+
+| Cenário anterior → destino atual | Evidência e classificação |
+| --- | --- |
+| GetInsightsUseCaseTest: obtenção de owner, fatos tipados, valores, variantes, períodos, tipos, assuntos, onboarding e falhas → mesmo arquivo | **Proven**: 18 casos anteriores preservados; hash esperado substituído por UUID fornecido pelo stub do Repository Core. Core real orquestra a resolução com TransactionPortFake, sem alegar rollback de banco |
+| Chave contratual, nulls, estado, comparação e ordem → novos casos no mesmo Unit | **Proven**: componentes esperados escritos independentemente; um único lote para comparação/observação, retorno do Repository invertido reconciliado; estados current_expenses/no_current_expenses conservam período interno. Chave exata exclui dados e versão editorial; não houve troca artificial do catálogo |
+| Fonte/precisão/composição/registro falham → novos casos Unit e MonthlyCompositionFailureHttpTest | **Proven**: Repository Core nunca chamado antes de validação/composição bem-sucedidas; HTTP falhando no segundo cartão, após comparação componível, deixa zero associações e não publica data parcial/onboarding |
+| MonthlyIdentityHttpTest: default/URL/zeros, valores/descrição/visita/owner/mês, onboarding null e estados → mesmo arquivo | **Proven** em HTTP/PostgreSQL com PAT real: associações estáveis nas equivalências e distintas por mudança lógica. Nenhuma prova de período ou precisão removida |
+| Desaparecimento/retorno + PAT novo/processo novo → novo cenário MonthlyIdentityHttpTest | **Proven**: mudança de categorias remove IDs da seleção; restaurá-las reutiliza os IDs em processo filho PHP real com conexão PostgreSQL nova e guard limpo, no dia seguinte/PAT substituído. Rows anteriores ficam idênticas e PAT removido responde 401. Processo por fork; não simula reboot integral do servidor |
+| InsightsApiTest/MonthlyContractHttpTest: JSON:API, privacidade, períodos, limites 24/80 e snapshot → mesmos arquivos | **Proven**: assertions de hash passam a versão/variante/canonicalização UUIDv7; demais assertions preservadas. Três cartões, uma leitura financeira por chamada, registro miss de três statements e hit de um SELECT; rows/timestamps de hits intactos. Queries de users/PAT são classificadas separadamente como middleware |
+| Fonte indisponível/registro falha após escrita → StableIdentityFailureHttpTest | **Proven**: exceção sentinela da fonte reportada sem acesso ao registro; SQLSTATE 23514 real induzido após observar INSERT confirmado dentro da transação, rollback para zero rows, erro sanitizado sem previous, JSON:API 500 sem data/fallback e transactionLevel zero |
+| Pureza e permissões específicas Core → ContextBoundariesTest | **Proven**: arquivo isolado e suíte focada sem ampliar allowlist ou importar Core Infrastructure/Repository em produto Insights |
+
+Não há cenário antigo eliminado ou consolidado. O seletor continua limitado a seis e deduplica antes do lote; os contratos de lote vazio e seis chaves são comprovados na capacidade Core do STEP 07, não por fabricar seis cartões ou uma seleção vazia na geração atual (que oferece orientação quando faltam fatos).
+
+### Comandos e resultados finais
+
+Todos os comandos abaixo usam `lerd composer test --` e terminam com `--compact --fail-on-skipped --fail-on-incomplete --fail-on-risky`. Feature usa bancos exclusivos do launcher, migrations incrementais e cleanup registrado; nenhum reset do banco operacional.
+
+| Argumentos de seleção | Testes / assertions | Duração |
+| --- | --- | --- |
+| `tests/Unit/Insights/Application/UseCases/GetInsightsUseCaseTest.php` | **25 / 185** | 56 ms |
+| `tests/Feature/Insights/InsightsApiTest.php` | **54 / 361** | 2.079 ms |
+| `tests/Feature/Insights/Presentation/Http/MonthlyContractHttpTest.php` | **2 / 88** | 361 ms |
+| `tests/Feature/Insights/Presentation/Http/MonthlyIdentityHttpTest.php` | **6 / 169** | 584 ms |
+| `tests/Feature/Insights/Presentation/Http/MonthlyCompositionFailureHttpTest.php` | **2 / 32** | 298 ms |
+| `tests/Feature/Insights/Presentation/Http/StableIdentityFailureHttpTest.php` | **2 / 24** | 300 ms |
+| `tests/Unit/Architecture/ContextBoundariesTest.php` | **30 / 504** | 4.838 ms |
+| `tests/Unit/Insights tests/Feature/Insights tests/Unit/Architecture/ContextBoundariesTest.php` | **827 / 32.851** | 11.533 ms |
+| nenhuma (gate completo padrão) | **2.267 / 40.376** | 51.290 ms |
+| `tests/Feature/Insights --parallel --processes=2` | **176 / 1.960** | 4.648 ms |
+
+Pint `--dirty --format agent` executado antes das verificações finais; corrigiu somente imports dos dois testes. Todos os arquivos de teste alterados passaram isoladamente após o formatter. Gate completo inclui as provas Redis/concorrência/duas invocações simultâneas existentes; não houve exclusões/skips/incomplete/risky. As duas seeds e o paralelo completo históricos do STEP 07 não foram reexecutados nesta fatia; 14.* continua pendente para o fechamento da change.
+
+A primeira tentativa de Feature Insights paralela pelo MCP retornou timeout sem evidência aproveitada. Após confirmar ausência de processos de teste restantes no container, o comando idêntico pela CLI Lerd passou com o resultado da tabela. Timeout não conta como aprovação.
+
+### Observabilidade e limites operacionais
+
+Captura Lerd já estava habilitada, sem alteração de configuração. Requisição local sem credencial a `/api/insights` retornou 401 JSON:API; `optimize_route` devolveu zero amostras. As contagens autenticadas acima são provas HTTP/PostgreSQL do launcher, não medição operacional nem evidência de ausência global de N+1. Rollout, reset e medição autenticada local permanecem no STEP 12. Não há nova migration nesta fatia.
+
+**Resultado de escopo:** 8.1–8.7 completos e comprovados; próximo STEP 09 — Metrics com UUIDv7 estável. Nenhuma declaração de conclusão/arquivo da change inteira ou homologação Bruno/Flutter.
+
+### Correção após relato de teste quebrando — 2026-10-15
+
+A nova execução completa reproduziu **3 falhas e 4 erros** em `GetInsightsUseCaseTest` (2.260 passando de 2.267). No estado encontrado, `GetInsightsUseCase` consultava o owner antes de validar o período e emitia os componentes da chave em ordem diferente da matriz. Foi restaurada a validação antes de `UserPort::id()` e a ordem contratual `type → subject → history_state → analysis_from → analysis_to → comparison_from → comparison_to`. A ordem é parte do fingerprint Core, portanto a correção preserva a identidade em vez de alterar os esperados dos testes. As demais reorganizações encontradas no arquivo foram preservadas.
+
+Após Pint `--dirty --format agent`, o arquivo Unit isolado passou **25/185**, 56 ms. O comando `lerd composer test -- --compact --fail-on-skipped --fail-on-incomplete --fail-on-risky` passou **2.267/40.376**, 53.122 ms, sem skips/exclusões. As evidências anteriores permanecem históricas; esta execução confirma novamente o estado corrigido.

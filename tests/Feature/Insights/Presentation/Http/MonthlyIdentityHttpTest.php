@@ -3,10 +3,13 @@
 declare(strict_types=1);
 
 use App\Identity\Domain\Enums\UserStatusEnum;
+use Illuminate\Contracts\Http\Kernel;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Tests\Support\Core\Fixtures\ConcurrentDatabaseProcess;
 use Tests\Support\Identity\Fixtures\IdentityFixture;
 
 beforeEach(function (): void {
@@ -51,7 +54,7 @@ it('keeps financial and onboarding identities identical for default explicit and
             expect($data)->toBe($responses[0]);
             foreach ($data as $resource) {
                 expect($resource['type'])->toBe('insights')
-                    ->and($resource['id'])->toBeString()->toMatch('/\A[0-9a-f]{64}\z/');
+                    ->and($resource['id'])->toBeString()->toMatch('/\A[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z/');
             }
         }
     }
@@ -174,4 +177,54 @@ it('distinguishes contextual onboarding states without changing the selected mon
         ->assertJsonPath('data.0.attributes.type', 'insufficient_history')
         ->assertJsonPath('data.0.attributes.period', null)->json('data.0');
     expect($second['id'])->not->toBe($first['id']);
+});
+
+it('retains historical UUIDs after disappearance return token replacement and a new PHP process', function (): void {
+    $owner = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
+    $token = IdentityFixture::token($owner, expiresAt: now()->addDays(30));
+    foreach ([5000, 500, 500, 2000, 2000] as $index => $amount) {
+        DB::table('expenses')->insert([
+            'id' => (string) Str::uuid7(), 'user_id' => $owner->getKey(), 'amount' => $amount,
+            'category' => $index < 3 ? 'other' : 'food', 'occurred_on' => '2026-09-0'.($index + 1),
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+    }
+    $url = route('insights.index').'?filter[year]=2026&filter[month]=9';
+    $first = $this->withToken($token)->getJson($url)->assertOk()->assertJsonCount(2, 'data')->json('data');
+    $rows = DB::table('resource_identities')->orderBy('id')->get()->all();
+    DB::table('expenses')->where('user_id', $owner->getKey())->update(['category' => 'food']);
+    Auth::forgetGuards();
+    $absent = $this->withToken($token)->getJson($url)->assertOk()->json('data');
+    expect(array_intersect(array_column($first, 'id'), array_column($absent, 'id')))->toBe([]);
+    DB::table('expenses')->where('user_id', $owner->getKey())->where('occurred_on', '<=', '2026-09-03')->update(['category' => 'other']);
+    $owner->tokens()->delete();
+    $newToken = IdentityFixture::token($owner, expiresAt: now()->addDays(30));
+    Date::setTestNow('2026-10-13 12:00:00 UTC');
+    $child = new ConcurrentDatabaseProcess(static function () use ($url, $newToken, $first): void {
+        Auth::forgetGuards();
+        $kernel = app(Kernel::class);
+        $request = Request::create($url, 'GET', server: [
+            'HTTP_AUTHORIZATION' => 'Bearer '.$newToken, 'HTTP_ACCEPT' => 'application/vnd.api+json',
+        ]);
+        $response = $kernel->handle($request);
+        try {
+            expect($response->getStatusCode())->toBe(200);
+            $data = json_decode($response->getContent(), true, flags: JSON_THROW_ON_ERROR)['data'];
+            expect(array_column($data, 'id'))->toBe(array_column($first, 'id'))
+                ->and($data[0]['attributes']['description'])->not->toBe($first[0]['attributes']['description']);
+        } finally {
+            $kernel->terminate($request, $response);
+        }
+    });
+    try {
+        $child->go();
+        $child->done();
+    } finally {
+        $child->close();
+    }
+    foreach ($rows as $row) {
+        expect(DB::table('resource_identities')->where('id', $row->id)->first())->toEqual($row);
+    }
+    Auth::forgetGuards();
+    $this->withToken($token)->getJson($url)->assertUnauthorized();
 });

@@ -2,13 +2,20 @@
 
 declare(strict_types=1);
 
+use App\Core\Application\Data\ResourceKeyInput;
+use App\Core\Application\Data\ResourceKeyOutput;
+use App\Core\Application\Exceptions\ResourcePersistenceException;
 use App\Core\Application\Ports\UserPort;
+use App\Core\Application\Repositories\ResourceRepository;
+use App\Core\Application\UseCases\ResourceUseCase;
+use App\Core\Domain\Exceptions\InvalidAmountException;
 use App\Core\Domain\ValueObjects\AmountValueObject;
 use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Insights\Application\Data\ExpenseAnalysisOutput;
 use App\Insights\Application\Data\ExpenseCategoryAnalysisOutput;
 use App\Insights\Application\Data\ExpensePeriodAnalysisOutput;
 use App\Insights\Application\Data\GetInsightsInput;
+use App\Insights\Application\Exceptions\InsightMessageCompositionException;
 use App\Insights\Application\Repositories\ExpenseAnalysisRepository;
 use App\Insights\Application\UseCases\ComposeInsightMessageUseCase;
 use App\Insights\Application\UseCases\GenerateInsightCandidatesUseCase;
@@ -21,6 +28,7 @@ use App\Insights\Domain\Enums\InsightPeriodModeEnum;
 use App\Insights\Domain\Enums\InsightTypeEnum;
 use App\Insights\Domain\Exceptions\InvalidInsightAnalysisException;
 use App\Insights\Domain\ValueObjects\InsightAnalysisPeriodValueObject;
+use Tests\Support\Core\Fakes\TransactionPortFake;
 use Tests\Support\Core\Fixtures\UuidFixture;
 
 function getInsightsAnalysisFixture(
@@ -60,13 +68,27 @@ function getInsightsAnalysisFixture(
     );
 }
 
-function getInsightsFixtureUseCase(UserPort $userPort, ExpenseAnalysisRepository $analysisPort): GetInsightsUseCase
+function getInsightsFixtureUseCase(UserPort $userPort, ExpenseAnalysisRepository $analysisPort, ?ResourceRepository $resourceRepository = null): GetInsightsUseCase
 {
+    if ($resourceRepository === null) {
+        $ids = [];
+        $resourceRepository = test()->createStub(ResourceRepository::class);
+        $resourceRepository->method('resolve')->willReturnCallback(static function (string $owner, array $keys) use (&$ids): array {
+            return array_map(static function (ResourceKeyInput $key) use ($owner, &$ids): ResourceKeyOutput {
+                $index = serialize([$owner, $key]);
+                $ids[$index] ??= UuidFixture::at(count($ids) + 100);
+
+                return new ResourceKeyOutput($key, $ids[$index]);
+            }, $keys);
+        });
+    }
+
     return new GetInsightsUseCase(
         port: $userPort,
         repository: $analysisPort,
         candidateSelectionUseCase: new SelectInsightCandidatesUseCase,
         candidateGenerationUseCase: new GenerateInsightCandidatesUseCase,
+        resourceUseCase: new ResourceUseCase(new TransactionPortFake, $resourceRepository),
         messageCompositionUseCase: new ComposeInsightMessageUseCase(new GetInsightMessageTemplatesUseCase, new SelectInsightMessageVariantUseCase),
     );
 }
@@ -80,7 +102,7 @@ it('obtains the owner from its port and returns composed typed insights', functi
     $insights = getInsightsFixtureUseCase($userPort, $analysisPort)->execute(new GetInsightsInput('2026-10-12', DatePeriodValueObject::monthContaining('2026-10-12')));
 
     expect($insights)->toHaveCount(1)
-        ->and($insights[0]->id)->toMatch('/\A[0-9a-f]{64}\z/')
+        ->and($insights[0]->id)->toBe(UuidFixture::at(100))
         ->and($insights[0]->type)->toBe(InsightTypeEnum::CategoryConcentration)
         ->and($insights[0]->group)->toBe(InsightGroupEnum::Observation)
         ->and(str_contains($insights[0]->description, '60%'))->toBeTrue()
@@ -88,7 +110,7 @@ it('obtains the owner from its port and returns composed typed insights', functi
         ->and($insights[0]->comparisonPeriod)->toBeNull();
 });
 
-it('keeps derived IDs and variants stable when only numbers change', function (): void {
+it('keeps associated IDs and variants stable when only numbers change', function (): void {
     $userPort = $this->createMock(UserPort::class);
     $userPort->method('id')->willReturn(UuidFixture::at(42));
     $analysisPort = $this->createMock(ExpenseAnalysisRepository::class);
@@ -176,7 +198,7 @@ it('keeps the resource ID independent of the rotating message for the same analy
         ->and($first->group)->toBe($second->group);
 });
 
-it('distinguishes accounts subjects and analyzed periods in derived IDs', function (string $dimension): void {
+it('distinguishes accounts subjects and analyzed periods in associated IDs', function (string $dimension): void {
     $userPort = $this->createMock(UserPort::class);
     $userPort->method('id')->willReturnOnConsecutiveCalls(UuidFixture::at(42), UuidFixture::at($dimension === 'account' ? 43 : 42));
     $analysisPort = $this->createMock(ExpenseAnalysisRepository::class);
@@ -334,8 +356,10 @@ it('propagates analytical failures instead of producing fabricated onboarding', 
     $userPort->method('id')->willReturn(UuidFixture::at(42));
     $analysisPort = $this->createMock(ExpenseAnalysisRepository::class);
     $analysisPort->method('analyze')->willThrowException(new RuntimeException('Analysis unavailable'));
+    $resources = $this->createMock(ResourceRepository::class);
+    $resources->expects($this->never())->method('resolve');
 
-    getInsightsFixtureUseCase($userPort, $analysisPort)->execute(new GetInsightsInput('2026-10-12', DatePeriodValueObject::monthContaining('2026-10-12')));
+    getInsightsFixtureUseCase($userPort, $analysisPort, $resources)->execute(new GetInsightsInput('2026-10-12', DatePeriodValueObject::monthContaining('2026-10-12')));
 })->throws(RuntimeException::class, 'Analysis unavailable');
 
 it('rejects invalid non HTTP selections before resolving the owner or reading expenses', function (string $from, string $to): void {
@@ -348,3 +372,122 @@ it('rejects invalid non HTTP selections before resolving the owner or reading ex
 })->with([
     ['2026-11-01', '2026-11-30'], ['2026-09-01', '2026-09-29'], ['0001-02-01', '0001-02-28'],
 ])->throws(InvalidInsightAnalysisException::class);
+
+it('resolves exactly the canonical final keys once without editorial financial or catalog components', function (): void {
+    $port = $this->createStub(UserPort::class);
+    $port->method('id')->willReturn(UuidFixture::at(42));
+    $repository = $this->createMock(ExpenseAnalysisRepository::class);
+    $repository->expects($this->once())->method('analyze')->willReturn(getInsightsAnalysisFixture());
+    $key = new ResourceKeyInput(namespace: 'insights', identityVersion: 1, components: [
+        'type' => 'category_concentration', 'subject' => 'food', 'history_state' => null,
+        'analysis_from' => '2026-10-01', 'analysis_to' => '2026-10-12',
+        'comparison_from' => null, 'comparison_to' => null,
+    ]);
+    $resources = $this->createMock(ResourceRepository::class);
+    $resources->expects($this->once())->method('resolve')->with(UuidFixture::at(42), [$key])
+        ->willReturn([new ResourceKeyOutput($key, UuidFixture::at(900))]);
+
+    $output = getInsightsFixtureUseCase($port, $repository, $resources)->execute(new GetInsightsInput('2026-10-12', DatePeriodValueObject::monthContaining('2026-10-01')));
+    expect($output)->toHaveCount(1)->and($output[0]->id)->toBe(UuidFixture::at(900));
+});
+
+it('does not allocate associations when projection validation or editorial composition fails', function (string $category): void {
+    $port = $this->createStub(UserPort::class);
+    $port->method('id')->willReturn(UuidFixture::at(42));
+    $repository = $this->createStub(ExpenseAnalysisRepository::class);
+    $base = getInsightsAnalysisFixture(category: $category);
+    $current = $base->currentMonth;
+    $repository->method('analyze')->willReturn(new ExpenseAnalysisOutput(
+        mode: $base->mode, hasHistoricalExpenses: true,
+        previousMonth: $base->previousMonth, twoMonthsAgo: $base->twoMonthsAgo,
+        currentComparison: null, previousComparison: null,
+        currentMonth: new ExpensePeriodAnalysisOutput(
+            period: $current->period, expenseCount: $current->expenseCount, distinctDateCount: $current->distinctDateCount,
+            totalAmount: $category === 'food' ? 'invalid' : $current->totalAmount,
+            largestExpenseAmount: $current->largestExpenseAmount, largestExpenseCategory: $category,
+            largestExpenseOccurredOn: $current->largestExpenseOccurredOn, categories: $current->categories,
+        ),
+    ));
+    $resources = $this->createMock(ResourceRepository::class);
+    $resources->expects($this->never())->method('resolve');
+
+    expect(fn () => getInsightsFixtureUseCase($port, $repository, $resources)->execute(new GetInsightsInput('2026-10-12', DatePeriodValueObject::monthContaining('2026-10-01'))))
+        ->toThrow($category === 'food' ? InvalidAmountException::class : InsightMessageCompositionException::class);
+})->with(['invalid precision' => 'food', 'invalid editorial category' => 'unmapped']);
+
+it('propagates Core failure instead of returning a transient or partial resource', function (): void {
+    $port = $this->createStub(UserPort::class);
+    $port->method('id')->willReturn(UuidFixture::at(42));
+    $repository = $this->createStub(ExpenseAnalysisRepository::class);
+    $repository->method('analyze')->willReturn(getInsightsAnalysisFixture());
+    $resources = $this->createMock(ResourceRepository::class);
+    $resources->expects($this->once())->method('resolve')->willThrowException(new RuntimeException('Registry sentinel'));
+
+    expect(fn () => getInsightsFixtureUseCase($port, $repository, $resources)->execute(new GetInsightsInput('2026-10-12', DatePeriodValueObject::monthContaining('2026-10-01'))))
+        ->toThrow(ResourcePersistenceException::class, 'Resource identities could not be resolved.');
+});
+
+it('resolves comparison and observation together preserving final order and explicit comparison bounds', function (): void {
+    $base = getInsightsAnalysisFixture(to: '2026-09-30', mode: InsightPeriodModeEnum::Closed);
+    $previous = new ExpensePeriodAnalysisOutput(
+        period: DatePeriodValueObject::fromDates('2026-08-01', '2026-08-31'),
+        expenseCount: 5, distinctDateCount: 3, totalAmount: '40000',
+        largestExpenseAmount: '8000', largestExpenseCategory: 'food', largestExpenseOccurredOn: '2026-08-01',
+        categories: [new ExpenseCategoryAnalysisOutput('food', '40000')],
+    );
+    $analysis = new ExpenseAnalysisOutput(
+        mode: InsightPeriodModeEnum::Closed, hasHistoricalExpenses: true,
+        currentMonth: $base->currentMonth, previousMonth: $previous, twoMonthsAgo: $base->twoMonthsAgo,
+        currentComparison: $base->currentMonth, previousComparison: $previous,
+    );
+    $port = $this->createStub(UserPort::class);
+    $port->method('id')->willReturn(UuidFixture::at(42));
+    $repository = $this->createStub(ExpenseAnalysisRepository::class);
+    $repository->method('analyze')->willReturn($analysis);
+    $comparison = new ResourceKeyInput(namespace: 'insights', identityVersion: 1, components: [
+        'type' => 'registered_amount_increase', 'subject' => null, 'history_state' => null,
+        'analysis_from' => '2026-09-01', 'analysis_to' => '2026-09-30',
+        'comparison_from' => '2026-08-01', 'comparison_to' => '2026-08-31',
+    ]);
+    $observation = new ResourceKeyInput(namespace: 'insights', identityVersion: 1, components: [
+        'type' => 'category_concentration', 'subject' => 'food', 'history_state' => null,
+        'analysis_from' => '2026-09-01', 'analysis_to' => '2026-09-30',
+        'comparison_from' => null, 'comparison_to' => null,
+    ]);
+    $resources = $this->createMock(ResourceRepository::class);
+    $resources->expects($this->once())->method('resolve')->with(UuidFixture::at(42), [$comparison, $observation])
+        ->willReturn([new ResourceKeyOutput($observation, UuidFixture::at(901)), new ResourceKeyOutput($comparison, UuidFixture::at(900))]);
+    $outputs = getInsightsFixtureUseCase($port, $repository, $resources)->execute(new GetInsightsInput('2026-10-12', DatePeriodValueObject::monthContaining('2026-09-01')));
+    expect(array_column($outputs, 'id'))->toBe([UuidFixture::at(900), UuidFixture::at(901)]);
+});
+
+it('passes internal onboarding periods and contextual state to Core despite null public periods', function (bool $hasExpenses): void {
+    $base = getInsightsAnalysisFixture(to: '2026-09-30', mode: InsightPeriodModeEnum::Closed);
+    $analysis = new ExpenseAnalysisOutput(
+        mode: InsightPeriodModeEnum::Closed, hasHistoricalExpenses: $hasExpenses,
+        previousMonth: $base->previousMonth, twoMonthsAgo: $base->twoMonthsAgo,
+        currentComparison: null, previousComparison: null,
+        currentMonth: new ExpensePeriodAnalysisOutput(
+            period: $base->currentMonth->period, expenseCount: $hasExpenses ? 1 : 0, distinctDateCount: $hasExpenses ? 1 : 0,
+            totalAmount: $hasExpenses ? '1000' : '0', largestExpenseAmount: $hasExpenses ? '1000' : '0',
+            largestExpenseCategory: $hasExpenses ? 'food' : null,
+            largestExpenseOccurredOn: $hasExpenses ? '2026-09-01' : null,
+            categories: $hasExpenses ? [new ExpenseCategoryAnalysisOutput('food', '1000')] : [],
+        ),
+    );
+    $port = $this->createStub(UserPort::class);
+    $port->method('id')->willReturn(UuidFixture::at(42));
+    $repository = $this->createStub(ExpenseAnalysisRepository::class);
+    $repository->method('analyze')->willReturn($analysis);
+    $key = new ResourceKeyInput(namespace: 'insights', identityVersion: 1, components: [
+        'type' => 'insufficient_history', 'subject' => null,
+        'history_state' => $hasExpenses ? 'current_expenses' : 'no_current_expenses',
+        'analysis_from' => '2026-09-01', 'analysis_to' => '2026-09-30',
+        'comparison_from' => null, 'comparison_to' => null,
+    ]);
+    $resources = $this->createMock(ResourceRepository::class);
+    $resources->expects($this->once())->method('resolve')->with(UuidFixture::at(42), [$key])
+        ->willReturn([new ResourceKeyOutput($key, UuidFixture::at(900))]);
+    $outputs = getInsightsFixtureUseCase($port, $repository, $resources)->execute(new GetInsightsInput('2026-10-12', DatePeriodValueObject::monthContaining('2026-09-01')));
+    expect($outputs)->toHaveCount(1)->and($outputs[0]->period)->toBeNull()->and($outputs[0]->id)->toBe(UuidFixture::at(900));
+})->with(['no records in selected month' => false, 'some records in selected month' => true]);

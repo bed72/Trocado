@@ -88,7 +88,7 @@ it('returns isolated ordered JSON API insights with exact contract and one analy
 
     foreach ($response->json('data') as $resource) {
         expect($resource['type'])->toBe('insights')
-            ->and($resource['id'])->toMatch('/\A[0-9a-f]{64}\z/')
+            ->and($resource['id'])->toMatch('/\A[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z/')
             ->and(array_keys($resource))->toEqualCanonicalizing(['type', 'id', 'attributes'])
             ->and(array_keys($resource['attributes']))->toEqualCanonicalizing(['group', 'type', 'title', 'description', 'period'])
             ->and(mb_strlen($resource['attributes']['title'], 'UTF-8'))->toBeLessThanOrEqual(24)
