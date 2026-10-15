@@ -8,6 +8,7 @@ use App\Notifications\Infrastructure\Repositories\Persistence\Models\Notificatio
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Tests\Support\Identity\Fixtures\IdentityFixture;
 use Tests\Support\Notifications\Fixtures\NotificationRegistrationFixture;
 
@@ -17,13 +18,16 @@ beforeEach(function (): void {
 
 it('keeps two installations independent and synchronizes then rotates one without duplicates', function (): void {
     $user = IdentityFixture::create(UserStatusEnum::Active, now());
-    $token = IdentityFixture::token($user, now()->addDays(20));
+    $token = IdentityFixture::token($user, now()->addDays(10));
     $session = PersonalAccessToken::findToken($token);
     $expiry = $session->expires_at->format(DATE_ATOM);
     $first = $this->withToken($token)->postJson('/api/push-registrations', NotificationRegistrationFixture::payload())
         ->assertCreated()->assertHeader('Content-Type', 'application/vnd.api+json')
         ->assertJsonPath('data.type', 'push-registrations');
     $id = $first->json('data.id');
+    expect(Str::isUuid($id, version: 7))->toBeTrue()
+        ->and($id)->toBe(strtolower($id))->not->toBe(NotificationRegistrationFixture::Installation)
+        ->and($first->json('data.attributes.installation_id'))->toBe(NotificationRegistrationFixture::Installation);
     $originalCiphertext = DB::table('notifications')->where('id', $id)->value('registration_identifier');
 
     expect($first->headers->get('Cache-Control'))->toContain('no-store')
@@ -34,7 +38,8 @@ it('keeps two installations independent and synchronizes then rotates one withou
     $this->withToken($token)->postJson('/api/push-registrations', NotificationRegistrationFixture::payload(NotificationRegistrationFixture::OtherInstallation, 'OtherFakeToken', 'ios'))->assertCreated();
     $this->travelTo(now()->addHour());
     Auth::forgetGuards();
-    $this->withToken($token)->postJson('/api/push-registrations', NotificationRegistrationFixture::payload())->assertOk()->assertJsonPath('data.id', $id);
+    $this->withToken($token)->postJson('/api/push-registrations', NotificationRegistrationFixture::payload(strtoupper(NotificationRegistrationFixture::Installation)))
+        ->assertOk()->assertJsonPath('data.id', $id)->assertJsonPath('data.attributes.installation_id', NotificationRegistrationFixture::Installation);
     expect(NotificationModel::query()->count())->toBe(2)
         ->and(NotificationModel::query()->find($id)->generation)->toBe(1)
         ->and(DB::table('notifications')->where('id', $id)->value('registration_identifier'))->toBe($originalCiphertext);
@@ -75,21 +80,26 @@ it('rejects installation or destination takeover and duplicate destinations with
 it('deletes only owned registration and gives uniform not found responses', function (): void {
     $owner = IdentityFixture::create(UserStatusEnum::Active, now());
     $other = IdentityFixture::create(UserStatusEnum::Active, now(), email: 'other@example.com');
-    $token = IdentityFixture::token($owner, now()->addDays(20));
+    $token = IdentityFixture::token($owner, now()->addDays(10));
     $otherToken = IdentityFixture::token($other, now()->addDays(20));
     $id = $this->withToken($token)->postJson('/api/push-registrations', NotificationRegistrationFixture::payload())->assertCreated()->json('data.id');
+    $expiry = PersonalAccessToken::findToken($token)->expires_at->format(DATE_ATOM);
+    Auth::forgetGuards();
+    $remaining = $this->withToken($token)->postJson('/api/push-registrations', NotificationRegistrationFixture::payload(NotificationRegistrationFixture::OtherInstallation, 'remaining-token'))->assertCreated()->json('data.id');
     Auth::forgetGuards();
     $otherResponse = $this->withToken($otherToken)->deleteJson('/api/push-registrations/'.$id)->assertNotFound()->json();
-    expect(NotificationModel::query()->count())->toBe(1);
+    expect(NotificationModel::query()->count())->toBe(2);
     Auth::forgetGuards();
-    $this->withToken($token)->deleteJson('/api/push-registrations/'.$id)->assertNoContent();
+    $this->withToken($token)->deleteJson('/api/push-registrations/'.strtoupper($id))->assertNoContent();
 
-    foreach ([$id, 'not-a-uuid', NotificationRegistrationFixture::OtherInstallation] as $missing) {
+    foreach ([$id, 'not-a-uuid', NotificationRegistrationFixture::Installation] as $missing) {
         Auth::forgetGuards();
         $this->withToken($token)->deleteJson('/api/push-registrations/'.$missing)->assertNotFound()->assertExactJson($otherResponse);
     }
     expect(PersonalAccessToken::findToken($token))->not->toBeNull()
-        ->and(PersonalAccessToken::findToken($otherToken))->not->toBeNull();
+        ->and(PersonalAccessToken::findToken($otherToken))->not->toBeNull()
+        ->and(PersonalAccessToken::findToken($token)->expires_at->format(DATE_ATOM))->toBe($expiry)
+        ->and(NotificationModel::query()->sole()->getKey())->toBe($remaining);
 });
 
 it('requires real valid bearer credentials', function (string $credential): void {
@@ -133,6 +143,16 @@ it('rejects invalid closed document fields with pointers without echoing the des
     ['data.attributes.registration_identifier', null],
     ['data.attributes.registration_identifier', 123],
     ['data.attributes.installation_id', 'device-id'],
+    ['data.attributes.installation_id', '017f22e2-79b0-1cc3-98c4-000000000101'],
+    ['data.attributes.installation_id', '017f22e2-79b0-4cc3-98c4-000000000101'],
+    ['data.attributes.installation_id', '017f22e2-79b0-6cc3-98c4-000000000101'],
+    ['data.attributes.installation_id', '017f22e2-79b0-8cc3-98c4-000000000101'],
+    ['data.attributes.installation_id', '017f22e2-79b0-7cc3-c8c4-000000000101'],
+    ['data.attributes.installation_id', '00000000-0000-0000-0000-000000000000'],
+    ['data.attributes.installation_id', 42],
+    ['data.attributes.installation_id', null],
+    ['data.attributes.installation_id', ' '.NotificationRegistrationFixture::Installation],
+    ['data.attributes.installation_id', NotificationRegistrationFixture::Installation."\n"],
     ['data.attributes.platform', 'web'],
     ['data.attributes.registration_kind', 'fid'],
     ['data.attributes.user_id', 999],
@@ -182,6 +202,8 @@ it('uses the shared authenticated quota without extra tokens or IP granting anot
     Auth::forgetGuards();
     $this->withToken($other)->withServerVariables(['REMOTE_ADDR' => '192.0.2.1'])
         ->postJson('/api/push-registrations', NotificationRegistrationFixture::payload())->assertTooManyRequests()->assertHeader('Retry-After');
+    Auth::forgetGuards();
+    $this->withToken($other)->deleteJson('/api/push-registrations/'.NotificationRegistrationFixture::Registration)->assertTooManyRequests()->assertHeader('Retry-After');
     expect(NotificationModel::query()->count())->toBe(0);
 });
 
@@ -189,3 +211,19 @@ it('does not expose a list or a sending endpoint', function (): void {
     $this->getJson('/api/push-registrations')->assertStatus(405);
     $this->postJson('/api/push-notifications', [])->assertNotFound();
 });
+
+it('rejects legacy or malformed delete routes before any notification lookup', function (string $id): void {
+    $user = IdentityFixture::create(UserStatusEnum::Active, now());
+    $token = IdentityFixture::token($user, now()->addDays(10));
+    DB::enableQueryLog();
+
+    try {
+        $this->withToken($token)->deleteJson('/api/push-registrations/'.rawurlencode($id))->assertNotFound()
+            ->assertHeader('Content-Type', 'application/vnd.api+json');
+        $queries = array_filter(DB::getQueryLog(), static fn (array $query): bool => str_contains($query['query'], '"notifications"'));
+        expect($queries)->toBeEmpty();
+    } finally {
+        DB::disableQueryLog();
+        DB::flushQueryLog();
+    }
+})->with(['42', '017f22e2-79b0-4cc3-98c4-000000000201', '017f22e2-79b0-7cc3-c8c4-000000000201', '00000000-0000-0000-0000-000000000000', ' '.NotificationRegistrationFixture::Registration, str_repeat('a', 64)]);

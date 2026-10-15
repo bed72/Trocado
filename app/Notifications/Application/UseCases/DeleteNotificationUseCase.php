@@ -7,6 +7,7 @@ namespace App\Notifications\Application\UseCases;
 use App\Core\Application\Ports\ObservabilityPort;
 use App\Core\Application\Ports\TransactionPort;
 use App\Core\Application\Ports\UserPort;
+use App\Core\Domain\ValueObjects\UuidValueObject;
 use App\Notifications\Application\Exceptions\NotificationRegistrationNotFoundException;
 use App\Notifications\Application\Ports\NotificationPort;
 use App\Notifications\Application\Repositories\NotificationRegistrationRepository;
@@ -31,6 +32,8 @@ final readonly class DeleteNotificationUseCase
         if (! NotificationValueObject::isUuid($id)) {
             throw new NotificationRegistrationNotFoundException;
         }
+
+        $id = UuidValueObject::fromString($id)->value();
 
         $this->transactionPort->commit(function () use ($userId, $id, $reference): void {
             $this->recipientPort->lock($userId, $reference);

@@ -21,7 +21,7 @@ it('revalidates session before repository access and only emits metadata after c
     $transaction = new TransactionPortFake;
     $reference = new DateTimeImmutable('2026-10-13T12:00:00Z');
     $destination = new NotificationValueObject(installationId: NotificationRegistrationFixture::Installation, registrationKind: 'token', platform: NotificationPlatformEnum::Android, identifier: 'fake-token');
-    $registration = new NotificationRegistrationEntity(id: NotificationRegistrationFixture::OtherInstallation, userId: UuidFixture::at(1), sessionId: UuidFixture::at(2), generation: 1, lastRegisteredAt: $reference, destination: $destination);
+    $registration = new NotificationRegistrationEntity(id: NotificationRegistrationFixture::Registration, userId: UuidFixture::at(1), sessionId: UuidFixture::at(2), generation: 1, lastRegisteredAt: $reference, destination: $destination);
     $user = $this->createStub(UserPort::class);
     $user->method('id')->willReturn(UuidFixture::at(1));
     $sessionLocked = false;
@@ -55,7 +55,7 @@ it('rereads in a new transaction after a uniqueness race and preserves idempoten
     $transaction = new TransactionPortFake;
     $reference = new DateTimeImmutable('2026-10-13T12:00:00Z');
     $destination = new NotificationValueObject(installationId: NotificationRegistrationFixture::Installation, registrationKind: 'token', platform: NotificationPlatformEnum::Android, identifier: 'fake-token');
-    $existing = new NotificationRegistrationEntity(id: NotificationRegistrationFixture::OtherInstallation, userId: UuidFixture::at(1), sessionId: UuidFixture::at(2), generation: 1, lastRegisteredAt: $reference, destination: $destination);
+    $existing = new NotificationRegistrationEntity(id: NotificationRegistrationFixture::Registration, userId: UuidFixture::at(1), sessionId: UuidFixture::at(2), generation: 1, lastRegisteredAt: $reference, destination: $destination);
     $user = $this->createStub(UserPort::class);
     $user->method('id')->willReturn(UuidFixture::at(1));
     $recipient = $this->createMock(NotificationPort::class);

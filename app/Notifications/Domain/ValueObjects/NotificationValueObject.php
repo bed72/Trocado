@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Notifications\Domain\ValueObjects;
 
+use App\Core\Domain\Exceptions\InvalidUuidException;
+use App\Core\Domain\ValueObjects\UuidValueObject;
 use App\Notifications\Domain\Enums\NotificationPlatformEnum;
 use App\Notifications\Domain\Exceptions\InvalidNotificationRegistrationException;
 use SensitiveParameter;
@@ -20,7 +22,9 @@ final readonly class NotificationValueObject
         public NotificationPlatformEnum $platform,
         #[SensitiveParameter] public string $identifier,
     ) {
-        if (! self::isUuid($installationId)) {
+        try {
+            $this->installationId = UuidValueObject::fromString($installationId)->value();
+        } catch (InvalidUuidException) {
             throw new InvalidNotificationRegistrationException('installation_id');
         }
 
@@ -31,13 +35,17 @@ final readonly class NotificationValueObject
         if (! self::isIdentifier($identifier)) {
             throw new InvalidNotificationRegistrationException('registration_identifier');
         }
-
-        $this->installationId = strtolower($installationId);
     }
 
     public static function isUuid(string $value): bool
     {
-        return preg_match('/\A[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z/Di', $value) === 1;
+        try {
+            UuidValueObject::fromString($value);
+
+            return true;
+        } catch (InvalidUuidException) {
+            return false;
+        }
     }
 
     public static function isIdentifier(#[SensitiveParameter] string $value): bool

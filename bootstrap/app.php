@@ -63,6 +63,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trimStrings(except: [
             'data.id',
             'data.attributes.password',
+            'data.attributes.installation_id',
             'data.attributes.password_confirmation',
             'data.attributes.registration_identifier',
         ]);
@@ -214,10 +215,14 @@ return Application::configure(basePath: dirname(__DIR__))
                 return null;
             }
 
+            [$title, $detail] = $request->isMethod('DELETE') && $request->is('api/push-registrations/*')
+                ? ['Registro push não encontrado', (new NotificationRegistrationNotFoundException)->getMessage()]
+                : ['Recurso não encontrado', 'O recurso solicitado não foi encontrado.'];
+
             return response()->json(['errors' => [[
-                'title' => 'Recurso não encontrado',
+                'title' => $title,
+                'detail' => $detail,
                 'status' => (string) Response::HTTP_NOT_FOUND,
-                'detail' => 'O recurso solicitado não foi encontrado.',
             ]]], Response::HTTP_NOT_FOUND)->header('Content-Type', 'application/vnd.api+json');
         });
 

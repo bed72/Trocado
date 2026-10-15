@@ -15,6 +15,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Tests\Support\Core\Fixtures\UuidFixture;
 use Tests\Support\Identity\Fixtures\IdentityFixture;
 use Tests\Support\Notifications\Fixtures\NotificationRegistrationFixture;
@@ -39,7 +40,10 @@ it('stores encrypted exact destinations with deterministic SHA256 fingerprints a
     $model = NotificationModel::query()->find($registration->id);
     $mapped = DB::transaction(fn () => $repository->lock($destination));
 
-    expect($raw->registration_identifier)->not->toBe('AbC:def-123')
+    expect(Str::isUuid($registration->id, version: 7))->toBeTrue()
+        ->and($registration->id)->toBe(strtolower($registration->id))->not->toBe($destination->installationId)
+        ->and($model->getIncrementing())->toBeFalse()->and($model->getKeyType())->toBe('string')
+        ->and($raw->registration_identifier)->not->toBe('AbC:def-123')
         ->and($raw->identifier_fingerprint)->toBe(hash('sha256', "fcm\0token\0AbC:def-123"))
         ->and($model->registration_identifier)->toBe('AbC:def-123')
         ->and($model->last_registered_at->utc()->format(DATE_ATOM))->toBe('2026-10-13T12:00:00+00:00')
@@ -47,6 +51,8 @@ it('stores encrypted exact destinations with deterministic SHA256 fingerprints a
         ->and($mapped)->toHaveCount(1)
         ->and($mapped[0]->id)->toBe($registration->id)
         ->and($mapped[0]->sessionId)->toBe($sessionId)
+        ->and($mapped[0]->userId)->toBe($user->getKey())
+        ->and($mapped[0]->destination->installationId)->toBe(NotificationRegistrationFixture::Installation)
         ->and($mapped[0]->generation)->toBe(1)
         ->and($mapped[0]->destination->identifier)->toBe('AbC:def-123');
 });
@@ -56,7 +62,7 @@ it('enforces database uniqueness and closed value constraints independently of a
     $bearer = IdentityFixture::token($user, now()->addDays(20));
     $id = $this->withToken($bearer)->postJson('/api/push-registrations', NotificationRegistrationFixture::payload())->assertCreated()->json('data.id');
     $raw = (array) DB::table('notifications')->where('id', $id)->first();
-    $duplicate = [...$raw, 'id' => NotificationRegistrationFixture::OtherInstallation,
+    $duplicate = [...$raw, 'id' => NotificationRegistrationFixture::OtherRegistration,
         'installation_id' => NotificationRegistrationFixture::OtherInstallation, 'identifier_fingerprint' => str_repeat('b', 64), $field => $value];
 
     expect(fn () => DB::transaction(fn () => DB::table('notifications')->insert($duplicate)))->toThrow(QueryException::class)
@@ -65,6 +71,8 @@ it('enforces database uniqueness and closed value constraints independently of a
     ['installation_id', NotificationRegistrationFixture::Installation],
     ['identifier_fingerprint', hash('sha256', "fcm\0token\0FakeFcmToken:AbC_123")],
     ['platform', 'web'], ['registration_kind', 'fid'], ['provider', 'apns'], ['generation', 0],
+    ['id', '017f22e2-79b0-4cc3-98c4-000000000201'],
+    ['installation_id', '017f22e2-79b0-4cc3-98c4-000000000102'],
 ]);
 
 it('rolls back a rotation that fails after its database write and discards after-commit events', function (): void {
@@ -113,6 +121,9 @@ it('emits only allowed registration metadata after a real commit and tolerates l
     $observability->expects($this->once())->method('emit')->with('push.registration.created', $this->callback(function (array $attributes): bool {
         expect(DB::transactionLevel())->toBe(0)
             ->and(array_keys($attributes))->toBe(['user_id', 'registration_id', 'platform', 'generation'])
+            ->and(Str::isUuid($attributes['user_id'], version: 7))->toBeTrue()
+            ->and(Str::isUuid($attributes['registration_id'], version: 7))->toBeTrue()
+            ->and($attributes['registration_id'])->not->toBe(NotificationRegistrationFixture::Installation)
             ->and(DB::table('notifications')->where('id', $attributes['registration_id'])->exists())->toBeTrue();
 
         return true;

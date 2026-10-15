@@ -29,9 +29,10 @@ final class CreateNotificationRequest extends FormRequest
             'data' => ['required', 'array:type,attributes'],
             'data.type' => ['bail', 'required', 'string', 'in:push-registrations'],
             'data.attributes' => ['required', 'array:installation_id,platform,registration_kind,registration_identifier'],
+            // TODO reaproveitar validador de UUID
             'data.attributes.installation_id' => ['bail', 'required', 'string', function (string $attribute, mixed $value, Closure $fail): void {
                 if (! NotificationValueObject::isUuid($value)) {
-                    $fail('O identificador da instalação deve ser um UUID válido.');
+                    $fail('O identificador da instalação deve ser um UUIDv7 válido.');
                 }
             }],
             'data.attributes.platform' => ['bail', 'required', 'string', Rule::enum(NotificationPlatformEnum::class)],

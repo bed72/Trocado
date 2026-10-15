@@ -12,12 +12,14 @@ use SensitiveParameter;
 
 final readonly class NotificationRegistrationEntity
 {
+    public string $id;
+
     public string $userId;
 
     public string $sessionId;
 
     public function __construct(
-        public string $id,
+        string $id,
         string $userId,
         string $sessionId,
         public int $generation,
@@ -29,6 +31,8 @@ final readonly class NotificationRegistrationEntity
         if (! NotificationValueObject::isUuid($id) || $generation < 1) {
             throw new InvalidNotificationRegistrationException('registration');
         }
+
+        $this->id = UuidValueObject::fromString($id)->value();
     }
 
     public function synchronize(string $sessionId, #[SensitiveParameter] NotificationValueObject $destination, DateTimeImmutable $reference): self
@@ -46,9 +50,9 @@ final readonly class NotificationRegistrationEntity
             id: $this->id,
             userId: $this->userId,
             sessionId: $sessionId,
-            generation: $this->generation + (int) $changed,
-            lastRegisteredAt: $reference,
             destination: $destination,
+            lastRegisteredAt: $reference,
+            generation: $this->generation + (int) $changed,
         );
     }
 }

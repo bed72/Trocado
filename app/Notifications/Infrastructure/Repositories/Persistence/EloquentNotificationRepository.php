@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Notifications\Infrastructure\Repositories\Persistence;
 
+use App\Core\Domain\ValueObjects\UuidValueObject;
 use App\Notifications\Application\Exceptions\NotificationRegistrationPersistenceException;
 use App\Notifications\Application\Exceptions\NotificationRegistrationRaceException;
 use App\Notifications\Application\Repositories\NotificationRegistrationRepository;
@@ -22,12 +23,14 @@ final readonly class EloquentNotificationRepository implements NotificationRegis
 {
     public function lock(#[SensitiveParameter] NotificationValueObject $destination): array
     {
-        return $this->execute(fn (): array => NotificationModel::query()
-            ->where('installation_id', $destination->installationId)
-            ->orWhere('identifier_fingerprint', $this->fingerprint($destination))
-            ->orderBy('id')->lockForUpdate()->get()
-            ->map($this->entity(...))
-            ->all());
+        return $this->execute(function () use ($destination): array {
+            $registrations = NotificationModel::query()
+                ->where('installation_id', $destination->installationId)
+                ->orWhere('identifier_fingerprint', $this->fingerprint($destination))
+                ->orderBy('id')->lockForUpdate()->get();
+
+            return $registrations->map($this->entity(...))->all();
+        });
     }
 
     public function create(string $userId, string $sessionId, #[SensitiveParameter] NotificationValueObject $destination, DateTimeImmutable $reference): NotificationRegistrationEntity
@@ -35,10 +38,10 @@ final readonly class EloquentNotificationRepository implements NotificationRegis
         $registration = new NotificationRegistrationEntity(
             id: (string) Str::uuid7(),
             userId: $userId,
-            sessionId: $sessionId,
             generation: 1,
-            lastRegisteredAt: $reference,
+            sessionId: $sessionId,
             destination: $destination,
+            lastRegisteredAt: $reference,
         );
         $this->write(new NotificationModel, $registration);
 
@@ -55,6 +58,9 @@ final readonly class EloquentNotificationRepository implements NotificationRegis
 
     public function delete(string $userId, string $id): bool
     {
+        $userId = UuidValueObject::fromString($userId)->value();
+        $id = UuidValueObject::fromString($id)->value();
+
         return $this->execute(fn (): bool => NotificationModel::query()
             ->where('user_id', $userId)->whereKey($id)->delete() === 1);
     }
@@ -98,8 +104,8 @@ final readonly class EloquentNotificationRepository implements NotificationRegis
             lastRegisteredAt: DateTimeImmutable::createFromInterface($model->getAttribute('last_registered_at')),
             destination: new NotificationValueObject(
                 installationId: $model->getAttribute('installation_id'),
-                registrationKind: $model->getAttribute('registration_kind'),
                 identifier: $model->getAttribute('registration_identifier'),
+                registrationKind: $model->getAttribute('registration_kind'),
                 platform: NotificationPlatformEnum::from($model->getAttribute('platform')),
             ),
         );

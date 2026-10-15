@@ -8,6 +8,7 @@ use App\Notifications\Infrastructure\Repositories\Persistence\Models\Notificatio
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Tests\Support\Core\Fixtures\ConcurrentDatabaseProcess;
 use Tests\Support\Identity\Fixtures\IdentityFixture;
 use Tests\Support\Notifications\Fixtures\NotificationRegistrationFixture;
@@ -24,9 +25,12 @@ it('serializes concurrent first registrations through session locks or database 
     $test = $this;
     $child = new ConcurrentDatabaseProcess(static function () use ($test, $childToken, $dispute): void {
         Auth::forgetGuards();
-        $test->withToken($childToken)->postJson('/api/push-registrations', NotificationRegistrationFixture::payload())
+        $response = $test->withToken($childToken)->postJson('/api/push-registrations', NotificationRegistrationFixture::payload())
             ->assertStatus($dispute === 'other account' ? 409 : 200);
         expect(DB::table('notifications')->count())->toBe(1);
+        if ($dispute !== 'other account') {
+            $response->assertJsonPath('data.id', DB::table('notifications')->value('id'));
+        }
     });
 
     try {
@@ -40,6 +44,8 @@ it('serializes concurrent first registrations through session locks or database 
         });
         $child->done();
         expect(DB::table('notifications')->count())->toBe(1)
+            ->and(Str::isUuid($id, version: 7))->toBeTrue()
+            ->and($id)->not->toBe(NotificationRegistrationFixture::Installation)
             ->and(NotificationModel::query()->find($id)->user_id)->toBe($owner->getKey())
             ->and(NotificationModel::query()->find($id)->generation)->toBe($dispute === 'same owner new session' ? 2 : 1);
     } finally {
@@ -70,6 +76,8 @@ it('serializes competing rotations and commits coherent monotonically versioned 
         $child->done();
         $current = NotificationModel::query()->find($id);
         expect($current->generation)->toBe(3)->and($current->registration_identifier)->toBe('child-rotation')
+            ->and(Str::isUuid($current->getKey(), version: 7))->toBeTrue()
+            ->and($current->identifier_fingerprint)->toBe(hash('sha256', "fcm\0token\0child-rotation"))
             ->and($current->platform)->toBe('ios')
             ->and($current->session_id)->toBe(PersonalAccessToken::findToken($childToken)->getKey())
             ->and(DB::table('notifications')->count())->toBe(1);

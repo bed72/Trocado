@@ -156,16 +156,18 @@ As frentes 05, 06 e 07 podem ser organizadas separadamente depois da base 04; 08
 
 **Entrega:** registro, owner, sessão e instalação UUIDv7, com o lifecycle atual de cadastro preservado.
 
-- [ ] **6.1** Configurar geração/mapping UUIDv7 do registro, sem trocar ID em sincronização/rotação.
+- [x] **6.1** Configurar geração/mapping UUIDv7 do registro, sem trocar ID em sincronização/rotação.
 - [x] **6.2** Converter owner/sessão/retornos dos contratos e preservar transação/locks/cifragem/fingerprint.
-- [ ] **6.3** Exigir `installation_id` UUIDv7 no Domain/Request, com pointer correto para outras versões.
-- [ ] **6.4** Ajustar DELETE/Response/rotas, mantendo auth, cota, não extensão e 204/404.
-- [ ] **6.5** Atualizar fixtures/doubles/logs, mantendo ID de instalação distinto do ID do registro.
-- [ ] **6.6** Ajustar prova da migration de fingerprint, conservando rollback e escrita sentinela.
-- [ ] **6.7** Provar persistência/HTTP e corridas de cadastro, disputa, rotação e logout/cascades.
-- [ ] **6.8** Executar arquivos/suíte Notifications e integração com Identity.
+- [x] **6.3** Exigir `installation_id` UUIDv7 no Domain/Request, com pointer correto para outras versões.
+- [x] **6.4** Ajustar DELETE/Response/rotas, mantendo auth, cota, não extensão e 204/404.
+- [x] **6.5** Atualizar fixtures/doubles/logs, mantendo ID de instalação distinto do ID do registro.
+- [x] **6.6** Ajustar prova da migration de fingerprint, conservando rollback e escrita sentinela.
+- [x] **6.7** Provar persistência/HTTP e corridas de cadastro, disputa, rotação e logout/cascades.
+- [x] **6.8** Executar arquivos/suíte Notifications e integração com Identity.
 
 **Concluir quando:** repetição/rotação mantém UUID; instalação v4 é rejeitada; nenhum envio Firebase foi ativado por essa conversão.
+
+**Escopo Notifications concluído em 2026-10-15:** registro e instalação exigem UUIDv7 canônico, mantendo papéis distintos e ID estável na sincronização/rotação. Domain/HTTP rejeitam outras versões e whitespace; DELETE tem 404 uniforme antes de lookup inválido. Cifragem, fingerprint, rollback pós-escrita, corridas e cascades passaram em PostgreSQL exclusivo. Notifications + Identity + arquitetura: **348 testes/2.293 assertions**; arquivos afetados passaram isoladamente. Gate completo padrão, seeds **20261024/20261025** e paralelo de dois processos passaram: **2.206/40.012** cada, sem skips/exclusões. Pint/OpenSpec estrito passaram. [Evidências e mapa de preservação](openspec/changes/standardize-uuid-v7-identifiers/tasks.md#step-06--notifications-e-instalação--2026-10-15). Banco operacional segue no STEP 12; envio Firebase e homologação do cliente permanecem pendentes. Próximo: STEP 07.
 
 ## STEP 07 — Registro de identidades estáveis no Core
 

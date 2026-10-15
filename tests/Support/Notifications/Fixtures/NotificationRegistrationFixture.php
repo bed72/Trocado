@@ -10,6 +10,10 @@ final class NotificationRegistrationFixture
 
     public const string OtherInstallation = '017f22e2-79b0-7cc3-98c4-000000000102';
 
+    public const string Registration = '017f22e2-79b0-7cc3-98c4-000000000201';
+
+    public const string OtherRegistration = '017f22e2-79b0-7cc3-98c4-000000000202';
+
     /** @return array{data: array{type: string, attributes: array<string, string>}} */
     public static function payload(string $installation = self::Installation, string $identifier = 'FakeFcmToken:AbC_123', string $platform = 'android'): array
     {

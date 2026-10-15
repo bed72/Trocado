@@ -73,14 +73,14 @@
 
 ## 6. Notifications e contrato de instalação
 
-- [ ] 6.1 Configurar registro UUIDv7 no Model/Repository e canonicalizar mapping, preservando ID em sincronização/rotação. [UID-03/07]
+- [x] 6.1 Configurar registro UUIDv7 no Model/Repository e canonicalizar mapping, preservando ID em sincronização/rotação. [UID-03/07]
 - [x] 6.2 Converter tipos de owner/session em Entity/Repository/UseCases/Ports e validação Domain, mantendo unidade transacional/locks/fingerprint/cifragens. [UID-05/07]
-- [ ] 6.3 Exigir installation_id UUIDv7 no VO/Request, normalizar somente caixa válida e rejeitar outras versões com pointer sem eco de destino. [UID-02/07]
-- [ ] 6.4 Ajustar DELETE/Response/rotas para registro v7 e confirmar 204/404 uniforme/auth/cota/não extensão/nenhum GET ou envio HTTP novo. [UID-06/07]
-- [ ] 6.5 Atualizar fixtures/doubles Unit e registro de observabilidade para IDs reais v7 e instalação distinta; sem usar installation_id como PK por conveniência. [UID-07]
-- [ ] 6.6 Ajustar prova de migration fingerprint para ordering v7 explícito, preservando rollback sentinela/escrita anterior/ciphertext/lifecycle; não remover a prova porque os dados antigos serão descartados. [UID-04; D9]
-- [ ] 6.7 Provar PostgreSQL/HTTP e corridas sincronizadas de idempotência/rotações/disputa/logout/cascades com IDs v7, mantendo testes de segredos e geração. [UID-07]
-- [ ] 6.8 Executar arquivos/suite Notifications e integração com Identity isoladamente; atualizar evidência da fatia de cadastro sem marcar envio/cliente aprovado. [D8/D10]
+- [x] 6.3 Exigir installation_id UUIDv7 no VO/Request, normalizar somente caixa válida e rejeitar outras versões com pointer sem eco de destino. [UID-02/07]
+- [x] 6.4 Ajustar DELETE/Response/rotas para registro v7 e confirmar 204/404 uniforme/auth/cota/não extensão/nenhum GET ou envio HTTP novo. [UID-06/07]
+- [x] 6.5 Atualizar fixtures/doubles Unit e registro de observabilidade para IDs reais v7 e instalação distinta; sem usar installation_id como PK por conveniência. [UID-07]
+- [x] 6.6 Ajustar prova de migration fingerprint para ordering v7 explícito, preservando rollback sentinela/escrita anterior/ciphertext/lifecycle; não remover a prova porque os dados antigos serão descartados. [UID-04; D9]
+- [x] 6.7 Provar PostgreSQL/HTTP e corridas sincronizadas de idempotência/rotações/disputa/logout/cascades com IDs v7, mantendo testes de segredos e geração. [UID-07]
+- [x] 6.8 Executar arquivos/suite Notifications e integração com Identity isoladamente; atualizar evidência da fatia de cadastro sem marcar envio/cliente aprovado. [D8/D10]
 
 ## 7. Registro transversal de Core
 
@@ -179,12 +179,12 @@
 | Requisito / cenários | Tasks principais | Prova mínima | Estado corrente |
 | --- | --- | --- | --- |
 | UID-01 política/exclusões e todos os recursos próprios | 1.3, 3.*, 11.2/11.6 | Inventário por papel + schema/HTTP + arquitetura | Não implementado/comprovado |
-| UID-02 canônico/v7/variante/negativos/null | 2.1–2.3, 4.1, 6.3 | Unit pura + HTTP antes de lookup + PG checks | Parcial: VO puro comprovado no STEP 02; integração de entidades/HTTP/PG pendente |
-| UID-03 geração padrão/imutabilidade | 3.*, 4.2–4.3, 5.2, 6.1, 7.3 | Model/PG create-update + formato + callback/clock fora de Domain | Parcial: User/PAT HasUuids e imutabilidade User/sessão comprovados no STEP 04; demais contextos pendentes |
-| UID-04 PK/FK/morph/cascades | 3.1–3.8, 4.9, 6.7 | PostgreSQL tipos/constraints/owner/session/encerramento | Parcial: schema STEP 03 e geração User/PAT/lifecycle de encerramento HTTP + SignOut/pruning STEP 04 comprovados; fluxos de registro/Expense pendentes |
+| UID-02 canônico/v7/variante/negativos/null | 2.1–2.3, 4.1, 6.3 | Unit pura + HTTP antes de lookup + PG checks | VO puro STEP 02 e integração User/PAT/Expense/Notifications STEPs 04–06 comprovados; registro Core/projeções/rollout pendentes |
+| UID-03 geração padrão/imutabilidade | 3.*, 4.2–4.3, 5.2, 6.1, 7.3 | Model/PG create-update + formato + callback/clock fora de Domain | User/PAT/Expense/Notifications comprovados nos STEPs 04–06, inclusive repetição/rotação/corridas de cadastro; associações Core pendentes |
+| UID-04 PK/FK/morph/cascades | 3.1–3.8, 4.9, 6.7 | PostgreSQL tipos/constraints/owner/session/encerramento | Schema STEP 03 e lifecycle User/PAT/Expense/Notifications STEPs 04–06 comprovados em bancos exclusivos; integração da capacidade Core e rollout pendentes |
 | UID-05 contratos/guard/sem cast | 2.4–2.5, 4.5/4.7, 5.1, 8.1/9.1/10.1, 11.6 | Unit argumentos + arquitetura + autenticação real | Owner/sessão dos consumidores atuais comprovados no gate transversal de 2026-10-15, sem casts numéricos nas fronteiras corrigidas. Auditoria final de papéis/novas capacidades e rollout ainda pendentes |
-| UID-06 rotas inválidas/owner/auth | 4.8–4.9, 5.3/5.8, 6.4/6.7 | HTTP 200/201/204 e 401/403/404/422/429 | Parcial: User/Auth comprovados no STEP 04; Expense UUID/canonicalização/404 uniforme comprovados no STEP 05; registro pendente |
-| UID-07 instalação/registro/cliente | 1.5, 6.*, 13.2/13.6/13.7 | Unit/HTTP/PG + homologação externa registrada | Não implementado/comprovado |
+| UID-06 rotas inválidas/owner/auth | 4.8–4.9, 5.3/5.8, 6.4/6.7 | HTTP 200/201/204 e 401/403/404/422/429 | User/Auth STEP 04, Expense STEP 05 e Notifications STEP 06 comprovados; proteções/IDs/404 uniforme e rejeição antes de lookup inválido preservados; rollout pendente |
+| UID-07 instalação/registro/cliente | 1.5, 6.*, 13.2/13.6/13.7 | Unit/HTTP/PG + homologação externa registrada | Backend Proven no STEP 06: v7/caixa/versões/ID distinto/imutável/HTTP/PG/races/rollback. Homologação externa Flutter/Bruno/envio e rollout operacional pendentes |
 | UID-08 reset autorizado/negativo/lifecycle | 3.7, 12.* | Alvo/estado/cleanup/checks registrados + guard/testes de recusa | Parcial: guard e cleanup do launcher comprovados no STEP 03; reset operacional não executado |
 | RID-01 mínimo/sem fatos/fronteiras | 3.5, 7.1/7.3/7.7, 13.1 | Schema allowlist + Unit + arquitetura | Parcial: allowlist do schema mínimo comprovada no STEP 03; capacidade Application/Repository pendente |
 | RID-02 chave/namespace/owner/ambiguidade | 1.4, 7.2/7.8, 8.2/9.2/10.2 | Unit independente por consumidor + PG isolado | Não implementado/comprovado |
@@ -196,12 +196,13 @@
 | User/Core UUID ownership e Entity pura | 2.*, 4.1/4.5/4.8/4.9 | Unit + HTTP + fronteiras | Proven para Identity/Core no STEP 04; consumidores e ambiente operacional ainda em conversão |
 | Sanctum/segredo/expiração/extensão/link | 4.2–4.4/4.6–4.9 | PAT real + PG locks + assinatura/tempo/owner | Proven no schema exclusivo do STEP 04, incluindo corrida sincronizada de extensão; rollout operacional pendente |
 | Expense sort/cursor v2/cache/worker | 5.* | Unit + PG/HTTP next-prev + Redis/worker exclusivo | Proven no STEP 05 em schema/Redis/filas exclusivos; transição operacional de caches/jobs/banco ainda no STEP 12 |
+| Notifications registro/instalação/rotação/remoção | 6.* | Unit + HTTP/PG + rollback/races + Identity | Proven no STEP 06 em bancos exclusivos; v4/whitespace rejeitados, ID preservado e DELETE uniforme. Envio/cliente/rollout operacional pendentes |
 | Insights períodos/estados/rotação/UUID | 8.* | Unit + HTTP/PG + Core batch | Não implementado/comprovado |
 | Metrics singular/zero/default/grouped/UUID | 9.* | Unit + HTTP/PG + Core batch | Não implementado/comprovado |
 | Sugestões norm/valor/owner/UUID | 10.* | Unit + HTTP/PG normalização SQL/associação | Não implementado/comprovado |
 | Observabilidade próprio UUID/native SDK | 11.3–11.4 | JSON/header/context + ausência de segredos/fingerprint | Não implementado/comprovado |
 | Cliente/Bruno/documentação | 13.* | Parser/CLI controlados + homologação externa distinta | Não implementado/comprovado |
-| Gates transversais | 14.* | Padrão + duas seeds + paralelo + Redis/concorrência | Bloqueios históricos dos STEPs 03–05 superados na correção transversal de 2026-10-15: padrão/seeds 20261022/20261023/paralelo passaram 2.168/39.859. Repetir gates após implementação restante; aprovação atual não conclui 14.* |
+| Gates transversais | 14.* | Padrão + duas seeds + paralelo + Redis/concorrência | Bloqueios históricos superados na correção transversal. Após STEP 06: padrão/seeds 20261024/20261025/paralelo passaram 2.206/40.012. Repetir gates após implementação restante; aprovação atual não conclui 14.* |
 
 ## Estado histórico da elaboração da proposta
 
@@ -767,3 +768,73 @@ Todos os comandos abaixo usam `lerd composer test --`, com `--compact --fail-on-
 Pint `--dirty --format agent` executado antes dessas provas, com repetição de todos os arquivos afetados; `git diff --check` passou. As primeiras suítes focadas também passaram: Notifications/Metrics + Core transação/preflight 225/1.361; Insights + arquitetura 817/32.706. A evidência final acima inclui os refinamentos posteriores de canonicalização.
 
 **Resultado:** os 268 problemas do diagnóstico completo foram corrigidos e a suíte do build atual está verde. Foram sincronizados os pré-requisitos de compatibilidade 6.2/8.1/9.1/10.1, sem declarar completos os STEPs 06/08/09/10. Associação estável Core/projeções, regras v7 restantes de Notifications, rollout/medição operacional, cliente e archive continuam pendentes. Gates 14.* deverão ser repetidos depois dessas implementações; verde atual não comprova requisitos ainda ausentes.
+
+## STEP 06 — Notifications e instalação — 2026-10-15
+
+### Escopo autorizado e implementação
+
+O pedido “Vamos continuar a implementacao ## STEP 06 — Notifications e instalação” autoriza a fatia 6.1–6.8 e suas provas. Owner/sessão já convertidos na correção transversal foram preservados e reverificados com Identity. Não houve alteração de dependência, migration, credencial, configuração de ambiente ou worker operacional.
+
+- `NotificationModel` usa `HasUuids` nativo (reconferido no Laravel 13.34.0: `newUniqueId()` chama `Str::uuid7()`); Repository conserva sua geração legítima v7 antes de construir a Entity. Mapping valida/canonicaliza a PK obrigatória pelo VO puro de Core. Registro/owner/sessão/instalação são strings v7; destino FCM e generation conservam seus tipos/bytes.
+- `NotificationValueObject` exige instalação v7 pelo conceito de Core e preserva a exceção específica do campo. Request reutiliza a mesma validação e aponta `/data/attributes/installation_id`. A exceção específica ao `TrimStrings` em `bootstrap/app.php` impede que whitespace vire instalação válida antes da validação.
+- DELETE tem constraint v7/variante/case-insensitive na rota e valida/canonicaliza no UseCase mesmo fora de HTTP, antes de locks/Repository. O Repository também valida IDs antes de SQL. O renderer no composition root conserva o mesmo 404 de registro para falha na rota e registro ausente/alheio. Response continua com somente ID/instalação/plataforma/provider/última sincronização, sem destino ou Location fictício.
+- Fixtures distinguem `Installation`/`OtherInstallation` de `Registration`/`OtherRegistration`. Ordenação técnica de rollback da migration usa as PKs explícitas `…0201`/`…0202`, sem depender do clock/ordem de geração ou reutilizar instalação como registro.
+- POST/DELETE mantêm PAT real, conta apta, cota compartilhada e ausência de extensão/novo token. As provas de não extensão agora usam PAT dentro da janela de extensão (10 dias restantes). Logs do UseCase continuam limitados à allowlist existente; as provas de argumentos/metadados após commit verificam owner/registro v7, distintos da instalação. Inspeção integral de logs JSON/transporte é trabalho futuro da change Firebase.
+
+### Matriz de cenários e mapa de preservação
+
+Todos os cenários antigos permanecem nos mesmos arquivos, sem remoção, consolidação, skips ou exclusões. Paths abaixo relativos a `tests/`.
+
+| Arquivo/cenários | Alteração e evidência atual |
+| --- | --- |
+| Unit/Notifications/Domain/ValueObjects/NotificationValueObjectTest.php | Preserva bytes FCM, limites 1–4096, plataforma/tipo e canonicalização. Acrescenta rejeição v1/v4/v6/v8/nil/variante/número textual/hash/whitespace/compacto fora de HTTP |
+| Unit/Notifications/Domain/Entities/NotificationRegistrationEntityTest.php | Preserva repetição sem incremento e mudanças de destino/plataforma/sessão com incremento. Registro fixture próprio é canonicalizado; ID permanece nas transições; negativos de PK v4/variante/whitespace/número são rejeitados |
+| Unit/Notifications/Application/UseCases/CreateNotificationUseCaseTest.php | Mesmos argumentos, lock antes de acesso, transação/retry limitado e eventos após commit; registro fixture passa a papel próprio, distinto da instalação |
+| Unit/Notifications/Application/UseCases/DeleteNotificationUseCaseTest.php (novo) | Prova canonicalização antes de delete owner-scoped, lock/Repository dentro da unidade, callback somente após commit e recusa inválida sem lock/query/callback; não alega rollback real a partir de fake |
+| Feature/Notifications/Presentation/Http/NotificationRegistrationHttpTest.php | Preserva todos os contratos anteriores e amplia v7 canônico/distinto, caixa equivalente sem nova row/geração, outras versões e whitespace com pointer/sem eco, DELETE maiúsculo, outra instalação preservada, 404 uniforme, zero lookup Notifications para rota inválida, cota em POST/DELETE e não extensão dentro da janela |
+| Feature/Notifications/Infrastructure/Repositories/Persistence/EloquentNotificationRepositoryTest.php | Preserva cifragem exata/fingerprint/Hidden/mapping, rollback com sentinela após escrita observada e callbacks descartados, cascades e revalidação do guard. Acrescenta formato v7/papéis separados/mapping completo/PK string não incremental/checks v4 e metadados v7 após commit |
+| Feature/Notifications/Infrastructure/Database/NotificationFingerprintMigrationTest.php | Mesmos dois cenários: só fingerprint muda; ciphertext/metadados permanecem; decifragem posterior falha e reverte escrita anterior. PKs de registro ordenadas explicitamente e primeiro UPDATE/ID observados no query log; sentinela e erro sanitizado preservados |
+| Feature/Notifications/Infrastructure/Repositories/Persistence/NotificationRegistrationConcurrencyTest.php | Mesmas conexões novas/barreiras/awaitLock/timeouts/cleanup: mesma sessão, nova sessão do owner, outra conta, rotações, logout primeiro/cadastro primeiro. Acrescenta igualdade do ID retornado pelo filho e vencedor confirmado, v7 distinto da instalação e fingerprint coerente com rotação final |
+| Support/Notifications/Fixtures/NotificationRegistrationFixture.php | Instalações v7 existentes preservadas; duas constantes novas de registro independentes. Nenhuma reparação de entrada inválida ou gerador de produção usado como esperado |
+
+**Proven no backend:** UID-02/03/05/06/07 relativos ao cadastro/remoção de Notifications e UID-04 relativos às suas constraints/cascades. Registro v7 permanece igual em repetição, rotação, nova sessão e corrida idempotente; instalação v4 é rejeitada antes de persistir; outras contas não ganham acesso conhecendo um UUID. Sem envio Firebase implementado/ativado.
+
+### Verificação isolada e integração
+
+Cada arquivo abaixo foi executado isoladamente com `lerd composer test -- <arquivo> --compact --fail-on-skipped --fail-on-incomplete --fail-on-risky`, após Pint/finalização das suas edições. O VO foi repetido isoladamente após a última remoção de linha em branco. Sem skips/incomplete/risky inesperados.
+
+| Arquivo | Testes / assertions |
+| --- | --- |
+| Unit/Notifications/Domain/ValueObjects/NotificationValueObjectTest.php | 20 / 22 |
+| Unit/Notifications/Domain/Entities/NotificationRegistrationEntityTest.php | 8 / 22 |
+| Unit/Notifications/Application/UseCases/CreateNotificationUseCaseTest.php | 3 / 33 |
+| Unit/Notifications/Application/UseCases/DeleteNotificationUseCaseTest.php | 5 / 38 |
+| Feature/Notifications/Infrastructure/Database/NotificationFingerprintMigrationTest.php | 2 / 13 |
+| Feature/Notifications/Infrastructure/Repositories/Persistence/EloquentNotificationRepositoryTest.php | 18 / 80 |
+| Feature/Notifications/Infrastructure/Repositories/Persistence/NotificationRegistrationConcurrencyTest.php | 6 / 35 |
+| Feature/Notifications/Presentation/Http/NotificationRegistrationHttpTest.php | 47 / 289 |
+
+Integração: `lerd composer test -- tests/Unit/Notifications tests/Feature/Notifications tests/Unit/Identity tests/Feature/Identity tests/Unit/Architecture/ContextBoundariesTest.php --compact --fail-on-skipped --fail-on-incomplete --fail-on-risky` → **348 testes / 2.293 assertions**, passando (12.087 ms). Inclui Adapter de sessão, PAT real, SignOut/pruning/encerramento/cascades e boundaries, sem ampliar permissões de contexto.
+
+### Gates transversais finais
+
+Todos os comandos usam `lerd composer test --` e `--compact --fail-on-skipped --fail-on-incomplete --fail-on-risky`, sem exclusões. Incluem PostgreSQL/Redis/worker/concorrência e as duas invocações simultâneas existentes; manifesto/ownership e cleanup exclusivos, migrations incrementais pelo launcher, sem migrate:fresh.
+
+| Opções adicionais | Resultado |
+| --- | --- |
+| nenhuma: gate completo padrão | **2.206 testes / 40.012 assertions**, 49.639 ms |
+| --order-by=random --random-order-seed=20261024 | **2.206 / 40.012**, 50.087 ms |
+| --order-by=random --random-order-seed=20261025 | **2.206 / 40.012**, 49.109 ms |
+| --parallel --processes=2 | **2.206 / 40.012**, 30.985 ms |
+
+Pint `--dirty --format agent` via MCP vendor_run passou após a última edição PHP. OpenSpec estrito passou e `git diff --check` passou. Nenhuma contagem substitui a rastreabilidade de cenários acima. Tasks 14.* continuam pendentes para o fechamento do build futuro completo.
+
+Intercorrências corrigidas: a primeira Unit nova usou incorretamente o nome do campo como texto esperado da exceção (15 falhas de assertion; o campo é propriedade tipada, a mensagem é genérica); corrigido o teste sem alterar esse contrato. A primeira HTTP ampliada encontrou três falhas reais da fatia: whitespace de instalação era aparado pelo middleware (dois datasets) e 404 de rota diferia do 404 owner-scoped. Foram corrigidos no composition root e o arquivo passou integralmente. Essas tentativas não contam como aprovação.
+
+### Ambiente, coordenação e limites
+
+Boost confirmou PHP 8.5/Laravel 13.34.0/Sanctum 4.3.3/PostgreSQL; docs e código instalado de HasUuids foram consultados. `route:list --path=api/push --json` confirmou somente POST/DELETE, com Sanctum/atividade/verificação/throttle e sem `session.extend`. Captura Lerd já estava ligada, sem alteração de estado; POST real sem credencial respondeu **401 JSON:API**. `optimize_route` retornou **0 amostras**, sem evidência de desempenho autenticado.
+
+Boost/schema e `migrate:status` confirmaram que o banco operacional ainda tem owner/PAT bigint e a migration Core está pendente, dependente do bootstrap UUID. Não foi aplicada sobre esse schema incompatível nem usado reset antecipado: a transição consentida continua no STEP 12. As provas deste passo construíram schema UUID por migrations incrementais em bancos novos/exclusivos do launcher. Desempenho autenticado, rollout, Bruno/gerador Flutter e recepção real Firebase continuam pendentes; não se afirma homologação ou archive da change de envio.
+
+**Resultado de escopo:** 6.1–6.8 implementados/comprovados, checklist sincronizado com STEPS.md e evidência da change Firebase atualizada. Próximo STEP 07: registro estável Core. Sem implementação antecipada de projeções/envio/cliente.

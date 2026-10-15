@@ -36,9 +36,9 @@ it('rolls back earlier fingerprint writes if a later destination cannot be decry
     $first = $this->withToken($bearer)->postJson('/api/push-registrations', NotificationRegistrationFixture::payload())->assertCreated()->json('data.id');
     Auth::forgetGuards();
     $second = $this->withToken($bearer)->postJson('/api/push-registrations', NotificationRegistrationFixture::payload(NotificationRegistrationFixture::OtherInstallation, 'second-fake-token'))->assertCreated()->json('data.id');
-    DB::table('notifications')->where('id', $first)->update(['id' => NotificationRegistrationFixture::Installation, 'identifier_fingerprint' => str_repeat('a', 64)]);
+    DB::table('notifications')->where('id', $first)->update(['id' => NotificationRegistrationFixture::Registration, 'identifier_fingerprint' => str_repeat('a', 64)]);
     DB::table('notifications')->where('id', $second)->update([
-        'id' => NotificationRegistrationFixture::OtherInstallation,
+        'id' => NotificationRegistrationFixture::OtherRegistration,
         'identifier_fingerprint' => str_repeat('b', 64),
         'registration_identifier' => 'invalid-ciphertext-sentinel',
     ]);
@@ -55,6 +55,7 @@ it('rolls back earlier fingerprint writes if a later destination cannot be decry
             ->and($exception->getMessage())->toBe('Não foi possível recalcular os fingerprints; nenhuma alteração foi confirmada.')
             ->and($writes)->toHaveCount(1)
             ->and($writes[0]['bindings'][0])->toBe(hash('sha256', "fcm\0token\0FakeFcmToken:AbC_123"))
+            ->and($writes[0]['bindings'][1])->toBe(NotificationRegistrationFixture::Registration)
             ->and(DB::table('notifications')->orderBy('id')->get()->all())->toEqual($before);
     } finally {
         DB::disableQueryLog();
