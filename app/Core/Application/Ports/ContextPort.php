@@ -10,7 +10,7 @@ interface ContextPort
 {
     public function traceId(): ?string;
 
-    public function identifyUser(int $userId): void;
+    public function identifyUser(string $userId): void;
 
     public function capture(ContextInput $input): void;
 

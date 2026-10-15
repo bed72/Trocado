@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Identity\Infrastructure\Adapters;
 
+use App\Core\Domain\ValueObjects\UuidValueObject;
 use App\Identity\Application\Exceptions\InactiveUserException;
 use App\Identity\Application\Exceptions\UnverifiedEmailException;
 use App\Identity\Domain\Enums\UserStatusEnum;
@@ -20,8 +21,9 @@ final readonly class NotificationAdapter implements NotificationPort
 {
     public function __construct(private AuthManager $manager, private SessionPolicyValueObject $policy) {}
 
-    public function lock(int $userId, DateTimeImmutable $reference): int
+    public function lock(string $userId, DateTimeImmutable $reference): string
     {
+        $id = UuidValueObject::fromString($userId)->value();
         $principal = $this->manager->guard('sanctum')->user();
         $token = $principal instanceof UserModel ? $principal->currentAccessToken() : null;
 
@@ -34,7 +36,7 @@ final readonly class NotificationAdapter implements NotificationPort
         $expiresAt = $session?->getAttribute('expires_at');
 
         if (! $session instanceof PersonalAccessToken
-            || (int) $session->getAttribute('tokenable_id') !== $userId
+            || $session->getAttribute('tokenable_id') !== $id
             || $session->getAttribute('tokenable_type') !== $principal->getMorphClass()
             || ! $issuedAt instanceof DateTimeInterface
             || ! $expiresAt instanceof DateTimeInterface
@@ -46,7 +48,7 @@ final readonly class NotificationAdapter implements NotificationPort
             throw new AuthenticationException;
         }
 
-        $user = UserModel::query()->find($userId);
+        $user = UserModel::query()->find($id);
 
         if (! $user instanceof UserModel) {
             throw new AuthenticationException;
@@ -60,6 +62,6 @@ final readonly class NotificationAdapter implements NotificationPort
             throw new UnverifiedEmailException;
         }
 
-        return (int) $session->getKey();
+        return UuidValueObject::fromString($session->getKey())->value();
     }
 }

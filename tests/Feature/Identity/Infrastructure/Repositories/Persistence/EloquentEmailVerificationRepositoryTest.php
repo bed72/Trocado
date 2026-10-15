@@ -21,7 +21,7 @@ it('persists confirmation under lock without emitting events or notifications', 
     DB::flushQueryLog();
 
     try {
-        $first = DB::transaction(fn () => $repository->verify((int) $user->getKey(), sha1($user->email)));
+        $first = DB::transaction(fn () => $repository->verify($user->getKey(), sha1($user->email)));
         $queries = DB::getQueryLog();
     } finally {
         DB::disableQueryLog();
@@ -34,7 +34,7 @@ it('persists confirmation under lock without emitting events or notifications', 
         ->and($user->status)->toBe(UserStatusEnum::Pending)
         ->and($user->tokens()->count())->toBe(0);
 
-    $second = DB::transaction(fn () => $repository->verify((int) $user->getKey(), sha1($user->email)));
+    $second = DB::transaction(fn () => $repository->verify($user->getKey(), sha1($user->email)));
     expect($second->isValid)->toBeTrue()->and($second->wasVerifiedNow)->toBeFalse()
         ->and($user->refresh()->email_verified_at->equalTo($verifiedAt))->toBeTrue();
     Event::assertNotDispatched(Verified::class);
@@ -43,7 +43,7 @@ it('persists confirmation under lock without emitting events or notifications', 
 
 it('rejects a missing identity or a hash for a different email without changing state', function (bool $missing): void {
     $user = IdentityFixture::create(status: UserStatusEnum::Pending, verifiedAt: null);
-    $id = (int) $user->getKey();
+    $id = $user->getKey();
 
     if ($missing) {
         $user->delete();

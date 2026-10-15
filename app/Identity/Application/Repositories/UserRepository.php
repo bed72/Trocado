@@ -10,9 +10,9 @@ use SensitiveParameter;
 
 interface UserRepository
 {
-    public function delete(int $id): bool;
+    public function delete(string $id): bool;
 
-    public function getById(int $id): ?UserEntity;
+    public function getById(string $id): ?UserEntity;
 
     public function update(UserEntity $user): ?UserEntity;
 

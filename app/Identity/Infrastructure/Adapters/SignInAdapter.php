@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Identity\Infrastructure\Adapters;
 
+use App\Core\Domain\ValueObjects\UuidValueObject;
 use App\Identity\Application\Data\Output\SignInOutput;
 use App\Identity\Application\Exceptions\InactiveUserException;
 use App\Identity\Application\Exceptions\InvalidCredentialsException;
@@ -82,9 +83,9 @@ final readonly class SignInAdapter implements SignInPort
 
         return new SignInOutput(
             expiresAt: $expiresAt,
-            userId: (int) $user->getKey(),
             token: $accessToken->plainTextToken,
-            id: (int) $accessToken->accessToken->getKey(),
+            userId: UuidValueObject::fromString($user->getKey())->value(),
+            id: UuidValueObject::fromString($accessToken->accessToken->getKey())->value(),
         );
     }
 }

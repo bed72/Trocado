@@ -124,13 +124,13 @@ it('runs an outside-transaction callback immediately and refuses premature relea
 });
 
 it('keeps authenticated values and observed event attributes explicit without framework bootstrap', function (): void {
-    $userPort = new UserPortStub(identifier: 1500, accountStatus: 'blocked');
+    $userPort = new UserPortStub(identifier: '017f22e2-79b0-7cc3-98c4-0000000005dc', accountStatus: 'blocked');
     $spy = new ObservabilityPortSpy;
     $spy->emit('first', ['user_id' => $userPort->id(), 'status' => $userPort->status(), 'flag' => true, 'optional' => null]);
     $spy->emit('second', ['value' => 1.5]);
 
     expect($spy->events)->toBe([
-        ['event' => 'first', 'attributes' => ['user_id' => 1500, 'status' => 'blocked', 'flag' => true, 'optional' => null]],
+        ['event' => 'first', 'attributes' => ['user_id' => '017f22e2-79b0-7cc3-98c4-0000000005dc', 'status' => 'blocked', 'flag' => true, 'optional' => null]],
         ['event' => 'second', 'attributes' => ['value' => 1.5]],
     ]);
 });

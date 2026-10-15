@@ -116,18 +116,20 @@ As frentes 05, 06 e 07 podem ser organizadas separadamente depois da base 04; 08
 
 **Entrega:** cadastro, autenticação e sessão com User/PAT UUIDv7, usando os mecanismos nativos.
 
-- [ ] **4.1** Converter Entity, Repository, Data e UseCases de User para UUIDv7.
-- [ ] **4.2** Configurar geração UUIDv7 no `UserModel` e remover pressupostos de inteiro.
-- [ ] **4.3** Criar/configurar o Model de PAT UUIDv7 pela extensão suportada do Sanctum.
-- [ ] **4.4** Fazer Bearer com parte ID inválida/legada responder 401 antes de erro SQL UUID.
-- [ ] **4.5** Converter `UserPort`, adapters/contexto e middleware para owner canônico UUIDv7.
-- [ ] **4.6** Converter SignIn/Responses/relationships para User/PAT UUIDv7.
-- [ ] **4.7** Converter sessão e `NotificationAdapter`/contratos afetados, preservando locks e aptidão.
-- [ ] **4.8** Converter rotas de User e verificação assinada, preservando assinatura/ownership/statuses.
-- [ ] **4.9** Atualizar fixtures/provas de PAT real, segredo, expiração, extensão, pruning, logout e cascades.
-- [ ] **4.10** Executar arquivos e suítes focadas de Identity/Core.
+- [x] **4.1** Converter Entity, Repository, Data e UseCases de User para UUIDv7.
+- [x] **4.2** Configurar geração UUIDv7 no `UserModel` e remover pressupostos de inteiro.
+- [x] **4.3** Criar/configurar o Model de PAT UUIDv7 pela extensão suportada do Sanctum.
+- [x] **4.4** Fazer Bearer com parte ID inválida/legada responder 401 antes de erro SQL UUID.
+- [x] **4.5** Converter `UserPort`, adapters/contexto e middleware para owner canônico UUIDv7.
+- [x] **4.6** Converter SignIn/Responses/relationships para User/PAT UUIDv7.
+- [x] **4.7** Converter sessão e `NotificationAdapter`/contratos afetados, preservando locks e aptidão.
+- [x] **4.8** Converter rotas de User e verificação assinada, preservando assinatura/ownership/statuses.
+- [x] **4.9** Atualizar fixtures/provas de PAT real, segredo, expiração, extensão, pruning, logout e cascades.
+- [x] **4.10** Executar arquivos e suítes focadas de Identity/Core.
 
 **Concluir quando:** UUID de PAT não é confundido com segredo Bearer; sessão mantém o mesmo ID ao estender e principal inválido não vira zero ou 500.
+
+**Escopo Identity/Core concluído em 2026-10-14:** Feature Identity 112 testes/916 assertions; Unit Identity/Core + arquitetura 383/1.584. Arquivos afetados passaram isoladamente. Fatia cruzada com isolamento Redis/duas invocações passou em seeds 20261018/20261019 (505/2.652); Feature Identity em paralelo de dois processos passou (112/916). Pint passou. Evidências, mapa de preservação e intercorrências no [checklist oficial](openspec/changes/standardize-uuid-v7-identifiers/tasks.md#step-04--identity-owner-core-e-sanctum--2026-10-14). Gate global continua bloqueado: agora encontra mocks de Expense com owner inteiro, cuja conversão pertence ao STEP 05. A integração completa de Notifications segue no STEP 06 e o banco operacional ainda aguarda STEP 12.
 
 ## STEP 05 — Expense, cursor, cache e classificação
 

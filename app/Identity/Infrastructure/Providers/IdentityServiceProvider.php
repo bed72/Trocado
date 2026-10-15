@@ -18,6 +18,7 @@ use App\Identity\Infrastructure\Adapters\SignInAdapter;
 use App\Identity\Infrastructure\Adapters\SignOutAdapter;
 use App\Identity\Infrastructure\Repositories\Persistence\EloquentEmailVerificationRepository;
 use App\Identity\Infrastructure\Repositories\Persistence\EloquentUserRepository;
+use App\Identity\Infrastructure\Repositories\Persistence\Models\PersonalAccessTokenModel;
 use App\Notifications\Application\Ports\NotificationPort;
 use DateTimeImmutable;
 use DateTimeInterface;
@@ -40,14 +41,15 @@ final class IdentityServiceProvider extends ServiceProvider
         $this->app->bind(abstract: SignInPort::class, concrete: SignInAdapter::class);
         $this->app->bind(abstract: SignOutPort::class, concrete: SignOutAdapter::class);
         $this->app->bind(abstract: SessionPort::class, concrete: SessionAdapter::class);
-        $this->app->bind(abstract: UserRepository::class, concrete: EloquentUserRepository::class);
         $this->app->bind(abstract: NotificationPort::class, concrete: NotificationAdapter::class);
+        $this->app->bind(abstract: UserRepository::class, concrete: EloquentUserRepository::class);
         $this->app->bind(abstract: EmailVerificationPort::class, concrete: EmailVerificationAdapter::class);
         $this->app->bind(abstract: EmailVerificationRepository::class, concrete: EloquentEmailVerificationRepository::class);
     }
 
     public function boot(SessionPolicyValueObject $policy): void
     {
+        Sanctum::usePersonalAccessTokenModel(PersonalAccessTokenModel::class);
         Model::preventLazyLoading(! $this->app->environment('production'));
 
         Sanctum::authenticateAccessTokensUsing(function (PersonalAccessToken $token, bool $isValid) use ($policy): bool {

@@ -14,13 +14,13 @@ use Illuminate\Support\Facades\Route;
 
 Route::get(uri: 'email-verification/{id}/{hash}', action: VerifyEmailController::class)
     ->middleware('signed')
-    ->whereNumber(parameters: 'id')
+    ->where('id', '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-7[0-9a-fA-F]{3}-[89aAbB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}')
     ->name(name: 'verification.verify');
 
 Route::prefix('users')->middleware(['auth:sanctum', 'request.authenticated', 'user.active', 'verified', 'throttle:api.authenticated', 'session.extend'])->name('users.')->group(function (): void {
-    Route::get(uri: '{user}', action: GetUserController::class)->whereNumber(parameters: 'user')->name(name: 'get');
-    Route::patch(uri: '{user}', action: UpdateUserController::class)->whereNumber(parameters: 'user')->name(name: 'update');
-    Route::delete(uri: '{user}', action: DeleteUserController::class)->whereNumber(parameters: 'user')->name(name: 'delete');
+    Route::get(uri: '{user}', action: GetUserController::class)->where('user', '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-7[0-9a-fA-F]{3}-[89aAbB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}')->name(name: 'get');
+    Route::patch(uri: '{user}', action: UpdateUserController::class)->where('user', '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-7[0-9a-fA-F]{3}-[89aAbB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}')->name(name: 'update');
+    Route::delete(uri: '{user}', action: DeleteUserController::class)->where('user', '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-7[0-9a-fA-F]{3}-[89aAbB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}')->name(name: 'delete');
 });
 
 Route::prefix('authentication')->name('authentication.api.')->group(function (): void {

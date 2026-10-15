@@ -6,12 +6,13 @@ use App\Core\Application\Ports\ObservabilityPort;
 use App\Identity\Application\Data\Output\SignInOutput;
 use App\Identity\Application\Ports\SignInPort;
 use App\Identity\Application\UseCases\SignInUseCase;
+use Tests\Support\Core\Fixtures\UuidFixture;
 
 it('delegates credential verification and token issuance to the authentication port', function (): void {
     $expiresAt = new DateTimeImmutable('2026-09-21T12:00:00+00:00');
     $issuedToken = new SignInOutput(
-        id: 5,
-        userId: 10,
+        id: UuidFixture::at(5),
+        userId: UuidFixture::at(10),
         token: 'plain-token',
         expiresAt: $expiresAt,
     );

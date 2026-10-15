@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Identity\Domain\Enums\UserStatusEnum;
 use App\Identity\Infrastructure\Adapters\SessionAdapter;
+use App\Identity\Infrastructure\Repositories\Persistence\Models\PersonalAccessTokenModel as PersonalAccessToken;
 use App\Identity\Infrastructure\Repositories\Persistence\Models\UserModel;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Artisan;
@@ -12,8 +13,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Testing\TestResponse;
-use Laravel\Sanctum\PersonalAccessToken;
 use Tests\Support\Core\Fixtures\ConcurrentDatabaseProcess;
+use Tests\Support\Core\Fixtures\UuidFixture;
+use Tests\Support\Core\Fixtures\UuidSchemaFixture;
 use Tests\Support\Identity\Fixtures\IdentityFixture;
 use Tests\Support\Identity\Helpers\IdentityHttpJourney;
 
@@ -28,7 +30,7 @@ function sessionRequest(string $token, string $route, array $parameters = []): T
 
 it('issues a single expiring Sanctum token and keeps its bearer and hash on fortnightly activity', function (): void {
     $this->travelTo(CarbonImmutable::parse('2026-01-01 12:00:00'));
-    $userId = (int) IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
+    $userId = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
     $token = (new IdentityHttpJourney($this))->signIn();
     $user = UserModel::query()->findOrFail($userId);
     $record = $user->tokens()->sole();
@@ -46,7 +48,7 @@ it('issues a single expiring Sanctum token and keeps its bearer and hash on fort
 
     foreach ([14, 15, 15, 15, 15] as $days) {
         $this->travel($days)->days();
-        sessionRequest($token, 'expenses.index')->assertOk()->assertDontSee($token);
+        sessionRequest($token, 'users.get', ['user' => $userId])->assertOk()->assertDontSee($token);
     }
 
     expect($record->fresh()->expires_at->equalTo($issuedAt->addDays(90)))->toBeTrue()
@@ -63,7 +65,7 @@ it('issues a single expiring Sanctum token and keeps its bearer and hash on fort
 
 it('treats sign-in expiry as an initial snapshot and declines renewal after inactivity', function (): void {
     $this->travelTo(CarbonImmutable::parse('2026-01-01 12:00:00'));
-    $userId = (int) IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
+    $userId = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
     $response = $this->postJson(route('authentication.api.sign-in'), [
         'data' => ['type' => 'access-tokens', 'attributes' => ['email' => 'maria@example.com', 'password' => 'Correct1']],
     ])->assertOk()->assertHeader('Pragma', 'no-cache');
@@ -83,13 +85,13 @@ it('treats sign-in expiry as an initial snapshot and declines renewal after inac
 
 it('renews at the inclusive 15-day boundary, never early, and caps extension at 90 days', function (): void {
     $this->travelTo(CarbonImmutable::parse('2026-01-01 12:00:00'));
-    $userId = (int) IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
+    $userId = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
     $token = (new IdentityHttpJourney($this))->signIn();
     $record = UserModel::query()->findOrFail($userId)->tokens()->sole();
     $issuedAt = $record->created_at->toImmutable();
 
     $this->travel(14)->days();
-    sessionRequest($token, 'expenses.index')->assertOk();
+    sessionRequest($token, 'users.get', ['user' => $userId])->assertOk();
     expect($record->fresh()->expires_at->equalTo($issuedAt->addDays(30)))->toBeTrue();
 
     $this->travel(1)->days();
@@ -98,7 +100,7 @@ it('renews at the inclusive 15-day boundary, never early, and caps extension at 
 
     foreach ([15, 15, 15, 15] as $days) {
         $this->travel($days)->days();
-        sessionRequest($token, 'expenses.index')->assertOk();
+        sessionRequest($token, 'users.get', ['user' => $userId])->assertOk();
     }
 
     expect($record->fresh()->expires_at->equalTo($issuedAt->addDays(90)))->toBeTrue();
@@ -109,7 +111,7 @@ it('renews at the inclusive 15-day boundary, never early, and caps extension at 
 
 it('keeps a weekly visitor authenticated until the absolute limit', function (): void {
     $this->travelTo(CarbonImmutable::parse('2026-01-01 12:00:00'));
-    $userId = (int) IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
+    $userId = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
     $token = (new IdentityHttpJourney($this))->signIn();
     $record = PersonalAccessToken::findToken($token);
 
@@ -125,7 +127,7 @@ it('keeps a weekly visitor authenticated until the absolute limit', function ():
 
 it('does not renew rejected requests, blocked accounts, or sign-out and leaves other logins alone', function (): void {
     $this->travelTo(CarbonImmutable::parse('2026-01-01 12:00:00'));
-    $userId = (int) IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
+    $userId = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
     $journey = new IdentityHttpJourney($this);
     $first = $journey->signIn();
     $second = $journey->signIn();
@@ -133,11 +135,21 @@ it('does not renew rejected requests, blocked accounts, or sign-out and leaves o
     $record = PersonalAccessToken::findToken($first);
     $original = $record->expires_at;
 
+    foreach ([$first, $second] as $index => $bearer) {
+        $registration = UuidSchemaFixture::row('notifications');
+        $registration['id'] = UuidFixture::at(500 + $index);
+        $registration['user_id'] = $userId;
+        $registration['session_id'] = PersonalAccessToken::findToken($bearer)->id;
+        $registration['installation_id'] = UuidFixture::at(600 + $index);
+        $registration['identifier_fingerprint'] = str_repeat($index === 0 ? 'a' : 'b', 64);
+        DB::table('notifications')->insert($registration);
+    }
+
     $this->travel(16)->days();
     sessionRequest('invalid-token', 'expenses.index')->assertUnauthorized();
     Auth::forgetGuards();
     $this->getJson(route('expenses.index'))->assertUnauthorized();
-    sessionRequest($first, 'users.get', ['user' => $userId + 1])->assertNotFound();
+    sessionRequest($first, 'users.get', ['user' => UuidFixture::at(999)])->assertNotFound();
     sessionRequest($first, 'users.get', ['user' => $userId])->assertOk();
     expect($record->fresh()->expires_at->greaterThan($original))->toBeTrue()
         ->and(PersonalAccessToken::findToken($second)->expires_at->equalTo($original))->toBeTrue();
@@ -150,15 +162,20 @@ it('does not renew rejected requests, blocked accounts, or sign-out and leaves o
     Auth::forgetGuards();
     withToken($second)->deleteJson(route('authentication.api.sign-out'))->assertNoContent();
     expect(PersonalAccessToken::findToken($second))->toBeNull()
-        ->and($record->fresh())->not->toBeNull();
+        ->and($record->fresh())->not->toBeNull()
+        ->and(DB::table('notifications')->pluck('session_id')->all())->toBe([$record->id]);
     sessionRequest($second, 'expenses.index')->assertUnauthorized();
 });
 
 it('rechecks persistence before extending and prunes legacy tokens by individual expiry', function (): void {
     $this->travelTo(CarbonImmutable::parse('2026-01-01 12:00:00'));
-    $userId = (int) IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
+    $userId = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
     $token = (new IdentityHttpJourney($this))->signIn();
     $record = PersonalAccessToken::findToken($token);
+    $registration = UuidSchemaFixture::row('notifications');
+    $registration['user_id'] = $userId;
+    $registration['session_id'] = $record->id;
+    DB::table('notifications')->insert($registration);
     $record->forceFill(['expires_at' => now()->addHours(2)])->save();
 
     $this->travel(1)->hours();
@@ -174,12 +191,12 @@ it('rechecks persistence before extending and prunes legacy tokens by individual
 
     $record->forceFill(['expires_at' => now()->subHours(25)])->save();
     Artisan::call('sanctum:prune-expired', ['--hours' => 24]);
-    expect($record->fresh())->toBeNull();
+    expect($record->fresh())->toBeNull()->and(DB::table('notifications')->count())->toBe(0);
 });
 
 it('does not extend for validation, rate limit, server error, or unverified email', function (): void {
     $this->travelTo(CarbonImmutable::parse('2026-01-01 12:00:00'));
-    $userId = (int) IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
+    $userId = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
     $token = (new IdentityHttpJourney($this))->signIn();
     $record = PersonalAccessToken::findToken($token);
     $expiresAt = $record->expires_at;
@@ -212,7 +229,7 @@ it('does not extend for validation, rate limit, server error, or unverified emai
 
 it('does not recreate a revoked token or revive a token expired after authentication', function (): void {
     $this->travelTo(CarbonImmutable::parse('2026-01-01 12:00:00'));
-    $userId = (int) IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
+    $userId = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
     $token = (new IdentityHttpJourney($this))->signIn();
     $record = PersonalAccessToken::findToken($token);
     $this->travel(16)->days();
@@ -229,7 +246,7 @@ it('does not recreate a revoked token or revive a token expired after authentica
 
 it('rejects a token at 90 days even when its stored expiry is later or absent', function (): void {
     $this->travelTo(CarbonImmutable::parse('2026-01-01 12:00:00'));
-    $userId = (int) IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
+    $userId = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
     $token = (new IdentityHttpJourney($this))->signIn();
     $record = PersonalAccessToken::findToken($token);
     $issuedAt = $record->created_at->toImmutable();
@@ -251,13 +268,13 @@ it('rejects a token at 90 days even when its stored expiry is later or absent', 
 
 it('uses the fixed session policy when the adapter is called directly', function (): void {
     $this->travelTo(CarbonImmutable::parse('2026-01-01 12:00:00'));
-    $userId = (int) IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
+    $userId = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
     $token = (new IdentityHttpJourney($this))->signIn();
     $record = PersonalAccessToken::findToken($token);
     $issuedAt = $record->created_at->toImmutable();
 
     $this->travel(16)->days();
-    sessionRequest($token, 'users.get', ['user' => $userId + 1])->assertNotFound();
+    sessionRequest($token, 'users.get', ['user' => UuidFixture::at(999)])->assertNotFound();
     app(SessionAdapter::class)->extendCurrentToken();
 
     expect($record->fresh()->expires_at->equalTo($issuedAt->addDays(46)))->toBeTrue()
@@ -269,7 +286,7 @@ it('uses the fixed session policy when the adapter is called directly', function
 
 it('revalidates the locked token against a concurrent extension, revocation or expiry', function (string $change): void {
     $this->travelTo(CarbonImmutable::parse('2026-01-01 12:00:00'));
-    $userId = (int) IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
+    $userId = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
     $token = (new IdentityHttpJourney($this))->signIn();
     $record = PersonalAccessToken::findToken($token);
     $id = $record->getKey();
@@ -277,7 +294,7 @@ it('revalidates the locked token against a concurrent extension, revocation or e
     $issuedAt = $record->created_at->toImmutable();
     $this->travel(16)->days();
 
-    sessionRequest($token, 'users.get', ['user' => $userId + 1])->assertNotFound();
+    sessionRequest($token, 'users.get', ['user' => UuidFixture::at(999)])->assertNotFound();
 
     $child = new ConcurrentDatabaseProcess(static function (): void {
         app(SessionAdapter::class)->extendCurrentToken();

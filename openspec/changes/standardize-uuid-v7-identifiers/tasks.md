@@ -44,16 +44,19 @@
 
 ## 4. Identity, Core owner e Sanctum
 
-- [ ] 4.1 Converter UserEntity/Repository/Data/UseCases de criação/leitura/update/delete para IDs v7 e validar fora de HTTP, sem password/token no Domain. [user; UID-02/05]
-- [ ] 4.2 Configurar UserModel com geração UUIDv7 e remover casts/comentários/relações que pressupõem inteiro; conservar a separação de Expense Model. [user; UID-03]
-- [ ] 4.3 Implementar Model próprio de PAT UUIDv7 em Identity e registrá-lo via Sanctum::usePersonalAccessTokenModel; sem vendor changes ou credencial nova. [authentication; D6]
-- [ ] 4.4 Proteger lookup de parte ID malformada/legada para 401 antes de SQL UUID, preservando resolução oficial/hash/segredo Sanctum e inputs suportados pelo pacote. [authentication: Bearer]
-- [ ] 4.5 Converter Core UserPort/UserAdapter/ContextPort/ContextAdapter e consumidor do middleware para owner canônico v7; atualizar assinaturas e implementações em uma fatia coerente, sem fallback de Context/guard ou cast numérico. [UID-05]
-- [ ] 4.6 Converter SignInOutput/Adapters/Ports e Responses: User/PAT/relationship UUIDv7, token uma vez/no-store e UUID preservado em extensão. [authentication]
-- [ ] 4.7 Converter SessionAdapter e NotificationAdapter owner/sessão/retorno para UUIDv7, preservando locks/aptidão/owner/validade; não ampliar dependência cross-context. [UID-05/07]
-- [ ] 4.8 Converter rotas/controllers/Requests User e verificação assinada para UUIDv7, mantendo checagem da assinatura antes de canonicalização e 404/401/403/422 existentes. [user; authentication]
-- [ ] 4.9 Atualizar testes/fixtures/doubles Identity e provar PAT real v7, segredo, owner, expiração, extensão/pruning/logout, link assinado, cascades e invocação fora de HTTP. [UID-04–06; D6]
-- [ ] 4.10 Executar arquivos Identity/Core afetados isoladamente e suites focadas; registrar falhas/limitações sem enfraquecer temporalidade/ownership para acomodar tipo. [D10]
+- [x] 4.1 Converter UserEntity/Repository/Data/UseCases de criação/leitura/update/delete para IDs v7 e validar fora de HTTP, sem password/token no Domain. [user; UID-02/05]
+- [x] 4.2 Configurar UserModel com geração UUIDv7 e remover casts/comentários/relações que pressupõem inteiro; conservar a separação de Expense Model. [user; UID-03]
+- [x] 4.3 Implementar Model próprio de PAT UUIDv7 em Identity e registrá-lo via Sanctum::usePersonalAccessTokenModel; sem vendor changes ou credencial nova. [authentication; D6]
+- [x] 4.4 Proteger lookup de parte ID malformada/legada para 401 antes de SQL UUID, preservando resolução oficial/hash/segredo Sanctum e inputs suportados pelo pacote. [authentication: Bearer]
+- [x] 4.5 Converter Core UserPort/UserAdapter/ContextPort/ContextAdapter e consumidor do middleware para owner canônico v7; atualizar assinaturas e implementações em uma fatia coerente, sem fallback de Context/guard ou cast numérico. [UID-05]
+  - Contratos/implementações e stub string; middleware existente continua passando o owner explicitamente. Consumers de negócio ainda inteiros pertencem aos STEPs 05–10; build global não está liberado.
+- [x] 4.6 Converter SignInOutput/Adapters/Ports e Responses: User/PAT/relationship UUIDv7, token uma vez/no-store e UUID preservado em extensão. [authentication]
+- [x] 4.7 Converter SessionAdapter e NotificationAdapter owner/sessão/retorno para UUIDv7, preservando locks/aptidão/owner/validade; não ampliar dependência cross-context. [UID-05/07]
+  - SessionAdapter opera o PAT string configurado, sem mudança de política. NotificationPort/Adapter convertidos juntos; registro completo e seus mocks/Entities/Repository são STEP 06.
+- [x] 4.8 Converter rotas/controllers/Requests User e verificação assinada para UUIDv7, mantendo checagem da assinatura antes de canonicalização e 404/401/403/422 existentes. [user; authentication]
+- [x] 4.9 Atualizar testes/fixtures/doubles Identity e provar PAT real v7, segredo, owner, expiração, extensão/pruning/logout, link assinado, cascades e invocação fora de HTTP. [UID-04–06; D6]
+- [x] 4.10 Executar arquivos Identity/Core afetados isoladamente e suites focadas; registrar falhas/limitações sem enfraquecer temporalidade/ownership para acomodar tipo. [D10]
+  - Arquivos isolados, Feature Identity 112/916, Unit Identity/Core + arquitetura 383/1584, duas seeds focadas 505/2652 e paralelo Feature 112/916 aprovados. Gate global continua bloqueado em Expense; detalhes abaixo.
 
 ## 5. Expense, cache, classificação e cursor
 
@@ -177,10 +180,10 @@
 | --- | --- | --- | --- |
 | UID-01 política/exclusões e todos os recursos próprios | 1.3, 3.*, 11.2/11.6 | Inventário por papel + schema/HTTP + arquitetura | Não implementado/comprovado |
 | UID-02 canônico/v7/variante/negativos/null | 2.1–2.3, 4.1, 6.3 | Unit pura + HTTP antes de lookup + PG checks | Parcial: VO puro comprovado no STEP 02; integração de entidades/HTTP/PG pendente |
-| UID-03 geração padrão/imutabilidade | 3.*, 4.2–4.3, 5.2, 6.1, 7.3 | Model/PG create-update + formato + callback/clock fora de Domain | Não implementado/comprovado |
-| UID-04 PK/FK/morph/cascades | 3.1–3.8, 4.9, 6.7 | PostgreSQL tipos/constraints/owner/session/encerramento | Parcial: bootstrap/checks/FKs/uniques/cascades reais comprovados no STEP 03; geração Models e lifecycle de encerramento via UseCase pendentes |
-| UID-05 contratos/guard/sem cast | 2.4–2.5, 4.5/4.7, 5.1, 8.1/9.1/10.1, 11.6 | Unit argumentos + arquitetura + autenticação real | Parcial: tipos definidos e fronteiras aprovadas no STEP 02; conversão/guard pendentes |
-| UID-06 rotas inválidas/owner/auth | 4.8–4.9, 5.3/5.8, 6.4/6.7 | HTTP 200/201/204 e 401/403/404/422/429 | Não implementado/comprovado |
+| UID-03 geração padrão/imutabilidade | 3.*, 4.2–4.3, 5.2, 6.1, 7.3 | Model/PG create-update + formato + callback/clock fora de Domain | Parcial: User/PAT HasUuids e imutabilidade User/sessão comprovados no STEP 04; demais contextos pendentes |
+| UID-04 PK/FK/morph/cascades | 3.1–3.8, 4.9, 6.7 | PostgreSQL tipos/constraints/owner/session/encerramento | Parcial: schema STEP 03 e geração User/PAT/lifecycle de encerramento HTTP + SignOut/pruning STEP 04 comprovados; fluxos de registro/Expense pendentes |
+| UID-05 contratos/guard/sem cast | 2.4–2.5, 4.5/4.7, 5.1, 8.1/9.1/10.1, 11.6 | Unit argumentos + arquitetura + autenticação real | Parcial: Identity/Core owner/guard/contexto e NotificationPort/Adapter comprovados no STEP 04; consumidores de negócio e integração global pendentes |
+| UID-06 rotas inválidas/owner/auth | 4.8–4.9, 5.3/5.8, 6.4/6.7 | HTTP 200/201/204 e 401/403/404/422/429 | Parcial: User/Auth UUIDv7 com assinatura/owner/statuses comprovados no STEP 04; Expense/registro pendentes |
 | UID-07 instalação/registro/cliente | 1.5, 6.*, 13.2/13.6/13.7 | Unit/HTTP/PG + homologação externa registrada | Não implementado/comprovado |
 | UID-08 reset autorizado/negativo/lifecycle | 3.7, 12.* | Alvo/estado/cleanup/checks registrados + guard/testes de recusa | Parcial: guard e cleanup do launcher comprovados no STEP 03; reset operacional não executado |
 | RID-01 mínimo/sem fatos/fronteiras | 3.5, 7.1/7.3/7.7, 13.1 | Schema allowlist + Unit + arquitetura | Parcial: allowlist do schema mínimo comprovada no STEP 03; capacidade Application/Repository pendente |
@@ -190,15 +193,15 @@
 | RID-05 reinício/PAT/reaparecimento/cascade | 7.9–7.10, 8.5/9.5/10.5 | HTTP/PG processos novos + owner delete + recursos ausentes | Não implementado/comprovado |
 | RID-06 erro/composição/fonte/sem fallback | 7.6, 8.6/9.6/10.5 | Exceção sentinela Unit/HTTP + zero writes + erro sem data/log sensível | Não implementado/comprovado |
 | RID-07 sem endpoint/autoridade/cleanup | 3.7, 7.9, 11.5 | HTTP/owner + lifecycle exact runId/token | Parcial: cleanup/ownership exclusivo comprovados no STEP 03; integração da capacidade/HTTP pendente |
-| User/Core UUID ownership e Entity pura | 2.*, 4.1/4.5/4.8/4.9 | Unit + HTTP + fronteiras | Parcial: conceito Core/pureza comprovados; ownership/Entity UUID pendentes |
-| Sanctum/segredo/expiração/extensão/link | 4.2–4.4/4.6–4.9 | PAT real + PG locks + assinatura/tempo/owner | Não implementado/comprovado |
+| User/Core UUID ownership e Entity pura | 2.*, 4.1/4.5/4.8/4.9 | Unit + HTTP + fronteiras | Proven para Identity/Core no STEP 04; consumidores e ambiente operacional ainda em conversão |
+| Sanctum/segredo/expiração/extensão/link | 4.2–4.4/4.6–4.9 | PAT real + PG locks + assinatura/tempo/owner | Proven no schema exclusivo do STEP 04, incluindo corrida sincronizada de extensão; rollout operacional pendente |
 | Expense sort/cursor v2/cache/worker | 5.* | Unit + PG/HTTP next-prev + Redis/worker exclusivo | Não implementado/comprovado |
 | Insights períodos/estados/rotação/UUID | 8.* | Unit + HTTP/PG + Core batch | Não implementado/comprovado |
 | Metrics singular/zero/default/grouped/UUID | 9.* | Unit + HTTP/PG + Core batch | Não implementado/comprovado |
 | Sugestões norm/valor/owner/UUID | 10.* | Unit + HTTP/PG normalização SQL/associação | Não implementado/comprovado |
 | Observabilidade próprio UUID/native SDK | 11.3–11.4 | JSON/header/context + ausência de segredos/fingerprint | Não implementado/comprovado |
 | Cliente/Bruno/documentação | 13.* | Parser/CLI controlados + homologação externa distinta | Não implementado/comprovado |
-| Gates transversais | 14.* | Padrão + duas seeds + paralelo + Redis/concorrência | Passaram para o STEP 02; tentativa global no STEP 03 bloqueada pelo UserModel inteiro. Provas focadas passaram com duas seeds/paralelo; gate final permanece pendente |
+| Gates transversais | 14.* | Padrão + duas seeds + paralelo + Redis/concorrência | Passaram no STEP 02. Bloqueio UserModel STEP 03 resolvido no STEP 04; tentativa global agora para em mocks Expense inteiros. Fatias focadas passam; gate final pendente |
 
 ## Estado histórico da elaboração da proposta
 
@@ -495,3 +498,101 @@ Mapa de preservação: os cenários antigos de `FirstProcessTest`/`SecondProcess
 Pint `--dirty --format agent` passou após a última edição PHP. Migrations rodaram somente pelo preflight incremental do launcher. **Não houve `migrate`/`migrate:fresh` no banco operacional**, pois suas migrations de bootstrap já aplicadas ainda produzem bigint e a nova FK UUID requer a recriação coordenada do STEP 12. Boost reconfirmou ao final `current_database() = trocado`, `users.id = bigint`, `resource_identities` ausente. Não houve request sobre schema operacional convertido nem alegação de desempenho/geração de Models. Workers/configuração/filas operacionais não foram alterados. `openspec validate standardize-uuid-v7-identifiers --type change --strict --json --no-interactive` passou (`valid = true`, sem issues) e `git diff --check` passou no fechamento desta fatia.
 
 **Resultado de escopo:** 3.1–3.8 implementados e comprovados para schema/cleanup exclusivo, sincronizados com `STEPS.md`. Próxima etapa: STEP 04. Build completo, gate global do suporte compartilhado, reset operacional e archive continuam bloqueados/pendentes nas etapas próprias.
+
+## STEP 04 — Identity, owner Core e Sanctum — 2026-10-14
+
+### Autorização, implementação e fronteiras
+
+Pedido: “Entao vamos para o Step 4”. Autoriza 4.1–4.10 e as provas dessa fatia. Checkout iniciou limpo, com STEP 03 integrado. Boost reconfirmou PHP 8.5/Laravel 13.34.0/Sanctum 4.3.3/Pest 5.2.1; Search Docs e Sanctum instalado consultados para HasUuids, custom PAT, lookup e constraints de rota. Skills arquitetura/quality gate e regras locais consultadas; fluxo OpenSpec conferido por status/instructions apply.
+
+- `UserEntity` usa `?string` explícita: null somente pré-create, presente validado/canonicalizado pelo VO puro. Get/Update/Delete/Verify validam o alvo antes de owner/Repository/transação; contratos, SignUp retorno, SignInOutput, Repositories e adapters transportam strings v7 sem casts numéricos. Mapping preserva campos/status/password fora de Domain.
+- `UserModel` e `PersonalAccessTokenModel` usam `HasUuids` nativo do Laravel 13. PAT estende o Model oficial, declara a tabela por atributo e é registrado por `Sanctum::usePersonalAccessTokenModel`; segredo/hash/abilities/expiry/owner morph permanecem oficiais. Nenhum vendor, dependência, gerador global ou protocolo novo.
+- `PersonalAccessTokenModel::findToken` valida/canonicaliza somente a parte ID quando há `|`, retornando null sem SQL se inválida; depois delega ao pai, preservando hash_equals e o caminho oficial sem pipe (lookup pelo hash do segredo). UUID sozinho não autentica. Parâmetro é SensitiveParameter.
+- Core `UserPort::id(): string` e `UserAdapter` obtêm/validam somente guard Sanctum e traduzem ausência/tipo/formato inválido para AuthenticationException. `ContextPort`/`ContextAdapter` transportam owner canônico; middleware existente continua passagem explícita, sem fallback Context/web. Stub tipado alterado em conjunto.
+- `NotificationPort::lock(string, DateTimeImmutable): string` e `NotificationAdapter` foram convertidos juntos, com binding proprietário em Identity e sem ampliar imports. Provas diretas relêem PAT sob lock e conta após snapshot do guard, verificando owner/morph/expiry/idade/status/e-mail e não extensão. `SessionAdapter` já usa chave opaca; o custom PAT agora lhe fornece strings v7, mantendo política e transação existentes.
+- Rotas User/verificação restringem versão/variante e permitem caixa equivalente; Controllers recebem string. `UpdateUserRequest` valida data.id v7/equivalência com rota, com pointer seguro. `TrimStrings` preserva data.id. Signed middleware valida a URL original antes do UseCase canonicalizar; URL uppercase assinada confirma, alterar só a caixa sem reassinar resulta em 403.
+- Responses existentes já serializam IDs string; agora recebem User/PAT v7 canônicos. SignIn continua único ponto de entrega do segredo/no-store/no-cache. Architecture foi alinhada ao contrato owner e extensão Sanctum atuais; sem allowlists novas.
+
+### Cenário → evidência atual
+
+| Cenário / requisito da fatia | Evidência | Estado |
+| --- | --- | --- |
+| Entity presente v7, uppercase canônico, null pré-create, IDs presentes inválidos rejeitados | UserEntityTest; VO Core existente | Proven |
+| Ownership fora de HTTP/canonicalização antes de Repository e transação | Get/Update/Delete/Verify Unit preservados + UuidIdentityUseCasesTest | Proven |
+| User/PAT geração v7 nativa/string/não incremental e mapping sem credencial | EloquentUserRepositoryTest + PersonalAccessTokenModelTest + SignUp/SignIn HTTP | Proven |
+| Bearer v7, owner/morph, segredo/hash oficial, caminho sem pipe e UUID sem segredo recusado | PersonalAccessTokenModelTest + SignInHttpTest | Proven |
+| Prefixos numérico/v1/v4/v6/v8/nil/variante/whitespace/malformado: null antes de query e HTTP 401 sem lookup PAT | Dataset PAT, query log explicitamente vazio na chamada direta e sem query PAT no HTTP | Proven |
+| User GET/PATCH uppercase, corpo v7 e UUID preservado | UuidUserHttpTest | Proven |
+| Rota não v7 → 404 sem query User; body inválido/número/whitespace/UUID divergente → 422 pointer | Datasets UuidUserHttpTest e request data.id fora de trim | Proven |
+| GET/PATCH/DELETE alheio e inexistente idênticos, nenhuma alteração de outra conta | UuidUserHttpTest + Unit ownership | Proven |
+| Encerramento real da User: todos PATs + Expense/Notifications/Core removidos, outra conta íntegra | DELETE HTTP com Bearer real, rows dependentes UUID explícitas e assertions por owner | Proven para lifecycle; não substitui fluxos de criação Expense/Notifications |
+| Extensão inicial/quinzenal/semanal, fronteira 15 dias/teto 90, UUID/hash/segredo imutáveis | SlidingSanctumSessionTest | Proven |
+| Releitura de PAT sob extensão/revogação/expiração concorrentes | Três corridas existentes, filho com conexão nova/go/awaitLock/done e timeout/cleanup | Proven; não é corrida de cadastro Notifications |
+| Logout seletivo e pruning UUID removem somente destinos da sessão, preservando outra sessão | SlidingSanctumSessionTest ampliado com rows Notifications explícitas | Proven para cascade; registro push é STEP 06 |
+| Conta pending/blocked, verificação/política temporal e falhas de infraestrutura/credencial sanitizadas | SignInHttpTest, EmailVerificationTest, SignUp HTTP/RateLimit | Proven |
+| URL original antes de canonicalização; verificação idempotente/rollback/eventos após commit | EmailVerificationTest + EloquentEmailVerificationRepositoryTest + Verify Unit | Proven |
+| Transporte de verificação real/Redis/retry e callbacks de tentativas revertidas | Cenários existentes EmailVerificationTest executados na suíte e isoladamente | Proven; envio Firebase continua pendente |
+| Owner Core exclusivamente Sanctum, ausência/formato inválido → auth; Context scoped/string/log seguro | UserAdapterTest + RequestCorrelationTest | Proven para owner; UUIDv7 de trace/request é STEP 11 |
+| Pureza/fronteiras/binding proprietário | ContextBoundariesTest, 30/462 | Proven sem ampliar allowlist |
+| Integração UUID de Expense/Notifications/projeções e gate global | STEPs 05–11 pendentes; gate para em Expense Unit com owner int | Blocked global; aprovação focada não libera build completo |
+
+### Provas isoladas após Pint
+
+Todos os comandos Pest usam `lerd composer test -- <path> --compact --fail-on-warning --fail-on-skipped --fail-on-incomplete --fail-on-risky`. Paths abaixo relativos a tests/. Todos os resultados listados passaram sem warnings/skips/incomplete/risky.
+
+| Path | Testes/assertions |
+| --- | --- |
+| Unit/Identity/Domain/Entities/UserEntityTest.php | 10/14 |
+| Unit/Identity/Application/Repositories/UserRepositoryTest.php | 1/16 |
+| Unit/Identity/Application/Ports/IdentityPortsTest.php (após coordenação de edição) | 1/10 |
+| Unit/Identity/Application/UseCases/GetUserUseCaseTest.php | 3/9 |
+| Unit/Identity/Application/UseCases/GetUserByEmailUseCaseTest.php | 2/6 |
+| Unit/Identity/Application/UseCases/UpdateUserUseCaseTest.php | 6/23 |
+| Unit/Identity/Application/UseCases/DeleteUserUseCaseTest.php | 3/17 |
+| Unit/Identity/Application/UseCases/SignUpUseCaseTest.php (repetido após ajuste de argumento nomeado) | 3/31 |
+| Unit/Identity/Application/UseCases/SignInUseCaseTest.php | 1/4 |
+| Unit/Identity/Application/UseCases/SignOutUseCaseTest.php | 1/1 |
+| Unit/Identity/Application/UseCases/VerifyEmailUseCaseTest.php | 4/31 |
+| Unit/Identity/Application/UseCases/UuidIdentityUseCasesTest.php | 24/168 |
+| Unit/Core/Infrastructure/Adapters/UserAdapterTest.php | 16/64 |
+| Unit/Core/Support/TransactionPortFakeTest.php | 6/41 |
+| Unit/Architecture/ContextBoundariesTest.php | 30/462 |
+| Feature/Core/Presentation/Http/Middleware/RequestCorrelationTest.php | 1/64 |
+| Feature/Identity/Infrastructure/Adapters/NotificationAdapterTest.php | 8/11 |
+| Feature/Identity/Infrastructure/Repositories/Persistence/PersonalAccessTokenModelTest.php | 12/106 |
+| Feature/Identity/Infrastructure/Repositories/Persistence/EloquentUserRepositoryTest.php | 3/12 |
+| Feature/Identity/Infrastructure/Repositories/Persistence/EloquentEmailVerificationRepositoryTest.php | 3/17 |
+| Feature/Identity/Infrastructure/Fixtures/IdentityFixtureTest.php | 8/56 |
+| Feature/Identity/Presentation/Http/SignInHttpTest.php | 11/115 |
+| Feature/Identity/Presentation/Http/UuidUserHttpTest.php | 15/75 |
+| Feature/Identity/Presentation/Http/SignUpHttpTest.php (após argumento nomeado) | 17/115 |
+| Feature/Identity/EmailVerificationTest.php (repetido após argumento nomeado) | 20/145 |
+| Feature/Identity/SlidingSanctumSessionTest.php | 13/153 |
+
+### Suítes, seeds, paralelo e bloqueio global
+
+Mesmo launcher e flags comuns acima; Feature sempre sob preflight incremental/manifesto/ownership exclusivo. Unit puro não provisiona banco. Nenhuma migration operacional, seed, reset ou fila operacional foi executada.
+
+| Seleção/argumentos antes dos flags comuns | Resultado |
+| --- | --- |
+| `tests/Unit/Identity tests/Unit/Core tests/Unit/Architecture/ContextBoundariesTest.php` | Passou: 383/1.584 |
+| `tests/Feature/Identity` (invocação individual final) | Passou: 112/916 |
+| `tests/Unit/Identity tests/Unit/Core tests/Unit/Architecture/ContextBoundariesTest.php tests/Feature/Identity tests/Feature/Core/Presentation/Http/Middleware/RequestCorrelationTest.php tests/Feature/Core/Infrastructure/Isolation --order-by=random --random-order-seed=20261018` | Passou: 505/2.652 |
+| mesma seleção, `--order-by=random --random-order-seed=20261019` | Passou: 505/2.652 |
+| `tests/Feature/Identity --parallel --processes=2` | Passou: 112/916 |
+| sem path, `--stop-on-defect` | Falhou: 290 executados, 289 passando, 1 erro; gate global não aprovado |
+
+Gate global parou em `tests/Unit/Expense/Application/UseCases/DeleteExpenseUseCaseTest.php:14`: mock de UserPort ainda retorna int, mas o contrato agora exige string. Expense/fixtures/mocks/cursor são STEP 05, Notifications STEP 06 e demais owners/projeções STEPs 08–11. Não se introduziu union/fallback/ID inteiro, nem se enfraqueceu o contrato ou converteu produto de outra fatia para fazer o gate passar. Gates globais exigidos por suporte compartilhado permanecem pendentes e serão repetidos no build coerente.
+
+Intercorrências registradas, sem contabilizar tentativas falhas: primeira Feature Identity encontrou esperado antigo `getKey() + 1` em link inexistente, convertido para UUID determinístico. Durante as primeiras duas seeds/paralelo houve edição concorrente do usuário reordenando EmailVerificationPort e renomeando `EmailVerificationAdapter::requestForRegistration` para `$id`; isso gerou uma falha de ordem no teste de contrato por seed e falhas/erros de argumento nomeado no paralelo. A edição atual foi preservada; interface e chamada `id:` alinhadas, esperado do contrato atualizado e ambas seeds/paralelo passaram na execução final. Uma chamada agrupada de Feature Identity deu timeout MCP, sem aprovação; repetição individual final passou 112/916. Pint corrigiu imports/formatação em oito arquivos; provas afetadas foram reexecutadas.
+
+### Mapa de preservação, operação e fechamento
+
+- Todos os cenários anteriores de Entity/Repositories/Get/GetByEmail/Update/Delete/SignUp/SignIn/SignOut/Verify permanecem nos mesmos arquivos; IDs de exemplo 5/7/10/20/42 foram substituídos por UUIDs determinísticos por papel, callbacks/expectativas string e reflexões dos contratos foram alinhadas. Nenhum cenário foi removido ou consolidado.
+- SlidingSanctumSession preserva os 13 cenários/política/barreiras de concorrência. Requests de sucesso usados apenas para provar atividade de sessão passaram de expenses.index para users.get, que usa a mesma extensão; prova integrada de Expense será retomada no STEP 05. Recusas de auth/conta/rate-limit que precedem o UseCase Expense continuam nos endpoints originais. Logout/pruning ganharam assertions de cascade UUID, não perderam garantias.
+- EmailVerification preserva callbacks/retries/rollback/eventos/mail worker real/links/status/edição; IDs ausentes deixaram aritmética e nova prova distingue caixa original assinada de URL adulterada. IdentityFixture continua criação explícita via Model, agora com geração v7; IdentityHttpJourney retorna string e não ativa/verifica silenciosamente.
+- RequestCorrelation preserva scope, igualdade header/context/log, novo request, evento CLI limpo e ausência de segredos; owner numérico forçado virou UUID real. Metadado sintético expense_id desse probe e geração trace/request permanecem para STEP 11; não é prova de identidade Expense v7.
+- `route:list --path=users --json` confirmou apenas GET/PATCH/DELETE e mesmos middlewares; `--path=email-verification --json` confirmou signed na rota pública. `dumps_status` já estava enabled; GET real sem Bearer numa rota User v7 respondeu 401 JSON:API. `optimize_route(site=trocado)` retornou sem amostras/rotas, portanto não comprova desempenho/N+1 autenticado. Captura não foi alterada. Boost reconfirmou database operacional `trocado` com `users.id = bigint`; rollout/reset continua STEP 12 e não foi antecipado.
+- Pint `--dirty --format agent` passou após a última edição PHP. `openspec validate standardize-uuid-v7-identifiers --type change --strict --json --no-interactive` passou (`valid = true`, sem issues) e `git diff --check` passou no fechamento desta seção. Nenhum commit/push/archive foi solicitado ou executado.
+
+**Resultado de escopo:** 4.1–4.10 implementados/comprovados para Identity/Core no schema novo exclusivo e sincronizados com STEPS.md. Próximo STEP 05. Aprovação global do suporte compartilhado, integração de registro Notifications, demais consumers e ambiente operacional continuam pendentes; esta fatia não torna a change arquivável.

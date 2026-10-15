@@ -12,7 +12,7 @@ it('delegates current token revocation to the authentication port', function ():
     $port->expects($this->once())
         ->method('revokeToken');
     $userPort = $this->createMock(UserPort::class);
-    $userPort->method('id')->willReturn(10);
+    $userPort->method('id')->willReturn('017f22e2-79b0-7cc3-98c4-00000000000a');
 
     (new SignOutUseCase(
         userPort: $userPort,

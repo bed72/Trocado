@@ -25,7 +25,7 @@ final readonly class SignUpUseCase
         private UserRepository $repository,
     ) {}
 
-    public function execute(#[SensitiveParameter] SignUpInput $input): int
+    public function execute(#[SensitiveParameter] SignUpInput $input): string
     {
         $user = new UserEntity(
             id: null,
@@ -45,7 +45,7 @@ final readonly class SignUpUseCase
             ]));
 
             $this->transactionPort->afterCommit(
-                fn () => $this->emailPort->requestForRegistration(userId: $registeredId),
+                fn () => $this->emailPort->requestForRegistration(id: $registeredId),
             );
 
             return $registered;

@@ -7,6 +7,7 @@ use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\AuthManager;
 use Illuminate\Auth\GenericUser;
 use Illuminate\Contracts\Auth\Guard;
+use Tests\Support\Core\Fixtures\UuidFixture;
 
 enum PrincipalStatusTestEnum: string
 {
@@ -18,23 +19,23 @@ enum IntegerStatusTestEnum: int
     case Active = 1;
 }
 
-it('reads the integer identity from the Sanctum guard', function (): void {
+it('reads and canonicalizes UUIDv7 identity exclusively from the Sanctum guard', function (): void {
     $guard = $this->createMock(Guard::class);
-    $guard->expects($this->once())->method('id')->willReturn(42);
+    $guard->expects($this->once())->method('id')->willReturn(strtoupper(UuidFixture::at(42)));
     $manager = $this->createMock(AuthManager::class);
     $manager->expects($this->once())->method('guard')->with('sanctum')->willReturn($guard);
 
-    expect((new UserAdapter($manager))->id())->toBe(42);
+    expect((new UserAdapter($manager))->id())->toBe(UuidFixture::at(42));
 });
 
-it('fails authentication when the guard has no integer principal', function (int|string|null $id): void {
+it('fails authentication when the guard has no valid UUIDv7 principal', function (int|string|null $id): void {
     $guard = $this->createMock(Guard::class);
     $guard->expects($this->once())->method('id')->willReturn($id);
     $manager = $this->createMock(AuthManager::class);
     $manager->expects($this->once())->method('guard')->with('sanctum')->willReturn($guard);
 
     (new UserAdapter($manager))->id();
-})->with([null, '42'])->throws(AuthenticationException::class);
+})->with([null, 42, '42', '', '017f22e2-79b0-4cc3-98c4-000000000001', '017f22e2-79b0-7cc3-c8c4-000000000001', ' '.UuidFixture::at(42)])->throws(AuthenticationException::class);
 
 it('reads textual status exclusively from the Sanctum principal', function (string|PrincipalStatusTestEnum $status): void {
     $guard = $this->createMock(Guard::class);

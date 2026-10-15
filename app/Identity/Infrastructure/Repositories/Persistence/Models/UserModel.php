@@ -11,12 +11,13 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Attributes\Table;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
 /**
- * @property int $id
+ * @property string $id
  * @property string $name
  * @property string $email
  * @property string $password
@@ -31,8 +32,9 @@ use Laravel\Sanctum\HasApiTokens;
 #[Fillable('name', 'email', 'password', 'status', 'avatar')]
 final class UserModel extends Authenticatable implements MustVerifyEmail
 {
-    use HasApiTokens, Notifiable;
+    use HasApiTokens, HasUuids, Notifiable;
 
+    // TODO Rever esse envio
     public function sendEmailVerificationNotification(): void
     {
         $this->notify(new VerifyEmailNotification(expectedEmail: $this->getEmailForVerification()));

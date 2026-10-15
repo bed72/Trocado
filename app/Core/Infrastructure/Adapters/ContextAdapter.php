@@ -6,6 +6,7 @@ namespace App\Core\Infrastructure\Adapters;
 
 use App\Core\Application\Data\ContextInput;
 use App\Core\Application\Ports\ContextPort;
+use App\Core\Domain\ValueObjects\UuidValueObject;
 use Illuminate\Log\Context\Repository as ContextRepository;
 
 use function is_string;
@@ -19,9 +20,9 @@ final readonly class ContextAdapter implements ContextPort
         return $this->context->scope($operation);
     }
 
-    public function identifyUser(int $userId): void
+    public function identifyUser(string $userId): void
     {
-        $this->context->add('user_id', $userId);
+        $this->context->add('user_id', UuidValueObject::fromString($userId)->value());
     }
 
     public function traceId(): ?string

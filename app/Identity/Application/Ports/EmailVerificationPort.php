@@ -8,7 +8,7 @@ interface EmailVerificationPort
 {
     public function requestForEmail(string $email): void;
 
-    public function requestForRegistration(int $userId): void;
+    public function publishVerified(string $userId): void;
 
-    public function publishVerified(int $userId): void;
+    public function requestForRegistration(string $id): void;
 }

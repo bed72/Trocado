@@ -12,11 +12,12 @@ use App\Identity\Domain\Exceptions\InvalidPasswordException;
 use App\Identity\Domain\ValueObjects\EmailValueObject;
 use App\Identity\Domain\ValueObjects\NameValueObject;
 use Tests\Support\Core\Fakes\TransactionPortFake;
+use Tests\Support\Core\Fixtures\UuidFixture;
 use Tests\Support\Core\Spies\ObservabilityPortSpy;
 
 it('registers the canonical identity inside the transaction and returns its identifier', function (): void {
     $persisted = new UserEntity(
-        id: 10,
+        id: UuidFixture::at(10),
         name: NameValueObject::fromString(value: 'Maria'),
         email: EmailValueObject::fromString(value: 'maria@example.com'),
     );
@@ -24,10 +25,10 @@ it('registers the canonical identity inside the transaction and returns its iden
     $observabilityPort = new ObservabilityPortSpy;
     $verificationRequests = [];
     $emailVerificationPort = $this->createMock(EmailVerificationPort::class);
-    $emailVerificationPort->expects($this->once())->method('requestForRegistration')->with(10)
-        ->willReturnCallback(function (int $userId) use ($writePort, $observabilityPort, &$verificationRequests): void {
+    $emailVerificationPort->expects($this->once())->method('requestForRegistration')->with(UuidFixture::at(10))
+        ->willReturnCallback(function (string $userId) use ($writePort, $observabilityPort, &$verificationRequests): void {
             expect($writePort->isActive)->toBeFalse()
-                ->and($observabilityPort->events)->toBe([['event' => 'user.registered', 'attributes' => ['user_id' => 10]]]);
+                ->and($observabilityPort->events)->toBe([['event' => 'user.registered', 'attributes' => ['user_id' => UuidFixture::at(10)]]]);
             $verificationRequests[] = $userId;
         });
     $repository = $this->createMock(UserRepository::class);
@@ -56,7 +57,7 @@ it('registers the canonical identity inside the transaction and returns its iden
         password: ' Abc123 ',
     ));
 
-    expect($result)->toBe(10)
+    expect($result)->toBe(UuidFixture::at(10))
         ->and($writePort->commitCount)->toBe(1)
         ->and($writePort->committedResults)->toBe([$persisted])
         ->and($writePort->trace)->toBe(['begin', 'register', 'register', 'commit'])
@@ -64,7 +65,7 @@ it('registers the canonical identity inside the transaction and returns its iden
         ->and($verificationRequests)->toBe([]);
 
     $writePort->releaseAfterCommit();
-    expect($verificationRequests)->toBe([10]);
+    expect($verificationRequests)->toBe([UuidFixture::at(10)]);
 });
 
 it('rejects an invalid password before opening a transaction', function (): void {

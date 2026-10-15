@@ -15,7 +15,7 @@ final class UpdateUserController
 {
     public function __construct(private readonly UpdateUserUseCase $useCase) {}
 
-    public function __invoke(UpdateUserRequest $request, int $id): UserResponse
+    public function __invoke(UpdateUserRequest $request, string $id): UserResponse
     {
         $attributes = $request->validated(key: 'data.attributes');
 

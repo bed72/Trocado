@@ -8,5 +8,5 @@ use App\Identity\Application\Data\Output\EmailVerificationOutput;
 
 interface EmailVerificationRepository
 {
-    public function verify(int $userId, string $hash): EmailVerificationOutput;
+    public function verify(string $userId, string $hash): EmailVerificationOutput;
 }

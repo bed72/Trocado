@@ -25,8 +25,8 @@ it('keeps identity capabilities separated behind exact port contracts', function
         ->and(array_column($signOutMethods, 'name'))->toBe(['revokeToken'])
         ->and(array_column($emailVerificationMethods, 'name'))->toBe([
             'requestForEmail',
-            'requestForRegistration',
             'publishVerified',
+            'requestForRegistration',
         ])
         ->and(array_column($sessionMethods, 'name'))->toBe(['extendCurrentToken'])
         ->and($sessionMethods[0]->getParameters())->toBe([]);

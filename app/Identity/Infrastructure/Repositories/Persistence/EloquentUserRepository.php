@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Identity\Infrastructure\Repositories\Persistence;
 
+use App\Core\Domain\ValueObjects\UuidValueObject;
 use App\Identity\Application\Exceptions\EmailAlreadyUsedException;
 use App\Identity\Application\Repositories\UserRepository;
 use App\Identity\Domain\Entities\UserEntity;
@@ -75,8 +76,9 @@ final class EloquentUserRepository implements UserRepository
         return $this->toEntity(model: $model);
     }
 
-    public function delete(int $id): bool
+    public function delete(string $id): bool
     {
+        $id = UuidValueObject::fromString($id)->value();
         $model = UserModel::query()->find(id: $id);
 
         if ($model === null) {
@@ -88,8 +90,9 @@ final class EloquentUserRepository implements UserRepository
         return (bool) $model->delete();
     }
 
-    public function getById(int $id): ?UserEntity
+    public function getById(string $id): ?UserEntity
     {
+        $id = UuidValueObject::fromString($id)->value();
         $model = UserModel::query()->find(id: $id);
 
         return $model === null ? null : $this->toEntity(model: $model);
@@ -120,7 +123,7 @@ final class EloquentUserRepository implements UserRepository
         }
 
         return new UserEntity(
-            id: (int) $model->getKey(),
+            id: UuidValueObject::fromString($model->getKey())->value(),
             avatar: $avatar,
             status: $model->status,
             name: NameValueObject::fromString(value: $name),

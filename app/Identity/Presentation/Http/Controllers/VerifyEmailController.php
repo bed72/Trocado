@@ -12,7 +12,7 @@ final class VerifyEmailController
 {
     public function __construct(private readonly VerifyEmailUseCase $useCase) {}
 
-    public function __invoke(int $id, string $hash): Response
+    public function __invoke(string $id, string $hash): Response
     {
         if (! $this->useCase->execute(userId: $id, hash: $hash)) {
             throw new AuthorizationException;

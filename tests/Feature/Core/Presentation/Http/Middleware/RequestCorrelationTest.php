@@ -19,7 +19,7 @@ afterEach(function (): void {
 
 it('scopes correlation and principal to each request and leaves subsequent CLI events clean', function (): void {
     $user = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
-    $user->forceFill(['id' => 1500])->save();
+    $userId = $user->getKey();
     $token = IdentityFixture::token($user, expiresAt: now()->addDays(30));
     Route::get('/api/correlation-probe', function () {
         app(ObservabilityPort::class)->emit('probe.authenticated', ['expense_id' => 1500]);
@@ -51,8 +51,8 @@ it('scopes correlation and principal to each request and leaves subsequent CLI e
             ->and($records[$index]['timestamp'])->toBeString();
     }
 
-    expect($records[0]['user_id'])->toBe(1500)
-        ->and($records[1]['user_id'])->toBe(1500)
+    expect($records[0]['user_id'])->toBe($userId)
+        ->and($records[1]['user_id'])->toBe($userId)
         ->and($records[2])->not->toHaveKey('user_id')
         ->and($records[3])->toMatchArray(['event' => 'outside.http', 'expense_id' => 1500])
         ->not->toHaveKeys(['request_id', 'user_id', 'trace_id', 'ip', 'route', 'path', 'http_method']);

@@ -15,7 +15,7 @@ final readonly class IdentityHttpJourney
 {
     public function __construct(private TestCase $test) {}
 
-    public function signUp(string $name = 'Maria', string $password = 'Correct1', string $email = 'maria@example.com'): int
+    public function signUp(string $name = 'Maria', string $password = 'Correct1', string $email = 'maria@example.com'): string
     {
         $response = $this->test->postJson(route('authentication.api.sign-up'), [
             'data' => ['type' => 'sign-ups', 'attributes' => [
@@ -23,7 +23,10 @@ final readonly class IdentityHttpJourney
             ]],
         ])->assertCreated();
 
-        return (int) $response->json('data.relationships.user.data.id');
+        $id = $response->json('data.relationships.user.data.id');
+        Assert::assertIsString($id);
+
+        return $id;
     }
 
     public function verifyEmail(UserModel $user, DateTimeInterface $expiresAt): void

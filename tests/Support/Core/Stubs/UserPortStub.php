@@ -8,9 +8,9 @@ use App\Core\Application\Ports\UserPort;
 
 final readonly class UserPortStub implements UserPort
 {
-    public function __construct(private int $identifier, private string $accountStatus = 'active') {}
+    public function __construct(private string $identifier, private string $accountStatus = 'active') {}
 
-    public function id(): int
+    public function id(): string
     {
         return $this->identifier;
     }

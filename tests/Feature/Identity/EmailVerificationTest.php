@@ -324,7 +324,7 @@ it('rejects invalid verification links uniformly', function (): void {
     $missing = URL::temporarySignedRoute(
         name: 'verification.verify',
         expiration: now()->addHour(),
-        parameters: ['id' => $user->getKey() + 1, 'hash' => sha1($user->email)],
+        parameters: ['id' => '017f22e2-79b0-7cc3-98c4-0000000003e7', 'hash' => sha1($user->email)],
     );
     $this->getJson($missing)->assertForbidden()->assertHeader('Content-Type', 'application/vnd.api+json');
 
@@ -362,7 +362,7 @@ it('does not emit verification events for a rolled back confirmation', function 
     try {
         DB::transaction(function () use ($user): void {
             app(VerifyEmailUseCase::class)->execute(
-                userId: (int) $user->getKey(),
+                userId: $user->getKey(),
                 hash: sha1($user->email),
             );
 
@@ -452,7 +452,7 @@ it('limits resend independently by IP and email', function (): void {
 
 it('rejects email edits without changing verification or tokens', function (string $email): void {
     Notification::fake();
-    $userId = (int) IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
+    $userId = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
     $firstToken = (new IdentityHttpJourney($this))->signIn();
     $user = UserModel::query()->findOrFail($userId);
     $user->createToken(name: 'second');
@@ -486,7 +486,7 @@ it('never persists an email change through the user repository update', function
     ]);
 
     app(EloquentUserRepository::class)->update(new UserEntity(
-        id: (int) $user->getKey(),
+        id: $user->getKey(),
         name: NameValueObject::fromString(value: 'Maria Souza'),
         email: EmailValueObject::fromString(value: 'nova@example.com'),
     ));
@@ -496,7 +496,7 @@ it('never persists an email change through the user repository update', function
 });
 
 it('does not allow editing the name of another user', function (): void {
-    $ownerId = (int) IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
+    $ownerId = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
     $token = (new IdentityHttpJourney($this))->signIn();
     $other = UserModel::query()->create([
         'name' => 'Ana',
@@ -518,7 +518,7 @@ it('does not allow editing the name of another user', function (): void {
 
 it('preserves verification and tokens when editing only the name', function (): void {
     Notification::fake();
-    $userId = (int) IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
+    $userId = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
     $token = (new IdentityHttpJourney($this))->signIn();
     $user = UserModel::query()->findOrFail($userId);
     $verifiedAt = $user->email_verified_at;
@@ -537,4 +537,20 @@ it('preserves verification and tokens when editing only the name', function (): 
     expect($user->email_verified_at->equalTo($verifiedAt))->toBeTrue()
         ->and($user->tokens()->count())->toBe(1);
     Notification::assertNothingSent();
+});
+
+it('checks the signature on original UUID casing before canonicalizing lookup', function (): void {
+    Event::fake([Verified::class]);
+    $user = IdentityFixture::create(status: UserStatusEnum::Pending, verifiedAt: null);
+    $upperUrl = URL::temporarySignedRoute('verification.verify', now()->addHour(), [
+        'id' => strtoupper($user->id), 'hash' => sha1($user->email),
+    ]);
+    $tampered = str_replace(strtoupper($user->id), $user->id, $upperUrl);
+    $this->getJson($tampered)->assertForbidden();
+    expect($user->refresh()->email_verified_at)->toBeNull();
+    Event::assertNotDispatched(Verified::class);
+    $this->getJson($upperUrl)->assertNoContent();
+    expect($user->refresh()->hasVerifiedEmail())->toBeTrue()->and($user->status)->toBe(UserStatusEnum::Pending)
+        ->and($user->tokens()->count())->toBe(0);
+    Event::assertDispatched(Verified::class, 1);
 });

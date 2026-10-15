@@ -8,10 +8,11 @@ use App\Identity\Application\UseCases\GetUserByEmailUseCase;
 use App\Identity\Domain\Entities\UserEntity;
 use App\Identity\Domain\ValueObjects\EmailValueObject;
 use App\Identity\Domain\ValueObjects\NameValueObject;
+use Tests\Support\Core\Fixtures\UuidFixture;
 
 it('normalizes the email and returns the matching user', function (): void {
     $user = new UserEntity(
-        id: 42,
+        id: UuidFixture::at(42),
         name: NameValueObject::fromString(value: 'Maria'),
         email: EmailValueObject::fromString(value: 'maria@example.com'),
     );

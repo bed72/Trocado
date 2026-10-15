@@ -11,7 +11,7 @@ final class GetUserController
 {
     public function __construct(private readonly GetUserUseCase $useCase) {}
 
-    public function __invoke(int $id): UserResponse
+    public function __invoke(string $id): UserResponse
     {
         return new UserResponse(resource: $this->useCase->execute(id: $id));
     }

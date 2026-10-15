@@ -7,6 +7,7 @@ namespace App\Identity\Application\UseCases;
 use App\Core\Application\Ports\ObservabilityPort;
 use App\Core\Application\Ports\TransactionPort;
 use App\Core\Application\Ports\UserPort;
+use App\Core\Domain\ValueObjects\UuidValueObject;
 use App\Identity\Application\Exceptions\UserNotFoundException;
 use App\Identity\Application\Repositories\UserRepository;
 
@@ -19,8 +20,9 @@ final readonly class DeleteUserUseCase
         private UserRepository $repository,
     ) {}
 
-    public function execute(int $id): void
+    public function execute(string $id): void
     {
+        $id = UuidValueObject::fromString($id)->value();
         if ($this->userPort->id() !== $id) {
             throw new UserNotFoundException;
         }

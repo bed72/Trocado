@@ -6,7 +6,7 @@ namespace App\Core\Application\Ports;
 
 interface UserPort
 {
-    public function id(): int;
+    public function id(): string;
 
     public function status(): string;
 }

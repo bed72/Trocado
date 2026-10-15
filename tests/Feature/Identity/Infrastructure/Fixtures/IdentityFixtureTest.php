@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 use App\Identity\Domain\Enums\UserStatusEnum;
 use App\Identity\Infrastructure\Notifications\VerifyEmailNotification;
+use App\Identity\Infrastructure\Repositories\Persistence\Models\PersonalAccessTokenModel as PersonalAccessToken;
 use App\Identity\Infrastructure\Repositories\Persistence\Models\UserModel;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
-use Laravel\Sanctum\PersonalAccessToken;
 use Tests\Support\Identity\Fixtures\IdentityFixture;
 use Tests\Support\Identity\Helpers\IdentityHttpJourney;
 

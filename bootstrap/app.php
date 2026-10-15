@@ -61,6 +61,7 @@ return Application::configure(basePath: dirname(__DIR__))
             prepend: AuthenticatedRequestMiddleware::class,
         );
         $middleware->trimStrings(except: [
+            'data.id',
             'data.attributes.password',
             'data.attributes.password_confirmation',
             'data.attributes.registration_identifier',

@@ -10,8 +10,8 @@ use SensitiveParameter;
 final readonly class SignInOutput
 {
     public function __construct(
-        public int $id,
-        public int $userId,
+        public string $id,
+        public string $userId,
         public DateTimeImmutable $expiresAt,
         #[SensitiveParameter] public string $token,
     ) {}

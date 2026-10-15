@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Identity\Infrastructure\Adapters;
 
 use App\Core\Application\Ports\ObservabilityPort;
+use App\Core\Domain\ValueObjects\UuidValueObject;
 use App\Identity\Application\Ports\EmailVerificationPort;
 use App\Identity\Infrastructure\Repositories\Persistence\Models\UserModel;
 use Illuminate\Auth\Events\Registered;
@@ -16,15 +17,16 @@ final class EmailVerificationAdapter implements EmailVerificationPort
 {
     public function __construct(private readonly ObservabilityPort $port) {}
 
-    public function requestForRegistration(int $userId): void
+    public function requestForRegistration(string $id): void
     {
-        $user = UserModel::query()->find(id: $userId);
+        $id = UuidValueObject::fromString($id)->value();
+        $user = UserModel::query()->find(id: $id);
 
         if ($user !== null && ! $user->hasVerifiedEmail()) {
             try {
                 Event::dispatch(new Registered(user: $user));
             } catch (Throwable $exception) {
-                $this->reportFailure(exception: $exception, userId: $userId);
+                $this->reportFailure(exception: $exception, userId: $id);
             }
         }
     }
@@ -38,9 +40,10 @@ final class EmailVerificationAdapter implements EmailVerificationPort
         }
     }
 
-    public function publishVerified(int $userId): void
+    public function publishVerified(string $userId): void
     {
-        $user = UserModel::query()->find(id: $userId);
+        $id = UuidValueObject::fromString($userId)->value();
+        $user = UserModel::query()->find(id: $id);
 
         if ($user !== null && $user->hasVerifiedEmail()) {
             Event::dispatch(new Verified(user: $user));
@@ -52,11 +55,11 @@ final class EmailVerificationAdapter implements EmailVerificationPort
         try {
             $user->sendEmailVerificationNotification();
         } catch (Throwable $exception) {
-            $this->reportFailure(exception: $exception, userId: (int) $user->getKey());
+            $this->reportFailure(exception: $exception, userId: $user->getKey());
         }
     }
 
-    private function reportFailure(Throwable $exception, int $userId): void
+    private function reportFailure(Throwable $exception, string $userId): void
     {
         $this->port->emit('email.verification_queue_failed', [
             'user_id' => $userId,

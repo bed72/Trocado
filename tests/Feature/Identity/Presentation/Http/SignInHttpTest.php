@@ -6,13 +6,13 @@ use App\Identity\Application\Ports\SignInPort;
 use App\Identity\Domain\Enums\UserStatusEnum;
 use App\Identity\Domain\ValueObjects\SessionPolicyValueObject;
 use App\Identity\Infrastructure\Adapters\SignInAdapter;
+use App\Identity\Infrastructure\Repositories\Persistence\Models\PersonalAccessTokenModel as PersonalAccessToken;
 use App\Identity\Infrastructure\Repositories\Persistence\Models\UserModel;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\AuthManager;
 use Illuminate\Contracts\Auth\UserProvider;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Laravel\Sanctum\PersonalAccessToken;
 use Tests\Support\Identity\Fixtures\IdentityFixture;
 use Tests\Support\Identity\Helpers\IdentityHttpJourney;
 
@@ -33,7 +33,7 @@ it('rejects an existing token on protected routes after verification is cleared 
     $journey = new IdentityHttpJourney($this);
     $token = $journey->signIn();
     $otherToken = $journey->signIn();
-    $userId = (int) $user->getKey();
+    $userId = $user->getKey();
     UserModel::query()->whereKey($userId)->update(['email_verified_at' => null]);
 
     foreach (['users.get' => ['user' => $userId], 'expenses.index' => []] as $route => $parameters) {
