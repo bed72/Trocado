@@ -43,7 +43,7 @@ O runner MUST enviar uma requisição limitada à mesma URL/credencial antes da 
 
 ### Requirement: LOAD-05 Concorrência e duração limitadas
 
-Cada execução MUST usar concorrência inteira de 1 a 20 e duração inteira de 1 a 30 segundos, com defaults 1/5. MUST executar um único cenário/processo por vez, com prazo finito do runner e sem escalada automática. MUST preservar a cota e todos os middlewares do produto; respostas limitadas MUST NOT ser apresentadas como capacidade da operação de negócio.
+Cada execução MUST usar concorrência inteira de 1 a 100 e duração inteira de 1 a 30 segundos, com defaults 1/5. O limite de concorrência foi ampliado por autorização explícita para as rodadas 10/20/50/100, não por inferência de capacidade. MUST executar um único cenário/processo por vez, com prazo finito do runner e sem escalada automática. MUST preservar a cota e todos os middlewares do produto; respostas limitadas MUST NOT ser apresentadas como capacidade da operação de negócio.
 
 #### Scenario: Limite inválido
 - **WHEN** concorrência/duração são zero, negativos, não inteiros ou ultrapassam os intervalos

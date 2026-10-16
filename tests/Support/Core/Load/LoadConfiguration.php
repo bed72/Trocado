@@ -32,9 +32,9 @@ final readonly class LoadConfiguration
             || preg_match('/\A[A-Za-z0-9|_.-]{1,4096}\z/', $token) !== 1) {
             throw new InvalidArgumentException('Load requires a local base URL without credentials and a Bearer token in private configuration.');
         }
-        if ($concurrency < 1 || $concurrency > 20 || $durationSeconds < 1 || $durationSeconds > 30
+        if ($concurrency < 1 || $concurrency > 100 || $durationSeconds < 1 || $durationSeconds > 30
             || ($p95ThresholdMs !== null && (! is_finite($p95ThresholdMs) || $p95ThresholdMs <= 0))) {
-            throw new InvalidArgumentException('Load requires concurrency 1-20, duration 1-30 seconds and an optional positive p95 threshold.');
+            throw new InvalidArgumentException('Load requires concurrency 1-100, duration 1-30 seconds and an optional positive p95 threshold.');
         }
     }
 
@@ -97,6 +97,12 @@ final readonly class LoadConfiguration
             throw new RuntimeException('Invalid Load configuration or missing explicit dedicatedTarget confirmation.');
         }
 
-        return new self($data['targetUrl'], $data['token'], $data['concurrency'] ?? 1, $data['durationSeconds'] ?? 5, $data['p95ThresholdMs'] ?? null);
+        return new self(
+            targetUrl: $data['targetUrl'],
+            concurrency: $data['concurrency'] ?? 1,
+            durationSeconds: $data['durationSeconds'] ?? 5,
+            p95ThresholdMs: $data['p95ThresholdMs'] ?? null,
+            token: $data['token'],
+        );
     }
 }

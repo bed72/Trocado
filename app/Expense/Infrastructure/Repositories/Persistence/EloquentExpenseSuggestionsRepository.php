@@ -30,39 +30,62 @@ final class EloquentExpenseSuggestionsRepository implements ExpenseSuggestionsRe
         return ExpenseModel::query()
             ->where('user_id', $userId)
             ->whereNotNull('description')
-            ->select('id', 'amount', 'occurred_on', 'created_at')
-            ->selectRaw("regexp_replace(description, '^[[:space:]]+|[[:space:]]+$', '', 'g') AS description");
+            ->select('id', 'amount', 'occurred_on', 'created_at', 'description');
     }
 
     private function suggestionsSql(string $ownedSql): string
     {
         return <<<SQL
-            WITH normalized AS ({$ownedSql}),
-            keyed AS (
-                SELECT *, lower(description) COLLATE "C" AS key
-                FROM normalized
-                WHERE description <> ''
+            WITH normalized AS MATERIALIZED (
+                SELECT owned.id, owned.amount, owned.occurred_on, owned.created_at,
+                    regexp_replace(owned.description, '^[[:space:]]+|[[:space:]]+$', '', 'g') AS description,
+                    search.term
+                FROM ({$ownedSql}) owned
+                CROSS JOIN (
+                    SELECT lower(regexp_replace(CAST(? AS text), '^[[:space:]]+|[[:space:]]+$', '', 'g')) AS term
+                ) search
+                WHERE strpos(lower(owned.description) COLLATE "C", term) > 0
             ),
             parameters AS (
-                SELECT lower(regexp_replace(CAST(? AS text), '^[[:space:]]+|[[:space:]]+$', '', 'g')) AS term,
-                    CAST(? AS date) AS from_date, CAST(? AS date) AS to_date
+                SELECT CAST(? AS date) AS from_date, CAST(? AS date) AS to_date
             ),
-            matched AS (
-                SELECT keyed.*, strpos(key, term) = 1 AS is_prefix,
-                    occurred_on BETWEEN from_date AND to_date AS in_window,
-                    row_number() OVER (PARTITION BY key ORDER BY created_at DESC, id DESC) AS spelling_rank
-                FROM keyed CROSS JOIN parameters
-                WHERE strpos(key, term) > 0
+            ranked_groups AS MATERIALIZED (
+                SELECT lower(description) COLLATE "C" AS key,
+                    strpos(lower(description) COLLATE "C", term) = 1 AS is_prefix,
+                    max(created_at) AS latest_created_at, count(*) AS frequency
+                FROM normalized
+                WHERE description <> '' AND strpos(lower(description) COLLATE "C", term) > 0
+                GROUP BY key, is_prefix
+                ORDER BY is_prefix DESC, latest_created_at DESC, frequency DESC, key ASC
+                LIMIT 5
+            ),
+            selected_expenses AS MATERIALIZED (
+                SELECT normalized.*, ranked_groups.key,
+                    occurred_on BETWEEN from_date AND to_date AS in_window
+                FROM normalized
+                JOIN ranked_groups ON lower(normalized.description) COLLATE "C" = ranked_groups.key
+                CROSS JOIN parameters
+            ),
+            spellings AS (
+                SELECT DISTINCT ON (key) key, description
+                FROM selected_expenses
+                ORDER BY key, created_at DESC, id DESC
+            ),
+            amounts AS (
+                SELECT key,
+                    count(DISTINCT date_trunc('month', occurred_on)) FILTER (WHERE in_window) AS represented_months,
+                    min(amount) FILTER (WHERE in_window) AS minimum_amount,
+                    max(amount) FILTER (WHERE in_window) AS maximum_amount
+                FROM selected_expenses
+                GROUP BY key
             )
-            SELECT key,
-                max(description) FILTER (WHERE spelling_rank = 1) AS description,
-                count(DISTINCT date_trunc('month', occurred_on)) FILTER (WHERE in_window) AS represented_months,
-                min(amount) FILTER (WHERE in_window) AS minimum_amount,
-                max(amount) FILTER (WHERE in_window) AS maximum_amount
-            FROM matched
-            GROUP BY key, is_prefix
-            ORDER BY is_prefix DESC, max(created_at) DESC, count(*) DESC, key COLLATE "C" ASC
-            LIMIT 5
+            SELECT ranked_groups.key, spellings.description,
+                amounts.represented_months, amounts.minimum_amount, amounts.maximum_amount
+            FROM ranked_groups
+            JOIN spellings USING (key)
+            JOIN amounts USING (key)
+            ORDER BY ranked_groups.is_prefix DESC, ranked_groups.latest_created_at DESC,
+                ranked_groups.frequency DESC, ranked_groups.key ASC
             SQL;
     }
 

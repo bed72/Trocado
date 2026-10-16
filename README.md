@@ -113,7 +113,7 @@ Crie um JSON privado **fora do checkout**, com permissões `0600`, e confirme ex
 }
 ```
 
-O arquivo não deve ser commitado. `dedicatedTarget` é confirmação do operador, não detecção automática do servidor. A URL é uma base local sem endpoint, query ou credenciais; o token não vai nos argumentos. Concorrência aceita 1–20, duração 1–30s. Um `p95ThresholdMs` positivo é opcional; sem ele não há aprovação de SLA/regressão de latência.
+O arquivo não deve ser commitado. `dedicatedTarget` é confirmação do operador, não detecção automática do servidor. A URL é uma base local sem endpoint, query ou credenciais; o token não vai nos argumentos. Concorrência aceita 1–100 (limite ampliado por pedido explícito para as rodadas 10/20/50/100), duração 1–30s. Um `p95ThresholdMs` positivo é opcional; sem ele não há aprovação de SLA/regressão de latência.
 
 ```sh
 lerd composer test:load -- --list

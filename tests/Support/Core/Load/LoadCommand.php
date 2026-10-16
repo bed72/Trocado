@@ -99,8 +99,8 @@ final readonly class LoadCommand
             fwrite(STDERR, 'Load refused: verify the private configuration, dedicated target and process deadline. No automatic provisioning or cleanup is performed.'.PHP_EOL);
 
             return 2;
-        } catch (Throwable) {
-            fwrite(STDERR, 'Load command failed; no automatic provisioning or resource cleanup is performed.'.PHP_EOL);
+        } catch (Throwable $exception) {
+            fwrite(STDERR, 'Load command failed ('.$exception::class.'); no automatic provisioning or resource cleanup is performed.'.PHP_EOL);
 
             return 2;
         }

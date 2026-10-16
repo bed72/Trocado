@@ -241,3 +241,32 @@ Comando: `lerd composer test:load -- --scenario=<id> --config=/tmp/trocado-load-
 - Arquitetura: **30 testes/504 assertions**, passou. Launcher funcional TestExecutionCommandTest: **11 testes/26 assertions**, passou, incluindo Unit sem DB e descoberta Feature. O suporte alterado é exclusivo de Load; não foi modificado suporte compartilhado de cenários funcionais existentes. Não se declara gate completo/duas seeds/paralelo funcional executado nesta revisão.
 - `pint --dirty --format agent` passou, incluindo execução explícita do novo LoadHttpScenario. Composer validate strict, OpenSpec strict e `git diff --check` passaram. `test:load -- --list-tests` descobriu somente as quatro entradas sem HTTP. Não houve commit, push ou archive.
 - Há uma edição do usuário em `bruno/Expense/01 - CRUD/02 - GetAll Expense.bru` surgida durante o trabalho; não foi alterada para esta entrega.
+
+## Rodadas adicionais autorizadas — 10/20/50/100 concorrentes
+
+- Pedido explícito: “Roda com 10, e depois com os 20 e para finalizar com 50 e 100”. Limite de configuração ampliado de 20 para 100; defaults e cota de produto preservados. Teste de configuração prova aceitação de 100 e recusa de 101. Pint passou; LoadConfigurationTest passou com **16 testes / 36 assertions**; OpenSpec strict passou.
+- Alvo dedicado confirmado em `load-testing`, conta Load Test com **60 mil despesas** (10 mil por mês, maio–outubro/2026). Token válido durante todas as execuções. Uma URL/token por rodada, **1 segundo de geração de carga**, processos sequenciais, **61 segundos entre cenários** para não herdar cota da rodada anterior. Sem flush de contadores, ampliação de limiter ou alteração de assertions.
+
+| Concorrência | Cenário | Requests | RPS | Falhas % | p50 ms | p95 ms |
+| ---: | --- | ---: | ---: | ---: | ---: | ---: |
+| 10 | expense-pages | 41 | 32,63 | 0 | 269,51 | 339,79 |
+| 10 | expense-metrics | 40 | 32,45 | 0 | 269,69 | 340,21 |
+| 10 | monthly-insights | 18 | 10,31 | 0 | 702,66 | 997,50 |
+| 10 | expense-suggestions | 17 | 9,72 | 0 | 724,74 | 1042,76 |
+| 20 | expense-pages | 52 | 35,51 | 0 | 490,35 | 583,40 |
+| 20 | expense-metrics | 53 | 36,50 | 0 | 474,14 | 571,05 |
+| 20 | monthly-insights | 27 | 10,63 | 0 | 1290,73 | 1843,26 |
+| 20 | expense-suggestions | 26 | 10,32 | 0 | 1426,76 | 2011,95 |
+| 50 | expense-pages | 78 | 37,56 | 24,36 | 1081,36 | 1355,34 |
+| 50 | expense-metrics | 81 | 38,80 | 27,16 | 1104,56 | 1277,63 |
+| 50 | monthly-insights | 57 | 12,32 | 0 | 2401,92 | 3903,43 |
+| 50 | expense-suggestions | 56 | 12,29 | 0 | 2534,13 | 3984,40 |
+| 100 | expense-pages | 128 | 42,16 | 53,91 | 1712,81 | 2285,65 |
+| 100 | expense-metrics | 132 | 45,41 | 55,30 | 1523,90 | 2105,68 |
+| 100 | monthly-insights | 108 | 20,33 | 45,37 | 4032,40 | 4871,26 |
+| 100 | expense-suggestions | 107 | 18,88 | 42,99 | 4289,13 | 5289,51 |
+
+- **16 execuções concluídas, 1021 requests medidos; 10 testes passaram e 6 reprovaram a assertion de fração HTTP zero.** As reprovações são dados observados, não foram ocultadas/reexecutadas para obter verde. Preflights e sondas adicionais não entram no total medido.
+- Após cada uma das seis rodadas com falhas, sonda autenticada da mesma rota confirmou **429/Retry-After**: 50/listagem 41s, 50/métricas 49s; 100/listagem 49s, 100/métricas 50s, 100/insights 48s, 100/sugestões 38s. O plugin não fornece taxonomia por request: isso confirma cota presente, sem classificar individualmente todas as falhas ou declarar saturação do produto.
+- O p50/p95 e o RPS são da população total, incluindo erros nas rodadas limitadas. Requisições iniciadas durante a janela de 1s puderam terminar depois; não interpretar RPS como total dividido por 1 nem latências acima de 1s como erro de unidade. Resultados são locais/curtos, não capacidade de VPS ou número de usuários humanos.
+- Saúde final `/up`: **HTTP 200**. As quatro cópias privadas temporárias de configuração foram verificadas/removidas pelo caminho exato; configuração original preservada em **1 concorrente / 1 segundo**. Nenhum código de produto/limiter foi modificado; apenas o limite do tooling e documentação da autorização foram atualizados.

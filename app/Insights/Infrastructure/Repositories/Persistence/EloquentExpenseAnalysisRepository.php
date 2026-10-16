@@ -126,6 +126,7 @@ final class EloquentExpenseAnalysisRepository implements ExpenseAnalysisReposito
             $periods['two_months_ago']->from(),
             $periods['current_month']->to(),
             $userId,
+            $userId,
             $periods['current_month']->to(),
         );
         $periodValues = implode(', ', $values);
@@ -133,27 +134,34 @@ final class EloquentExpenseAnalysisRepository implements ExpenseAnalysisReposito
         return DB::select(<<<SQL
             WITH periods (period_key, from_date, to_date) AS (
                 VALUES {$periodValues}
-            ), scoped_expenses AS MATERIALIZED (
-                SELECT id, amount, occurred_on, category, description
+            ), daily_expenses AS MATERIALIZED (
+                SELECT occurred_on, category, COUNT(*) AS expense_count, SUM(amount) AS total_amount
                 FROM expenses
                 WHERE user_id = ? AND occurred_on BETWEEN CAST(? AS date) AND CAST(? AS date)
+                GROUP BY occurred_on, category
             ), period_expenses AS MATERIALIZED (
                 SELECT periods.period_key, expenses.*
                 FROM periods
-                JOIN scoped_expenses expenses ON expenses.occurred_on BETWEEN periods.from_date AND periods.to_date
+                JOIN daily_expenses expenses ON expenses.occurred_on BETWEEN periods.from_date AND periods.to_date
             ), totals AS (
-                SELECT period_key, COUNT(*) AS expense_count,
-                       COUNT(DISTINCT occurred_on) AS distinct_date_count, SUM(amount) AS total_amount
+                SELECT period_key, SUM(expense_count) AS expense_count,
+                       COUNT(DISTINCT occurred_on) AS distinct_date_count, SUM(total_amount) AS total_amount
                 FROM period_expenses
                 GROUP BY period_key
             ), categories AS (
-                SELECT period_key, category, SUM(amount) AS category_amount
+                SELECT period_key, category, SUM(total_amount) AS category_amount
                 FROM period_expenses
                 GROUP BY period_key, category
-            ), largest AS (
-                SELECT DISTINCT ON (period_key) period_key, amount, category, description, occurred_on
-                FROM period_expenses
-                ORDER BY period_key, amount DESC, category ASC, id ASC
+            ), largest AS MATERIALIZED (
+                SELECT periods.period_key, expense.*
+                FROM periods
+                LEFT JOIN LATERAL (
+                    SELECT amount, category, description, occurred_on
+                    FROM expenses
+                    WHERE user_id = ? AND occurred_on BETWEEN periods.from_date AND periods.to_date
+                    ORDER BY amount DESC, category ASC, id ASC
+                    LIMIT 1
+                ) expense ON TRUE
             )
             SELECT periods.period_key,
                    COALESCE(totals.expense_count, 0) AS expense_count,

@@ -11,11 +11,11 @@ it('reads bounded load settings and a token only from a private confirmed target
         chmod($path, 0600);
         file_put_contents($path, json_encode([
             'version' => 1, 'dedicatedTarget' => true, 'targetUrl' => 'https://load.test',
-            'token' => 'secret-sentinel', 'concurrency' => 5, 'durationSeconds' => 10, 'p95ThresholdMs' => 200,
+            'token' => 'secret-sentinel', 'concurrency' => 100, 'durationSeconds' => 10, 'p95ThresholdMs' => 200,
         ], JSON_THROW_ON_ERROR));
         $configuration = LoadConfiguration::fromFile($path, dirname(__DIR__, 5));
         expect($configuration->targetUrl)->toBe('https://load.test')
-            ->and($configuration->concurrency)->toBe(5)
+            ->and($configuration->concurrency)->toBe(100)
             ->and($configuration->durationSeconds)->toBe(10)
             ->and($configuration->p95ThresholdMs)->toBe(200.0)
             ->and($configuration->headers())->toBe(['Authorization' => 'Bearer secret-sentinel', 'Accept' => 'application/vnd.api+json'])
@@ -30,7 +30,7 @@ it('reads bounded load settings and a token only from a private confirmed target
 
 it('rejects unsafe URLs secrets and unbounded or invalid load settings', function (string $url, string $token, int $concurrency, int $duration, ?float $p95): void {
     try {
-        new LoadConfiguration($url, $token, $concurrency, $duration, $p95);
+        new LoadConfiguration(targetUrl: $url, concurrency: $concurrency, durationSeconds: $duration, p95ThresholdMs: $p95, token: $token);
         test()->fail('Invalid configuration was accepted.');
     } catch (InvalidArgumentException $exception) {
         Assert::assertStringNotContainsString('secret-sentinel', $exception->getMessage());
@@ -44,7 +44,7 @@ it('rejects unsafe URLs secrets and unbounded or invalid load settings', functio
     'endpoint as base' => ['https://load.test/api/expenses', 'test-token', 1, 5, null],
     'invalid token' => ['https://load.test', "secret-sentinel\r\nInjected: true", 1, 5, null],
     'zero concurrency' => ['https://load.test', 'test-token', 0, 5, null],
-    'excess concurrency' => ['https://load.test', 'test-token', 21, 5, null],
+    'excess concurrency' => ['https://load.test', 'test-token', 101, 5, null],
     'zero duration' => ['https://load.test', 'test-token', 1, 0, null],
     'excess duration' => ['https://load.test', 'test-token', 1, 31, null],
     'negative threshold' => ['https://load.test', 'test-token', 1, 5, -1],
@@ -52,10 +52,19 @@ it('rejects unsafe URLs secrets and unbounded or invalid load settings', functio
 ]);
 
 it('keeps short defaults and requires opt in without loading the application', function (): void {
-    $configuration = new LoadConfiguration('https://load.test', 'test-token');
-    expect($configuration->concurrency)->toBe(1)
-        ->and($configuration->durationSeconds)->toBe(5)
-        ->and($configuration->p95ThresholdMs)->toBeNull();
+    $path = tempnam(sys_get_temp_dir(), 'trocado-load-config-');
+    try {
+        chmod($path, 0600);
+        file_put_contents($path, json_encode([
+            'version' => 1, 'dedicatedTarget' => true, 'targetUrl' => 'https://load.test', 'token' => 'test-token',
+        ], JSON_THROW_ON_ERROR));
+        $configuration = LoadConfiguration::fromFile($path, dirname(__DIR__, 5));
+        expect($configuration->concurrency)->toBe(1)
+            ->and($configuration->durationSeconds)->toBe(5)
+            ->and($configuration->p95ThresholdMs)->toBeNull();
+    } finally {
+        unlink($path);
+    }
     $previous = getenv('TROCADO_LOAD_RUN');
     putenv('TROCADO_LOAD_RUN');
     try {
