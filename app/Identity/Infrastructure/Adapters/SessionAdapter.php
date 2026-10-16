@@ -26,6 +26,12 @@ final readonly class SessionAdapter implements SessionPort
             return;
         }
 
+        $current = $token->newQuery()->whereKey($token->getKey())->useWritePdo()->first();
+
+        if (! $current instanceof PersonalAccessToken || $this->extendedExpiry($current) === null) {
+            return;
+        }
+
         $token->getConnection()->transaction(function () use ($token): void {
             $current = $token->newQuery()->whereKey($token->getKey())->lockForUpdate()->first();
 
@@ -33,23 +39,28 @@ final readonly class SessionAdapter implements SessionPort
                 return;
             }
 
-            $expiresAt = $current->getAttribute('expires_at');
-            $createdAt = $current->getAttribute('created_at');
-
-            if (! $expiresAt instanceof DateTimeInterface || ! $createdAt instanceof DateTimeInterface) {
-                return;
-            }
-
-            $newExpiry = $this->policy->extendedExpiry(
-                issuedAt: DateTimeImmutable::createFromInterface($createdAt),
-                expiresAt: DateTimeImmutable::createFromInterface($expiresAt),
-                reference: DateTimeImmutable::createFromInterface(Date::now()),
-            );
+            $newExpiry = $this->extendedExpiry($current);
 
             if ($newExpiry !== null) {
                 $current->forceFill(['expires_at' => $newExpiry]);
                 $current->save();
             }
         });
+    }
+
+    private function extendedExpiry(PersonalAccessToken $token): ?DateTimeImmutable
+    {
+        $expiresAt = $token->getAttribute('expires_at');
+        $createdAt = $token->getAttribute('created_at');
+
+        if (! $expiresAt instanceof DateTimeInterface || ! $createdAt instanceof DateTimeInterface) {
+            return null;
+        }
+
+        return $this->policy->extendedExpiry(
+            issuedAt: DateTimeImmutable::createFromInterface($createdAt),
+            expiresAt: DateTimeImmutable::createFromInterface($expiresAt),
+            reference: DateTimeImmutable::createFromInterface(Date::now()),
+        );
     }
 }

@@ -7,9 +7,12 @@ use App\Identity\Infrastructure\Adapters\SessionAdapter;
 use App\Identity\Infrastructure\Repositories\Persistence\Models\PersonalAccessTokenModel as PersonalAccessToken;
 use App\Identity\Infrastructure\Repositories\Persistence\Models\UserModel;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Events\TransactionBeginning;
+use Illuminate\Database\Events\TransactionCommitted;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Testing\TestResponse;
@@ -27,6 +30,133 @@ function sessionRequest(string $token, string $route, array $parameters = []): T
 
     return withToken($token)->getJson(route($route, $parameters));
 }
+
+it('keeps official last-used tracking and distinguishes same-second from next-second writes', function (): void {
+    $reference = CarbonImmutable::parse('2026-01-01 12:00:00');
+    $this->travelTo($reference);
+    $user = IdentityFixture::create(UserStatusEnum::Active, $reference);
+    $token = IdentityFixture::token($user, $reference->addDays(30));
+    $connection = DB::connection();
+    $wasLogging = $connection->logging();
+    $reads = [];
+    $writes = [];
+    $connection->enableQueryLog();
+
+    try {
+        foreach ([0, 0, 1] as $seconds) {
+            $this->travelTo($reference->addSeconds($seconds));
+            $connection->flushQueryLog();
+            sessionRequest($token, 'users.get', ['user' => $user->id])->assertOk();
+            $queries = $connection->getQueryLog();
+            $reads[] = count(array_filter($queries, static fn (array $query): bool => str_contains($query['query'], 'from "personal_access_tokens"')));
+            $writes[] = count(array_filter($queries, static fn (array $query): bool => str_starts_with($query['query'], 'update "personal_access_tokens"')
+                && str_contains($query['query'], '"last_used_at"')));
+        }
+    } finally {
+        $connection->flushQueryLog();
+        if (! $wasLogging) {
+            $connection->disableQueryLog();
+        }
+    }
+
+    expect(config('sanctum.last_used_at'))->toBeTrue()
+        ->and($reads)->toBe([2, 2, 2])
+        ->and($writes)->toBe([1, 0, 1])
+        ->and(PersonalAccessToken::findToken($token)->last_used_at->equalTo($reference->addSecond()))->toBeTrue();
+});
+
+it('opens the renewal transaction only after a fresh read indicates an extension', function (int $days, bool $eligible): void {
+    $reference = CarbonImmutable::parse('2026-01-01 12:00:00');
+    $this->travelTo($reference);
+    $user = IdentityFixture::create(UserStatusEnum::Active, $reference);
+    $token = IdentityFixture::token($user, $reference->addDays(30));
+    $this->travel($days)->days();
+    sessionRequest($token, 'users.get', ['user' => UuidFixture::at(999)])->assertNotFound();
+    $connection = DB::connection();
+    $wasLogging = $connection->logging();
+    $dispatcher = Event::getFacadeRoot();
+    $connectionDispatcher = $connection->getEventDispatcher();
+    Event::fake([TransactionBeginning::class, TransactionCommitted::class]);
+    $connection->setEventDispatcher(Event::getFacadeRoot());
+    $connection->enableQueryLog();
+    $connection->flushQueryLog();
+
+    try {
+        app(SessionAdapter::class)->extendCurrentToken();
+        $queries = $connection->getQueryLog();
+        expect($queries)->toHaveCount($eligible ? 3 : 1)
+            ->and(array_filter($queries, static fn (array $query): bool => str_contains($query['query'], 'for update')))->toHaveCount($eligible ? 1 : 0)
+            ->and(array_filter($queries, static fn (array $query): bool => str_starts_with($query['query'], 'update ')))->toHaveCount($eligible ? 1 : 0);
+        Event::assertDispatchedTimes(TransactionBeginning::class, $eligible ? 1 : 0);
+        Event::assertDispatchedTimes(TransactionCommitted::class, $eligible ? 1 : 0);
+    } finally {
+        $connection->setEventDispatcher($connectionDispatcher);
+        Event::swap($dispatcher);
+        $connection->flushQueryLog();
+        if (! $wasLogging) {
+            $connection->disableQueryLog();
+        }
+    }
+})->with(['outside window' => [1, false], 'within window' => [16, true]]);
+
+it('uses the writer connection for the fresh eligibility read', function (): void {
+    $reference = CarbonImmutable::parse('2026-01-01 12:00:00');
+    $this->travelTo($reference);
+    $user = IdentityFixture::create(UserStatusEnum::Active, $reference);
+    $token = IdentityFixture::token($user, $reference->addDays(30));
+    sessionRequest($token, 'users.get', ['user' => UuidFixture::at(999)])->assertNotFound();
+    $connection = DB::connection();
+    $readPdo = $connection->getRawReadPdo();
+    $readCalls = 0;
+    $connection->setReadPdo(static function () use (&$readCalls): never {
+        $readCalls++;
+        throw new RuntimeException('A replica cannot decide renewal eligibility.');
+    });
+
+    try {
+        app(SessionAdapter::class)->extendCurrentToken();
+        expect($readCalls)->toBe(0)->and($connection->transactionLevel())->toBe(0);
+    } finally {
+        $connection->setReadPdo($readPdo);
+    }
+});
+
+it('does not use the authenticated model dates after persistence changes', function (string $change): void {
+    $reference = CarbonImmutable::parse('2026-01-01 12:00:00');
+    $this->travelTo($reference);
+    $user = IdentityFixture::create(UserStatusEnum::Active, $reference);
+    $token = IdentityFixture::token($user, $reference->addDays(30));
+    $this->travel(1)->days();
+    sessionRequest($token, 'users.get', ['user' => UuidFixture::at(999)])->assertNotFound();
+    $authenticated = Auth::guard('sanctum')->user()->currentAccessToken();
+    $expected = match ($change) {
+        'shorten' => now()->toImmutable()->addDays(30),
+        'extend' => $reference->addDays(60),
+        'expire' => now()->toImmutable()->subSecond(),
+        'revoke' => null,
+    };
+
+    if ($change === 'revoke') {
+        PersonalAccessToken::query()->whereKey($authenticated->id)->delete();
+    } else {
+        PersonalAccessToken::query()->whereKey($authenticated->id)->update([
+            'expires_at' => $change === 'shorten' ? now()->addDays(2) : $expected,
+        ]);
+    }
+
+    expect($authenticated->expires_at->equalTo($reference->addDays(30)))->toBeTrue();
+    app(SessionAdapter::class)->extendCurrentToken();
+    $persisted = $authenticated->fresh();
+
+    if ($change === 'revoke') {
+        expect($persisted)->toBeNull();
+    } else {
+        expect($persisted->expires_at->equalTo($expected))->toBeTrue();
+    }
+    if (in_array($change, ['expire', 'revoke'], true)) {
+        sessionRequest($token, 'users.get', ['user' => $user->id])->assertUnauthorized();
+    }
+})->with(['shorten', 'extend', 'expire', 'revoke']);
 
 it('issues a single expiring Sanctum token and keeps its bearer and hash on fortnightly activity', function (): void {
     $this->travelTo(CarbonImmutable::parse('2026-01-01 12:00:00'));
@@ -284,7 +414,144 @@ it('uses the fixed session policy when the adapter is called directly', function
     sessionRequest($token, 'expenses.index')->assertUnauthorized();
 });
 
-it('revalidates the locked token against a concurrent extension, revocation or expiry', function (string $change): void {
+it('finishes a nonrenewing fresh read while the same or another PAT is locked', function (bool $samePat): void {
+    $reference = CarbonImmutable::parse('2026-01-01 12:00:00');
+    $this->travelTo($reference);
+    $user = IdentityFixture::create(UserStatusEnum::Active, $reference);
+    $first = IdentityFixture::token($user, $reference->addDays(30), 'first');
+    $second = IdentityFixture::token($user, $reference->addDays(30), 'second');
+    $lockedId = PersonalAccessToken::findToken($first)->id;
+    $this->travel(1)->days();
+    sessionRequest($samePat ? $first : $second, 'users.get', ['user' => UuidFixture::at(999)])->assertNotFound();
+
+    $child = new ConcurrentDatabaseProcess(static function (): void {
+        $connection = DB::connection();
+        $connection->statement('SET statement_timeout = 2000');
+        $connection->enableQueryLog();
+        $connection->flushQueryLog();
+        app(SessionAdapter::class)->extendCurrentToken();
+        $queries = $connection->getQueryLog();
+        expect($queries)->toHaveCount(1)
+            ->and($queries[0]['query'])->not->toContain('for update')
+            ->and($connection->transactionLevel())->toBe(0);
+    });
+
+    try {
+        DB::transaction(function () use ($child, $lockedId, $samePat): void {
+            PersonalAccessToken::query()->whereKey($lockedId)->lockForUpdate()->firstOrFail();
+            $start = hrtime(true);
+            $child->go();
+            $child->done();
+            fwrite(STDOUT, "\nSession adapter completion ".json_encode([
+                'same_pat' => $samePat,
+                'ms_including_ipc' => round((hrtime(true) - $start) / 1_000_000, 3),
+                'completed_while_lock_held' => true,
+            ], JSON_THROW_ON_ERROR)."\n");
+        });
+    } finally {
+        $child->close();
+    }
+})->with(['same PAT' => true, 'distinct session' => false])->group('concurrency', 'integration');
+
+it('separates same-PAT HTTP tracking contention from nonrenewing session work', function (bool $samePat): void {
+    $reference = CarbonImmutable::parse('2026-01-01 12:00:00');
+    $this->travelTo($reference);
+    $user = IdentityFixture::create(UserStatusEnum::Active, $reference);
+    $first = IdentityFixture::token($user, $reference->addDays(30), 'first');
+    $second = IdentityFixture::token($user, $reference->addDays(30), 'second');
+    $lockedId = PersonalAccessToken::findToken($first)->id;
+    $bearer = $samePat ? $first : $second;
+    $userId = $user->id;
+    $this->travel(1)->days();
+    expect(config('sanctum.last_used_at'))->toBeTrue();
+
+    $child = new ConcurrentDatabaseProcess(static function () use ($bearer, $userId): void {
+        $connection = DB::connection();
+        $connection->statement('SET statement_timeout = 4000');
+        $connection->enableQueryLog();
+        $connection->flushQueryLog();
+        sessionRequest($bearer, 'users.get', ['user' => $userId])->assertOk();
+        $queries = $connection->getQueryLog();
+        $writes = array_filter($queries, static fn (array $query): bool => str_starts_with($query['query'], 'update "personal_access_tokens"')
+            && str_contains($query['query'], '"last_used_at"'));
+        expect($writes)->toHaveCount(1)
+            ->and(array_filter($queries, static fn (array $query): bool => str_contains($query['query'], 'for update')))->toBe([]);
+    });
+
+    try {
+        $start = hrtime(true);
+        DB::transaction(function () use ($child, $lockedId, $samePat): void {
+            PersonalAccessToken::query()->whereKey($lockedId)->lockForUpdate()->firstOrFail();
+            $child->go();
+            if ($samePat) {
+                $child->awaitLock();
+            } else {
+                $child->done();
+            }
+        });
+        if ($samePat) {
+            $child->done();
+        }
+        fwrite(STDOUT, "\nSession HTTP completion ".json_encode([
+            'same_pat' => $samePat,
+            'ms_including_ipc_and_lock_release' => round((hrtime(true) - $start) / 1_000_000, 3),
+            'tracking_lock_observed' => $samePat,
+            'status' => 200,
+        ], JSON_THROW_ON_ERROR)."\n");
+    } finally {
+        $child->close();
+    }
+})->with(['same PAT' => true, 'distinct session' => false])->group('concurrency', 'integration');
+
+it('observes committed changes on the next invocation after a nonrenewing snapshot', function (string $change): void {
+    $reference = CarbonImmutable::parse('2026-01-01 12:00:00');
+    $this->travelTo($reference);
+    $user = IdentityFixture::create(UserStatusEnum::Active, $reference);
+    $token = IdentityFixture::token($user, $reference->addDays(30));
+    $id = PersonalAccessToken::findToken($token)->id;
+    $this->travel(1)->days();
+    sessionRequest($token, 'users.get', ['user' => UuidFixture::at(999)])->assertNotFound();
+
+    $child = new ConcurrentDatabaseProcess(static function (): void {
+        DB::statement('SET statement_timeout = 2000');
+        app(SessionAdapter::class)->extendCurrentToken();
+        expect(DB::connection()->transactionLevel())->toBe(0);
+    });
+
+    try {
+        DB::transaction(function () use ($child, $id, $change, $reference): void {
+            $locked = PersonalAccessToken::query()->whereKey($id)->lockForUpdate()->firstOrFail();
+            match ($change) {
+                'shorten' => $locked->forceFill(['expires_at' => now()->addDays(2)])->save(),
+                'extend' => $locked->forceFill(['expires_at' => $reference->addDays(60)])->save(),
+                'expire' => $locked->forceFill(['expires_at' => now()->subSecond()])->save(),
+                'revoke' => $locked->delete(),
+            };
+            $child->go();
+            $child->done();
+        });
+    } finally {
+        $child->close();
+    }
+
+    app(SessionAdapter::class)->extendCurrentToken();
+    $persisted = PersonalAccessToken::query()->find($id);
+    if ($change === 'revoke') {
+        expect($persisted)->toBeNull();
+    } else {
+        $expected = match ($change) {
+            'shorten' => now()->addDays(30),
+            'extend' => $reference->addDays(60),
+            'expire' => now()->subSecond(),
+        };
+        expect($persisted->expires_at->equalTo($expected))->toBeTrue();
+    }
+    if (in_array($change, ['expire', 'revoke'], true)) {
+        sessionRequest($token, 'users.get', ['user' => $user->id])->assertUnauthorized();
+    }
+})->with(['shorten', 'extend', 'expire', 'revoke'])->group('concurrency', 'integration');
+
+it('revalidates the locked token against a concurrent extension, revocation expiry or shortening', function (string $change): void {
     $this->travelTo(CarbonImmutable::parse('2026-01-01 12:00:00'));
     $userId = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now())->getKey();
     $token = (new IdentityHttpJourney($this))->signIn();
@@ -310,6 +577,7 @@ it('revalidates the locked token against a concurrent extension, revocation or e
                 'extend' => $locked->forceFill(['expires_at' => $issuedAt->addDays(60)])->save(),
                 'revoke' => $locked->delete(),
                 'expire' => $locked->forceFill(['expires_at' => now()->subSecond()])->save(),
+                'shorten' => $locked->forceFill(['expires_at' => $issuedAt->addDays(20)])->save(),
             };
         });
 
@@ -327,9 +595,15 @@ it('revalidates the locked token against a concurrent extension, revocation or e
         return;
     }
 
+    $expectedExpiry = match ($change) {
+        'extend' => $issuedAt->addDays(60),
+        'expire' => now()->subSecond(),
+        'shorten' => $issuedAt->addDays(46),
+    };
+
     expect($persisted->token)->toBe($digest)
         ->and($persisted->created_at->equalTo($issuedAt))->toBeTrue()
         ->and($persisted->getKey())->toBe($id)
-        ->and($persisted->expires_at->equalTo($change === 'extend' ? $issuedAt->addDays(60) : now()->subSecond()))->toBeTrue()
+        ->and($persisted->expires_at->equalTo($expectedExpiry))->toBeTrue()
         ->and(UserModel::query()->findOrFail($userId)->tokens()->count())->toBe(1);
-})->with(['extend', 'revoke', 'expire'])->group('concurrency', 'integration');
+})->with(['extend', 'revoke', 'expire', 'shorten'])->group('concurrency', 'integration');

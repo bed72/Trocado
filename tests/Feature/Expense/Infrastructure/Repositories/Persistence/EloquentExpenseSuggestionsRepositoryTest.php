@@ -88,6 +88,8 @@ it('searches special characters literally with bound parameters', function (stri
     'backslash' => ['\\', 'Plano\\A', 'Plano A'],
     'quote' => ["'", "D'agua", 'Agua'],
     'SQL-shaped text' => ["' OR 1=1 --", "Plano ' OR 1=1 --", 'Internet'],
+    'escape marker' => ['!', 'Plano!A', 'Plano A'],
+    'combined pattern characters' => ['!%_\\', 'Plano!%_\\A', 'Plano!100 A'],
 ]);
 
 it('ranks prefix before substring then registration recency frequency and deterministic key', function (): void {
@@ -140,6 +142,43 @@ it('counts historical frequency before limiting distinct groups and never limits
         ->and($output[1]->representedMonths)->toBe(3)
         ->and($output[1]->minimumAmount)->toBe(14000)
         ->and($output[1]->maximumAmount)->toBe(15000);
+});
+
+it('compacts repeated spellings without limiting history or losing Unicode spelling and monetary conflicts', function (): void {
+    $dates = ['2026-07-01', '2026-08-01', '2026-09-01'];
+    for ($index = 0; $index < 2304; $index++) {
+        ExpenseSuggestionHistoryFixture::create(
+            $this->owner->id,
+            $index % 2 === 0 ? 'Café' : "\tCAFÉ\n",
+            14001,
+            $dates[$index % 3],
+            '2026-07-01 12:00:00',
+        );
+    }
+    ExpenseSuggestionHistoryFixture::create($this->owner->id, ' CaFé ', 15001, '2026-09-30', '2026-10-01 12:00:00');
+    foreach (range(1, 4) as $index) {
+        ExpenseSuggestionHistoryFixture::create($this->owner->id, 'Plano Café '.$index, 100, '2020-01-01', '2026-10-0'.$index.' 12:00:00');
+    }
+
+    $output = $this->repository->search($this->owner->id, "\tCAFÉ ", $this->period);
+
+    expect(array_column($output, 'description'))->toBe(['CaFé', 'Plano Café 4', 'Plano Café 3', 'Plano Café 2', 'Plano Café 1'])
+        ->and($output[0]->key)->toBe('café')
+        ->and($output[0]->representedMonths)->toBe(3)
+        ->and($output[0]->minimumAmount)->toBe(14001)
+        ->and($output[0]->maximumAmount)->toBe(15001);
+});
+
+it('sums original registration frequencies instead of counting spellings in the compact path', function (): void {
+    for ($index = 0; $index < 300; $index++) {
+        ExpenseSuggestionHistoryFixture::create($this->owner->id, 'Internet alfa', 100, '2020-01-01', '2026-10-01 12:00:00');
+    }
+    foreach (['Internet beta', 'INTERNET BETA', ' Internet beta '] as $description) {
+        ExpenseSuggestionHistoryFixture::create($this->owner->id, $description, 100, '2020-01-01', '2026-10-01 12:00:00');
+    }
+
+    expect(array_column($this->repository->search($this->owner->id, 'Int', $this->period), 'key'))
+        ->toBe(['internet alfa', 'internet beta']);
 });
 
 it('does not let foreign values spoil a complete owner pattern or change tied group frequency', function (): void {

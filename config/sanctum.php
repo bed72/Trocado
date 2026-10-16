@@ -9,6 +9,8 @@ return [
 
     'routes' => false,
 
+    'last_used_at' => true,
+
     /*
     |--------------------------------------------------------------------------
     | Stateful Domains

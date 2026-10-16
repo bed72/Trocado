@@ -31,7 +31,9 @@ afterEach(function (): void {
 
 it('retains identity through terms case amounts windows disappearance return and a new PAT in a child process', function (): void {
     foreach (['2026-07-01', '2026-08-01', '2026-09-01'] as $date) {
-        ExpenseSuggestionHistoryFixture::create($this->owner->id, 'Internet', 14001, $date, '2026-09-01 00:00:00');
+        for ($index = 0; $index < 100; $index++) {
+            ExpenseSuggestionHistoryFixture::create($this->owner->id, 'Internet', 14001, $date, '2026-09-01 00:00:00');
+        }
     }
     $first = $this->withToken($this->token)->getJson('/api/expenses/suggestions?query=Int')
         ->assertOk()->assertJsonPath('data.0.attributes.amount', 14001)->json('data.0.id');
@@ -107,7 +109,7 @@ it('keeps one financial read and bounded registry statements for empty single or
             $financial = array_values(array_filter($queries, static fn (array $query): bool => str_contains($query['query'], '"expenses"')));
             $registry = array_values(array_filter($queries, static fn (array $query): bool => str_contains($query['query'], '"resource_identities"')));
             expect($data)->toHaveCount($expected)->and($financial)->toHaveCount(1)
-                ->and($financial[0]['query'])->toStartWith('WITH normalized AS')
+                ->and($financial[0]['query'])->toStartWith('WITH owned AS NOT MATERIALIZED')
                 ->and($registry)->toHaveCount($expected === 0 ? 0 : ($hit ? 1 : 3));
             if ($expected > 0) {
                 expect($registry[0]['query'])->toStartWith('select ');
