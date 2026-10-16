@@ -36,3 +36,10 @@ docs {
   A edição escolhe investments explicitamente e cancela uma eventual classificação pendente anterior.
   Aportes participam de Metrics e Insights como valores registrados, sem inferência de retorno ou consumo.
 }
+
+tests {
+  test("Edição conserva UUID da despesa", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().data.id).to.equal(bru.getVar("expenseId").toLowerCase());
+  });
+}

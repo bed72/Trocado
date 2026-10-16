@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 namespace App\Identity\Presentation\Http\Requests;
 
-use App\Core\Domain\Exceptions\InvalidUuidException;
-use App\Core\Domain\ValueObjects\UuidValueObject;
-use App\Identity\Domain\Exceptions\InvalidNameException;
-use App\Identity\Domain\ValueObjects\NameValueObject;
-use Closure;
+use App\Identity\Presentation\Http\Rules\MatchesResourceIdRule;
+use App\Identity\Presentation\Http\Rules\NameRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 final class UpdateUserRequest extends FormRequest
@@ -22,6 +19,7 @@ final class UpdateUserRequest extends FormRequest
     {
         return [
             'data.type' => ['required', 'in:users'],
+            'data.attributes.email' => ['prohibited'],
             'data' => ['required', 'array:type,id,attributes'],
             'data.attributes' => ['required', 'array:name,avatar', 'min:1'],
             'data.attributes.avatar' => ['sometimes', 'nullable', 'string', 'max:2048'],
@@ -30,26 +28,16 @@ final class UpdateUserRequest extends FormRequest
                 'sometimes',
                 'required',
                 'string',
-                static function (string $attribute, mixed $value, Closure $fail): void {
-                    try {
-                        NameValueObject::fromString(value: $value);
-                    } catch (InvalidNameException $exception) {
-                        $fail($exception->getMessage());
-                    }
-                },
+                new NameRule,
             ],
-            'data.attributes.email' => ['prohibited'],
-            // TODO nao pode ser algo que fazemos uma vez e reaproveitamos em outros lugares?
-            'data.id' => ['bail', 'required', 'string', function (string $attribute, mixed $value, Closure $fail): void {
-                try {
-                    $id = UuidValueObject::fromString($value);
-                    if (! $id->equals(UuidValueObject::fromString($this->route('user')))) {
-                        $fail('O identificador deve corresponder ao recurso solicitado.');
-                    }
-                } catch (InvalidUuidException) {
-                    $fail('O identificador deve ser um UUIDv7 válido.');
-                }
-            }],
+            'data.id' => ['bail', 'required', 'string', 'uuid', 'uuid:7', new MatchesResourceIdRule($this->route('user'))],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'data.id.uuid' => 'O identificador deve ser um UUIDv7 válido.',
         ];
     }
 }

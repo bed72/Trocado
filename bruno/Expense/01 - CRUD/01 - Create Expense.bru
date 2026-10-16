@@ -46,3 +46,10 @@ docs {
   As novas categorias também incluem financing, investments, taxes, insurance, personal_care, pets e gifts_and_donations.
   Remova category para exercitar o fluxo existente: criação em other e classificação futura somente com descrição elegível.
 }
+
+tests {
+  test("Criação retorna UUID string capturado para os próximos requests", function () {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody().data.id).to.equal(bru.getVar("expenseId"));
+  });
+}

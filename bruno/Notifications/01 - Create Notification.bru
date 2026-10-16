@@ -43,8 +43,24 @@ script:post-response {
 docs {
   Cadastra ou sincroniza uma instalação Android/iOS autenticada, não envia mensagem.
   Configure notificationToken como segredo com o token FCM do cliente. Não use token APNs ou FID.
-  Primeiro cadastro: 201. Repetição: 200 e mesmo ID. Use um UUID persistente por instalação.
+  Primeiro cadastro: 201. Repetição: 200 e mesmo ID. Use um UUIDv7 gerado legitimamente e persistente por instalação.
   Para rotação, substitua somente notificationToken e repita com o mesmo UUID.
   Outra instalação precisa de UUID e token diferentes. Conflitos de ownership/destino retornam 409.
   A resposta salva notificationId para a requisição de remoção e não devolve o token.
+}
+
+tests {
+  test("Instalação v7 e registro têm papéis distintos e sincronização estável", function () {
+    expect(res.getStatus()).to.be.oneOf([200, 201]);
+    const data = res.getBody().data;
+    expect(data.attributes.installation_id).to.equal(bru.getEnvVar("notificationInstallationId").toLowerCase());
+    expect(data.attributes.installation_id).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+    expect(data.id).not.to.equal(data.attributes.installation_id);
+    expect(data.attributes).not.to.have.any.keys("registration_identifier", "fingerprint", "session_id", "user_id", "generation");
+    expect(res.getHeader("cache-control")).to.include("no-store");
+    const key = "notification-baseline." + bru.getVar("userId") + "." + data.attributes.installation_id;
+    const previous = bru.getVar(key);
+    if (previous) expect(data.id).to.equal(previous);
+    bru.setVar(key, data.id);
+  });
 }

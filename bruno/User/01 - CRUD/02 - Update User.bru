@@ -31,3 +31,10 @@ body:json {
     }
   }
 }
+
+tests {
+  test("Edição conserva UUID do owner", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().data.id).to.equal(bru.getVar("userId").toLowerCase());
+  });
+}

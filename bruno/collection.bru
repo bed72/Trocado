@@ -1,0 +1,32 @@
+tests {
+  test("IDs próprios e relacionamentos são UUIDv7 canônicos", function () {
+    const uuid7 = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+    const check = function (resource) {
+      expect(resource.id).to.be.a("string").and.match(uuid7);
+      Object.values(resource.relationships || {}).forEach(function (relationship) {
+        const linked = relationship.data;
+        if (linked) (Array.isArray(linked) ? linked : [linked]).forEach(check);
+      });
+    };
+    if (res.getStatus() >= 200 && res.getStatus() < 300 && res.getStatus() !== 204) {
+      const data = res.getBody().data;
+      expect(data).to.exist;
+      (Array.isArray(data) ? data : [data]).forEach(check);
+    }
+    expect(res.getHeader("x-request-id")).to.match(uuid7);
+  });
+
+  if (res.getStatus() === 200 && req.getUrl().includes("/api/insights")) {
+    test("Consultas equivalentes conservam IDs com fonte inalterada", function () {
+      const reference = bru.getRequestVar("insightsQueryDate");
+      const filters = Object.fromEntries(req.getQueryString().split("&").filter(Boolean).map(pair => pair.split("=").map(decodeURIComponent)));
+      const year = Number(filters["filter[year]"] || reference.slice(0, 4));
+      const month = Number(filters["filter[month]"] || reference.slice(5, 7));
+      const key = ["insights-baseline", bru.getVar("userId"), reference, year, month].join(".");
+      const ids = res.getBody().data.map(item => item.id).sort();
+      const previous = bru.getVar(key);
+      if (previous) expect(ids).to.deep.equal(previous);
+      bru.setVar(key, ids);
+    });
+  }
+}

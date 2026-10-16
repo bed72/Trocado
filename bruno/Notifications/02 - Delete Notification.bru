@@ -23,3 +23,9 @@ docs {
   ID ausente, alheio, malformado ou já removido retorna 404 uniforme.
   A remoção preserva o login e outras instalações; SignOut remove vínculos da sessão revogada.
 }
+
+tests {
+  test("Remoção própria retorna 204", function () {
+    expect(res.getStatus()).to.equal(204);
+  });
+}

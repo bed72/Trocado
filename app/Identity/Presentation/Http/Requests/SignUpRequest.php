@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 namespace App\Identity\Presentation\Http\Requests;
 
-use App\Identity\Domain\Exceptions\InvalidNameException;
-use App\Identity\Domain\Exceptions\InvalidPasswordException;
-use App\Identity\Domain\ValueObjects\NameValueObject;
-use App\Identity\Domain\ValueObjects\PasswordValueObject;
-use Closure;
+use App\Identity\Presentation\Http\Rules\NameRule;
+use App\Identity\Presentation\Http\Rules\PasswordRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 final class SignUpRequest extends FormRequest
@@ -27,13 +24,7 @@ final class SignUpRequest extends FormRequest
                 'bail',
                 'required',
                 'string',
-                static function (string $attribute, mixed $value, Closure $fail): void {
-                    try {
-                        NameValueObject::fromString(value: $value);
-                    } catch (InvalidNameException $exception) {
-                        $fail($exception->getMessage());
-                    }
-                },
+                new NameRule,
             ],
             'data.attributes.email' => ['required', 'string', 'email', 'max:255'],
             'data.attributes.avatar' => ['sometimes', 'nullable', 'string', 'max:2048'],
@@ -42,13 +33,7 @@ final class SignUpRequest extends FormRequest
                 'bail',
                 'required',
                 'string',
-                static function (string $attribute, mixed $value, Closure $fail): void {
-                    try {
-                        PasswordValueObject::fromString(value: $value);
-                    } catch (InvalidPasswordException $exception) {
-                        $fail($exception->getMessage());
-                    }
-                },
+                new PasswordRule,
             ],
             'data.attributes.password_confirmation' => [
                 'required',

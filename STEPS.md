@@ -257,12 +257,12 @@ As frentes 05, 06 e 07 podem ser organizadas separadamente depois da base 04; 08
 
 **Entrega:** ambiente local convertido, com operação e medição documentadas.
 
-- [ ] **12.1** Reconferir site/engine/env/DB alvo e autorização de desenvolvimento antes do reset.
-- [ ] **12.2** Descobrir e pausar workers relevantes, tratando somente filas/cache/prefixos próprios incompatíveis.
-- [ ] **12.3** Executar o reset local autorizado e conferir schema, constraints e geração finais, sem seed automático.
-- [ ] **12.4** Restaurar somente workers anteriormente ativos e verificar operação dos novos IDs.
-- [ ] **12.5** Medir HTTP autenticado, queries financeiras/registro, hit/miss/batch/planos e consultar `optimize_route`.
-- [ ] **12.6** Validar a estratégia de rollback local documentada e registrar incompatibilidade de IDs/tokens/links/cursors antigos.
+- [x] **12.1** Reconferir site/engine/env/DB alvo e autorização de desenvolvimento antes do reset.
+- [x] **12.2** Descobrir e pausar workers relevantes, tratando somente filas/cache/prefixos próprios incompatíveis.
+- [x] **12.3** Executar o reset local autorizado e conferir schema, constraints e geração finais, sem seed automático.
+- [x] **12.4** Restaurar somente workers anteriormente ativos e verificar operação dos novos IDs.
+- [x] **12.5** Medir HTTP autenticado, queries financeiras/registro, hit/miss/batch/planos e consultar `optimize_route`.
+- [x] **12.6** Validar a estratégia de rollback local documentada e registrar incompatibilidade de IDs/tokens/links/cursors antigos.
 
 **Comando autorizado para o alvo local confirmado:**
 
@@ -272,34 +272,40 @@ lerd artisan migrate:fresh --no-interaction
 
 **Concluir quando:** destino correto e cleanup exclusivo estão comprovados, operação foi restaurada e limitações da captura/medição foram registradas. Esse comando não é usado em produção, base compartilhada ou launcher de testes.
 
+**Aplicação local concluída em 2026-10-15:** usuário reconfirmou descarte das 3 contas/88 despesas demonstrativas/25 PATs no PostgreSQL local `trocado`. Reset sem seed aplicado; collation própria remanescente causou parada inicial, foi conferida/removida sem CASCADE e migrations pendentes concluíram incrementalmente. Schema UUIDv7 nativo/CHECKs/FKs/geração conferidos. Workers restaurados ao estado anterior; worker dedicado consumiu payload UUIDv7. Medição autenticada separa kernel/HTTPS: uma leitura financeira, registro **0/3/1 statements** para vazio/miss/hit, lote cinco sem N+1 observado; dois requests concorrentes obtiveram o mesmo UUID/uma associação. `optimize_route`: **36 amostras, mediana 73 ms, sem rotas sinalizadas**, com limites de escala/captura explícitos. Cleanup deixou tabelas de produto e filas vazias. Launcher focado: **175/546**. [Evidências, incidente da collation e rollback local](openspec/changes/standardize-uuid-v7-identifiers/tasks.md#step-12--aplicação-local-e-medição--2026-10-15). Próximo: STEP 13.
+
 ## STEP 13 — Documentação, Bruno e cliente
 
 **Entrega:** contrato UUIDv7 documentado e exemplos executáveis por consumidores.
 
-- [ ] **13.1** Atualizar arquitetura/API existentes e a exceção limitada de estado em Core.
-- [ ] **13.2** Atualizar Bruno User/Auth/Expense/Notifications com UUIDv7 e variáveis privadas.
-- [ ] **13.3** Atualizar assertions de Insights/Metrics/sugestões para formato e estabilidade sem mínimo de cartões/texto fixo.
-- [ ] **13.4** Validar parser/serializer/URL/params/vars e round trips dos arquivos.
-- [ ] **13.5** Executar casos controlados com fonte elegível/vazia e PAT real; limpar arquivos/tokens/DB de prova.
+- [x] **13.1** Atualizar arquitetura/API existentes e a exceção limitada de estado em Core.
+- [x] **13.2** Atualizar Bruno User/Auth/Expense/Notifications com UUIDv7 e variáveis privadas.
+- [x] **13.3** Atualizar assertions de Insights/Metrics/sugestões para formato e estabilidade sem mínimo de cartões/texto fixo.
+- [x] **13.4** Validar parser/serializer/URL/params/vars e round trips dos arquivos.
+- [x] **13.5** Executar casos controlados com fonte elegível/vazia e PAT real; limpar arquivos/tokens/DB de prova.
 - [ ] **13.6** Documentar contrato do cliente e confirmar gerador UUIDv7 da instalação antes de alegar homologação.
-- [ ] **13.7** Atualizar a coordenação com Firebase sem concluir tarefas de envio/plataforma ainda pendentes.
+- [x] **13.7** Atualizar a coordenação com Firebase sem concluir tarefas de envio/plataforma ainda pendentes.
 
 **Concluir quando:** exemplos e assertions refletem a política; resultados e limites estão registrados. Confirmação externa de cliente é identificada como tal, sem editar outro repositório por conveniência.
+
+**Backend/documentação/Bruno comprovados em 2026-10-15:** 28 arquivos passaram no parser/serializer/round trip com preservação semântica de URL/params/vars; CLI Bruno 4.0.0 passou **25 requests/89 checks** em fonte vazia e **25/89** em fonte elegível, com PAT real, estabilidade e cleanup completo. Sem GUI/envio real. **13.6 bloqueado:** inspeção read-only de `cordato`, informado pelo usuário, encontrou `uuid 4.6.0` somente transitivo e nenhum gerador/persistência de instalação UUIDv7 ou cadastro push. [Evidências e limitações](openspec/changes/standardize-uuid-v7-identifiers/tasks.md#step-13--documentação-bruno-e-fronteira-cliente--2026-10-15).
 
 ## STEP 14 — Gates e fechamento
 
 **Entrega:** implementação e contratos comprovados, com evidência por requisito/cenário.
 
-- [ ] **14.1** Executar os arquivos PHP afetados isoladamente e suítes focadas/arquitetura após a última edição.
-- [ ] **14.2** Executar Pint, repetir arquivos que ele alterar e validar OpenSpec estritamente.
-- [ ] **14.3** Executar gate completo padrão com PostgreSQL/Redis/concorrência e invocações simultâneas existentes.
-- [ ] **14.4** Executar gate completo com a primeira seed aleatória registrada.
-- [ ] **14.5** Executar gate completo com uma segunda seed distinta.
-- [ ] **14.6** Executar paralelo nativo com dois processos ou mais pelo launcher.
-- [ ] **14.7** Preencher matriz final e revisar claims de UUIDv7, estabilidade, rollback, race, worker e reset.
+- [x] **14.1** Executar os arquivos PHP afetados isoladamente e suítes focadas/arquitetura após a última edição.
+- [x] **14.2** Executar Pint, repetir arquivos que ele alterar e validar OpenSpec estritamente.
+- [x] **14.3** Executar gate completo padrão com PostgreSQL/Redis/concorrência e invocações simultâneas existentes.
+- [x] **14.4** Executar gate completo com a primeira seed aleatória registrada.
+- [x] **14.5** Executar gate completo com uma segunda seed distinta.
+- [x] **14.6** Executar paralelo nativo com dois processos ou mais pelo launcher.
+- [x] **14.7** Preencher matriz final e revisar claims de UUIDv7, estabilidade, rollback, race, worker e reset.
 - [ ] **14.8** Resolver bloqueadores/limitações e conferir autorização específica para archive/publicação.
 
 **Concluir quando:** todos os gates exigidos passaram sem skips/incomplete/risky inesperados, as tarefas têm evidências e limitações externas estão explícitas. Timeout não é aprovação; não arquivar a change Firebase ainda incompleta junto desta.
+
+**Gates backend aprovados em 2026-10-15:** padrão, seeds **2026101513/2026101514** e paralelo com **2 processos**, cada um **2.305 testes/41.116 assertions**, incluindo PostgreSQL/Redis/concorrência/invocações simultâneas. Arquivos focados isolados, arquitetura, Pint e OpenSpec strict passaram. **14.8 pendente:** homologação 13.6 e autorização específica de archive; não houve archive/commit/push/deploy. [Evidências finais](openspec/changes/standardize-uuid-v7-identifiers/tasks.md#step-14--gates-e-estado-de-fechamento--2026-10-15).
 
 ## Comandos de verificação para usar durante a implementação
 

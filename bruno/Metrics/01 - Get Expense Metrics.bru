@@ -29,3 +29,22 @@ docs {
   No período selecionado, investments 60000, financing 30000 e food 10000 produzem total_amount 100000 e percentage 60.00, 30.00 e 10.00.
   Remova group_by para o total simples. Empates entre financing, investments e travel seguem essa ordem alfabética.
 }
+
+tests {
+  test("Resumo, inclusive zero, conserva UUID por owner/período/modo", function () {
+    expect(res.getStatus()).to.equal(200);
+    const data = res.getBody().data;
+    expect(data.type).to.equal("expense-metrics");
+    const attributes = data.attributes;
+    expect(attributes.total_amount).to.match(/^(0|[1-9][0-9]*)$/);
+    const mode = Object.prototype.hasOwnProperty.call(attributes, "categories") ? "category" : "total";
+    if (mode === "category") {
+      expect(attributes.categories).to.be.an("array");
+      attributes.categories.forEach(category => expect(category).not.to.have.property("id"));
+    }
+    const key = ["metrics-baseline", bru.getVar("userId"), attributes.start_date, attributes.end_date, mode].join(".");
+    const previous = bru.getVar(key);
+    if (previous) expect(data.id).to.equal(previous);
+    bru.setVar(key, data.id);
+  });
+}

@@ -141,33 +141,41 @@
 
 ## 12. Aplicação local consentida e diagnóstico
 
-- [ ] 12.1 Reconferir por MCP o site/engine/env/DB alvo, ausência de produção/compartilhamento e autorização local; registrar referência sem credenciais antes de reset. [UID-08; D9]
-- [ ] 12.2 Descobrir estado/filas/prefixos e pausar workers relevantes, descartando somente payloads próprios incompatíveis e versionando cache sem FLUSHALL/FLUSHDB. [UID-08; EXP-UID]
-- [ ] 12.3 Executar `lerd artisan migrate:fresh --no-interaction` somente no banco local de desenvolvimento confirmado, sem seed automático; conferir schema/constraints/model generation finais. [UID-04/08]
-- [ ] 12.4 Restaurar somente workers que estavam ativos e confirmar operação com novos IDs; não mudar arquitetura de worker ou iniciar envio Firebase. [D9]
-- [ ] 12.5 Medir requests UUID autenticados controlados: fontes financeiras uma leitura, registry hit/miss/batch/planos, concorrência e ausência de N+1 observado; consultar optimize_route e registrar limites/restaurar captura alterada. [RID-04; D10]
-- [ ] 12.6 Validar caminho de rollback de desenvolvimento documentado sem executar destruição extra ou prometer preservação/rollback de produção; registrar incompatibilidade de tokens/links/cursors anteriores. [UID-08; D9]
+- [x] 12.1 Reconferir por MCP o site/engine/env/DB alvo, ausência de produção/compartilhamento e autorização local; registrar referência sem credenciais antes de reset. [UID-08; D9]
+  - Preflight STEP 12: site `trocado`, checkout atual, `APP_ENV=local`, conexão pgsql para `lerd-postgres:5432`, database efetivo `trocado`, PostgreSQL 16.10, sem DB URL override/grupos/worktrees. Encontrados 3 usuários (2 dos seeders), 88 despesas `[Demo]`, 25 PATs e zero Notifications. Usuário reconfirmou explicitamente **“Sim, todos descartáveis”**, inclusive terceira conta; reset autorizado somente neste alvo, sem seed automático. Estado inicial de workers: queue/schedule/expense-classification/vite ativos; demais inativos. Código/git limpos antes da operação.
+- [x] 12.2 Descobrir estado/filas/prefixos e pausar workers relevantes, descartando somente payloads próprios incompatíveis e versionando cache sem FLUSHALL/FLUSHDB. [UID-08; EXP-UID]
+  - queue/schedule/expense-classification pausados e estado conferido via MCP; Vite preservado. Redis filas default/classificação: zero pending/delayed/reserved. Cache de páginas usa v3; SCAN restrito ao prefixo `trocado-database-trocado-cache-` encontrou somente o tag legado `expense:pages:owner:13`, removido por `Cache::tags(...)->flush()`. Nova varredura: zero keys Expense; nenhuma limpeza global ou de filas de outros sites.
+- [x] 12.3 Executar `lerd artisan migrate:fresh --no-interaction` somente no banco local de desenvolvimento confirmado, sem seed automático; conferir schema/constraints/model generation finais. [UID-04/08]
+  - Reset executado no alvo confirmado. Interrompeu na collation própria preexistente (`42710`), remanescente do drop de tabelas; objeto sem dependências conferido via catálogo, removido especificamente sem CASCADE e migrations restantes concluídas com `lerd artisan migrate --no-interaction`, sem segundo reset. Schema/constraints/colunas UUID nativas/ausência de sequences próprios conferidos via Boost; geração User/PAT/Expense/Notification/Resource provada nos fluxos locais. Nenhum seed automático.
+- [x] 12.4 Restaurar somente workers que estavam ativos e confirmar operação com novos IDs; não mudar arquitetura de worker ou iniciar envio Firebase. [D9]
+  - queue/schedule/expense-classification restaurados, Vite permaneceu ativo, demais workers continuaram inativos; `.lerd.yaml` sem diff final. Worker dedicado real processou ClassifyExpenseQueue com Expense UUIDv7 ausente e fencing sintético (retorno antes do provider), evento queue.job_processed e DONE; zero failed_jobs, sem IA/envio Firebase.
+- [x] 12.5 Medir requests UUID autenticados controlados: fontes financeiras uma leitura, registry hit/miss/batch/planos, concorrência e ausência de N+1 observado; consultar optimize_route e registrar limites/restaurar captura alterada. [RID-04; D10]
+  - Kernel HTTP autenticado no banco local: uma leitura financeira; registro 0 no vazio, 3 no miss/misto e 1 no hit, sem escrita em hit, para 0/1/5 sugestões, Metrics zero/alterado e Insights. Tráfego HTTPS real, EXPLAIN e dois requests concorrentes medidos; optimize_route: 36 amostras, mediana 73 ms, sem rota sinalizada. Captura/profiler já habilitados e preservados; dados/PATs/cache e script operacional temporários removidos. Tabelas finais de produto e filas vazias; resultados/limites na seção STEP 12 abaixo.
+- [x] 12.6 Validar caminho de rollback de desenvolvimento documentado sem executar destruição extra ou prometer preservação/rollback de produção; registrar incompatibilidade de tokens/links/cursors anteriores. [UID-08; D9]
+  - Caminho D9 reconferido contra comando instalado e schema aplicado: rollback de release com recriação apenas do desenvolvimento reconfirmado, sem alias/backfill ou promessa de preservação; bootstrap editado não é migração reversa de dados. Remanescente de collation exige tratamento específico conforme evidência local. Não foi executado segundo reset/rollback; tokens/links/cursors anteriores são incompatíveis.
 
 ## 13. Documentação, Bruno e fronteira de cliente
 
-- [ ] 13.1 Atualizar ARCHITECTURE/README existentes para formato/owner/PAT, conceito/capacidade Core e exceção mínima de estado; manter proibições financeiras/DDL/ORM e limites de cada contexto. [UID-01; RID-01]
-- [ ] 13.2 Atualizar exemplos Bruno User/Auth/Expense/Notifications para UUIDv7 sem credenciais, instalação v7 e armazenamento privado de variáveis; sem parseInt/gerador falso. [UID-01/06/07]
-- [ ] 13.3 Atualizar assertions Bruno Insights/Metrics/sugestões para versão/variante/canonicalização e estabilidade nas equivalências, sem exigir mínimo de candidatos ou texto diário literal. [RID-02/05]
-- [ ] 13.4 Validar parser/serializer/URL/params/vars e ida/volta dos arquivos Bruno por ferramenta instalada; não alegar abertura GUI se só houve parsing. [D10]
-- [ ] 13.5 Executar coleção/casos relevantes em contas/DB controlados, com fonte elegível e vazia, PAT real v7 e protocolo de limpeza privada; registrar referência/status/limitações sem segredos. [UID-06; RID-06]
+- [x] 13.1 Atualizar ARCHITECTURE/README existentes para formato/owner/PAT, conceito/capacidade Core e exceção mínima de estado; manter proibições financeiras/DDL/ORM e limites de cada contexto. [UID-01; RID-01]
+- [x] 13.2 Atualizar exemplos Bruno User/Auth/Expense/Notifications para UUIDv7 sem credenciais, instalação v7 e armazenamento privado de variáveis; sem parseInt/gerador falso. [UID-01/06/07]
+- [x] 13.3 Atualizar assertions Bruno Insights/Metrics/sugestões para versão/variante/canonicalização e estabilidade nas equivalências, sem exigir mínimo de candidatos ou texto diário literal. [RID-02/05]
+- [x] 13.4 Validar parser/serializer/URL/params/vars e ida/volta dos arquivos Bruno por ferramenta instalada; não alegar abertura GUI se só houve parsing. [D10]
+- [x] 13.5 Executar coleção/casos relevantes em contas/DB controlados, com fonte elegível e vazia, PAT real v7 e protocolo de limpeza privada; registrar referência/status/limitações sem segredos. [UID-06; RID-06]
 - [ ] 13.6 Documentar contrato de installation_id UUIDv7/IDs string para o cliente e obter confirmação de generator/versão no repositório cliente antes de declarar homologação; não editar outro repo por conveniência. [UID-07; D8]
-- [ ] 13.7 Atualizar coordenação/documentação da change Firebase com referências a esta política e evidência da fatia de cadastro, preservando tasks de envio/plataforma ainda pendentes. [D8]
+  - Contrato documentado; inspeção read-only do caminho `cordato` informado pelo usuário encontrou `uuid 4.6.0` transitivo, sem geração/persistência de installation_id nem cadastro push em lib/. **Blocked** para homologação, conforme evidência STEP 13 abaixo; pacote transitivo não prova uso de UUIDv7.
+- [x] 13.7 Atualizar coordenação/documentação da change Firebase com referências a esta política e evidência da fatia de cadastro, preservando tasks de envio/plataforma ainda pendentes. [D8]
 
 ## 14. Gates e fechamento
 
-- [ ] 14.1 Executar todos os arquivos PHP afetados isoladamente após última edição e suites focadas/arquitetura pelo launcher, com --fail-on-skipped --fail-on-incomplete --fail-on-risky. [D10]
-- [ ] 14.2 Executar Pint `--dirty --format agent` e repetir arquivos alterados pelo formatter; validar OpenSpec estritamente, sem marcar falha/timeout como aprovação. [D10]
-- [ ] 14.3 Executar gate completo padrão com PostgreSQL/Redis/concorrência e duas invocações simultâneas existentes, sem exclusões para passar. [D10]
-- [ ] 14.4 Executar gate completo com ordem aleatória/seed registrada 1 e registrar comando/resultado; não transformar seeds em valores esperados do produto. [D10]
-- [ ] 14.5 Executar gate completo com seed registrada 2 diferente, registrando resultados/skips/limitações. [D10]
-- [ ] 14.6 Executar paralelo nativo `--parallel --processes=2` ou mais pelo launcher e conferir isolamento/cleanup, sem recriação/drop flags fora do lifecycle. [D10]
-- [ ] 14.7 Preencher a matriz abaixo e revisar ausência de claims falsas: UUIDv7 real, identidade estável persistida, rollback/race/worker reais, ausência de fatos armazenados e escopo do reset. [Todos]
+- [x] 14.1 Executar todos os arquivos PHP afetados isoladamente após última edição e suites focadas/arquitetura pelo launcher, com --fail-on-skipped --fail-on-incomplete --fail-on-risky. [D10]
+- [x] 14.2 Executar Pint `--dirty --format agent` e repetir arquivos alterados pelo formatter; validar OpenSpec estritamente, sem marcar falha/timeout como aprovação. [D10]
+- [x] 14.3 Executar gate completo padrão com PostgreSQL/Redis/concorrência e duas invocações simultâneas existentes, sem exclusões para passar. [D10]
+- [x] 14.4 Executar gate completo com ordem aleatória/seed registrada 1 e registrar comando/resultado; não transformar seeds em valores esperados do produto. [D10]
+- [x] 14.5 Executar gate completo com seed registrada 2 diferente, registrando resultados/skips/limitações. [D10]
+- [x] 14.6 Executar paralelo nativo `--parallel --processes=2` ou mais pelo launcher e conferir isolamento/cleanup, sem recriação/drop flags fora do lifecycle. [D10]
+- [x] 14.7 Preencher a matriz abaixo e revisar ausência de claims falsas: UUIDv7 real, identidade estável persistida, rollback/race/worker reais, ausência de fatos armazenados e escopo do reset. [Todos]
 - [ ] 14.8 Resolver bloqueadores/limitações externas, reconfirmar spec/design/código e autorização específica de archive/publicação; preservar evidência histórica, sem arquivar a change de Firebase ainda incompleta. [Todos]
+  - Gates backend aprovados e contrato reconferido; fechamento depende de 13.6 e autorização específica de archive. Pedido corrente autoriza implementar STEPs 13/14, sem commit/push/deploy ou alteração de outro repo.
 
 ## Dependências e execução por fatia
 
@@ -181,31 +189,31 @@
 
 | Requisito / cenários | Tasks principais | Prova mínima | Estado corrente |
 | --- | --- | --- | --- |
-| UID-01 política/exclusões e todos os recursos próprios | 1.3, 3.*, 11.2/11.6 | Inventário por papel + schema/HTTP + arquitetura | Proven nos STEPs 03–11 em bancos exclusivos: recursos/relationships UUIDv7, correlação somente trace_id, exclusões técnicas auditadas por papel; rollout local e cliente pendentes |
-| UID-02 canônico/v7/variante/negativos/null | 2.1–2.3, 4.1, 6.3 | Unit pura + HTTP antes de lookup + PG checks | Proven nos STEPs 02–11 para VO, entidades, registro e projeções; rollout pendente |
-| UID-03 geração padrão/imutabilidade | 3.*, 4.2–4.3, 5.2, 6.1, 7.3 | Model/PG create-update + formato + callback/clock fora de Domain | Proven nos STEPs 04–11: Models/registro/projeções e correlação Str::uuid7, sem gerador global alterado; rollout pendente |
-| UID-04 PK/FK/morph/cascades | 3.1–3.8, 4.9, 6.7 | PostgreSQL tipos/constraints/owner/session/encerramento | Proven nos STEPs 03–11, incluindo cascade de associações Core na jornada HTTP; rollout pendente |
-| UID-05 contratos/guard/sem cast | 2.4–2.5, 4.5/4.7, 5.1, 8.1/9.1/10.1, 11.6 | Unit argumentos + arquitetura + autenticação real | Proven nos STEPs 04–11; auditoria transversal de contratos/suporte/casts por papel e gates completos aprovados, sem coerção de owner. Rollout pendente |
-| UID-06 rotas inválidas/owner/auth | 4.8–4.9, 5.3/5.8, 6.4/6.7 | HTTP 200/201/204 e 401/403/404/422/429 | User/Auth STEP 04, Expense STEP 05 e Notifications STEP 06 comprovados; proteções/IDs/404 uniforme e rejeição antes de lookup inválido preservados; rollout pendente |
-| UID-07 instalação/registro/cliente | 1.5, 6.*, 13.2/13.6/13.7 | Unit/HTTP/PG + homologação externa registrada | Backend Proven no STEP 06: v7/caixa/versões/ID distinto/imutável/HTTP/PG/races/rollback. Homologação externa Flutter/Bruno/envio e rollout operacional pendentes |
-| UID-08 reset autorizado/negativo/lifecycle | 3.7, 12.* | Alvo/estado/cleanup/checks registrados + guard/testes de recusa | Parcial: guard e cleanup do launcher comprovados no STEP 03; reset operacional não executado |
-| RID-01 mínimo/sem fatos/fronteiras | 3.5, 7.1/7.3/7.7, 13.1 | Schema allowlist + Unit + arquitetura | Core/schema/integração das três projeções Proven nos STEPs 07–11; documentação geral pendente |
+| UID-01 política/exclusões e todos os recursos próprios | 1.3, 3.*, 11.2/11.6 | Inventário por papel + schema/HTTP + arquitetura | Proven nos STEPs 03–12: recursos/relationships UUIDv7, correlação somente trace_id e exclusões técnicas; aplicação local concluída no STEP 12, cliente pendente |
+| UID-02 canônico/v7/variante/negativos/null | 2.1–2.3, 4.1, 6.3 | Unit pura + HTTP antes de lookup + PG checks | Proven nos STEPs 02–12 para VO, entidades, registro e projeções, inclusive geração/schema/HTTP local |
+| UID-03 geração padrão/imutabilidade | 3.*, 4.2–4.3, 5.2, 6.1, 7.3 | Model/PG create-update + formato + callback/clock fora de Domain | Proven nos STEPs 04–12: Models/registro/projeções e correlação Str::uuid7; geração local conferida sem gerador global alterado |
+| UID-04 PK/FK/morph/cascades | 3.1–3.8, 4.9, 6.7 | PostgreSQL tipos/constraints/owner/session/encerramento | Proven nos STEPs 03–12, incluindo cascade de associações Core na jornada HTTP, schema e cleanup por lifecycle no banco local |
+| UID-05 contratos/guard/sem cast | 2.4–2.5, 4.5/4.7, 5.1, 8.1/9.1/10.1, 11.6 | Unit argumentos + arquitetura + autenticação real | Proven nos STEPs 04–12; auditoria/gates e fluxos locais autenticados, sem coerção de owner |
+| UID-06 rotas inválidas/owner/auth | 4.8–4.9, 5.3/5.8, 6.4/6.7 | HTTP 200/201/204 e 401/403/404/422/429 | User/Auth/Expense/Notifications e proteções comprovados nos STEPs 04–11; smoke autenticado local com IDs v7 e PAT revogado concluído no STEP 12 |
+| UID-07 instalação/registro/cliente | 1.5, 6.*, 13.2/13.6/13.7 | Unit/HTTP/PG + homologação externa registrada | Backend Proven nos STEPs 06/11/12/13; Bruno CLI com instalação gerada v7 e caixa equivalente passou. Cliente Blocked: uuid 4.6.0 transitivo sem gerador/persistência de instalação em cordato. Envio pertence à change Firebase |
+| UID-08 reset autorizado/negativo/lifecycle | 3.7, 12.* | Alvo/estado/cleanup/checks registrados + guard/testes de recusa | Proven nos STEPs 03/12: alvo/dados descartáveis reconfirmados, reset/recuperação limitada de collation, workers restaurados e cleanup exclusivo; nenhuma destruição de banco de teste/produção |
+| RID-01 mínimo/sem fatos/fronteiras | 3.5, 7.1/7.3/7.7, 13.1 | Schema allowlist + Unit + arquitetura | Proven nos STEPs 07–14; README/ARCHITECTURE documentam exceção mínima, sem fatos/textos/DDL de request/ORM cross-context; arquitetura final 30/504 |
 | RID-02 chave/namespace/owner/ambiguidade | 1.4, 7.2/7.8, 8.2/9.2/10.2 | Unit independente por consumidor + PG isolado | Proven em Core/Insights/Metrics/sugestões nos STEPs 07–11; componentes tipados e equivalências específicos por consumidor |
 | RID-03 race/ID perdedor/rollback | 7.5–7.6/7.9–7.10 | Duas conexões sincronizadas + escrita sentinela/rollback PG | Proven no STEP 07: UUID vencedor em processo novo, rollback parcial e retries 3; SQLSTATEs reais induzidos para recuperação/esgotamento |
-| RID-04 vazio/hit/misto/ordem/queries | 7.2/7.4/7.9, 8.3/9.3/10.3, 12.5 | Unit batch + query logs PG de 0/1/5/6 recursos | Proven nos STEPs 07–11 para Core e três consumidores, com statements financeiros/registro separados e sem escrita em hit; medição operacional pendente |
-| RID-05 reinício/PAT/reaparecimento/cascade | 7.9–7.10, 8.5/9.5/10.5 | HTTP/PG processos novos + owner delete + recursos ausentes | Proven nos STEPs 07–11 para processo/conexão/PAT/retorno nos três consumidores; jornada STEP 11 confirma logout preservando registro e owner delete removendo associações. Reboot completo e rollout não exercitados |
+| RID-04 vazio/hit/misto/ordem/queries | 7.2/7.4/7.9, 8.3/9.3/10.3, 12.5 | Unit batch + query logs PG de 0/1/5/6 recursos | Proven nos STEPs 07–12; medição local confirma uma leitura financeira e registro 0/3/1 para vazio/miss/hit, sem escrita em hit e lote cinco constante; escala limitada explicitamente |
+| RID-05 reinício/PAT/reaparecimento/cascade | 7.9–7.10, 8.5/9.5/10.5 | HTTP/PG processos novos + owner delete + recursos ausentes | Proven nos STEPs 07–12 para processo/conexão/PAT/retorno/cascades; aplicação local e pool de requests concluídos. Reboot completo do servidor não exercitado |
 | RID-06 erro/composição/fonte/sem fallback | 7.6, 8.6/9.6/10.5 | Exceção sentinela Unit/HTTP + zero writes + erro sem data/log sensível | Proven nos STEPs 07–11 em Core e três consumidores: falhas explícitas, rollback e ausência de resposta parcial/fallback; allowlists/segredos/fingerprints auditados no STEP 11 |
 | RID-07 sem endpoint/autoridade/cleanup | 3.7, 7.9, 11.5 | HTTP/owner + lifecycle exact runId/token | Proven nos STEPs 03/07–11; registro interno sem rota e sem autoridade de acesso, integração HTTP e isolamento do launcher preservados |
-| User/Core UUID ownership e Entity pura | 2.*, 4.1/4.5/4.8/4.9 | Unit + HTTP + fronteiras | Proven para todos os consumidores nos STEPs 04–11; conversão operacional pendente |
-| Sanctum/segredo/expiração/extensão/link | 4.2–4.4/4.6–4.9 | PAT real + PG locks + assinatura/tempo/owner | Proven no schema exclusivo do STEP 04, incluindo corrida sincronizada de extensão; rollout operacional pendente |
-| Expense sort/cursor v2/cache/worker | 5.* | Unit + PG/HTTP next-prev + Redis/worker exclusivo | Proven no STEP 05 em schema/Redis/filas exclusivos; transição operacional de caches/jobs/banco ainda no STEP 12 |
-| Notifications registro/instalação/rotação/remoção | 6.* | Unit + HTTP/PG + rollback/races + Identity | Proven no STEP 06 em bancos exclusivos; v4/whitespace rejeitados, ID preservado e DELETE uniforme. Envio/cliente/rollout operacional pendentes |
-| Insights períodos/estados/rotação/UUID | 8.* | Unit + HTTP/PG + Core batch | Proven no STEP 08: UUID associado, chaves tipadas, fatos/editorial preservados, equivalências/estados/períodos/owner, processo/PAT/retorno, falhas e queries separadas. Operação local permanece no STEP 12 |
-| Metrics singular/zero/default/grouped/UUID | 9.* | Unit + HTTP/PG + Core batch | Proven no STEP 09 e revalidado no STEP 11: associação estável, contratos/fatos exatos, zero/default/modos, processo/PAT, falhas e statements; rollout pendente |
-| Sugestões norm/valor/owner/UUID | 10.* | Unit + HTTP/PG normalização SQL/associação | Proven no STEP 10: chave SQL exata, UUIDv7 batch, owner/termos/case/valor/janela/processo/PAT/retorno, falhas e limites de queries; medição operacional no STEP 12 |
+| User/Core UUID ownership e Entity pura | 2.*, 4.1/4.5/4.8/4.9 | Unit + HTTP + fronteiras | Proven para todos os consumidores nos STEPs 04–12, incluindo conversão operacional local |
+| Sanctum/segredo/expiração/extensão/link | 4.2–4.4/4.6–4.9 | PAT real + PG locks + assinatura/tempo/owner | Proven no STEP 04, incluindo corrida sincronizada de extensão; STEP 12 aplica schema e mede PAT real local/revogação |
+| Expense sort/cursor v2/cache/worker | 5.* | Unit + PG/HTTP next-prev + Redis/worker exclusivo | Proven no STEP 05 e revalidado no STEP 11; STEP 12 conclui transição local de schema/cache/filas e consumo real de payload UUIDv7 pelo worker dedicado |
+| Notifications registro/instalação/rotação/remoção | 6.* | Unit + HTTP/PG + rollback/races + Identity | Proven no STEP 06 em bancos exclusivos; aplicação local/cadastro/remoção UUID concluídos no STEP 12. Envio e cliente pendentes |
+| Insights períodos/estados/rotação/UUID | 8.* | Unit + HTTP/PG + Core batch | Proven no STEP 08 e revalidado no STEP 11; STEP 12 mede miss/hit, uma leitura financeira, registro e planos no ambiente local |
+| Metrics singular/zero/default/grouped/UUID | 9.* | Unit + HTTP/PG + Core batch | Proven no STEP 09 e revalidado no STEP 11; STEP 12 mede zero/alterado com mesmo UUID, statements e requests concorrentes em modo agrupado |
+| Sugestões norm/valor/owner/UUID | 10.* | Unit + HTTP/PG normalização SQL/associação | Proven no STEP 10 e revalidado no STEP 11; STEP 12 mede vazio/uma/cinco, miss/misto/hit, statements constantes e planos no banco local |
 | Observabilidade próprio UUID/native SDK | 11.3–11.4 | JSON/header/context + ausência de segredos/fingerprint | Proven no STEP 11: trace_id v7 único por request, header/context/log iguais, sem request_id duplicado, CLI/worker limpos e job_id nativo; allowlists e ausência de segredos/fingerprint comprovadas |
-| Cliente/Bruno/documentação | 13.* | Parser/CLI controlados + homologação externa distinta | Não implementado/comprovado |
-| Gates transversais | 14.* | Padrão + duas seeds + paralelo + Redis/concorrência | STEP 11: padrão, seeds 2026101511/2026101512 e paralelo 2 processos aprovados, cada um 2.305/41.116, incluindo Redis/concorrência/invocações simultâneas. Repetir gates finais após mudanças restantes; 14.* continua pendente |
+| Cliente/Bruno/documentação | 13.* | Parser/CLI controlados + homologação externa distinta | Documentação e Bruno Proven: 28 round trips e 50 requests/178 checks aprovados em fonte vazia/elegível. Cliente Blocked conforme 13.6; sem alegação GUI/FCM/Flutter homologado |
+| Gates transversais | 14.* | Padrão + duas seeds + paralelo + Redis/concorrência | STEP 14: padrão, seeds 2026101513/2026101514 e paralelo 2 processos aprovados, cada um 2.305/41.116, sem exclusões/skips/incomplete/risky; includes Redis/concorrência/invocações simultâneas. 14.8 permanece bloqueado pelo cliente/fechamento |
 
 ## Estado histórico da elaboração da proposta
 
@@ -1107,3 +1115,244 @@ Pint `--dirty --format agent`, OpenSpec strict e `git diff --check` passaram. A 
 A captura Lerd já estava habilitada e permaneceu assim. Request HTTP real não autenticado a `/api/expenses`, com header cliente, devolveu **401 JSON:API** e `X-Request-Id` UUIDv7 novo. `optimize_route(site=trocado)` retornou **1 amostra, mediana 106 ms e nenhuma rota sinalizada**. Isto verifica a borda de correlação/401; não comprova desempenho autenticado, planos do registro operacional ou ausência geral de N+1. A medição autenticada e aplicação do schema local permanecem no STEP 12. A prova de trace/context/log e do lifecycle autenticado vem do kernel HTTP/PostgreSQL exclusivo do launcher.
 
 **Resultado de escopo:** 11.1–11.8 completos e comprovados. Próximo: **STEP 12 — aplicação local e medição**. As evidências dos gates desta fatia não concluem antecipadamente 12–14, homologação externa, documentação/Bruno, archive ou publicação; serão reconferidas após eventuais mudanças seguintes.
+
+## STEP 12 — Aplicação local e medição — 2026-10-15
+
+### 12.1 Alvo e autorização reconfirmados antes do reset
+
+- Pedido posterior do usuário: seguir para a etapa 12. Estado inicial do checkout limpo, release de referência **4644fc8** (`Implemente uuidV7 step 11`).
+- MCP Lerd: site **trocado**, checkout `/Users/gabrielramos/Code/Me/BackEnd/PHP/Trocado`, PHP 8.5, domínio HTTPS local. Configuração efetiva: **APP_ENV=local**, engine **pgsql**, host **lerd-postgres**, porta **5432**, database configurado/efetivo **trocado**, PostgreSQL **16.10**, sem DB URL override. Não é o database do launcher. `group_list` sem grupos; `worktree list` sem worktrees.
+- Boost encontrou **3 usuários, 88 despesas, 25 PATs, 0 Notifications**; as 88 despesas estavam marcadas `[Demo]`. Dois usuários correspondiam aos seeders; a terceira conta não foi presumida descartável. Pergunta específica ao usuário reconfirmou descarte de todos esses dados, incluindo a terceira conta: **“Sim, todos descartáveis”**. Somente após essa resposta a operação destrutiva prosseguiu.
+- Credenciais não foram registradas nos artefatos. A autorização é deste banco local, não de bases de produção/compartilhadas/de teste ou futuros resets arbitrários.
+
+### 12.2 Estado operacional e limpeza exclusiva
+
+| Recurso | Antes | Operação | Depois |
+| --- | --- | --- | --- |
+| Worker queue | ativo | pause → start via MCP | ativo |
+| Worker expense-classification | ativo | pause → start via MCP | ativo |
+| Worker schedule | ativo | pause → start via MCP | ativo |
+| Vite | ativo | preservado | ativo |
+| Horizon/Mix/Reverb | inativos | preservados | inativos |
+
+Filas `default` e `expense-classification` da conexão Redis do projeto tinham **zero pending/delayed/reserved** antes do reset; não havia payload legado para descartar. Prefixo Redis **trocado-database-**, database padrão **0**, cache **1**, prefixo do cache **trocado-cache-**. Não foi usado FLUSHALL/FLUSHDB, cache:clear ou limpeza global de filas.
+
+SCAN restrito ao prefixo do cache deste site e chaves Expense encontrou somente `tag:expense:pages:owner:13:entries`. `Cache::store('redis')->tags('expense:pages:owner:13')->flush()` removeu esse tag legado; nova varredura encontrou **zero chaves Expense**. Código já usa namespace/tag **expense:pages:v3** e cursor v2; nenhum cache numérico anterior é reutilizado.
+
+### 12.3 Reset aplicado e recuperação limitada da collation
+
+Executado o comando autorizado, sem `--seed`:
+
+```sh
+lerd artisan migrate:fresh --no-interaction
+```
+
+O drop de tabelas e as primeiras migrations passaram. A migration `2026_10_11_204139_create_expense_description_sort_collation` parou com **SQLSTATE 42710**, pois `migrate:fresh` preserva a collation já existente. Esta falha **não foi contada como sucesso**.
+
+Catálogo PostgreSQL confirmou especificamente `public.expense_description_ci_ai`, provider ICU, locale `und-u-ks-level1`, não determinística e **zero objetos dependentes**. Após guard explícito `APP_ENV=local` e `current_database()=trocado`, foi executado somente `DROP COLLATION public.expense_description_ci_ai`, **sem CASCADE**. Em seguida:
+
+```sh
+lerd artisan migrate --no-interaction
+```
+
+As seis migrations restantes concluíram. Não houve segundo reset, alteração de migration de produto ou remoção genérica de schema. `migrate:status` confirmou todas as 20 migrations aplicadas, em batches 1/2. A criação da collation e os CHECKs UUID fazem parte do schema final.
+
+Boost schema/catalog confirmou as **11 colunas de identidade/referência** nas cinco tabelas próprias como PostgreSQL `uuid`, sem default/sequence/identity: User, PAT/id/tokenable_id, Expense/id/user_id, Notification/id/user_id/session_id/installation_id e Resource/id/user_id. PKs/CHECKs v7/variante, unicidades e cascades presentes; `resource_identities` contém somente os campos mínimos previstos. `jobs`/`failed_jobs`/`migrations` conservaram tipos técnicos nativos. Antes das medições, Users/Expenses/PATs/Notifications/Resource/jobs/failed_jobs estavam vazios, comprovando ausência de seed automático.
+
+### 12.4 Operação restaurada e geração real
+
+Workers anteriores foram restaurados antes do smoke HTTP; `.lerd.yaml` ficou sem diff. Duas contas sintéticas distintas foram preparadas explicitamente ativas/verificadas apenas para medição, com senhas aleatórias em memória e e-mails `.invalid`; não houve seed, envio de e-mail ou alteração do cadastro público. O login ocorreu por HTTPS real, emitindo PAT Sanctum e relationship User UUIDv7. Uma conta mediu o kernel HTTP local; a outra mediu Nginx/PHP-FPM por rede, cada uma com 15 despesas sintéticas distribuídas por julho/agosto/setembro, cinco descrições, categorias explícitas e sem dispatch automático de IA.
+
+Formato v7 canônico foi verificado em User, PAT, Expense, Notification/instalação, Resource e header de cada resposta. Fluxos locais cobriram login 200, criação de despesas 201, consulta/página 200, sugestões/Insights/Metrics 200, cadastro de instalação 201 e remoção 204, exclusão de conta 204 e PAT revogado 401. A mesma identidade Metrics foi preservada entre total zero e mudança dos fatos; IDs de sugestões/Insights permaneceram iguais nos hits.
+
+O worker dedicado **já restaurado pelo Lerd** recebeu um `ClassifyExpenseQueue` com Expense UUIDv7 ausente e fencing sintético. A leitura retorna antes do provider por não existir tentativa, permitindo verificar o consumo sem solicitar IA ou alterar dados. Log do processo mostrou **RUNNING → queue.job_processed → DONE**, `attempts=1`, `duration_ms=41.85`, com `job_id` nativo opaco e sem trace/owner HTTP. A API de enqueue retornou null; o consumo foi comprovado pelo evento/DONE do processo, não inferido desse retorno. A fila terminou vazia e o total de failed_jobs permaneceu **0**. Esta prova não pretende homologar resposta de IA nem envio Firebase.
+
+### 12.5 Medições e orçamentos
+
+Foram separados dois níveis de observação:
+
+1. **Kernel HTTP com PAT real, no database operacional local**, usando listener transitório `QueryExecuted` no processo CLI para contar statements e guardar privadamente somente os SELECTs necessários ao EXPLAIN. Não houve listener/rota/código permanente de instrumentação no produto.
+2. **HTTPS real por Nginx/PHP-FPM**, com PAT real e segunda conta, para tempo de rede/aplicação e diagnóstico Lerd. As contagens do listener CLI não são atribuídas à captura de FPM.
+
+| Caso no kernel | Recursos | Leitura financeira | Statements registro | Escritas registro | Tempo ms |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Sugestões vazias | 0 | 1 | 0 | 0 | 50.631 |
+| Metrics zero miss | 1 | 1 | 3 | 1 | 13.971 |
+| Metrics zero hit | 1 | 1 | 1 | 0 | 7.017 |
+| Uma sugestão miss | 1 | 1 | 3 | 1 | 8.321 |
+| Uma sugestão hit | 1 | 1 | 1 | 0 | 6.333 |
+| Cinco sugestões, uma existente/quatro ausentes | 5 | 1 | 3 | 1 lote | 8.865 |
+| Cinco sugestões hit | 5 | 1 | 1 | 0 | 6.559 |
+| Metrics após mudança financeira, hit | 1 | 1 | 1 | 0 | 5.893 |
+| Insights miss | 1 | 1 | 3 | 1 | 16.220 |
+| Insights hit | 1 | 1 | 1 | 0 | 6.845 |
+
+As demais queries foram contadas separadamente (3 por request, 4 no primeiro), sem reinterpretá-las como fonte financeira/registro. Nenhuma query por sugestão/cartão/categoria foi observada nesses casos. O lote de cinco sugestões comprova cardinalidade maior sem aumento de statements; os fatos preparados produziram um Insight, sem forçar mínimo de cartões ou variantes editoriais.
+
+| Caso HTTPS real | Tempo ms |
+| --- | ---: |
+| SignIn das duas contas de medição | 297.382 / 234.636 |
+| Sugestões vazias | 84.620 |
+| Metrics zero miss/hit | 80.341 / 71.233 |
+| Uma sugestão miss/hit | 77.226 / 73.086 |
+| Cinco sugestões misto/hit | 84.761 / 73.613 |
+| Metrics alterado, hit | 71.723 |
+| Insights miss/hit | 85.189 / 75.520 |
+| Quinze criações Expense | 77.091–121.004 cada |
+| Instalação create/delete | 92.896 / 76.007 |
+| Página Expense | 82.936 |
+| Account delete / PAT revogado | 75.067 / 55.922 |
+
+Dois requests HTTPS despachados por pool com concorrência **2** consultaram um novo resumo agrupado: ambos **200**, mesmo UUIDv7, **uma row nova** no registro, **91.898 ms** para o par. Não houve barreira no banco: isso comprova o resultado de requests concorrentes, não uma disputa de INSERT sincronizada. A prova de corrida com conexões/barreiras permanece no teste específico e foi reexecutada pelo launcher nesta fatia.
+
+`EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)` foi executado sobre os SELECTs reais capturados, sem publicar SQL com bindings/chaves/fingerprints:
+
+| Fonte / leitura | Nó raiz | Rows | Execution ms observado |
+| --- | --- | ---: | ---: |
+| Sugestões financeiras, lote cinco | Limit | 5 | 0.174–0.196 |
+| Metrics financeiro | Limit | 1 | 0.032 |
+| Insights financeiro | Sort | 5 | 0.345–0.350 |
+| Registro de cinco sugestões | Index Scan | 5 | 0.017–0.020 |
+| Registro Metrics/Insights | Index Scan | 1 | 0.013–0.018 |
+
+Planejamento observado: **0.019–0.179 ms**. São dados locais pequenos (15 despesas por conta), sem inferência de escala/índice ideal em produção, p95 estatisticamente representativo ou redução causal de latência. Captura Lerd **e profiler já estavam habilitados**, permaneceram assim e adicionam overhead.
+
+`optimize_route(site=trocado)` após o tráfego: **36 amostras, mediana 73 ms, routes=[]**. `route_timing` confirmou `slow=[]`. A consulta agregada `analyze_queries` também inclui histórico CLI/testes/preflight na captura corrente; não foi usada para alegar ausência global de N+1 nem para atribuir repetições de migrations/fixtures ao tráfego HTTPS. A evidência específica de orçamento vem da tabela do kernel, e o diagnóstico de rotas vem do tráfego real.
+
+### Cleanup, verificações e limitações operacionais
+
+- Medição transitória em arquivo PHP privado/ignorado, removido ao terminar; senhas/PATs mantidos em memória, sem credenciais nos artefatos. `finally` apagou somente contas registradas na medição, seus PATs e recursos por lifecycle/cascade, além de tags de cache exatamente owner-scoped. Não foram alterados dados alheios.
+- Conferência final via Boost: **0 Users/Expenses/PATs/Notifications/Resource/jobs/failed_jobs**. Redis default/classificação **0**, SCAN restrito de keys Expense **0**. O banco permanece vazio após o reset e a retirada dos dados de prova.
+- Primeira tentativa da coleta interrompeu por classificação incorreta da instrumentação (`expenses` sem aspas no CTE Insights não era contado pelo filtro que buscava apenas `"expenses"`). A API respondia 200; o filtro transitório foi corrigido e a medição integral repetida. `finally` confirmou zero rows remanescentes após ambas. Essa tentativa não é evidência de falha do produto ou de orçamento excedido.
+- O adapter externo de captura do Lerd emitiu deprecation de `ReflectionProperty::setAccessible()` no PHP 8.5 ao enfileirar o smoke. O job foi consumido com DONE e sem failed_jobs. Não foram alteradas dependências ou código externo do ambiente.
+- Verificação focada pelo launcher: `UuidSchemaTest.php` + `ResourceConcurrencyTest.php` + `RequestCorrelationTest.php`, com `--compact --fail-on-skipped --fail-on-incomplete --fail-on-risky`: **175 testes/546 assertions**, **5.731 ms**, sem skips/incomplete/risky. Este comando usou banco exclusivo `trocado_testing_<runId>`, migrations incrementais e guard de ownership; não resetou nem reutilizou `trocado`.
+- Pint `--dirty --format agent`, validação OpenSpec estrita da change e `git diff --check` passaram; o diff final contém somente `STEPS.md` e este registro de evidências.
+- Não houve mudança PHP permanente de produto/testes nesta fatia. Gates completos do STEP 11 permanecem históricos; gates finais serão reexecutados no STEP 14 após as mudanças restantes.
+
+### 12.6 Rollback de desenvolvimento e incompatibilidade
+
+O caminho D9 foi reconferido contra `migrate:fresh --help`, migrations e schema final. Antes de adoção, uma reversão requer escolher uma **release inteiramente compatível anterior** (não apenas reverter um contexto), reconfirmar novamente site/environment/database/dados descartáveis, pausar os mesmos workers e tratar somente filas/cache próprios, então recriar **somente o desenvolvimento consentido** com as migrations dessa release. A collation própria remanescente precisa ser inspecionada e tratada especificamente, como nesta operação; não presumir que drop de tabelas remove collations ou usar DROP CASCADE genérico. Workers devem voltar ao estado registrado.
+
+Bootstrap alterado não converte dados na direção inversa; `migrate:rollback` isolado não restaura os IDs inteiros nem os dados anteriores. O reset aplicado descartou definitivamente IDs antigos e seus PATs, links assinados e cursores/cache; não há aliases, dual IDs ou mapeamento de compatibilidade. Consumidores precisam de novo cadastro/login, novos links, cursores e instalação UUIDv7. Não foi executado segundo reset ou rollback para demonstrar esse caminho, nem prometida preservação de dados/rollback de produção. Nova operação destrutiva exige reconferência do alvo e autorização correspondente.
+
+**Resultado de escopo:** **12.1–12.6 completos e comprovados**, com a falha inicial da collation e recuperação explicitamente registradas. Próximo: **STEP 13 — documentação, Bruno e cliente**. Homologação externa e archive/publicação permanecem nas etapas próprias.
+
+## STEP 13 — Documentação, Bruno e fronteira cliente — 2026-10-15
+
+### Autorização, ferramentas e contrato consumível
+
+O usuário solicitou implementar STEPs 13/14 para fechar a spec. Foram preservadas as alterações preexistentes de `STEPS.md`/deste checklist e as edições paralelas de Requests/Rules. Esta fatia atualizou documentação/Bruno/coordenação; não implementou frontend, transporte ou nova regra financeira. `trocado-sdd` segue indisponível nesta árvore; o fluxo usou OpenSpec CLI e skills locais de arquitetura/quality gate.
+
+- Boost reconfirmou PHP **8.5**, Laravel **13.34.0**, Sanctum **4.3.3**, Pest **5.2.1**, PHPUnit **13.3.4** e Pint **1.32.1**. Search Docs reconferiu geração UUIDv7/HasUuids e emissão Sanctum antes da preparação controlada. `app.timezone` via Artisan: **UTC**. A referência civil desta prova é **2026-10-15**.
+- `README.md` documenta UUIDv7 string canônico, exclusões, PAT/segredo, owner, estabilidade por consumidor, instalação v7 independente da PK, rejeições, cursor v2/cache v3, `trace_id`, incompatibilidade dos dados anteriores e limites do rollback local. Exemplos SQL de ID usam string entre aspas.
+- `ARCHITECTURE.md` descreve a capacidade Core e sua exceção mínima de estado técnico: somente associação, sem fatos/textos/snapshot/último acesso, escrita financeira, DDL de request ou import ORM cross-context. Regras de pureza, ownership e uma leitura financeira permanecem.
+- Environments Bruno removem IDs inteiros e instalação v4; IDs começam vazios e são capturados de respostas ou fornecidos privadamente. Nenhum gerador falso foi adicionado. O exemplo fixo README é contratual, não gerador nem instalação real.
+- `bruno/collection.bru` verifica UUIDv7/variante/caixa em recursos/relationships e `X-Request-Id`; Insights verifica equivalência default/vigente explícito e repetição histórica em fonte inalterada. Metrics conserva baseline por owner/período/modo; sugestões conservam baseline do mesmo texto retornado entre termos/case. A equivalência completa da normalização SQL continua provada nos testes PostgreSQL do STEP 10, sem reproduzir esse algoritmo em JavaScript.
+- User/Expense editados conservam IDs; SignIn comprova prefixo PAT/owner/no-store; instalação verifica canonicalização/ID próprio estável/no-store/ausência de segredos. Assertions de Insights continuam aceitando variantes válidas e zero cartões, com limites editoriais/períodos. Nenhum esperado fixa texto diário, UUID gerado ou mínimo genérico de candidatos.
+- Baselines são variáveis em memória de execução, não dados persistidos na coleção. O protocolo exige SignIn primeiro, Create Expense antes de CRUD dependente, e reiniciar execução ao trocar conta/fonte. Não presumir estabilidade do conjunto quando a elegibilidade financeira muda.
+
+### 13.4 Parser, serializer, URLs e variáveis
+
+Ferramentas instaladas: **Bruno CLI 4.0.0**, **@usebruno/lang 0.38.0** do próprio CLI, sem instalar dependências. Validador transitório externo ao workspace percorreu os **28 arquivos .bru** (25 requests, dois environments e collection), fazendo parse → serialize → parse, comparação estrutural, compilação de scripts/tests e comparação URL/query Params ativos. Vars/segredos/disabled params permaneceram representados na ida/volta.
+
+O serializer agrupa Params habilitados antes dos desabilitados. A primeira comparação bruta detectou essa reordenação nativa em GetAll Expense; a comparação semântica passou a conservar a ordem dentro de cada grupo e todos os nomes/valores/enabled, sem perder Params ou reescrever o arquivo. Query ativa foi comparada como multiconjunto (preservando duplicações), pois ordem textual não muda o contrato. Resultado final: **28/28 aprovados**. Não houve abertura GUI nem inferência de GUI a partir do parser.
+
+### 13.5 Execução CLI controlada e limpeza
+
+Preflight read-only via MCP: site local **trocado**, PostgreSQL efetivo **trocado**, todas as 20 migrations aplicadas e **zero** Users/Expenses/PATs/Notifications/Resource antes da preparação. Não houve reset, migrations novas, seed automático ou mudanças de workers. Foi preparada uma única conta sintética `.invalid`, explicitamente ativa/verificada, com senha aleatória privada; a criação direta prepara o cenário e não é apresentada como prova do SignUp. Login aconteceu por HTTPS real com o request Sign In da coleção, sem `actingAs`.
+
+Preparação privada gerou installation_id com **Str::uuid7()**, enviado em uppercase para provar canonicalização; destino era um token sintético ASCII marcado controlado, não um token Firebase real. Nenhum envio/e-mail/IA foi solicitado. A segunda fase adicionou 15 despesas próprias, com UUIDs gerados legitimamente, categorias explícitas e cinco datas por mês em agosto/setembro/outubro de 2026, para fonte elegível sem classificação automática.
+
+Execução por coleção privada transitória derivada pelo parser dos requests versionados, com sequência explícita e variantes de query/caixa/repetição. O runner acrescentou checks de status e de fonte zero/elegível, sem alterar código de produto. Forma do comando:
+
+```sh
+bru run --env-file <arquivo-privado-0600.bru> --noproxy --insecure \
+  --reporter-json <relatorio-privado> --reporter-skip-all-headers --reporter-skip-body
+```
+
+`--insecure` limitou a prova à API HTTPS local sem validar a cadeia de confiança TLS; não é homologação de certificado/produção. Arquivo de environment/estado com **0600**, diretório da coleção transitória com **0700**, sem segredos em argumentos, artefatos ou relatórios (headers e corpos omitidos).
+
+| Fase final | Requests | Checks Bruno | Resultado |
+| --- | ---: | ---: | --- |
+| Fonte vazia, Metrics zero e sugestões vazias | 25 | 89 | todos aprovados; sem skips/erros |
+| Fonte elegível, Metrics não zero e uma sugestão | 25 | 89 | todos aprovados; sem skips/erros |
+
+Cada fase cobre SignIn/PAT real; User get/update/get com UUID da rota uppercase; Metrics agrupado/reordenação de query; sugestões `Mer`/`MERCADO`; Insights default/vigente/histórico/histórico repetido e cinco rejeições 422; instalação create/repeat/delete com UUID v7 enviado uppercase; Expense create/get/update/delete; SignOut 204. As assertions versionadas passaram junto aos checks controlados, inclusive igualdade de identidades entre as equivalências. SignUp/link assinado/exclusão de conta e falhas de infraestrutura permanecem provados pelos respectivos HTTP/PG existentes, não por esses 50 requests CLI.
+
+A primeira tentativa CLI não foi contada como aprovação: 8 falhas de checks e um request com erro no harness. Bruno recusa `:` em nomes de variáveis e distingue runtime `getVar` de `getEnvVar`; foram corrigidos nomes de baseline, mapa de sugestões e acesso ao installation_id. O erro de URL uppercase usava baseUrl runtime em vez de environment no harness transitório; corrigido sem mudança de backend. As duas execuções finais acima passaram integralmente.
+
+Cleanup usou o UUID e e-mail exatos registrados desta conta, removeu seus PATs e conta em transação, com cascades de despesas/instalações/associações e flush somente da tag `expense:pages:v3:owner:<owner-da-prova>`. O último SignOut já revogara o PAT da execução. Conferência MCP final: **0 Users/Expenses/PATs/Notifications/Resource**. `storage/app/private` voltou a conter somente `.gitignore`; environment/estado, script PHP, coleções e relatórios transitórios foram removidos. Nenhum FLUSHALL/FLUSHDB/limpeza alheia ou worker adicional.
+
+`optimize_route(site=trocado)` após o tráfego: **49 amostras, mediana 72 ms, routes=[]**. Captura/profiler preexistentes foram preservados. Não é prova de escala, ausência global de N+1 ou orçamento SQL por request; essas provas específicas continuam nas medições dos STEPs 07–12.
+
+### 13.6 Inspeção externa e bloqueio concreto
+
+O usuário forneceu `/Users/gabrielramos/Code/Me/Mobile/Flutter/cordato` para inspeção **somente leitura**. Referência observada **5a8183b**, working tree limpo. Evidência:
+
+- `pubspec.lock:757–764`: **uuid 4.6.0**, dependência **transitiva**; não consta como dependência direta em `pubspec.yaml`.
+- Busca em `lib/` não encontrou `Uuid`, geração v7, `installation_id`/`installationId` ou cadastro `push-registrations`; não há gerador/persistência de instalação a homologar.
+- `lib/features/core/infrastructure/clients/firebase/messaging_client.dart` usa APIs `getToken()`/`onTokenRefresh`, Android/iOS, e consulta APNs como pré-condição iOS; isso não implementa o cadastro backend.
+- `UserResponse` e `SignInResponse` preservam IDs como `String`; parsers numéricos encontrados em Metrics tratam centavos, não IDs. Esta inspeção é evidência estática parcial, sem executar Flutter ou comprovar payload/dispositivo.
+
+**13.6 = Blocked** na parte de confirmação/homologação. O contrato backend está documentado, mas o pacote transitivo não comprova uso de UUIDv7. Trabalho mínimo externo: implementar geração v7 suportada/persistência por instalação, transporte de IDs string e cadastro/sincronização/rotação com PAT; registrar versão/API e prova Android/iOS com payload real. Isso exige escopo/autorização no repo cliente. Não foi editado nem executado outro repositório.
+
+### 13.7 Coordenação Firebase
+
+Design e tasks da change `add-firebase-push-notifications` receberam referência ao backend aplicado, Bruno e à limitação do cliente. Evidências históricas e checkboxes de envio foram preservados. Transporte/queue/produtores/frescura/recepção continuam futuros; cadastro com token sintético não é aceitação/entrega FCM.
+
+## STEP 14 — Gates e estado de fechamento — 2026-10-15
+
+### Arquivos isolados e cobertura das edições presentes
+
+Não houve edição PHP permanente nesta fatia documental/Bruno. Durante a execução surgiram alterações paralelas de `GetAllExpenseRequest`, `SignUpRequest`, `UpdateUserRequest`, `CreateNotificationRequest` e seis Rules locais; foram preservadas e incluídas na revisão/gates do estado corrente. Formato/ownership continuam em Domain, Rules são Presentation, sem ampliação de allowlist. Pint final passou sem novos ajustes. O diff rastreado de app permaneceu estável entre o início e fim da rodada final de gates.
+
+Todos os comandos abaixo usam `lerd composer test -- <caminho> --compact --fail-on-skipped --fail-on-incomplete --fail-on-risky`, por MCP `exec/composer`, com PostgreSQL exclusivo/migrations incrementais quando Feature:
+
+| Arquivo isolado, relativo a tests/ | Responsabilidade | Testes/assertions | Duração ms |
+| --- | --- | ---: | ---: |
+| Feature/Identity/Presentation/Http/SignUpHttpTest.php | SignUpRequest/NameRule/PasswordRule | 17/115 | 805 |
+| Feature/Identity/Presentation/Http/UuidUserHttpTest.php | UpdateUserRequest/MatchesResourceIdRule/caixa/owner | 15/75 | 857 |
+| Feature/Expense/Presentation/Http/ExpenseQueryHttpTest.php | GetAllExpenseRequest/CivilDateRule/filtros | 53/217 | 2.073 |
+| Feature/Expense/Presentation/Http/GetAllExpenseHttpTest.php | listagem/paginação/políticas existentes | 35/215 | 1.527 |
+| Feature/Expense/Presentation/Http/ExpenseCategoriesHttpTest.php | ExpenseCategoriesRule/catálogo/filtros | 50/339 | 2.188 |
+| Feature/Notifications/Presentation/Http/NotificationRegistrationHttpTest.php | CreateNotificationRequest/NotificationIdentifierRule/instalação | 47/289 | 2.088 |
+| Unit/Architecture/ContextBoundariesTest.php | fronteiras/exceções específicas | 30/504 | 4.856 |
+
+Suite focada `tests/Feature/Identity tests/Feature/Notifications` passou **186/1.480**, **8.007 ms**. Os demais contextos e suas integrações foram reexecutados integralmente nos quatro gates globais abaixo; evidências isoladas históricas da conversão UUID continuam nos STEPs 02–11. Nenhum cenário foi removido/consolidado nesta fatia e nenhum novo teste PHP foi adicionado.
+
+### Gates completos finais
+
+Base de todos os comandos: `lerd composer test --`, com `--compact --fail-on-skipped --fail-on-incomplete --fail-on-risky` em todas as execuções:
+
+| Opções adicionais | Testes/assertions | Duração ms | Resultado |
+| --- | ---: | ---: | --- |
+| nenhuma (padrão) | 2.305/41.116 | 53.489 | aprovado |
+| --order-by=random --random-order-seed=2026101513 | 2.305/41.116 | 52.656 | aprovado |
+| --order-by=random --random-order-seed=2026101514 | 2.305/41.116 | 53.739 | aprovado |
+| --parallel --processes=2 | 2.305/41.116 | 33.447 | aprovado |
+
+Incluem PostgreSQL, Redis, corridas sincronizadas, worker real exclusivo e o teste existente de duas invocações simultâneas; não foram excluídos grupos nem usados skips/incomplete/risky para passar. A rodada inicial também passou, mas foi repetida após estabilização das edições paralelas PHP para vincular a evidência ao estado final. Nenhum timeout/falha foi convertido em aprovação. O launcher provisionou bancos exclusivos por runId/token, aplicou migrations incrementalmente e retirou os bancos registrados. `lerd db list` final mostrou somente bases preexistentes `lerd`, `trocado` e `trocado_testing`, sem bancos exclusivos remanescentes.
+
+`pint --dirty --format agent` via vendor_run passou; validação OpenSpec `--type change --strict --json --no-interactive` passou nas duas changes, sem issues. Parser/round trip final passou. `git diff --check` faz parte da conferência final. Nenhum reset, migration nova ou alteração de serviço/worker foi necessário nesta fatia.
+
+### 14.7 Revisão da matriz e limites das claims
+
+A matriz principal acima foi atualizada sem substituir evidências históricas. Referências por responsabilidade:
+
+| Requisitos/cenários | Evidência corrente | Limite |
+| --- | --- | --- |
+| UID-01–03 forma/exclusões/geração/imutabilidade | Unit/schema/Models dos STEPs 02–07; HTTP/PAT/CRUD e CLI final | UUID é emissão, não relógio financeiro/credencial/ordem global |
+| UID-04–06 PK/FK/owner/HTTP/Sanctum | PG/HTTP/jornada dos STEPs 03–11, schema local STEP 12, gates e CLI finais | PAT UUID não substitui o segredo; nenhum alias numérico |
+| UID-07 cadastro/instalação | backend/PG/races/CLI Proven; inspeção do cliente acima | cliente Blocked; sem homologação FCM/Flutter |
+| UID-08 transição/lifecycle | guards/preflight e alvo/consentimento/reset do STEP 12; cleanup final exclusivo | não repetiu reset nem prometeu rollback de produção |
+| RID-01–02 mínimo/chaves/fronteiras | schema/Core/Unit/arquitetura dos STEPs 03/07–10; documentação e gates finais | não há fatos/textos/keys brutas persistidos pelo registro |
+| RID-03 concorrência/UUID vencedor/rollback | ResourceConcurrency/Repository PostgreSQL do STEP 07 reexecutados nos gates | fake transacional/repetição sequencial não são a prova de race/rollback |
+| RID-04 vazio/hit/lote/queries | Unit/PG e medições autenticadas STEPs 07–12; CLI vazio/elegível | 50 requests CLI não medem SQL nem provam escala |
+| RID-05 retenção/retorno/cascade | testes com processo/PAT novos, retorno e exclusão, STEPs 07–12; gates finais | não houve reboot completo do servidor; processo/conexão novos explicitados |
+| RID-06 falhas/sem fallback/segredos | exceções sentinela/rollback/HTTP/allowlists STEPs 07–11 reexecutados | CLI não induziu indisponibilidade real de banco |
+| RID-07 autoridade/endpoint/cleanup | arquitetura/HTTP/lifecycle exclusivo e cleanup final | associação não autentica nem cria endpoint público |
+| Expense/cache/cursor/worker e correlação | STEPs 05/11/12 + gates com Redis/worker/trace UUIDv7 | worker de classificação não é worker push; SDK/job IDs nativos |
+
+### 14.8 Estado de fechamento
+
+**106/108 tarefas comprovadas. 13.6 e 14.8 permanecem pendentes.** Documentação/backend/Bruno/gates passaram, mas o gerador e persistência de instalação UUIDv7 não existem no cliente inspecionado. Não há base para marcar homologação ou a change inteira como arquivável. Após resolver a integração externa, reconferir a evidência e obter autorização específica de archive. Não foram feitos archive, sincronização de main specs, commit, push ou deploy. A change Firebase continua incompleta e não deve ser arquivada junto desta.

@@ -17,3 +17,10 @@ auth:bearer {
 headers {
   Accept: application/vnd.api+json
 }
+
+tests {
+  test("Consulta o owner sem coerção numérica", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().data.id).to.equal(bru.getVar("userId").toLowerCase());
+  });
+}

@@ -44,6 +44,12 @@ O STEP 01 de [`standardize-uuid-v7-identifiers`](../standardize-uuid-v7-identifi
 
 Futuro `notification_id` próprio usa UUIDv7 estável em retries/redelivery; `resource_id`, quando identifica recurso próprio, também usa UUIDv7. IDs técnicos FCM/SDK, destino, fingerprint, segredo Bearer e generation conservam seus formatos. Evidências históricas de cadastro com owner/PAT bigint e UUID genérico não comprovam esse contrato novo. Transporte/queue/produtores e homologação do gerador Flutter continuam pendentes.
 
+### Estado comprovado do contrato UUIDv7 — 2026-10-15
+
+Os STEPs 04/06/11/12 de `standardize-uuid-v7-identifiers` concluíram backend, integração e aplicação local do contrato alvo acima. Registro/owner/PAT/instalação exigem v7; repetição/rotação preservam o registro e as provas PostgreSQL/HTTP incluem rollback, corridas e cascades. Evidências históricas continuam identificadas em `tasks.md`.
+
+No STEP 13, inspeção somente leitura do cliente `cordato` encontrou `uuid 4.6.0` transitivo no lockfile, sem uso de gerador v7, persistência de instalação ou cadastro `push-registrations` em `lib/`. `MessagingClient` usa `getToken()`/`onTokenRefresh` e distingue Android/iOS, mas isso não homologa o cadastro. A integração UUIDv7 de instalação e payload real continua pendente no cliente. Não há autorização de edição desse repo nem prova de transporte/recepção Firebase por essa inspeção.
+
 ### 1. Ownership e fronteiras
 
 Criar `Notifications` como contexto real, proprietário do registro push e do transporte. Não colocar o cadastro em User nem transformar Core em catálogo de regras de notificações.

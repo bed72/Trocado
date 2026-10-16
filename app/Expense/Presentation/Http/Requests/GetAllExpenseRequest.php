@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Expense\Presentation\Http\Requests;
 
-use App\Core\Domain\Enums\ExpenseCategoryEnum;
-use App\Core\Domain\Exceptions\InvalidDatePeriodException;
 use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Expense\Application\Data\GetAllExpenseInput;
+use App\Expense\Presentation\Http\Rules\CivilDateRule;
+use App\Expense\Presentation\Http\Rules\ExpenseCategoriesRule;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
@@ -34,23 +34,11 @@ final class GetAllExpenseRequest extends FormRequest
             'page.size' => ['sometimes', 'required', 'integer', 'between:1,100'],
             'filter.day' => ['sometimes', 'required', 'integer', 'between:1,31'],
             'filter.month' => ['required_with:filter.day', 'filled', 'integer', 'between:1,12'],
+            'filter.category' => ['sometimes', 'required', 'string', new ExpenseCategoriesRule],
             'filter.amount_min' => ['sometimes', 'required', 'integer', 'between:0,9223372036854775807'],
             'filter.amount_max' => ['sometimes', 'required', 'integer', 'between:0,9223372036854775807'],
             'filter.year' => ['required_with:filter.month,filter.day', 'filled', 'integer', 'between:1,9999'],
             'filter' => ['sometimes', 'required', 'array:year,month,day,from,to,category,amount_min,amount_max'],
-            // TODO reaproveitar validator
-            'filter.category' => ['sometimes', 'required', 'string', function (string $attribute, mixed $value, Closure $fail): void {
-                if (! is_string($value)) {
-                    return;
-                }
-                foreach (explode(',', $value) as $category) {
-                    if (ExpenseCategoryEnum::tryFrom($category) === null) {
-                        $fail('Informe categorias válidas separadas por vírgula.');
-
-                        return;
-                    }
-                }
-            }],
             'sort' => ['sometimes', 'required', 'string', 'regex:/\A-?(occurred_on|amount|description)(,-?(occurred_on|amount|description)){0,2}\z/D', function (string $attribute, mixed $value, Closure $fail): void {
                 if (! is_string($value)) {
                     return;
@@ -108,16 +96,7 @@ final class GetAllExpenseRequest extends FormRequest
 
     private function civilDateRules(): array
     {
-        return ['sometimes', 'required', 'string', 'date_format:Y-m-d', function (string $attribute, mixed $value, Closure $fail): void {
-            if (! is_string($value)) {
-                return;
-            }
-            try {
-                DatePeriodValueObject::fromDates($value, $value);
-            } catch (InvalidDatePeriodException) {
-                $fail('Informe uma data civil válida entre 0001-01-01 e 9999-12-31.');
-            }
-        }];
+        return ['sometimes', 'required', 'string', 'date_format:Y-m-d', new CivilDateRule];
     }
 
     private function period(): ?DatePeriodValueObject

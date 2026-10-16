@@ -8,13 +8,13 @@ API JSON:API em Laravel 13 para gerenciar despesas pessoais. `Identity` cuida de
 
 Agentes devem começar por [AGENTS.md](AGENTS.md), [ARCHITECTURE.md](ARCHITECTURE.md) e pelas skills locais em [`.opencode/skills/`](.opencode/skills/). Laravel Boost auxilia o desenvolvimento; o Laravel AI SDK é usado na classificação de despesas.
 
-Os bounded contexts atuais são `Identity` e `Expense`. `Identity` concentra o lifecycle da conta sem levar Laravel, Eloquent ou Sanctum para Domain e Application. Novas classes devem seguir os nomes, dependências e fronteiras definidos em `ARCHITECTURE.md`.
+Os bounded contexts atuais são `Core`, `Identity`, `Expense`, `Notifications`, `Insights` e `Metrics`. `Identity` concentra o lifecycle da conta sem levar Laravel, Eloquent ou Sanctum para Domain e Application. Novas classes devem seguir os nomes, dependências e fronteiras definidos em `ARCHITECTURE.md`.
 
 O cache da listagem de Expense é implementado em Infrastructure por decorator de `ExpenseRepository`, com TTL de 60 segundos e invalidação por conta após escritas confirmadas. UseCases não conhecem cache, Redis, chaves ou tags.
 
 ## Executar localmente
 
-Requer PHP 8.3+ com `pdo_pgsql`, Composer e PostgreSQL. O cache e as filas usam Redis; para compilar os assets, use Node 22 e npm. Com Lerd, na raiz do projeto:
+Requer PHP 8.5 com `pdo_pgsql`, Composer e PostgreSQL. O cache e as filas usam Redis; para compilar os assets, use Node 22 e npm. Com Lerd, na raiz do projeto:
 
 ```sh
 composer install
@@ -113,13 +113,29 @@ O workflow `.github/workflows/ci.yml` roda em pull requests e pushes para `main`
 
 Para usar o deploy manual, configure a variável `DOKPLOY_COMPOSE_ID` com o ID do serviço Compose do Trocado (**não** seu App Name) e `DOKPLOY_API_KEY` como secret no ambiente GitHub `production`. Gere a chave de API no perfil do Dokploy, sem colocá-la no repositório. Desative o Autodeploy e quaisquer webhooks diretos do Dokploy para que um push não publique independentemente da Action. A Action solicita o deploy pela API do Dokploy; uma resposta bem-sucedida indica que o pedido foi aceito, não que a aplicação já esteja saudável. Confira o resultado em Deployments e Logs no Dokploy.
 
+## Identificadores e consumo da API
+
+User, Expense, registros push, PATs e recursos de Insights/Metrics/sugestões usam **strings UUIDv7 canônicas**: 36 caracteres com hífens, versão 7, variante RFC 9562 e letras minúsculas, por exemplo `019a6b60-0000-7000-8000-000000000001`. Caixa equivalente é aceita; inteiro, hash, nil, whitespace e outras versões são rejeitados. Preserve IDs como strings em JSON, rotas, variáveis e armazenamento; não use `parseInt`, conversão numérica ou alteração de bits. UUID não autentica, não escolhe owner e não determina a data financeira. Categorias, centavos, datas, contagens, segredos e IDs técnicos Laravel/SDKs mantêm seus formatos.
+
+Insights, Metrics e sugestões têm UUID estável por owner/identidade lógica. Core persiste somente associação técnica (UUID, owner, namespace, versão, fingerprint e criação), sem fatos ou textos; cada consulta recalcula as informações financeiras. SignOut/troca de PAT não apagam as associações; exclusão da conta remove-as por cascade. Valores ou variantes editoriais não mudam a identidade por si só; período/modo/assunto distintos podem mudá-la. No vigente de Insights, avançar o limite parcial pode mudar o ID; onboarding conserva período interno mesmo expondo `period: null`. Resumo Metrics zero continua sendo um recurso com UUID; sugestões vazias não alocam identidade. Não há endpoint individual do registro Core.
+
+O PAT tem UUID próprio em `access-tokens.id`, e a relação `user` contém o UUID da conta. O Bearer completo continua sendo segredo Sanctum (`id|segredo`), emitido uma vez e com `no-store`; UUID isolado não é credencial. Extensão conserva o ID do PAT. Links assinados são verificados antes de canonicalizar caixa.
+
+### Bruno e variáveis privadas
+
+Use a coleção `bruno/` com uma conta controlada ativa/verificada. Preencha os segredos no armazenamento privado do Bruno (`authEmail`, `authPassword`, `accessToken`, `verificationUrl`, `notificationToken`). Execute Sign In primeiro para capturar `accessToken` e `userId`; Create Expense captura `expenseId` e Create Notification captura `notificationId`. IDs capturados por scripts são variáveis de execução; não salve credenciais, relatórios com corpos/headers ou environments preenchidos no Git. `userId`, `expenseId`, `notificationId` e `notificationInstallationId` são strings. Os exemplos UUID fixos são somente contratuais: forneça uma instalação UUIDv7 gerada legitimamente e persistida pelo cliente.
+
+Para CLI, use arquivo privado fora da coleção com permissão `0600`, `bru run <casos> --env-file <arquivo>` e não exponha segredos via `--env-var`/argumentos. Limite a execução a casos selecionados (Delete User remove a conta); retire PAT/dados criados, invalide o cache somente desse owner e remova arquivos privados ao terminar. Não rode a coleção inteira contra produção. Assertions de estabilidade usam baselines somente em memória da execução; reinicie a execução ao trocar conta ou cenário. Parsing/round trip não equivalem a abertura GUI; execução CLI não comprova homologação Flutter/FCM.
+
+A conversão local do STEP 12 invalidou IDs, PATs, links assinados e cursores anteriores; não existe alias inteiro ou backfill. O bootstrap UUID não é uma migração de dados de produção. Rollback local exige release compatível e nova autorização para recriar apenas o desenvolvimento confirmado, sem promessa de preservação. A collation própria pode sobreviver ao drop de tabelas; qualquer tratamento exige conferir dependências e o alvo, sem CASCADE indiscriminado.
+
 ## Autenticação
 
 As rotas de User e Expense exigem um Personal Access Token do Sanctum. `SignUp` e `SignIn` são públicos; `SignOut` exige o Bearer token atual. `POST /api/authentication/sign-up` é o único cadastro público de conta.
 
 Cada cadastro começa com `users.status = pending` e `email_verified_at = null`. O SignUp solicita por fila o envio de um link assinado e temporário; a aceitação do cadastro não comprova a entrega do e-mail. A confirmação por `GET /api/email-verification/{id}/{hash}` é pública, retorna `204` e marca o e-mail como verificado, sem ativar a conta nem emitir token. Um link expirado ou inválido retorna `403`; o reenvio pode ser solicitado em `POST /api/authentication/email-verification/resend`.
 
-Para liberar a conta, altere o status para `active` diretamente no PostgreSQL após conferir o ID retornado por SignUp: `UPDATE users SET status = 'active' WHERE id = <ID>;`. Use `blocked` para suspender o acesso; o banco aceita somente `pending`, `active` e `blocked`. A migration também deixa as contas anteriores em `pending`. Contas pendentes/bloqueadas recebem `403` no SignIn, com seu estado na resposta JSON:API, e não recebem token; mesmo com status `active`, um e-mail não verificado recebe `403` e não recebe token. As rotas autenticadas verificam o status a cada requisição; mudar o status para `blocked` impede imediatamente o uso de tokens já emitidos. Reativar a conta permite usar novamente tokens ainda não expirados ou revogados. O status aparece em `GET /api/users/{user}` e não pode ser alterado pela API.
+Para liberar a conta, altere o status para `active` diretamente no PostgreSQL após conferir o UUID retornado por SignUp: `UPDATE users SET status = 'active' WHERE id = '<UUIDv7 retornado>';`. Use `blocked` para suspender o acesso; o banco aceita somente `pending`, `active` e `blocked`. A migration também deixa as contas anteriores em `pending`. Contas pendentes/bloqueadas recebem `403` no SignIn, com seu estado na resposta JSON:API, e não recebem token; mesmo com status `active`, um e-mail não verificado recebe `403` e não recebe token. As rotas autenticadas verificam o status a cada requisição; mudar o status para `blocked` impede imediatamente o uso de tokens já emitidos. Reativar a conta permite usar novamente tokens ainda não expirados ou revogados. O status aparece em `GET /api/users/{user}` e não pode ser alterado pela API.
 
 Status controla quem pode usar a API, mas não impede que terceiros alcancem endpoints públicos ou solicitem cadastro; para acesso exclusivo à VPS, restrinja a exposição da aplicação por VPN.
 
@@ -137,7 +153,7 @@ curl -i -X POST http://127.0.0.1:8000/api/authentication/sign-up \
   -d "{\"data\":{\"type\":\"sign-ups\",\"attributes\":{\"name\":\"Maria Silva\",\"email\":\"${EMAIL}\",\"password\":\"${PASSWORD}\",\"password_confirmation\":\"${PASSWORD}\"}}}"
 
 # Confirme o e-mail recebido e ative o ID retornado por SignUp antes de tentar SignIn.
-# UPDATE users SET status = 'active' WHERE id = <ID>;
+# UPDATE users SET status = 'active' WHERE id = '<UUIDv7 retornado>';
 
 curl -i -X POST http://127.0.0.1:8000/api/authentication/sign-in \
   -H 'Accept: application/vnd.api+json' -H 'Content-Type: application/vnd.api+json' \
@@ -148,7 +164,7 @@ Mantenha `EMAIL`, `PASSWORD` e o valor retornado em `data.attributes.token` como
 
 ## Cadastrar instalações push
 
-O cadastro aceita Android/iOS com Flutter Firebase oficial e **token de registro FCM**, `registration_kind = token`. O UUID `installation_id` é criado e persistido pelo cliente por instalação; não é token FCM, FID, token APNs ou ID físico do aparelho. A versão Flutter e o payload real ainda precisam ser confirmados na homologação. Nesta fatia, o cadastro não realiza envios Firebase.
+O cadastro aceita Android/iOS com Flutter Firebase oficial e **token de registro FCM**, `registration_kind = token`. O `installation_id` deve ser **UUIDv7**, gerado legitimamente e persistido pelo cliente por instalação, sem mudar em login/rotação; não é token FCM, FID, token APNs, ID físico ou PK do registro. UUIDv4/outra versão recebe `422` com pointer `/data/attributes/installation_id`, sem eco do destino. Não converta uma instalação v4 alterando bits. A versão do gerador e o payload real precisam ser comprovados na homologação. Nesta fatia, o cadastro não realiza envios Firebase.
 
 O token é cifrado com `APP_KEY`; a unicidade usa um fingerprint SHA-256 separado, calculado sobre provedor, tipo e token exatos, com separadores NUL. Nenhuma chave adicional de notificações é necessária. A migration `recalculate_notification_fingerprints` recalcula os fingerprints antigos a partir do destino cifrado, preservando IDs, ciphertext, geração, sessões e timestamps. Ela falha atomicamente se algum destino não puder ser decifrado ou se houver conflito de unicidade.
 
@@ -163,7 +179,7 @@ A pasta Bruno `Notifications` contém Create/Delete Notification. Configure `not
   "data": {
     "type": "push-registrations",
     "attributes": {
-      "installation_id": "bfb21c99-e2cb-4e18-8b73-b8fb0efc8d69",
+      "installation_id": "019a6b60-0000-7000-8000-000000000002",
       "platform": "android",
       "registration_kind": "token",
       "registration_identifier": "<token FCM obtido pelo cliente>"
@@ -222,7 +238,7 @@ Categorias novas e antigas podem ser combinadas: `filter[category]=travel,invest
 
 A ordenação alfabética ignora maiúsculas e acentos pela collation ICU `expense_description_ci_ai`. `Água`, `agua` e `ÁGUA` empatam; os próximos campos e ID resolvem o empate. Null equivale à string vazia somente na chave interna de ordenação: vem antes dos textos em ordem crescente e depois em decrescente; o valor público/persistido permanece null. A migration de collation não altera description ou dados existentes.
 
-Use os links devolvidos pela API, que conservam filtros, sort e tamanho. Mudar os critérios, direção ou prioridade exige reiniciar sem cursor. Novos cursores aceitam critérios normalizados equivalentes e mudança de tamanho, mas não consultas incompatíveis. Cursores antigos de occurred_on/id continuam aceitos somente no contrato anterior, sem novos filtros ou sort explícito, inclusive com ano/mês/dia. Cursor e cache não substituem o filtro de proprietário.
+Use os links devolvidos pela API, que conservam filtros, sort e tamanho. Mudar os critérios, direção ou prioridade exige reiniciar sem cursor. O cursor v2 aceita critérios normalizados equivalentes e mudança de tamanho, mas não consultas incompatíveis; sua posição separa ID UUIDv7 de amount inteiro. Cursores v1/numéricos/legados são rejeitados com `422`, inclusive nos filtros antigos. Cursor e cache não substituem o filtro de proprietário; o cache usa `expense:pages:v3` e não reutiliza páginas numéricas anteriores.
 
 O cache de páginas usa namespace versionado, critérios normalizados e TTL de 60 segundos; CRUD e classificação confirmados invalidam todas as variantes da conta. A coleção Bruno inclui exemplos desabilitados de cada critério; escolha componentes civis ou intervalo, sem ativar ambos. Copie um cursor devolvido para `expenseCursor` antes de ativar esse parâmetro.
 
@@ -262,6 +278,6 @@ Consumidores com listas/enums fechados devem aceitar os dezoito identificadores 
 
 ## Eventos de observabilidade
 
-Com `LOG_OBSERVABILITY_STREAM=php://stderr`, os eventos JSON aparecem nos logs do container que executou a operação. Alterações confirmadas de conta e autenticação emitem `user.registered`, `user.updated`, `user.deleted`, `identity.signed_in` e `identity.signed_out`; despesas emitem `expense.created`, `expense.updated`, `expense.deleted` e `expense.classified`. Leituras não emitem eventos de negócio. Eventos HTTP incluem o `request_id` devolvido em `X-Request-Id`.
+Com `LOG_OBSERVABILITY_STREAM=php://stderr`, os eventos JSON aparecem nos logs do container que executou a operação. Alterações confirmadas de conta e autenticação emitem `user.registered`, `user.updated`, `user.deleted`, `identity.signed_in` e `identity.signed_out`; despesas emitem `expense.created`, `expense.updated`, `expense.deleted` e `expense.classified`. Leituras não emitem eventos de negócio. Eventos HTTP incluem somente `trace_id` UUIDv7 server-owned, igual ao header `X-Request-Id`, sem campo `request_id` duplicado. Workers não herdam correlação do request; IDs nativos de jobs permanecem nativos.
 
 Nos workers, `queue.job_processed` e `queue.job_failed` identificam fila, conexão, job e tentativa. Falhas incluem apenas a classe da exceção, sem sua mensagem ou payload. Esses registros são eventos estruturados, não métricas agregadas ou um dashboard; descrições, valores de despesas, senhas e tokens não são enviados ao canal de observabilidade.

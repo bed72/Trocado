@@ -24,7 +24,7 @@ auth:bearer {
 }
 
 vars:pre-request {
-  insightsQueryDate: 2026-10-14
+  insightsQueryDate: 2026-10-15
 }
 
 tests {
@@ -43,7 +43,7 @@ tests {
     body.data.forEach(function (item) {
       expect(item).to.have.all.keys("type", "id", "attributes");
       expect(item.type).to.equal("insights");
-      expect(item.id).to.be.a("string").and.not.empty;
+      expect(item.id).to.be.a("string").and.match(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
       expect(item.attributes).to.have.all.keys("group", "type", "title", "description", "period");
       const attributes = item.attributes;
       expect(types).to.have.property(attributes.group);

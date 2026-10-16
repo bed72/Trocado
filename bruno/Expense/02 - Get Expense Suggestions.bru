@@ -21,3 +21,23 @@ headers {
 auth:bearer {
   token: {{accessToken}}
 }
+
+tests {
+  test("Sugestões vazias são válidas; mesmo assunto conserva UUID entre termos", function () {
+    expect(res.getStatus()).to.equal(200);
+    const data = res.getBody().data;
+    expect(data).to.be.an("array").with.length.at.most(5);
+    expect(new Set(data.map(item => item.id)).size).to.equal(data.length);
+    data.forEach(function (item) {
+      expect(item.type).to.equal("expense-suggestions");
+      expect(item.attributes.description).to.be.a("string").and.not.empty;
+      // Baseline pelo texto exato retornado; equivalência SQL completa é provada em PostgreSQL.
+      const key = JSON.stringify(["suggestion-baseline", bru.getVar("userId"), item.attributes.description]);
+      const baselines = bru.getVar("suggestionIdentityBaselines") || {};
+      const previous = baselines[key];
+      if (previous) expect(item.id).to.equal(previous);
+      baselines[key] = item.id;
+      bru.setVar("suggestionIdentityBaselines", baselines);
+    });
+  });
+}
