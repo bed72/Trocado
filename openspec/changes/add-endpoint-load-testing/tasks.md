@@ -9,10 +9,10 @@
 
 ## 2. Entrada manual e organização
 
-- [ ] 2.1 Criar entrada opt-in `test:load` e configuração dedicada, confirmando opções e seleção avulsa de cenário/endpoint/objetivo, sem executar carga durante descoberta. [LOAD-01; ORG-01; ISO-08]
-- [ ] 2.2 Organizar cenários Load por contexto/Presentation/Http e suporte tipado por responsabilidade em Tests Support; manter tooling fora de app e preservar Unit/Feature existentes. [ORG-01; D2]
-- [ ] 2.3 Provar que `composer test`, listagem, Unit/Feature e CI padrão não descobrem/iniciam/provisionam Load e não ganham skips para escondê-lo. [LOAD-01; ISO-08]
-- [ ] 2.4 Definir manifesto privado, fases de campanha, estados de resultado e configuração de URL/perfil/dataset/limites, sem segredos em argumentos ou relatórios. [LOAD-03–04/12]
+- [x] 2.1 Criar entrada opt-in `test:load` e configuração dedicada, confirmando opções e seleção avulsa de cenário/endpoint/objetivo, sem executar carga durante descoberta. [LOAD-01; ORG-01; ISO-08]
+- [x] 2.2 Organizar cenários Load por contexto/Presentation/Http e suporte tipado por responsabilidade em Tests Support; manter tooling fora de app e preservar Unit/Feature existentes. [ORG-01; D2]
+- [x] 2.3 Provar que `composer test`, listagem, Unit/Feature e CI padrão não descobrem/iniciam/provisionam Load e não ganham skips para escondê-lo. [LOAD-01; ISO-08]
+- [x] 2.4 Definir manifesto privado, fases de campanha, estados de resultado e configuração de URL/perfil/dataset/limites, sem segredos em argumentos ou relatórios. [LOAD-03–04/12]
 
 ## 3. Alvo dedicado e ownership
 
@@ -152,3 +152,37 @@ Fonte imutável: plugin v5.0.2/commit acima; arquivos locais `src/Factory.php`, 
 - Lerd `vendor_run pest --version`: Pest **5.2.1**. Composer validate/platform passaram. Sem mudanças PHP próprias, sem Pint sobre o ExpenseSeeder preexistente.
 - Após atualizar os artefatos, OpenSpec strict passou sem issues e `instructions apply` confirmou **2 completas / 49 pendentes**. Whitespace de composer.json/lock e dos quatro Markdown alterados conferido com `git diff --check` e `git diff --no-index --check /dev/null <arquivo>`; sem erros.
 - Estado: **2/51 tarefas concluídas**, STEP 01 **Blocked**, demais etapas pendentes. Migrations, massa, PATs e carga de produto não foram executados.
+
+## Apply — STEP 02 — 2026-10-16
+
+- Autorização: “Pode seguir para o step dois”. Autoriza a entrada/organização independente do motor; não resolve a decisão 1.6. Execução de produto permanece Blocked.
+
+### 2.1–2.2 — Proven (entrada e organização; não medição)
+
+- `composer test:load` chama `tests/load.php`; `phpunit.load.xml` descobre exclusivamente Load, sem bootstrap Laravel, env funcional ou cache de resultados. `--list` lista catálogo e `--list-tests` usa a descoberta Pest sem executar callbacks. Seleções usam `--scenario=<id>`, `--endpoint=<path>` e `--objective=capacity|regression`; execução exige cenário e objetivo explícitos, sem pass-through arbitrário de flags Pest.
+- Quatro arquivos Load nos contextos Expense/Metrics/Insights sob Presentation/Http, com cenários de entrada deliberadamente bloqueados pelo `LoadEngineGate`, sem skip e sem código HTTP/k6. Implementação do comportamento pertence ao STEP 06. Suporte exclusivo de carga em `tests/Support/Core/Load`, sem mudanças em app, tests/run.php, tests/Pest.php ou phpunit.xml.
+- `lerd composer test:load -- --list`: quatro entradas Blocked; `--list-tests --scenario=monthly-insights`: somente o cenário selecionado. `lerd composer validate --strict --no-interaction`: válido.
+- `lerd composer test -- tests/Unit/Core/Support/Load/LoadCommandTest.php --compact`: **12 testes / 51 assertions**, passou. Prova seleção, descoberta dedicada, opções inválidas/duplicadas, ausência de eco de segredo sentinela e exit 2/Blocked antes de carregar config/criar manifesto/acionar motor. Revalidação pós-Pint registrada ao fechar a etapa.
+
+### 2.3 — Proven para seleção local e configuração de CI
+
+- O teste `keeps Load outside functional discovery without relying on a skip` executa o launcher funcional padrão com `--list-tests`, driver SQLite/nome operacional e host inválido herdados. A descoberta Unit/Feature passa sem entrar no preflight; não lista Tests\Load nem nomes dos cenários Load. `phpunit.xml`, launcher e associação Feature não foram alterados. Não há skip para esconder Load.
+- `lerd composer test -- tests/Unit/Core/Support/Database/TestExecutionCommandTest.php --compact`: **11 testes / 26 assertions**, passou (Unit puro e descoberta Feature, inclusive negativas antes de provisionamento).
+- `lerd composer test -- tests/Feature/Core/Infrastructure/Database/TestDatabasePreflightTest.php --compact`: **3 testes / 20 assertions**, passou pelo launcher, com migrations incrementais em banco exclusivo. Prova caminho Feature funcional, não prova HTTP de carga.
+- CI `.github/workflows/ci.yml` inspecionado: continua chamando `composer test -- --compact` e `composer test -- --parallel --processes=2 ...`, ambos pelo launcher e XML funcional, sem `test:load`. Nenhuma mudança no workflow. Execução no GitHub não foi realizada; a seleção foi provada localmente, não se declara job remoto aprovado.
+
+### 2.4 — Proven para contratos e persistência do manifesto planejado
+
+- `LoadConfiguration` valida URL-base sem credenciais/query/fragment/caminho de endpoint, dataset técnico, perfil e limites explícitos. Leitura limitada a arquivo regular privado, até 64 KiB, por caminho canônico fora do checkout. Campos desconhecidos (incluindo credenciais) e valores inválidos falham sem eco do conteúdo/encadeamento sensível. Contrato e canal reservado `TROCADO_LOAD_CONFIG` documentados em D4; comando bloqueado ainda não consome configuração.
+- `LoadManifest` planeja runId/owner independentes e escreve JSON 0600 em diretório externo 0700, sem sobrescrever o mesmo run. Contém seleção, configuração e fase/estado iniciais, com lease/targetVerification null e resources vazio: **não é autorização de recursos ou readiness**. Fases/estados tipados e seus significados definidos em D4; orquestração, credenciais/PATs e ownership efetivo pertencem aos STEPs 03–07.
+- `lerd composer test -- tests/Unit/Core/Support/Load/LoadConfigurationTest.php --compact`: **17 testes / 28 assertions**, passou isoladamente antes/depois do Pint (arquivo privado/permissões, URL com segredo, campos/limites inválidos e JSON malformado sem divulgação).
+- `lerd composer test -- tests/Unit/Core/Support/Load/LoadManifestTest.php --compact`: **1 teste / 51 assertions**, passou isoladamente antes/depois do Pint (dois manifestos distintos, conteúdo, permissões, recusa de sobrescrita e preservação do primeiro). Temporários de cada teste removidos em finally; não há banco/Redis/servidor nesse teste.
+
+### Gate local do STEP 02
+
+- `lerd composer test -- tests/Unit/Core/Support/Load --compact`: **30 testes / 130 assertions**, passou após Pint. Os três arquivos também passaram isoladamente após Pint; LoadCommand manteve **12 testes / 51 assertions**.
+- `lerd composer test -- tests/Unit/Architecture/ContextBoundariesTest.php --compact`: **30 testes / 504 assertions**, passou; nenhuma permissão de app foi ampliada.
+- `lerd` vendor_run `pint --dirty --format agent`: passou. `lerd composer test:load -- --list-tests`: quatro entradas Load descobertas sem execução. Composer validate passou.
+- Pint também passou com todos os caminhos PHP novos explícitos (incluindo arquivos ainda não rastreados). `lerd composer test:load -- --scenario=expense-pages --objective=capacity` retornou **exit 2 / Blocked**, conforme esperado, sem setup/carga. OpenSpec strict passou sem issues após as atualizações e `git diff --check` passou.
+- Este suporte é novo e exclusivo de Load; nenhum suporte compartilhado por cenários funcionais existentes foi alterado. Gate funcional completo com duas seeds/paralelo/duas invocações não foi executado nesta etapa e não é declarado aprovado.
+- STEP 02 conclui entrada/organização e contratos iniciais; **6/51 tarefas concluídas**. STEP 01 continua Blocked em 1.3–1.6, sem decisão implícita de adaptação. Nenhum k6/download/sonda HTTP/servidor-alvo/massa/conta/PAT foi iniciado pelo comando Load.

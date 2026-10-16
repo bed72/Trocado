@@ -51,6 +51,8 @@ Propor `tests/Load/<Contexto>/Presentation/Http/`, com Expense (listagem/sugest�
 
 Uma configuração Pest/PHPUnit separada e entrada proposta `lerd composer test:load -- <opções>` selecionam Load explicitamente. O nome final e flags devem ser conferidos/implementados, não presumidos como disponíveis. `composer test`, seus guards e a descoberta Unit/Feature permanecem intactos. Checagens do harness ficam em Unit/Feature conforme suas dependências e podem entrar no gate funcional; a campanha de carga não entra nele.
 
+**Contrato entregue no STEP 02:** `composer test:load -- --list` lista o catálogo sem ler configuração; `--list-tests` usa `phpunit.load.xml` para descoberta Pest. Seleção por `--scenario=<id>`, `--endpoint=<path>` e `--objective=capacity|regression`; iniciar exige cenário e objetivo explícitos. Não há pass-through de opções Pest, credenciais ou URL por argumento. Cada arquivo Load é uma entrada bloqueada, não um cenário de desempenho já implementado: `LoadEngineGate` recusa execução até decisão/provas do STEP 01 e implementação dos STEPs 03–06. `--list` informa Blocked; saída 0 significa descoberta válida, não regressão aprovada. Execução bloqueada usa exit 2, seleção inválida usa exit 1.
+
 A nova raiz de testes é uma exceção pequena e explícita, coberta pelo delta ORG-01 e futura atualização de ARCHITECTURE/README. Não mover testes antigos nem criar hierarquia de produto para esse tooling.
 
 ### D3 — Separar control plane, servidor e gerador
@@ -68,6 +70,14 @@ Manifesto privado com runId, datasetId, revisão, lease, URL exata, identidade d
 Se não é possível vincular a URL/instância aos recursos autorizados, bloquear a campanha. Lease impede duas campanhas de alterar/limpar o mesmo alvo; uma alternativa é instância própria por campanha. Mudança de configuração/revisão/identidade invalida a lease e exige novo preflight. Control plane remoto deve fornecer confirmação equivalente; acesso HTTP isolado não autoriza drop de banco por nome.
 
 O manifesto distingue recurso criado pelo run de instância preexistente apenas emprestada. Namespaces incluem campanha e perfil; temporários privados fora do repositório. Não incluir credenciais no relatório sanitizado, argumentos do shell ou URLs. A autorização não usa `testing` no nome, regex ampla ou domínio `.test` como prova suficiente.
+
+**Contrato inicial do STEP 02 (sem provisionamento):** `LoadConfiguration::fromFile()` valida JSON v1 em arquivo privado regular (sem permissões de grupo/outros, até 64 KiB), por caminho absoluto canônico fora do checkout. `TROCADO_LOAD_CONFIG` é o canal reservado para esse caminho; enquanto o motor está bloqueado, o comando não lê o arquivo nem cria manifesto. Campos permitidos: `version`, `targetUrl` (base HTTP/HTTPS sem user/password/query/fragment ou caminho de endpoint), `datasetId` técnico, `profile` (`capacity`/`protection`) e `limits`. Não é prova de ambiente autorizado: URL sintaticamente válida continua dependendo do preflight/lease do STEP 03. Tokens e credenciais não fazem parte desse arquivo; seu registro privado será implementado nos STEPs 03–04.
+
+`limits` exige explicitamente `concurrency` (lista sem duplicação de níveis dentre 1/5/10/20), `durationSeconds` (30 no perfil inicial), `warmupSeconds`, `requestTimeoutSeconds`, `processTimeoutSeconds`, `recoveryTimeoutSeconds`, `campaignTimeoutSeconds` e `maxRequests`, todos os valores escalares inteiros positivos. Request termina antes do prazo de processo, processo permite a janela medida, campanha tem prazo maior que o processo. Esses campos delimitam o contrato de configuração, não aprovam dimensionamento operacional: orçamento agregado, recursos e recuperação serão definidos/comprovados em 5.5–5.7. Números das fixtures são exclusivamente entradas de testes, não perfil aprovado.
+
+`LoadManifest::plan()` cria identidade aleatória própria sem I/O; `write()` aloca diretório externo 0700 e JSON 0600 exclusivamente, sem sobrescrever manifesto anterior. Registra versão, runId, owner privado, seleção/objetivo, URL, dataset/perfil/limites e estado inicial. `targetVerification`/`lease` são null e `resources` é vazio até o STEP 03; esse documento planejado não autoriza escrita em banco/Redis, não certifica readiness e não é um relatório público. Credenciais e evidências de alvo/revisão serão vinculadas somente após o preflight efetivo.
+
+Fases definidas: `preflight → preparation → warmup → measurement → recovery` (por nível), encerrando em `cleanup → finished`; erro/interrupção também exige cleanup quando houver recursos registrados. Estados: `Pending`, `Running`, `Blocked` (pré-requisito ausente), `Failed` (falha de contrato ou limite aprovado), `Inconclusive` (medição insuficiente), `Calibration` (medição sem threshold aprovado), `Passed` (regressão equivalente com limites aprovados) e `Aborted`. A orquestração dessas transições pertence às etapas futuras; os enums não comprovam lifecycle/cleanup externo.
 
 ### D5 — Massa própria, versionada e criada fora da janela medida
 
@@ -164,3 +174,5 @@ SIGKILL pode impedir cleanup: conservar manifesto privado suficiente para diagn�
 | LOAD-13 | D10 | falha/interrupção com cleanup exato, filhos encerrados e recovery por manifesto |
 
 Estado na elaboração: todos os cenários de implementação **Unproven**; leituras documentais não são prova de execução. O apply local do STEP 01 foi autorizado em 2026-10-16: instalação compatível v5.0.2 comprovada, mas runtime/capacidades compostas **Blocked**, com decisão de adaptação pendente. Evidências e matriz da API instalada em `tasks.md`; D1 não foi substituída por uma adaptação ainda não aprovada.
+
+Na continuação autorizada pelo STEP 02, entrada/descoberta, isolamento da seleção funcional e contratos de configuração/manifesto planejado foram comprovados. Isso não altera o estado Blocked do motor nem comprova cenários de desempenho ou ownership de recursos externos. Estado corrente: 6/51 tarefas concluídas; matriz e comandos em `tasks.md`.

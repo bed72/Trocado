@@ -6,6 +6,8 @@ Change: **`add-endpoint-load-testing`**.
 
 **Apply local — 2026-10-16:** STEP 01 autorizado; **2/51 tarefas concluídas (1.1–1.2)**. Spike bloqueado pela seleção de arquitetura do plugin e pelas capacidades dinâmicas ausentes; decisão de adaptação pendente em 1.6. Evidências em `tasks.md`.
 
+**Continuação autorizada — STEP 02:** entrada/organização concluídas, **6/51 tarefas concluídas (1.1–1.2 e 2.1–2.4)**. Catálogo e descoberta funcionam; executar um cenário continua retornando `Blocked` (exit 2) até resolver o motor e os pré-requisitos das próximas etapas. Não houve medição HTTP.
+
 ## Fontes de verdade
 
 - [Proposta e escopo](openspec/changes/add-endpoint-load-testing/proposal.md)
@@ -59,12 +61,12 @@ Ao executar uma etapa:
 
 **Entrega:** comando opt-in e estrutura própria de carga, separados da execução funcional comum.
 
-- [ ] **2.1** Criar entrada proposta `test:load` e configuração dedicada, com seleção avulsa de cenário/endpoint/objetivo e descoberta sem carga.
-- [ ] **2.2** Organizar Load por contexto/Presentation/Http e suporte tipado em Tests Support, mantendo tooling fora de `app/`.
-- [ ] **2.3** Provar que `composer test`, listagem, Unit/Feature e CI padrão não iniciam/provisionam Load nem usam skips para escondê-lo.
-- [ ] **2.4** Definir manifesto privado, fases, estados de resultado e configuração de URL/perfil/dataset/limites, sem segredos em argumentos ou relatórios.
+- [x] **2.1** Criar entrada proposta `test:load` e configuração dedicada, com seleção avulsa de cenário/endpoint/objetivo e descoberta sem carga.
+- [x] **2.2** Organizar Load por contexto/Presentation/Http e suporte tipado em Tests Support, mantendo tooling fora de `app/`.
+- [x] **2.3** Provar que `composer test`, listagem, Unit/Feature e CI padrão não iniciam/provisionam Load nem usam skips para escondê-lo.
+- [x] **2.4** Definir manifesto privado, fases, estados de resultado e configuração de URL/perfil/dataset/limites, sem segredos em argumentos ou relatórios.
 
-**Concluir quando:** um cenário pode ser selecionado explicitamente e a suíte funcional permanece íntegra. A entrada `test:load` é proposta, não um comando já disponível.
+**Concluir quando:** um cenário pode ser selecionado explicitamente e a suíte funcional permanece íntegra. A entrada `test:load` já permite `--list`, `--list-tests` e seleção explícita; os corpos dos cenários permanecem bloqueados, com implementação de produto prevista nas próximas etapas.
 
 **Referências:** LOAD-01/03–04/12; ORG-01; ISO-08; design D2.
 
