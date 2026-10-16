@@ -1,82 +1,72 @@
-## 1. Autorizar apply e comprovar o motor
+## Checklist atual — carga simples com Pest
 
-- [x] 1.1 Obter autorização explícita de implementação e sondas/carga local; reconferir artefatos, versões e decisões sem interpretar a criação da spec como apply. [LOAD-01–02]
-- [x] 1.2 Resolver release estável compatível de Stressless/Pest 5 e requisitos PHP/extensões; registrar versões/commit consultado e confirmar instalação dev/lockfile sem rebaixar Pest ou elevar requisito PHP sem decisão. [LOAD-02; D1]
-- [ ] 1.3 Conferir a topologia Lerd suportada para servidor dedicado com configuração/cache compilado/logs/DB/Redis separados; registrar a escolha antes de provisionar. [LOAD-03–04; D3]
-- [ ] 1.4 Conferir runtime do gerador, download/tamanho/licença do k6, arquitetura/SO, execução, DNS e CA/HTTPS com sonda mínima controlada; não incluir setup/download na medição. [LOAD-02–03]
-- [ ] 1.5 Provar no motor APIs suportadas para múltiplos tokens/URLs, cursores dinâmicos, concorrência total, status/checks, p50/p95/p99 e exportação/agregação; registrar cada capacidade suportada ou Blocked. [LOAD-02/06–10]
-- [ ] 1.6 Se houver limitação, obter decisão explícita de adaptação/versão antes de alterar design ou implementar cenários dependentes; não modificar vendor nem declarar cobertura reduzida como equivalente. [LOAD-02; D1]
+Decisão explícita do usuário: “Também to achando. Só queria teste de carga”. Este checklist substitui o backlog de 51 tarefas. Não há equivalência entre a entrega pequena e os cenários avançados retirados.
 
-## 2. Entrada manual e organização
+- [x] 1.1 Usar Pest/Stressless público em PHP e comprovar execução local, retirando adaptação k6/JS/Node e lifecycle de campanha. [LOAD-01]
+- [x] 1.2 Implementar quatro leituras fixas, configuração privada mínima, preflight HTTP/JSON:API e relatório das métricas suportadas. [LOAD-03–06]
+- [x] 1.3 Verificar seleção/descoberta funcional, limites, configuração privada e sanitização com testes focados. [LOAD-02–05]
+- [x] 1.4 Executar sondas autenticadas pequenas e registrar sucessos/falhas reais, sem ampliar limiter ou alegar benchmark representativo. [LOAD-04–06]
+- [x] 1.5 Atualizar documentação, rastreabilidade e inventário do alvo; executar Pint e validar OpenSpec/diff. [LOAD-01–06; ORG-01; ISO-08]
 
-- [x] 2.1 Criar entrada opt-in `test:load` e configuração dedicada, confirmando opções e seleção avulsa de cenário/endpoint/objetivo, sem executar carga durante descoberta. [LOAD-01; ORG-01; ISO-08]
-- [x] 2.2 Organizar cenários Load por contexto/Presentation/Http e suporte tipado por responsabilidade em Tests Support; manter tooling fora de app e preservar Unit/Feature existentes. [ORG-01; D2]
-- [x] 2.3 Provar que `composer test`, listagem, Unit/Feature e CI padrão não descobrem/iniciam/provisionam Load e não ganham skips para escondê-lo. [LOAD-01; ISO-08]
-- [x] 2.4 Definir manifesto privado, fases de campanha, estados de resultado e configuração de URL/perfil/dataset/limites, sem segredos em argumentos ou relatórios. [LOAD-03–04/12]
+## Histórico — backlog anterior substituído
 
-## 3. Alvo dedicado e ownership
+Os estados abaixo são os da versão anterior, não tarefas ativas da entrega simplificada. “Pendente” não foi convertido em implementação concluída: a obrigação avançada foi retirada por decisão de escopo. As evidências históricas completas seguem após a tabela. Os requisitos LOAD antigos citados nos registros históricos pertencem à versão anterior; use os requisitos atuais para a aceitação atual.
 
-- [ ] 3.1 Provisionar somente o alvo Lerd autorizado pela ferramenta suportada, registrando recursos criados versus preexistentes e prontidão efetiva. [LOAD-03–04; D3]
-- [ ] 3.2 Implementar preflight de URL/instância/configuração/revisão, PostgreSQL efetivo por `current_database()` e confirmação HTTP com credencial exclusiva do banco-alvo; recusar produção/alvo desconhecido. [LOAD-03–04/06]
-- [ ] 3.3 Implementar ownership exato e lease por campanha, com nomes/namespace/processos/temporários próprios e migração incremental somente no banco autorizado. [LOAD-04]
-- [ ] 3.4 Provar negativas de URL/config/DB divergentes, nome parecido, manifesto ausente/alterado e tentativa de usar o banco operacional, antes de qualquer escrita/cleanup/carga. [LOAD-03–04]
-- [ ] 3.5 Provar duas invocações simultâneas: recursos distintos ou segunda lease recusada, sem interferência de preparação, medição e cleanup. [LOAD-04]
+| ID anterior | Estado anterior | Trabalho e destino na revisão |
+| --- | --- | --- |
+| 1.1 | Concluída | Autorização do apply local; histórico preservado. |
+| 1.2 | Concluída | Instalação Stressless estável/lockfile; mantida. |
+| 1.3 | Parcial | Topologia dedicada; alvo criado, inventário abaixo, sem lifecycle automatizado. |
+| 1.4 | Concluída no spike | Runtime/download/TLS nativo; spike retirado e substituído pela prova do plugin oficial. |
+| 1.5 | Concluída no spike | Tokens/cursor/status/p99; capacidades fora do novo escopo, não reivindicadas. |
+| 1.6 | Concluída | Adaptação autorizada e depois abandonada pela simplificação explícita. |
+| 2.1 | Concluída | Entrada manual; mantida com seleção simplificada. |
+| 2.2 | Concluída | Organização por contexto/Presentation/Http; mantida. |
+| 2.3 | Concluída | Descoberta funcional sem Load; reverificada no escopo novo. |
+| 2.4 | Concluída | Manifesto/fases/estados; retirados, permanece configuração privada mínima. |
+| 3.1 | Pendente | Provisionamento automatizado/readiness; substituído por preparação manual do alvo. |
+| 3.2 | Pendente | Preflight CLI/DB/HTTP/revisão integrado; reduzido a preflight HTTP e confirmação manual do alvo. |
+| 3.3 | Pendente | Ownership/lease/migrations por campanha; fora do escopo. |
+| 3.4 | Pendente | Negativas de manifesto/DB/cleanup; fora do escopo sem acesso DB pelo runner. |
+| 3.5 | Pendente | Campanhas simultâneas/lease; fora do escopo. |
+| 4.1 | Pendente | Dataset versionado/seed/distribuição; preparação manual. |
+| 4.2 | Pendente | 20 contas/PATs/200 mil despesas; obrigação retirada. |
+| 4.3 | Pendente | Contagens/reuso/recusa de dataset divergente; fora do escopo. |
+| 4.4 | Pendente | Token só no gerador/isolation A/B; preflight simples não é prova equivalente. |
+| 4.5 | Pendente | Registro de credenciais de campanha; substituído por arquivo privado sem lifecycle de PAT. |
+| 5.1 | Pendente | Ampliação de cota de capacidade; retirada, produto conserva default. |
+| 5.2 | Pendente | Namespaces/configuração por perfil; não implementados no runner. |
+| 5.3 | Pendente | Cenário 60/61 entre rotas/tokens/contas; testes funcionais conservados, sem suíte de proteção Load. |
+| 5.4 | Pendente | Negativas de perfil/Redis; retirada sem alteração no limiter. |
+| 5.5 | Pendente | Inventário/limites/recovery de campanha; reduzido a concorrência/duração/prazo fixos. |
+| 5.6 | Pendente | Escada 1/5/10/20 entre 20 contas; substituída por uma rodada manual e um token. |
+| 5.7 | Pendente | Recuperação automática e requests em voo; fora do escopo. |
+| 6.1 | Pendente | Matriz de páginas/filtros/sorts/cursores; reduzida a GET padrão. |
+| 6.2 | Pendente | Métricas total/agrupado/meses/registro; reduzida a GET padrão. |
+| 6.3 | Pendente | Insights mensal/onboarding/registro; reduzida a GET padrão. |
+| 6.4 | Pendente | Sugestões frequente/raro/vazio; reduzida à query fixa teste. |
+| 6.5 | Pendente | Estados de cache/registro controlados; fora do escopo, estado existente declarado. |
+| 6.6 | Pendente | Taxonomia e checks de negócio por resposta sob carga; só preflight e fração HTTP nesta versão. |
+| 7.1 | Pendente | p99/status/concorrência observada; relatório reduzido às métricas públicas suportadas. |
+| 7.2 | Pendente | Agregação entre geradores; retirada, um processo por rodada. |
+| 7.3 | Pendente | Relatório de campanha/inventário/retention; resumo simples no terminal. |
+| 7.4 | Pendente | Sanitização completa do motor/processos/temporários; reduzida a campos permitidos e redação do token na saída. |
+| 7.5 | Pendente | Cleanup de filhos/DB/Redis/PAT e restauração; sem lifecycle de recursos no runner. |
+| 7.6 | Pendente | Cleanup em falha/SIGKILL/recovery por manifesto; retirada. |
+| 8.1 | Pendente | Sondas dos quatro endpoints; executadas no novo escopo apenas para provar o tooling. |
+| 8.2 | Pendente | Três repetições por combinação/variabilidade; fora do escopo. |
+| 8.3 | Pendente | Diagnóstico integrado Lerd queries/CPU; fora do escopo. |
+| 8.4 | Pendente | Referências e aprovação de thresholds por ambiente; limiar opcional do operador. |
+| 8.5 | Pendente | Regressão equivalente/referência preservada; não oferecida nesta versão. |
+| 8.6 | Pendente | Investigação/correções de capacidade; fora do escopo. |
+| 9.1 | Pendente | Documentação operacional extensa; substituída por instruções simples e arquitetura Load. |
+| 9.2 | Pendente | VPS/gerador externo/referências próprias; fora da versão local. |
+| 9.3 | Pendente | Gates completos de suporte compartilhado; não declarados pelo gate focado atual. |
+| 9.4 | Pendente | Pint/OpenSpec/diff; aplicados à revisão atual. |
+| 9.5 | Pendente | Matriz dos antigos 46 cenários; substituída pela matriz dos requisitos atuais, sem alegar equivalência. |
+| 9.6 | Pendente | Thresholds/fechamento/arquivo; não se arquiva nem publica por inferência. |
 
-## 4. Massa e credenciais próprias
-
-- [ ] 4.1 Definir versão/seed da massa, referência civil/timezone, distribuição de meses/categorias/descrições/empates e controles vazios por endpoint; registrar critérios independentemente dos algoritmos de produção. [LOAD-05/07]
-- [ ] 4.2 Preparar 20 contas ativas/verificadas, PATs reais e 200 mil despesas (10 mil por owner), UUIDv7/inserts em lotes e sem seed pessoal, login em loop, e-mail ou IA reais. [LOAD-05–06]
-- [ ] 4.3 Provar contagens, UUIDs, ownership, datas/distribuição, reuso consistente e recusa de dataset divergente ou referência civil alterada, sem duplicação. [LOAD-05]
-- [ ] 4.4 Provar token só no gerador rejeitado, PATs válidos no servidor, troca A/B com dados distinguíveis e nenhuma resposta alheia, preservando middleware/autorização. [LOAD-06]
-- [ ] 4.5 Registrar e proteger credenciais/temporários por campanha; provar que exports e diagnósticos não carregam tokens, senhas, Authorization/Cookie ou fatos financeiros. [LOAD-12]
-
-## 5. Perfis de cota e carga
-
-- [ ] 5.1 Implementar configuração mínima da cota positiva ampliada exclusivamente no alvo dedicado não produtivo, com default 60 preservado, sem bypass por header nem remoção de middleware. [LOAD-09; cota]
-- [ ] 5.2 Implementar namespaces Redis próprios por perfil e confirmação/restauração da configuração efetiva no servidor, sem contadores herdados ou fallback local. [LOAD-09; contadores]
-- [ ] 5.3 Provar cota original compartilhada entre rotas/dois tokens, 60 admitidas/61ª 429 JSON:API com Retry-After, outra conta independente e renovação da janela. [LOAD-09; cota]
-- [ ] 5.4 Provar recusa de ampliação fora do alvo autorizado, manutenção de 60 em desenvolvimento/produção sem perfil e falha explícita se Redis indisponível. [cota; contadores]
-- [ ] 5.5 Definir antes da campanha timeouts por request/processo, aquecimento, prazo/checagem de recuperação, limite total e critérios de interrupção conforme recursos inventariados. [LOAD-08; D7]
-- [ ] 5.6 Implementar níveis 1/5/10/20 por 30s, distribuição entre contas e cenário da mesma conta; comprovar concorrência total sem multiplicação por subprocessos. [LOAD-08]
-- [ ] 5.7 Provar encerramento limitado do gerador, recuperação entre níveis e parada por alvo não recuperado, timeout ou limites de recursos, sem escalada ilimitada. [LOAD-08/13]
-
-## 6. Catálogo de cenários e correção
-
-- [ ] 6.1 Implementar listagem: páginas 20/100, filtros combinados, sort monetário/alfabético/empates, navegação next/prev com cursores reais e preflight JSON:API. [LOAD-06–07]
-- [ ] 6.2 Implementar métricas: total/agrupado por categoria, mês elegível/vazio, primeira resolução/hit Core e checks coerentes de população. [LOAD-06–07]
-- [ ] 6.3 Implementar insights: vigente/encerrado, resultado elegível/onboarding válido, primeira resolução/hit e assertions que não exijam uma variante editorial incidental. [LOAD-06–07]
-- [ ] 6.4 Implementar sugestões: termo frequente/raro/sem resultado e variações válidas, com agrupamento/limites e primeira resolução/hit identificados. [LOAD-06–07]
-- [ ] 6.5 Provar preparação de cache frio/quente e registro ausente/hit fora da medição; distinguir primeira coorte e regime já aquecido sem limpeza artificial por request. [LOAD-07]
-- [ ] 6.6 Provar que 401/403/422, 429, 5xx, timeout e corpo inválido são classificados e não viram sucesso de negócio por responderem rápido. [LOAD-06/09–10]
-
-## 7. Métricas, relatórios e cleanup
-
-- [ ] 7.1 Implementar coleta p50/p95/p99, total/RPS, duração efetiva, concorrência observada/configurada, statuses e falhas com unidades/populações explícitas, conforme capacidades provadas do motor. [LOAD-10]
-- [ ] 7.2 Provar agregação de amostras/estatísticas e estratos sem média de percentis; métrica indisponível/amostragem insuficiente/gerador saturado deve resultar inconclusivo ou Blocked. [LOAD-02/10]
-- [ ] 7.3 Implementar relatório legível e JSON sanitizado com revisão, dataset/perfil, alvo/gerador, recursos/versões/config selecionada, cota/cache/registro e instrumentação; definir retenção. [LOAD-12]
-- [ ] 7.4 Provar sanitização por campos permitidos e segredos sentinela, incluindo erro do motor, processos, URLs e temporários; não exportar dumps brutos nem descrições/valores financeiros. [LOAD-12]
-- [ ] 7.5 Implementar finally/teardown: encerrar filhos próprios, revalidar ownership, revogar tokens, limpar banco/associações/Redis/temporários registrados e restaurar perfil/instrumentação. [LOAD-13]
-- [ ] 7.6 Provar cleanup após erro/assertion/interrupção tratável, preservação de recurso preexistente/relatórios e recusa de remover recursos de outro run; documentar recovery por manifesto para SIGKILL. [LOAD-04/13]
-
-## 8. Calibração e regressão
-
-- [ ] 8.1 Validar sondas mínimas dos quatro endpoints no alvo dedicado antes de aumentar carga; registrar correção e prontidão, sem chamar sonda de benchmark completo. [LOAD-01/06]
-- [ ] 8.2 Executar campanha local conservadora com ao menos três repetições por combinação candidata à referência, separando estados e níveis; registrar amostras/variabilidade e todas as falhas/interrupções. [LOAD-07–11]
-- [ ] 8.3 Executar diagnóstico separado dos gargalos observados por tráfego real/Lerd, correlacionando queries/CPU e distinguindo rodadas instrumentadas das referências sem instrumentação pesada. [LOAD-12]
-- [ ] 8.4 Apresentar referência e proposta de thresholds por ambiente/endpoint/cenário/perfil/estado; obter aprovação explícita antes de limites bloqueantes. [LOAD-11]
-- [ ] 8.5 Ativar limites aprovados e provar reprovação controlada, referência preservada, recusa de comparação não equivalente e estado de calibração sem aprovação fictícia. [LOAD-10–11]
-- [ ] 8.6 Registrar achados de capacidade e restrições do gerador/ambiente; correções de produto descobertas fora deste escopo devem obter decisão antes de alterar código ou esperado. [LOAD-08/10–12]
-
-## 9. Documentação e fechamento
-
-- [ ] 9.1 Atualizar ARCHITECTURE/README existentes para Load opt-in, comando, massa, ownership, relatórios, perfis e execução local/remota; manter Unit/Feature e launcher funcional íntegros. [ORG-01; ISO-08; D2]
-- [ ] 9.2 Documentar parâmetros/topologia de homologação VPS, gerador externo preferido, referências distintas e recusa de produção; deixar execução/provisionamento remoto condicionado a autorização própria, sem alegar medição VPS nesta entrega local. [LOAD-03/11–12]
-- [ ] 9.3 Executar verificações do harness isoladas e suítes funcionais afetadas/arquitetura pelo launcher; se suporte compartilhado mudar, executar os gates completos padrão, duas seeds e paralelo com pelo menos dois processos sem excluir integrações existentes. [ISO-08; arquitetura de testes]
-- [ ] 9.4 Executar Pint após mudanças PHP e reverificar arquivos alterados; validar OpenSpec estritamente e conferir diff/ausência de segredos/resíduos próprios. [LOAD-12–13]
-- [ ] 9.5 Preencher matriz por requisito/cenário com evidência, comando/versões/ambiente/resultados e estados Proven/Partially proven/Unproven/Blocked, incluindo limitações do plugin e operações remotas não exercitadas. [LOAD-01–13; deltas]
-- [ ] 9.6 Resolver bloqueios técnicos e aprovação de thresholds antes de declarar implementação concluída/arquivável; archive, commit, push e operações VPS exigem autorização própria. [LOAD-02/03/11]
-
-## Dependências e estado da elaboração
+## Dependências e estado da elaboração — histórico anterior
 
 - Fase 1 precede recursos/medições de produto. Limitações do motor bloqueiam cenários dependentes; não autorizam substituição silenciosa da ferramenta.
 - Fases 2–5 estabelecem separação, ownership e correção antes da carga. Fases 6–7 produzem cenários e evidências verificáveis. Fase 8 depende de todas as checagens aplicáveis e da autorização de execução.
@@ -186,3 +176,68 @@ Fonte imutável: plugin v5.0.2/commit acima; arquivos locais `src/Factory.php`, 
 - Pint também passou com todos os caminhos PHP novos explícitos (incluindo arquivos ainda não rastreados). `lerd composer test:load -- --scenario=expense-pages --objective=capacity` retornou **exit 2 / Blocked**, conforme esperado, sem setup/carga. OpenSpec strict passou sem issues após as atualizações e `git diff --check` passou.
 - Este suporte é novo e exclusivo de Load; nenhum suporte compartilhado por cenários funcionais existentes foi alterado. Gate funcional completo com duas seeds/paralelo/duas invocações não foi executado nesta etapa e não é declarado aprovado.
 - STEP 02 conclui entrada/organização e contratos iniciais; **6/51 tarefas concluídas**. STEP 01 continua Blocked em 1.3–1.6, sem decisão implícita de adaptação. Nenhum k6/download/sonda HTTP/servidor-alvo/massa/conta/PAT foi iniciado pelo comando Load.
+
+## Continuação — autorização STEP 03 e decisão 1.6
+
+- Pedido explícito: “Segue para o step 3”. Diante da dependência do gate do motor, o usuário selecionou **“Autorizar adaptação (Recommended)”** para Pest + k6 nativo ARM64, fora de vendor, com sondas sintéticas antes do alvo do STEP 03. Tamanho de download (~26,1 MiB) informado antes da decisão.
+- **1.6 — Proven:** decisão obtida; não equivale a motor executado/comprovado. D1 e LOAD-02 atualizados antes da adaptação. Evidências históricas de bloqueio acima são preservadas.
+
+### 1.4–1.5 — Proven no alvo sintético da adaptação
+
+- Entrada exclusivamente opt-in: `lerd php tests/probe-load-engine.php --run`. Pest 5 executa `tests/Load/Core/Presentation/Http/EngineProbeLoadTest.php` pelo XML Load; sem opt-in a sonda recusa antes do download. Nenhuma alteração de vendor/API interna Stressless.
+- Download oficial k6 v2.1.0 Linux ARM64: tamanho **27.357.876 bytes** e SHA-256 `191fa8d89512a4e5083f3fabcb4c3828af9f5b9eee016de8443f6473c029ffb5` verificados antes de extrair/executar; `k6 version` exige v2.1.0 e linux/arm64. PHP 8.5.11/Linux aarch64, Node v24.18.1, OpenSSL 3.5.8. CA e certificado sintéticos efêmeros com SAN localhost; resolução/HTTPS no loopback do runtime, não ainda DNS/CA do futuro domínio Lerd de produto.
+- Rodada positiva: **1 teste / 16 assertions**, passou; **2 VUs**, pico **2** no servidor, **0** ativos ao final; **24 requests** emitidos (23 chegam ao servidor, 1 falha de transporte controlada), **16 amostras válidas**, checks **1,0**. Credenciais A/B distintas, 8 páginas por owner e 4 avanços de cursor por owner, URLs obtidas da resposta.
+- Classes separadas com counters/thresholds: exatamente uma ocorrência de **401, 403, 422, 429 (Retry-After), 500, invalid-body, timeout, transport**. Percentis do único Trend global `valid_duration`, sem média de percentis: exemplo p50 **42,834 ms**, p95 **46,594 ms**, p99 **46,615 ms**. Dezesseis amostras apenas comprovam a API/exportação; não calibram desempenho.
+- Check sentinela deliberadamente errado: **exit 99**. CA ausente: **exit 99**, `unknown authority` confirmado sem publicar stderr bruto. Processo deliberadamente lento: timeout de 0,5s, encerrado em ~0,626s, filho parado. Entradas, credenciais/certificados/chaves, binário/archive e raw summaries são privados e removidos em finally; só evidência allowlisted é impressa.
+- Descoberta inicial importante: misturar falhas/timeout com novas iterações produziu pico servidor **3** para 2 VUs; duas execuções reprovaram essa assertion. O spike foi corrigido separando a prova concorrente de páginas válidas das falhas sequenciais em teardown. Não se aumentou o esperado para ocultar requests remanescentes; provas de recuperação/requests em voo do produto seguem exigidas em 5.7.
+- Limites do spike: alvo sintético, um processo de k6, duas identidades fictícias. Não comprova Sanctum/ownership do Trocado, agregação entre múltiplos geradores, perfil de produto ou capacidade VPS. Um processo por rodada é a topologia aprovada; se múltiplos geradores forem introduzidos, nova prova de agregação será necessária.
+
+## Revisão atual — somente carga com Pest/Stressless
+
+### Decisão e retirada de complexidade
+
+- O usuário questionou JS/adaptação e confirmou “Também to achando. Só queria teste de carga”. A primeira versão passa a ser teste simples PHP/Stressless, um token/URL por execução, métricas públicas e preflight, com preparação manual do alvo.
+- Foram retirados `NativeK6Runtime`, `LoadEngineProbe`, os dois scripts JS/Node, a entrada/cenário do spike e o lifecycle de manifesto/fases/estados/gate permanente. Nenhum desses arquivos é dependência da versão atual. Os temporários do spike foram removidos pelo seu finally; o k6 oficial instalado em vendor é gerenciado pelo plugin, não um patch.
+- `LoadManifestTest` e sua fixture foram retirados com o comportamento fora de escopo, sem alegar equivalência de cobertura. `LoadCommandTest` mantém seleção/descoberta/recusa/segredos, substituindo a assertion do gate permanente pela recusa de configuração ausente. `LoadConfigurationTest` preserva arquivo privado externo/URL sem segredo/JSON inválido e passa a provar limites simples, opt-in, confirmação e redação do token. Validações antigas de dataset/perfis/manifestos não são exigidas nem declaradas cobertas nesta revisão.
+
+### Prova do plugin oficial e preparação manual
+
+- Primeira execução `lerd` vendor_run `pest stress <alvo>/up --duration=1 --concurrency=1`: download do k6 AMD64, seguido de falta de memória PHP 128 MiB durante PharData. Não foi falha comprovada de arquitetura.
+- `lerd php -d memory_limit=512M vendor/bin/pest stress <alvo>/up --duration=1 --concurrency=1`: **14 requests, 13,52 RPS, 100% de sucesso**, HTTPS e concorrência 1. Portanto o executável AMD64 selecionado pelo plugin **funciona neste Lerd ARM64**; a análise inicial de bloqueio por arquitetura era insuficiente. Não se afirma execução nativa ou equivalência com gerador externo.
+- Alvo criado durante o STEP 03 autorizado: clone Git independente `storage/app/private/trocado-load-8c7621d49e0af3b61d45a027`, revisão `628c93294ba8d82dc7d87e5cb7599768db543454`, vendor próprio instalado pelo lockfile sem scripts. `.lerd.local.yaml`/Containerfile próprios; Lerd site link criou domínio `trocado-load-8c7621d49e0af3b61d45a027.test`, custom-FPM e certificado, sem iniciar workers do alvo. O watcher global estava parado, mas esse provisionamento síncrono ficou servindo.
+- Antes da criação, PostgreSQL listado só continha `lerd`, `trocado` e `trocado_testing`. Lerd criou **`trocado_load_8c7621d49e0af3b61d45a027`** e **`trocado_load_8c7621d49e0af3b61d45a027_testing`**; o segundo é auxiliar do Lerd e não foi usado. Serviços PostgreSQL/Redis/VM são preexistentes e compartilhados fisicamente; site/FPM/checkout/config/bancos são novos. Não remover serviços preexistentes como parte desse trabalho.
+- `lerd env setup` configurou .env e aplicou overrides do alvo. Prova CLI read-only antes das migrations: **APP_ENV=load-testing**, `current_database()` exatamente o banco dedicado, Redis prefix `trocado-load:8c7621d49e0af3b61d45a027:` e cache prefix exclusivo. O sufixo legado `capacity` do prefixo não amplia cota. Mail array, fila sync, sessão array e Nightwatch desligado no alvo; configurações/cache compilado/logs/storage são do clone.
+- Plano de setup conferido; `lerd setup --step "php artisan storage:link" --step "php artisan migrate" --skip-open` executado no clone. Migrations incrementais, sem fresh, seed pessoal, frontend build ou workers.
+- Preparação manual mínima depois de conferir novamente ambiente/banco exatos e ausência de contas: **uma conta ativa/verificada, zero despesas**, senha aleatória não exposta e PAT real com validade de uma hora. Configuração 0600 em **`/tmp/trocado-load-8c7621d49e0af3b61d45a027.json` no runtime PHP compartilhado do Lerd**; nenhum token foi impresso. Conta/config/PAT foram preservados para uso manual; expiração e dados não são gerenciados pelo runner. Isto não é dataset de benchmark nem execução do seeder demonstrativo.
+
+### Sondas reais do comando simplificado
+
+Comando: `lerd composer test:load -- --scenario=<id> --config=/tmp/trocado-load-8c7621d49e0af3b61d45a027.json`, sempre **1 concorrente / 1 segundo**, sequencialmente, contra a conta sem despesas. Cada linha tem **1 teste / 2 assertions**. O preflight autenticado está fora das métricas.
+
+| Cenário | Requests | Fração de falhas | p50 ms | p95 ms | Resultado |
+| --- | ---: | ---: | ---: | ---: | --- |
+| expense-pages | 16 | 0 | 60,39 | 71,70 | Passou |
+| expense-metrics | 15 | 0 | 63,46 | 67,25 | Passou |
+| monthly-insights | 14 | 0 | 67,13 | 82,72 | Passou |
+| expense-suggestions, sequência na mesma janela | 15 | 0,2667 | 64,10 | 74,43 | **Reprovou**, como deveria |
+| expense-suggestions, após renovação da janela | 15 | 0 | 65,78 | 76,55 | Passou |
+
+- A falha foi preservada: probe do mesmo alvo/conta confirmou **HTTP 429 com Retry-After=21**. Não houve flush de contadores, remoção de middleware, ampliação de cota ou relaxamento da assertion. O relatório agregado não identifica cada status individualmente; a sonda separada confirma o limiter como condição observada, não taxonomia por request.
+- Credencial inválida enviada ao preflight: recusada com o diagnóstico esperado antes de chamar Stressless. Sonda adicional com p95 sentinela **0,001 ms**: **exit 1**, assertion de latência reprovou; a cópia privada da configuração foi removida explicitamente após a sonda. Esse limite artificial não foi mantido na configuração normal nem adotado como SLA.
+- Esses números comprovam ferramenta/integração HTTP, não consultas sobre massa representativa, capacidade de usuários, cache frio ou regressão calibrada. Nenhuma prova de VPS/produção foi executada.
+
+### Matriz e verificações atuais
+
+| Requisito | Evidência atual |
+| --- | --- |
+| LOAD-01 | Quatro arquivos PHP chamam `LoadHttpScenario`, que usa apenas `stress()` público; as quatro leituras tiveram sondas reais. |
+| LOAD-02 / ORG-01 / ISO-08 | LoadCommandTest verifica seleção, descoberta dedicada e ausência de Load na descoberta funcional; XML/launcher/CI funcional preservados. |
+| LOAD-03 | LoadConfigurationTest verifica arquivo externo/privado, confirmação, URL local sem segredos, JSON/campos inválidos; alvo conferido e preparado manualmente. |
+| LOAD-04 | Preflight real 200 nas quatro leituras e Bearer inválido recusado antes do motor; validação de corpo em cada resposta sob carga não é oferecida. |
+| LOAD-05 | Limites positivos/max na configuração, um processo selecionado, deadline finito; reprovação real sob cota e 429/Retry-After observado sem mudar produto. |
+| LOAD-06 | Resumos das sondas, falha HTTP e p95 sentinela reprovando; p50/p95/RPS/fração extraídos do plugin sem p99/status inventados. Token redigido no encaminhamento de stdout/stderr e testado com sentinela. |
+
+- Após Pint, arquivos isolados pelo launcher: **LoadCommandTest 12 testes/56 assertions** e **LoadConfigurationTest 16 testes/36 assertions**, passaram. Pasta Load Support: **28 testes/92 assertions** na rodada anterior; arquivos depois do formatter mantiveram esses totais.
+- Arquitetura: **30 testes/504 assertions**, passou. Launcher funcional TestExecutionCommandTest: **11 testes/26 assertions**, passou, incluindo Unit sem DB e descoberta Feature. O suporte alterado é exclusivo de Load; não foi modificado suporte compartilhado de cenários funcionais existentes. Não se declara gate completo/duas seeds/paralelo funcional executado nesta revisão.
+- `pint --dirty --format agent` passou, incluindo execução explícita do novo LoadHttpScenario. Composer validate strict, OpenSpec strict e `git diff --check` passaram. `test:load -- --list-tests` descobriu somente as quatro entradas sem HTTP. Não houve commit, push ou archive.
+- Há uma edição do usuário em `bruno/Expense/01 - CRUD/02 - GetAll Expense.bru` surgida durante o trabalho; não foi alterada para esta entrega.

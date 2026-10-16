@@ -126,11 +126,15 @@ tests/
     <Contexto>/Infrastructure/{Adapters,Providers,Repositories,...}/
     <Contexto>/Presentation/Http/
     <Contexto>/Journeys/
+  Load/
+    <Contexto>/Presentation/Http/
   Support/
     <Contexto>/{Fixtures,Fakes,Stubs,Spies,Helpers,...}/
 ```
 
 Crie somente pastas necessárias. Unit de Domain/Application executa sem bootstrap Laravel, PostgreSQL ou Redis; um adapter pode ter teste Unit quando suas dependências são explicitamente simuladas e não há bootstrap. Feature inicia a aplicação: mapping, queries, constraints, providers, notifications e workers pertencem a Infrastructure; requests, responses, validação e middleware pertencem a Presentation. `Journeys` identifica integrações deliberadas com objetivo e contexto proprietário explícitos. Cada arquivo tem uma responsabilidade principal e executa individualmente.
+
+Carga HTTP externa fica exclusivamente em `tests/Load/<Contexto>/Presentation/Http/`, com `phpunit.load.xml` e `composer test:load` opt-in. O suporte PHP específico pertence a `tests/Support/Core/Load`; o runner funcional e o CI descobrem somente Unit/Feature. A primeira versão usa a API pública Pest/Stressless para uma URL/token por execução, preflight HTTP e métricas do plugin; não há JS próprio, lifecycle de banco, manifesto/lease de campanha ou alteração de limiter. O operador prepara/confirma o alvo local dedicado e fornece configuração privada externa. Essa categoria não é Unit nem Feature com bootstrap Laravel. Veja README e a change `add-endpoint-load-testing` para operação e limites.
 
 ### Suporte e preparação explícita
 

@@ -41,6 +41,7 @@ A suíte usa **Pest 5 sobre PHPUnit 13**, organizada por contexto, camada e resp
 | `tests/Feature/<Contexto>/Infrastructure/` | Persistência PostgreSQL, adapters, providers, notifications e workers. |
 | `tests/Feature/<Contexto>/Presentation/Http/` | Requests, responses, middleware e contratos HTTP/JSON:API. |
 | `tests/Feature/<Contexto>/Journeys/` | Fluxos deliberadamente integrados com objetivo explícito. |
+| `tests/Load/<Contexto>/Presentation/Http/` | Carga HTTP manual com Pest/Stressless, fora da descoberta funcional/CI. |
 | `tests/Support/<Contexto>/` | Fixtures, builders, fakes, stubs, spies e helpers reutilizáveis. |
 
 Esse é o padrão para testes novos e arquivos reorganizados; caminhos anteriores ainda existentes podem ser selecionados diretamente. Cada arquivo deve ter uma responsabilidade principal e funcionar sozinho, sem depender da descoberta de outro teste. As convenções completas ficam em [ARCHITECTURE.md](ARCHITECTURE.md#arquitetura-dos-testes).
@@ -92,6 +93,44 @@ Na reclassificação das leituras analíticas como Repositories, os cenários do
 | --- | --- |
 | `tests/Feature/Insights/ExpenseAnalysisAdapterTest.php` | `tests/Feature/Insights/Infrastructure/Repositories/Persistence/EloquentExpenseAnalysisRepositoryTest.php` |
 | `tests/Feature/Metrics/Infrastructure/Adapters/ExpenseMetricsAdapterTest.php` | `tests/Feature/Metrics/Infrastructure/Repositories/Persistence/EloquentExpenseMetricsRepositoryTest.php` |
+
+### Teste de carga simples
+
+Os cenários de carga usam **PHP e a API pública do Pest/Stressless**. O k6 é instalado/executado pelo próprio plugin; não há JS de carga ou servidor Node próprio a manter. `composer test` e o CI não iniciam Load.
+
+Prepare um **alvo local dedicado**, com banco/prefixos Redis próprios e uma conta ativa/verificada com PAT válido e dados adequados ao que pretende medir. Confira a configuração pelo Lerd; o runner não cria/migra/limpa bancos, contas ou tokens. Os seeders demonstrativos pessoais não são a preparação desse alvo. Produção/VPS estão fora desta versão.
+
+Crie um JSON privado **fora do checkout**, com permissões `0600`, e confirme explicitamente o alvo dedicado:
+
+```json
+{
+  "version": 1,
+  "dedicatedTarget": true,
+  "targetUrl": "https://seu-alvo-dedicado.test",
+  "token": "<PAT real da conta no alvo>",
+  "concurrency": 1,
+  "durationSeconds": 5
+}
+```
+
+O arquivo não deve ser commitado. `dedicatedTarget` é confirmação do operador, não detecção automática do servidor. A URL é uma base local sem endpoint, query ou credenciais; o token não vai nos argumentos. Concorrência aceita 1–20, duração 1–30s. Um `p95ThresholdMs` positivo é opcional; sem ele não há aprovação de SLA/regressão de latência.
+
+```sh
+lerd composer test:load -- --list
+lerd composer test:load -- --list-tests
+lerd composer test:load -- --scenario=expense-pages --config=/caminho/privado/load.json
+lerd composer test:load -- --scenario=expense-metrics --config=/caminho/privado/load.json
+lerd composer test:load -- --scenario=monthly-insights --config=/caminho/privado/load.json
+lerd composer test:load -- --scenario=expense-suggestions --config=/caminho/privado/load.json
+```
+
+Também é possível selecionar `--endpoint=/api/expenses` ou fornecer o caminho por `TROCADO_LOAD_CONFIG` quando esse ambiente for propagado ao processo PHP. `--config` evita depender dessa propagação no Lerd. Listagens não leem configuração nem enviam HTTP.
+
+Cada teste faz um preflight HTTP 200/JSON:API e depois mede uma URL fixa com um token. Sugestões usa `query=teste`. O resumo imprime total/RPS, concorrência/duração configuradas, fração de falhas e p50/p95 em ms; qualquer falha HTTP reprova. Durante a carga não há rotação de tokens, checks de corpo/ownership por resposta ou navegação de cursor; esses contratos continuam na suíte funcional.
+
+**A cota de 60 requests/minuto por conta permanece ativa.** Execuções consecutivas compartilham essa cota; 429 faz o teste reprovar e não representa capacidade da operação de negócio. Cache/registro podem aquecer durante a rodada. Comece com duração/concorrência pequenas e aguarde a janela quando limitado; não amplie cota ou remova middleware implicitamente.
+
+O comando inicia Pest com memória de 512 MiB para comportar a extração inicial do k6 e tem prazo finito de duração + 75s. No Lerd ARM64 desta máquina, o k6 AMD64 escolhido pelo plugin executou com sucesso; isso não é uma referência de gerador nativo nem de VPS. As sondas iniciais registradas na spec usaram uma conta sem despesas: provam a execução do tooling, não desempenho de consultas com massa representativa.
 
 ### Dados demonstrativos
 

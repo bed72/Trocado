@@ -7,7 +7,7 @@ use Symfony\Component\Process\Process;
 
 it('lists only the explicitly selected catalog without loading configuration or provisioning', function (): void {
     $root = dirname(__DIR__, 5);
-    $process = new Process([PHP_BINARY, $root.'/tests/load.php', '--list', '--endpoint=/api/insights', '--objective=regression'], $root, [
+    $process = new Process([PHP_BINARY, $root.'/tests/load.php', '--list', '--endpoint=/api/insights'], $root, [
         'DB_CONNECTION' => 'sqlite', 'DB_HOST' => 'invalid.invalid', 'DB_DATABASE' => 'operational',
         'TROCADO_LOAD_CONFIG' => '/missing/private-config.json',
     ]);
@@ -16,7 +16,7 @@ it('lists only the explicitly selected catalog without loading configuration or 
 
     expect($process->getExitCode())->toBe(0);
     $catalog = json_decode(trim($process->getOutput()), true, flags: JSON_THROW_ON_ERROR);
-    expect($catalog)->toMatchArray(['scenario' => 'monthly-insights', 'endpoint' => '/api/insights', 'state' => 'Blocked'])
+    expect($catalog)->toMatchArray(['scenario' => 'monthly-insights', 'endpoint' => '/api/insights'])
         ->and($process->getErrorOutput())->toBe('');
 });
 
@@ -56,19 +56,17 @@ it('rejects ambiguous or unsafe options without echoing their values', function 
     'ambiguous discovery' => [['--list', '--list-tests']],
 ]);
 
-it('reports Blocked with a nonzero status before configuration, manifest or engine setup', function (): void {
+it('refuses a missing private configuration before starting HTTP or the engine', function (): void {
     $root = dirname(__DIR__, 5);
-    $process = new Process([PHP_BINARY, $root.'/tests/load.php', '--scenario=expense-pages', '--objective=capacity'], $root, [
+    $process = new Process([PHP_BINARY, $root.'/tests/load.php', '--scenario=expense-pages'], $root, [
         'TROCADO_LOAD_CONFIG' => '/missing/private-config.json', 'DB_HOST' => 'invalid.invalid',
     ]);
     $process->setTimeout(15);
     $process->run();
 
     expect($process->getExitCode())->toBe(2)
-        ->and(json_decode(trim($process->getOutput()), true, flags: JSON_THROW_ON_ERROR))->toBe([
-            'scenario' => 'expense-pages', 'objective' => 'capacity', 'phase' => 'preflight', 'state' => 'Blocked',
-        ])
-        ->and($process->getErrorOutput())->toContain('decision 1.6');
+        ->and($process->getOutput())->toBe('')
+        ->and($process->getErrorOutput())->toContain('Load refused');
 
     Assert::assertStringNotContainsString('/missing/private-config.json', $process->getErrorOutput());
 });

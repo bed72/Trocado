@@ -7,8 +7,8 @@ namespace Tests\Support\Core\Load;
 use InvalidArgumentException;
 use JsonException;
 use RuntimeException;
+use SensitiveParameter;
 
-use function count;
 use function in_array;
 use function is_array;
 use function is_int;
@@ -16,39 +16,46 @@ use function is_string;
 
 final readonly class LoadConfiguration
 {
-    /** @param array{concurrency: list<int>, durationSeconds: int, warmupSeconds: int, requestTimeoutSeconds: int, processTimeoutSeconds: int, recoveryTimeoutSeconds: int, campaignTimeoutSeconds: int, maxRequests: int} $limits */
-    public function __construct(public string $targetUrl, public string $datasetId, public string $profile, public array $limits)
-    {
+    public function __construct(
+        public string $targetUrl,
+        public int $concurrency,
+        public int $durationSeconds,
+        public ?float $p95ThresholdMs,
+        #[SensitiveParameter] private string $token,
+    ) {
         $url = parse_url($targetUrl);
         if (! is_array($url) || filter_var($targetUrl, FILTER_VALIDATE_URL) === false
             || ! in_array($url['scheme'] ?? null, ['http', 'https'], true)
             || array_intersect(['user', 'pass', 'query', 'fragment'], array_keys($url)) !== []
             || ! in_array($url['path'] ?? '', ['', '/'], true)
-            || preg_match('/\A[a-z0-9][a-z0-9-]{0,63}\z/', $datasetId) !== 1
-            || ! in_array($profile, ['capacity', 'protection'], true)) {
-            throw new InvalidArgumentException('Invalid Load URL, dataset or profile; values are not echoed.');
+            || ! (($url['host'] ?? '') === 'localhost' || ($url['host'] ?? '') === '127.0.0.1' || str_ends_with($url['host'] ?? '', '.test'))
+            || preg_match('/\A[A-Za-z0-9|_.-]{1,4096}\z/', $token) !== 1) {
+            throw new InvalidArgumentException('Load requires a local base URL without credentials and a Bearer token in private configuration.');
+        }
+        if ($concurrency < 1 || $concurrency > 20 || $durationSeconds < 1 || $durationSeconds > 30
+            || ($p95ThresholdMs !== null && (! is_finite($p95ThresholdMs) || $p95ThresholdMs <= 0))) {
+            throw new InvalidArgumentException('Load requires concurrency 1-20, duration 1-30 seconds and an optional positive p95 threshold.');
+        }
+    }
+
+    /** @return array{Authorization: string, Accept: string} */
+    public function headers(): array
+    {
+        return ['Authorization' => "Bearer {$this->token}", 'Accept' => 'application/vnd.api+json'];
+    }
+
+    public function redact(string $output): string
+    {
+        return str_replace([$this->token, rawurlencode($this->token)], '[redacted]', $output);
+    }
+
+    public static function fromEnvironment(): self
+    {
+        if (getenv('TROCADO_LOAD_RUN') !== '1' || ! is_string($path = getenv('TROCADO_LOAD_CONFIG')) || $path === '') {
+            throw new RuntimeException('Run composer test:load with TROCADO_LOAD_CONFIG pointing to a private JSON configuration.');
         }
 
-        $integerKeys = ['durationSeconds', 'warmupSeconds', 'requestTimeoutSeconds', 'processTimeoutSeconds', 'recoveryTimeoutSeconds', 'campaignTimeoutSeconds', 'maxRequests'];
-        if (count($limits) !== 8 || array_diff(array_keys($limits), ['concurrency', ...$integerKeys]) !== []) {
-            throw new InvalidArgumentException('Load limits require exactly the documented fields.');
-        }
-        foreach ($integerKeys as $key) {
-            if (! is_int($limits[$key] ?? null) || $limits[$key] < 1) {
-                throw new InvalidArgumentException('Load limits must be explicit positive integers.');
-            }
-        }
-
-        $concurrency = $limits['concurrency'] ?? null;
-        if (! is_array($concurrency) || ! array_is_list($concurrency) || $concurrency === []
-            || ! array_all($concurrency, static fn (mixed $value): bool => is_int($value) && in_array($value, [1, 5, 10, 20], true))
-            || count(array_unique($concurrency)) !== count($concurrency)
-            || $limits['durationSeconds'] !== 30
-            || $limits['requestTimeoutSeconds'] >= $limits['processTimeoutSeconds']
-            || $limits['processTimeoutSeconds'] <= $limits['durationSeconds']
-            || $limits['campaignTimeoutSeconds'] <= $limits['processTimeoutSeconds']) {
-            throw new InvalidArgumentException('Invalid initial Load concurrency, duration or timeout bounds.');
-        }
+        return self::fromFile($path, dirname(__DIR__, 4));
     }
 
     public static function fromFile(string $path, string $root): self
@@ -82,13 +89,14 @@ final readonly class LoadConfiguration
             fclose($handle);
         }
 
-        if (! is_array($data) || count($data) !== 5 || ($data['version'] ?? null) !== 1
-            || array_diff(array_keys($data), ['version', 'targetUrl', 'datasetId', 'profile', 'limits']) !== []
-            || ! is_string($data['targetUrl'] ?? null) || ! is_string($data['datasetId'] ?? null)
-            || ! is_string($data['profile'] ?? null) || ! is_array($data['limits'] ?? null)) {
-            throw new RuntimeException('Invalid Load configuration fields; credentials are not accepted here.');
+        if (! is_array($data) || ($data['version'] ?? null) !== 1 || ($data['dedicatedTarget'] ?? null) !== true
+            || array_diff(array_keys($data), ['version', 'targetUrl', 'token', 'dedicatedTarget', 'concurrency', 'durationSeconds', 'p95ThresholdMs']) !== []
+            || ! is_string($data['targetUrl'] ?? null) || ! is_string($data['token'] ?? null)
+            || ! is_int($data['concurrency'] ?? 1) || ! is_int($data['durationSeconds'] ?? 5)
+            || (isset($data['p95ThresholdMs']) && ! is_int($data['p95ThresholdMs']) && ! is_float($data['p95ThresholdMs']))) {
+            throw new RuntimeException('Invalid Load configuration or missing explicit dedicatedTarget confirmation.');
         }
 
-        return new self($data['targetUrl'], $data['datasetId'], $data['profile'], $data['limits']);
+        return new self($data['targetUrl'], $data['token'], $data['concurrency'] ?? 1, $data['durationSeconds'] ?? 5, $data['p95ThresholdMs'] ?? null);
     }
 }

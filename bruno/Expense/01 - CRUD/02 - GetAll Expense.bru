@@ -5,23 +5,23 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/api/expenses?filter[from]=2026-09-01&filter[to]=2026-09-30&filter[category]=travel,investments,food,travel&filter[amount_min]=1000&filter[amount_max]=30000&sort=-occurred_on,amount&page[size]=6
+  url: {{baseUrl}}/api/expenses?page[size]=50
   body: none
   auth: bearer
 }
 
 params:query {
-  page[size]: 6
+  page[size]: 50
   ~page[cursor]: {{expenseCursor}}
   ~filter[year]: 2026
   ~filter[month]: 9
   ~filter[day]: 15
-  filter[from]: 2026-09-01
-  filter[to]: 2026-09-30
-  filter[category]: travel,investments,food,travel
-  filter[amount_min]: 1000
-  filter[amount_max]: 30000
-  sort: -occurred_on,amount
+  ~filter[from]: 2026-09-01
+  ~filter[to]: 2026-09-30
+  ~filter[category]: travel,investments,food,travel
+  ~filter[amount_min]: 1000
+  ~filter[amount_max]: 30000
+  ~sort: -occurred_on,amount
 }
 
 headers {
@@ -30,6 +30,10 @@ headers {
 
 auth:bearer {
   token: {{accessToken}}
+}
+
+vars:pre-request {
+  expenseCursor: https://trocado.test/api/expenses?page%5Bsize%5D=50&page%5Bcursor%5D=eyJ2IjoyLCJxdWVyeSI6IjA3MDkwOTY4NWMyODQ2MzUzMmQ5Y2QyYjQ4ZTU2OGI3MzBjMDU5NmZjZDRmODAzNjI4NGIxYzk5MjQ3YzQwMWMiLCJwb3NpdGlvbiI6eyJvY2N1cnJlZF9vbiI6IjIwMjYtMTAtMTYiLCJpZCI6IjAxYTE0NTI0LWJhZWUtNzI5My1iYWQ2LTZlYWUzNmViYmI1OSJ9LCJmb3J3YXJkIjp0cnVlfQ
 }
 
 docs {
