@@ -294,52 +294,54 @@ O sistema MUST selecionar variantes deterministicamente por conta, chave editori
 - **AND** não depende de cache diário ou histórico de visualização
 
 ### Requirement: Contrato JSON:API por grupo e tipo
+O sistema MUST responder 200/data coleção insights com ID string UUIDv7 canônico estável e attributes group/type/title/description/period. MUST manter observation(category_concentration/expense_concentration), comparison(registered_amount_increase/decrease/category_lead_streak) e onboarding(first_expense/insufficient_history/category_review). Variantes MUST manter grupo/tipo. IDs MUST distinguir owner/tipo/assunto/estado/períodos por associação mínima de Core, sem texto/números/versão editorial e sem expor fingerprint/hash alternativo. MUST NOT persistir cartão/resultado ou criar endpoint individual pelo UUID.
 
-O sistema MUST responder `200` com coleção `data` de recursos JSON:API do tipo externo `insights`, ID derivado em string e atributos `group`, `type`, `title`, `description` e `period`. MUST permitir `observation` com `category_concentration` ou `expense_concentration`; `comparison` com `registered_amount_increase`, `registered_amount_decrease` ou `category_lead_streak`; e `onboarding` com `first_expense`, `insufficient_history` ou `category_review`. Variantes MUST preservar grupo e tipo. IDs MUST distinguir conta, tipo, assunto e períodos analisados, sem depender do texto ou dos números interpolados. MUST NOT exigir registro persistido ou endpoint individual para o ID.
-
-`period` MUST ser `null` em onboarding e conter `from`, `to` e `comparison` nos demais tipos, com datas civis canônicas `Y-m-d`; `comparison` MUST ser o intervalo anterior em comparações do total e `null` nos demais casos. Liderança recorrente MUST expor o intervalo abrangendo os três períodos considerados. MUST NOT retornar cor, ícone, código redundante, julgamento de tom, IDs de despesas ou perfil da conta; Flutter usa `attributes.type` para aparência e MUST poder renderizar o texto com fallback visual neutro para tipos futuros desconhecidos. A coleção MUST NOT exigir paginação.
+period MUST ser null em onboarding e from/to/comparison nos financeiros com Y-m-d; comparação anterior MUST ser explícita no total e null nos demais; liderança MUST cobrir três períodos. MUST NOT devolver cor/ícone/código redundante/julgamento/ID de despesa/perfil. Flutter MUST usar attributes.type e admitir fallback visual neutro para tipo desconhecido. Sem paginação; associação estável não altera texto/data recalculados.
 
 #### Scenario: Cartão financeiro para Flutter
-- **WHEN** a API seleciona uma concentração por categoria
-- **THEN** o recurso contém `group` igual a `observation`, `attributes.type` igual a `category_concentration`, texto pronto e período correspondente
-- **AND** o Flutter não precisa calcular percentual ou conhecer os limiares da regra
+- **WHEN** seleciona concentração de categoria
+- **THEN** recurso UUIDv7 tem observation/category_concentration/texto/período corretos
+- **AND** cliente não calcula razão/limiares
 
 #### Scenario: Comparação com intervalos explícitos
-- **WHEN** a referência é 12 de outubro de 2026 e uma comparação do total é selecionada
-- **THEN** `period.from` é `2026-10-01`, `period.to` é `2026-10-11` e `period.comparison` contém `2026-09-01` a `2026-09-11`
+- **WHEN** referência é 12/10/2026 e o total corrente é comparado
+- **THEN** from 2026-10-01/to 2026-10-11 e comparison 2026-09-01 a 2026-09-11, com UUIDv7
 
 #### Scenario: Cartão de onboarding
-- **WHEN** a API retorna `first_expense`
-- **THEN** o recurso possui `group` igual a `onboarding`, `period` igual a `null` e título e descrição completos
+- **WHEN** retorna first_expense
+- **THEN** UUIDv7, group onboarding, period null e par completo
 
 #### Scenario: Tipo futuro desconhecido pelo cliente
-- **WHEN** o consumidor recebe um tipo que ainda não possui mapeamento visual
-- **THEN** pode apresentar título e descrição com ícone e cor neutros
-- **AND** não precisa interpretar regras ou rejeitar a coleção inteira
+- **WHEN** cliente recebe tipo sem mapeamento visual
+- **THEN** renderiza título/descrição com aparência neutra
+- **AND** não rejeita coleção nem deriva regras do UUID
 
 ### Requirement: Geração sob demanda sem estado analítico persistido
-
-O sistema MUST gerar Insights sob demanda sem persistir cartões, histórico de visualização ou projeções analíticas, sem cache específico e sem processamento assíncrono. MUST considerar alterações confirmadas nas despesas na próxima leitura, inclusive categoria aplicada em segundo plano, sem reutilizar o cache de páginas de Expense. MUST consultar agregações em lote e intervalos limitados, sem carregar todo o histórico ou fazer uma query por categoria/regra. Uma eventual falha de leitura MUST produzir falha HTTP explícita segundo o tratamento JSON:API existente, não uma lista de estatísticas inventadas ou onboarding que esconda a falha.
+Insights MUST recalcular fatos/candidatos/textos sob demanda, sem persistir cartão, visualização, resultado financeiro, cache próprio ou processamento assíncrono. MUST permitir somente associação técnica de identidade em Core, resolvida em lote após validar/selecionar/deduplicar/compor todos os recursos. Agregação financeira MUST permanecer limitada/em lote/snapshot consistente, sem query por regra/categoria ou reutilização de páginas Expense. Falha de leitura/precisão/composição/registro MUST produzir falha HTTP JSON:API explícita, sem lista parcial, onboarding fabricado, hash ou UUID transitório de fallback.
 
 #### Scenario: Categoria alterada após o cadastro
-- **WHEN** uma classificação confirmada altera a categoria de uma despesa
-- **THEN** a próxima consulta de Insights considera a categoria atual e recalcula candidatos
-- **AND** não depende de invalidação do cache de páginas de Expense
+- **WHEN** classificação confirmada muda categoria
+- **THEN** a próxima consulta recalcula candidatos
+- **AND** não depende de cache Expense; identidade é reutilizada só se a chave lógica continuar igual
 
 #### Scenario: Exclusão ou edição confirmada
-- **WHEN** a conta exclui uma despesa ou altera seu valor ou data
-- **THEN** a próxima leitura reflete os registros confirmados correspondentes
-- **AND** não recupera um cartão persistido ou uma lista congelada no começo do dia
+- **WHEN** despesa é removida ou valor/data muda
+- **THEN** a resposta usa fatos confirmados atuais
+- **AND** não recupera cartão/conteúdo congelado do registro
 
 #### Scenario: Histórico extenso
-- **WHEN** a conta possui despesas em vários anos
-- **THEN** a análise financeira consulta a janela limitada de períodos e usa existência histórica somente para distinguir onboarding
-- **AND** não percorre a paginação do CRUD nem instancia cada despesa do histórico
+- **WHEN** há vários anos de despesas
+- **THEN** fonte financeira usa janela limitada/existência histórica
+- **AND** não pagina CRUD ou instancia cada despesa
 
 #### Scenario: Falha de acesso ao banco
-- **WHEN** a leitura analítica falha por indisponibilidade do banco
-- **THEN** a API responde com erro JSON:API pelo tratamento existente
-- **AND** não afirma que a conta está sem despesas nem retorna percentuais fabricados
+- **WHEN** leitura financeira falha
+- **THEN** responde erro JSON:API
+- **AND** não aloca ID nem inventa ausência/percentual
+
+#### Scenario: Falha de associação
+- **WHEN** textos finais válidos não conseguem UUIDs confirmados no Core
+- **THEN** resposta falha sem data parcial/ID aleatório
 
 ### Requirement: Rótulos e análise das categorias expandidas
 Insights MUST reconhecer os identificadores `financing`, `investments`, `taxes`, `insurance`, `personal_care`, `pets`, `gifts_and_donations` e `travel` com os rótulos editoriais integrais “Financiamentos”, “Investimentos”, “Impostos e taxas”, “Seguros”, “Cuidados pessoais”, “Pets”, “Presentes e doações” e “Viagens”, respectivamente. MUST preservar os rótulos existentes e tratar as novas categorias como elegíveis nas mesmas regras de concentração, liderança e comparação de valores registrados. Investimentos e financiamentos MUST participar dos totais e denominadores conforme o período e proprietário selecionados; MUST NOT inferir consumo, prejuízo, retorno, patrimônio ou capacidade financeira com base nesses registros. Os textos interpolados MUST respeitar os limites editoriais vigentes com alternativas completas, sem truncar rótulo, fatos ou período e sem falhar por ausência de rótulo para categoria válida. As novas categorias MUST NOT alterar os grupos, tipos e envelope JSON:API existentes.
@@ -436,21 +438,28 @@ O sistema MUST identificar a despesa de `expense_concentration` por sua descriç
 - **AND** descrição/data exibidas pertencem ao registro escolhido, sem mistura de registros
 
 ### Requirement: Identidade e períodos preservados na navegação mensal
-
-O sistema MUST preservar resource type `insights`, atributos, grupos/tipos, `period` e limite de seis itens do contrato existente. IDs MUST continuar distinguindo conta, tipo, assunto e períodos efetivos, incluindo o mês interno analisado em onboarding com `period: null`. MUST NOT depender da presença textual dos filtros, números, descrição, variante, dia de visita ou versão do catálogo por si sós. Comparações históricas MUST expor ambos os meses completos; liderança MUST expor os três períodos corretos. MUST NOT adicionar estado de navegação, IDs de despesas, paginação ou novos grupos/tipos para atender ao slider.
+O sistema MUST manter type/attributes/grupos/tipos/period/limite seis. UUIDv7 associado MUST distinguir owner/tipo/assunto/estado/from/to internos e comparação, incluindo onboarding com period null. MUST NOT depender de forma da URL/números/descrição/variante/dia de visita/versão editorial por si só; UUID MUST permanecer após reinício, sessão e desaparecimento temporário da mesma identidade. Comparações/liderança MUST manter períodos atuais. MUST NOT adicionar estado de navegação, ID de despesa, novos tipos/paginação. Fonte/eligibilidade continua autorizando seleção, nunca existência da associação.
 
 #### Scenario: Período histórico público
-- **WHEN** setembro de 2026 selecionado produz comparação do total com agosto
-- **THEN** `period.from` é 2026-09-01, `period.to` é 2026-09-30 e `period.comparison` vai de 2026-08-01 a 2026-08-31
+- **WHEN** setembro selecionado compara agosto
+- **THEN** from/to setembro 01–30 e comparison agosto 01–31, com UUIDv7 estável
 
 #### Scenario: IDs não são texto ou dia de visita
-- **WHEN** a mesma observação histórica mantém conta, tipo, assunto e períodos mas seus números ou variante mudam
-- **THEN** seu ID permanece o mesmo
-- **AND** selecionar outro mês distingue a identidade da observação
+- **WHEN** owner/tipo/assunto/estado/períodos históricos não mudam, mas números/variante mudam
+- **THEN** UUIDv7 permanece, inclusive em outro processo
+- **AND** outro mês distingue identidade
 
 #### Scenario: Onboarding de meses distintos
-- **WHEN** agosto e setembro produzem `insufficient_history` com `period: null`
-- **THEN** o texto contextualiza cada mês e seus IDs são distintos por período interno
+- **WHEN** agosto/setembro retornam insufficient_history period null
+- **THEN** cada período interno resolve UUIDv7 distinto e texto contextual
+
+#### Scenario: Vigente avança limite efetivo
+- **WHEN** a mesma conta consulta o vigente em outro dia e o período interno cresce
+- **THEN** a chave/UUID da observação pode mudar pelo período, não apenas pela rotação
+
+#### Scenario: Default e zeros normalizados
+- **WHEN** default/seleção explícita/zeros à esquerda representam os mesmos períodos
+- **THEN** mesmos UUIDv7 e fatos no mesmo dia
 
 ### Requirement: Coleção Bruno acompanha o contrato mensal de Insights
 

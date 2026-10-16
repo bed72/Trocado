@@ -160,43 +160,49 @@ Para cada chave normalizada, o sistema MUST sugerir `amount` somente se houver p
 - **THEN** a sugestão devolve exatamente o inteiro persistido, sem arredondamento ou perda de precisão
 
 ### Requirement: Resposta JSON:API de sugestões transitórias
-
-O endpoint MUST responder `200` com coleção JSON:API `data` de recursos do tipo `expense-suggestions`, ID opaco em string estável para a mesma conta e chave normalizada e atributo `description`. IDs MUST distinguir contas e chaves e MUST NOT representar uma despesa persistida específica. O atributo `amount` MUST estar presente somente quando a regra de consistência permitir; MUST NOT ser substituído por zero, média ou `null`. A resposta MUST NOT incluir categoria, data sugerida, proprietário, frequência ou timestamps internos. Ausência de histórico ou de correspondências MUST produzir coleção vazia. A rota estática MUST ser resolvida sem ser tratada como um identificador de despesa.
+O endpoint MUST responder 200/data coleção expense-suggestions com ID UUIDv7 canônico estável para o mesmo owner UUID e chave normalizada, obtido pelo registro de Core. MUST distinguir owners/chaves sem identificar despesa específica ou publicar o fingerprint. description MUST manter apresentação atual; amount MUST existir somente pela consistência financeira, sem zero/média/null substituto. MUST NOT adicionar categoria/data/owner/frequência/timestamps. Histórico/busca sem matches MUST produzir data vazio e não resolver associações. Rota estática MUST continuar não sendo ID de despesa.
 
 #### Scenario: Sugestão com valor
-- **WHEN** uma descrição corresponde ao termo e satisfaz a consistência mensal
-- **THEN** seu recurso contém `type: expense-suggestions`, ID string, `description` e `amount` em centavos
+- **WHEN** descrição satisfaz busca e consistência
+- **THEN** retorna type expense-suggestions, UUIDv7, description e amount exato
 
 #### Scenario: Sugestão somente de descrição
-- **WHEN** a descrição corresponde mas não satisfaz a regra de valor
-- **THEN** seu recurso contém `description` e omite `amount`
-- **AND** nenhum recurso apresenta categoria ou data para preencher o formulário
+- **WHEN** descrição corresponde sem base de valor
+- **THEN** retorna UUIDv7/description e omite amount
+- **AND** não preenche categoria/data
 
 #### Scenario: Histórico ou busca vazios
-- **WHEN** a conta não tem histórico ou nenhuma descrição corresponde ao termo
-- **THEN** a API responde `200` com `data: []`
+- **WHEN** não há histórico/matches
+- **THEN** 200/data vazio, sem alocação de identidade
 
 #### Scenario: Identidade estável de sugestão
-- **WHEN** a mesma conta pesquisa a mesma chave com termos diferentes ou cadastra nova variante de caixa dessa descrição
-- **THEN** o ID da sugestão permanece o mesmo enquanto sua chave normalizada não muda
-- **AND** outra conta com a mesma descrição recebe ID distinto
+- **WHEN** owner pesquisa a mesma chave com termos diferentes ou cria variante de caixa
+- **THEN** conserva UUIDv7 enquanto a chave normalizada não muda, inclusive após reinício
+- **AND** outro owner recebe outro UUID
 
 ### Requirement: Leitura limitada sem efeitos no ciclo de vida de despesas
-
-A funcionalidade MUST permanecer no contexto Expense, com contrato próprio de Repository na Application e implementação de persistência na Infrastructure, sem expor ORM às camadas internas ou depender concretamente de outro bounded context. O UseCase MUST obter o proprietário por `UserPort` e passar proprietário, termo e período explicitamente à leitura. A busca e os fatos monetários dos candidatos MUST ser obtidos por um único statement de despesas e snapshot PostgreSQL por execução válida, sem N+1, consulta por sugestão ou transferência de lançamentos individuais para a aplicação. O endpoint MUST NOT escrever despesas, criar recursos persistentes, chamar IA, despachar jobs ou acrescentar cache. Os contratos de CRUD, a criação com categoria padrão `other` e o processamento assíncrono de categorização MUST permanecer preservados.
+A funcionalidade MUST permanecer em Expense, com Repository financeiro próprio e uma leitura PostgreSQL de busca/fatos monetários por execução válida, sem ORM nas camadas internas, N+1, query por sugestão ou transferência de lançamentos individuais. UserPort MUST fornecer owner UUIDv7 explícito. MUST permitir somente associação auxiliar de identidade em Core por lote final, além dos efeitos atuais dos middlewares; não persistir sugestões/descriptions/valores, escrever despesas, chamar IA, despachar jobs ou cachear resultados. CRUD/default other/classificação MUST permanecer preservados. O registro MUST ser invocado depois de validar projeção e preparar a resposta, sem alias para o hash antigo.
 
 #### Scenario: Quantidade constante de statements de despesas
-- **WHEN** a consulta válida retorna zero, uma ou cinco sugestões
-- **THEN** a leitura das sugestões executa um único statement de despesas
-- **AND** consultas dos middlewares de autenticação ou sessão não são confundidas com N+1 de despesas
+- **WHEN** consulta válida retorna zero, uma ou cinco sugestões
+- **THEN** usa um statement financeiro
+- **AND** auth e resolução batch de IDs Core são classificados separadamente, não por sugestão
 
 #### Scenario: Consulta sem efeitos em despesas ou categorização
-- **WHEN** uma conta consulta sugestões com ou sem padrão monetário consistente
-- **THEN** despesas e tentativas de classificação permanecem inalteradas
-- **AND** nenhuma chamada ao classificador, despacho de job ou escrita de cache de sugestões acontece
-- **AND** somente os efeitos já existentes dos middlewares, como extensão de sessão, continuam permitidos
+- **WHEN** há/ausenta padrão de valor
+- **THEN** despesas/tentativas ficam intactas
+- **AND** não chama classificador, queue ou cache de sugestões
+- **AND** somente middleware e associação mínima de identidade final são efeitos permitidos
 
 #### Scenario: Cadastro após seleção da sugestão
-- **WHEN** o consumidor usa a sugestão para preparar uma criação e escolhe um valor diferente
-- **THEN** o endpoint de criação continua validando e persistindo os dados enviados conforme seu contrato atual
-- **AND** a sugestão não cria obrigação de valor, periodicidade ou categoria
+- **WHEN** cliente usa sugestão e escolhe outro valor no create
+- **THEN** Expense valida/persiste o documento atual com novo ID de despesa UUIDv7
+- **AND** o UUID de sugestão não é ID de despesa nem obriga valor/categoria/periodicidade
+
+#### Scenario: Associação existente sem candidatos
+- **WHEN** há associação antiga mas a descrição não corresponde mais à busca/histórico
+- **THEN** ela não faz uma sugestão reaparecer na resposta
+
+#### Scenario: Falha do registro
+- **WHEN** fonte financeira é válida mas Core não resolve os IDs
+- **THEN** há falha JSON:API explícita sem dados parciais ou UUID transitório

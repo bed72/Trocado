@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Identity\Infrastructure\Repositories\Persistence\Models;
 
 use App\Identity\Domain\Enums\UserStatusEnum;
-use App\Identity\Infrastructure\Notifications\VerifyEmailNotification;
 use DateTimeImmutable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -33,12 +32,6 @@ use Laravel\Sanctum\HasApiTokens;
 final class UserModel extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens, HasUuids, Notifiable;
-
-    // TODO Rever esse envio
-    public function sendEmailVerificationNotification(): void
-    {
-        $this->notify(new VerifyEmailNotification(expectedEmail: $this->getEmailForVerification()));
-    }
 
     protected function casts(): array
     {

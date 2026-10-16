@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Core\Application\Ports\TransactionPort;
 use App\Identity\Application\Data\Input\SignUpInput;
+use App\Identity\Application\Ports\EmailVerificationPort;
 use App\Identity\Application\UseCases\SignUpUseCase;
 use App\Identity\Application\UseCases\VerifyEmailUseCase;
 use App\Identity\Domain\Entities\UserEntity;
@@ -13,6 +14,7 @@ use App\Identity\Domain\ValueObjects\NameValueObject;
 use App\Identity\Infrastructure\Notifications\VerifyEmailNotification;
 use App\Identity\Infrastructure\Repositories\Persistence\EloquentUserRepository;
 use App\Identity\Infrastructure\Repositories\Persistence\Models\UserModel;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\DeadlockException;
@@ -152,7 +154,7 @@ it('skips a queued notification if the email changed before the worker sends it'
         'email' => 'old@example.com',
         'password' => 'Correct1',
     ]);
-    $user->sendEmailVerificationNotification();
+    app(EmailVerificationPort::class)->requestForEmail(email: $user->email);
     Queue::assertPushed(SendQueuedNotifications::class, 1);
 
     UserModel::query()->whereKey($user->getKey())->update(['email' => 'new@example.com']);
@@ -173,7 +175,7 @@ it('delivers a signed expiring verification link when the queued job is processe
         'email' => 'maria@example.com',
         'password' => 'Correct1',
     ]);
-    $user->sendEmailVerificationNotification();
+    app(EmailVerificationPort::class)->requestForEmail(email: $user->email);
 
     $job = unserialize(serialize(Queue::pushed(SendQueuedNotifications::class)->sole()));
     $job->handle(app(ChannelManager::class));
@@ -243,7 +245,7 @@ it('delivers verification through the real Redis worker and retries a temporary 
         'email' => 'old@example.com',
         'password' => 'Correct1',
     ]);
-    $changed->sendEmailVerificationNotification();
+    app(EmailVerificationPort::class)->requestForEmail(email: $changed->email);
     $changed->update(['email' => 'new@example.com']);
 
     Artisan::call('queue:work', ['connection' => 'redis', '--queue' => $queue, '--once' => true]);
@@ -257,7 +259,7 @@ it('delivers verification through the real Redis worker and retries a temporary 
         'email' => 'removed@example.com',
         'password' => 'Correct1',
     ]);
-    $deleted->sendEmailVerificationNotification();
+    app(EmailVerificationPort::class)->requestForEmail(email: $deleted->email);
     $deleted->delete();
 
     Artisan::call('queue:work', ['connection' => 'redis', '--queue' => $queue, '--once' => true]);
@@ -378,6 +380,7 @@ it('does not emit verification events for a rolled back confirmation', function 
 
 it('resends uniformly only for an existing unverified account', function (): void {
     Notification::fake();
+    Event::fake([Registered::class]);
     $user = UserModel::query()->create([
         'name' => 'Maria',
         'email' => 'maria@example.com',
@@ -396,6 +399,8 @@ it('resends uniformly only for an existing unverified account', function (): voi
         ->assertAccepted();
 
     Notification::assertSentTo($user, VerifyEmailNotification::class, 1);
+    Notification::assertCount(1);
+    Event::assertNotDispatched(Registered::class);
 });
 
 it('does not disclose whether a resend address is registered or already verified', function (): void {
@@ -465,7 +470,7 @@ it('rejects email edits without changing verification or tokens', function (stri
             'id' => (string) $userId,
             'attributes' => ['email' => $email],
         ],
-    ])->assertUnprocessable()->assertJsonPath('errors.0.source.pointer', '/data/attributes');
+    ])->assertUnprocessable()->assertJsonPath('errors.0.source.pointer', '/data/attributes/email');
 
     $user->refresh();
 

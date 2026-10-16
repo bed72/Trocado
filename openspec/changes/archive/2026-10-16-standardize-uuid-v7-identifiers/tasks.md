@@ -161,8 +161,9 @@
 - [x] 13.3 Atualizar assertions Bruno Insights/Metrics/sugestões para versão/variante/canonicalização e estabilidade nas equivalências, sem exigir mínimo de candidatos ou texto diário literal. [RID-02/05]
 - [x] 13.4 Validar parser/serializer/URL/params/vars e ida/volta dos arquivos Bruno por ferramenta instalada; não alegar abertura GUI se só houve parsing. [D10]
 - [x] 13.5 Executar coleção/casos relevantes em contas/DB controlados, com fonte elegível e vazia, PAT real v7 e protocolo de limpeza privada; registrar referência/status/limitações sem segredos. [UID-06; RID-06]
-- [ ] 13.6 Documentar contrato de installation_id UUIDv7/IDs string para o cliente e obter confirmação de generator/versão no repositório cliente antes de declarar homologação; não editar outro repo por conveniência. [UID-07; D8]
+- [x] 13.6 Documentar contrato de installation_id UUIDv7/IDs string para o cliente e delimitar a homologação do gerador como responsabilidade externa do cliente, sem alegar integração homologada. [UID-07; D8]
   - Contrato documentado; inspeção read-only do caminho `cordato` informado pelo usuário encontrou `uuid 4.6.0` transitivo, sem geração/persistência de installation_id nem cadastro push em lib/. **Blocked** para homologação, conforme evidência STEP 13 abaixo; pacote transitivo não prova uso de UUIDv7.
+  - Decisão explícita de 2026-10-16: “Fecha a do flutter isso eu resolvo nao e problema do back”. A confirmação do gerador/persistência no cliente deixa de ser condição de fechamento desta entrega backend; permanece externa, sob responsabilidade do usuário e rastreada na change Firebase. A tarefa original exigia confirmação externa; esta revisão de escopo não a declara realizada.
 - [x] 13.7 Atualizar coordenação/documentação da change Firebase com referências a esta política e evidência da fatia de cadastro, preservando tasks de envio/plataforma ainda pendentes. [D8]
 
 ## 14. Gates e fechamento
@@ -174,8 +175,9 @@
 - [x] 14.5 Executar gate completo com seed registrada 2 diferente, registrando resultados/skips/limitações. [D10]
 - [x] 14.6 Executar paralelo nativo `--parallel --processes=2` ou mais pelo launcher e conferir isolamento/cleanup, sem recriação/drop flags fora do lifecycle. [D10]
 - [x] 14.7 Preencher a matriz abaixo e revisar ausência de claims falsas: UUIDv7 real, identidade estável persistida, rollback/race/worker reais, ausência de fatos armazenados e escopo do reset. [Todos]
-- [ ] 14.8 Resolver bloqueadores/limitações externas, reconfirmar spec/design/código e autorização específica de archive/publicação; preservar evidência histórica, sem arquivar a change de Firebase ainda incompleta. [Todos]
+- [x] 14.8 Resolver bloqueadores/limitações externas, reconfirmar spec/design/código e autorização específica de archive/publicação; preservar evidência histórica, sem arquivar a change de Firebase ainda incompleta. [Todos]
   - Gates backend aprovados e contrato reconferido; fechamento depende de 13.6 e autorização específica de archive. Pedido corrente autoriza implementar STEPs 13/14, sem commit/push/deploy ou alteração de outro repo.
+  - Estado superveniente de 2026-10-16: usuário autorizou archive/commit/push e assumiu Flutter fora do fechamento backend. Os quatro gates finais passaram conforme seção de fechamento abaixo; nenhuma homologação externa foi declarada. O impedimento histórico acima foi superado por decisão explícita de escopo e verificação backend.
 
 ## Dependências e execução por fatia
 
@@ -195,7 +197,7 @@
 | UID-04 PK/FK/morph/cascades | 3.1–3.8, 4.9, 6.7 | PostgreSQL tipos/constraints/owner/session/encerramento | Proven nos STEPs 03–12, incluindo cascade de associações Core na jornada HTTP, schema e cleanup por lifecycle no banco local |
 | UID-05 contratos/guard/sem cast | 2.4–2.5, 4.5/4.7, 5.1, 8.1/9.1/10.1, 11.6 | Unit argumentos + arquitetura + autenticação real | Proven nos STEPs 04–12; auditoria/gates e fluxos locais autenticados, sem coerção de owner |
 | UID-06 rotas inválidas/owner/auth | 4.8–4.9, 5.3/5.8, 6.4/6.7 | HTTP 200/201/204 e 401/403/404/422/429 | User/Auth/Expense/Notifications e proteções comprovados nos STEPs 04–11; smoke autenticado local com IDs v7 e PAT revogado concluído no STEP 12 |
-| UID-07 instalação/registro/cliente | 1.5, 6.*, 13.2/13.6/13.7 | Unit/HTTP/PG + homologação externa registrada | Backend Proven nos STEPs 06/11/12/13; Bruno CLI com instalação gerada v7 e caixa equivalente passou. Cliente Blocked: uuid 4.6.0 transitivo sem gerador/persistência de instalação em cordato. Envio pertence à change Firebase |
+| UID-07 instalação/registro/cliente | 1.5, 6.*, 13.2/13.6/13.7 | Unit/HTTP/PG; homologação externa separada por decisão de 2026-10-16 | Backend Proven nos STEPs 06/11/12/13; Bruno CLI com instalação gerada v7 e caixa equivalente passou. Cliente não homologado, sob responsabilidade do usuário fora do fechamento backend; integração/envio permanecem na change Firebase |
 | UID-08 reset autorizado/negativo/lifecycle | 3.7, 12.* | Alvo/estado/cleanup/checks registrados + guard/testes de recusa | Proven nos STEPs 03/12: alvo/dados descartáveis reconfirmados, reset/recuperação limitada de collation, workers restaurados e cleanup exclusivo; nenhuma destruição de banco de teste/produção |
 | RID-01 mínimo/sem fatos/fronteiras | 3.5, 7.1/7.3/7.7, 13.1 | Schema allowlist + Unit + arquitetura | Proven nos STEPs 07–14; README/ARCHITECTURE documentam exceção mínima, sem fatos/textos/DDL de request/ORM cross-context; arquitetura final 30/504 |
 | RID-02 chave/namespace/owner/ambiguidade | 1.4, 7.2/7.8, 8.2/9.2/10.2 | Unit independente por consumidor + PG isolado | Proven em Core/Insights/Metrics/sugestões nos STEPs 07–11; componentes tipados e equivalências específicos por consumidor |
@@ -212,8 +214,8 @@
 | Metrics singular/zero/default/grouped/UUID | 9.* | Unit + HTTP/PG + Core batch | Proven no STEP 09 e revalidado no STEP 11; STEP 12 mede zero/alterado com mesmo UUID, statements e requests concorrentes em modo agrupado |
 | Sugestões norm/valor/owner/UUID | 10.* | Unit + HTTP/PG normalização SQL/associação | Proven no STEP 10 e revalidado no STEP 11; STEP 12 mede vazio/uma/cinco, miss/misto/hit, statements constantes e planos no banco local |
 | Observabilidade próprio UUID/native SDK | 11.3–11.4 | JSON/header/context + ausência de segredos/fingerprint | Proven no STEP 11: trace_id v7 único por request, header/context/log iguais, sem request_id duplicado, CLI/worker limpos e job_id nativo; allowlists e ausência de segredos/fingerprint comprovadas |
-| Cliente/Bruno/documentação | 13.* | Parser/CLI controlados + homologação externa distinta | Documentação e Bruno Proven: 28 round trips e 50 requests/178 checks aprovados em fonte vazia/elegível. Cliente Blocked conforme 13.6; sem alegação GUI/FCM/Flutter homologado |
-| Gates transversais | 14.* | Padrão + duas seeds + paralelo + Redis/concorrência | STEP 14: padrão, seeds 2026101513/2026101514 e paralelo 2 processos aprovados, cada um 2.305/41.116, sem exclusões/skips/incomplete/risky; includes Redis/concorrência/invocações simultâneas. 14.8 permanece bloqueado pelo cliente/fechamento |
+| Cliente/Bruno/documentação | 13.* | Parser/CLI controlados; homologação externa distinta | Documentação e Bruno Proven: 28 round trips e 50 requests/178 checks aprovados em fonte vazia/elegível. Em 2026-10-16 o usuário assumiu Flutter fora desta entrega; sem alegação GUI/FCM/Flutter homologado |
+| Gates transversais | 14.* | Padrão + duas seeds + paralelo + Redis/concorrência | Fechamento de 2026-10-16: padrão, seeds 2026101601/2026101602 e paralelo 2 processos aprovados, cada um 2.305/41.118, sem exclusões/skips/incomplete/risky; inclui Redis/concorrência/invocações simultâneas |
 
 ## Estado histórico da elaboração da proposta
 
@@ -1356,3 +1358,25 @@ A matriz principal acima foi atualizada sem substituir evidências históricas. 
 ### 14.8 Estado de fechamento
 
 **106/108 tarefas comprovadas. 13.6 e 14.8 permanecem pendentes.** Documentação/backend/Bruno/gates passaram, mas o gerador e persistência de instalação UUIDv7 não existem no cliente inspecionado. Não há base para marcar homologação ou a change inteira como arquivável. Após resolver a integração externa, reconferir a evidência e obter autorização específica de archive. Não foram feitos archive, sincronização de main specs, commit, push ou deploy. A change Firebase continua incompleta e não deve ser arquivada junto desta.
+
+## Fechamento backend autorizado — 2026-10-16
+
+O estado de 2026-10-15 acima é histórico. O usuário pediu archive/commit/push e decidiu: “Fecha a do flutter isso eu resolvo nao e problema do back”. O fechamento desta change passa a cobrir somente o backend, contrato e evidências já entregues; a confirmação externa do gerador/versão/persistência da instalação fica sob responsabilidade do usuário, rastreada em `add-firebase-push-notifications` (tarefas 1.2/8.4). A task 13.6 foi reformulada explicitamente, sem converter ausência de homologação em prova. Firebase continua aberta.
+
+A revisão adicional de Identity removeu a criação/disparo de `VerifyEmailNotification` do `UserModel`. Cadastro/reenvio usam `EmailVerificationAdapter` e `Dispatcher` injetado, com `ShouldQueue`, proteções do worker e solicitação após commit preservados. O cadastro não depende mais de `Registered` como gatilho. Nenhum Adapter/listener adicional ou nova Port foi mantido.
+
+As duas falhas preexistentes em `EmailVerificationTest` foram reproduzidas com a implementação anterior. `UpdateUserRequest` já proíbe explicitamente `data.attributes.email`; o contrato exige rejeição 422 antes do UseCase e preservação dos dados, sem fixar pointer do objeto inteiro. A assertion foi corrigida para `/data/attributes/email`, identificando o campo proibido; rejeição e verificações de e-mail/verificação/tokens permanecem. Não houve alteração de produção para acomodar o teste, remoção de cenário ou skips.
+
+Após Pint, todos os comandos usaram o launcher Lerd com `--compact --fail-on-skipped --fail-on-incomplete --fail-on-risky`:
+
+| Seleção/opções após `lerd composer test --` | Testes/assertions | Duração ms | Resultado |
+| --- | ---: | ---: | --- |
+| tests/Feature/Identity/EmailVerificationTest.php | 20/147 | 1.243 | aprovado |
+| gate padrão completo | 2.305/41.118 | 53.486 | aprovado |
+| --order-by=random --random-order-seed=2026101601 | 2.305/41.118 | 55.733 | aprovado |
+| --order-by=random --random-order-seed=2026101602 | 2.305/41.118 | 52.978 | aprovado |
+| --parallel --processes=2 | 2.305/41.118 | 33.946 | aprovado |
+
+Os gates completos incluem PostgreSQL, Redis, corridas sincronizadas, worker real e duas invocações simultâneas. Uma tentativa MCP da primeira seed excedeu o timeout e não foi contabilizada; a execução CLI acima foi repetida com sucesso. Pint `--dirty --format agent` passou. As evidências históricas não foram substituídas. Nenhum reset, mudança de serviço ou edição de outro repositório foi necessário. As 108 tarefas do escopo backend revisado estão concluídas; Flutter/FCM continuam não homologados.
+
+Archive executado com `openspec archive standardize-uuid-v7-identifiers --yes --json`: diretório `2026-10-16-standardize-uuid-v7-identifiers`, main specs sincronizadas com 16 requisitos adicionados e 26 modificados, sem remoções. Purpose das duas capacidades novas preenchido e links de evidência atualizados. `openspec validate --all --strict --json --no-interactive`: 19 itens aprovados (18 specs e a change Firebase), sem erros; somente sugestões informativas de extensão de texto. Firebase permanece como única change ativa.

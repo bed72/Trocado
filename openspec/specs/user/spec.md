@@ -4,26 +4,26 @@
 Definir o recurso User dentro do bounded context Identity, suas invariantes, persistência e operações JSON:API preservadas, mantendo Domain e Application independentes dos detalhes de framework e autenticação.
 ## Requirements
 ### Requirement: Identidade local independente de autenticação
-O sistema MUST representar `UserEntity` dentro de Identity Domain como uma identidade local composta por identificador persistido, `NameValueObject` e e-mail, sem armazenar password, hash ou token. Domain e Application de Identity MUST permanecer independentes de Laravel, Eloquent, HTTP, Sanctum e Infrastructure. `UserModel`, por pertencer a Identity Infrastructure, MUST implementar os contratos de autenticação Laravel e Sanctum necessários nas bordas.
+O sistema MUST representar UserEntity em Identity Domain com ID presente UUIDv7 canônico, NameValueObject e e-mail, sem password/hash/token. Ausência de ID antes da persistência MUST ser explícita, nunca inteiro/zero. Domain/Application MUST permanecer independentes de Laravel, Eloquent, HTTP, Sanctum e Infrastructure, podendo consumir o conceito puro UUID de Core. UserModel MUST integrar os contratos Laravel/Sanctum somente na borda. A transição local autorizada MUST NOT inventar credenciais, converter IDs antigos ou criar compatibilidade com usuários legados descartados.
 
 #### Scenario: Entidade criada com credencial fora do Domain
 - **WHEN** SignUp registra nome, e-mail e password válidos
-- **THEN** `UserEntity` representa somente a identidade criada
+- **THEN** UserEntity representa somente a identidade criada com UUIDv7
 - **AND** password hash e tokens permanecem fora da Entity
 
 #### Scenario: Usuário preexistente permanece sem credencial conhecida
-- **WHEN** um User anterior a Authentication é migrado
-- **THEN** sua identidade permanece válida mesmo sem possuir uma senha conhecida
-- **AND** o backfill irrecuperável não concede acesso a terceiros
+- **WHEN** o ambiente legado é substituído pelo reset local autorizado, sem dados a conservar
+- **THEN** nenhuma credencial antiga é recuperada ou sintetizada
+- **AND** novas contas só recebem credenciais pelo fluxo explícito de SignUp
 
 #### Scenario: Entidade permanece pura
-- **WHEN** as dependências de `UserEntity` são verificadas
-- **THEN** a entidade não depende de Laravel, Illuminate, Eloquent, HTTP, Infrastructure, Sanctum ou contratos de autenticação
+- **WHEN** as dependências de UserEntity são verificadas
+- **THEN** a entidade valida seu ID por conceito PHP puro e não depende de Laravel, Illuminate, Eloquent, HTTP, Infrastructure, Sanctum ou contratos de autenticação
 
 #### Scenario: Model integra com o framework
-- **WHEN** `UserModel` de Identity Infrastructure é inspecionado
-- **THEN** ele implementa `Authenticatable` e usa `HasApiTokens`
-- **AND** essa integração não é exposta por `UserEntity` nem pelos contratos de Application
+- **WHEN** UserModel de Identity Infrastructure é inspecionado
+- **THEN** implementa Authenticatable, HasApiTokens e geração UUIDv7 suportada
+- **AND** essa integração não é exposta pela Entity ou contratos de Application
 
 ### Requirement: Nome válido
 O sistema MUST representar o nome por `NameValueObject`, MUST remover whitespace externo, MUST reduzir whitespace repetido a um único espaço e MUST aceitar somente letras Unicode separadas por espaços. O nome canônico MUST conter entre 2 e 32 letras, inclusive, sem contar os espaços. `UserEntity` MUST carregar o `NameValueObject`, e a validação HTTP de SignUp e atualização MUST aplicar as mesmas regras do Domain.
@@ -159,62 +159,62 @@ O sistema MUST declarar `UserRepository` na camada Application com `create(UserE
 - **AND** nenhum Repository base ou genérico é introduzido
 
 ### Requirement: CRUD HTTP JSON:API
-O sistema MUST expor consulta, atualização e exclusão de User em `/api/users/{user}` usando Form Requests, Controllers por ação e `UserResponse`, somente quando o alvo é a conta autenticada. O sistema MUST NOT expor listagem global de contas em `GET /api/users`. As respostas de recurso MUST usar o tipo `users`, identificador em string, atributos `name`, `email`, `created_at` e `updated_at`, e link `self`. A API MUST NOT expor criação por `POST /api/users`.
+O sistema MUST expor consulta/atualização/exclusão em /api/users/{user} somente para a conta autenticada, com alvo UUIDv7 validado/canônico antes do lookup. MUST NOT expor GET global ou POST /api/users. Recursos MUST manter type users, ID string UUIDv7, name/email/created_at/updated_at e self. Rota com ID numérico, hash, malformado ou outra versão MUST retornar 404 JSON:API, sem coerção/query inválida; owner UUID desconhecido/alheio MUST preservar não encontrado uniforme. Normalização de caixa MUST ocorrer antes da comparação de owner, sem alterar políticas de acesso.
 
 #### Scenario: Criação HTTP removida
-- **WHEN** `POST /api/users` é executado
-- **THEN** responde `404` em JSON:API
-- **AND** orienta implicitamente o consumidor a usar o recurso de SignUp sem criar User
+- **WHEN** POST /api/users é executado
+- **THEN** responde 404 JSON:API
+- **AND** nenhuma User é criada fora de SignUp
 
 #### Scenario: Consulta HTTP
-- **WHEN** `GET /api/users/{user}` referencia a conta autenticada existente
-- **THEN** responde `200` com o recurso JSON:API correspondente
+- **WHEN** GET /api/users/{user} referencia o UUIDv7 da conta autenticada existente
+- **THEN** responde 200 com o recurso JSON:API canônico
 
 #### Scenario: Atualização HTTP
-- **WHEN** `PATCH /api/users/{user}` recebe identificador correspondente à conta autenticada e ao menos um atributo válido
-- **THEN** responde `200` com o recurso atualizado
+- **WHEN** PATCH recebe UUIDv7 correspondente à conta e atributo válido
+- **THEN** responde 200 com recurso atualizado e mesmo UUID
 
 #### Scenario: Exclusão HTTP
-- **WHEN** `DELETE /api/users/{user}` referencia a conta autenticada existente
-- **THEN** responde `204` sem conteúdo
+- **WHEN** DELETE referencia UUIDv7 da conta autenticada existente
+- **THEN** responde 204 sem conteúdo e conclui seu lifecycle de exclusão
 
 #### Scenario: Erros HTTP
-- **WHEN** a API recebe dados inválidos ou identificador inexistente
-- **THEN** responde em JSON:API respectivamente com `422` ou `404`
+- **WHEN** há documento inválido, ID inexistente ou rota com ID de formato/versão inválido
+- **THEN** responde JSON:API respectivamente com 422 ou 404, sem erro SQL de cast
 
 #### Scenario: Conta de outra pessoa
-- **WHEN** um token válido da conta A solicita GET, PATCH ou DELETE `/api/users/{user}` com o ID da conta B
-- **THEN** a API responde `404` em JSON:API com o mesmo contrato de conta inexistente
-- **AND** não lê nem altera o registro B, suas credenciais, tokens ou despesas
-- **AND** o token da conta A não concede acesso à conta B
+- **WHEN** token de A solicita GET/PATCH/DELETE com UUIDv7 de B
+- **THEN** responde 404 igual ao contrato de conta inexistente
+- **AND** não lê/altera B, credenciais, tokens, despesas ou associações de recursos
+- **AND** possuir UUID válido não concede acesso
 
 #### Scenario: Requisição sem principal válido
-- **WHEN** GET, PATCH ou DELETE `/api/users/{user}` é chamado sem autenticação válida
-- **THEN** a API responde `401` em JSON:API
-- **AND** não revela nem modifica qualquer conta
+- **WHEN** rota UUIDv7 válida é chamada sem autenticação válida
+- **THEN** responde 401 JSON:API
+- **AND** não revela/modifica contas
 
 ### Requirement: Persistência mínima de User
-O sistema MUST persistir identificador, nome, e-mail canônico, password hash e timestamps na tabela `users`. `UserModel` de Identity Infrastructure MUST representar essa persistência e o principal autenticável sem funcionar como entidade de Domain. Tokens MUST permanecer na tabela oficial do Sanctum, e novas contas MUST NOT receber password aleatório de fallback.
+O sistema MUST persistir users.id UUIDv7 nativo, nome, e-mail canônico, password hash e timestamps, com ID imutável. UserModel MUST representar persistência/principal sem ser Entity. Tokens MUST permanecer na tabela oficial Sanctum com seus IDs/owner UUIDv7. MUST NOT inventar password aleatório, manter ID inteiro paralelo ou inferir uma entidade de apresentação. FKs/cascades MUST conservar isolamento e remover associações estáveis próprias ao excluir a conta.
 
 #### Scenario: Registro persistido
-- **WHEN** um User é criado por SignUp e `UserRepository::create`
-- **THEN** a tabela `users` contém nome, e-mail canônico, password hash e timestamps
-- **AND** não contém token, remember token ou password em texto puro
+- **WHEN** SignUp e UserRepository criam User
+- **THEN** users contém UUIDv7, nome, e-mail canônico, password hash e timestamps
+- **AND** não contém segredo de token, remember token ou password em texto
 
 #### Scenario: Ausência de fallback
-- **WHEN** código tenta criar `UserModel` sem password fora do fluxo de registro
-- **THEN** a persistência rejeita a operação
-- **AND** nenhum callback inventa uma credencial silenciosamente
+- **WHEN** código cria UserModel sem password fora do registro
+- **THEN** a persistência rejeita
+- **AND** nenhum callback inventa credencial
 
 #### Scenario: Mapping para o domínio
-- **WHEN** `EloquentUserRepository` cria ou recupera um registro existente
-- **THEN** retorna `UserEntity` sem password hash ou `UserModel`
-- **AND** não expõe relações ou tipos do Sanctum fora de Infrastructure
+- **WHEN** Repository cria/recupera registro
+- **THEN** retorna Entity com ID UUIDv7 string validado, sem hash/Model
+- **AND** não expõe relações/tipos Sanctum nem cast numérico do UUID
 
 #### Scenario: Serialização segura
-- **WHEN** `UserModel` é serializado acidentalmente em uma borda Laravel
-- **THEN** o atributo `password` permanece oculto
-- **AND** nenhum Personal Access Token é incluído automaticamente
+- **WHEN** UserModel é serializado em borda Laravel
+- **THEN** password permanece oculto
+- **AND** nenhum PAT ou registro auxiliar é incluído automaticamente
 
 ### Requirement: Proteção de desenvolvimento contra N+1
 O sistema MUST impedir lazy loading do Eloquent fora de produção por meio de `IdentityServiceProvider`, tornando visível em desenvolvimento a principal fonte de queries N+1 relacionais. `UserModel` MUST declarar `expenses()` como relação `HasMany` pelo campo `expenses.user_id`. Consultas de múltiplos Users que acessem despesas MUST carregar a relação antecipadamente.
@@ -233,20 +233,20 @@ O sistema MUST impedir lazy loading do Eloquent fora de produção por meio de `
 - **THEN** a proteção do Eloquent sinaliza o acesso indevido
 
 ### Requirement: Ownership de User é aplicado nos UseCases
-Os UseCases de consulta por ID, atualização e exclusão de User MUST obter o ID do principal autenticado por um contrato de Identity Application, MUST comparar esse ID ao identificador alvo antes de consultar ou modificar a identidade e MUST NOT aceitar um ID de principal fornecido pelo cliente ou inferir autorização apenas de um token válido. A ausência de principal MUST falhar como não autenticado; a divergência MUST produzir a mesma falha explícita de User não encontrado do alvo inexistente. A exclusão autorizada MUST preservar sua unidade transacional.
+UseCases MUST obter owner UUIDv7 de Core UserPort, validar/canonicalizar o alvo e comparar por identidade antes de Repository. MUST NOT aceitar principal do cliente, consultar Context como autoridade ou converter IDs em números. Principal ausente/inválido MUST falhar como autenticação; alvo divergente MUST produzir User não encontrado igual ao inexistente. Exclusão MUST manter unidade transacional e lifecycle de tokens/despesas/destinos/associações de identidade, sem acessar Models de outros contextos.
 
 #### Scenario: Chamador fora de HTTP usa a própria conta
-- **WHEN** um chamador invoca um dos três UseCases com alvo igual ao ID do principal autenticado
-- **THEN** a operação segue as regras existentes de consulta, atualização ou exclusão
+- **WHEN** alvo UUIDv7 válido equivale ao owner, inclusive somente por diferença de caixa
+- **THEN** a operação segue as regras existentes com UUID canônico
 
 #### Scenario: Chamador fora de HTTP aponta outra conta
-- **WHEN** um chamador invoca um dos três UseCases com alvo diferente do ID do principal autenticado
-- **THEN** o UseCase falha como User não encontrado antes de ler ou escrever no Repository
-- **AND** nenhuma alteração de User, token ou despesa é realizada
+- **WHEN** o alvo UUIDv7 diverge do owner
+- **THEN** o UseCase falha antes do Repository
+- **AND** não altera conta/token/despesa/associação
 
 #### Scenario: Principal ausente
-- **WHEN** um dos três UseCases é invocado sem principal autenticado válido
-- **THEN** falha como não autenticado antes de consultar ou alterar o Repository
+- **WHEN** não há owner UUIDv7 autenticado válido
+- **THEN** falha como não autenticado antes de persistência
 
 ### Requirement: Verificação de e-mail persiste separada do status de User
 O sistema MUST manter `users.email_verified_at` nullable e independente de `status` (`pending`, `active`, `blocked`). `UserModel` MUST implementar `Illuminate\Contracts\Auth\MustVerifyEmail` e usar os recursos nativos do Laravel nas bordas. O timestamp MUST NOT entrar em `UserEntity` apenas por existir no schema; Repository e UseCases de User MUST manter tipos sem Eloquent nem detalhes do framework. A migration MUST ser incremental e não apagar ou verificar implicitamente contas existentes.

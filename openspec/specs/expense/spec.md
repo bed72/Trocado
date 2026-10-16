@@ -89,16 +89,16 @@ O sistema MUST aceitar somente `food`, `health`, `housing`, `leisure`, `shopping
 - **AND** a escrita inválida não persiste e o filtro não ignora silenciosamente o token desconhecido
 
 ### Requirement: Persistência e ciclo de vida inicial
-O sistema MUST persistir despesas em `expenses` com `id` como chave primária, `user_id` obrigatório como chave estrangeira para `users`, `amount` inteiro em centavos, `occurred_on` como data, `category` obrigatória, `description` anulável e `created_at` preenchido na criação. MUST manter um índice composto em (`user_id`, `occurred_on`), excluir definitivamente as despesas removidas individualmente e não usar `deleted_at`.
+O sistema MUST persistir expenses.id como PK UUIDv7 e user_id UUID obrigatório/FK users, mantendo amount inteiro em centavos, occurred_on data, category obrigatória, description nullable e created_at preenchido. MUST manter índice (user_id, occurred_on), hard delete individual e ausência de deleted_at. Geração MUST ocorrer na borda por mecanismo UUIDv7 suportado, sem autoincremento/cast numérico; editar/recategorizar MUST conservar ID.
 
 #### Scenario: Despesa persistida
-- **WHEN** uma despesa válida é criada
-- **THEN** recebe identificador único e timestamp de criação
-- **AND** a referência ao User e os campos do gasto são persistidos
+- **WHEN** despesa válida é criada
+- **THEN** recebe UUIDv7 único/canônico e timestamp
+- **AND** owner UUID e campos financeiros são persistidos
 
 #### Scenario: Consulta eficiente por proprietário e período
-- **WHEN** a estrutura de persistência de Expense é criada
-- **THEN** existe índice composto por `user_id` e `occurred_on`
+- **WHEN** o schema Expense é criado
+- **THEN** existe índice composto user_id UUID/occurred_on
 
 ### Requirement: Relacionamento Eloquent e prevenção de N+1
 `ExpenseModel` MUST declarar `user()` como relação `BelongsTo` pelo campo `user_id`. A proteção contra lazy loading MUST permanecer ativa fora de produção. Consultas de múltiplas despesas que acessem seus Users MUST carregar a relação antecipadamente, sem uma query por despesa. O relacionamento entre Models MUST NOT introduzir dependências cross-context em Domain ou Application.
@@ -159,73 +159,79 @@ O sistema MUST disponibilizar `GET /api/expenses` somente a um User autenticado.
 - **THEN** a API rejeita o parâmetro com `422` em JSON:API e não altera o escopo da consulta
 
 ### Requirement: Consulta individual de despesa restrita ao proprietário
-O sistema MUST disponibilizar `GET /api/expenses/{expense}` no mesmo grupo de autenticação e middlewares da listagem. O UseCase MUST obter o identificador autenticado por `Core\Application\Ports\UserPort` e passá-lo explicitamente ao Repository junto ao ID da despesa. A consulta MUST filtrar pelo ID e por `user_id` no banco. A API MUST responder `200` com um recurso JSON:API do tipo `expenses`, ID em string e os mesmos atributos públicos da resposta de criação. Uma despesa inexistente, excluída ou pertencente a outra conta MUST produzir o mesmo erro JSON:API `404`. O ID da rota MUST ser numérico. A leitura individual MUST consultar a persistência sem reutilizar o cache de páginas.
+GET /api/expenses/{expense} MUST manter auth/middlewares existentes, com ID de rota UUIDv7. UseCase MUST obter owner UUIDv7 por Core UserPort e consultar Repository explicitamente por ID/owner; filtro MUST ocorrer no banco. Resposta MUST ser 200 expenses com ID string v7 e atributos atuais. Inexistente/excluída/alheia MUST produzir 404 uniforme; ID numérico/hash/malformado/outra versão MUST ser rejeitado em 404 antes de query de negócio. MUST consultar persistência sem cache de páginas ou coerção numérica.
 
 #### Scenario: Consulta da própria despesa
-- **WHEN** uma conta autenticada consulta uma despesa que lhe pertence
-- **THEN** a API responde `200` com o recurso JSON:API correspondente e seus atributos atuais
+- **WHEN** conta apta consulta UUIDv7 de sua despesa
+- **THEN** recebe 200 e recurso atual com mesmo UUID
 
 #### Scenario: Despesa inexistente, excluída ou de outra conta
-- **WHEN** uma conta autenticada consulta um ID inexistente, excluído ou pertencente a outra conta
-- **THEN** a API responde `404` em JSON:API sem revelar dados da despesa
+- **WHEN** UUIDv7 é inexistente, excluído ou alheio
+- **THEN** recebe 404 JSON:API sem revelar despesa
 
 #### Scenario: Consulta individual sem autenticação
-- **WHEN** `GET /api/expenses/{expense}` é chamado sem Bearer token válido
-- **THEN** a API responde `401` em JSON:API sem revelar despesas
+- **WHEN** rota UUIDv7 válida é chamada sem Bearer válido
+- **THEN** 401 sem revelar despesas
 
 #### Scenario: Identificador não numérico
-- **WHEN** o identificador da despesa na rota não é numérico
-- **THEN** a API responde `404` em JSON:API
+- **WHEN** a rota recebe texto que não é UUIDv7 válido, como not-an-id
+- **THEN** 404 JSON:API antes de lookup
+
+#### Scenario: Identificador inteiro legado
+- **WHEN** a rota recebe 42
+- **THEN** 404 sem alias/conversão de inteiro
 
 ### Requirement: Paginação por cursor de despesas
-O sistema MUST ordenar despesas pelos critérios válidos de sort definidos em expense-querying, com id decrescente como desempate final; sem sort MUST preservar occurred_on decrescente e id decrescente. MUST paginar no PostgreSQL usando cursor, sem carregar todos os registros nem usar offset, preservando o índice existente e avaliando índices adicionais pelos planos das consultas suportadas. page[size] MUST ser opcional, padrão 20 e intervalo inclusivo de 1 a 100; page[cursor] MUST ser opcional e opaco. Cursor inválido, incompatível com os filtros/ordenação efetivos ou tamanho fora do intervalo MUST produzir 422 em JSON:API, sem retornar implicitamente a primeira página. Campos e tipos do cursor MUST corresponder aos critérios efetivos e nunca autorizar campos SQL arbitrários. Cursores legados de occurred_on/id MUST continuar aceitos para consultas do contrato anterior, inclusive filtros ano/mês/dia, mas MUST ser rejeitados para novos filtros ou ordenações. Cada página MUST conter no máximo o tamanho solicitado e preservar proprietário e critérios antes da seleção.
+O sistema MUST preservar filtros/sorts válidos e id UUID decrescente como desempate final; default occurred_on DESC/id DESC. MUST paginar no PostgreSQL por cursor, sem offset/carregar todos, avaliando índices por planos. page[size] MUST continuar 20/1–100; cursor MUST ser opaco v2 com posição ID string UUIDv7, correspondência de campos/tipos/direção/consulta e comparação igual à ordenação UUID PostgreSQL. Cursores numéricos v1/shape legado MUST ser rejeitados em 422, inclusive nas consultas antigas, sem primeira página implícita. Amount continua inteiro, separado da validação UUID de id. Owner/filtros MUST ser aplicados antes da seleção; cursor não confere acesso.
 
 #### Scenario: Ordem determinística em datas iguais
-- **WHEN** várias despesas da mesma conta têm a mesma ocorrência e a ordenação padrão é usada
-- **THEN** aparecem em id decrescente, sem omissões ou repetições entre páginas sem alterações nos dados
+- **WHEN** despesas próprias têm mesma ocorrência e dados estáveis
+- **THEN** UUID decrescente desempata sem omitir/repetir páginas
+- **AND** não depende da ordem de inserts ou contador inteiro
 
 #### Scenario: Navegação adiante e atrás
-- **WHEN** uma conta tem mais despesas elegíveis do que o limite solicitado e segue next ou prev
-- **THEN** recebe a página correspondente na mesma ordenação e somente com suas despesas que atendem aos filtros
-- **AND** ausência de página seguinte/anterior é indicada pelo link nulo
+- **WHEN** a conta segue next/prev v2 em lista maior que page[size]
+- **THEN** recebe página ordenada e somente despesas próprias elegíveis
+- **AND** links inexistentes são null
 
 #### Scenario: Cursor usado por outra conta
-- **WHEN** uma conta usa um cursor de consulta com critérios compatíveis obtido por outra conta
-- **THEN** a leitura continua restrita à conta autenticada e não revela despesas da outra conta
+- **WHEN** A usa cursor com posição UUID conhecido de B e critérios compatíveis
+- **THEN** a leitura continua restrita a A sem revelar B
 
 #### Scenario: Parâmetros de paginação inválidos
-- **WHEN** page[size] não é inteiro entre 1 e 100 ou page[cursor] é malformado
-- **THEN** a API responde 422 com erro JSON:API identificando o parâmetro inválido
+- **WHEN** size é inválido ou cursor tem ID inteiro/outra versão/shape incompatível
+- **THEN** 422 JSON:API aponta parâmetro e não retorna primeira página
 
 #### Scenario: Ordenação composta com empates
-- **WHEN** a consulta usa sort=-occurred_on,amount e há várias despesas na mesma data e valor
-- **THEN** a seleção usa ocorrência, valor e ID para avançar/retornar sem repetir ou omitir registros estáveis
+- **WHEN** sort=-occurred_on,amount encontra empate de data/valor
+- **THEN** seek usa data/valor/UUID com a mesma comparação e preserva ida/volta sem repetição
 
 #### Scenario: Mudança de consulta com cursor novo
-- **WHEN** um novo cursor é reutilizado com filtros, direção ou prioridade de ordenação diferentes
-- **THEN** a API responde 422 mesmo se os nomes das colunas forem iguais
+- **WHEN** v2 é reutilizado com filtros/direção/prioridade diferentes
+- **THEN** 422 mesmo com nomes de colunas iguais
 
 #### Scenario: Compatibilidade com cursor anterior
-- **WHEN** um cursor legado válido de occurred_on/id é usado na listagem anterior, com ou sem ano/mês/dia
-- **THEN** a navegação permanece disponível na ordem padrão e escopo atual
-- **AND** o mesmo cursor não é aceito em consulta com novas categorias, valores, intervalos ou sort
+- **WHEN** o cliente apresenta cursor antigo numérico occurred_on/id ou v1
+- **THEN** recebe 422, mesmo no default/ano/mês/dia
+- **AND** precisa iniciar paginação UUIDv7 sem compatibilidade silenciosa
 
 ### Requirement: Resposta JSON:API da listagem de despesas
-GET /api/expenses MUST responder 200 com coleção data de recursos expenses, IDs em string e os mesmos atributos públicos da criação. MUST incluir links next e prev com page[cursor] opaco, preservando tamanho, filtros e ordenações da consulta; MUST NOT exigir contagem total nem oferecer páginas numeradas. Cursor MUST NOT ser autorização de acesso. Ausência de página MUST produzir link nulo, e filtros sem correspondência MUST produzir coleção vazia.
+GET /api/expenses MUST responder 200/data coleção expenses com IDs string UUIDv7 e atributos atuais. next/prev MUST preservar size/filtros/sort com cursor v2 opaco; não oferecer contagem total/páginas numeradas ou tratar cursor como autorização. Link ausente MUST ser null e filtros sem match MUST retornar coleção vazia. MUST NOT expor ID inteiro alternativo ou transformar UUID para número no payload/cache.
 
 #### Scenario: Primeira página de despesas
-- **WHEN** a conta solicita primeira página com mais registros elegíveis disponíveis
-- **THEN** recebe no máximo page[size] recursos, next utilizável e prev nulo
-- **AND** next preserva todos os critérios válidos da consulta
+- **WHEN** há mais despesas elegíveis que o limite
+- **THEN** recebe até size recursos UUIDv7, next v2 utilizável e prev null
+- **AND** next conserva critérios
 
 #### Scenario: Página final
-- **WHEN** a conta alcança a última página
-- **THEN** next é nulo e os recursos mantêm o documento JSON:API esperado
-- **AND** prev conserva filtros, sort e tamanho
+- **WHEN** chega ao fim
+- **THEN** next null e documento JSON:API UUID preservado
+- **AND** prev conserva filtros/sort/size
 
 #### Scenario: Seis despesas mais recentes de setembro
-- **WHEN** a conta envia from=2026-09-01, to=2026-09-30 e page[size]=6 sem sort
-- **THEN** recebe até seis despesas mais recentes do período e pode consultar as próximas seis pelo link next
+- **WHEN** a conta informa setembro/page[size]=6 sem sort
+- **THEN** recebe até seis ocorrências mais recentes, com UUID DESC nos empates
+- **AND** segue next v2 para as próximas sem inferir recência por UUID
 
 ### Requirement: Elegibilidade da descrição para classificação
 O sistema MUST decidir a elegibilidade antes de enfileirar o trabalho e MUST NOT enviar à IA descrições `null`, vazias, compostas apenas por espaços ou compostas claramente apenas por payload de SQL injection ou XSS. Descrições válidas com números, pontuação ou símbolos usuais de gastos MUST NOT ser descartadas apenas por conter esses caracteres. A descrição MUST ser tratada como dado não confiável, nunca como instrução do cliente para o classificador.
@@ -376,3 +382,15 @@ A expansão MUST preservar os dez identificadores anteriores e MUST NOT recatego
 - **WHEN** já existe uma despesa em `transport` cuja descrição menciona uma viagem, ou em `other` cujo texto menciona um aporte
 - **THEN** a expansão do catálogo mantém a categoria persistida e o registro continua legível
 - **AND** eventual recategorização exige edição explícita pelo cliente
+
+### Requirement: EXP-UID Classificação e cache transportam UUID sem mudar seus conceitos
+Payloads/contratos próprios de classificação e cache MUST usar Expense/owner UUIDv7, preservar token de fencing, valores, autorização, retry e invalidação após commit. Namespace de páginas MUST ser versionado para excluir payloads numéricos antigos, com limpeza/pausa de queues exclusivamente próprias na transição. MUST NOT converter token técnico em UUID, consumir jobs de IDs legados após reset ou reutilizar página de outro owner.
+
+#### Scenario: Worker recebe despesa UUIDv7
+- **WHEN** trabalho novo de classificação é consumido na fila exclusiva
+- **THEN** usa UUID da despesa/fencing exato e conserva proteção contra edição posterior
+
+#### Scenario: Cache de nova identidade
+- **WHEN** consulta UUIDv7 repete critérios efetivos
+- **THEN** namespace novo/owner/cursor distinguem a página
+- **AND** payload numérico antigo não é servido

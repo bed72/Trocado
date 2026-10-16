@@ -149,6 +149,8 @@ Antes de avançar a fatia de push/cliente, coordenar o design/specs/tasks da cha
 
 Flutter precisa gerar UUIDv7 de instalação, mantê-lo na instalação, atualizar filtros de IDs e não converter IDs para números. Versão de biblioteca/generator do cliente será comprovada na homologação; esta spec não autoriza alterar outro repositório ou ativar envio real.
 
+Decisão de fechamento de 2026-10-16: o usuário assumiu a implementação/homologação Flutter e retirou essa evidência externa dos critérios de conclusão desta entrega backend. O contrato UUIDv7 permanece obrigatório; não se declara o aplicativo homologado. A integração externa permanece rastreada na change Firebase, sem bloquear o archive do backend após seus gates.
+
 ### D9 — Reset, rollout e rollback
 
 Decisão explícita: recriação somente do banco local de desenvolvimento na implementação futura. Atualizar migrations de bootstrap dos quatro recursos e adicionar registro Core; não manter duas famílias de schema nem backfill inteiro→UUID/UUIDv4→v7. Ajustar migrations de rename/fingerprint conforme necessário para construir o novo schema do zero; preservar testes de rollback/constraint, não aproveitar o reset para removê-los.

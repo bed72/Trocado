@@ -63,55 +63,57 @@ Definir filtros combináveis e ordenações determinísticas da listagem de desp
 - **THEN** a API responde `422` identificando o filtro inválido
 
 ### Requirement: Múltiplas ordenações explícitas e determinísticas
-`sort` MUST aceitar de um a três campos distintos entre `occurred_on`, `amount` e `description`, separados por vírgula e aplicados na ordem informada. Prefixo `-` MUST significar decrescente; ausência do prefixo MUST significar crescente. ID decrescente MUST ser acrescentado como desempate final. Campo desconhecido, duplicado, vazio ou estrutura inválida MUST produzir `422`. Sem `sort`, MUST preservar `occurred_on DESC, id DESC`. Ordenação por descrição MUST preservar o contrato opcional/nullable, ignorar maiúsculas/minúsculas e acentos com collation explícita ICU `und-u-ks-level1`, não determinística, e preservar o texto original. Null MUST ser representado como string vazia somente na chave interna de ordenação/cursor, sem reescrita na persistência ou resposta; esse grupo MUST preceder os textos em ordem crescente e sucedê-los em decrescente. Descrições equivalentes MUST empatar nesse critério, incluindo formas Unicode canonicamente equivalentes; critérios seguintes e ID decrescente MUST resolver o empate, sem desempate intermediário por bytes ou grafia original. Ordenação e comparações de posição do cursor MUST usar a mesma collation, sem depender da collation padrão do banco.
+sort MUST aceitar um a três campos distintos occurred_on/amount/description, na prioridade informada; prefixo - decrescente, sem prefixo crescente, id UUIDv7 DESC sempre como desempate final. Default MUST ser occurred_on DESC/id DESC. Critério desconhecido/duplicado/vazio/estrutura inválida MUST produzir 422. Comparação UUID do sort e seek MUST ser a mesma PostgreSQL; não presumir ordem de criação/inteiro a partir do UUID. Description MUST manter nullable/texto original e equivalência de caixa/acentos/canonical Unicode por ICU und-u-ks-level1 não determinística. COALESCE vazio MUST valer somente na chave interna, precedendo texto ASC e sucedendo DESC. Próximos critérios/UUID MUST resolver empates sem critério intermediário por bytes/grafia. Cursor MUST usar a mesma collation.
+
+Nos cenários abaixo U11...U43 são rótulos de fixtures UUIDv7 canônicas distintas, não IDs numéricos enviados à API; dentro de cada grupo, a ordem PostgreSQL de UUID é a ordem crescente dos sufixos indicados. Isso mantém exemplos legíveis sem vincular ordenação a uma sequence.
 
 #### Scenario: Data e valor com prioridade
-- **WHEN** o cliente envia `sort=-occurred_on,amount`
-- **THEN** a consulta ordena pela ocorrência mais recente, depois menor valor e finalmente ID decrescente
+- **WHEN** sort=-occurred_on,amount
+- **THEN** ordena ocorrência mais recente, menor valor e UUID DESC
 
 #### Scenario: Ordenações simples nos dois sentidos
-- **WHEN** o cliente seleciona data crescente/decrescente ou valor crescente/decrescente
-- **THEN** recebe respectivamente mais antigas/mais recentes ou menor/maior valor primeiro, com ID decrescente nos empates
+- **WHEN** data/valor é ordenado ASC ou DESC
+- **THEN** mantém direção e UUID DESC nos empates
 
 #### Scenario: Descrição alfabética e desempate
-- **WHEN** o cliente seleciona `description` ou `-description` e as descrições são `Aluguel` e `Mercado`
-- **THEN** recebe respectivamente Aluguel antes de Mercado ou Mercado antes de Aluguel
-- **AND** descrições equivalentes pela política aprovada são desempatadas pelos próximos critérios e pelo ID
+- **WHEN** descrições são Aluguel e Mercado com description/-description
+- **THEN** ordena respectivamente Aluguel/Mercado ou Mercado/Aluguel
+- **AND** política equivalente usa próximos critérios/UUID
 
 #### Scenario: Maiúsculas e acentos equivalentes nas duas direções
-- **WHEN** despesas têm descrições `Água` (ID 11), `agua` (ID 12), `ÁGUA` (ID 13), `Aluguel` (ID 14) e `Mercado` (ID 15), e o cliente usa `sort=description`
-- **THEN** recebe os IDs 13, 12, 11, 14, 15
-- **AND** com `sort=-description` recebe os IDs 15, 14, 13, 12, 11, conservando ID decrescente dentro do grupo equivalente
-- **AND** cada recurso mantém sua descrição original
+- **WHEN** Água U11, agua U12, ÁGUA U13, Aluguel U14 e Mercado U15 são ordenadas por description
+- **THEN** a ordem é U13,U12,U11,U14,U15
+- **AND** -description produz U15,U14,U13,U12,U11
+- **AND** os textos originais são preservados
 
 #### Scenario: Cedilha e acentos não criam grupos distintos
-- **WHEN** despesas têm descrições `Açaí` (ID 21), `acai` (ID 22), `ACAI` (ID 23) e `Banana` (ID 24)
-- **THEN** `sort=description` retorna os IDs 23, 22, 21, 24 e `sort=-description` retorna os IDs 24, 23, 22, 21
+- **WHEN** Açaí U21, acai U22, ACAI U23 e Banana U24 são ordenados
+- **THEN** description produz U23,U22,U21,U24 e -description U24,U23,U22,U21
 
 #### Scenario: Próximo critério precede ID no empate alfabético
-- **WHEN** despesas têm `Água` com amount 2000 e ID 31, `agua` com amount 1000 e ID 32, e `ÁGUA` com amount 1000 e ID 33
-- **THEN** `sort=description,amount` e `sort=-description,amount` retornam os IDs 33, 32, 31
-- **AND** `sort=description,-amount` retorna os IDs 31, 33, 32
+- **WHEN** Água amount 2000/U31, agua 1000/U32 e ÁGUA 1000/U33 usam description,amount ou -description,amount
+- **THEN** a ordem é U33,U32,U31
+- **AND** description,-amount produz U31,U33,U32
 
 #### Scenario: Representações Unicode equivalentes
-- **WHEN** duas descrições diferem somente por `Á` pré-composto (U+00C1) ou A seguido de acento combinante (U+0041 U+0301)
-- **THEN** empatam no critério description e são resolvidas pelos critérios seguintes e ID decrescente
-- **AND** o texto não é normalizado ou reescrito na persistência ou resposta pela ordenação
+- **WHEN** texto difere somente por Á pré-composto ou A+acento combinante
+- **THEN** description empata e próximos critérios/UUID DESC resolvem
+- **AND** texto não é reescrito
 
 #### Scenario: Cursor atravessa empate alfabético
-- **WHEN** a consulta do cenário de maiúsculas e acentos equivalentes usa page[size]=2, em qualquer direção de description, e segue next até o fim e prev de volta em dados estáveis
-- **THEN** percorre exatamente a ordem esperada daquela direção sem omitir ou repetir IDs entre páginas
-- **AND** voltar à primeira página devolve os mesmos IDs e descrições originais
+- **WHEN** o cenário de equivalência usa size 2 e next/prev v2 nas duas direções
+- **THEN** percorre a ordem UUID esperada sem omissão/repetição
+- **AND** volta à primeira página com os mesmos UUIDs/textos
 
 #### Scenario: Descrições nullable conservam dados e paginação
-- **WHEN** despesas têm description null (ID 41), string vazia (ID 42) e `Água` (ID 43)
-- **THEN** `sort=description` retorna os IDs 42, 41, 43 e `sort=-description` retorna os IDs 43, 42, 41
-- **AND** com page[size]=1 a navegação next/prev mantém essa ordem sem omissões ou repetições
-- **AND** as descrições na persistência e resposta continuam respectivamente null, string vazia e `Água`
+- **WHEN** há null U41, vazio U42 e Água U43
+- **THEN** description produz U42,U41,U43 e -description U43,U42,U41
+- **AND** size 1/next/prev conserva ordem sem perdas
+- **AND** dados permanecem null/vazio/Água
 
 #### Scenario: Ordenação inválida
-- **WHEN** o cliente envia `sort=amount,-amount`, `sort=user_id`, `sort=amount,` ou array em sort
-- **THEN** a API responde `422`, sem aplicar ordenação parcial
+- **WHEN** a consulta envia `sort=amount,-amount`, `sort=user_id`, `sort=amount,` ou array
+- **THEN** 422 sem ordenação parcial
 
 ### Requirement: Query Builder nativo confinado à Infrastructure
 O sistema MUST compor filtros e ordenações com o Query Builder nativo do Laravel por meio de Eloquent em Expense Infrastructure, sem dependência adicional. Domain e Application MUST NOT depender de Request, Eloquent, Query Builder ou Service Locator. `GetAllExpenseInput` MUST ser final readonly, constructor-only, tipado e próprio da Application de Expense. O UseCase MUST obter o proprietário por UserPort e passá-lo com a entrada ao ExpenseRepository. O Repository Eloquent MUST iniciar uma query restrita ao proprietário e aplicar critérios explícitos validados com comparações inclusivas, categoria por conjunto e ordenação de colunas permitidas. MUST NOT construir Request interna, descobrir a requisição atual por container ou aceitar campos arbitrários do cliente como SQL.

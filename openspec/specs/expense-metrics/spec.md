@@ -4,36 +4,34 @@
 Definir consultas quantitativas de despesas por conta e período civil, com totais e distribuição por categoria, precisão monetária exata e transporte JSON:API independente da interpretação editorial de Insights.
 ## Requirements
 ### Requirement: Contexto Metrics dedicado a fatos quantitativos
-
-O sistema MUST manter `Metrics` como bounded context responsável pela consulta de totais, agrupamentos e percentuais de despesas para consumidores que constroem cards e gráficos. MUST manter a interpretação financeira e mensagens analíticas em Insights. Metrics MUST NOT importar classes de negócio, Models, Repositories, UseCases ou Responses de Expense, Identity ou Insights. Sua Infrastructure MUST realizar a integração de leitura pelo schema compartilhado de despesas, sem criar um segundo Model Eloquent de despesa ou escrever nas tabelas consultadas. Domain MUST permanecer puro e Application MUST permanecer independente de Laravel, HTTP, ORM e implementações de Infrastructure.
+Metrics MUST ser dono de totais/agrupamentos/percentuais, mantendo interpretação/mensagens em Insights. MUST NOT importar classes de negócio/Models/Repositories/UseCases/Responses de Expense, Identity ou Insights. A integração financeira MUST permanecer na Infrastructure por schema compartilhado, sem Model duplicado/escrita de despesas. Domain MUST ser puro e Application independente de Laravel/HTTP/ORM/Infrastructure. MUST permitir consumo específico da capacidade Core de UUIDv7 estável, que guarda somente identidade técnica, não fatos/resumos.
 
 #### Scenario: Consulta quantitativa independente de Insights
-- **WHEN** uma conta consulta total geral ou totais por categoria
-- **THEN** Metrics entrega fatos quantitativos próprios
-- **AND** não chama a geração, elegibilidade, seleção ou composição de mensagens de Insights
-- **AND** não precisa de quantidade mínima de lançamentos para devolver os totais existentes
+- **WHEN** consulta totais próprios
+- **THEN** entrega fatos de Metrics sem chamar geração/elegibilidade/seleção/composição de Insights
+- **AND** não exige mínimo de lançamentos
 
 #### Scenario: Integração somente de leitura
-- **WHEN** Metrics calcula os valores sobre despesas existentes
-- **THEN** a integração ocorre somente na Infrastructure pela leitura do schema
-- **AND** nenhum registro de despesa, identidade ou configuração é criado, alterado ou excluído pela operação analítica
+- **WHEN** calcula valores de despesas
+- **THEN** lê schema somente na Infrastructure
+- **AND** não modifica despesa/conta/configuração; somente associação técnica de identidade pode ser criada em Core
 
 #### Scenario: Repository de leitura do contexto consumidor
-- **WHEN** a Application solicita totais por proprietário, período e agrupamento
-- **THEN** usa um Repository próprio de Metrics que devolve projeções independentes do ORM
-- **AND** não amplia o Repository CRUD de Expense nem classifica agregação SQL como Port
+- **WHEN** pede totais por owner/período/modo
+- **THEN** usa seu Repository e projeções independentes do ORM
+- **AND** não amplia CRUD Expense nem chama agregação de Port
 
 #### Scenario: Conceitos puros compartilhados sem duplicação
-- **WHEN** Metrics e Insights precisam de centavos, períodos civis ou razões exatas
-- **THEN** reutilizam os Value Objects normalizados de Core Domain
-- **AND** Core não depende dos contextos consumidores nem incorpora regras editoriais ou de persistência
+- **WHEN** contextos usam centavos/períodos/razões/UUID
+- **THEN** reutilizam os conceitos puros específicos de Core
+- **AND** Core não importa consumidores/regras editoriais/financeiras
 
 #### Scenario: Catálogo de categorias compartilhado
-- **WHEN** Expense ou Metrics precisa reconhecer um identificador de categoria
-- **THEN** reutiliza `Core\Domain\Enums\ExpenseCategoryEnum`, sem duplicar o catálogo ou importar o contexto consumidor
-- **AND** os cases e identificadores persistidos permanecem iguais aos do catálogo existente
-- **AND** Expense continua responsável pela categorização das despesas e Metrics apenas valida os identificadores da projeção
-- **AND** as participações de Metrics são limitadas a 100%, enquanto razões de variação de Insights podem exceder esse valor
+- **WHEN** Expense/Metrics reconhecem categoria
+- **THEN** usam o enum compartilhado, sem duplicar/importar outro contexto
+- **AND** cases/valores permanecem iguais
+- **AND** Expense continua dono da categorização
+- **AND** participações Metrics continuam até 100% e variações Insights podem exceder
 
 ### Requirement: Uma rota GET com dois modos de consulta
 
@@ -495,49 +493,47 @@ Uma consulta válida sem despesas consideradas MUST retornar HTTP `200`, um recu
 - **AND** não existe percentual `NaN`, infinito, nulo ou calculado com denominador zero
 
 ### Requirement: Resumo singular em JSON:API com período efetivo
-
-O sistema MUST responder sucesso com HTTP `200` e `Content-Type: application/vnd.api+json`. `data` MUST ser um único objeto de recurso, não coleção, com `type: "expense-metrics"`, `id` string e `attributes` contendo `start_date`, `end_date` e `total_amount`. As datas MUST ser os limites efetivamente usados, canônicos e não nulos, inclusive quando os filtros estiverem ausentes. No modo agrupado, `attributes.categories` MUST conter a lista de objetos de categoria; esses objetos MUST ser parcelas do resumo, não recursos independentes ou relationships. Sem agrupamento, `categories` MUST estar ausente, não `null` nem `[]`.
+O sistema MUST responder 200/application/vnd.api+json com data singular expense-metrics, id string UUIDv7 canônico estável e start_date/end_date/total_amount atuais. Datas MUST ser efetivas/canônicas/não nulas inclusive default. Grouped MUST incluir categories como parcelas, não recursos/relationships; total simples MUST omitir categories, sem null/array substituto. MUST NOT publicar fingerprint ou ID numérico/hash alternativo.
 
 #### Scenario: Total explícito em JSON:API
-- **WHEN** a consulta explícita de outubro soma `"123456"` e não pede agrupamento
-- **THEN** `data.type` é `expense-metrics` e `data.attributes` contém `start_date: "2026-10-01"`, `end_date: "2026-10-31"` e `total_amount: "123456"`
-- **AND** não contém `categories` nem `currency`
+- **WHEN** outubro explícito soma 123456 centavos sem grouped
+- **THEN** data tem type expense-metrics, UUIDv7, start_date 2026-10-01, end_date 2026-10-31 e total_amount "123456"
+- **AND** sem categories/currency
 
 #### Scenario: Resumo agrupado não é coleção de recursos
-- **WHEN** a consulta pede `group_by=category`
-- **THEN** `data` continua um único objeto `expense-metrics`
-- **AND** os itens ficam em `data.attributes.categories`, com `category`, `total_amount` e `percentage`
-- **AND** não são colocados em `included` ou em uma segunda coleção paginada
+- **WHEN** group_by=category
+- **THEN** data continua um objeto com UUIDv7
+- **AND** categories ficam nos attributes, com category/total_amount/percentage
+- **AND** sem included/outra coleção/paginação
 
 #### Scenario: Default exposto ao consumidor
-- **WHEN** as datas estão ausentes e o período padrão resolvido é outubro de 2026
-- **THEN** a resposta informa `start_date: "2026-10-01"` e `end_date: "2026-10-31"`
-- **AND** o cliente não precisa inferir o período pelo seu próprio relógio
+- **WHEN** período default é outubro/2026
+- **THEN** expõe os limites 01–31/10
+- **AND** não exige relógio do cliente
 
 ### Requirement: Identidade opaca e determinística do resumo
-
-O sistema MUST derivar `id` deterministicamente da conta autenticada, período efetivo e modo de agrupamento. MUST distinguir consultas de contas, períodos ou modos diferentes. MUST NOT expor o ID bruto da conta na composição pública, depender da ordem dos parâmetros da URL, dos espaços externos, de valores calculados ou de um registro persistido. A mesma consulta efetiva MUST manter o ID quando novas despesas alterarem seus valores. Um intervalo padrão e o mesmo intervalo explícito MUST identificar o mesmo resumo quando conta e modo coincidirem. O identificador MUST NOT servir como credencial ou exigir endpoint individual de consulta.
+O sistema MUST obter UUIDv7 estável pela associação de Core para owner UUID, período efetivo e modo de agrupamento. A escolha da chave MUST ser determinística, mas o UUID MUST ser gerado legitimamente uma vez e persistido, nunca obtido por conversão de hash. MUST distinguir owners/períodos/modos; não depender de URL/trim/valores/visita nem expor owner/fingerprint na composição do ID. Default e limites explícitos equivalentes MUST identificar o mesmo resumo, inclusive zero total e após reinício/troca de PAT. O ID MUST NOT ser credencial ou exigir endpoint individual.
 
 #### Scenario: Mesma consulta repetida
-- **WHEN** a mesma conta consulta duas vezes o mesmo período e agrupamento
-- **THEN** o `id` é igual
+- **WHEN** owner consulta período/modo repetido em processo igual ou novo
+- **THEN** id é o mesmo UUIDv7 confirmado
 
 #### Scenario: Valores alterados mantendo o período
-- **WHEN** uma despesa confirmada altera o total do mesmo período para a mesma conta e modo
-- **THEN** os valores retornados mudam e o `id` permanece igual
+- **WHEN** escrita confirmada altera totais
+- **THEN** valores mudam e UUID permanece
 
 #### Scenario: Default e intervalo explícito equivalente
-- **WHEN** uma conta consulta sem datas e depois informa exatamente as datas do mês padrão, com o mesmo agrupamento
-- **THEN** ambos os recursos têm o mesmo `id`
+- **WHEN** default e datas explícitas resolvem o mesmo intervalo/modo
+- **THEN** mesmo UUIDv7
 
 #### Scenario: Ordem e espaços equivalentes
-- **WHEN** as requisições mudam apenas a ordem dos filtros ou espaços externos aceitos nos valores
-- **THEN** seus IDs são iguais para a mesma conta, período e modo efetivos
+- **WHEN** muda somente ordem/trim aceito de filtros
+- **THEN** UUID não muda
 
 #### Scenario: Conta ou modo diferente
-- **WHEN** duas contas consultam o mesmo período, ou uma conta alterna entre total simples e agrupado
-- **THEN** os IDs distinguem esses resumos
-- **AND** não revelam o ID bruto das contas
+- **WHEN** owners diferem ou grouped alterna
+- **THEN** os UUIDs distinguem os resumos
+- **AND** não publicam owner/fingerprint
 
 ### Requirement: Erros de query no padrão JSON:API de Insights
 
@@ -559,27 +555,31 @@ Filtros inválidos MUST retornar HTTP `422` e `Content-Type: application/vnd.api
 - **AND** a resposta não mistura um resultado parcial em `data`
 
 ### Requirement: Leitura sob demanda sem cache ou estado analítico persistido
-
-O sistema MUST consultar o banco a cada requisição válida de métricas, sem cache próprio, reutilização das páginas de Expense, tabela de resumos, materialização persistida, fila, job ou chamada externa. MUST considerar as alterações confirmadas antes do início do snapshot da nova leitura. MUST NOT congelar valores por dia, mês ou identidade do recurso. A estabilidade do ID MUST NOT ser interpretada como imutabilidade do conteúdo.
+Métricas MUST consultar fatos a cada request válido sem cache próprio/páginas Expense/tabela de resumos/materialização/queue/job/chamada externa. MUST considerar alterações confirmadas no snapshot da nova leitura e não congelar conteúdo por UUID/dia/mês. MUST permitir somente associação auxiliar de Core para identidade estável, resolvida após reconciliação da projeção. UUID estável não torna valores imutáveis. Erros de fonte/projeção não alocam ID; falha Core responde erro, não resumo parcial/zero fabricado.
 
 #### Scenario: Criação entre duas consultas
-- **WHEN** a primeira consulta retorna `"10000"` e uma despesa de `2500` da conta é confirmada no mesmo período antes da segunda leitura
-- **THEN** a segunda retorna `"12500"`
-- **AND** não aguarda TTL nem invalidação de cache de páginas
+- **WHEN** 10000 centavos viram 12500 por nova despesa confirmada
+- **THEN** novo total "12500", com mesmo UUID
+- **AND** sem aguardar TTL/invalidação
 
 #### Scenario: Edição de valor ou ocorrência
-- **WHEN** uma despesa muda de valor ou é movida para fora do intervalo antes da nova leitura
-- **THEN** o novo resumo reflete o valor e a participação atuais
+- **WHEN** valor/data muda antes da leitura
+- **THEN** resumo reflete fatos atuais, não row de resultado no registro
 
 #### Scenario: Categoria atualizada
-- **WHEN** a categoria de uma despesa muda de `other` para `food` antes da nova leitura
-- **THEN** a distribuição e os percentuais refletem a categoria atual
-- **AND** o total geral não muda apenas por essa recategorização
+- **WHEN** other vira food
+- **THEN** distribuição reflete categoria atual
+- **AND** total e UUID não mudam somente pela recategorização
 
 #### Scenario: Exclusão confirmada
-- **WHEN** uma despesa é excluída definitivamente antes da nova leitura
-- **THEN** seu valor deixa de participar do resumo
-- **AND** uma categoria sem outros registros desaparece da lista
+- **WHEN** despesa é removida
+- **THEN** total/distribuição atualizam, preservando UUID da consulta
+- **AND** não resta valor em tabela de resumos
+
+#### Scenario: Resumo zero também tem identidade
+- **WHEN** período válido não tem fatos
+- **THEN** total "0" usa UUIDv7 associado à mesma consulta
+- **AND** futuras despesas mudam o conteúdo sem regenerar ID
 
 ### Requirement: Agregações em lote sem carregar despesas individuais
 

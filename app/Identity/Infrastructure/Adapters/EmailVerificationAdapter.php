@@ -7,15 +7,19 @@ namespace App\Identity\Infrastructure\Adapters;
 use App\Core\Application\Ports\ObservabilityPort;
 use App\Core\Domain\ValueObjects\UuidValueObject;
 use App\Identity\Application\Ports\EmailVerificationPort;
+use App\Identity\Infrastructure\Notifications\VerifyEmailNotification;
 use App\Identity\Infrastructure\Repositories\Persistence\Models\UserModel;
-use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Events\Verified;
+use Illuminate\Contracts\Notifications\Dispatcher;
 use Illuminate\Support\Facades\Event;
 use Throwable;
 
 final class EmailVerificationAdapter implements EmailVerificationPort
 {
-    public function __construct(private readonly ObservabilityPort $port) {}
+    public function __construct(
+        private readonly ObservabilityPort $port,
+        private readonly Dispatcher $notifications,
+    ) {}
 
     public function requestForRegistration(string $id): void
     {
@@ -23,11 +27,7 @@ final class EmailVerificationAdapter implements EmailVerificationPort
         $user = UserModel::query()->find(id: $id);
 
         if ($user !== null && ! $user->hasVerifiedEmail()) {
-            try {
-                Event::dispatch(new Registered(user: $user));
-            } catch (Throwable $exception) {
-                $this->reportFailure(exception: $exception, userId: $id);
-            }
+            $this->notify(user: $user);
         }
     }
 
@@ -53,7 +53,10 @@ final class EmailVerificationAdapter implements EmailVerificationPort
     private function notify(UserModel $user): void
     {
         try {
-            $user->sendEmailVerificationNotification();
+            $this->notifications->send(
+                $user,
+                new VerifyEmailNotification(expectedEmail: $user->getEmailForVerification()),
+            );
         } catch (Throwable $exception) {
             $this->reportFailure(exception: $exception, userId: $user->getKey());
         }
