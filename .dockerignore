@@ -9,6 +9,7 @@ node_modules
 vendor
 tests
 openspec
+storage/app
 storage/logs
 storage/framework/cache
 storage/framework/sessions
@@ -19,3 +20,4 @@ public/fonts-manifest.dev.json
 public/storage
 .lerd.yaml
 .lerd.local.yaml
+bootstrap/cache/*.php

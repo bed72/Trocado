@@ -37,3 +37,15 @@ Após autorização para executar as melhorias locais e confirmação de que nã
 ### Apply local posterior — STEP 6
 
 Pedido “Próxima step” autoriza somente 6.1–6.3. Inventariar tracking e manter last_used_at habilitado pela opção oficial, sem inferir aprovação para descartar histórico de atividade. Otimizar SessionAdapter por leitura fresca sem lock e releitura com lock apenas quando houver possibilidade de renovar; provar estado antigo, mudanças concorrentes e separar contenção do tracking da renovação. Não alterar Notifications, política pura, guard, limiter, schema ou autenticação.
+
+### Apply local posterior — STEP 7
+
+Pedido para executar o STEP 7 autoriza investigar a listagem e comparar índices localmente. Como não há distribuição real utilizável nos logs locais consultados nem acesso à VPS, o usuário escolheu explicitamente “Matriz sintética local”: comparar default, valor/descrição nos dois sentidos, filtros e páginas profundas sem apresentar essa matriz como frequência real. Experimentos usam cópias temporárias com owners/cardinalidades sintéticos, sem criar contas ou alterar despesas operacionais. Escolha de migration permanece condicionada ao benefício líquido medido e aprovação do índice; é válido dispensar DDL.
+
+### Apply local posterior — STEP 8
+
+Pedido “Pode seguir”, após o fechamento do STEP 7, autoriza somente 8.1–8.2: reproduzir misses simultâneos e invalidação durante fill em PostgreSQL/Redis exclusivos do launcher; comparar duplicação, espera e custo de locks por página antes de escolher adotar ou deferir. Prototipagem em suporte de testes não constitui coordenação implementada em produto. Não alterar consistência/TTL, limiter, schema, serviços ou dados operacionais; STEP 9 continua separado.
+
+### Apply local posterior — STEP 9
+
+Pedido “Pode ir para a proxima” autoriza a aceitação integrada local 9.1–9.2: rever os três arquivos de produto efetivamente otimizados, executar verificações existentes e repetir equivalência/sondas no clone dedicado, preservando as decisões de não aplicar índices e de adiar single-flight. Comparação HTTP pode alternar somente esses três arquivos entre baseline conhecido e versão final, com backup, conferência e restauração em finally. Usar um PAT temporário da conta dedicada existente, armazenado privadamente e removido ao encerrar; não criar contas, alterar despesas, cotas, caches globais ou runtime. Não autoriza deploy/tuning/carga na VPS, archive, sync de main specs, commit ou push. STEP 4 continua Blocked.
