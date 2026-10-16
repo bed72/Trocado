@@ -9,58 +9,77 @@ use App\Expense\Infrastructure\Repositories\Persistence\Models\ExpenseModel;
 use App\Identity\Infrastructure\Repositories\Persistence\Models\UserModel;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
+
+use function count;
 
 final class ExpenseSeeder extends Seeder
 {
+    private const int BATCH_SIZE = 500;
+
+    private const int EXPENSES_PER_USER = 10_000;
+
     public function run(): void
     {
-        $user = UserModel::query()->where('email', 'developer.bed@gmail.com')->firstOrFail();
         $today = CarbonImmutable::today(config('app.timezone'));
+        $expenses = $this->expenseTemplates();
         $currentMonth = $today->startOfMonth();
+        $firstDate = $currentMonth->subMonths(5);
+        $days = (int) $firstDate->diffInDays($today) + 1;
+        $timestamp = CarbonImmutable::now(config('app.timezone'));
 
-        for ($monthsAgo = 5; $monthsAgo >= 0; $monthsAgo--) {
-            $month = $currentMonth->subMonths($monthsAgo);
-            $percentage = $monthsAgo === 0 ? 135 : 100;
+        foreach (UserModel::query()->select('id')->lazyById() as $user) {
+            $existing = ExpenseModel::query()->where('user_id', $user->id)->count();
+            $batch = [];
 
-            foreach ($this->monthlyExpenses() as $expense) {
-                $date = $month->addDays($expense['day'] - 1);
+            for ($index = $existing; $index < self::EXPENSES_PER_USER; $index++) {
+                $expense = $expenses[$index % count($expenses)];
+                $date = $firstDate->addDays($index % $days);
+                $percentage = $date->greaterThanOrEqualTo($currentMonth) ? 135 : 100;
 
-                if ($date->greaterThan($today)) {
-                    continue;
-                }
-
-                ExpenseModel::query()->firstOrCreate([
+                $batch[] = [
+                    'id' => (string) Str::uuid7(),
                     'user_id' => $user->id,
                     'occurred_on' => $date->format('Y-m-d'),
                     'category' => $expense['category']->value,
                     'description' => '[Demo] '.$expense['description'],
-                ], [
                     'amount' => intdiv($expense['amount'] * $percentage, 100),
-                ]);
+                    'created_at' => $timestamp,
+                    'updated_at' => $timestamp,
+                ];
+
+                if (count($batch) === self::BATCH_SIZE) {
+                    ExpenseModel::query()->insert($batch);
+                    $batch = [];
+                }
+            }
+
+            if ($batch !== []) {
+                ExpenseModel::query()->insert($batch);
             }
         }
     }
 
-    /** @return list<array{day: int, amount: int, category: ExpenseCategoryEnum, description: string}> */
-    private function monthlyExpenses(): array
+    /** @return list<array{amount: int, category: ExpenseCategoryEnum, description: string}> */
+    private function expenseTemplates(): array
     {
         return [
-            ['day' => 1, 'amount' => 160000, 'category' => ExpenseCategoryEnum::Housing, 'description' => 'Aluguel'],
-            ['day' => 2, 'amount' => 42000, 'category' => ExpenseCategoryEnum::Food, 'description' => 'Supermercado'],
-            ['day' => 3, 'amount' => 18000, 'category' => ExpenseCategoryEnum::Transport, 'description' => 'Combustível'],
-            ['day' => 4, 'amount' => 22000, 'category' => ExpenseCategoryEnum::Food, 'description' => 'Feira e mercado'],
-            ['day' => 5, 'amount' => 5900, 'category' => ExpenseCategoryEnum::Subscriptions, 'description' => 'Streaming'],
-            ['day' => 6, 'amount' => 12500, 'category' => ExpenseCategoryEnum::Health, 'description' => 'Farmácia'],
-            ['day' => 7, 'amount' => 18000, 'category' => ExpenseCategoryEnum::Food, 'description' => 'Restaurante'],
-            ['day' => 8, 'amount' => 9900, 'category' => ExpenseCategoryEnum::Health, 'description' => 'Academia'],
-            ['day' => 12, 'amount' => 15000, 'category' => ExpenseCategoryEnum::Housing, 'description' => 'Energia elétrica'],
-            ['day' => 14, 'amount' => 12000, 'category' => ExpenseCategoryEnum::Services, 'description' => 'Internet'],
-            ['day' => 16, 'amount' => 8900, 'category' => ExpenseCategoryEnum::Leisure, 'description' => 'Cinema'],
-            ['day' => 18, 'amount' => 16000, 'category' => ExpenseCategoryEnum::Education, 'description' => 'Curso'],
-            ['day' => 20, 'amount' => 24000, 'category' => ExpenseCategoryEnum::Food, 'description' => 'Compras da semana'],
-            ['day' => 22, 'amount' => 14500, 'category' => ExpenseCategoryEnum::Shopping, 'description' => 'Roupas'],
-            ['day' => 24, 'amount' => 6500, 'category' => ExpenseCategoryEnum::Transport, 'description' => 'Transporte por aplicativo'],
-            ['day' => 26, 'amount' => 11000, 'category' => ExpenseCategoryEnum::Leisure, 'description' => 'Passeio'],
+            ['amount' => 160000, 'category' => ExpenseCategoryEnum::Housing, 'description' => 'Aluguel'],
+            ['amount' => 42000, 'category' => ExpenseCategoryEnum::Food, 'description' => 'Supermercado'],
+            ['amount' => 18000, 'category' => ExpenseCategoryEnum::Transport, 'description' => 'Combustível'],
+            ['amount' => 22000, 'category' => ExpenseCategoryEnum::Food, 'description' => 'Feira e mercado'],
+            ['amount' => 5900, 'category' => ExpenseCategoryEnum::Subscriptions, 'description' => 'Streaming'],
+            ['amount' => 12500, 'category' => ExpenseCategoryEnum::Health, 'description' => 'Farmácia'],
+            ['amount' => 18000, 'category' => ExpenseCategoryEnum::Food, 'description' => 'Restaurante'],
+            ['amount' => 9900, 'category' => ExpenseCategoryEnum::Health, 'description' => 'Academia'],
+            ['amount' => 15000, 'category' => ExpenseCategoryEnum::Housing, 'description' => 'Energia elétrica'],
+            ['amount' => 12000, 'category' => ExpenseCategoryEnum::Services, 'description' => 'Internet'],
+            ['amount' => 8900, 'category' => ExpenseCategoryEnum::Leisure, 'description' => 'Cinema'],
+            ['amount' => 16000, 'category' => ExpenseCategoryEnum::Education, 'description' => 'Curso'],
+            ['amount' => 24000, 'category' => ExpenseCategoryEnum::Food, 'description' => 'Compras da semana'],
+            ['amount' => 14500, 'category' => ExpenseCategoryEnum::Shopping, 'description' => 'Roupas'],
+            ['amount' => 6500, 'category' => ExpenseCategoryEnum::Transport, 'description' => 'Transporte por aplicativo'],
+            ['amount' => 11000, 'category' => ExpenseCategoryEnum::Leisure, 'description' => 'Passeio'],
         ];
     }
 }

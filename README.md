@@ -95,7 +95,7 @@ Na reclassificação das leituras analíticas como Repositories, os cenários do
 
 ### Dados demonstrativos
 
-Execute `lerd artisan db:seed` e informe a senha quando solicitada no terminal; a entrada fica oculta e é usada para os dois usuários demonstrativos. Os seeders garantem Gabriel Ramos (`developer.bed@gmail.com`) e Kelly Codolino (`kelly.cordolino@gmail.com`) como contas ativas e verificadas. Gabriel recebe despesas do mês atual até a data da execução e dos cinco meses anteriores; Kelly não recebe despesas. Despesas existentes são preservadas, e executar novamente não duplica os registros demonstrativos identificados por `[Demo]`.
+Execute `lerd artisan db:seed` e informe a senha quando solicitada no terminal; a entrada fica oculta e é usada para os dois usuários demonstrativos. Os seeders garantem Gabriel Ramos (`developer.bed@gmail.com`) e Kelly Codolino (`kelly.cordolino@gmail.com`) como contas ativas e verificadas. Para cada usuário existente, a seed completa o total até **10 mil despesas**, preservando os registros anteriores e contas que já têm esse volume ou mais. As despesas novas têm UUIDv7 e prefixo `[Demo]`, são distribuídas do início do quinto mês anterior até hoje e inseridas em lotes de 500. Reexecutar sem remover despesas não adiciona novos registros depois de atingir o total.
 
 ## Produção
 
