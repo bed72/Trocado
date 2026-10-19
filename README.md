@@ -14,7 +14,7 @@ O cache da listagem de Expense é implementado em Infrastructure por decorator d
 
 ## Executar localmente
 
-Requer PHP 8.5 com `pdo_pgsql`, Composer e PostgreSQL. O cache e as filas usam Redis; para compilar os assets, use Node 22 e npm. Com Lerd, na raiz do projeto:
+O ambiente de referência usa PHP 8.5, Composer, PostgreSQL e Redis, com as extensões PHP `pdo_pgsql` e `redis` (cliente `phpredis`). Para compilar os assets, use Node 24, conforme `.node-version`, e npm. Com Lerd, na raiz do projeto:
 
 ```sh
 composer install
@@ -26,7 +26,22 @@ lerd artisan migrate
 
 `lerd db set postgres` provisiona `trocado` e `trocado_testing`; `lerd env setup` configura a conexão local em `.env`. No Lerd, defina `TRUSTED_PROXIES=*` no `.env` local para reconhecer o HTTPS do proxy. O projeto não usa PostgreSQL Row Level Security nem role de runtime específica para isso. Rode migrations com a conexão normal do ambiente.
 
-Para executar sem Lerd, copie `.env.example` para `.env`, configure `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME` e `DB_PASSWORD` localmente, crie os bancos PostgreSQL `trocado` e `trocado_testing`, gere a chave com `php artisan key:generate` e rode `php artisan migrate`. Configure `APP_URL` para a URL usada pelo servidor. Não inclua credenciais em arquivos versionados.
+Para executar sem Lerd, copie `.env.example` para `.env`, configure `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME` e `DB_PASSWORD` localmente, crie os bancos PostgreSQL `trocado` e `trocado_testing`, gere a chave com `php artisan key:generate` e rode `php artisan migrate`. Inicie Redis e configure `REDIS_HOST`, `REDIS_PORT` e `REDIS_PASSWORD` conforme o serviço local; `.env.example` usa `REDIS_CLIENT=phpredis`, `CACHE_STORE=redis`, `CACHE_LIMITER_STORE=redis` e `QUEUE_CONNECTION=redis`. Configure `APP_URL` para a URL usada pelo servidor. Não inclua credenciais em arquivos versionados.
+
+### Filas e processos locais
+
+No Lerd, confira no dashboard os workers declarados em `.lerd.yaml`: `queue` consome `default` (incluindo confirmação de e-mail), `expense-classification` consome a fila de classificação e `schedule` executa o Scheduler. Inicie os necessários e confira seus logs; migrations não iniciam esses processos.
+
+Sem Lerd, mantenha os processos abaixo em terminais separados ou sob um supervisor:
+
+```sh
+php artisan serve
+php artisan queue:work redis --queue=default --tries=3 --timeout=60 --sleep=1
+php artisan queue:work redis --queue=expense-classification --tries=3 --timeout=60 --sleep=1
+php artisan schedule:work
+```
+
+Os nomes acima são os padrões versionados; se alterar `EXPENSE_CLASSIFICATION_QUEUE`, ajuste também a fila consumida pelo worker. Configure `EXPENSE_CLASSIFICATION_API_KEY` ou a credencial do provedor selecionado para usar a classificação por IA. O mailer padrão é `log`; configure um transport local, como SMTP/Mailpit, para receber os e-mails fora dos logs. O Scheduler remove tokens expirados pelo comando diário `sanctum:prune-expired`.
 
 ### Organização dos testes
 
@@ -68,7 +83,7 @@ lerd composer test -- --parallel --processes=2 --compact --fail-on-skipped --fai
 
 Unit puro e listagem (`--list-tests`) não provisionam banco nem executam migrations. Invocações diretas de Pest/PHPUnit/Artisan que tentem executar Feature sem o manifesto do launcher falham antes da limpeza/fixtures e indicam o comando correto. O guard recusa SQLite, `DB_URL`, nome não registrado e destino efetivo/ownership divergentes; não basta conter `testing` no nome. Não use `migrate:fresh`.
 
-O paralelo usa Pest/ParaTest nativos; informe `--processes=2` ou mais (default do launcher: 2). O preflight registra os tokens, prepara incrementalmente `<base>_test_<token>` e valida ownership antes de liberar cada processo. Opções de recriação/drop e desativação dos tokens são recusadas: o launcher controla esse lifecycle. ParaTest aceita um único caminho por invocação; selecione uma pasta, `--testsuite` ou `--group` para conjuntos maiores. Os caminhos de `tests/Feature/{Core,Identity,Expense,Insights,Metrics}` selecionam os contextos.
+O paralelo usa Pest/ParaTest nativos; informe `--processes=2` ou mais (default do launcher: 2). O preflight registra os tokens, prepara incrementalmente `<base>_test_<token>` e valida ownership antes de liberar cada processo. Opções de recriação/drop e desativação dos tokens são recusadas: o launcher controla esse lifecycle. ParaTest aceita um único caminho por invocação; selecione uma pasta, `--testsuite` ou `--group` para conjuntos maiores. Os caminhos de `tests/Feature/{Core,Identity,Expense,Notifications,Insights,Metrics}` selecionam os contextos.
 
 Cada cenário Feature recebe namespace Redis e filas com runId/token/identidade de cenário e arquivos temporários exclusivos. Cache/limiter comuns continuam array; a integração real seleciona Redis explicitamente. Teardown remove somente as chaves do namespace registrado, sem FLUSHALL/FLUSHDB, limpa `failed_jobs`, `jobs`, tokens, despesas e contas, preserva migrations/sequências e reverte transações abertas. Novas tabelas mutáveis precisam ser classificadas em `TestDatabaseCleanup`; tabela desconhecida interrompe fixtures. O ciclo da aplicação restaura bindings/listeners/fakes/guards, e o suporte restaura relógios/timezone/canais/query logs.
 
@@ -170,7 +185,7 @@ Use a coleção `bruno/` com uma conta controlada ativa/verificada. Preencha os 
 
 Para CLI, use arquivo privado fora da coleção com permissão `0600`, `bru run <casos> --env-file <arquivo>` e não exponha segredos via `--env-var`/argumentos. Limite a execução a casos selecionados (Delete User remove a conta); retire PAT/dados criados, invalide o cache somente desse owner e remova arquivos privados ao terminar. Não rode a coleção inteira contra produção. Assertions de estabilidade usam baselines somente em memória da execução; reinicie a execução ao trocar conta ou cenário. Parsing/round trip não equivalem a abertura GUI; execução CLI não comprova homologação Flutter/FCM.
 
-A conversão local do STEP 12 invalidou IDs, PATs, links assinados e cursores anteriores; não existe alias inteiro ou backfill. O bootstrap UUID não é uma migração de dados de produção. Rollback local exige release compatível e nova autorização para recriar apenas o desenvolvimento confirmado, sem promessa de preservação. A collation própria pode sobreviver ao drop de tabelas; qualquer tratamento exige conferir dependências e o alvo, sem CASCADE indiscriminado.
+A conversão local documentada na [mudança arquivada de UUIDv7](openspec/changes/archive/2026-10-16-standardize-uuid-v7-identifiers/) invalidou IDs, PATs, links assinados e cursores anteriores; não existe alias inteiro ou backfill. O bootstrap UUID não é uma migração de dados de produção. Rollback local exige release compatível e nova autorização para recriar apenas o desenvolvimento confirmado, sem promessa de preservação. A collation própria pode sobreviver ao drop de tabelas; qualquer tratamento exige conferir dependências e o alvo, sem CASCADE indiscriminado.
 
 ## Autenticação
 
@@ -318,6 +333,14 @@ Edite filtros pela aba Params para manter a URL sincronizada, sem acrescentar ou
 ### Entrega coordenada do catálogo
 
 Consumidores com listas/enums fechados devem aceitar os dezoito identificadores antes da entrega. Atualize conjuntamente enum, instruções/schema do classificador e rótulos de Insights; reinicie os workers residentes de classificação conforme o processo de deploy para que carreguem o código novo. Depois de persistir novas categorias, um rollback deve manter os dezoito valores aceitos: reverter ao enum antigo pode invalidar leituras e métricas. Não converta os valores silenciosamente para `other`; correções de agente/templates podem preservar o catálogo e os dados.
+
+## Monitoramento com Nightwatch
+
+O projeto já integra Laravel Nightwatch, além dos eventos JSON de observabilidade. Para habilitar o envio, configure `NIGHTWATCH_TOKEN` como segredo do ambiente. `.env.example` define amostragem de requests em `0.2` e nível de logs `info`; esses valores podem ser ajustados no ambiente. Para desabilitar a captura, use `NIGHTWATCH_ENABLED=false`.
+
+Em produção, o Compose inclui `nightwatch-agent`, escutando em `0.0.0.0:2407` somente na rede interna `default`, sem porta publicada. Os containers de aplicação usam `NIGHTWATCH_INGEST_URI=nightwatch-agent:2407`. Confira a saúde e os logs desse serviço após o deploy. No ambiente local, `.lerd.yaml` não declara um worker Nightwatch; se optar pela captura, mantenha `php artisan nightwatch:agent` em um processo separado no mesmo ambiente PHP da aplicação, cujo destino padrão é `127.0.0.1:2407`.
+
+O `CoreServiceProvider` remove a query das URLs capturadas e oculta ID/hash do caminho de verificação de e-mail. Essa proteção é específica de URLs e não substitui a revisão dos demais dados enviados ao serviço.
 
 ## Eventos de observabilidade
 

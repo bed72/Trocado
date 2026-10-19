@@ -87,7 +87,13 @@ it('deletes only owned registration and gives uniform not found responses', func
     Auth::forgetGuards();
     $remaining = $this->withToken($token)->postJson('/api/push-registrations', NotificationRegistrationFixture::payload(NotificationRegistrationFixture::OtherInstallation, 'remaining-token'))->assertCreated()->json('data.id');
     Auth::forgetGuards();
-    $otherResponse = $this->withToken($otherToken)->deleteJson('/api/push-registrations/'.$id)->assertNotFound()->json();
+    $otherResponse = $this->withToken($otherToken)->deleteJson('/api/push-registrations/'.$id)->assertNotFound()
+        ->assertHeader('Content-Type', 'application/vnd.api+json')
+        ->assertExactJson(['errors' => [[
+            'title' => 'Registro push não encontrado',
+            'detail' => 'O registro push não foi encontrado.',
+            'status' => '404',
+        ]]])->json();
     expect(NotificationModel::query()->count())->toBe(2);
     Auth::forgetGuards();
     $this->withToken($token)->deleteJson('/api/push-registrations/'.strtoupper($id))->assertNoContent();

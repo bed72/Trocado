@@ -12,7 +12,7 @@
 - Em PHP, importe explicitamente toda classe usada com `use`, inclusive classes globais usadas como atributos, como `SensitiveParameter`; não dependa da resolução pelo namespace atual nem use nomes totalmente qualificados inline.
 - Não faça refactors amplos ou crie dependências sem solicitação.
 - Se uma mudança conflitar com a arquitetura, explique o trade-off e proponha a menor alteração antes de mudar as regras.
-- Execute verificações adequadas e Laravel Pint, quando disponível, antes de concluir. Nesta POC, não adicione usuários, autenticação, Expense, Couple, filas, jobs, IA ou testes sem nova solicitação.
+- Execute verificações adequadas e Laravel Pint, quando disponível, antes de concluir. Não amplie o escopo solicitado com novas features, contextos, filas, jobs, integrações de IA ou testes; a existência dessas capacidades no projeto não autoriza ampliá-las. Revisões exclusivamente documentais não exigem executar testes da aplicação nem Pint.
 - O ambiente local usa Lerd. Antes de operá-lo, leia [as instruções existentes](.ai/lerd.md).
 - No ambiente Lerd, execute `lerd artisan migrate` após atualizar o código ou criar migrations quando houver migrations pendentes e antes de testar fluxos que dependem do novo schema. Migrations não são executadas antes de cada request; não use `migrate:fresh` sem autorização explícita, pois ele apaga os dados.
 
@@ -70,7 +70,7 @@ Estas orientações e a seção [Arquitetura dos testes](ARCHITECTURE.md#arquite
 
 # Domain
 
-- Mantenha Domain em PHP puro: Entities, Value Objects, Domain Services, exceções e invariantes.
+- Mantenha Domain em PHP puro: Entities, Value Objects, exceções e invariantes. Conforme `ARCHITECTURE.md`, não crie classes `Service` ou Domain Services; a orquestração pertence aos UseCases.
 - Proíba dependências de Laravel, Illuminate, Eloquent, facades, HTTP, container, banco, migrations, Infrastructure e Presentation.
 - Domain não conhece persistência nem serialização. Proteja invariantes também fora do Form Request.
 - Crie Value Objects só para conceitos reais; prefira imutabilidade e não crie interfaces para Entities ou Value Objects.
@@ -230,7 +230,7 @@ Before relying on a package's API, confirm its installed version:
 
 ### Model Creation
 
-- When creating new models, create useful factories and seeders for them too. Ask the user if they need any other things, using `php artisan make:model --help` to check the available options.
+- When creating models, place them in the owning context's Infrastructure layer. Do not generate factories, seeders, or tests automatically; add them only when explicitly in scope and follow the project's test architecture.
 
 ## APIs & Eloquent Resources
 
