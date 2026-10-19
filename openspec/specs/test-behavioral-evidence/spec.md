@@ -258,22 +258,36 @@ A suíte MUST preservar despacho pós-commit, ausência de inferência no HTTP, 
 
 ### Requirement: BEH-13 Insights independente de variante incidental
 
-Testes de integração de Insights MUST aceitar todas as variantes editoriais válidas para o mesmo significado e MUST NOT depender de ID gerado, ordem anterior, reinício de sequência ou um fragmento presente em somente uma variante. Catálogo/composição MUST ter testes focados de todas as variantes, Unicode, orçamento, labels, fallback completo, ciclos e estabilidade diária. IDs determinísticos MUST ser testados com dimensões explícitas de conta, assunto e período sem copiar o algoritmo de hashing.
+Testes de integração MUST aceitar todas as variantes válidas sem depender de ID gerado, sequência, ordem anterior ou literal de uma só variante. Catálogo/composição MUST testar conjuntos completos, alternativas de par, 80/81 grafemas incluindo separador, título 24, acentos/emojis compostos, rótulos longos, períodos e estabilidade/ciclos. MUST comprovar valor BRL exato por strings, centavos não nulos, montantes acima de PHP_INT_MAX, ausência de percentuais/proporções e falha explícita sem remover/arredondar dinheiro quando nenhuma alternativa couber. MUST testar que liderança publica valor da categoria no selecionado, não soma de três meses, e maior lançamento publica seu próprio valor. MUST comprovar segurança do texto do usuário e deduplicação semântica/textual antes da identidade final. IDs MUST ser testados com conta/assunto/período explícitos, sem copiar algoritmo de identidade. Revisão humana MUST complementar assertions; regex/tamanho MUST NOT ser declarados prova suficiente de utilidade, fidelidade ou layout.
+
+#### Scenario: Valor muda sem trocar identidade ou variante
+- **WHEN** somente valores de uma projeção mudam mantendo identidade e elegibilidade
+- **THEN** UUID e variante permanecem estáveis e o montante textual é atualizado
+
+#### Scenario: Catálogo direto e temporal
+- **WHEN** todas as variantes/modos e alternativas são exercitados
+- **THEN** têm montante real e interpretação útil, sem percentuais nem frase decorativa
+- **AND** não exigem dias/anos financeiros no texto quando period já os fornece
+
+#### Scenario: Falhas e segurança
+- **WHEN** dinheiro integral não cabe ou descrição de usuário é insegura
+- **THEN** o primeiro caso falha explicitamente e o segundo usa identificação factual segura
+- **AND** não inventa onboarding/valor, não produz parcial e não publica ofensa/percentual
 
 #### Scenario: Liderança recorrente com contas diferentes
-- **WHEN** dados equivalentes de liderança são analisados com diferentes IDs positivos
-- **THEN** todos os resultados válidos de composição passam o contrato de significado/limites
-- **AND** ausência da frase literal dois meses anteriores em uma variante não reprova a integração
+- **WHEN** liderança equivalente é analisada com UUIDs explícitos de contas diferentes
+- **THEN** todas as variantes válidas passam os contratos de valor, significado e limites
+- **AND** a integração não exige um literal exclusivo de uma variante ou uma frase sobre os dois meses anteriores
 
 #### Scenario: Catálogo completo
-- **WHEN** cada conjunto editorial percorre um ciclo completo com IDs/datas explícitos
-- **THEN** todas as variantes são exercitadas, os placeholders são preenchidos e limites Unicode respeitados
-- **AND** percentuais muito longos usam alternativa completa ou falha explícita, sem truncamento
+- **WHEN** todos os conjuntos e alternativas percorrem ciclos com contas/datas explícitas
+- **THEN** preservam fatos, montantes integrais, preenchimento de placeholders e limites Unicode
+- **AND** montante que não cabe usa alternativa completa ou falha explícita, sem truncamento ou retirada do dinheiro
 
 #### Scenario: Números mudam no mesmo dia
-- **WHEN** somente os valores de uma projeção mudam mantendo conta, fatos identificadores e períodos
-- **THEN** ID/título permanecem estáveis enquanto o percentual/descrição pertinente muda
-- **AND** a expectativa usa valores independentes conhecidos
+- **WHEN** só os valores mudam mantendo conta, assunto, períodos e significado elegível
+- **THEN** conserva UUID/variante e atualiza o dinheiro pertinente na mesma redação
+- **AND** expected usa valores independentes conhecidos, sem copiar o cálculo de produção
 
 ### Requirement: BEH-14 Insights mantém análise regras e contrato HTTP
 

@@ -223,14 +223,15 @@ it('generates candidates from the real analytical projection', function (?int $e
 
     $message = app(ComposeInsightMessageUseCase::class)->execute($userId, $selected[0], '2026-10-12');
     $templates = app(GetInsightMessageTemplatesUseCase::class)->execute($selected[0]);
-    $parameters = ['{category}' => 'Alimentação', '{month}' => 'out/2026', '{first_month}' => 'ago/2026', '{previous_month}' => 'set/2026', '{day}' => '12'];
+    $parameters = ['{category}' => 'Alimentação', '{month}' => 'outubro', '{amount}' => 'R$ 100'];
     $approvedDescriptions = array_map(static fn (InsightMessageTemplateOutput $template): string => strtr($template->description, $parameters), $templates);
 
     expect($message->title)->toBe('Alimentação')
         ->and($message->description)->toBeIn($approvedDescriptions)
+        ->and($selected[0]->selectedCategoryAmount->amount())->toBe('10000')
         ->and(str_contains($message->description, '{'))->toBeFalse()
-        ->and(mb_strlen($message->title, 'UTF-8'))->toBeLessThanOrEqual(24)
-        ->and(mb_strlen($message->description, 'UTF-8'))->toBeLessThanOrEqual(80);
+        ->and(grapheme_strlen($message->title))->toBeLessThanOrEqual(24)
+        ->and(grapheme_strlen($message->title.' '.$message->description))->toBeLessThanOrEqual(80);
 })->with([
     'explicit account 1' => [1, 0],
     'explicit account 2' => [2, 0],

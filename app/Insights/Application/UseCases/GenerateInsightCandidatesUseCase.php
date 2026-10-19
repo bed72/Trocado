@@ -119,6 +119,7 @@ final class GenerateInsightCandidatesUseCase
                     mode: $mode,
                     category: $leader,
                     type: InsightTypeEnum::CategoryLeadStreak,
+                    selectedCategoryAmount: $current->categoryAmount($leader),
                     analysisPeriod: DatePeriodValueObject::fromDates($twoMonthsAgo->period->from(), $current->period->to()),
                 );
             }

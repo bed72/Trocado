@@ -80,7 +80,7 @@ it('returns isolated ordered JSON API insights with exact contract and one analy
     $analyticalQueries = array_values(array_filter($queries, static fn (array $query): bool => str_starts_with($query['query'], 'WITH periods')));
 
     expect($analyticalQueries)->toHaveCount(1)
-        ->and(str_contains($response->json('data.0.attributes.description'), '100%'))->toBeTrue()
+        ->and($response->json('data.0.attributes.title'))->toBe('Total registrado subiu')
         ->and($response->json('data.1.attributes.title'))->toBe('Alimentação')
         ->and(array_keys($response->json()))->toBe(['data'])
         ->and(DB::table('expenses')->orderBy('id')->get()->all())->toEqual($expensesBefore)
@@ -91,8 +91,9 @@ it('returns isolated ordered JSON API insights with exact contract and one analy
             ->and($resource['id'])->toMatch('/\A[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z/')
             ->and(array_keys($resource))->toEqualCanonicalizing(['type', 'id', 'attributes'])
             ->and(array_keys($resource['attributes']))->toEqualCanonicalizing(['group', 'type', 'title', 'description', 'period'])
-            ->and(mb_strlen($resource['attributes']['title'], 'UTF-8'))->toBeLessThanOrEqual(24)
-            ->and(mb_strlen($resource['attributes']['description'], 'UTF-8'))->toBeLessThanOrEqual(80);
+            ->and(grapheme_strlen($resource['attributes']['title']))->toBeLessThanOrEqual(24)
+            ->and(grapheme_strlen($resource['attributes']['title'].' '.$resource['attributes']['description']))->toBeLessThanOrEqual(80)
+            ->and($resource['attributes']['description'])->toContain($resource['attributes']['type'] === 'registered_amount_increase' ? 'R$ 100' : 'R$ 200')->not->toContain('%');
     }
 });
 
@@ -128,12 +129,13 @@ it('serializes the selected expense identification as literal text with no expen
     $attributes = $response->json('data.0.attributes');
     $identity = str_replace('{date}', $closed ? '05/09' : '05/10', $identity);
 
-    expect($attributes['title'])->toBe($closed ? 'Maior despesa · set/2026' : 'Maior · out/2026 até 12')
+    $monthName = $closed ? 'setembro' : 'outubro';
+    expect($attributes['title'])->toBe($identity)
         ->and($attributes['description'])->toBeIn([
-            $identity.': 55% do total registrado · R$ 1.200,00.',
-            $identity.' representa 55% do total registrado · R$ 1.200,00.',
-            $identity.' responde por 55% do total registrado · R$ 1.200,00.',
-            $identity.' soma 55% do total registrado · R$ 1.200,00.',
+            'R$ 1.200 em '.$monthName.'; maior lançamento.',
+            'Maior lançamento em '.$monthName.': R$ 1.200.',
+            'Em '.$monthName.', R$ 1.200; maior lançamento.',
+            'R$ 1.200; maior registro de '.$monthName.'.',
         ])
         ->and(array_keys($attributes))->toEqualCanonicalizing(['group', 'type', 'title', 'description', 'period'])
         ->and($attributes['period']['from'])->toBe($month.'-01')
@@ -234,7 +236,7 @@ it('reflects confirmed recategorization date edits and deletion on the next HTTP
         ->assertJsonPath('data.0.attributes.type', 'first_expense');
 });
 
-it('keeps IDs and the chosen title while a confirmed value edit refreshes the percentage', function (): void {
+it('keeps IDs and wording while refreshing the real amount after a confirmed edit', function (): void {
     $user = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
     $userId = $user->getKey();
     $token = IdentityFixture::token($user, expiresAt: now()->addDays(30));
@@ -246,8 +248,8 @@ it('keeps IDs and the chosen title while a confirmed value edit refreshes the pe
 
     expect($first['id'])->toBe($second['id'])
         ->and($first['attributes']['title'])->toBe($second['attributes']['title'])
-        ->and(str_contains($first['attributes']['description'], '60%'))->toBeTrue()
-        ->and(str_contains($second['attributes']['description'], '64%'))->toBeTrue();
+        ->and($first['attributes']['description'])->toContain('R$ 60')
+        ->and($second['attributes']['description'])->toBe(str_replace('R$ 60', 'R$ 70', $first['attributes']['description']))->not->toContain('%');
 });
 
 it('resolves the reference date in app timezone and excludes only future historical records', function (): void {

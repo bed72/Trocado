@@ -34,7 +34,7 @@ it('composes each expanded category at forty percent from isolated PostgreSQL fa
         ->assertJsonPath('data.0.attributes.period.from', $month.'-01')
         ->assertJsonPath('data.0.attributes.period.to', $month.($closed ? '-30' : '-12'));
     $attributes = $response->json('data.0.attributes');
-    expect($attributes['title'].' '.$attributes['description'])->toContain($label, '40%')
+    expect($attributes['title'].' '.$attributes['description'])->toContain($label, 'R$ 400')->not->toContain('%')
         ->not->toMatch('/consumo|prejuízo|rendimento|retorno|patrimônio|renda|destino|capacidade financeira/iu')
         ->and(array_keys($attributes))->toEqualCanonicalizing(['group', 'type', 'title', 'description', 'period'])
         ->and(DB::table('expenses')->orderBy('id')->get()->all())->toEqual($before);
@@ -52,7 +52,7 @@ it('includes investment contributions in the denominator and deduplicates the ma
     $response = $this->getJson(route('insights.index', $closed ? ['filter' => ['year' => 2026, 'month' => 9]] : []))
         ->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.attributes.type', 'category_concentration');
     expect($response->json('data.0.attributes.title').' '.$response->json('data.0.attributes.description'))
-        ->toContain('Investimentos', '60%')->not->toMatch('/consumo|prejuízo|rendimento|retorno|patrimônio|renda/iu');
+        ->toContain('Investimentos', 'R$ 600')->not->toMatch('/%|consumo|prejuízo|rendimento|retorno|patrimônio|renda/iu');
 })->with(['current' => false, 'closed' => true]);
 
 it('preserves financing leadership across three eligible months and suppresses overlapping concentration cards', function (bool $closed): void {

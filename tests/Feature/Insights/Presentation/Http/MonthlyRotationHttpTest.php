@@ -47,10 +47,10 @@ it('keeps historical candidates ordered and stable within a day and rotates thro
         $data = $response->json('data');
         $responses[] = $data;
 
-        expect($data[0]['attributes']['title'])->toContain('set/2026')
-            ->and($data[0]['attributes']['description'])->toContain('50%')
-            ->and($data[1]['attributes']['title'])->toBe('Outros · set/2026')
-            ->and($data[1]['attributes']['description'])->toContain('60%');
+        expect($data[0]['attributes']['title'])->toBe('Outros · 01/09')
+            ->and($data[0]['attributes']['description'])->toContain('R$ 50', 'setembro')->not->toContain('%')
+            ->and($data[1]['attributes']['title'])->toContain('Outros')
+            ->and($data[1]['attributes']['description'])->toContain('setembro', 'R$ 60')->not->toContain('%');
 
         Date::setTestNow($date.' 20:00:00 UTC');
         Auth::forgetGuards();
@@ -58,7 +58,7 @@ it('keeps historical candidates ordered and stable within a day and rotates thro
     }
 
     foreach ([0, 1] as $index) {
-        $descriptions = array_map(static fn (array $data): string => $data[$index]['attributes']['description'], $responses);
+        $descriptions = array_map(static fn (array $data): string => $data[$index]['attributes']['title'].' '.$data[$index]['attributes']['description'], $responses);
         expect(array_unique(array_slice($descriptions, 0, 4)))->toHaveCount(4)
             ->and($descriptions[1])->not->toBe($descriptions[0])
             ->and($descriptions[4])->toBe($descriptions[0]);
@@ -85,7 +85,7 @@ it('updates values and eligibility immediately after confirmed same day expense 
     $url = route('insights.index').$query;
     $first = $this->withToken($token)->getJson($url)->assertOk()->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.attributes.type', 'category_concentration')->json('data.0.attributes');
-    expect($first['description'])->toContain('38%');
+    expect($first['description'])->toContain('R$ 38')->not->toContain('%');
 
     if ($insert) {
         $ids[] = DB::table('expenses')->insertGetId([
@@ -100,9 +100,9 @@ it('updates values and eligibility immediately after confirmed same day expense 
     Auth::forgetGuards();
     $updated = $this->withToken($token)->getJson($url)->assertOk()->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.attributes.type', 'category_concentration')->json('data.0.attributes');
-    expect($updated['description'])->toContain('42%')
+    expect($updated['description'])->toContain('R$ 44,90')->not->toContain('%')
         ->and($updated['title'])->toBe($first['title'])
-        ->and($updated['description'])->toBe(str_replace('38%', '42%', $first['description']))
+        ->and($updated['description'])->toBe(str_replace('R$ 38', 'R$ 44,90', $first['description']))
         ->and($updated['period'])->toBe($first['period']);
 
     $categories = ['food', 'housing', 'transport', 'other', 'leisure', 'education'];
@@ -140,6 +140,6 @@ it('rotates historical text at the application civil midnight rather than UTC mi
     $next = $this->withToken($token)->getJson($url)->assertOk()
         ->assertJsonPath('data.0.attributes.type', 'insufficient_history')
         ->assertJsonPath('data.0.attributes.period', null)->json('data.0.attributes');
-    expect($next['title'])->toBe($first['title'])->toContain('set/2026')
-        ->and($next['description'])->not->toBe($first['description']);
+    expect($next['title'].' '.$next['description'])->toContain('setembro de 2026')
+        ->and([$next['title'], $next['description']])->not->toBe([$first['title'], $first['description']]);
 });

@@ -22,6 +22,7 @@ use App\Insights\Application\UseCases\GenerateInsightCandidatesUseCase;
 use App\Insights\Application\UseCases\GetInsightMessageTemplatesUseCase;
 use App\Insights\Application\UseCases\GetInsightsUseCase;
 use App\Insights\Application\UseCases\SelectInsightCandidatesUseCase;
+use App\Insights\Application\UseCases\SelectInsightMessagesUseCase;
 use App\Insights\Application\UseCases\SelectInsightMessageVariantUseCase;
 use App\Insights\Domain\Enums\InsightGroupEnum;
 use App\Insights\Domain\Enums\InsightPeriodModeEnum;
@@ -87,6 +88,7 @@ function getInsightsFixtureUseCase(UserPort $userPort, ExpenseAnalysisRepository
         port: $userPort,
         repository: $analysisPort,
         candidateSelectionUseCase: new SelectInsightCandidatesUseCase,
+        messageSelectionUseCase: new SelectInsightMessagesUseCase,
         candidateGenerationUseCase: new GenerateInsightCandidatesUseCase,
         resourceUseCase: new ResourceUseCase(new TransactionPortFake, $resourceRepository),
         messageCompositionUseCase: new ComposeInsightMessageUseCase(new GetInsightMessageTemplatesUseCase, new SelectInsightMessageVariantUseCase),
@@ -105,7 +107,7 @@ it('obtains the owner from its port and returns composed typed insights', functi
         ->and($insights[0]->id)->toBe(UuidFixture::at(100))
         ->and($insights[0]->type)->toBe(InsightTypeEnum::CategoryConcentration)
         ->and($insights[0]->group)->toBe(InsightGroupEnum::Observation)
-        ->and(str_contains($insights[0]->description, '60%'))->toBeTrue()
+        ->and($insights[0]->description)->toContain('outubro', 'R$ 300')->not->toContain('%')
         ->and($insights[0]->period->to())->toBe('2026-10-12')
         ->and($insights[0]->comparisonPeriod)->toBeNull();
 });
@@ -123,9 +125,36 @@ it('keeps associated IDs and variants stable when only numbers change', function
 
     expect($first->id)->toBe($second->id)
         ->and($first->title)->toBe($second->title)
-        ->and(str_contains($first->description, '60%'))->toBeTrue()
-        ->and(str_contains($second->description, '62%'))->toBeTrue()
-        ->and(str_replace('60%', '62%', $first->description))->toBe($second->description);
+        ->and($first->description)->toContain('R$ 300')
+        ->and($second->description)->toBe(str_replace('R$ 300', 'R$ 330', $first->description))->not->toContain('%');
+});
+
+it('refreshes the selected month category amount in recurring leadership without changing its identity or variant', function (): void {
+    $port = $this->createStub(UserPort::class);
+    $port->method('id')->willReturn(UuidFixture::at(42));
+    $analyses = [];
+    foreach (['30000', '33000'] as $categoryAmount) {
+        $current = getInsightsAnalysisFixture(categoryAmount: $categoryAmount);
+        $analyses[] = new ExpenseAnalysisOutput(
+            mode: InsightPeriodModeEnum::Current, hasHistoricalExpenses: true,
+            currentMonth: $current->currentMonth,
+            previousMonth: getInsightsAnalysisFixture(categoryAmount: '60000', to: '2026-09-30', mode: InsightPeriodModeEnum::Closed)->currentMonth,
+            twoMonthsAgo: getInsightsAnalysisFixture(categoryAmount: '70000', to: '2026-08-31', mode: InsightPeriodModeEnum::Closed)->currentMonth,
+            currentComparison: null, previousComparison: null,
+        );
+    }
+    $repository = $this->createMock(ExpenseAnalysisRepository::class);
+    $repository->expects($this->exactly(2))->method('analyze')->willReturnOnConsecutiveCalls(...$analyses);
+    $useCase = getInsightsFixtureUseCase($port, $repository);
+    $input = new GetInsightsInput('2026-10-12', DatePeriodValueObject::monthContaining('2026-10-01'));
+    $before = $useCase->execute($input);
+    $after = $useCase->execute($input);
+    expect($before)->toHaveCount(1)->and($after)->toHaveCount(1)
+        ->and($before[0]->type)->toBe(InsightTypeEnum::CategoryLeadStreak)
+        ->and($before[0]->description)->toContain('R$ 300')
+        ->and($after[0]->description)->toBe(str_replace('R$ 300', 'R$ 330', $before[0]->description))
+        ->and($after[0]->id)->toBe($before[0]->id)
+        ->and($after[0]->period)->toEqual($before[0]->period);
 });
 
 it('rotates historical messages by the visit day while reading the same complete selected periods on every visit', function (): void {
@@ -153,7 +182,7 @@ it('rotates historical messages by the visit day while reading the same complete
             ->and($insights[0]->group)->toBe(InsightGroupEnum::Observation)
             ->and($insights[0]->period)->toEqual($selected)
             ->and($insights[0]->id)->toBe($first[0]->id)
-            ->and($insights[0]->description)->toContain('60%', 'set/2026');
+            ->and($insights[0]->description)->toContain('setembro', 'R$ 300')->not->toContain('%');
         $pairs[] = $insights[0]->title.'|'.$insights[0]->description;
     }
 
@@ -175,11 +204,11 @@ it('recalculates historical values in the same visit day without changing the da
     $first = $useCase->execute($input)[0];
     $updated = $useCase->execute($input)[0];
 
-    expect($first->description)->toContain('60%', 'set/2026')
-        ->and($updated->description)->toContain('62%', 'set/2026')
+    expect($first->description)->toContain('setembro', 'R$ 300')->not->toContain('%')
+        ->and($updated->description)->toContain('setembro', 'R$ 330')
         ->and($updated->title)->toBe($first->title)
         ->and($updated->id)->toBe($first->id)
-        ->and($updated->description)->toBe(str_replace('60%', '62%', $first->description));
+        ->and($updated->description)->toBe(str_replace('R$ 300', 'R$ 330', $first->description));
 });
 
 it('keeps the resource ID independent of the rotating message for the same analyzed periods', function (): void {
@@ -334,8 +363,10 @@ it('keeps expense and review IDs independent of expense description and interpol
         ->and($updated)->toHaveCount(2)
         ->and($first[0]->type)->toBe(InsightTypeEnum::ExpenseConcentration)
         ->and($first[1]->type)->toBe(InsightTypeEnum::CategoryReview)
-        ->and($first[0]->description)->toContain('Aluguel', '50%')
-        ->and($updated[0]->description)->toContain('Mensalidade', '55%')
+        ->and($first[0]->title)->toBe('Aluguel')
+        ->and($updated[0]->title)->toBe('Mensalidade')
+        ->and($first[0]->description)->toContain('R$ 50')->not->toContain('%')
+        ->and($updated[0]->description)->toContain('R$ 55')->not->toContain('%')
         ->and($updated[0]->id)->toBe($first[0]->id)
         ->and($updated[1]->id)->toBe($first[1]->id)
         ->and($first[1]->period)->toBeNull()

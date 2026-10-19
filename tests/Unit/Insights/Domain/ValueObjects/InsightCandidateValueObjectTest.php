@@ -21,6 +21,7 @@ function candidateValueObjectFixture(
     return new InsightCandidateValueObject(
         type: $type,
         category: $category,
+        selectedCategoryAmount: $type === InsightTypeEnum::CategoryLeadStreak ? AmountValueObject::fromAmount('30000') : null,
         historyState: $historyState,
         analysisPeriod: DatePeriodValueObject::fromDates('2026-10-01', '2026-10-11'),
         expenseOccurredOn: $type === InsightTypeEnum::ExpenseConcentration ? '2026-10-01' : null,
@@ -108,6 +109,7 @@ it('preserves the full three period span for recurring leadership', function ():
         type: InsightTypeEnum::CategoryLeadStreak,
         analysisPeriod: $span,
         category: 'food',
+        selectedCategoryAmount: AmountValueObject::fromAmount('30000'),
     );
 
     expect($candidate->period())->toBe($span)
@@ -115,7 +117,16 @@ it('preserves the full three period span for recurring leadership', function ():
         ->and($candidate->analysisPeriod->to())->toBe('2026-10-12')
         ->and($candidate->comparisonPeriod)->toBeNull()
         ->and($candidate->ratio)->toBeNull();
+    expect($candidate->selectedCategoryAmount->amount())->toBe('30000');
 });
+
+it('requires a positive selected category amount exclusively for recurring leadership', function (InsightTypeEnum $type, ?string $amount): void {
+    expect(fn () => new InsightCandidateValueObject(
+        type: $type, category: $type === InsightTypeEnum::CategoryLeadStreak ? 'food' : null,
+        analysisPeriod: DatePeriodValueObject::fromDates('2026-08-01', '2026-10-12'),
+        selectedCategoryAmount: $amount === null ? null : AmountValueObject::fromAmount($amount),
+    ))->toThrow(InvalidInsightAnalysisException::class);
+})->with([[InsightTypeEnum::CategoryLeadStreak, null], [InsightTypeEnum::CategoryLeadStreak, '0'], [InsightTypeEnum::FirstExpense, '10000']]);
 
 it('allows different durations only for closed complete consecutive monthly comparisons', function (): void {
     $candidate = new InsightCandidateValueObject(

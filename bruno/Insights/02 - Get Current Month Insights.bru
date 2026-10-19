@@ -50,8 +50,15 @@ tests {
       expect(types[attributes.group]).to.include(attributes.type);
       expect(attributes.title).to.be.a("string").and.not.empty;
       expect(attributes.description).to.be.a("string").and.not.empty;
-      expect(Array.from(attributes.title).length).to.be.at.most(24);
-      expect(Array.from(attributes.description).length).to.be.at.most(80);
+      const segmenter = new Intl.Segmenter("pt-BR", { granularity: "grapheme" });
+      const length = text => Array.from(segmenter.segment(text)).length;
+      const card = attributes.title + " " + attributes.description;
+      expect(length(attributes.title)).to.be.at.most(24);
+      expect(length(card)).to.be.at.most(80);
+      expect(card).not.to.match(/%|\b(?:metade|dobrou)\b|por cento|um em cada dois|palco|pódio/iu);
+      if (!['first_expense', 'insufficient_history'].includes(attributes.type)) {
+        expect(attributes.description).to.match(/R\$ (?:0|[1-9][0-9.]*)(?:,[0-9]{2})?/u);
+      }
     });
   });
 
@@ -101,6 +108,12 @@ tests {
 }
 
 docs {
+  Catálogo v6-monetary-editorial: título e descrição somam até 80 grafemas,
+  contando um espaço separador; título até 24. Valor BRL real e interpretação,
+  sem porcentagem. Datas exatas ficam em period; texto usa referência natural.
+  As assertions Unicode exigem Intl.Segmenter no runtime do Bruno.
+  As verificações textuais não substituem revisão humana de tom/semântica.
+
   Antes das assertions, preencha insightsQueryDate na aba Vars com a mesma data
   civil Y-m-d usada para escolher o par. O valor 2026-10-14 é um exemplo explícito,
   local ao request e não enviado à API; atualize-o a cada dia de consulta.

@@ -88,7 +88,10 @@ it('distinguishes onboarding months by their internal periods even when both pub
         foreach ($data as $resource) {
             expect($resource['attributes']['period'])->toBeNull()
                 ->and($resource['attributes']['group'])->toBe('onboarding')
-                ->and($resource['attributes']['title'])->toContain($label);
+                ->and($resource['attributes']['title'].' '.$resource['attributes']['description'])->toContain($month === 8 ? 'agosto' : 'setembro');
+            if ($resource['attributes']['type'] === 'insufficient_history') {
+                expect($resource['attributes']['description'])->toContain('2026');
+            }
             $ids[$month][$resource['attributes']['type']] = $resource['id'];
         }
     }
@@ -123,15 +126,17 @@ it('keeps historical IDs through value description and daily variant changes whi
 
     $url = route('insights.index').'?filter[year]=2026&filter[month]=9';
     $first = $this->withToken($token)->getJson($url)->assertOk()->assertJsonCount(2, 'data')->json('data');
-    expect($first[0]['attributes']['description'])->toContain('Aluguel', '50%');
+    expect($first[0]['attributes']['title'])->toBe('Aluguel')
+        ->and($first[0]['attributes']['description'])->toContain('R$ 50')->not->toContain('%');
 
     DB::table('expenses')->where('id', $largestId)->update([
         'amount' => 5500, 'description' => 'Mensalidade', 'updated_at' => '2026-10-12 12:00:00',
     ]);
     Auth::forgetGuards();
     $updated = $this->withToken($token)->getJson($url)->assertOk()->assertJsonCount(2, 'data')->json('data');
-    expect($updated[0]['attributes']['description'])->toContain('Mensalidade', '52%')
-        ->and($updated[1]['attributes']['description'])->toContain('62%');
+    expect($updated[0]['attributes']['title'])->toBe('Mensalidade')
+        ->and($updated[0]['attributes']['description'])->toContain('R$ 55')->not->toContain('%')
+        ->and($updated[1]['attributes']['description'])->toBe(str_replace('R$ 60', 'R$ 65', $first[1]['attributes']['description']));
 
     Date::setTestNow('2026-10-13 12:00:00 UTC');
     Auth::forgetGuards();
@@ -151,7 +156,7 @@ it('keeps historical IDs through value description and daily variant changes whi
             ->and($anotherOwner[$index]['attributes']['type'])->toBe($type)
             ->and($updated[$index]['id'])->toBe($first[$index]['id'])
             ->and($next[$index]['id'])->toBe($first[$index]['id'])
-            ->and($next[$index]['attributes']['description'])->not->toBe($updated[$index]['attributes']['description'])
+            ->and([$next[$index]['attributes']['title'], $next[$index]['attributes']['description']])->not->toBe([$updated[$index]['attributes']['title'], $updated[$index]['attributes']['description']])
             ->and($anotherMonth[$index]['id'])->not->toBe($first[$index]['id'])
             ->and($anotherOwner[$index]['id'])->not->toBe($first[$index]['id']);
     }

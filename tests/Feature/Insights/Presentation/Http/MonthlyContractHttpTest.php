@@ -86,9 +86,10 @@ it('serializes the owner only historical comparison maximum and review through o
     }
 
     expect(array_keys($response->json()))->toBe(['data'])
-        ->and($response->json('data.0.attributes.description'))->toContain('+120%', 'ago/2026')
-        ->and($response->json('data.1.attributes.description'))->toBeString()->toContain('<b>Aluguel</b> {month}', '55%')
-        ->and($response->json('data.2.attributes.description'))->toContain('55%')
+        ->and($response->json('data.0.attributes.description'))->toContain('agosto', 'R$ 1.200')
+        ->and($response->json('data.1.attributes.title'))->toBe('<b>Aluguel</b> {month}')
+        ->and($response->json('data.1.attributes.description'))->toContain('R$ 1.200')
+        ->and($response->json('data.2.attributes.title'))->toContain('Outros')
         ->and(DB::table('expenses')->orderBy('id')->get()->all())->toEqual($before);
 
     foreach ($response->json('data') as $resource) {
@@ -96,11 +97,12 @@ it('serializes the owner only historical comparison maximum and review through o
             ->and($resource['type'])->toBe('insights')
             ->and($resource['id'])->toBeString()->toMatch('/\A[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z/')
             ->and(array_keys($resource['attributes']))->toEqualCanonicalizing(['group', 'type', 'title', 'description', 'period'])
-            ->and($resource['attributes']['title'])->toBeString()->toContain('set/2026')
+            ->and($resource['attributes']['title'])->toBeString()
+            ->and($resource['attributes']['title'].' '.$resource['attributes']['description'])->toContain('setembro', 'R$ 1.200')->not->toContain('%')
             ->and($resource['attributes']['description'])->toBeString()
             ->not->toContain('Identificação privada de outra conta', 'Despesa posterior ao mês selecionado')
-            ->and(mb_strlen($resource['attributes']['title'], 'UTF-8'))->toBeLessThanOrEqual(24)
-            ->and(mb_strlen($resource['attributes']['description'], 'UTF-8'))->toBeLessThanOrEqual(80);
+            ->and(grapheme_strlen($resource['attributes']['title']))->toBeLessThanOrEqual(24)
+            ->and(grapheme_strlen($resource['attributes']['title'].' '.$resource['attributes']['description']))->toBeLessThanOrEqual(80);
         $period = $resource['attributes']['period'];
         if ($period !== null) {
             expect(array_keys($period))->toEqualCanonicalizing(['from', 'to', 'comparison']);

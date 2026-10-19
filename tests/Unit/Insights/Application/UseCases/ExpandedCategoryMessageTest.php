@@ -26,6 +26,7 @@ it('renders every affected regular and short variant with integral labels and fa
     $candidate = new InsightCandidateValueObject(
         type: $type,
         category: $category,
+        selectedCategoryAmount: $type === InsightTypeEnum::CategoryLeadStreak ? AmountValueObject::fromAmount('100') : null,
         mode: $mode,
         expenseOccurredOn: $type === InsightTypeEnum::ExpenseConcentration ? $month.'-31' : null,
         analysisPeriod: DatePeriodValueObject::fromDates(
@@ -35,36 +36,37 @@ it('renders every affected regular and short variant with integral labels and fa
     );
     $catalog = new GetInsightMessageTemplatesUseCase;
     $useCase = new ComposeInsightMessageUseCase($catalog, new SelectInsightMessageVariantUseCase);
-    $parameters = ['{category}' => $label, '{percent}' => '100', '{day}' => '31', '{month}' => $periodLabel, '{first_month}' => $firstLabel,
-        '{previous_month}' => $previousLabel, '{identity}' => $label.' · 31/'.substr($month, 5, 2), '{amount}' => 'R$ 1,00'];
+    $monthName = match (substr($month, 5)) {
+        '03' => 'março', '12' => 'dezembro', '01' => 'janeiro'
+    };
+    $parameters = ['{category}' => $label, '{month}' => $monthName,
+        '{identity}' => $label.' · 31/'.substr($month, 5, 2), '{expense_date}' => '31/'.substr($month, 5, 2), '{amount}' => 'R$ 1'];
     $templates = $catalog->execute($candidate);
     expect($templates)->toHaveCount(4);
     $approvedPairs = [];
 
     foreach ($templates as $template) {
-        $title = strtr($template->title, $parameters);
-        foreach ([$template->description, $template->shortDescription] as $description) {
-            $description = strtr($description, $parameters);
-            expect(mb_strlen($title, 'UTF-8'))->toBeLessThanOrEqual(24)
-                ->and(mb_strlen($description, 'UTF-8'))->toBeLessThanOrEqual(80)
+        $validPairs = [];
+        foreach ([$template, ...$template->alternatives] as $alternative) {
+            $title = strtr($alternative->title, $parameters);
+            $description = strtr($alternative->description, $parameters);
+            expect($title.' '.$description)->toContain($label, 'R$ 1')
                 ->and($title.' '.$description)->not->toMatch('/\{[^}]+\}/u')
-                ->and($description)->toMatch('/registrad|registros/u')
+                ->and($description)->not->toMatch('/%/u')
                 ->not->toMatch('/consumo|prejuízo|rendimento|retorno|patrimônio|renda|destino|capacidade financeira/iu');
-            expect($title.' '.$description)->toContain($label, $periodLabel);
-            if ($mode === InsightPeriodModeEnum::Closed) {
-                expect($title.' '.$description)->toContain($periodLabel);
-                if ($type === InsightTypeEnum::CategoryLeadStreak) {
-                    expect($description)->toContain($firstLabel, 'três meses completos');
-                }
+            if (grapheme_strlen($title) <= 24 && grapheme_strlen($title.' '.$description) <= 80) {
+                $validPairs[] = [$title, $description];
             }
-            $approvedPairs[] = [$title, $description];
         }
+        expect($validPairs)->not->toBeEmpty();
+        $approvedPairs = [...$approvedPairs, ...$validPairs];
     }
 
     $messages = [];
     foreach (['2026-10-12', '2026-10-13', '2026-10-14', '2026-10-15'] as $date) {
         $message = $useCase->execute(UuidFixture::at(42), $candidate, $date);
         expect([$message->title, $message->description])->toBeIn($approvedPairs)
+            ->and(grapheme_strlen($message->title.' '.$message->description))->toBeLessThanOrEqual(80)
             ->and($useCase->execute(UuidFixture::at(42), $candidate, $date))->toEqual($message);
         $messages[] = $message->title.'|'.$message->description;
     }

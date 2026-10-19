@@ -6,10 +6,10 @@ namespace App\Insights\Application\Data;
 
 final readonly class InsightMessageTemplateOutput
 {
+    /** @param list<self> $alternatives */
     public function __construct(
         public string $title,
         public string $description,
-        public string $shortDescription,
-        public ?string $monetaryDescription = null,
+        public array $alternatives = [],
     ) {}
 }

@@ -4,22 +4,21 @@ declare(strict_types=1);
 
 namespace App\Insights\Application\UseCases;
 
-use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Insights\Application\Data\InsightMessageOutput;
 use App\Insights\Application\Data\SelectInsightMessageVariantInput;
 use App\Insights\Application\Exceptions\InsightMessageCompositionException;
+use App\Insights\Domain\Enums\InsightPeriodModeEnum;
 use App\Insights\Domain\Enums\InsightTypeEnum;
+use App\Insights\Domain\Exceptions\InvalidInsightAnalysisException;
 use App\Insights\Domain\ValueObjects\InsightCandidateValueObject;
+use App\Insights\Domain\ValueObjects\InsightMessageValueObject;
+use Normalizer;
 
 use function array_key_exists;
 use function count;
 
 final readonly class ComposeInsightMessageUseCase
 {
-    private const int MaximumTitleLength = 24;
-
-    private const int MaximumDescriptionLength = 80;
-
     private const array Categories = [
         'subscriptions' => 'Assinaturas', 'other' => 'Outros',
         'transport' => 'Transporte', 'education' => 'Educação',
@@ -42,35 +41,33 @@ final readonly class ComposeInsightMessageUseCase
         $editorialKey = implode('|', [
             GetInsightMessageTemplatesUseCase::Version,
             $candidate->type->value,
+            $candidate->mode->value,
             $candidate->category ?? '',
             $candidate->historyState?->value ?? '',
-            $candidate->mode->value,
             substr($candidate->analysisPeriod->to(), 0, 7),
         ]);
+
         $variant = $this->variantUseCase->execute(new SelectInsightMessageVariantInput(
             userId: $userId,
             editorialKey: $editorialKey,
             referenceDate: $referenceDate,
             variantCount: count($templates),
         ));
+
         $template = $templates[$variant];
         $parameters = $this->parameters($candidate);
-        $title = $this->interpolate($template->title, $parameters);
-        $descriptions = [$template->description, $template->shortDescription];
+        foreach ($this->identities($candidate, $parameters) as $identity) {
+            foreach ([$template, ...$template->alternatives] as $alternative) {
+                $title = $this->interpolate($alternative->title, [...$parameters, '{identity}' => $identity]);
+                $description = $this->interpolate($alternative->description, $parameters);
 
-        if ($template->monetaryDescription !== null) {
-            $descriptions[] = $template->monetaryDescription;
-        }
-
-        if (mb_strlen($title, 'UTF-8') <= self::MaximumTitleLength) {
-            foreach ($this->identities($candidate, $parameters) as $identity) {
-                foreach ($descriptions as $descriptionTemplate) {
-                    $description = $this->interpolate($descriptionTemplate, [...$parameters, '{identity}' => $identity]);
-
-                    if (mb_strlen($description, 'UTF-8') <= self::MaximumDescriptionLength) {
-                        return new InsightMessageOutput(title: $title, description: $description);
-                    }
+                try {
+                    $message = new InsightMessageValueObject($title, $description);
+                } catch (InvalidInsightAnalysisException) {
+                    continue;
                 }
+
+                return new InsightMessageOutput(title: $message->title, description: $message->description);
             }
         }
 
@@ -81,36 +78,24 @@ final readonly class ComposeInsightMessageUseCase
     private function parameters(InsightCandidateValueObject $candidate): array
     {
         $parameters = [
-            '{day}' => (string) (int) substr($candidate->analysisPeriod->to(), 8),
-            '{month}' => $this->month($candidate->analysisPeriod->to()),
-            '{first_month}' => $this->month($candidate->analysisPeriod->from()),
-            '{sign}' => $candidate->type === InsightTypeEnum::RegisteredAmountDecrease ? '−' : '+',
+            '{month}' => $this->month($candidate->analysisPeriod->to(),
+                $candidate->type === InsightTypeEnum::InsufficientHistory && $candidate->mode === InsightPeriodModeEnum::Closed),
+            '{short_month}' => $this->shortMonth($candidate->analysisPeriod->to(), $candidate->mode === InsightPeriodModeEnum::Closed),
+            '{previous_month}' => $candidate->comparisonPeriod !== null ? $this->month($candidate->comparisonPeriod->from()) : '',
         ];
 
-        if ($candidate->comparisonPeriod !== null) {
-            $parameters['{previous_month}'] = $this->month($candidate->comparisonPeriod->from());
+        $amount = $candidate->selectedCategoryAmount ?? $candidate->ratio?->numerator;
+        if ($amount !== null) {
+            $parameters['{amount}'] = $this->brl($amount->amount());
         }
 
-        if ($candidate->type === InsightTypeEnum::CategoryLeadStreak) {
-            $selectedMonth = DatePeriodValueObject::monthContaining($candidate->analysisPeriod->to());
-            $parameters['{previous_month}'] = $this->month($selectedMonth->previousMonth()->from());
+        if ($candidate->expenseOccurredOn !== null) {
+            $parameters['{expense_date}'] = substr($candidate->expenseOccurredOn, 8, 2).'/'.substr($candidate->expenseOccurredOn, 5, 2);
         }
 
         if ($candidate->category !== null) {
             $parameters['{category}'] = self::Categories[$candidate->category]
                 ?? throw new InsightMessageCompositionException('A categoria não possui um rótulo editorial aprovado.');
-        }
-
-        if ($candidate->ratio !== null) {
-            $parameters['{percent}'] = $candidate->ratio->roundedPercent();
-
-            if ($candidate->type === InsightTypeEnum::ExpenseConcentration) {
-                $parameters['{amount}'] = $this->brl($candidate->ratio->numerator->amount());
-            }
-
-            if ($candidate->comparisonPeriod !== null) {
-                $parameters['{difference}'] = $this->brl($candidate->ratio->numerator->amount());
-            }
         }
 
         return $parameters;
@@ -137,7 +122,7 @@ final readonly class ComposeInsightMessageUseCase
 
             $normalized = trim($normalized);
 
-            if ($normalized !== '') {
+            if ($normalized !== '' && $this->isSafeIdentity($normalized)) {
                 $identities[] = $normalized;
             }
         }
@@ -164,24 +149,37 @@ final readonly class ComposeInsightMessageUseCase
         return strtr($template, $parameters);
     }
 
+    private function isSafeIdentity(string $description): bool
+    {
+        $normalized = Normalizer::normalize($description, Normalizer::FORM_C);
+
+        return preg_match('/\A(?:<b>)?(?:Aluguel|Mensalidade|Mercado|Supermercado|Internet|Energia|Água|Curso|Material escolar|Transporte|Consulta|Seguro|Assinatura)(?:<\/b>)?(?: \{month\})?\z/iu', $normalized) === 1;
+    }
+
     private function brl(string $amount): string
     {
         $padded = str_pad($amount, 3, '0', STR_PAD_LEFT);
-        $integer = substr($padded, 0, -2);
-        $integer = preg_replace('/\B(?=(?:[0-9]{3})+(?![0-9]))/', '.', $integer);
-
+        $integer = preg_replace('/\B(?=(?:[0-9]{3})+(?![0-9]))/', '.', substr($padded, 0, -2));
         $cents = substr($padded, -2);
 
-        return "R$ {$integer},{$cents}";
+        return 'R$ '.$integer.($cents === '00' ? '' : ','.$cents);
     }
 
-    private function month(string $date): string
+    private function month(string $date, bool $withYear = false): string
+    {
+        $months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+        $month = $months[(int) substr($date, 5, 2) - 1];
+
+        return $month.($withYear ? ' de '.substr($date, 0, 4) : '');
+    }
+
+    private function shortMonth(string $date, bool $withYear): string
     {
         $months = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
 
         $month = $months[(int) substr($date, 5, 2) - 1];
         $year = substr($date, 0, 4);
 
-        return "{$month}/{$year}";
+        return $withYear ? "{$month}/{$year}" : $this->month($date);
     }
 }

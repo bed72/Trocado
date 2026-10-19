@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Insights\Domain\ValueObjects;
 
+use App\Core\Domain\ValueObjects\AmountValueObject;
 use App\Core\Domain\ValueObjects\DatePeriodValueObject;
 use App\Core\Domain\ValueObjects\RatioValueObject;
 use App\Insights\Domain\Enums\InsightGroupEnum;
@@ -26,6 +27,7 @@ final readonly class InsightCandidateValueObject
         public ?InsightHistoryStateEnum $historyState = null,
         public ?DatePeriodValueObject $comparisonPeriod = null,
         public InsightPeriodModeEnum $mode = InsightPeriodModeEnum::Current,
+        public ?AmountValueObject $selectedCategoryAmount = null,
     ) {
         $isTotalComparison = in_array($type, [InsightTypeEnum::RegisteredAmountIncrease, InsightTypeEnum::RegisteredAmountDecrease], true);
         $needsRatio = in_array($type, [InsightTypeEnum::CategoryConcentration, InsightTypeEnum::ExpenseConcentration,
@@ -35,7 +37,9 @@ final readonly class InsightCandidateValueObject
 
         if ($needsRatio !== ($ratio !== null) || $needsCategory !== ($category !== null)
             || $isTotalComparison !== ($comparisonPeriod !== null)
-            || ($type === InsightTypeEnum::InsufficientHistory) !== ($historyState !== null)) {
+            || ($type === InsightTypeEnum::InsufficientHistory) !== ($historyState !== null)
+            || ($type === InsightTypeEnum::CategoryLeadStreak) !== ($selectedCategoryAmount !== null)
+            || $selectedCategoryAmount?->isZero()) {
             throw new InvalidInsightAnalysisException('Os fatos do candidato não correspondem ao tipo de insight.');
         }
 

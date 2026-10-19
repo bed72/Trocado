@@ -38,10 +38,13 @@ it('returns only localized onboarding for absent or insufficient selected record
         ->assertJsonPath('data.0.attributes.period', null);
     $attributes = $response->json('data.0.attributes');
 
-    expect($attributes['title'].' '.$attributes['description'])->toContain($month)
-        ->and($attributes['description'])->toMatch($meaning)
-        ->and(mb_strlen($attributes['title'], 'UTF-8'))->toBeLessThanOrEqual(24)
-        ->and(mb_strlen($attributes['description'], 'UTF-8'))->toBeLessThanOrEqual(80);
+    if ($type !== 'first_expense') {
+        expect($attributes['description'])->toContain($month === 'set/2026' ? 'setembro de 2026' : 'outubro');
+    }
+    expect($attributes['title'].' '.$attributes['description'])->toMatch($meaning)
+        ->and(grapheme_strlen($attributes['title']))->toBeLessThanOrEqual(24)
+        ->and(grapheme_strlen($attributes['title'].' '.$attributes['description']))->toBeLessThanOrEqual(80)
+        ->and($attributes['title'].' '.$attributes['description'])->not->toMatch('/%|R\$/u');
 
     if ($type === 'insufficient_history') {
         expect($attributes['description'])->not->toMatch('/primeira|econom|basta|garant/iu');
@@ -51,18 +54,18 @@ it('returns only localized onboarding for absent or insufficient selected record
         expect($attributes['title'].' '.$attributes['description'])->not->toMatch('/out\/2026|até dia|neste mês/iu');
     }
 })->with([
-    'current without history' => ['', [], 'first_expense', 'out/2026', '/primeira/iu'],
-    'current ignores future expenses' => ['', ['2026-10-13'], 'first_expense', 'out/2026', '/primeira/iu'],
+    'current without history' => ['', [], 'first_expense', 'out/2026', '/primeir|iniciar seu histórico/iu'],
+    'current ignores future expenses' => ['', ['2026-10-13'], 'first_expense', 'out/2026', '/primeir|iniciar seu histórico/iu'],
     'old history outside the current analytical window' => ['', ['2026-01-01'], 'insufficient_history', 'out/2026', '/sem despesas|sem registros|nenhuma despesa|não há despesas/iu'],
-    'few current records' => ['', ['2026-10-01', '2026-10-02'], 'insufficient_history', 'out/2026', '/não sustentam|insuficientes|sem observação|sem base/iu'],
+    'few current records' => ['', ['2026-10-01', '2026-10-02'], 'insufficient_history', 'out/2026', '/base insuficiente/iu'],
     'historical without any history' => ['?filter[year]=2026&filter[month]=9', [], 'insufficient_history', 'set/2026', '/sem registros|nenhuma despesa|não tem despesas|não há despesas/iu'],
     'historical before the first record' => ['?filter[year]=2026&filter[month]=9', ['2026-10-01'], 'insufficient_history', 'set/2026', '/sem registros|nenhuma despesa|não tem despesas|não há despesas/iu'],
     'old history outside the selected analytical window' => ['?filter[year]=2026&filter[month]=9', ['2026-01-01'], 'insufficient_history', 'set/2026', '/sem registros|nenhuma despesa|não tem despesas|não há despesas/iu'],
-    'two historical records including the last day' => ['?filter[year]=2026&filter[month]=9', ['2026-09-01', '2026-09-30', '2026-10-01'], 'insufficient_history', 'set/2026', '/não sustentam|insuficientes|sem observação|sem base/iu'],
+    'two historical records including the last day' => ['?filter[year]=2026&filter[month]=9', ['2026-09-01', '2026-09-30', '2026-10-01'], 'insufficient_history', 'set/2026', '/base insuficiente/iu'],
 ]);
 
 it('reviews other only with the selected material base and exact fifty percent threshold', function (
-    array $expenses, bool $eligible, string $percent, string $month, string $query,
+    array $expenses, bool $eligible, string $expectedAmount, string $month, string $query,
 ): void {
     $user = IdentityFixture::create(status: UserStatusEnum::Active, verifiedAt: now());
     $token = IdentityFixture::token($user, expiresAt: now()->addDays(30));
@@ -93,14 +96,12 @@ it('reviews other only with the selected material base and exact fifty percent t
     if ($eligible) {
         expect($reviews[0]['group'])->toBe('onboarding')
             ->and($reviews[0]['period'])->toBeNull()
-            ->and($reviews[0]['title'])->toBe('Outros · '.$month)
-            ->and($reviews[0]['description'])->toContain($percent.'%', 'total registrado', 'categorias')
+            ->and($reviews[0]['title'])->toContain('Outros')
+            ->and($reviews[0]['description'])->toContain($month === 'set/2026' ? 'setembro' : 'outubro', 'R$ '.$expectedAmount, 'categorias')->not->toContain('%')
             ->not->toMatch('/incorret|pendente|econom|primeira/iu');
 
         if ($month === 'set/2026') {
             expect($reviews[0]['description'])->not->toMatch('/até dia|neste mês|out\/2026/iu');
-        } else {
-            expect($reviews[0]['description'])->toContain('dia 12');
         }
 
         $guidance = array_values(array_filter($attributes, static fn (array $attribute): bool => $attribute['type'] === 'insufficient_history'));
@@ -137,8 +138,10 @@ it('keeps an eligible expense observation beside other review without insufficie
         ->assertJsonPath('data.1.attributes.type', 'category_review')
         ->assertJsonPath('data.1.attributes.period', null);
 
-    expect($response->json('data.0.attributes.description'))->toContain('50%')
-        ->and($response->json('data.1.attributes.description'))->toContain('60%');
+    expect($response->json('data.0.attributes.title'))->toContain('Outros · 01/')
+        ->and($response->json('data.0.attributes.description'))->toContain('R$ 50')
+        ->and($response->json('data.1.attributes.title'))->toContain('Outros')
+        ->and($response->json('data.1.attributes.description'))->toContain('R$ 60')->not->toContain('%');
 })->with([
     'current' => ['2026-10', ''],
     'historical' => ['2026-09', '?filter[year]=2026&filter[month]=9'],

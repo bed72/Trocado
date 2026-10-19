@@ -67,7 +67,7 @@ it('returns no partial insights or successful onboarding when composition fails 
     expect($candidates)->toHaveCount(2)
         ->and($candidates[0]->type)->toBe(InsightTypeEnum::RegisteredAmountIncrease)
         ->and($candidates[1]->type)->toBe(InsightTypeEnum::CategoryConcentration);
-    expect($this->app->make(ComposeInsightMessageUseCase::class)->execute($user->getKey(), $candidates[0], '2026-10-28')->description)->toContain('+50%');
+    expect($this->app->make(ComposeInsightMessageUseCase::class)->execute($user->getKey(), $candidates[0], '2026-10-28')->title)->toBe('Total registrado subiu');
 
     $repository = $this->createMock(ExpenseAnalysisRepository::class);
     $repository->expects($this->once())->method('analyze')->with($user->getKey(), $period)->willReturn($analysis);

@@ -89,7 +89,7 @@ it('keeps default explicit current and leading zero representations identical', 
     expect($plain)->toBe($zero)
         ->and($plain['data'][0]['attributes']['type'])->toBe('insufficient_history')
         ->and($plain['data'][0]['attributes']['period'])->toBeNull()
-        ->and($plain['data'][0]['attributes']['title'])->toContain('set/2026')
+        ->and($plain['data'][0]['attributes']['description'])->toContain('setembro de 2026')
         ->and($plain['data'][0]['id'])->not->toBe($responses[0]['data'][0]['id']);
 });
 
@@ -185,7 +185,7 @@ it('compares full historical totals and confines recurring leadership to the thr
         ->assertJsonPath('data.1.attributes.period.to', '2026-09-30')
         ->assertJsonPath('data.1.attributes.period.comparison', null);
 
-    expect($response->json('data.0.attributes.description'))->toContain('+25%', 'ago/2026')
-        ->and($response->json('data.0.attributes.title'))->toContain('set/2026')
-        ->and($response->json('data.1.attributes.description'))->toContain('jul/2026', 'set/2026');
+    expect($response->json('data.0.attributes.title'))->toBe('Total registrado subiu')
+        ->and($response->json('data.0.attributes.description'))->toContain('agosto', 'setembro', 'R$ 100')->not->toContain('%')
+        ->and($response->json('data.1.attributes.description'))->toContain('R$ 500')->toMatch('/terceir|3/iu');
 });

@@ -224,6 +224,18 @@ it('keeps both concentration and streak candidates for later semantic selection'
         ->and($candidates[1]->comparisonPeriod)->toBeNull();
 });
 
+it('carries only the selected category amount rather than the sum of three months for leadership', function (): void {
+    $current = insightSummary(categories: ['food' => '180000', 'other' => '40000'], largest: '50000');
+    $previous = insightSummary(from: '2026-09-01', to: '2026-09-30', categories: ['food' => '230000', 'other' => '50000'], largest: '60000');
+    $older = insightSummary(from: '2026-08-01', to: '2026-08-31', categories: ['food' => '270000', 'other' => '60000'], largest: '70000');
+    $candidates = insightRulesCandidates($current, $previous, $older);
+    $streaks = array_values(array_filter($candidates, static fn (InsightCandidateValueObject $candidate): bool => $candidate->type === InsightTypeEnum::CategoryLeadStreak));
+    expect($streaks)->toHaveCount(1)
+        ->and($streaks[0]->selectedCategoryAmount->amount())->toBe('180000')
+        ->and($streaks[0]->analysisPeriod->from())->toBe('2026-08-01')
+        ->and($streaks[0]->analysisPeriod->to())->toBe('2026-10-12');
+});
+
 it('requires complete consecutive eligible months without ties for a streak', function (array $categories, int $count, string $from, string $to): void {
     $current = insightSummary();
     $previous = insightSummary(from: '2026-09-01', to: '2026-09-30');

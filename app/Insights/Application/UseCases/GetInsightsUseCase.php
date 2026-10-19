@@ -23,6 +23,7 @@ final readonly class GetInsightsUseCase
     public function __construct(
         private UserPort $port,
         private ResourceUseCase $resourceUseCase,
+        private SelectInsightMessagesUseCase $messageSelectionUseCase,
         private ComposeInsightMessageUseCase $messageCompositionUseCase,
         private SelectInsightCandidatesUseCase $candidateSelectionUseCase,
         private GenerateInsightCandidatesUseCase $candidateGenerationUseCase,
@@ -34,6 +35,7 @@ final readonly class GetInsightsUseCase
     {
         $messages = [];
         $identities = [];
+        $finalCandidates = [];
 
         $period = new InsightAnalysisPeriodValueObject($input->queryDate, $input->selectedMonth);
         $userId = $this->port->id();
@@ -48,13 +50,19 @@ final readonly class GetInsightsUseCase
                 candidate: $candidate,
                 referenceDate: $input->queryDate,
             );
-            $identities[] = $this->identity($candidate);
+        }
+
+        $finalMessages = [];
+        foreach ($this->messageSelectionUseCase->execute($messages) as $index) {
+            $finalMessages[] = $messages[$index];
+            $finalCandidates[] = $selected[$index];
+            $identities[] = $this->identity($selected[$index]);
         }
 
         $insights = [];
         $resources = $this->resourceUseCase->execute(new ResourceInput($userId, $identities));
-        foreach ($selected as $index => $candidate) {
-            $message = $messages[$index];
+        foreach ($finalCandidates as $index => $candidate) {
+            $message = $finalMessages[$index];
             $insights[] = new InsightOutput(
                 type: $candidate->type,
                 title: $message->title,

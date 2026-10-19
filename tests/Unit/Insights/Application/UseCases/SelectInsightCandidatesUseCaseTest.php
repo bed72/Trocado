@@ -22,6 +22,7 @@ function selectionCandidate(
     return new InsightCandidateValueObject(
         type: $type,
         category: $category,
+        selectedCategoryAmount: $type === InsightTypeEnum::CategoryLeadStreak ? AmountValueObject::fromAmount('6000') : null,
         comparisonPeriod: $comparison,
         analysisPeriod: DatePeriodValueObject::fromDates($from, $to),
         expenseOccurredOn: $type === InsightTypeEnum::ExpenseConcentration ? $from : null,
