@@ -278,6 +278,10 @@ foreach ($contexts as $context) {
             $presentationDependencies[] = 'App\\Core\\Application\\Ports\\UserPort';
         }
 
+        if (in_array($context, ['Identity', 'Expense', 'Notifications'], true)) {
+            $presentationDependencies[] = 'App\\Core\\Presentation\\Http\\Responses\\JsonErrorResponse';
+        }
+
         if (in_array($context, ['Expense', 'Insights', 'Metrics'], true)) {
             $presentationDependencies[] = 'App\\Core\\Application\\Ports\\DatePort';
         }

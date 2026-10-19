@@ -1,26 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Core\Presentation\Http\Middleware\AuthenticatedRequestMiddleware;
 use App\Core\Presentation\Http\Middleware\TraceRequestMiddleware;
-use App\Expense\Application\Exceptions\ExpenseNotFoundException;
-use App\Expense\Application\Exceptions\ExpenseOwnerNotFoundException;
-use App\Expense\Application\Exceptions\InvalidExpenseCursorException;
-use App\Expense\Domain\Exceptions\InvalidExpenseException;
-use App\Identity\Application\Exceptions\EmailAlreadyUsedException;
-use App\Identity\Application\Exceptions\InactiveUserException;
-use App\Identity\Application\Exceptions\InvalidCredentialsException;
-use App\Identity\Application\Exceptions\UnverifiedEmailException;
-use App\Identity\Application\Exceptions\UserNotFoundException;
-use App\Identity\Domain\Enums\UserStatusEnum;
-use App\Identity\Domain\Exceptions\InvalidAvatarException;
-use App\Identity\Domain\Exceptions\InvalidEmailException;
-use App\Identity\Domain\Exceptions\InvalidNameException;
-use App\Identity\Domain\Exceptions\InvalidPasswordException;
 use App\Identity\Presentation\Http\Middleware\EnsureActiveUserMiddleware;
 use App\Identity\Presentation\Http\Middleware\ExtendSessionMiddleware;
-use App\Notifications\Application\Exceptions\NotificationRegistrationConflictException;
-use App\Notifications\Application\Exceptions\NotificationRegistrationNotFoundException;
-use App\Notifications\Domain\Exceptions\InvalidNotificationRegistrationException;
 use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -28,22 +13,16 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Routing\Middleware\ThrottleRequests;
-use Illuminate\Validation\ValidationException;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Throwable as ThrowableContract;
-
-$pageExpiredStatusCode = 419;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         health: '/up',
         commands: __DIR__.'/../routes/console.php',
         api: [
-            __DIR__.'/../app/Identity/Presentation/Routes/api.php',
             __DIR__.'/../app/Expense/Presentation/Routes/api.php',
-            __DIR__.'/../app/Insights/Presentation/Routes/api.php',
             __DIR__.'/../app/Metrics/Presentation/Routes/api.php',
+            __DIR__.'/../app/Insights/Presentation/Routes/api.php',
+            __DIR__.'/../app/Identity/Presentation/Routes/api.php',
             __DIR__.'/../app/Notifications/Presentation/Routes/api.php',
         ],
     )
@@ -51,14 +30,14 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectGuestsTo(fn (Request $request): ?string => $request->is('api/*') ? null : route('login'));
         $middleware->append(TraceRequestMiddleware::class);
         $middleware->alias([
-            'request.authenticated' => AuthenticatedRequestMiddleware::class,
             'user.active' => EnsureActiveUserMiddleware::class,
             'session.extend' => ExtendSessionMiddleware::class,
+            'request.authenticated' => AuthenticatedRequestMiddleware::class,
         ]);
         $middleware->prependToPriorityList(before: ThrottleRequests::class, prepend: Authenticate::class);
         $middleware->prependToPriorityList(
-            before: [ThrottleRequests::class, SubstituteBindings::class],
             prepend: AuthenticatedRequestMiddleware::class,
+            before: [ThrottleRequests::class, SubstituteBindings::class],
         );
         $middleware->trimStrings(except: [
             'data.id',
@@ -68,226 +47,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'data.attributes.registration_identifier',
         ]);
     })
-    ->withExceptions(function (Exceptions $exceptions) use ($pageExpiredStatusCode): void {
-        $exceptions->dontReport([
-            NotificationRegistrationConflictException::class,
-            NotificationRegistrationNotFoundException::class,
-            InvalidNotificationRegistrationException::class,
-        ]);
-        $exceptions->render(fn (NotificationRegistrationConflictException $exception) => response()->json(['errors' => [[
-            'title' => 'Conflito de registro push',
-            'detail' => $exception->getMessage(),
-            'status' => '409',
-        ]]], 409)->header('Content-Type', 'application/vnd.api+json'));
-        $exceptions->render(fn (NotificationRegistrationNotFoundException $exception) => response()->json(['errors' => [[
-            'title' => 'Registro push não encontrado',
-            'detail' => $exception->getMessage(),
-            'status' => '404',
-        ]]], 404)->header('Content-Type', 'application/vnd.api+json'));
-        $exceptions->render(fn (InvalidNotificationRegistrationException $exception) => response()->json(['errors' => [[
-            'title' => 'Registro push inválido',
-            'detail' => $exception->getMessage(),
-            'status' => '422',
-            'source' => ['pointer' => '/data/attributes/'.$exception->field],
-        ]]], 422)->header('Content-Type', 'application/vnd.api+json'));
-        $exceptions->dontReport(InvalidExpenseCursorException::class);
-        $exceptions->render(fn (InvalidExpenseCursorException $exception) => response()->json(['errors' => [[
-            'title' => 'Cursor inválido',
-            'detail' => $exception->getMessage(),
-            'source' => ['pointer' => '/page/cursor'],
-            'status' => (string) Response::HTTP_UNPROCESSABLE_ENTITY,
-        ]]], Response::HTTP_UNPROCESSABLE_ENTITY)->header('Content-Type', 'application/vnd.api+json'));
-        $exceptions->dontReport([
-            InactiveUserException::class,
-            InvalidPasswordException::class,
-            EmailAlreadyUsedException::class,
-            InvalidCredentialsException::class,
-            UnverifiedEmailException::class,
-        ]);
-
-        $exceptions->shouldRenderJsonWhen(
-            fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
-        );
-
-        $exceptions->render(fn (InvalidCredentialsException $exception) => response()->json(['errors' => [[
-            'title' => 'Credenciais inválidas',
-            'detail' => $exception->getMessage(),
-            'status' => (string) Response::HTTP_UNAUTHORIZED,
-        ]]], Response::HTTP_UNAUTHORIZED)->header('Content-Type', 'application/vnd.api+json')
-        );
-
-        $exceptions->render(fn (UnverifiedEmailException $exception) => response()->json(['errors' => [[
-            'title' => 'E-mail não confirmado',
-            'detail' => $exception->getMessage(),
-            'status' => (string) Response::HTTP_FORBIDDEN,
-        ]]], Response::HTTP_FORBIDDEN)->header('Content-Type', 'application/vnd.api+json')
-        );
-
-        $exceptions->render(function (InactiveUserException $exception) {
-            [$title, $detail] = match ($exception->status) {
-                UserStatusEnum::Pending => ['Conta pendente', 'A conta aguarda ativação.'],
-                UserStatusEnum::Blocked => ['Conta bloqueada', 'A conta está bloqueada.'],
-                UserStatusEnum::Active => ['Acesso negado', 'A conta não está disponível.'],
-            };
-
-            return response()->json(['errors' => [[
-                'title' => $title,
-                'detail' => $detail,
-                'status' => (string) Response::HTTP_FORBIDDEN,
-            ]]], Response::HTTP_FORBIDDEN)->header('Content-Type', 'application/vnd.api+json');
-        });
-
-        $exceptions->render(fn (EmailAlreadyUsedException $exception) => response()->json(['errors' => [[
-            'title' => 'E-mail já utilizado',
-            'detail' => $exception->getMessage(),
-            'status' => (string) Response::HTTP_CONFLICT,
-            'source' => ['pointer' => '/data/attributes/email'],
-        ]]], Response::HTTP_CONFLICT)->header('Content-Type', 'application/vnd.api+json')
-        );
-
-        $exceptions->render(fn (InvalidPasswordException $exception) => response()->json(['errors' => [[
-            'title' => 'Dados inválidos',
-            'detail' => $exception->getMessage(),
-            'source' => ['pointer' => '/data/attributes/password'],
-            'status' => (string) Response::HTTP_UNPROCESSABLE_ENTITY,
-        ]]], Response::HTTP_UNPROCESSABLE_ENTITY)->header('Content-Type', 'application/vnd.api+json')
-        );
-
-        $exceptions->render(fn (UserNotFoundException $exception) => response()->json(['errors' => [[
-            'title' => 'User não encontrado',
-            'detail' => $exception->getMessage(),
-            'status' => (string) Response::HTTP_NOT_FOUND,
-        ]]], Response::HTTP_NOT_FOUND)->header('Content-Type', 'application/vnd.api+json')
-        );
-
-        $exceptions->render(fn (ExpenseOwnerNotFoundException $exception) => response()->json(['errors' => [[
-            'title' => 'User não encontrado',
-            'detail' => $exception->getMessage(),
-            'status' => (string) Response::HTTP_NOT_FOUND,
-        ]]], Response::HTTP_NOT_FOUND)->header('Content-Type', 'application/vnd.api+json')
-        );
-
-        $exceptions->render(fn (ExpenseNotFoundException $exception) => response()->json(['errors' => [[
-            'title' => 'Despesa não encontrada',
-            'detail' => $exception->getMessage(),
-            'status' => (string) Response::HTTP_NOT_FOUND,
-        ]]], Response::HTTP_NOT_FOUND)->header('Content-Type', 'application/vnd.api+json')
-        );
-
-        $exceptions->render(fn (InvalidExpenseException $exception) => response()->json(['errors' => [[
-            'title' => 'Dados inválidos',
-            'detail' => $exception->getMessage(),
-            'status' => (string) Response::HTTP_UNPROCESSABLE_ENTITY,
-        ]]], Response::HTTP_UNPROCESSABLE_ENTITY)->header('Content-Type', 'application/vnd.api+json')
-        );
-
-        $exceptions->render(fn (EmailAlreadyUsedException $exception) => response()->json(['errors' => [[
-            'title' => 'E-mail já utilizado',
-            'detail' => $exception->getMessage(),
-            'status' => (string) Response::HTTP_CONFLICT,
-        ]]], Response::HTTP_CONFLICT)->header('Content-Type', 'application/vnd.api+json')
-        );
-
-        $exceptions->render(fn (InvalidEmailException $exception) => response()->json(['errors' => [[
-            'title' => 'Dados inválidos',
-            'detail' => $exception->getMessage(),
-            'status' => (string) Response::HTTP_UNPROCESSABLE_ENTITY,
-        ]]], Response::HTTP_UNPROCESSABLE_ENTITY)->header('Content-Type', 'application/vnd.api+json')
-        );
-
-        $exceptions->render(fn (InvalidAvatarException $exception) => response()->json(['errors' => [[
-            'title' => 'Dados inválidos',
-            'detail' => $exception->getMessage(),
-            'source' => ['pointer' => '/data/attributes/avatar'],
-            'status' => (string) Response::HTTP_UNPROCESSABLE_ENTITY,
-        ]]], Response::HTTP_UNPROCESSABLE_ENTITY)->header('Content-Type', 'application/vnd.api+json')
-        );
-
-        $exceptions->render(fn (InvalidNameException $exception) => response()->json(['errors' => [[
-            'title' => 'Dados inválidos',
-            'detail' => $exception->getMessage(),
-            'status' => (string) Response::HTTP_UNPROCESSABLE_ENTITY,
-        ]]], Response::HTTP_UNPROCESSABLE_ENTITY)->header('Content-Type', 'application/vnd.api+json')
-        );
-
-        $exceptions->render(function (NotFoundHttpException $exception, Request $request) {
-            if (! $request->is('api/*')) {
-                return null;
-            }
-
-            [$title, $detail] = $request->isMethod('DELETE') && $request->is('api/push-registrations/*')
-                ? ['Registro push não encontrado', (new NotificationRegistrationNotFoundException)->getMessage()]
-                : ['Recurso não encontrado', 'O recurso solicitado não foi encontrado.'];
-
-            return response()->json(['errors' => [[
-                'title' => $title,
-                'detail' => $detail,
-                'status' => (string) Response::HTTP_NOT_FOUND,
-            ]]], Response::HTTP_NOT_FOUND)->header('Content-Type', 'application/vnd.api+json');
-        });
-
-        $exceptions->render(function (ValidationException $exception, Request $request) {
-            if (! $request->is('api/*')) {
-                return null;
-            }
-
-            $errors = [];
-
-            foreach ($exception->errors() as $field => $messages) {
-                foreach ($messages as $message) {
-                    $errors[] = [
-                        'detail' => $message,
-                        'title' => 'Erro de validação',
-                        'status' => (string) Response::HTTP_UNPROCESSABLE_ENTITY,
-                        'source' => ['pointer' => '/'.str_replace('.', '/', $field)],
-                    ];
-                }
-            }
-
-            return response()->json(['errors' => $errors], Response::HTTP_UNPROCESSABLE_ENTITY)
-                ->header('Content-Type', 'application/vnd.api+json');
-        });
-
-        $exceptions->respond(function (Response $response, ThrowableContract $exception, Request $request) use ($pageExpiredStatusCode): Response {
-            if (! $request->is('api/*') || str_starts_with(
-                (string) $response->headers->get('Content-Type'),
-                'application/vnd.api+json',
-            )) {
-                return $response;
-            }
-
-            [$title, $detail] = match ($response->getStatusCode()) {
-                $pageExpiredStatusCode => ['Sessão expirada', 'A sessão expirou. Envie a solicitação novamente.'],
-                Response::HTTP_GONE => ['Recurso indisponível', 'O recurso solicitado não está mais disponível.'],
-                Response::HTTP_FORBIDDEN => ['Acesso negado', 'Você não tem permissão para acessar este recurso.'],
-                Response::HTTP_NOT_FOUND => ['Recurso não encontrado', 'O recurso solicitado não foi encontrado.'],
-                Response::HTTP_BAD_REQUEST => ['Solicitação inválida', 'Não foi possível interpretar a solicitação.'],
-                Response::HTTP_CONFLICT => ['Conflito', 'A solicitação entrou em conflito com o estado atual do recurso.'],
-                Response::HTTP_UNAUTHORIZED => ['Não autenticado', 'É necessário autenticar-se para acessar este recurso.'],
-                Response::HTTP_UNPROCESSABLE_ENTITY => ['Dados inválidos', 'Não foi possível processar os dados enviados.'],
-                Response::HTTP_REQUEST_TIMEOUT => ['Tempo de solicitação esgotado', 'A solicitação excedeu o tempo limite.'],
-                Response::HTTP_SERVICE_UNAVAILABLE => ['Serviço indisponível', 'O serviço está temporariamente indisponível.'],
-                Response::HTTP_INTERNAL_SERVER_ERROR => ['Erro interno do servidor', 'Não foi possível processar a solicitação.'],
-                Response::HTTP_BAD_GATEWAY => ['Resposta inválida do serviço', 'Um serviço necessário retornou uma resposta inválida.'],
-                Response::HTTP_NOT_ACCEPTABLE => ['Resposta não aceitável', 'Não foi possível gerar uma resposta no formato solicitado.'],
-                Response::HTTP_UNSUPPORTED_MEDIA_TYPE => ['Tipo de mídia não suportado', 'O formato do conteúdo enviado não é suportado.'],
-                Response::HTTP_METHOD_NOT_ALLOWED => ['Método não permitido', 'O método HTTP informado não é permitido para este recurso.'],
-                Response::HTTP_REQUEST_ENTITY_TOO_LARGE => ['Conteúdo muito grande', 'O conteúdo da solicitação excede o limite permitido.'],
-                Response::HTTP_GATEWAY_TIMEOUT => ['Tempo de resposta esgotado', 'Um serviço necessário excedeu o tempo limite de resposta.'],
-                Response::HTTP_TOO_MANY_REQUESTS => ['Muitas solicitações', 'O limite de solicitações foi excedido. Tente novamente mais tarde.'],
-                default => $response->isServerError()
-                    ? ['Erro interno do servidor', 'Não foi possível processar a solicitação.']
-                    : ['Erro na solicitação', 'Não foi possível processar a solicitação.'],
-            };
-
-            $response->setContent(json_encode(['errors' => [[
-                'title' => $title,
-                'detail' => $detail,
-                'status' => (string) $response->getStatusCode(),
-            ]]], JSON_THROW_ON_ERROR));
-            $response->headers->set('Content-Type', 'application/vnd.api+json');
-            $response->headers->remove('Content-Length');
-
-            return $response;
-        });
+    ->withExceptions(function (Exceptions $exceptions): void {
+        (require __DIR__.'/../app/Identity/Presentation/Http/Exceptions/exceptions.php')($exceptions);
+        (require __DIR__.'/../app/Expense/Presentation/Http/Exceptions/exceptions.php')($exceptions);
+        (require __DIR__.'/../app/Notifications/Presentation/Http/Exceptions/exceptions.php')($exceptions);
+        (require __DIR__.'/../app/Core/Presentation/Http/Exceptions/exceptions.php')($exceptions);
     })->create();

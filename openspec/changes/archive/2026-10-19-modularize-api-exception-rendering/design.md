@@ -14,7 +14,7 @@ Referências: `ARCHITECTURE.md`, guidelines de arquitetura/Presentation/JSON:API
 
 ### 1. Usar composição explícita sobre os hooks nativos
 
-Proposta mínima: arquivos `app/<Contexto>/Presentation/Http/exceptions.php` retornando closures tipadas que recebem `Illuminate\Foundation\Configuration\Exceptions`. `bootstrap/app.php` carrega e invoca explicitamente os registros de Identity, Expense, Notifications e Core dentro de `withExceptions`. Os arquivos têm `strict_types`, imports explícitos e não são descobertos automaticamente. Não criam classes com sufixos novos nem dependem de Service Locator.
+Proposta mínima: arquivos `app/<Contexto>/Presentation/Http/Exceptions/exceptions.php` retornando closures tipadas que recebem `Illuminate\Foundation\Configuration\Exceptions`. `bootstrap/app.php` carrega e invoca explicitamente os registros de Identity, Expense, Notifications e Core dentro de `withExceptions`. Os arquivos têm `strict_types`, imports explícitos e não são descobertos automaticamente. Não criam classes com sufixos novos nem dependem de Service Locator.
 
 Os registros contêm callbacks nativos por tipo; não um `match` global sobre Throwable. O bootstrap permanece composition root e não guarda mensagens, seleção de campos ou regras de registro push. Routing e middleware permanecem como estão: mover essas configurações não faz parte desta mudança.
 
@@ -22,11 +22,11 @@ Alternativas rejeitadas: mover o bloco inteiro para um arquivo global (mantém a
 
 ### 2. Uma Response compartilhada exclusivamente de transporte
 
-`App\Core\Presentation\Http\Responses\JsonApiErrorResponse` concentra envelope `errors`, media type, status textual e construção de um ou vários erros. Pode estender `JsonResponse` ou fornecer construção explícita equivalente, sem simular recursos `data` via `JsonApiResource`. Os chamadores fornecem títulos, detalhes e origens; a Response não inspeciona exceções ou conhece contextos consumidores.
+`App\Core\Presentation\Http\Responses\JsonErrorResponse` concentra envelope `errors`, media type, status textual e construção de um ou vários erros. Estende `JsonResponse`, sem simular recursos `data` via `JsonApiResource`. Os chamadores fornecem títulos, detalhes e origens; a Response não inspeciona exceções ou conhece contextos consumidores. O nome inicial `JsonApiErrorResponse` foi simplificado por solicitação do usuário durante a implementação; as evidências históricas abaixo conservam os nomes usados em cada etapa.
 
 Para normalização final, a montagem do documento é reutilizada sem descartar status e headers da resposta original. Não criar DTO de Application ou Value Object de Domain para representar HTTP.
 
-O compartilhamento exige permissão explícita e restrita para esta classe de Core nas verificações de fronteira e documentação arquitetural, se a matriz atual ainda não a admitir. Não liberar namespaces inteiros nem imports entre contextos de negócio. A autorização para implementar esta mudança deverá abranger essa atualização pontual; esta etapa cria apenas os artefatos OpenSpec.
+O compartilhamento usa permissão explícita e restrita para esta classe de Core nas verificações de fronteira e documentação arquitetural. Não libera namespaces inteiros nem imports entre contextos de negócio. A atualização pontual foi implementada após autorização do usuário.
 
 ### 3. Ownership e precedência
 
@@ -140,3 +140,95 @@ Cada linha foi executada por `lerd composer test -- <arquivo> --compact`, via MC
 | Metrics/Presentation/ExpenseMetricsHttpTest.php | 91 | 859 |
 
 Total de cenários distintos nessas execuções finais: 341 testes / 2791 assertions, todos aprovados, sem skips reportados. Pint `--dirty --format agent` passou; os quatro arquivos novos foram novamente executados isoladamente após Pint. OpenSpec validado estritamente. Não foi executado gate completo/paralelo nativo: nenhum suporte compartilhado ou código de produção foi alterado. A matriz prova somente a baseline; ownership/composição futuros, remoção do callback morto e integração pós-extração continuam pendentes nos Steps 2–4. Não há alegação de change concluída ou arquivável.
+
+## Construção compartilhada verificada — Step 2 (2026-10-19)
+
+`Core\Presentation\Http\Responses\JsonApiErrorResponse` estende o `Illuminate\Http\JsonResponse` instalado. O construtor recebe lista de erros e status HTTP; usa `document()` para adicionar status textual a cada erro, preservando a ordem, os textos e os membros opcionais recebidos, sem acrescentar `data`. `document()` também expõe o mesmo envelope como array, sem container ou efeitos sobre uma resposta existente, para reutilização futura pelo hook final. A classe não escolhe mensagens, não inspeciona exceções, não conhece consumidores e não registra bindings.
+
+A permissão em `ContextBoundariesTest.php` foi acrescentada somente para a classe exata, exclusivamente na Presentation de Identity, Expense e Notifications. Domain, Application, Infrastructure, Insights e Metrics não receberam novas permissões. `ARCHITECTURE.md` documenta esse limite; não há liberação de namespace nem dependência entre contextos de negócio.
+
+Evidência ERR-01/ERR-03/ERR-04: `tests/Unit/Core/Presentation/Http/Responses/JsonApiErrorResponseTest.php` prova um erro em dez status, lista ordenada de quatro erros, múltiplas mensagens para um campo, pointers intactos (inclusive `/page/cursor`), parameter, membros id/code/links/meta, Unicode, ausência de membros implícitos, status textual, media type e igualdade entre `document()` e o construtor sem mutar a entrada. Executa sem bootstrap Laravel/PostgreSQL/Redis: 13 testes / 45 assertions.
+
+Evidência ERR-02: `tests/Unit/Architecture/ContextBoundariesTest.php` passou com 30 testes / 504 assertions. Revisão do diff confirma permissão restrita e ausência de alterações no bootstrap, renderers, rotas, middleware, providers e suporte compartilhado.
+
+Comandos via MCP Lerd, com cada arquivo executado isoladamente pelo launcher:
+
+- `lerd composer test -- tests/Unit/Core/Presentation/Http/Responses/JsonApiErrorResponseTest.php --compact`
+- `lerd composer test -- tests/Unit/Architecture/ContextBoundariesTest.php --compact`
+- `lerd composer test -- tests/Feature/<Core|Identity|Expense|Notifications>/Presentation/Http/ExceptionRenderingHttpTest.php --compact` (quatro invocações; respectivamente 32/146, 22/110, 8/40 e 8/40 testes/assertions).
+- Pint `--dirty --format agent`, também com seleção explícita dos três arquivos PHP desta etapa; todos os seis arquivos de testes acima repetidos após a última formatação.
+
+Resultado final desta etapa: 113 testes / 885 assertions aprovados, sem skips reportados. Feature usou o preflight com migrations incrementais em bancos exclusivos; os dois arquivos Unit não provisionaram banco. A baseline HTTP conserva seu comportamento porque a Response ainda não foi conectada aos renderers. A extração e o consumo de `document()` no hook final continuam em 3.1–3.4; preservação pós-integração permanece no Step 4. Não houve mudança de suporte compartilhado, execução da suíte completa/paralelo nativo, commit ou arquivamento.
+
+## Extração integrada verificada — Step 3 (2026-10-19)
+
+Os quatro arquivos `app/<Identity|Expense|Notifications|Core>/Presentation/Http/exceptions.php` retornam closures tipadas que registram os hooks nativos. `withExceptions` agora contém somente quatro cargas/invocações explícitas, em ordem Identity → Expense → Notifications → Core. O bootstrap não importa mais exceções de negócio nem contém mensagens, montagem de erros, seleção de campos ou a particularidade de push. Foi acrescentado `strict_types`; os blocos completos `withRouting` e `withMiddleware` foram comparados textualmente com HEAD e permanecem idênticos.
+
+Identity usa a Response compartilhada, conserva os três ramos de conta, todos os textos/pointers e as cinco exclusões de reporte. Há somente um renderer de EmailAlreadyUsedException, com o pointer do primeiro registro efetivo; somente o segundo registro morto foi removido. Expense conserva os quatro mapeamentos e a exclusão de cursor, inclusive seu pointer `/page/cursor`. Os renderers tipados desses contextos e de Notifications continuam sem guard de API.
+
+Notifications conserva as três exclusões de reporte e os três mapeamentos. Seu callback de NotFoundHttpException retorna null fora de `DELETE && api/push-registrations/*`; no caso específico, preserva o título e o detalhe da exceção própria. O registro ocorre antes do 404 genérico de Core. Nenhum import de Notifications permanece no bootstrap ou em Core.
+
+Core conserva `api/* || expectsJson()`, os guards de API da validação/404/normalização e o catálogo/defaults integral. Validação monta uma entrada por mensagem, preservando ordem e pointers. O fallback usa `JsonApiErrorResponse::document()` ao substituir somente o corpo da mesma Response, mantendo status/headers, ajustando Content-Type e removendo Content-Length obsoleto. Documento já JSON:API permanece intocado. Não há dispatcher próprio, novos providers, exceções, interfaces, endpoints, migrations ou suporte de teste.
+
+### Verificações incrementais e finais
+
+- Após extrair Identity: `lerd composer test -- tests/Feature/Identity/Presentation/Http/ExceptionRenderingHttpTest.php --compact` (22 / 110) e fronteiras (30 / 504), ambos aprovados antes de marcar 3.1.
+- Após extrair Expense/Notifications: suas caracterizações (8 / 40 cada), `NotificationRegistrationHttpTest.php` (47 / 292) e caracterização de Core (32 / 146), todos aprovados antes de marcar 3.2. Isso inclui o 404 alheio/ausente/malformado e o fallback fora do caso específico.
+- Após extrair Core: sua caracterização (32 / 146), fronteiras (30 / 504), filtros de Insights (41 / 255) e Metrics HTTP (91 / 859), todos aprovados antes de marcar 3.3. Isso inclui catálogo, validação múltipla, reporte, guards, documento pronto, headers e erros próprios com parameter.
+- Após Pint `--dirty --format agent`: os mesmos 11 arquivos HTTP listados na tabela do Step 1 foram executados novamente, cada um isoladamente pelo launcher, com os mesmos resultados (341 / 2791). Response Unit (13 / 45) e fronteiras (30 / 504) também foram repetidos isoladamente. Total distinto nesta rodada final: **384 testes / 3340 assertions**, todos aprovados, sem skips reportados.
+
+Os comandos de teste são `lerd composer test -- <arquivo> --compact`, via MCP `exec/composer`. Feature continua usando preflight e bancos exclusivos com migrations incrementais; nenhuma migration ou escrita manual no banco operacional foi necessária. Não houve mudança nos testes ou no suporte nesta etapa.
+
+Smoke HTTP local adicional: GET de uma rota API inexistente, com `Accept: text/html`, respondeu 404 JSON:API com `Recurso não encontrado`, detalhe esperado e `X-Request-Id`. A captura de dumps já estava habilitada e foi preservada; `optimize_route(site=trocado)` não tinha amostras (`samples=0`, `routes=[]`), portanto não comprova desempenho nem ausência de N+1. Não foram criados usuários/tokens nem exercitados fluxos mutáveis manualmente.
+
+Sem divergência de produto identificada. O gate consolidado do Step 4 (suítes HTTP focadas e revisão final de rastreabilidade) permanece pendente, assim como a aprovação para prosseguir. Não foram executados suíte completa ou paralelo nativo; não houve alteração de suporte compartilhado. Sem commit ou arquivamento nesta etapa.
+
+### Ajuste posterior solicitado: diretório Exceptions
+
+Após edição manual de Notifications, os registros de Core, Expense e Identity foram movidos, sem alteração de conteúdo, para `Presentation/Http/Exceptions/exceptions.php`. Os quatro caminhos no bootstrap foram atualizados. As referências anteriores desta seção de evidências descrevem os caminhos e o estado históricos do Step 3, não uma nova aprovação do estado corrente.
+
+Pint passou. As quatro caracterizações HTTP foram repetidas isoladamente pelo launcher: Expense 8/8, Identity 22/22, Notifications 8/8; Core 28/32, com quatro falhas. Core já continha duas assinaturas `?JsonApiErrorResponse` apesar de importar/instanciar `JsonErrorResponse`, causando TypeError em validação/404. A ordem do bootstrap também já havia sido alterada para Core → Expense → Identity → Notifications, contrariando a precedência documentada do 404 específico. A padronização de pastas preservou essas edições; sua correção requer autorização separada. As evidências verdes anteriores não aprovam esse estado posterior, e o Step 4 permanece bloqueado por essas divergências.
+
+### Correção autorizada das falhas posteriores
+
+Após o pedido de corrigir os testes, os dois retornos de Core foram alinhados a `?JsonErrorResponse` e a composição foi restaurada para Identity → Expense → Notifications → Core. A permissão arquitetural e a referência em `ARCHITECTURE.md` foram alinhadas ao nome atual `JsonErrorResponse`, preservando o compartilhamento da classe exata. Nenhuma assertion foi removida ou relaxada.
+
+Pint passou nos três arquivos PHP envolvidos. Pelo launcher, foram repetidos isoladamente os quatro arquivos de caracterização HTTP, `NotificationRegistrationHttpTest.php`, `ContextBoundariesTest.php` e `JsonApiErrorResponseTest.php` (este último já usa a classe renomeada): **160 testes / 1177 assertions aprovados**, sem skips reportados. Core voltou a 32/32 e a jornada de Notifications aprovou seus 47 cenários, incluindo o 404 uniforme. GET local da rota API de smoke inexistente voltou a responder 404 JSON:API, inclusive com Accept HTML. `optimize_route` continua sem amostras; não é evidência de performance.
+
+As duas divergências registradas acima estão resolvidas. A autorização desta correção não executa nem conclui automaticamente o gate consolidado do Step 4; nenhum commit ou arquivamento realizado.
+
+## Gate final — Step 4 (2026-10-19)
+
+Executado após a autorização explícita de arquivamento, commit e push. O estado final usa `JsonErrorResponse` e `Presentation/Http/Exceptions/exceptions.php`; os nomes/caminhos antigos nas seções anteriores são evidência histórica. As duas falhas posteriores de tipos/precedência foram resolvidas antes deste gate, sem relaxar assertions.
+
+### Execução
+
+Pint `--dirty --format agent` passou antes das execuções finais. O launcher `lerd composer test -- --compact --fail-on-skipped --fail-on-incomplete --fail-on-risky` aprovou **2445 testes / 41741 assertions**, sem skips/incomplete/risky. Preflight: `trocado_testing_c86314da7b78b76c4ae083aa`; somente bancos exclusivos de teste e migrations incrementais.
+
+Os sete arquivos da correção final já haviam sido aprovados isoladamente (160 / 1177, tabela/descrição acima). Além da suíte completa, cada caminho abaixo foi executado em sua própria invocação pelo launcher, com `--compact --fail-on-skipped --fail-on-incomplete --fail-on-risky`:
+
+| Caminho sob `tests/Feature/` | Testes | Assertions |
+| --- | ---: | ---: |
+| Core/Presentation/Http | 33 | 240 |
+| Identity/Presentation/Http | 65 | 415 |
+| Expense/Presentation/Http | 264 | 2020 |
+| Notifications/Presentation/Http | 55 | 332 |
+| Insights/Presentation/Http/MonthlyInsightsFiltersHttpTest.php | 41 | 255 |
+| Metrics/Presentation/ExpenseMetricsHttpTest.php | 91 | 859 |
+
+Suítes focadas: **549 testes / 4121 assertions**, todos aprovados. Esses resultados se sobrepõem à suíte completa e não devem ser somados como cenários distintos.
+
+### Rastreabilidade final
+
+| Requisito / cenários | Evidência aprovada | Estado |
+| --- | --- | --- |
+| ERR-01: conflito e pointers de senha/avatar/cursor | Identity e Expense ExceptionRenderingHttpTest; Unit da Response | Proven |
+| ERR-02: traduções, três ramos de conta, campo Notifications e fronteiras | Caracterizações dos três contextos; NotificationRegistrationHttpTest; ContextBoundariesTest; revisão dos quatro registros e composição | Proven |
+| ERR-03: duas mensagens de senha + uma de e-mail, ordem e pointers | Core ExceptionRenderingHttpTest: `keeps every validation message...` | Proven |
+| ERR-04: 429/Retry-After, 405/Allow, catálogo/defaults, Content-Length e sanitização | Core ExceptionRenderingHttpTest: testes de headers, rejeição real de método, catálogo de 20 códigos e falha inesperada com debug; quota de Notifications | Proven |
+| ERR-05: 404 push uniforme, outro 404 e documento pronto | NotificationRegistrationHttpTest; Core ExceptionRenderingHttpTest: especialização, documento preservado byte a byte com headers; filtros reais Insights/Metrics com parameter | Proven |
+| ERR-06: não API HTML/JSON/redirect, negócio fora da API e reporte | Core ExceptionRenderingHttpTest e datasets API/não API dos três contextos; shouldReport real e callback de reporte inesperado | Proven |
+
+Revisão: bootstrap declarativo, Core sem import de consumidores, Response sem escolha de mensagens/inspeção de exceções, permissão exata em Presentation, Domain/Application intocados. O diff também contém reorganizações manuais prévias na ordem de rotas/aliases/argumentos de middleware e ajustes de Bruno, além da exclusão de documentação HTML, incluídos no commit por solicitação de “tudo”; não são apresentados como parte da extração nem revertidos. O ambiente Bruno mantém segredos declarados em `vars:secret` sem valores versionados e IDs locais vazios; apenas whitespace final foi removido. Não foram disparados requests Bruno mutáveis durante este gate.
+
+Nenhum bloqueio ou cenário sem evidência identificado para ERR-01–ERR-06. Não houve mudança de suporte compartilhado, schema, dependências ou rotinas de negócio; o gate ampliado de reorganização de suporte não se aplica. Não foi executado paralelo nativo/duas seeds adicionais; a suíte completa padrão e as suítes focadas passaram. Smoke local e optimize_route continuam com os limites já registrados, sem alegação de performance. Validação estrita e arquivamento nativo OpenSpec encerram esta etapa; outras changes ativas permanecem fora do escopo.
