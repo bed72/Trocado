@@ -9,6 +9,7 @@ use App\Identity\Application\Ports\SessionPort;
 use App\Identity\Application\Ports\SignInPort;
 use App\Identity\Application\Ports\SignOutPort;
 use App\Identity\Application\Repositories\EmailVerificationRepository;
+use App\Identity\Application\Repositories\PasswordRecoveryRepository;
 use App\Identity\Application\Repositories\UserRepository;
 use App\Identity\Domain\ValueObjects\SessionPolicyValueObject;
 use App\Identity\Infrastructure\Adapters\EmailVerificationAdapter;
@@ -17,6 +18,7 @@ use App\Identity\Infrastructure\Adapters\SessionAdapter;
 use App\Identity\Infrastructure\Adapters\SignInAdapter;
 use App\Identity\Infrastructure\Adapters\SignOutAdapter;
 use App\Identity\Infrastructure\Repositories\Persistence\EloquentEmailVerificationRepository;
+use App\Identity\Infrastructure\Repositories\Persistence\EloquentPasswordRecoveryRepository;
 use App\Identity\Infrastructure\Repositories\Persistence\EloquentUserRepository;
 use App\Identity\Infrastructure\Repositories\Persistence\Models\PersonalAccessTokenModel;
 use App\Notifications\Application\Ports\NotificationPort;
@@ -44,6 +46,7 @@ final class IdentityServiceProvider extends ServiceProvider
         $this->app->bind(abstract: NotificationPort::class, concrete: NotificationAdapter::class);
         $this->app->bind(abstract: UserRepository::class, concrete: EloquentUserRepository::class);
         $this->app->bind(abstract: EmailVerificationPort::class, concrete: EmailVerificationAdapter::class);
+        $this->app->bind(abstract: PasswordRecoveryRepository::class, concrete: EloquentPasswordRecoveryRepository::class);
         $this->app->bind(abstract: EmailVerificationRepository::class, concrete: EloquentEmailVerificationRepository::class);
     }
 
