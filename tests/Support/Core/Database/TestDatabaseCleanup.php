@@ -10,7 +10,7 @@ use RuntimeException;
 final class TestDatabaseCleanup
 {
     /** Child tables precede parents. New mutable tables must be classified here. */
-    public const TABLES = ['failed_jobs', 'jobs', 'notifications', 'personal_access_tokens', 'expenses', 'resource_identities', 'users'];
+    public const TABLES = ['failed_jobs', 'jobs', 'notifications', 'password_reset_tokens', 'personal_access_tokens', 'expenses', 'resource_identities', 'users'];
 
     public static function clean(Application $app): void
     {

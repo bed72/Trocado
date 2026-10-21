@@ -16,6 +16,7 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use Illuminate\Contracts\Database\ConcurrencyErrorDetector;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Facades\Config;
 use InvalidArgumentException;
 use RuntimeException;
 use SensitiveParameter;
@@ -79,11 +80,15 @@ final class EloquentUserRepository implements UserRepository
     public function delete(string $id): bool
     {
         $id = UuidValueObject::fromString($id)->value();
-        $model = UserModel::query()->find(id: $id);
+        $model = UserModel::query()->lockForUpdate()->find(id: $id);
 
         if ($model === null) {
             return false;
         }
+
+        $model->getConnection()->table(Config::string('auth.passwords.users.table'))
+            ->where('email', $model->email)
+            ->delete();
 
         $model->tokens()->delete();
 
