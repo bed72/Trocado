@@ -32,7 +32,7 @@ it('coordinates the complete reset and schedules only owner and canonical email 
         return UuidFixture::at(10);
     });
 
-    expect((new ResetPasswordUseCase($transactionPort, $port, $repository))->execute(
+    expect((new ResetPasswordUseCase(transactionPort: $transactionPort, resetPort: $port, repository: $repository))->execute(
         new ResetPasswordInput(' MARIA@EXAMPLE.COM ', ' exact-token ', ' Nova1 '),
     ))->toBeNull()->and($transactionPort->trace)->toBe(['begin', 'register', 'commit']);
     $transactionPort->releaseAfterCommit();
@@ -46,7 +46,7 @@ it('propagates rejection or technical failure without scheduling a notice', func
     $repository->expects($this->once())->method('reset')->willThrowException($failure);
 
     try {
-        (new ResetPasswordUseCase($transactionPort, $port, $repository))->execute(new ResetPasswordInput('maria@example.com', 'token', 'Newpass1'));
+        (new ResetPasswordUseCase(transactionPort: $transactionPort, resetPort: $port, repository: $repository))->execute(new ResetPasswordInput('maria@example.com', 'token', 'Newpass1'));
         $this->fail('Expected the original failure.');
     } catch (RuntimeException $exception) {
         expect($exception)->toBe($failure);
@@ -66,7 +66,7 @@ it('rejects invalid password policy before opening a transaction', function (str
     $repository = $this->createMock(PasswordRecoveryRepository::class);
     $repository->expects($this->never())->method('reset');
 
-    expect(fn () => (new ResetPasswordUseCase($transactionPort, $port, $repository))->execute(
+    expect(fn () => (new ResetPasswordUseCase(transactionPort: $transactionPort, resetPort: $port, repository: $repository))->execute(
         new ResetPasswordInput('maria@example.com', 'token', $password),
     ))->toThrow(InvalidPasswordException::class);
     expect($transactionPort->commitCount)->toBe(0);

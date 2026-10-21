@@ -37,7 +37,7 @@ beforeEach(function (): void {
     $this->request->execute('maria@example.com');
     $this->token = $this->links->links[0]['token'];
     $this->notice = $this->createMock(PasswordResetPort::class);
-    $this->reset = new ResetPasswordUseCase(app(TransactionPort::class), $this->notice, app(PasswordRecoveryRepository::class));
+    $this->reset = new ResetPasswordUseCase(transactionPort: app(TransactionPort::class), resetPort: $this->notice, repository: app(PasswordRecoveryRepository::class));
 });
 
 it('updates only the password consumes the recovery and revokes every owner PAT without issuing a session', function (string $password): void {
@@ -140,7 +140,7 @@ it('restores hash recovery and real PATs and discards a registered notice on a s
     expect([DB::table('users')->get()->all(), DB::table('personal_access_tokens')->get()->all(), DB::table('password_reset_tokens')->get()->all()])->toEqual($before);
     $this->notice = $this->createMock(PasswordResetPort::class);
     $this->notice->expects($this->once())->method('requestNotice');
-    (new ResetPasswordUseCase(app(TransactionPort::class), $this->notice, app(PasswordRecoveryRepository::class)))
+    (new ResetPasswordUseCase(transactionPort: app(TransactionPort::class), resetPort: $this->notice, repository: app(PasswordRecoveryRepository::class)))
         ->execute(new ResetPasswordInput('maria@example.com', $this->token, 'Different1'));
 });
 
@@ -171,7 +171,7 @@ it('refuses a reset outside the transaction or using a divergent native connecti
         ->toThrow(LogicException::class, 'A redefinição exige uma transação ativa.');
     config(['database.connections.recovery_other' => config('database.connections.pgsql'), 'auth.passwords.users.connection' => 'recovery_other']);
     $repository = new EloquentPasswordRecoveryRepository(app(Repository::class), new PasswordBrokerManager(app()), app(ConcurrencyErrorDetector::class));
-    $useCase = new ResetPasswordUseCase(app(TransactionPort::class), $this->notice, $repository);
+    $useCase = new ResetPasswordUseCase(transactionPort: app(TransactionPort::class), resetPort: $this->notice, repository: $repository);
     expect(fn () => $useCase->execute(new ResetPasswordInput('maria@example.com', $this->token, 'Different1')))
         ->toThrow(LogicException::class, 'A recuperação exige a mesma conexão de persistência da conta.');
 });
