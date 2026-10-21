@@ -53,24 +53,40 @@ final readonly class SignInAdapter implements SignInPort
             $credentials = ['email' => $canonicalEmail, 'password' => $password];
             $user = $provider->retrieveByCredentials(credentials: $credentials);
 
-            if (! $user instanceof UserModel
-                || password_get_info($user->getAuthPassword())['algo'] === null
-                || ! $provider->validateCredentials(user: $user, credentials: $credentials)) {
+            if (! $user instanceof UserModel) {
                 throw new InvalidCredentialsException;
             }
 
-            if ($user->status !== UserStatusEnum::Active) {
-                throw new InactiveUserException(status: $user->status);
-            }
+            return $user->getConnection()->transaction(function () use ($user, $provider, $credentials, $canonicalEmail): SignInOutput {
+                $user = $user->newQuery()->whereKey($user->getKey())
+                    ->where('email', $canonicalEmail)->lockForUpdate()->first();
 
-            if (! $user->hasVerifiedEmail()) {
-                throw new UnverifiedEmailException;
-            }
+                if (! $user instanceof UserModel
+                    || password_get_info($user->getAuthPassword())['algo'] === null
+                    || ! $provider->validateCredentials(user: $user, credentials: $credentials)) {
+                    throw new InvalidCredentialsException;
+                }
 
-            $provider->rehashPasswordIfRequired(user: $user, credentials: $credentials);
+                if ($user->status !== UserStatusEnum::Active) {
+                    throw new InactiveUserException(status: $user->status);
+                }
 
-            $expiresAt = $this->policy->initialExpiry(DateTimeImmutable::createFromInterface(object: Date::now()));
-            $accessToken = $user->createToken(name: 'api', abilities: [], expiresAt: $expiresAt);
+                if (! $user->hasVerifiedEmail()) {
+                    throw new UnverifiedEmailException;
+                }
+
+                $provider->rehashPasswordIfRequired(user: $user, credentials: $credentials);
+
+                $expiresAt = $this->policy->initialExpiry(DateTimeImmutable::createFromInterface(object: Date::now()));
+                $accessToken = $user->createToken(name: 'api', abilities: [], expiresAt: $expiresAt);
+
+                return new SignInOutput(
+                    expiresAt: $expiresAt,
+                    token: $accessToken->plainTextToken,
+                    userId: UuidValueObject::fromString($user->getKey())->value(),
+                    id: UuidValueObject::fromString($accessToken->accessToken->getKey())->value(),
+                );
+            }, attempts: 3);
         } catch (InvalidCredentialsException) {
             throw new InvalidCredentialsException;
         } catch (InactiveUserException $exception) {
@@ -80,12 +96,5 @@ final readonly class SignInAdapter implements SignInPort
         } catch (Throwable) {
             throw new RuntimeException(message: 'Não foi possível concluir a autenticação.');
         }
-
-        return new SignInOutput(
-            expiresAt: $expiresAt,
-            token: $accessToken->plainTextToken,
-            userId: UuidValueObject::fromString($user->getKey())->value(),
-            id: UuidValueObject::fromString($accessToken->accessToken->getKey())->value(),
-        );
     }
 }

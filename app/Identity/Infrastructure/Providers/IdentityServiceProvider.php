@@ -6,6 +6,7 @@ namespace App\Identity\Infrastructure\Providers;
 
 use App\Identity\Application\Ports\EmailVerificationPort;
 use App\Identity\Application\Ports\PasswordRecoveryPort;
+use App\Identity\Application\Ports\PasswordResetPort;
 use App\Identity\Application\Ports\SessionPort;
 use App\Identity\Application\Ports\SignInPort;
 use App\Identity\Application\Ports\SignOutPort;
@@ -47,6 +48,7 @@ final class IdentityServiceProvider extends ServiceProvider
         $this->app->bind(abstract: SessionPort::class, concrete: SessionAdapter::class);
         $this->app->bind(abstract: NotificationPort::class, concrete: NotificationAdapter::class);
         $this->app->bind(abstract: UserRepository::class, concrete: EloquentUserRepository::class);
+        $this->app->bind(abstract: PasswordResetPort::class, concrete: PasswordRecoveryAdapter::class);
         $this->app->bind(abstract: PasswordRecoveryPort::class, concrete: PasswordRecoveryAdapter::class);
         $this->app->bind(abstract: EmailVerificationPort::class, concrete: EmailVerificationAdapter::class);
         $this->app->bind(abstract: PasswordRecoveryRepository::class, concrete: EloquentPasswordRecoveryRepository::class);
