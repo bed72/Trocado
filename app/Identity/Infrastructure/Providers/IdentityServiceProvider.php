@@ -103,5 +103,8 @@ final class IdentityServiceProvider extends ServiceProvider
                 Limit::perHour(2)->by("email-verification:email:$identifier"),
             ];
         });
+
+        RateLimiter::for('authentication.forgot-password', fn (Request $request): Limit => Limit::perMinutes(10, 6)
+            ->by('forgot-password:ip:'.$request->ip()));
     }
 }
