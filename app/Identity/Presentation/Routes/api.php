@@ -6,6 +6,7 @@ use App\Identity\Presentation\Http\Controllers\DeleteUserController;
 use App\Identity\Presentation\Http\Controllers\GetUserController;
 use App\Identity\Presentation\Http\Controllers\RequestPasswordRecoveryController;
 use App\Identity\Presentation\Http\Controllers\ResendEmailVerificationController;
+use App\Identity\Presentation\Http\Controllers\ResetPasswordController;
 use App\Identity\Presentation\Http\Controllers\SignInController;
 use App\Identity\Presentation\Http\Controllers\SignOutController;
 use App\Identity\Presentation\Http\Controllers\SignUpController;
@@ -30,6 +31,9 @@ Route::prefix('authentication')->name('authentication.api.')->group(function ():
     Route::post(uri: 'forgot-password', action: RequestPasswordRecoveryController::class)
         ->middleware('throttle:authentication.forgot-password')
         ->name(name: 'forgot-password');
+    Route::post(uri: 'reset-password', action: ResetPasswordController::class)
+        ->middleware('throttle:authentication.reset-password')
+        ->name(name: 'reset-password');
     Route::post(uri: 'email-verification/resend', action: ResendEmailVerificationController::class)
         ->middleware('throttle:authentication.email-verification')
         ->name(name: 'email-verification.resend');

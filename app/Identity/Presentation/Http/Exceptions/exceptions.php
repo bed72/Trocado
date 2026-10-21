@@ -3,9 +3,11 @@
 declare(strict_types=1);
 
 use App\Core\Presentation\Http\Responses\JsonErrorResponse;
+use App\Identity\Application\Exceptions\CurrentPasswordException;
 use App\Identity\Application\Exceptions\EmailAlreadyUsedException;
 use App\Identity\Application\Exceptions\InactiveUserException;
 use App\Identity\Application\Exceptions\InvalidCredentialsException;
+use App\Identity\Application\Exceptions\InvalidPasswordRecoveryException;
 use App\Identity\Application\Exceptions\UnverifiedEmailException;
 use App\Identity\Application\Exceptions\UserNotFoundException;
 use App\Identity\Domain\Enums\UserStatusEnum;
@@ -18,6 +20,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 return static function (Exceptions $exceptions): void {
     $exceptions->dontReport([
+        CurrentPasswordException::class,
+        InvalidPasswordRecoveryException::class,
         InactiveUserException::class,
         InvalidPasswordException::class,
         EmailAlreadyUsedException::class,
@@ -29,6 +33,18 @@ return static function (Exceptions $exceptions): void {
         'title' => 'Credenciais inválidas',
         'detail' => $exception->getMessage(),
     ]], Response::HTTP_UNAUTHORIZED));
+
+    $exceptions->render(fn (InvalidPasswordRecoveryException $exception): JsonErrorResponse => new JsonErrorResponse([[
+        'title' => 'Link inválido',
+        'detail' => $exception->getMessage(),
+        'source' => ['pointer' => '/data/attributes/token'],
+    ]], Response::HTTP_UNPROCESSABLE_ENTITY));
+
+    $exceptions->render(fn (CurrentPasswordException $exception): JsonErrorResponse => new JsonErrorResponse([[
+        'title' => 'Dados inválidos',
+        'detail' => $exception->getMessage(),
+        'source' => ['pointer' => '/data/attributes/password'],
+    ]], Response::HTTP_UNPROCESSABLE_ENTITY));
 
     $exceptions->render(fn (UnverifiedEmailException $exception): JsonErrorResponse => new JsonErrorResponse([[
         'title' => 'E-mail não confirmado',

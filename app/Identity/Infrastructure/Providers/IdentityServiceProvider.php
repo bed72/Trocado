@@ -106,5 +106,8 @@ final class IdentityServiceProvider extends ServiceProvider
 
         RateLimiter::for('authentication.forgot-password', fn (Request $request): Limit => Limit::perMinutes(10, 6)
             ->by('forgot-password:ip:'.$request->ip()));
+
+        RateLimiter::for('authentication.reset-password', fn (Request $request): Limit => Limit::perMinutes(10, 6)
+            ->by('reset-password:ip:'.$request->ip()));
     }
 }

@@ -41,6 +41,7 @@ return Application::configure(basePath: dirname(__DIR__))
         );
         $middleware->trimStrings(except: [
             'data.id',
+            'data.attributes.token',
             'data.attributes.password',
             'data.attributes.installation_id',
             'data.attributes.password_confirmation',
@@ -48,8 +49,8 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        (require __DIR__.'/../app/Identity/Presentation/Http/Exceptions/exceptions.php')($exceptions);
-        (require __DIR__.'/../app/Expense/Presentation/Http/Exceptions/exceptions.php')($exceptions);
-        (require __DIR__.'/../app/Notifications/Presentation/Http/Exceptions/exceptions.php')($exceptions);
         (require __DIR__.'/../app/Core/Presentation/Http/Exceptions/exceptions.php')($exceptions);
+        (require __DIR__.'/../app/Expense/Presentation/Http/Exceptions/exceptions.php')($exceptions);
+        (require __DIR__.'/../app/Identity/Presentation/Http/Exceptions/exceptions.php')($exceptions);
+        (require __DIR__.'/../app/Notifications/Presentation/Http/Exceptions/exceptions.php')($exceptions);
     })->create();

@@ -57,6 +57,7 @@ it('separates IPs and existing authentication quotas and reopens exactly after t
         $this->postJson($url, $this->payload)->assertAccepted();
     }
     $this->postJson($url, $this->payload)->assertTooManyRequests();
+    $this->postJson(route('authentication.api.reset-password'), [])->assertUnprocessable();
     $this->postJson(route('authentication.api.sign-in'), [])->assertUnprocessable();
     $this->postJson(route('authentication.api.sign-up'), [])->assertUnprocessable();
     $this->postJson(route('authentication.api.email-verification.resend'), [])->assertUnprocessable();
