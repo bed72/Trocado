@@ -8,6 +8,7 @@ use App\Identity\Application\Repositories\PasswordRecoveryRepository;
 use App\Identity\Application\UseCases\RequestPasswordRecoveryUseCase;
 use App\Identity\Domain\Enums\UserStatusEnum;
 use App\Identity\Domain\ValueObjects\EmailValueObject;
+use App\Identity\Infrastructure\Adapters\PasswordRecoveryAdapter;
 use App\Identity\Infrastructure\Repositories\Persistence\EloquentPasswordRecoveryRepository;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Passwords\PasswordBrokerManager;
@@ -32,7 +33,7 @@ it('issues only a native token hash under account then recovery locks without ch
     $beforeUser = DB::table('users')->get()->all();
     $beforeSessions = DB::table('personal_access_tokens')->get()->all();
     expect(app(PasswordRecoveryRepository::class))->toBeInstanceOf(EloquentPasswordRecoveryRepository::class)
-        ->and(app()->bound(PasswordRecoveryPort::class))->toBeFalse();
+        ->and(app(PasswordRecoveryPort::class))->toBeInstanceOf(PasswordRecoveryAdapter::class);
 
     DB::enableQueryLog();
     DB::flushQueryLog();

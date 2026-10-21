@@ -6,6 +6,7 @@ namespace App\Identity\Infrastructure\Adapters;
 
 use Illuminate\Contracts\Config\Repository;
 use RuntimeException;
+use SensitiveParameter;
 
 use function in_array;
 use function is_string;
@@ -46,5 +47,14 @@ final readonly class PasswordRecoveryUrlAdapter
         }
 
         return false;
+    }
+
+    public function forToken(string $email, #[SensitiveParameter] string $token): string
+    {
+        $baseUrl = $this->baseUrl();
+        $query = http_build_query(['token' => $token, 'email' => $email], arg_separator: '&', encoding_type: PHP_QUERY_RFC3986);
+        $separator = str_contains($baseUrl, '?') ? '&' : '?';
+
+        return "{$baseUrl}{$separator}{$query}";
     }
 }

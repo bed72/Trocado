@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace App\Identity\Infrastructure\Repositories\Persistence;
 
 use App\Identity\Application\Data\Output\PasswordRecoveryEmissionOutput;
+use App\Identity\Application\Exceptions\CurrentPasswordException;
+use App\Identity\Application\Exceptions\InvalidPasswordRecoveryException;
 use App\Identity\Application\Repositories\PasswordRecoveryRepository;
 use App\Identity\Domain\Enums\UserStatusEnum;
 use App\Identity\Domain\ValueObjects\EmailValueObject;
+use App\Identity\Domain\ValueObjects\PasswordValueObject;
 use App\Identity\Infrastructure\Repositories\Persistence\Models\UserModel;
 use Illuminate\Auth\Passwords\DatabaseTokenRepository;
 use Illuminate\Auth\Passwords\PasswordBrokerManager;
@@ -16,8 +19,10 @@ use Illuminate\Contracts\Database\ConcurrencyErrorDetector;
 use Illuminate\Database\DeadlockException;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\Hash;
 use LogicException;
 use RuntimeException;
+use SensitiveParameter;
 
 use function is_string;
 
@@ -28,6 +33,61 @@ final readonly class EloquentPasswordRecoveryRepository implements PasswordRecov
         private PasswordBrokerManager $manager,
         private ConcurrencyErrorDetector $detector,
     ) {}
+
+    public function reset(EmailValueObject $email, #[SensitiveParameter] string $token, #[SensitiveParameter] PasswordValueObject $password): string
+    {
+        $query = UserModel::query();
+        $connection = $query->getConnection();
+        $tokens = $this->manager->broker('users')->getRepository();
+
+        if (! $tokens instanceof DatabaseTokenRepository || $tokens->getConnection() !== $connection) {
+            throw new LogicException('A recuperação exige a mesma conexão de persistência da conta.');
+        }
+
+        if ($connection->transactionLevel() === 0) {
+            throw new LogicException('A redefinição exige uma transação ativa.');
+        }
+
+        try {
+            $user = $query->where('email', $email->value())->lockForUpdate()->first();
+
+            if ($user === null || $user->status !== UserStatusEnum::Active || ! $user->hasVerifiedEmail()) {
+                throw new InvalidPasswordRecoveryException;
+            }
+
+            $record = $connection->table($this->repository->get('auth.passwords.users.table'))
+                ->where('email', $user->email)->lockForUpdate()->first();
+
+            if ($record === null || ! is_string($record->created_at)
+                || preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/D', $record->created_at) !== 1) {
+                throw new InvalidPasswordRecoveryException;
+            }
+
+            $issuedAt = Date::createFromFormat('!Y-m-d H:i:s', $record->created_at);
+
+            if ($issuedAt === false || $issuedAt->format('Y-m-d H:i:s') !== $record->created_at
+                || Date::now()->greaterThanOrEqualTo($issuedAt->addMinutes(30))
+                || ! $tokens->exists($user, $token)) {
+                throw new InvalidPasswordRecoveryException;
+            }
+
+            if (Hash::check($password->value(), $user->password)) {
+                throw new CurrentPasswordException;
+            }
+
+            $user->forceFill(['password' => $password->value()])->save();
+            $tokens->delete($user);
+            $user->tokens()->delete();
+
+            return $user->getKey();
+        } catch (QueryException $exception) {
+            if ($this->detector->causedByConcurrencyError($exception)) {
+                throw new DeadlockException('Não foi possível persistir a recuperação de senha.', 40001);
+            }
+
+            throw new RuntimeException('Não foi possível persistir a recuperação de senha.');
+        }
+    }
 
     public function issue(EmailValueObject $email): ?PasswordRecoveryEmissionOutput
     {

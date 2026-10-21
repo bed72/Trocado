@@ -54,3 +54,18 @@ it('rejects unavailable unsafe or reserved destinations without exposing their v
     'semicolon separator' => ['https://app.example.com/reset-password?locale=pt;email=private', 'production'],
     'invalid port' => ['https://app.example.com:99999/reset-password', 'production'],
 ]);
+
+it('appends exactly one RFC 3986 encoded token and email while preserving a non reserved query', function (string $base): void {
+    $adapter = new PasswordRecoveryUrlAdapter(new Repository([
+        'app' => ['env' => 'production'], 'identity' => ['password_recovery' => ['url' => $base]],
+    ]));
+    $url = $adapter->forToken('maria+tag@example.com', 'test +/&?=%');
+    parse_str(parse_url($url, PHP_URL_QUERY), $query);
+
+    expect($query['token'])->toBe('test +/&?=%')
+        ->and($query['email'])->toBe('maria+tag@example.com')
+        ->and($url)->toContain('token=test%20%2B%2F%26%3F%3D%25', 'email=maria%2Btag%40example.com');
+    if (str_contains($base, '?locale=')) {
+        expect($query['locale'])->toBe('pt-BR');
+    }
+})->with(['https://app.example.com/reset', 'https://app.example.com/reset?locale=pt-BR']);
