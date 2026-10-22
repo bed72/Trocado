@@ -10,7 +10,7 @@ COPY public ./public
 COPY vite.config.js ./
 RUN npm run build
 
-FROM php:8.5-apache-bookworm AS php-base
+FROM php:8.5.12-apache-bookworm AS php-base
 
 WORKDIR /var/www/html
 

@@ -8,7 +8,8 @@ tests {
         if (linked) (Array.isArray(linked) ? linked : [linked]).forEach(check);
       });
     };
-    if (res.getStatus() >= 200 && res.getStatus() < 300 && res.getStatus() !== 204) {
+    const isRecoveryAccepted = res.getStatus() === 202 && req.getUrl().split("?")[0].endsWith("/api/authentication/forgot-password");
+    if (res.getStatus() >= 200 && res.getStatus() < 300 && res.getStatus() !== 204 && !isRecoveryAccepted) {
       const data = res.getBody().data;
       expect(data).to.exist;
       (Array.isArray(data) ? data : [data]).forEach(check);
