@@ -220,6 +220,55 @@ curl -i -X POST http://127.0.0.1:8000/api/authentication/sign-in \
 
 Mantenha `EMAIL`, `PASSWORD` e o valor retornado em `data.attributes.token` como variáveis somente durante a sessão de desenvolvimento. O token puro não pode ser recuperado do banco.
 
+### Recuperação de senha — somente API
+
+Identity expõe dois POSTs públicos, sem Bearer obrigatório, com `Accept` e `Content-Type: application/vnd.api+json`. O corpo deve ser JSON fechado: somente `data`, somente `type`/`attributes` no recurso e somente os atributos indicados abaixo. Query e formulário não completam campos ausentes.
+
+`POST /api/authentication/forgot-password` (`authentication.api.forgot-password`):
+
+```json
+{"data":{"type":"password-recovery-requests","attributes":{"email":"maria@example.com"}}}
+```
+
+Documento válido dentro da cota recebe **202** com somente:
+
+```json
+{"meta":{"message":"Se a conta estiver apta, enviaremos as instruções de recuperação."}}
+```
+
+A resposta é a mesma para conta inexistente, pending, blocked, não verificada, solicitação suprimida ou indisponibilidade do envio. Não confirma emissão nem entrega. Apenas conta **active e verificada** pode receber/consumir recuperação; o fluxo não ativa nem verifica contas. E-mail é canonicalizado conforme Identity, deve ser válido e ter até 255 caracteres.
+
+O e-mail aponta ao destino fixo configurado pelo operador, com query `token` e `email` codificada. O consumidor interpreta esse destino e envia `POST /api/authentication/reset-password` (`authentication.api.reset-password`):
+
+```json
+{"data":{"type":"password-resets","attributes":{"email":"maria@example.com","token":"<token recebido no link>","password":"NovaSenha9","password_confirmation":"NovaSenha9"}}}
+```
+
+Exemplo sem credenciais reais; substitua e-mail, token e ambas as senhas. Todos os atributos são obrigatórios e strings. Senha/confirmação/token são preservados exatamente, inclusive espaços; confirmação deve ser idêntica. A política é a mesma do cadastro: **6–32 caracteres, até 72 bytes, uma letra Unicode maiúscula e um dígito ASCII 0–9**. Senha igual à atual é rejeitada sem consumir o link; não há histórico de senhas.
+
+Sucesso retorna **204 sem corpo**, consome o token, altera a senha e revoga todos os PATs somente daquela conta na mesma transação PostgreSQL. Não emite sessão, não altera perfil/status/verificação e não redireciona: o consumidor faz novo SignIn explicitamente. Tokens revogados não autenticam requests posteriores; não se promete cancelar requests já autenticados em andamento. O aviso de alteração é enfileirado após commit, sem senha/token.
+
+| Situação | Resposta |
+| --- | --- |
+| Documento/política/confirmação inválidos | `422` JSON:API com pointers pertinentes, sem consumir recuperação |
+| Senha atual | `422`, pointer `/data/attributes/password`, detalhe `A nova senha deve ser diferente da atual.` |
+| Token incorreto, expirado, consumido, substituído ou conta/endereço inelegível | Mesmo `422`, pointer `/data/attributes/token`, detalhe `Este link é inválido ou expirou. Solicite uma nova recuperação de senha.` |
+| Sétima tentativa do endpoint por IP na janela | `429` JSON:API com `Retry-After`, antes de validar/processar o documento |
+| Falha técnica de persistência ou do limiter | Erro técnico genérico, sem fingir sucesso ou liberar cota local |
+
+O token vale **30 minutos desde a emissão confirmada**, sendo inválido no instante exato do vencimento. Há somente um token corrente por endereço; emissão admitida após **60 segundos** invalida o anterior. Dentro desse intervalo, outra solicitação conserva 202, hash e prazo, sem reenviar, mesmo com outro IP ou caixa/espaços equivalentes do e-mail. Abrir o destino não consome recuperação: não existe GET de consumo, formulário web ou redirect nesta API, nem implementação de tela/App Links/Universal Links do cliente.
+
+Cada endpoint tem cota independente de **6 requests por IP/10 minutos**, contando documentos inválidos e sucessos, sem consumir quotas de SignIn/SignUp/reenvio de verificação. Use `CACHE_LIMITER_STORE=redis` para o contador compartilhado entre processos; indisponibilidade não provoca fallback silencioso local.
+
+#### Configuração e operação da recuperação
+
+- Configure `PASSWORD_RESET_URL` por ambiente com URL absoluta confiável; HTTPS é obrigatório em produção. Exemplo reservado: `https://app.example.com/reset?locale=pt-BR`. Não use URL da API como fallback. Não são aceitos userinfo, fragmento nem parâmetros reservados `token`/`email` já presentes (inclusive codificados); query não reservada é preservada. Host/atributo do request não escolhe o destino. URL ausente/inválida impede nova emissão e gera somente diagnóstico sanitizado, conservando o 202 público.
+- Aplique migrations incrementais antes de habilitar as rotas. `password_reset_tokens` guarda somente e-mail canônico, hash do token e data de emissão, não senha/token bruto. Encerramento da conta remove sua recuperação na unidade transacional existente.
+- Use o mailer direto já configurado e Redis acessível. Transportes `log`, compostos/failover, desconhecidos ou `array` em produção são recusados para não registrar o link. Não crie um transporte síncrono alternativo para falhas.
+- Link e aviso usam a conexão de fila **Redis** e exigem worker ativo na fila configurada. Os jobs são cifrados pela chave da aplicação; mantenha `APP_KEY`/chaves anteriores compatíveis durante mudanças de configuração e reinicie os workers após publicar código/configuração. Jobs com destinatário removido/endereço alterado são descartados; entrega atrasada não renova prazo nem regenera token. Mudanças de nomes serializados exigem tratar jobs antigos incompatíveis antes da publicação.
+- Falha de enqueue/transporte não desfaz estado confirmado: emissão conserva 202 e reset conserva 204. Jobs enfileirados seguem retries/falhas normais; sem enqueue, nova solicitação após o intervalo permite tentar outra emissão. Não há outbox, entrega garantida ou promessa de exatamente uma vez.
+- O link/token é segredo, assim como senha, confirmação e hashes: não os inclua em logs, analytics, referrers, URLs de diagnóstico ou arquivos versionados. O payload de entrega necessariamente carrega o link cifrado até o worker; a tabela hash-only não significa ausência do segredo em memória/e-mail. Armazene exemplos/preparação reais somente em configuração privada e não rode jornadas contra contas operacionais sem decisão explícita.
+
 ## Cadastrar instalações push
 
 O cadastro aceita Android/iOS com Flutter Firebase oficial e **token de registro FCM**, `registration_kind = token`. O `installation_id` deve ser **UUIDv7**, gerado legitimamente e persistido pelo cliente por instalação, sem mudar em login/rotação; não é token FCM, FID, token APNs, ID físico ou PK do registro. UUIDv4/outra versão recebe `422` com pointer `/data/attributes/installation_id`, sem eco do destino. Não converta uma instalação v4 alterando bits. A versão do gerador e o payload real precisam ser comprovados na homologação. Nesta fatia, o cadastro não realiza envios Firebase.
