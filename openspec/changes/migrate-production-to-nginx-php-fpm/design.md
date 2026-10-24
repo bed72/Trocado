@@ -304,3 +304,21 @@ O código **instalado** de podman-compose 1.6.0 em `ServiceDependencyCondition.f
 Primeira tentativa `trocado-compose-e1c34f263318` criou pod pelo default do provider e foi descartada como evidência de isolamento; pod próprio teve seus membros inspecionados e foi removido. Segunda `trocado-compose-de1a86da85af`, sem pod, reproduziu o defeito da barreira, mas a assertion da migration de sucesso consultou seu estado antes de encerrar. Corrigido somente o probe para aguardar estado final com prazo finito; não enfraquecida a expectativa de barreira, que continua bloqueada. Podman recusou algumas remoções pela referência `--requires`; recursos residuais foram removidos em ordem de dependência, com conferência de ownership, antes do próximo run. Run final completou verificações e cleanup em ordem correta. Nenhum reset, prune, drop ou flush amplo.
 
 Auditoria final dos três runs por labels/nome exato: sem containers/volumes/redes/pods próprios; envs e probes temporários removidos. Serviços Lerd e imagens existentes preservados. **2.3 e 4.5 permanecem pendentes (13/29)**; não executada suíte funcional nem Pint (sem mudança PHP), não há novo schema ou alteração da política de migration. Prosseguir na barreira depende de ambiente Docker Compose compatível disponibilizado/autorizado pelo usuário. Traefik/HTTPS/auth/assinaturas e operações VPS continuam fora desta prova.
+
+## Documentação de operação — tarefa 4.6 (2026-10-24)
+
+Checkpoint anterior commitado em **`9faf3ca`**, incluindo as decisões posteriores de aceitar 2.3 com dispensa da prova Docker e concluir a configuração de 3.2 com validação operacional adiada. O histórico de bloqueio acima não substitui essas decisões atuais. Nenhum novo probe local foi executado.
+
+README revisado por leitura cruzada com Compose/CI e contrato desta mudança:
+
+| Requisitos | Cobertura documental |
+| --- | --- |
+| R1/R6 | Release Git limpa, targets e digests pareados, arquitetura operacional a confirmar, ambiente privado, chaves preservadas e caches por container |
+| R2–R5 | Smoke checks de superfície pública/contratos, proxy explícito, assinatura/forwarded, HSTS/versões/gzip e ausência de cache privado compartilhado |
+| R7 | Barreira configurada e limitação conhecida do provider, resultado real de migration/startup, verificações separadas dos auxiliares, volume físico preservado e ausência de consumidores duplicados |
+| R8 | Orçamento compartilhado/pool provisório e baseline/comparação limitada, 429 separado, sem runner Load local na VPS ou promessa de ganho |
+| R9 | Janela/autorização, Apache recuperável por digest, critérios de interrupção, restauração do conjunto e checks pós-reversão, sem apagar dados/volumes/chaves |
+
+A referência Apache de código foi mantida antes da retirada das antigas instruções operacionais. Não se afirmou ter coletado imagem Apache por digest ou executado reversão. Corrigida também a seção CI: o único workflow versionado não publica; o fluxo manual Dokploy precisa ser confirmado, sem instruir executar Action ausente nem afirmar que Autodeploy externo está desligado. Não foi criada automação para resolver essa pendência.
+
+**4.6 concluída documentalmente; 16/29 tarefas.** 4.3–4.5 e grupos 5–6 continuam com evidência operacional pendente. Smoke em produção não significa executar testes funcionais, fixtures, falhas induzidas ou operações destrutivas no banco operacional. Sem teste/Pint (nenhum PHP alterado), build, runtime, migration, Docker novo, VPS ou deploy nesta etapa. Próximo checkpoint: pré-requisitos operacionais com autorização e acesso próprios.
