@@ -244,3 +244,28 @@ Histórico de verificações mantido: o primeiro probe revelou o desvio 404 do f
 Containers, redes e volumes nomeados próprios foram removidos com confirmação de sucesso. Auditoria posterior identificou cinco volumes anônimos `/data` criados pela imagem Redis durante as tentativas. Atribuição conferida pela sequência exata de eventos (volume nomeado com label do run → volume anônimo → criação do Redis do mesmo run, intervalos de 1–2 ms), flag Anonymous, ausência de mounts e ausência de containers referenciando cada ID. Removidos somente esses cinco IDs, sem prune, limpeza por substring ou remoção de volumes preexistentes. Consultas finais por label não mostram containers/redes desta validação. Arquivos/env/stubs temporários eliminados; imagens e caches de build locais preservados.
 
 1.2/2.1/2.2/3.1/3.3/3.4/3.5/4.2 agora têm evidência no nível indicado nas tarefas, com os limites acima. 2.3, 3.2 e 4.1/4.3–4.6 seguem abertas; 5–6 não foram operadas. Nenhum PHP da aplicação alterado, portanto Pint não aplicável; suíte funcional existente não executada nesta fatia, permanece em 4.5. Próximo checkpoint local: reconstrução do par corrigido após commit, cadeia representativa de proxies/auth/assinatura e ambiente de dados/auxiliares guardado, sem usar bancos operacionais ou contornar o launcher de Feature. Publicação continua bloqueada e deliberada.
+
+## Reconstrução do par corrigido — tarefa 4.1 (2026-10-24)
+
+Com autorização explícita «Commitar e seguir», correção Nginx e evidências anteriores commitadas em **`b29e7b4bb7ba1c17961853cf029a766a01252511`**. Ambos os targets foram reconstruídos de um único `git archive` dessa revisão limpa, com o mesmo `RELEASE_REVISION`, usando Podman existente e cache de build; nenhum Docker instalado. O build PHP regenerou autoload otimizado com 5778 classes. Imagens anteriores não foram retaggeadas nem sobrescritas.
+
+| Target | Image ID local | Digest local |
+| --- | --- | --- |
+| runtime | `87501fa90b20cacdfac81cd01a064d965e734c2c2649e6df9928629d92a562a5` | `sha256:01460dae698a1caf44f49c6fc9a47209b735c7ab4e1858f4ca4e9bfa2996a430` |
+| web | `20e5aa64b255aa4252b8333ed9494230371a601b541f3ea1036729eadeb18b8c` | `sha256:2fb861d178c736069b1e709e0b0c41b450647868a64a775948c199aadac5fe10` |
+
+Plataforma **linux/arm64**, labels `org.opencontainers.image.revision` iguais ao SHA acima; digests locais, sem publicação em registry. O arquivo Nginx extraído da imagem é byte a byte igual ao versionado, SHA-256 `b6798ff29bbf18e92c2fe57087137bdd857a12c1b14604c2a24410b8a06cb1c5`. A correção de fallback agora faz parte da imagem, não de overlay candidato. Para executar no Podman ainda foi necessário montar a configuração com **somente** `resolver 127.0.0.11` substituído pelo gateway DNS da rede privada; igualdade do restante conferida. Isso não valida DNS Docker/Dokploy.
+
+Run final **`trocado-release-7cbb19940f`**, probes efêmeros fora do repositório: três containers em execução (PHP, web, Redis) e um container sem execução para extrair configuração, duas redes internas exclusivas, sem portas no host/bind do checkout/banco. Redis usou tmpfs `/data` com `--image-volume=ignore`. Ambiente sintético privado 0600, Nightwatch desativado, mail array; sem migration, conta, fila, e-mail ou IA. Compose normalizado em cópia com esse ambiente por `podman-compose config --quiet`; composição completa não iniciada.
+
+| Requisito | Evidência repetida no par corrigido | Limite |
+| --- | --- | --- |
+| R1 | Labels iguais; asset CSS com mesmo SHA-256 em PHP, Nginx e conteúdo HTTP; sem portas host; web fora da rede de dados | Não valida registry, arquitetura VPS ou conectividade PostgreSQL operacional |
+| R2 | `/up` 200; raiz e rota API inexistente 404; ocultos/PHP/path-info 404; `/build/` 403; 301 relativo conserva query codificada | Não valida assinatura HTTPS |
+| R3/R4 | API sem Bearer 401 JSON:API e erro API 404 JSON:API; HSTS único e ausência de X-Powered-By nos probes | PAT válido, forwarded forjado, TLS/Traefik e correlação ainda pertencem a 4.3 |
+| R6/R7 | `nginx -t`, `php-fpm -t`, startup produção e `/up`; FPM parado faz comando exato do healthcheck falhar com curl 22 | Sem prova de migration/auxiliares/banco; pool não dimensionado para VPS |
+| R9 | Par corrigido identificado e validado localmente antes de publicação | Nenhum deploy ou rollback real; grupos 5–6 seguem bloqueando publicação |
+
+Retificação do histórico: `/` não tem contrato JSON:API. Com Accept JSON, o 404 da raiz usa o JSON Laravel com `message`, sem `trace`/`exception`; a normalização existente de `errors` aplica-se a `/api/*`. O primeiro run desta sessão (`trocado-release-f590bfedd4`) falhou porque a assertion exigiu JSON:API na raiz, não por desvio de runtime. Conferido `Core/Presentation/Http/Exceptions/exceptions.php`, corrigido somente o probe e repetido o run completo com sucesso. As menções anteriores a raiz 404 JSON:API ficam retificadas; nenhuma mudança de produção foi feita para acomodar a assertion.
+
+Cleanup confirmado de todos os recursos próprios das duas tentativas; ambiente privado e contexto Git temporário removidos, imagens/cache de build preservados. **4.1 concluída somente para o ambiente local descrito**; 2.3/3.2/4.3–4.6 seguem pendentes. Nenhum PHP alterado (Pint não aplicável), suíte funcional não executada. Próximo trabalho: dados isolados/guardados, barreira/auxiliares e cadeia representativa Traefik/HTTPS/auth/assinaturas, sem operar VPS implicitamente.

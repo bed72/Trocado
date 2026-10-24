@@ -62,12 +62,22 @@ Checkpoint final desta continuação: OpenSpec estrito aprovado sem issues, diff
 
 ## 4. Verificação antes de publicação
 
-- [ ] 4.1 Validar Compose, build das duas imagens, sintaxe Nginx e FPM e inicialização em ambiente privado isolado; registrar revisões/comandos/resultados sem segredos (R1, R6, R9).
+- [x] 4.1 Validar Compose, build das duas imagens, sintaxe Nginx e FPM e inicialização em ambiente privado isolado; registrar revisões/comandos/resultados sem segredos (R1, R6, R9).
 - [x] 4.2 Exercitar HTTP real dos containers: asset da release, front controller, query/barra final, bloqueios de arquivos e PHP arbitrário; comprovar saúde por `/up` e falha com upstream indisponível (R1, R2, R7).
 - [ ] 4.3 Verificar HTTP real de auth válida/inválida, status/envelope JSON:API, headers de correlação, HTTPS/assinatura e forwarded forjado na cadeia representativa, sem mudar regras de aplicação (R3, R4).
 - [ ] 4.4 Verificar headers de sucesso/erro, gzip aceito/recusado e ausência de cache compartilhado entre contas; confirmar que Nginx não recebeu segredos ou storage privado (R1, R4, R5).
 - [ ] 4.5 Verificar startup fail-fast/cache por container, variáveis/extensões no FPM e continuidade dos serviços auxiliares; executar somente verificações funcionais existentes pertinentes pelo launcher guardado, sem bancos de produção (R6, R7).
 - [ ] 4.6 Atualizar README de produção com arquitetura, builds/release pareada, parâmetros FPM, redes, proxies, gzip, healthcheck, limites e rollout/rollback. Remover orientações Apache tornadas obsoletas somente após registrar a referência de reversão (R1–R9).
+
+Evidência de 4.1 (2026-10-24): após autorização explícita «Commitar e seguir», os quatro arquivos pendentes foram commitados em **`b29e7b4bb7ba1c17961853cf029a766a01252511`**. `podman build --layers --target runtime|web --build-arg RELEASE_REVISION=<sha> -t localhost/trocado-php|nginx:<sha> <git-archive-temporário>` reconstruiu o par arm64 de um único arquivo Git limpo, sem instalar Docker nem sobrescrever o par anterior. Labels de revisão iguais; PHP digest local `sha256:01460dae698a1caf44f49c6fc9a47209b735c7ab4e1858f4ca4e9bfa2996a430`; Nginx `sha256:2fb861d178c736069b1e709e0b0c41b450647868a64a775948c199aadac5fe10`. IDs e matriz complementar em `design.md`.
+
+`podman-compose --env-file <env-sintético-0600> -f <cópia-compose> config --quiet`, `nginx -t` e `php-fpm -t` aprovados. Run completo **`trocado-release-7cbb19940f`**: FPM, Nginx e Redis descartáveis, redes internas exclusivas, nenhuma porta publicada ou banco. Conferida configuração corrigida já incorporada à imagem (hash anterior preservado); somente resolver DNS adaptado ao gateway Podman. `/up` 200; `/` e rota API ausente 404; API protegida sem Bearer 401; quatro probes ocultos/PHP/path-info 404; `/build/` 403; redirect 301 mantém query codificada; asset CSS idêntico por SHA-256 em PHP/Nginx/HTTP; sem X-Powered-By e HSTS único nos probes; healthcheck exato falha com FPM parado (curl 22). Web não participa da rede de dados. Cleanup de todos os containers/redes próprios confirmado; Redis com `/data` tmpfs e volumes de imagem ignorados, sem volumes persistentes criados.
+
+Correção da evidência histórica, não do produto: o primeiro probe desta sessão exigiu indevidamente `errors` JSON:API também em `/`. O código existente aplica essa normalização a `/api/*`; `/` responde 404 JSON Laravel com `message`, sem `trace`/`exception`. A assertion foi corrigida para respeitar esse contrato e a execução completa repetida; as menções anteriores a JSON:API na raiz ficam retificadas. Nenhum PHP alterado.
+
+4.1 concluída como validação **local Podman/arm64**, não como execução integral do Compose, Docker/Dokploy ou arquitetura da VPS. **2.3, 3.2 e 4.3–4.6 continuam pendentes:** barreira de migration, PostgreSQL/auxiliares, auth válida/duas contas e cadeia Traefik/HTTPS/assinaturas não foram exercitados. Não houve migration, suíte funcional, efeito externo, push, deploy ou archive. Próximo checkpoint: ambiente de dados isolado/guardado e cadeia representativa de proxies para essas provas. Publicação continua bloqueada pelos grupos 5–6.
+
+Fechamento deste checkpoint: `openspec validate migrate-production-to-nginx-php-fpm --type change --strict --json --no-interactive` aprovado sem issues, `git diff --check` sem erros e CLI confirma **13/29** tarefas. Consulta final por label confirma ausência de containers/redes dos dois runs. Novas evidências em README/design/tasks permanecem sem commit posterior ao `b29e7b4`; nenhum arquivo PHP alterado, Pint não aplicável.
 
 ## 5. Pré-requisitos operacionais de publicação
 
