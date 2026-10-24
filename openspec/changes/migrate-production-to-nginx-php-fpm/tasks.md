@@ -101,6 +101,8 @@ Fechamento deste checkpoint: `openspec validate migrate-production-to-nginx-php-
 
 ## 5. Pré-requisitos operacionais de publicação
 
+**Esclarecimento atual do operador (2026-10-24):** o Dokploy acessa este repo no GitHub via SSH e faz build/deploy pelos arquivos Docker. Não é GitHub Action conectando à VPS. A integração está confirmada pelo operador; **ausência de workflow `deploy.yml` não é pendência/bloqueio**, e não se exige SSH direto do agente à VPS para esse fluxo. README/design corrigidos sem criar workflow, chave ou integração nova. As referências anteriores à falta de Action como pendência ficam preservadas somente como histórico superado. Conferir no painel o uso de `docker-compose.yml` e ambos os targets; não presumir que um build isolado do Dockerfile cria a topologia. 5.1 permanece aberta apenas pelo inventário real de redes/roteamento/forwarded/compressão/HSTS, ainda não realizado, que pode ser conferido pelo operador no Dokploy. Nenhum acesso remoto, deploy ou probe local nesta correção; progresso **16/29**.
+
 - [ ] 5.1 Com autorização de acesso, inventariar na VPS redes/roteamento Dokploy, normalização forwarded, compressão e HSTS do Traefik, verificando que a configuração externa não duplica ou contradiz a nova cadeia (R3–R5).
 - [ ] 5.2 Medir consumo compartilhado e processos FPM representativos; registrar reserva, teto de conexões e parâmetros justificados para os 2 vCPUs/8 GB, sem atribuir toda a RAM ao PHP (R8).
 - [ ] 5.3 Registrar baseline Apache disponível de latência, erros, CPU/memória e perfil/caches/revisão, com observabilidade equivalente e sem carga de saturação ou execução do runner local na VPS; declarar insuficiências de amostra (R8).
