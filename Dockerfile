@@ -10,7 +10,7 @@ COPY public ./public
 COPY vite.config.js ./
 RUN npm run build
 
-FROM php:8.5.12-apache-bookworm AS php-base
+FROM php:8.5.12-fpm-bookworm@sha256:d3db5340c7ecfb1e3a26af5d3d9de8b4e160cdd75692a830b5cb74b0b85db2cf AS php-base
 
 WORKDIR /var/www/html
 
@@ -46,19 +46,38 @@ RUN mkdir -p storage/app/private storage/app/public storage/framework/cache/data
 
 FROM php-base AS runtime
 
+ARG RELEASE_REVISION
+RUN printf '%s' "$RELEASE_REVISION" | grep -Eq '^[0-9a-f]{40}$'
+LABEL org.opencontainers.image.revision="${RELEASE_REVISION}"
+
+ENV FPM_MAX_CHILDREN=4 \
+    FPM_START_SERVERS=2 \
+    FPM_MIN_SPARE_SERVERS=1 \
+    FPM_MAX_SPARE_SERVERS=2 \
+    FPM_MAX_REQUESTS=500 \
+    FPM_REQUEST_TERMINATE_TIMEOUT=60
+
 COPY --from=dependencies /var/www/html /var/www/html
 COPY --from=assets /app/public/build ./public/build
-COPY deploy/apache.conf /etc/apache2/sites-available/000-default.conf
-COPY deploy/apache-global.conf /etc/apache2/conf-available/trocado.conf
+COPY deploy/php-fpm.conf /usr/local/etc/php-fpm.d/zzz-trocado.conf
 COPY --chmod=755 deploy/entrypoint.sh /usr/local/bin/trocado-entrypoint
 
-RUN a2enmod rewrite deflate filter headers \
-    && a2enconf trocado \
-    && apache2ctl -t \
-    && chown -R www-data:www-data storage bootstrap/cache \
+RUN chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R ug+rwX storage bootstrap/cache
 
 ENTRYPOINT ["trocado-entrypoint"]
-CMD ["apache2-foreground"]
+CMD ["php-fpm"]
+
+FROM nginx:1.30.6-trixie@sha256:a7675fcee220f59b4a99f7098c06a0d5d999c2c0ee37c0211efb780536e5cb20 AS web
+
+ARG RELEASE_REVISION
+RUN printf '%s' "$RELEASE_REVISION" | grep -Eq '^[0-9a-f]{40}$' \
+    && rm -rf /usr/share/nginx/html
+LABEL org.opencontainers.image.revision="${RELEASE_REVISION}"
+
+WORKDIR /var/www/html
+COPY --from=assets /app/public/build ./public/build
+COPY --from=assets /app/public/favicon.ico /app/public/robots.txt ./public/
+COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80

@@ -153,6 +153,35 @@ Execute `lerd artisan db:seed` e informe a senha quando solicitada no terminal; 
 
 ## Produção
 
+### Migração Nginx/PHP-FPM em preparação — não publicar ainda
+
+O Compose deste checkout foi adaptado para `web` (Nginx 1.30.6) → `fpm` (PHP 8.5.12), atrás do Traefik. **Build das imagens, validadores Nginx/FPM, HTTP real e pré-requisitos da VPS ainda não foram comprovados.** Não executar rollout com base apenas na validação estática. As referências Apache abaixo são históricas; Dockerfile/Compose/configurações anteriores estão no commit `d481def3260bb8f6acf20973de4874a6c32575ed`. Essa referência de código não substitui guardar a imagem publicada por digest antes da migração.
+
+- Build pareado: targets `runtime` (PHP) e `web` (Nginx) do mesmo `Dockerfile`/checkout limpo. Defina `RELEASE_REVISION` como SHA Git completo de 40 caracteres; as imagens `trocado-php:<sha>` e `trocado-nginx:<sha>` recebem a mesma label `org.opencontainers.image.revision`. A publicação deve registrar ambos os digests, não usar `local`/`latest` nem misturar revisões. Não há instalação de Docker como parte desta mudança.
+- Rede de entrada: somente `web` participa de `dokploy-network`. Nginx/FPM compartilham `fastcgi` interna; FPM escuta em `fpm-fastcgi:9000`, alias exclusivo dessa rede, sem porta publicada. Não substituir por `0.0.0.0:9000`. O Nginx renova esse endereço pelo DNS interno Docker `127.0.0.11`; outra engine exige rever o resolver, não presumir equivalência.
+- Rede de dados: `APP_SERVICES_NETWORK` é obrigatório para a rede externa **distinta de `dokploy-network`** que dá acesso PHP ao PostgreSQL/Redis. Confirmar existência, conexão dos serviços e aliases de `DB_HOST`/`REDIS_HOST` antes de publicar. O Compose não cria nem conecta banco/Redis a essa rede automaticamente. `default` continua levando PHP ao Nightwatch; o agente só participa dela.
+- Apenas processos PHP recebem `.env`/credenciais e `app-storage`. Nginx recebe `build/` gerado, `favicon.ico` e `robots.txt`, sem fontes PHP, `vendor`, `.env` ou storage. Não há mount público de storage; confirmar consumo real de `/storage` na VPS antes do rollout.
+- O entrypoint valida o pool antes de FPM, exige `APP_DEBUG=false` em produção e recusa proxy ausente/com wildcard no FPM. Prepara config/route/event caches por container depois da injeção de ambiente; falha interrompe o processo com diagnóstico do comando, sem despejar exceção potencialmente sensível. Mantém OPcache de `deploy/php.ini`, `clear_env=no`, caches locais e nenhuma limpeza global/de views. Comandos administrativos avulsos não preparam caches automaticamente.
+
+Pool `dynamic` em `deploy/php-fpm.conf`, com overrides nas variáveis do Compose (apenas inteiros positivos, timeout em segundos):
+
+| Variável | Default provisório |
+| --- | --- |
+| `FPM_MAX_CHILDREN` | 4 |
+| `FPM_START_SERVERS` | 2 |
+| `FPM_MIN_SPARE_SERVERS` | 1 |
+| `FPM_MAX_SPARE_SERVERS` | 2 |
+| `FPM_MAX_REQUESTS` | 500 |
+| `FPM_REQUEST_TERMINATE_TIMEOUT` | 60 |
+
+Os valores são um ponto inicial limitado para validação, **não dimensionamento validado da VPS**. Exige-se `min_spare <= start <= max_spare <= max_children`; backlog é 128 e o timeout também cobre processamento após `fastcgi_finish_request`. Medir filhos aquecidos (distinguir RSS/PSS e memória compartilhada), reservar consumo de PostgreSQL/Redis, workers, Traefik/Dokploy, outros projetos e sistema. Estimar `floor(orçamento de filhos / consumo conservador por filho)` e reduzir conforme CPU, latência/fila e conexões disponíveis no PostgreSQL, incluindo auxiliares; não atribuir os 8 GB ao FPM nem escolher apenas pelos 2 vCPUs. Mudança de timeout deve ser coordenada com `fastcgi_read_timeout` (65s) e limites de entrada.
+
+A configuração HTTP incluída nesta preparação limita PHP ao front controller, bloqueia ocultos e PHP arbitrário, usa gzip nível 4 acima de 1024 bytes para tipos textuais/JSON/JSON:API e `Vary`, sem cache HTTP novo. HSTS mantém `max-age=15552000`; confirmar que Traefik não o duplica nem comprime novamente. `REMOTE_ADDR` usa o peer Traefik do Nginx, sem real-IP; forwarded passa sem substituir HTTPS externo pelo HTTP interno. Confirmar a normalização de headers no Traefik e a origem efetiva no PHP antes de aceitar essa confiança. Nenhum endpoint de diagnóstico público é criado.
+
+O healthcheck consulta `/up` por Nginx/FPM com conexão de 2s e total de 4s; ainda precisa ser exercitado com FPM disponível/indisponível e não comprova banco, Redis ou workers. Access logs Nginx e FPM usam somente metadados de tempo/método/status/tamanho ou memória, sem URI/query/credenciais. O error log por request do Nginx fica desativado porque seu formato não permite redigir query assinada; diagnosticar por status/tempo e logs PHP/aplicação. Isso reduz detalhe de erros upstream e não comprova sanitização dos logs Traefik existentes.
+
+### Baseline Apache — referência histórica, não descreve o Compose atual
+
 O Dokploy publica `docker-compose.yml`: o serviço `migrate` aplica as migrations antes de iniciar `web`, os workers `queue` e `expense-classification`, e `scheduler`. A imagem usa PHP 8.5 com Apache, atrás do Traefik; os assets são compilados com Node 24 LTS. A extensão PHP Redis é instalada a partir do arquivo da versão 6.3.0, com tentativas de download, sem consultar o catálogo do PECL. PostgreSQL e Redis são serviços separados, acessados pelos hosts internos do Dokploy; suas portas não precisam ser publicadas na internet.
 
 O build separa assets, dependências e runtime, com caches de download de npm/Composer; Node, Composer e ferramentas de compilação não entram na imagem final. `storage/app` e caches PHP locais de `bootstrap/cache` ficam fora do contexto. O PHP usa `php.ini-production` e OPcache sem revalidação de timestamps: publique uma nova imagem e recrie os containers para carregar código novo, sem editar PHP no container ativo. O Apache conserva prefork, usa as regras de rewrite do VirtualHost em vez de ler `.htaccess` por request e não recebe um limite de processos estimado sem medição.
@@ -166,6 +195,8 @@ Defina `TRUSTED_PROXIES` com o IP interno do Traefik na rede `dokploy-network`, 
 Para envio via Resend, configure `MAIL_MAILER=resend`, `RESEND_API_KEY`, `MAIL_FROM_NAME` e `MAIL_FROM_ADDRESS` na aba **Environment**. O domínio de `MAIL_FROM_ADDRESS` precisa estar verificado na conta Resend da chave usada; não precisa ser o mesmo domínio da API. O worker `queue` processa as notificações. No Apache, `ServerTokens Prod` e `ServerSignature Off` omitem a versão nos cabeçalhos/erros, e `expose_php=Off` remove o cabeçalho de versão do PHP; o servidor ainda pode se identificar como Apache. `mod_deflate` comprime HTML, CSS, JavaScript e respostas JSON/JSON:API quando o cliente aceita gzip. No Lerd local, o servidor é Nginx; nesta máquina, o override deste site usa `server_tokens off` e gzip para tipos textuais. Esse override não é distribuído pelo repositório.
 
 ## CI e deploy
+
+**Limitação observada no checkout:** somente `.github/workflows/ci.yml` está versionado. Não há workflow **Deploy to Dokploy**; as instruções históricas abaixo dependem de restaurar/confirmar esse fluxo em trabalho explicitamente autorizado. Não foi criado acionamento de deploy nem acionada a API Dokploy nesta migração. Essa pendência bloqueia a publicação pelo fluxo manual descrito na spec.
 
 O workflow `.github/workflows/ci.yml` roda em pull requests e pushes para `main`: instala as dependências, verifica a formatação com Pint, prepara PostgreSQL exclusivo pelo preflight, executa os testes e compila os assets. **Um push nunca inicia o deploy.** Para publicar, execute manualmente **Actions → Deploy to Dokploy → Run workflow** na branch `main`; esse workflow repete as verificações e só solicita o deploy depois que elas passarem.
 
