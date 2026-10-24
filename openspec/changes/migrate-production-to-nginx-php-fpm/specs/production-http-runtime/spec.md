@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: R1 Entrega HTTP por serviços de uma mesma release
-O runtime de produção MUST atender pela cadeia Traefik → Nginx → PHP-FPM, com TLS terminado no Traefik e arquivos públicos/código PHP pertencentes à mesma release imutável. Somente o serviço HTTP MUST receber tráfego da rede de entrada; FastCGI MUST NOT ser publicado no host ou na internet. Nginx MUST NOT receber segredos de aplicação ou acesso a arquivos privados para servir assets.
+O runtime de produção MUST atender pela cadeia Traefik → Nginx → PHP-FPM, com TLS terminado no Traefik e arquivos públicos/código PHP pertencentes à mesma release imutável. Nginx MUST ser o único destino HTTP do Traefik. Os processos PHP MUST preservar acesso ao PostgreSQL/Redis pela rede Dokploy existente, sem exigir uma rede externa adicional. O listener FastCGI MUST aceitar conexões somente pela interface da rede dedicada entre Nginx e FPM e MUST NOT ser publicado no host ou na internet. O build do par MUST usar o mesmo checkout, sem exigir uma variável manual de revisão. Nginx MUST NOT receber segredos de aplicação ou acesso a arquivos privados para servir assets.
 
 #### Scenario: Asset e rota dinâmica da mesma release
 - **WHEN** uma release é iniciada e recebe requisições para um asset existente e uma rota Laravel
@@ -12,6 +12,12 @@ O runtime de produção MUST atender pela cadeia Traefik → Nginx → PHP-FPM, 
 - **WHEN** as redes, portas e arquivos da release são inspecionados
 - **THEN** FastCGI só é acessível pela rede dedicada entre Nginx e FPM, sem porta publicada
 - **AND** o serviço Nginx não contém credenciais, fontes internas ou storage privado
+
+#### Scenario: Build pelo Dokploy sem configuração adicional de revisão ou rede
+- **WHEN** Dokploy obtém o repositório e constrói a composição com os hosts de banco/Redis já configurados
+- **THEN** os dois targets são construídos do mesmo checkout sem variável manual de revisão
+- **AND** PHP conserva acesso aos serviços pela rede existente sem exigir nova rede externa
+- **AND** FastCGI continua restrito à interface dedicada, mesmo com o container PHP conectado à rede Dokploy
 
 ### Requirement: R2 Front controller e arquivos protegidos
 O servidor HTTP MUST servir exclusivamente a árvore pública autorizada, sem listagem de diretórios, e MUST limitar execução PHP ao front controller esperado. Arquivos ocultos, configuração privada e outros caminhos PHP MUST NOT ser executados ou entregues como fonte. Roteamento, query strings e normalização de barra final MUST preservar os comportamentos existentes da aplicação, sem alterar URLs assinadas indevidamente.

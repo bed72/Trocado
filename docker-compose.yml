@@ -3,9 +3,7 @@ x-app: &app
     context: .
     dockerfile: Dockerfile
     target: runtime
-    args:
-      RELEASE_REVISION: ${RELEASE_REVISION:?Set RELEASE_REVISION to the full Git commit SHA}
-  image: trocado-php:${RELEASE_REVISION:?Set RELEASE_REVISION to the full Git commit SHA}
+  image: trocado-php:local
   env_file:
     - .env
   environment:
@@ -15,7 +13,7 @@ x-app: &app
     - app-storage:/var/www/html/storage
   networks:
     - default
-    - app-services
+    - dokploy-network
 
 services:
   migrate:
@@ -28,9 +26,7 @@ services:
       context: .
       dockerfile: Dockerfile
       target: web
-      args:
-        RELEASE_REVISION: ${RELEASE_REVISION:?Set RELEASE_REVISION to the full Git commit SHA}
-    image: trocado-nginx:${RELEASE_REVISION:?Set RELEASE_REVISION to the full Git commit SHA}
+    image: trocado-nginx:local
     restart: unless-stopped
     networks:
       - dokploy-network
@@ -64,7 +60,7 @@ services:
         aliases:
           - fpm-fastcgi
       default:
-      app-services:
+      dokploy-network:
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -117,7 +113,4 @@ networks:
     external: true
   fastcgi:
     internal: true
-  app-services:
-    external: true
-    name: ${APP_SERVICES_NETWORK:?Set APP_SERVICES_NETWORK to the separate PostgreSQL and Redis network}
   default:

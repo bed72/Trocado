@@ -5,6 +5,7 @@ A produção usa Apache prefork com PHP, enquanto o desenvolvimento usa Nginx + 
 ## What Changes
 
 - Substituir o atendimento Apache por Nginx + PHP-FPM atrás do Traefik, com releases coerentes entre arquivos públicos e código PHP.
+- Preservar o build pelo Dokploy a partir do mesmo checkout e o acesso aos serviços pela rede existente, sem exigir variável manual de revisão ou uma nova rede externa de dados. FPM compartilha a rede Dokploy para banco/Redis, mas seu listener fica restrito à interface FastCGI dedicada e sem porta publicada.
 - Preservar autenticação, HTTPS externo, links assinados, query strings, contratos JSON:API, limites de requisição e headers de segurança existentes.
 - Restringir execução ao front controller, impedir exposição de arquivos internos e FastCGI, ocultar versões e remover `X-Powered-By`, sem módulos adicionais apenas para remover o nome Nginx.
 - Manter gzip, OPcache, autoload otimizado, caches Laravel e isolamento dos processos de migration, filas, scheduler e Nightwatch.

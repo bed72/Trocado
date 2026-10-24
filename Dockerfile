@@ -46,10 +46,6 @@ RUN mkdir -p storage/app/private storage/app/public storage/framework/cache/data
 
 FROM php-base AS runtime
 
-ARG RELEASE_REVISION
-RUN printf '%s' "$RELEASE_REVISION" | grep -Eq '^[0-9a-f]{40}$'
-LABEL org.opencontainers.image.revision="${RELEASE_REVISION}"
-
 ENV FPM_MAX_CHILDREN=4 \
     FPM_START_SERVERS=2 \
     FPM_MIN_SPARE_SERVERS=1 \
@@ -70,10 +66,7 @@ CMD ["php-fpm"]
 
 FROM nginx:1.30.6-trixie@sha256:a7675fcee220f59b4a99f7098c06a0d5d999c2c0ee37c0211efb780536e5cb20 AS web
 
-ARG RELEASE_REVISION
-RUN printf '%s' "$RELEASE_REVISION" | grep -Eq '^[0-9a-f]{40}$' \
-    && rm -rf /usr/share/nginx/html
-LABEL org.opencontainers.image.revision="${RELEASE_REVISION}"
+RUN rm -rf /usr/share/nginx/html
 
 WORKDIR /var/www/html
 COPY --from=assets /app/public/build ./public/build
